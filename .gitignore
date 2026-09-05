@@ -1,0 +1,16 @@
+# 本地配置与安装的技能副本
+.claude/
+
+# 调试临时文件
+.playwright-mcp/
+
+# Python 缓存
+__pycache__/
+
+# spec-workflow 空模板
+.spec-workflow/
+
+# BMAD 框架与规划产物（不入库）
+_bmad/
+_bmad-output/
+diy-output/

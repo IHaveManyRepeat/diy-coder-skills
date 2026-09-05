@@ -1,0 +1,12 @@
+# diy-coder-skill 全局配置 — 所有 diy-* skill 共享读取
+project:
+  name: diy-coder-skill
+  communication_language: zh-CN      # 会话交流语言
+  document_output_language: zh-CN    # 产物文档语言
+
+paths:
+  output_dir: diy-output             # 所有 YAML 单一源产物目录（相对项目根）
+  view_dir: .view                    # HTML 投影目录（一次性生成物，可随时删除）
+
+viewer:
+  auto_open: true                    # 渲染完成后自动用浏览器打开
