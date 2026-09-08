@@ -7,6 +7,8 @@ project:
 paths:
   output_dir: diy-output             # 所有 YAML 单一源产物目录（相对项目根）
   view_dir: .view                    # HTML 投影目录（一次性生成物，可随时删除）
+  experience_repo: "C:/Users/93559/.diy-coder/experience"            # exp-sync.py init 写入（项目级配置，sync.sh 不覆盖）
+                                     # 留空则只用项目级 bug-log.yaml；配置后跨项目共享 bug 模式
 
 viewer:
   auto_open: true                    # 渲染完成后自动用浏览器打开

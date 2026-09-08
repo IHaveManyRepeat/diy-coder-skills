@@ -17,5 +17,10 @@ for d in "$SRC"/skills/diy-*; do
   cp -r "$d" "$SKILL_DST/"
   count=$((count + 1))
 done
-cp "$SRC/diy-coder.yaml" "$DST_ROOT/diy-coder.yaml"
-echo "[diy-coder] synced $count skill(s) -> $SKILL_DST (+ $DST_ROOT/diy-coder.yaml)"
+# diy-coder.yaml 是项目级配置（experience_repo 等各项目不同）：仅首次安装创建，之后不覆盖
+if [ ! -f "$DST_ROOT/diy-coder.yaml" ]; then
+  cp "$SRC/diy-coder.yaml" "$DST_ROOT/diy-coder.yaml"
+  echo "[diy-coder] synced $count skill(s) -> $SKILL_DST (+ created $DST_ROOT/diy-coder.yaml)"
+else
+  echo "[diy-coder] synced $count skill(s) -> $SKILL_DST (diy-coder.yaml 已存在，未覆盖)"
+fi

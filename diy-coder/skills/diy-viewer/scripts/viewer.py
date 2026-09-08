@@ -19,12 +19,13 @@ from pathlib import Path
 import yaml
 
 BADGE_KEYS = {"status", "priority", "state"}
-ENUM_KEYS = BADGE_KEYS | {"type", "decision"}
+ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "technique", "gate", "class", "subclass", "source"}
 BADGE_CLASSES = {
     "final": "ok", "done": "ok", "pass": "ok", "passing": "ok", "must": "must",
     "draft": "dim", "could": "dim", "pending": "dim", "skipped": "dim",
     "in-progress": "warn", "in_review": "warn", "should": "warn", "wip": "warn",
     "blocked": "bad", "fail": "bad", "failed": "bad", "red": "bad",
+    "blocking": "bad", "advisory": "warn",
 }
 KEY_RE = re.compile(r"[^a-z0-9]+")
 META_KEYS = ("project", "x-project")
@@ -54,7 +55,18 @@ KEY_LABELS = {
     "reason": "原因", "decision": "处理决定", "note": "备注", "notes": "备注",
     "method": "方法", "path": "路径", "operationId": "操作 ID",
     "summary": "摘要", "x-fr": "关联需求",
-    "tasks": "任务", "blocked_reason": "阻塞原因",
+    "tasks": "任务", "blocked_reason": "阻塞原因", "test_refs": "关联用例",
+    "evidence": "执行证据", "tc": "用例", "red": "红", "green": "绿",
+    "review": "审查记录", "verdict": "结论", "findings": "发现清单",
+    "layer": "层", "route": "路由",
+    "technique": "设计技术", "kill_target": "目标缺陷",
+    "static_checks": "静态检查链", "order": "顺序", "tool": "工具",
+    "kills": "消灭问题", "gate": "门禁",
+    "bugs": "缺陷记录", "class": "大类", "subclass": "中类",
+    "symptom": "症状", "root_cause": "根因", "pattern": "模式",
+    "source": "来源", "date": "日期",
+    "type": "小类", "trigger": "触发方法", "fix": "修复方案",
+    "prevention": "根治机制", "taxonomy": "分类注册表",
 }
 VALUE_LABELS = {
     "draft": "草稿", "final": "已定稿", "pending": "待办",
@@ -63,18 +75,30 @@ VALUE_LABELS = {
     "must": "必须", "should": "应该", "could": "可选",
     "unit": "单元", "integration": "集成", "e2e": "端到端",
     "waived": "已豁免", "accept-gap": "接受缺口",
+    "correctness": "正确性", "boundary": "边界", "coverage": "覆盖审计",
+    "intent_gap": "意图缺口", "bad_spec": "规格缺陷", "patch": "小修", "defer": "后置",
+    "equivalence": "等价类", "decision-table": "决策表", "state-transition": "状态迁移",
+    "pairwise": "成对组合", "error-guessing": "错误猜测", "metamorphic": "蜕变测试",
+    "property": "属性测试", "scenario": "场景",
+    "blocking": "阻断", "advisory": "记录不阻断",
+    "functional": "功能型", "non-functional": "非功能型",
+    "logic": "逻辑", "data": "数据", "state": "状态",
+    "performance": "性能", "UX": "用户体验", "security": "安全",
+    "compatibility": "兼容性", "reliability": "可靠性",
+    "dev": "开发", "audit": "审查发现", "falsification": "证伪轮", "user": "用户",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
     "stories": "故事列表", "test-plan": "测试计划", "openapi": "接口契约",
     "sprint": "冲刺任务",
+    "bug-log": "缺陷模式库",
 }
 # ID 链：带 id 字段的条目卡片生成锚点；文本中命中的 ID 链接到其所在文档并带悬停预览。
 # 引用型字段（REF_KEYS）在正文只显示编号链接；点击后右侧浮动详情面板展示完整内容
 # （页面尾部以 <template> 预渲染全部 ID 详情，面板内链接可链式查看）。
 ID_RE = re.compile(r"\b[A-Z]{1,4}-\d+(?:\.\d+)*\b")
 ID_FULL_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
-REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "ac", "epic", "x-fr"}
+REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr"}
 PREVIEW_KEYS = ("statement", "then", "title", "question", "goal", "risk", "name",
                 "decision", "description", "narrative")
 ID_INDEX: dict = {}
@@ -138,6 +162,18 @@ def render_ref_item(i: str) -> str:
     if not hit:
         return esc(i)
     return id_link(i, hit)
+
+
+def ref_cell(i: str) -> str:
+    """正文引用字段：编号链接 + 目标摘要，审阅无需跳页。"""
+    s = i.strip()
+    hit = ID_INDEX.get(s)
+    if not hit:
+        return esc(i)
+    out = id_link(i, hit)
+    if hit["preview"] and hit["preview"] != s:
+        out += f'<span class="refsum">{esc(hit["preview"])}</span>'
+    return out
 
 
 def render_ref_list(items: list) -> str:
@@ -237,13 +273,14 @@ def render_table(items: list, with_row_ids: bool = True) -> str:
         rid = item.get("id") if with_row_ids else None
         anchor = f' id="{esc(rid)}"' if isinstance(rid, str) and rid else ""
         rows.append(f"<tr{anchor}>{''.join(tds)}</tr>")
-    return f'<table><thead><tr>{th}</tr></thead><tbody>{"".join(rows)}</tbody></table>'
+    return (f'<div class="table-scroll"><table class="data">'
+            f'<thead><tr>{th}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>')
 
 
 def render_dict_fields(d: dict) -> str:
     def field(k, v):
         if k in REF_KEYS and is_id_string(v):
-            return render_ref_item(str(v).strip())
+            return ref_cell(str(v))
         return badge(k, v) if k in ENUM_KEYS else cell(v)
 
     rows = "".join(
@@ -287,7 +324,7 @@ def render_value(key: str, v, depth: int) -> str:
             return title + "".join(cards)
         return title + "<ul>" + "".join(f"<li>{cell(x)}</li>" for x in v) + "</ul>"
     if key in REF_KEYS and is_id_string(v):
-        return title + render_ref_item(v.strip())
+        return title + ref_cell(v)
     return title + (badge(key, v) if key in ENUM_KEYS else f"<p>{cell(v)}</p>")
 
 
@@ -308,6 +345,7 @@ width:100%;background:var(--card);border:1px solid var(--line);border-radius:
 vertical-align:top;border-bottom:1px solid var(--line)}thead th{background:
 #eef2f7;font-weight:600}tbody tr:last-child td{border-bottom:none}
 table.kv th{width:180px;background:#eef2f7;font-weight:600}ul{padding-left:22px}
+.table-scroll{overflow-x:auto}table.data th,table.data td{white-space:nowrap}
 .card{background:var(--card);border:1px solid var(--line);border-radius:8px;
 padding:4px 18px;margin:10px 0}.card h3,.card h4,.card h5{margin:.7em 0 .3em}
 .badge{display:inline-block;padding:1px 10px;border-radius:999px;font-size:.8em;
@@ -317,7 +355,8 @@ border-color:#f3ddab}.b-bad{color:var(--bad);background:#fef2f2;
 border-color:#f3c1c1}.b-dim{color:var(--dim);background:#f3f4f6;
 border-color:#e0e2e6}.b-must{color:#fff;background:var(--accent)}.b-neutral{
 color:var(--ink);background:#eef2f7;border-color:var(--line)}
-.assume{background:#fef9c3;padding:0 4px;border-radius:4px}
+.assume{background:#fef9c3;padding:0 4px;border-radius:4px}.refsum{
+color:var(--dim);font-size:.85em;margin-left:6px}
 .idl{color:var(--accent);text-decoration:underline dotted;text-underline-offset:3px}
 .idl:hover{background:#eef2f7;border-radius:3px}
 .reflist{list-style:none;padding-left:0;margin:4px 0}
@@ -503,25 +542,7 @@ def build_index(docs: list) -> str:
     return page("diy-coder 文档索引", body)
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description="diy-coder YAML → HTML viewer")
-    ap.add_argument("--project-root", default=".", help="project root directory")
-    ap.add_argument("--no-open", action="store_true", help="do not open the browser")
-    ap.add_argument("files", nargs="*", help="specific yaml files (default: all under output_dir)")
-    args = ap.parse_args()
-
-    root = Path(args.project_root).resolve()
-    cfg = load_config(root)
-    out_dir = root / cfg["output_dir"]
-
-    if args.files:
-        paths = [Path(f).resolve() for f in args.files]
-    else:
-        if not out_dir.exists():
-            print(f"[diy-viewer] output dir not found: {out_dir}. Run a diy-* workflow first.", file=sys.stderr)
-            return 1
-        paths = sorted(out_dir.glob("*.yaml"))
-
+def load_docs(paths) -> tuple:
     docs, errors = [], []
     for p in paths:
         try:
@@ -533,6 +554,32 @@ def main() -> int:
             errors.append(f"{p.name}: empty document")
             continue
         docs.append((p.stem, data))
+    return docs, errors
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="diy-coder YAML → HTML viewer")
+    ap.add_argument("--project-root", default=".", help="project root directory")
+    ap.add_argument("--no-open", action="store_true", help="do not open the browser")
+    ap.add_argument("files", nargs="*", help="specific yaml files (default: all under output_dir)")
+    args = ap.parse_args()
+
+    root = Path(args.project_root).resolve()
+    cfg = load_config(root)
+    out_dir = root / cfg["output_dir"]
+
+    if not out_dir.exists():
+        print(f"[diy-viewer] output dir not found: {out_dir}. Run a diy-* workflow first.", file=sys.stderr)
+        return 1
+
+    # ID 链接索引与跨文档导航必须基于全量文档构建，即使本次只渲染子集。
+    all_docs, errors = load_docs(sorted(out_dir.glob("*.yaml")))
+    docs = all_docs
+    if args.files:
+        req = {Path(f).name for f in args.files}
+        docs = [(n, d) for n, d in all_docs if f"{n}.yaml" in req]
+        for m in sorted(req - {f"{n}.yaml" for n, _ in all_docs}):
+            errors.append(f"{m}: not found under {out_dir}")
 
     if errors:
         for e in errors:
@@ -542,14 +589,14 @@ def main() -> int:
     view_dir.mkdir(parents=True, exist_ok=True)
 
     written = []
-    build_id_index(docs)
+    build_id_index(all_docs)
     for name, data in docs:
-        others = [(n, d) for n, d in docs]
+        others = all_docs
         f = view_dir / f"{name}.html"
         f.write_text(render_doc_page(name, data, others), encoding="utf-8")
         written.append(f)
     index = view_dir / "index.html"
-    index.write_text(build_index(docs), encoding="utf-8")
+    index.write_text(build_index(all_docs), encoding="utf-8")
 
     print(f"[diy-viewer] rendered {len(written)} doc(s) -> {view_dir}")
     if errors:
