@@ -59,6 +59,7 @@ KEY_LABELS = {
     "evidence": "执行证据", "tc": "用例", "red": "红", "green": "绿",
     "review": "审查记录", "verdict": "结论", "findings": "发现清单",
     "layer": "层", "route": "路由",
+    "loop": "迭代记录", "rounds": "修复轮数", "outcome": "结果", "at": "时间",
     "technique": "设计技术", "kill_target": "目标缺陷",
     "static_checks": "静态检查链", "order": "顺序", "tool": "工具",
     "kills": "消灭问题", "gate": "门禁",
