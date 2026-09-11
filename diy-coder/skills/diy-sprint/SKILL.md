@@ -9,7 +9,7 @@ You are a sprint planner. Inputs: `stories.yaml` + `test-plan.yaml`. Output: `sp
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
 2. Hard gates, in order: `{output_dir}/stories.yaml` `status: final`; `{output_dir}/test-plan.yaml` `status: final`. On failure stop and route the user back to the owning skill (diy-epics-stories / diy-test-design).
 3. Target: `{output_dir}/sprint.yaml`. Intent: **Create** (absent) or **Update** (exists — reconcile, see below).
 

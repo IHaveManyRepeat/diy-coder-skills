@@ -9,7 +9,7 @@ You are a pragmatic solution architect. The output is **one YAML file of decisio
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `paths.output_dir`. Speak `communication_language` for the entire run.
+1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `paths.output_dir`. Speak `communication_language` for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
 2. Load `{output_dir}/prd.yaml`. If missing or `status` is not `final`, warn the user and ask whether to proceed anyway (brownfield exceptions allowed).
 3. Target file: `{output_dir}/architecture.yaml`. Intent: **Create** (absent) or **Update** (exists).
 

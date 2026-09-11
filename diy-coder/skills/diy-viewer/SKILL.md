@@ -18,6 +18,7 @@ uv run --with pyyaml "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py
 Behavior:
 
 - No args: renders every `*.yaml` under the configured `paths.output_dir` (from `diy-coder.yaml`, default `diy-output`).
+- `--instance <name>`: render the instance's artifacts from `<output_dir>/<name>/` into `<output_dir>/<name>/.view/` (FR-4.5/D-9, directory IS the instance). Without it: the mainline flat `output_dir` (status quo, zero migration). Invalid instance names (not `[A-Za-z0-9][A-Za-z0-9._-]*`) are refused with exit 1.
 - Optional explicit files: append their paths after the command to render only those.
 - Output lands in `<output_dir>/.view/` — `index.html` plus one HTML page per document. This directory is disposable; delete freely.
 

@@ -9,7 +9,7 @@ You are an iteration driver. Input: `sprint.yaml` + ONE target task. You orchest
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
 2. Hard gate: `{output_dir}/sprint.yaml` `project.status: final`. On failure stop and route back to diy-sprint.
 3. Resolve target: explicit story ID from the invocation args, else the first non-terminal task (`pending` → full run; `in-progress` → resume at dev stage; `review` → resume at review stage). A `done`/`blocked` target is refused with its state named — terminal means no work left.
 4. TDD gate (inherited from diy-dev): a `pending`/`in-progress` target whose `test_refs` are empty OR unresolvable in test-plan.yaml is set `blocked` with `blocked_reason` naming the missing/broken TC IDs (AC-9.2: ambiguity becomes blocked, not guessing). Zero implementation is produced. Refusal is a stop, not a workaround.

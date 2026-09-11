@@ -103,6 +103,10 @@ REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs
 PREVIEW_KEYS = ("statement", "then", "title", "question", "goal", "risk", "name",
                 "decision", "description", "narrative")
 ID_INDEX: dict = {}
+# S-12 ID 链一致性（FR-4.4）：悬空引用按文档汇总，渲染时行内标红 + 顶部告警
+DANGLING_BY_DOC: dict = {}
+# S-12 孤儿 must FR（AC-12.2）：未被任何 AC/用例引用，条目行标红
+ORPHAN_IDS: set = set()
 
 
 def key_label(k: str) -> str:
@@ -128,6 +132,49 @@ def _collect_ids(node, doc: str) -> None:
 
 def is_id_string(v) -> bool:
     return isinstance(v, str) and ID_FULL_RE.fullmatch(v.strip()) is not None
+
+
+def iter_ref_values(node):
+    # trace: S-12 AC-12.1 AC-12.2 产出引用型字段的全部字符串值（悬空/孤儿共用遍历）
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k in REF_KEYS:
+                vals = v if isinstance(v, list) else [v]
+                for x in vals:
+                    if isinstance(x, str):
+                        yield x
+            else:
+                yield from iter_ref_values(v)
+    elif isinstance(node, list):
+        for x in node:
+            yield from iter_ref_values(x)
+
+
+def collect_dangling(node, found: list) -> None:
+    # trace: S-12 AC-12.1 TC-12.1.1 收集引用型字段中不可解析的 ID（悬空引用）
+    found.extend(
+        x.strip() for x in iter_ref_values(node)
+        if is_id_string(x) and x.strip() not in ID_INDEX)
+
+
+def compute_orphans(prd_data, referenced: set) -> set:
+    # trace: S-12 AC-12.2 TC-12.2.1 must FR 未被任何 AC/用例引用 → 孤儿
+    orphans = set()
+    for feat in prd_data.get("features") or []:
+        if not isinstance(feat, dict):
+            continue
+        for req in feat.get("requirements") or []:
+            if (isinstance(req, dict) and is_id_string(req.get("id"))
+                    and str(req.get("priority", "")).strip().lower() == "must"
+                    and req["id"].strip() not in referenced):
+                orphans.add(req["id"].strip())
+    return orphans
+
+
+def dangling_ref(i: str) -> str:
+    # trace: S-12 AC-12.1 TC-12.1.1 悬空引用：红字 + 错误徽章，断裂显式可见
+    return (f'<span class="dangling">{esc(i)}</span>'
+            f'<span class="badge b-bad">引用不存在</span>')
 
 
 def id_link(i: str, hit: dict) -> str:
@@ -161,7 +208,7 @@ def render_ref_item(i: str) -> str:
     """单个 ID 引用：仅编号链接，详情点击后在右侧面板查看。"""
     hit = ID_INDEX.get(i.strip())
     if not hit:
-        return esc(i)
+        return dangling_ref(i)  # trace: S-12 AC-12.1 悬空引用标红
     return id_link(i, hit)
 
 
@@ -170,7 +217,7 @@ def ref_cell(i: str) -> str:
     s = i.strip()
     hit = ID_INDEX.get(s)
     if not hit:
-        return esc(i)
+        return dangling_ref(i)  # trace: S-12 AC-12.1 悬空引用标红
     out = id_link(i, hit)
     if hit["preview"] and hit["preview"] != s:
         out += f'<span class="refsum">{esc(hit["preview"])}</span>'
@@ -183,7 +230,7 @@ def render_ref_list(items: list) -> str:
     for x in items:
         hit = ID_INDEX.get(str(x).strip())
         if hit is None:
-            lis.append(f"<li>{esc(x)}</li>")
+            lis.append(f"<li>{dangling_ref(x)}</li>")  # trace: S-12 AC-12.1
         else:
             lis.append(f"<li>{id_link(str(x), hit)}</li>")
     return f'<ul class="reflist">{"".join(lis)}</ul>'
@@ -232,6 +279,18 @@ def load_config(project_root: Path) -> dict:
     }
 
 
+def resolve_instance(out_dir: Path, instance):
+    # trace: S-16 AC-16.1 AC-16.2 TC-16.1.1 TC-16.2.1 D-9
+    # 目录即实例：带实例名 → <output_dir>/<实例名>/；无 → 主线平铺零迁移。
+    # 白名单首字符字母数字，天然拒绝点目录、分隔符与盘符注入
+    if instance is None:
+        return out_dir
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", instance):
+        raise SystemExit(
+            f"[diy-viewer] 非法实例名: {instance!r}（仅 [A-Za-z0-9][A-Za-z0-9._-]）")
+    return out_dir / instance
+
+
 def slugify(s: str) -> str:
     return KEY_RE.sub("-", str(s).strip().lower()).strip("-") or "x"
 
@@ -273,7 +332,12 @@ def render_table(items: list, with_row_ids: bool = True) -> str:
             tds.append(f"<td>{badge(h, v) if h in ENUM_KEYS else cell(v)}</td>")
         rid = item.get("id") if with_row_ids else None
         anchor = f' id="{esc(rid)}"' if isinstance(rid, str) and rid else ""
-        rows.append(f"<tr{anchor}>{''.join(tds)}</tr>")
+        # trace: S-12 AC-12.2 TC-12.2.1 孤儿 must FR：行标红 + 徽章提示
+        if isinstance(rid, str) and rid in ORPHAN_IDS:
+            tds[0] = '<span class="badge b-bad">孤儿</span>' + tds[0]
+            rows.append(f'<tr class="orphan"{anchor}>{"".join(tds)}</tr>')
+        else:
+            rows.append(f"<tr{anchor}>{''.join(tds)}</tr>")
     return (f'<div class="table-scroll"><table class="data">'
             f'<thead><tr>{th}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>')
 
@@ -358,6 +422,9 @@ border-color:#e0e2e6}.b-must{color:#fff;background:var(--accent)}.b-neutral{
 color:var(--ink);background:#eef2f7;border-color:var(--line)}
 .assume{background:#fef9c3;padding:0 4px;border-radius:4px}.refsum{
 color:var(--dim);font-size:.85em;margin-left:6px}
+.dangling{color:var(--bad);font-weight:600}
+.alert-bad{background:#fef2f2;border-color:#f3c1c1;color:var(--bad)}
+tr.orphan td{background:#fef2f2}
 .idl{color:var(--accent);text-decoration:underline dotted;text-underline-offset:3px}
 .idl:hover{background:#eef2f7;border-radius:3px}
 .reflist{list-style:none;padding-left:0;margin:4px 0}
@@ -506,6 +573,11 @@ def render_doc_page(name: str, data, others: list) -> str:
         f'<div class="alert">⚠ 待确认假设 {n_open} 项 —— 即页面中黄底标注内容，逐条确认后方可定稿</div>'
         if n_open else ""
     )
+    # trace: S-12 AC-12.1 TC-12.1.1 悬空引用计入页面顶部告警
+    dang = DANGLING_BY_DOC.get(name) or []
+    if dang:
+        ids = "、".join(f"<code>{esc(i)}</code>" for i in dang)
+        alert += f'<div class="alert alert-bad">⚠ 悬空引用：{ids}（未定义的 ID）</div>'
     body = f'<p class="doc-meta">{" · ".join(meta_line)}</p>' + alert
     if name == "openapi":
         body += render_openapi_section(data)
@@ -559,18 +631,26 @@ def load_docs(paths) -> tuple:
 
 
 def main() -> int:
+    # trace: S-16 AC-16.1 AC-16.2 TC-16.1.1 TC-16.2.1 D-9（--instance 接线：实例目录解析与主线平铺兼容）
     ap = argparse.ArgumentParser(description="diy-coder YAML → HTML viewer")
     ap.add_argument("--project-root", default=".", help="project root directory")
     ap.add_argument("--no-open", action="store_true", help="do not open the browser")
+    ap.add_argument("--instance", default=None,
+                    help="instance name (FR-4.5/D-9): artifacts under <output_dir>/<name>/; "
+                         "absent = mainline flat path (zero migration)")
     ap.add_argument("files", nargs="*", help="specific yaml files (default: all under output_dir)")
     args = ap.parse_args()
 
     root = Path(args.project_root).resolve()
     cfg = load_config(root)
     out_dir = root / cfg["output_dir"]
+    out_dir = resolve_instance(out_dir, args.instance)
 
     if not out_dir.exists():
         print(f"[diy-viewer] output dir not found: {out_dir}. Run a diy-* workflow first.", file=sys.stderr)
+        return 1
+    if not out_dir.is_dir():
+        print(f"[diy-viewer] output path is not a directory: {out_dir}", file=sys.stderr)
         return 1
 
     # ID 链接索引与跨文档导航必须基于全量文档构建，即使本次只渲染子集。
@@ -591,6 +671,22 @@ def main() -> int:
 
     written = []
     build_id_index(all_docs)
+    # trace: S-12 AC-12.1 TC-12.1.1 悬空引用按文档汇总（索引构建后、渲染前）
+    DANGLING_BY_DOC.clear()
+    for n, d in all_docs:
+        found = []
+        collect_dangling(d, found)
+        if found:
+            DANGLING_BY_DOC[n] = sorted(set(found))
+    # trace: S-12 AC-12.2 TC-12.2.1 孤儿判定：AC（stories）与用例（test-plan）引用并集
+    referenced: set = set()
+    for n, d in all_docs:
+        if n in ("stories", "test-plan"):
+            referenced.update(x.strip() for x in iter_ref_values(d))
+    prd_data = next((d for n, d in all_docs if n == "prd"), None)
+    ORPHAN_IDS.clear()
+    if isinstance(prd_data, dict):
+        ORPHAN_IDS.update(compute_orphans(prd_data, referenced))
     for name, data in docs:
         others = all_docs
         f = view_dir / f"{name}.html"

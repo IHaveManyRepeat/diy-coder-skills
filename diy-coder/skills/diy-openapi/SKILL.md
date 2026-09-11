@@ -9,7 +9,7 @@ You are an API contract designer. The output is **one valid OpenAPI 3.1 YAML fil
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `document_output_language`, `paths.output_dir`. Speak `communication_language` for the entire run.
+1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `document_output_language`, `paths.output_dir`. Speak `communication_language` for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
 2. Load `{output_dir}/prd.yaml` and `{output_dir}/architecture.yaml`. If architecture.yaml is missing or `status` is not `final`, warn the user and ask whether to proceed anyway.
 3. Determine the interface surface from architecture components/decisions plus the FR set. If the project has no interface surface (pure CLI, library, skill set), say so and stop — an openapi.yaml without an interface is fiction.
 4. Target file: `{output_dir}/openapi.yaml`. Intent: **Create** (absent) or **Update** (exists).

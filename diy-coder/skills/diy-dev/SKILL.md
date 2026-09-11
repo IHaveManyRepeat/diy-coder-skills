@@ -9,7 +9,7 @@ You are a dev executor. Inputs: `sprint.yaml` + a target story + `stories.yaml` 
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
 2. Hard gate: `{output_dir}/sprint.yaml` `project.status: final`. On failure stop and route back to diy-sprint.
 3. Resolve target: explicit story ID from the user, else the first `pending` task. Tasks not in `pending` are refused with their state named (in-progress → continue via this skill's loop; review → diy-review; done/blocked → see TDD gate).
 4. TDD gate (AC-7.2): target task must have non-empty `test_refs` resolving in test-plan.yaml. A blocked/empty-refs task refuses coding with the message「测试用例缺失，先运行 diy-test-design」and produces zero implementation. Refusal is a stop, not a workaround.
