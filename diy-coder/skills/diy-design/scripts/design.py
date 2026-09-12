@@ -228,6 +228,125 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 design.yaml 结构契�
         sys.exit(1)
 
 
+def collect_token_hexes(design):  # trace: S-15 AC-15.2 design token 色值全集（audit 白名单）
+    colors = (design.get("tokens") or {}).get("color") or {}
+    return {str(v).strip().lower() for v in colors.values()
+            if re.fullmatch(r"#[0-9a-fA-F]{3,8}", str(v).strip())}
+
+
+def collect_font_sizes(design):  # trace: S-15 AC-15.2 合法字号集合（typography.scale）
+    typo = (design.get("tokens") or {}).get("typography") or {}
+    return {str(s).strip() for s in (typo.get("scale") or [])}
+
+
+def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 one-off 色值/字号审计（token 单一源）
+    design = load_design_or_die(args.design)
+    hex_ok = collect_token_hexes(design)
+    fs_ok = collect_font_sizes(design)
+    violations = []
+    hex_re = re.compile(r"#[0-9a-fA-F]{3,8}\b")
+    fs_re = re.compile(r"font-size:\s*([^;{}]+)")
+    if not os.path.exists(args.src):
+        sys.stderr.write("src not found: %s\n" % args.src)
+        sys.exit(1)
+    if os.path.isdir(args.src):
+        files = []
+        for root, _, names in os.walk(args.src):
+            files += [os.path.join(root, n) for n in names
+                      if n.endswith((".html", ".css", ".js", ".ts",
+                                     ".jsx", ".tsx", ".vue"))]
+    else:
+        files = [args.src]
+    for fpath in files:
+        text = io.open(fpath, encoding="utf-8").read()
+        rel = os.path.basename(fpath)
+        for m in hex_re.finditer(text):
+            if m.group(0).lower() not in hex_ok:
+                violations.append({
+                    "kind": "one-off-color",
+                    "detail": "%s: 色值 %s 不在 design token（单一源违规）" % (
+                        rel, m.group(0))})
+        for m in fs_re.finditer(text):
+            val = m.group(1).strip()
+            if not (val.startswith("var(") or val in fs_ok):
+                violations.append({
+                    "kind": "one-off-font-size",
+                    "detail": '%s: font-size: %s 既非 var() 也非 token 字阶' % (rel, val)})
+    result = {"pass": not violations, "violations": violations,
+              "audited": len(files)}
+    print(json.dumps(result, ensure_ascii=False, indent=2) if args.json
+          else ("PASS：token 单一源审计通过（%d 文件）" % len(files) if not violations
+                else "FAIL：" + chr(10).join(
+                    "- [%s] %s" % (x["kind"], x["detail"]) for x in violations)))
+    if violations:
+        sys.exit(1)
+
+
+def _shot(page, url, w, h):  # trace: S-15 AC-15.3 视口截图（playwright chromium）
+    page.set_viewport_size({"width": w, "height": h})
+    page.goto(url)
+    page.wait_for_timeout(300)
+    return page.screenshot()
+
+
+def _img_score(a_bytes, b_bytes):  # trace: S-15 AC-15.3 像素对比 → 相似度评分
+    from PIL import Image, ImageChops
+    a = Image.open(io.BytesIO(a_bytes)).convert("RGB")
+    b = Image.open(io.BytesIO(b_bytes)).convert("RGB")
+    if a.size != b.size:
+        b = b.resize(a.size)
+    diff = ImageChops.difference(a, b).convert("L").point(
+        lambda p: 255 if p > 10 else 0)
+    hist = diff.histogram()
+    changed = hist[255]
+    total = a.size[0] * a.size[1]
+    ratio = changed / total if total else 0.0
+    bbox = ImageChops.difference(a, b).getbbox()
+    return round((1 - ratio) * 100, 2), bbox
+
+
+def cmd_compare(args):  # trace: S-15 AC-15.3 TC-15.3.1 多视口截图对比+评分+阈值打回
+    from playwright.sync_api import sync_playwright
+    design = load_design_or_die(args.design)
+    page_spec = next((p for p in design.get("pages", [])
+                      if p.get("id") == args.page), None)
+    if not page_spec:
+        sys.stderr.write("page %s not found in design.yaml" % args.page)
+        sys.exit(1)
+    base = os.path.dirname(os.path.abspath(args.design))
+    proto_url = "file:///" + os.path.abspath(
+        os.path.join(base, page_spec["prototype"])).replace("\\", "/")
+    impl_url = "file:///" + os.path.abspath(args.implementation).replace("\\", "/")
+    viewports = []
+    for v in (args.viewports or ["1280x720", "375x667"]):
+        w, h = (int(x) for x in v.lower().split("x"))
+        viewports.append((v, w, h))
+    results = []
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page()
+        for name, w, h in viewports:
+            pa = _shot(page, proto_url, w, h)
+            pb = _shot(page, impl_url, w, h)
+            score, bbox = _img_score(pa, pb)
+            results.append({"viewport": name, "score": score,
+                            "diff_region": list(bbox) if bbox else None})
+        browser.close()
+    overall = min(r["score"] for r in results)
+    result = {"page": args.page, "viewports": results, "score": overall,
+              "threshold": args.threshold, "pass": overall >= args.threshold}
+    print(json.dumps(result, ensure_ascii=False, indent=2) if args.json
+          else ("PASS：还原度 %.2f%%（阈值 %.1f%%，最差视口）" % (overall, args.threshold)
+                if result["pass"] else
+                "FAIL：还原度 %.2f%% 低于阈值 %.1f%%%s%s" % (
+                    overall, args.threshold, chr(10), chr(10).join(
+                        "- %s: %.2f%% 差异区 %s" % (
+                            r["viewport"], r["score"], r["diff_region"])
+                        for r in results))))
+    if not result["pass"]:
+        sys.exit(1)
+
+
 def main():  # trace: S-14 AC-14.1 子命令路由（utf-8 输出确定性）
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
@@ -246,6 +365,19 @@ def main():  # trace: S-14 AC-14.1 子命令路由（utf-8 输出确定性）
     v.add_argument("--design", required=True)
     v.add_argument("--json", action="store_true")
     v.set_defaults(func=cmd_validate)
+    a = sub.add_parser("audit", help="one-off 色值/字号审计（token 单一源）")
+    a.add_argument("--design", required=True)
+    a.add_argument("--src", required=True)
+    a.add_argument("--json", action="store_true")
+    a.set_defaults(func=cmd_audit)
+    m = sub.add_parser("compare", help="实现页 vs 原型页多视口截图对比")
+    m.add_argument("--design", required=True)
+    m.add_argument("--page", required=True)
+    m.add_argument("--implementation", required=True)
+    m.add_argument("--viewports", nargs="+", default=None)
+    m.add_argument("--threshold", type=float, default=90.0)
+    m.add_argument("--json", action="store_true")
+    m.set_defaults(func=cmd_compare)
     args = ap.parse_args()
     args.func(args)
 

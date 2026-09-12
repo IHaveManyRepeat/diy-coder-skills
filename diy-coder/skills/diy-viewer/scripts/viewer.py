@@ -99,7 +99,8 @@ DOC_LABELS = {
 # （页面尾部以 <template> 预渲染全部 ID 详情，面板内链接可链式查看）。
 ID_RE = re.compile(r"\b[A-Z]{1,4}-\d+(?:\.\d+)*\b")
 ID_FULL_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
-REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr"}
+# trace: S-15 AC-15.1 design_ref（AC 绑定 design.yaml 页面引用）入引用链，悬空即标红
+REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr", "design_ref"}
 PREVIEW_KEYS = ("statement", "then", "title", "question", "goal", "risk", "name",
                 "decision", "description", "narrative")
 ID_INDEX: dict = {}

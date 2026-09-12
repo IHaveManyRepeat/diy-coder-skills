@@ -19,6 +19,7 @@ You are a delivery planner. Input: `prd.yaml`. Output: `epics.yaml` + `stories.y
 - **Stories are independently deliverable units** sized for one unattended build-loop task: a story that needs human mid-flight decisions is too big or wrongly cut.
 - **AC is given/when/then** — observable at the outermost surface (behavior, not internals). Each AC `refs` existing FR/NFR IDs from prd.yaml; never copy requirement text.
 - **Coverage is complete**: every must-priority FR is referenced by at least one AC. Should-priority FRs get coverage or an explicit skip note in conversation.
+- **Design binding (FR-2.4)**: a story whose ACs implement frontend-facing FRs gets a `design_ref: P-x` on each such AC, citing a page id in `design.yaml` pages — the page is the implementation baseline, not decoration. Only bind when `{output_dir}/design.yaml` exists and is `final` (diy-design skip projects carry no binding); every `design_ref` must resolve (viewer marks dangling ones red). Schema: add `design_ref: P-x` beside `refs`.
 - **Story status reflects reality.** Work already delivered may be backfilled as `done` — mark such backfill `[ASSUMPTION]` in a top-level `notes:` line until the user confirms.
 - Any inferred sizing, ordering, or split carries the `[ASSUMPTION]` prefix in the YAML value. Open items live in the file, never only in conversation.
 

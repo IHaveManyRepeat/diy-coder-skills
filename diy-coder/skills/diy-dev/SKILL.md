@@ -22,6 +22,7 @@ You are a dev executor. Inputs: `sprint.yaml` + a target story + `stories.yaml` 
 - **Evidence lives in the file.** Every executed TC gets a `red`/`green` one-line record (date + command + result) written into the task entry. Evidence not in sprint.yaml does not exist.
 - **State ownership is narrow.** This skill writes `pending → in-progress` at start and `in-progress → review` when green. It NEVER writes `done` (diy-review owns it) and never touches other tasks.
 - **Failed loops stay honest.** If red cannot turn green, stop, set `blocked` with `blocked_reason`, and report — do not weaken the test to pass.
+- **Design token is the only style source (FR-3.7).** When the story's ACs carry `design_ref`, implementation styles come exclusively from design.yaml tokens (injected as CSS variables): no one-off hex colors, no off-scale font sizes. Verify with `design.py audit --design {output_dir}/design.yaml --src <impl file/dir>` before claiming green — audit FAIL means not green.
 - Any judgment call (scope exemption, partial coverage) carries the `[ASSUMPTION]` prefix in the YAML value.
 
 ## Schema
