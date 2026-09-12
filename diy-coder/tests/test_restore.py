@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-"""S-15 设计还原闭环 e2e 测试：绑定引用可解析 / token 单一源审计 / 视觉对比层。
+"""S-15 设计采用闭环测试：绑定引用可解析 / token 单一源审计 / 零重写采用条款。
 
-夹具复用 test_design 的 GOOD_DESIGN/GOOD_HTML（合规基准），偏差实现页由其派生。
+2026-09-12 D-10 变更：视觉截图对比（compare）废弃删除，TC-15.3.1 改写为
+设计稿零重写采用与结构对照审查。夹具复用 test_design 的 GOOD_DESIGN/GOOD_HTML。
 """
 import io
 import json
@@ -15,6 +16,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DESIGN_PY = os.path.join(HERE, "..", "skills", "diy-design", "scripts", "design.py")
 VIEWER_PY = os.path.join(HERE, "..", "skills", "diy-viewer", "scripts", "viewer.py")
 SKILL_EPICS = os.path.join(HERE, "..", "skills", "diy-epics-stories", "SKILL.md")
+SKILL_DEV = os.path.join(HERE, "..", "skills", "diy-dev", "SKILL.md")
+SKILL_REVIEW = os.path.join(HERE, "..", "skills", "diy-review", "SKILL.md")
 from test_design import GOOD_DESIGN, GOOD_HTML  # noqa: E402
 
 NL = chr(10)
@@ -36,12 +39,6 @@ ONE_OFF_IMPL = GOOD_HTML.replace(
     "button { background: var(--color-accent); }",
     "button { background: #ff0000; }")
 
-DEVIATED_IMPL = GOOD_HTML.replace(
-    "--color-bg: #ffffff;", "--color-bg: #e8e8ff;").replace(
-    "--color-text: #1a1a1a;", "--color-text: #444444;").replace(
-    "button { background: var(--color-accent); }",
-    "button { background: var(--color-accent); padding: 24px 60px; }")
-
 
 def run_engine(args):
     return subprocess.run([sys.executable, DESIGN_PY] + args,
@@ -53,13 +50,13 @@ class RestoreLoopTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.out = os.path.join(self.tmp.name, "diy-output")
-        os.makedirs(os.path.join(self.out, "prototypes"))
 
     def tearDown(self):
         self.tmp.cleanup()
 
     def write(self, rel, content):
         path = os.path.join(self.out, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
         return path
@@ -96,26 +93,17 @@ class RestoreLoopTests(unittest.TestCase):
         self.assertEqual(g.returncode, 0, g.stdout)
         self.assertTrue(json.loads(g.stdout)["pass"])
 
-    # trace: S-15 AC-15.3 TC-15.3.1
-    def test_visual_compare_scores_and_rejects_deviation(self):
-        dpath = self.write("design.yaml", GOOD_DESIGN)
-        self.write("prototypes/P-1.html", GOOD_HTML)
-        deviated = self.write("impl_dev.html", DEVIATED_IMPL)
-        r = run_engine(["compare", "--design", dpath, "--page", "P-1",
-                        "--implementation", deviated, "--json"])
-        self.assertEqual(r.returncode, 1, r.stdout)
-        data = json.loads(r.stdout)
-        self.assertLess(data["score"], data["threshold"])
-        self.assertGreaterEqual(len(data["viewports"]), 2, "未做多视口对比")
-        for v in data["viewports"]:
-            self.assertIn("viewport", v)
-            self.assertIn("score", v)
-        same = self.write("impl_same.html", GOOD_HTML)
-        g = run_engine(["compare", "--design", dpath, "--page", "P-1",
-                        "--implementation", same, "--json"])
-        self.assertEqual(g.returncode, 0, g.stdout)
-        gd = json.loads(g.stdout)
-        self.assertGreaterEqual(gd["score"], gd["threshold"])
+    # trace: S-15 AC-15.3 TC-15.3.1 D-10（2026-09-12 变更：截图对比废弃，改零重写采用）
+    def test_adopt_zero_rewrite_terms_and_compare_removed(self):
+        dev = io.open(SKILL_DEV, encoding="utf-8").read()
+        self.assertIn("零重写", dev, "diy-dev 缺零重写采用条款")
+        self.assertIn("设计稿代码", dev, "diy-dev 缺「在设计稿代码上叠加逻辑」条款")
+        review = io.open(SKILL_REVIEW, encoding="utf-8").read()
+        self.assertIn("结构对照", review, "diy-review L4 缺结构对照条款")
+        self.assertIn("线框", review, "diy-review L4 缺线框对照对象")
+        self.assertNotIn("截图对比", review, "废弃的截图对比条款仍残留")
+        h = run_engine(["--help"])
+        self.assertNotIn("compare", h.stdout, "design.py compare 子命令未删除")
 
 
 if __name__ == "__main__":

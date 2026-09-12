@@ -196,12 +196,14 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 三项自检：fail 列违
         sys.exit(1)
 
 
-def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 design.yaml 结构契约校验
+def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 design.yaml 结构契约校验；D-10 三段式字段
     design = load_design_or_die(args.design)
     base = os.path.dirname(os.path.abspath(args.design))
     errors = []
     if not str(design.get("direction") or "").strip():
         errors.append("direction（承诺式美学方向）为空")
+    if not str(design.get("frontend_framework") or "").strip():
+        errors.append("frontend_framework 为空（从 architecture stack 选定；纯 HTML 项目写 html）")
     tokens = design.get("tokens") or {}
     for family, keys in (("color", ("bg", "text", "accent")),
                          ("spacing", ("unit", "scale")),
@@ -220,7 +222,10 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 design.yaml 结构契�
             errors.append("%s 缺交互状态 %s" % (page.get("id"), "/".join(missing)))
         proto = page.get("prototype")
         if not proto or not os.path.isfile(os.path.join(base, proto)):
-            errors.append("%s 原型缺失：%s" % (page.get("id"), proto))
+            errors.append("%s 结构稿缺失：%s" % (page.get("id"), proto))
+        impl = page.get("implementation")
+        if impl and not os.path.isfile(os.path.join(base, impl)):
+            errors.append("%s 实现稿缺失：%s" % (page.get("id"), impl))
     result = {"valid": not errors, "errors": errors}
     print(json.dumps(result, ensure_ascii=False, indent=2) if args.json
           else ("VALID" if not errors else "INVALID：\n" + "\n".join(errors)))
@@ -282,72 +287,7 @@ def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 one-off 色值/字号审�
         sys.exit(1)
 
 
-def _shot(page, url, w, h):  # trace: S-15 AC-15.3 视口截图（playwright chromium）
-    page.set_viewport_size({"width": w, "height": h})
-    page.goto(url)
-    page.wait_for_timeout(300)
-    return page.screenshot()
-
-
-def _img_score(a_bytes, b_bytes):  # trace: S-15 AC-15.3 像素对比 → 相似度评分
-    from PIL import Image, ImageChops
-    a = Image.open(io.BytesIO(a_bytes)).convert("RGB")
-    b = Image.open(io.BytesIO(b_bytes)).convert("RGB")
-    if a.size != b.size:
-        b = b.resize(a.size)
-    diff = ImageChops.difference(a, b).convert("L").point(
-        lambda p: 255 if p > 10 else 0)
-    hist = diff.histogram()
-    changed = hist[255]
-    total = a.size[0] * a.size[1]
-    ratio = changed / total if total else 0.0
-    bbox = ImageChops.difference(a, b).getbbox()
-    return round((1 - ratio) * 100, 2), bbox
-
-
-def cmd_compare(args):  # trace: S-15 AC-15.3 TC-15.3.1 多视口截图对比+评分+阈值打回
-    from playwright.sync_api import sync_playwright
-    design = load_design_or_die(args.design)
-    page_spec = next((p for p in design.get("pages", [])
-                      if p.get("id") == args.page), None)
-    if not page_spec:
-        sys.stderr.write("page %s not found in design.yaml" % args.page)
-        sys.exit(1)
-    base = os.path.dirname(os.path.abspath(args.design))
-    proto_url = "file:///" + os.path.abspath(
-        os.path.join(base, page_spec["prototype"])).replace("\\", "/")
-    impl_url = "file:///" + os.path.abspath(args.implementation).replace("\\", "/")
-    viewports = []
-    for v in (args.viewports or ["1280x720", "375x667"]):
-        w, h = (int(x) for x in v.lower().split("x"))
-        viewports.append((v, w, h))
-    results = []
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        page = browser.new_page()
-        for name, w, h in viewports:
-            pa = _shot(page, proto_url, w, h)
-            pb = _shot(page, impl_url, w, h)
-            score, bbox = _img_score(pa, pb)
-            results.append({"viewport": name, "score": score,
-                            "diff_region": list(bbox) if bbox else None})
-        browser.close()
-    overall = min(r["score"] for r in results)
-    result = {"page": args.page, "viewports": results, "score": overall,
-              "threshold": args.threshold, "pass": overall >= args.threshold}
-    print(json.dumps(result, ensure_ascii=False, indent=2) if args.json
-          else ("PASS：还原度 %.2f%%（阈值 %.1f%%，最差视口）" % (overall, args.threshold)
-                if result["pass"] else
-                "FAIL：还原度 %.2f%% 低于阈值 %.1f%%%s%s" % (
-                    overall, args.threshold, chr(10), chr(10).join(
-                        "- %s: %.2f%% 差异区 %s" % (
-                            r["viewport"], r["score"], r["diff_region"])
-                        for r in results))))
-    if not result["pass"]:
-        sys.exit(1)
-
-
-def main():  # trace: S-14 AC-14.1 子命令路由（utf-8 输出确定性）
+def main():  # trace: S-14 AC-14.1 子命令路由（utf-8 输出确定性）；D-10：compare 已删除
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="diy-design 检测/自检/校验引擎")
@@ -370,14 +310,6 @@ def main():  # trace: S-14 AC-14.1 子命令路由（utf-8 输出确定性）
     a.add_argument("--src", required=True)
     a.add_argument("--json", action="store_true")
     a.set_defaults(func=cmd_audit)
-    m = sub.add_parser("compare", help="实现页 vs 原型页多视口截图对比")
-    m.add_argument("--design", required=True)
-    m.add_argument("--page", required=True)
-    m.add_argument("--implementation", required=True)
-    m.add_argument("--viewports", nargs="+", default=None)
-    m.add_argument("--threshold", type=float, default=90.0)
-    m.add_argument("--json", action="store_true")
-    m.set_defaults(func=cmd_compare)
     args = ap.parse_args()
     args.func(args)
 

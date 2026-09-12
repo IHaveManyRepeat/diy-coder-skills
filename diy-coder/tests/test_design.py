@@ -21,6 +21,7 @@ GOOD_DESIGN = NL.join([
     "  name: mini",
     "  status: final",
     "direction: 瑞士编辑风——大字阶对比、留白节奏、单强调色；禁默认卡片网格与居中英雄区",
+    "frontend_framework: html",
     "tokens:",
     "  color:",
     "    bg: '#ffffff'",
