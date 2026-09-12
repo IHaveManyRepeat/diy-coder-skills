@@ -68,6 +68,7 @@ KEY_LABELS = {
     "source": "来源", "date": "日期",
     "type": "小类", "trigger": "触发方法", "fix": "修复方案",
     "prevention": "根治机制", "taxonomy": "分类注册表",
+    "plain": "通俗解释", "detail": "过程详情",
 }
 VALUE_LABELS = {
     "draft": "草稿", "final": "已定稿", "pending": "待办",
@@ -94,6 +95,95 @@ DOC_LABELS = {
     "sprint": "冲刺任务",
     "bug-log": "缺陷模式库",
 }
+# 术语表（展示层，FR-4.1 可读性）：标签/徽章/标题命中即挂悬浮解释，YAML 单一源不动。
+# key = 渲染后的展示文本（已 esc，纯中文无 HTML 字符，查找安全）。
+GLOSSARY = {
+    # 结构概念
+    "功能组": "一组相关功能需求，对应产品的一个能力方向",
+    "需求条目": "一条具体的功能需求，编号 FR-x.y，是故事/测试等所有下游工作的源头",
+    "非功能需求": "不规定做什么功能，规定做得怎么样的要求（如性能、可维护性）",
+    "严格度": "验收松紧档位；launch=发布级，必须需求须逐条满足才算完成",
+    "史诗": "一组相关故事的集合，比故事大一档，通常对应产品一大块能力",
+    "用户故事": "从使用者角度描述的一小段需求：谁、要什么、为什么",
+    "验收标准": "做完后怎样算合格的可检查条件，编号 AC-x.y，测试用例直接对着它设计",
+    "测试用例": "一次具体测试的做法描述，编号 TC-x.y.z，每条至少绑定一个验收标准",
+    "任务": "冲刺里的执行单元，一个任务对应一个故事，由 runner 自动驱动",
+    "接口契约": "OpenAPI 3.1 格式的 API 定义文件，机器可读",
+    "冲刺任务": "按顺序执行的任务清单，串行驱动：同一时间至多一个任务在跑",
+    # 状态与流程
+    "已定稿": "内容已确认锁定，后续修改需走变更流程（改产物+过 ID 链校验）",
+    "待审查": "编码完成，等待三层审查后决定完成或打回",
+    "已阻塞": "任务被卡住（缺规格/歧义/超修复上限），需要人来处理",
+    "红": "TDD 第一步：先写测试并确认它失败，证明测试真的在测东西",
+    "绿": "实现完成后测试转通过；必须先有红再有绿才算数",
+    "执行证据": "编码过程留下的红绿执行记录，写进冲刺任务供审查核对",
+    "迭代记录": "自动循环（编码→审查→打回→修复）的执行摘要：跑了几轮、结果如何",
+    "修复轮数": "被审查打回后重修的次数，上限 2 次，超了转阻塞",
+    "阻塞原因": "任务被卡住的具体原因，人工处理后重跑",
+    # 审查
+    "审查记录": "三层审查（正确性/边界/覆盖审计）的结论与发现清单",
+    "发现清单": "审查发现的问题列表，每条带路由：小修/后置/规格缺陷/意图缺口",
+    "正确性": "第一层审查：实现是否按验收标准做对了",
+    "边界": "专抓边界情况：空值、最大最小、刚好越界",
+    "覆盖审计": "第三层审查：检查测试是否真的覆盖了验收标准，而非走形式",
+    "小修": "问题路由：执行者当场修掉",
+    "后置": "问题路由：记录下来以后再修，不阻塞本任务",
+    "规格缺陷": "规格本身写错或写不清；执行者无权改规格，转人工",
+    "意图缺口": "验收标准没覆盖到真实意图，需要回到规格层补",
+    "证伪轮": "审查通过后主动再攻击一轮：按历史缺陷模式找漏洞，命中就打回",
+    # 测试技术
+    "设计技术": "设计这条用例的思考方法（等价类/错误猜测等）",
+    "目标缺陷": "这条用例专门要杀死的那类缺陷；说不出目标缺陷的用例是凑数",
+    "等价类": "把输入分成几组，每组挑一个代表来测，组内其他输入预期行为相同",
+    "决策表": "多条件组合时列成真值表，保证每种组合都有测试安排",
+    "状态迁移": "按状态变化的每条路径（含非法路径）设计用例",
+    "成对组合": "多因素时只测两两组合，数学上能覆盖绝大多数组合缺陷",
+    "错误猜测": "凭经验和历史 bug 猜最可能出错的位置，针对性下钩",
+    "蜕变测试": "难以直接算出预期值时，检查输入变化后输出关系是否仍然成立",
+    "属性测试": "验证在任何输入下都成立的普遍性质，而非单个例子",
+    "场景": "模拟一个完整使用场景走一遍，端到端验证",
+    "单元": "只测一个函数或模块的测试",
+    "集成": "测多个模块配合是否正确",
+    "端到端": "从用户视角走完整流程的测试",
+    "已豁免": "这条验收标准不再要求测试覆盖（通常是历史完成的故事，补测成本大于收益）",
+    "接受缺口": "明确接受没有测试覆盖，留档说明原因",
+    "P0": "最高优先级：不通过就不能交付",
+    "P1": "重要：当前周期应通过",
+    "P2": "次要：有余力再处理",
+    # 静态检查链
+    "静态检查链": "编码后自动运行的工具序列：快的先跑拦住低级错误，慢的后跑，层层过滤",
+    "门禁": "该工具结果的使用方式：阻断=不过不算完成；记录不阻断=只记一笔",
+    "阻断": "不过此关就不算绿，必须修",
+    "记录不阻断": "只记录发现，不阻塞交付",
+    "消灭问题": "这个工具专门负责抓的问题类型；说不出来就该删掉该工具",
+    # 缺陷模式库
+    "大类": "缺陷一级分类：功能型/非功能型",
+    "中类": "缺陷二级分类：逻辑/数据/状态/性能/安全等十个桶",
+    "小类": "缺陷三级分类：自由扩展的标签，登记进注册表防止同义词漂移",
+    "根因": "导致缺陷的真正原因，治这个才不会复发",
+    "模式": "这个缺陷的可复用特征，供错误猜测时对照",
+    "触发方法": "什么做法会再次踩到这个坑",
+    "根治机制": "防复发的机制性措施，如状态单一真源、校验标红",
+    "分类注册表": "小类标签的登记簿，新词自动入册，防止同一概念叫出多个名字",
+    # 架构
+    "技术决策": "一次方案拍板：在备选项中选定一个并记录理由，编号 D-x",
+    "备选方案": "当时考虑过但没选的方案，记录原因防止未来重复论证",
+    "未选原因": "备选方案落选的理由",
+    "影响需求": "该决策会波及的需求编号",
+    "缓解措施": "降低风险发生概率或损失的应对手段",
+    # PRD
+    "度量标准": "该目标是否达成的可量化判据",
+    "不在范围内": "明确排除的事项，防止范围蔓延",
+    "待决问题": "尚未拍板的问题，定稿前必须有结论",
+    # viewer 特有
+    "悬空引用": "引用了一个在所有文档里都不存在的编号，ID 链断了",
+    "引用不存在": "指向的编号在所有文档里找不到，通常是条目删了但引用没改",
+    "孤儿": "必须级需求没有被任何故事或测试用例引用，可能被遗漏了",
+    "关联需求": "向上引用的需求编号（ID 链），点击可看详情",
+    "关联用例": "该任务必须通过的测试用例编号；为空则任务无法启动（TDD 门）",
+    "关联功能组": "该史诗对应的功能组编号",
+    "待确认假设": "[ASSUMPTION] 标记的推测内容，需人工逐条确认后才能定稿",
+}
 # ID 链：带 id 字段的条目卡片生成锚点；文本中命中的 ID 链接到其所在文档并带悬停预览。
 # 引用型字段（REF_KEYS）在正文只显示编号链接；点击后右侧浮动详情面板展示完整内容
 # （页面尾部以 <template> 预渲染全部 ID 详情，面板内链接可链式查看）。
@@ -101,6 +191,9 @@ ID_RE = re.compile(r"\b[A-Z]{1,4}-\d+(?:\.\d+)*\b")
 ID_FULL_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
 # trace: S-15 AC-15.1 design_ref（AC 绑定 design.yaml 页面引用）入引用链，悬空即标红
 REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr", "design_ref"}
+# 过程性字段默认折叠（FR-4.1 可读性，D-10 后白话化纪律）：结论常驻、过程按需展开
+FOLDED_KEYS = {"evidence", "findings"}
+FOLDED_NOTE_LEN = 80
 PREVIEW_KEYS = ("statement", "then", "title", "question", "goal", "risk", "name",
                 "decision", "description", "narrative")
 ID_INDEX: dict = {}
@@ -112,6 +205,14 @@ ORPHAN_IDS: set = set()
 
 def key_label(k: str) -> str:
     return KEY_LABELS.get(k, k)
+
+
+def gloss(text: str) -> str:
+    """术语包装：已转义的展示文本命中术语表 → 悬浮解释（展示层增强，不改正文）。"""
+    tip = GLOSSARY.get(text)
+    if not tip:
+        return text
+    return f'<span class="term" data-tip="{esc(tip)}">{text}</span>'
 
 
 def _collect_ids(node, doc: str) -> None:
@@ -175,7 +276,7 @@ def compute_orphans(prd_data, referenced: set) -> set:
 def dangling_ref(i: str) -> str:
     # trace: S-12 AC-12.1 TC-12.1.1 悬空引用：红字 + 错误徽章，断裂显式可见
     return (f'<span class="dangling">{esc(i)}</span>'
-            f'<span class="badge b-bad">引用不存在</span>')
+            f'<span class="badge b-bad">{gloss("引用不存在")}</span>')
 
 
 def id_link(i: str, hit: dict) -> str:
@@ -186,7 +287,7 @@ def id_link(i: str, hit: dict) -> str:
 def render_compact_kv(d: dict) -> str:
     """紧凑 kv 表（字段竖排）：详情面板内的条目渲染。"""
     rows = "".join(
-        f'<tr><th>{esc(key_label(k))}</th>'
+        f'<tr><th>{gloss(esc(key_label(k)))}</th>'
         f'<td>{badge(k, v) if k in ENUM_KEYS else cell(v)}</td></tr>'
         for k, v in d.items()
     )
@@ -315,7 +416,7 @@ def cell(v) -> str:
 def badge(key: str, v) -> str:
     cls = BADGE_CLASSES.get(str(v).strip().lower(), "neutral")
     text = VALUE_LABELS.get(str(v), str(v))
-    return f'<span class="badge b-{cls}">{esc(text)}</span>'
+    return f'<span class="badge b-{cls}">{gloss(esc(text))}</span>'
 
 
 def render_table(items: list, with_row_ids: bool = True) -> str:
@@ -324,7 +425,7 @@ def render_table(items: list, with_row_ids: bool = True) -> str:
         for k in item:
             if k not in headers:
                 headers.append(k)
-    th = "".join(f"<th>{esc(key_label(h))}</th>" for h in headers)
+    th = "".join(f"<th>{gloss(esc(key_label(h)))}</th>" for h in headers)
     rows = []
     for item in items:
         tds = []
@@ -335,7 +436,7 @@ def render_table(items: list, with_row_ids: bool = True) -> str:
         anchor = f' id="{esc(rid)}"' if isinstance(rid, str) and rid else ""
         # trace: S-12 AC-12.2 TC-12.2.1 孤儿 must FR：行标红 + 徽章提示
         if isinstance(rid, str) and rid in ORPHAN_IDS:
-            tds[0] = '<span class="badge b-bad">孤儿</span>' + tds[0]
+            tds[0] = f'<span class="badge b-bad">{gloss("孤儿")}</span>' + tds[0]
             rows.append(f'<tr class="orphan"{anchor}>{"".join(tds)}</tr>')
         else:
             rows.append(f"<tr{anchor}>{''.join(tds)}</tr>")
@@ -350,7 +451,7 @@ def render_dict_fields(d: dict) -> str:
         return badge(k, v) if k in ENUM_KEYS else cell(v)
 
     rows = "".join(
-        f'<tr><th>{esc(key_label(k))}</th><td>{field(k, v)}</td></tr>'
+        f'<tr><th>{gloss(esc(key_label(k)))}</th><td>{field(k, v)}</td></tr>'
         for k, v in d.items()
     )
     return f'<table class="kv"><tbody>{rows}</tbody></table>'
@@ -361,25 +462,53 @@ def is_flat_dict(d) -> bool:
 
 
 def render_value(key: str, v, depth: int) -> str:
+    out = _render_value_raw(key, v, depth)
+    fold = key in FOLDED_KEYS or (
+        key == "note" and isinstance(v, str) and len(v) > FOLDED_NOTE_LEN)
+    if fold:
+        n = len(v) if isinstance(v, list) else ""
+        label = key_label(key) + (f"（{n} 项）" if n != "" else "")
+        return (f'<details class="detail"><summary>展开{esc(label)}</summary>'
+                f'<div class="d-body">{out}</div></details>')
+    return out
+
+
+def _render_value_raw(key: str, v, depth: int) -> str:
     lvl = min(depth + 2, 6)
-    title = f'<h{lvl} id="{slugify(key)}">{esc(key_label(key))}</h{lvl}>' if key else ""
+    title = f'<h{lvl} id="{slugify(key)}">{gloss(esc(key_label(key)))}</h{lvl}>' if key else ""
     if isinstance(v, dict):
         if not v:
             return title + '<p class="dim">（空）</p>'
-        scalars = {k: x for k, x in v.items() if not isinstance(x, (dict, list))}
-        complex_ = {k: x for k, x in v.items() if isinstance(x, (dict, list))}
-        out = title
+        # plain（通俗速览）置顶、detail（过程详情）折叠置底，其余字段按原序渲染
+        plain_html = (f'<p class="plain">{cell(v["plain"])}</p>'
+                      if isinstance(v.get("plain"), str) else "")
+        skip = {"plain", "detail"}
+        scalars = {k: x for k, x in v.items()
+                   if k not in skip and not isinstance(x, (dict, list))}
+        complex_ = {k: x for k, x in v.items()
+                    if k not in skip and isinstance(x, (dict, list))}
+        detail_html = ""
+        d = v.get("detail")
+        if isinstance(d, str) and d.strip():
+            detail_html = ('<details class="detail"><summary>展开过程详情</summary>'
+                           f'<div class="d-body">{cell(d)}</div></details>')
+        elif isinstance(d, (dict, list)):
+            detail_html = ('<details class="detail"><summary>展开过程详情</summary>'
+                           f'<div class="d-body">{render_value("", d, depth + 1)}</div></details>')
+        out = title + plain_html
         if scalars:
             out += render_dict_fields(scalars)
         for k, x in complex_.items():
             out += render_value(k, x, depth + 1)
-        return out
+        return out + detail_html
     if isinstance(v, list):
         if not v:
             return title + '<p class="dim">（空）</p>'
         if key in REF_KEYS and all(isinstance(x, str) for x in v):
             return title + render_ref_list(v)
-        if all(is_flat_dict(x) for x in v):
+        # 含 plain/detail 的条目走卡片（速览行+折叠块形态），纯 flat 条目保持表格总览
+        if all(is_flat_dict(x) for x in v) and not any(
+                ("plain" in x or "detail" in x) for x in v if isinstance(x, dict)):
             return title + render_table(v)
         if all(isinstance(x, dict) for x in v):
             cards = []
@@ -457,6 +586,19 @@ var(--line);border-radius:10px;padding:18px 20px;text-decoration:none;
 color:var(--ink);transition:box-shadow .15s}a.doc-card:hover{box-shadow:0 4px
 14px rgba(0,0,0,.08)}a.doc-card .name{font-weight:700;color:var(--accent);
 font-size:1.05em}a.doc-card .sub{color:var(--mut);font-size:.85em;margin-top:4px}
+.term{border-bottom:1px dotted var(--accent);cursor:help}
+.term:hover{background:#eef2f7;border-radius:3px}
+#gloss-tip{position:fixed;display:none;z-index:99;max-width:340px;background:
+#1a2333;color:#fff;font-size:.85em;line-height:1.5;padding:8px 12px;border-radius:
+8px;box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none}
+.plain{color:var(--mut);font-size:.95em;background:#f6f8fa;border-left:3px
+solid #cbd5e1;padding:6px 12px;margin:6px 0 10px;border-radius:0 6px 6px 0}
+details.detail{margin:10px 0 4px;border:1px dashed var(--line);border-radius:8px}
+details.detail summary{cursor:pointer;padding:7px 14px;color:var(--mut);
+font-size:.88em;user-select:none}
+details.detail summary:hover{color:var(--accent)}
+details.detail[open] summary{border-bottom:1px dashed var(--line)}
+details.detail .d-body{padding:6px 14px 10px;font-size:.95em;color:var(--mut)}
 """
 
 
@@ -488,6 +630,30 @@ document.addEventListener('click',function(e){
 """
 
 
+TOOLTIP_JS = """
+(function(){
+var tip=null;
+function show(t){
+  if(!tip){tip=document.createElement('div');tip.id='gloss-tip';
+  document.body.appendChild(tip);}
+  tip.textContent=t.getAttribute('data-tip');
+  tip.style.display='block';
+  var r=t.getBoundingClientRect();
+  var left=Math.max(8,Math.min(r.left,window.innerWidth-tip.offsetWidth-8));
+  var top=r.bottom+6;
+  if(top+tip.offsetHeight>window.innerHeight){top=r.top-tip.offsetHeight-6;}
+  tip.style.left=left+'px';tip.style.top=top+'px';
+}
+function hide(){if(tip){tip.style.display='none';}}
+document.addEventListener('mouseover',function(e){
+  var t=e.target.closest('.term');
+  if(t){show(t);}else{hide();}
+});
+document.addEventListener('scroll',hide,true);
+})();
+"""
+
+
 def page(title: str, body: str, nav: str = "") -> str:
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -510,6 +676,7 @@ def page(title: str, body: str, nav: str = "") -> str:
 </aside>
 {build_templates()}
 <script>{PANE_JS}</script>
+<script>{TOOLTIP_JS}</script>
 </body>
 </html>
 """
@@ -571,14 +738,14 @@ def render_doc_page(name: str, data, others: list) -> str:
                 meta_line.append(badge(k, meta[k]) if k == "status" else esc(meta[k]))
     n_open = count_assumptions(data)
     alert = (
-        f'<div class="alert">⚠ 待确认假设 {n_open} 项 —— 即页面中黄底标注内容，逐条确认后方可定稿</div>'
+        f'<div class="alert">⚠ {gloss("待确认假设")} {n_open} 项 —— 即页面中黄底标注内容，逐条确认后方可定稿</div>'
         if n_open else ""
     )
     # trace: S-12 AC-12.1 TC-12.1.1 悬空引用计入页面顶部告警
     dang = DANGLING_BY_DOC.get(name) or []
     if dang:
         ids = "、".join(f"<code>{esc(i)}</code>" for i in dang)
-        alert += f'<div class="alert alert-bad">⚠ 悬空引用：{ids}（未定义的 ID）</div>'
+        alert += f'<div class="alert alert-bad">⚠ {gloss("悬空引用")}：{ids}（未定义的 ID）</div>'
     body = f'<p class="doc-meta">{" · ".join(meta_line)}</p>' + alert
     if name == "openapi":
         body += render_openapi_section(data)
@@ -590,7 +757,7 @@ def render_doc_page(name: str, data, others: list) -> str:
         render_value(k, v, 0) for k, v in (data or {}).items() if k not in META_KEYS
     )
     links = ['<a href="index.html">⌂ 首页</a>'] + [
-        f'<a href="{esc(n)}.html">{esc(DOC_LABELS.get(n, n))}</a>' for n, _ in others if n != name
+        f'<a href="{esc(n)}.html">{gloss(esc(DOC_LABELS.get(n, n)))}</a>' for n, _ in others if n != name
     ]
     return page(DOC_LABELS.get(name, name), body, " · ".join(links))
 
@@ -605,7 +772,7 @@ def build_index(docs: list) -> str:
         open_html = f'<span class="badge b-warn">待确认 {n_open}</span>' if n_open else ""
         cards.append(
             f'<a class="doc-card" href="{esc(name)}.html">'
-            f'<div class="name">{esc(DOC_LABELS.get(name, name))}'
+            f'<div class="name">{gloss(esc(DOC_LABELS.get(name, name)))}'
             f'<span class="sub"> {esc(name)}.yaml</span></div>'
             f'<div class="sub">{status_html} {open_html} {esc(meta.get("updated", ""))}</div></a>'
         )

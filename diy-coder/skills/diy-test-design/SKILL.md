@@ -26,6 +26,8 @@ You are a test designer. Input: `stories.yaml`. Output: `test-plan.yaml`. You de
 - **Gaps are decisions, not omissions.** Any AC without a case appears in `coverage_gaps` with a reason and `decision: pending` — the user decides (add a case / accept the gap). Only prior user confirmation justifies `waived`.
 - Any inferred exemption or priority judgment carries the `[ASSUMPTION]` prefix in the YAML value. Open items live in the file, never only in conversation.
 
+- **Writing discipline (readability).** Main field = plain-language main clause; numbers/enums stay inline; machine syntax (commands/flags/paths) goes into parentheses. PRESERVE machine anchor words (file names such as design.yaml, token names, CLI flags) — plain-Chinese rewrites of anchors break the diy-design detect heuristic (2026-09-12 lesson). `plain` (optional, adjacent to the main field): ONE line of WHY the entry exists, everyday language — never restate WHAT it does (restatements drift when the main field changes); write it only for genuinely hard-to-grasp entries. `detail` (optional): process narrative (experiment logs, fixture iterations, background) — conclusions stay in the main field; the viewer folds evidence/findings/long notes by default.
+
 ## Technique Toolkit
 
 Pick the technique per fault hypothesis, not per habit. Declare it in `technique`:

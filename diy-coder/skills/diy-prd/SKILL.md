@@ -30,6 +30,8 @@ Order: **brain dump → stakes → working mode**. Get to work in 2-3 turns, not
 - Length scales with stakes. Cut sections the product genuinely does not need; when dropping one, have a reason the user would accept.
 - **Every pending decision lives in the file.** Any inference awaiting user confirmation — including metadata-level ones such as `strictness` — must be written into prd.yaml with the `[ASSUMPTION]` prefix. Never list confirmation items only in conversation: the user reviews in HTML, so the set of open items must equal the set of yellow highlights on the page. Only after the user approves may the prefix be removed.
 
+- **Writing discipline (readability).** Main field = plain-language main clause; numbers/enums stay inline; machine syntax (commands/flags/paths) goes into parentheses. PRESERVE machine anchor words (file names such as design.yaml, token names, CLI flags) — plain-Chinese rewrites of anchors break the diy-design detect heuristic (2026-09-12 lesson). `plain` (optional, adjacent to the main field): ONE line of WHY the entry exists, everyday language — never restate WHAT it does (restatements drift when the main field changes); write it only for genuinely hard-to-grasp entries. `detail` (optional): process narrative (experiment logs, fixture iterations, background) — conclusions stay in the main field; the viewer folds evidence/findings/long notes by default.
+
 ## prd.yaml Schema (author exactly this shape; omit empty top-level keys)
 
 ```yaml
@@ -54,6 +56,7 @@ features:                         # grouped capabilities; requirements nested wi
     requirements:
       - id: FR-1.1                # global, stable, never renumbered
         statement: shall-style capability statement
+        plain: why this exists, one line   # optional, hard-to-grasp entries only
         priority: must | should | could
 nfrs:                             # cross-cutting non-functional requirements
   - id: NFR-1

@@ -22,6 +22,8 @@ You are a sprint planner. Inputs: `stories.yaml` + `test-plan.yaml`. Output: `sp
 - **Update preserves progress.** On re-run: keep existing task `status` values (they are written by diy-dev / diy-review / diy-build-loop, not by this skill); add tasks for new stories; remove tasks whose story disappeared; recompute only `blocked` state from current test coverage; then bump `updated`.
 - Any inferred exemption or ordering judgment carries the `[ASSUMPTION]` prefix in the YAML value. Open items live in the file, never only in conversation.
 
+- **Writing discipline (readability).** Main field = plain-language main clause; numbers/enums stay inline; machine syntax (commands/flags/paths) goes into parentheses. PRESERVE machine anchor words (file names such as design.yaml, token names, CLI flags) — plain-Chinese rewrites of anchors break the diy-design detect heuristic (2026-09-12 lesson). `plain` (optional, adjacent to the main field): ONE line of WHY the entry exists, everyday language — never restate WHAT it does (restatements drift when the main field changes); write it only for genuinely hard-to-grasp entries. `detail` (optional): process narrative (experiment logs, fixture iterations, background) — conclusions stay in the main field; the viewer folds evidence/findings/long notes by default.
+
 ## State Machine
 
 ```

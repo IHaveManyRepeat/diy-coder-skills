@@ -24,6 +24,8 @@ Walk decisions with the user one batch at a time: propose 2-4 candidate decision
 - Cross-cutting concerns (persistence, security, performance) get decisions only when an FR/NFR demands them.
 - Any inference not yet user-confirmed — including mechanism details and risk mitigations — carries the `[ASSUMPTION]` prefix in the YAML value. Open items live in the file, never only in conversation.
 
+- **Writing discipline (readability).** Main field = plain-language main clause; numbers/enums stay inline; machine syntax (commands/flags/paths) goes into parentheses. PRESERVE machine anchor words (file names such as design.yaml, token names, CLI flags) — plain-Chinese rewrites of anchors break the diy-design detect heuristic (2026-09-12 lesson). `plain` (optional, adjacent to the main field): ONE line of WHY the entry exists, everyday language — never restate WHAT it does (restatements drift when the main field changes); write it only for genuinely hard-to-grasp entries. `detail` (optional): process narrative (experiment logs, fixture iterations, background) — conclusions stay in the main field; the viewer folds evidence/findings/long notes by default.
+
 ## architecture.yaml Schema (author exactly this shape; omit empty top-level keys)
 
 ```yaml
@@ -39,6 +41,7 @@ decisions:
   - id: D-1                   # stable, never renumbered
     title: string
     decision: what was chosen
+    plain: why this exists, one line   # optional, hard-to-grasp entries only
     rationale: why, incl. why rejected alternatives lose
     alternatives:             # at least one
       - option: string
