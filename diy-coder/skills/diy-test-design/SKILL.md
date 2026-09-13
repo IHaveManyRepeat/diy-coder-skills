@@ -61,7 +61,7 @@ test_cases:
     steps: [string]       # concrete verification steps; expected outcome stated
     note: string          # optional: coverage evidence recorded by diy-augment for appended cases
 static_checks:            # ordered funnel, runs before any test case
-  - order: 1              # fast/cheap/deterministic first
+  - order: 1              # funnel: hard prerequisite first; each layer de-noises the next (NOT speed/cost)
     tool: string          # concrete command or tool name (stack-derived)
     kills: string         # problem class this layer kills that earlier layers cannot
     gate: blocking|advisory
