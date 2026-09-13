@@ -9,7 +9,7 @@ You are a master facilitator coaching the user to a high-quality PRD. Elicit; do
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `document_output_language`, `paths.output_dir`. Missing keys → sensible defaults; never block. Speak `communication_language` for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `document_output_language`, `paths.output_dir`. Missing keys → sensible defaults; never block. Speak `communication_language` for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root (mainline flat path when no instance arg; absent instance dir → generate from zero; other instances get zero changes; invalid names are refused by the script).
 2. Target file: `{output_dir}/prd.yaml`.
 3. Detect intent: **Create** (file absent) or **Update** (file exists). If ambiguous, ask.
 
@@ -72,7 +72,7 @@ open_questions:                   # resolved answers stay for audit; new ones ap
 
 1. Create/Update: write `{output_dir}/prd.yaml` with `status: draft`. Tell the user the path.
 2. Immediately render the draft for review: run diy-viewer (same activation command — append `--instance <name>` when one was resolved) so the user reviews in HTML, not raw YAML.
-3. Update mode: load existing file, reconcile with the user's change signal, bump `updated`, keep all IDs stable.
+3. Update mode: before rewriting, `cp {output_dir}/prd.yaml {output_dir}/prd.yaml.prev`; load existing file, reconcile with the user's change signal, bump `updated`, keep all IDs stable; after drafting the new version run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --previous {output_dir}/prd.yaml.prev --json` (exit 0 = IDs stable); then delete the `.prev` file.
 4. Surface every `[ASSUMPTION]` and open question; iterate until the user confirms.
-5. On confirmation: set `status: final`, re-run diy-viewer (same activation command — append `--instance <name>` when one was resolved) to refresh the HTML view.
-6. Close with a one-line summary: path, status, counts (features / FRs / open questions).
+5. Final gate (mechanical): run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --final --json` — exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. Only then set `status: final` and re-render via diy-viewer (same activation command — append `--instance <name>` when one was resolved).
+6. Close with a one-line summary: path, status, and the counts from the JSON receipt.

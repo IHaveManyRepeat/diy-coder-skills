@@ -185,6 +185,54 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual(a.returncode, 0, a.stdout + a.stderr)
         self.assertTrue(json.loads(a.stdout)["pass"])
 
+    # trace: S-14 AC-14.2 TC-14.2.1
+    def test_detect_plain_verbs_do_not_veto_real_ui_fr(self):
+        # determinism-1 回归：普通动词（生成/渲染）出现在真实 UI 需求句中不得否决命中
+        self.write_prd(["系统应生成订单详情页，展示商品列表与状态标签"])
+        d = run_engine(["detect", "--project-root", self.root, "--json"])
+        self.assertEqual(d.returncode, 0, d.stderr)
+        data = json.loads(d.stdout)
+        self.assertTrue(data["has_frontend"], d.stdout)
+        self.assertEqual(data["hits"][0]["fr"], "F-1")
+        self.write_prd(["页面渲染完成后弹出登录弹窗"])
+        d2 = run_engine(["detect", "--project-root", self.root, "--json"])
+        self.assertTrue(json.loads(d2.stdout)["has_frontend"], d2.stdout)
+        # 机器锚词（技能名/技术术语，词边界判定）仍构成否决：工具链自身描述不触发设计
+        self.write_prd(["diy-viewer 把 HTML 产物渲染成页面"])
+        d3 = run_engine(["detect", "--project-root", self.root, "--json"])
+        self.assertFalse(json.loads(d3.stdout)["has_frontend"], d3.stdout)
+
+    # trace: S-15 AC-15.2 TC-15.2.1
+    def test_audit_judges_hex_at_value_positions_only(self):
+        # determinism-2 回归：var() fallback / 选择器 / 注释不是色值位，不得误报
+        dpath = self.write("diy-output/design.yaml", GOOD_DESIGN)
+        src = self.write("diy-output/src/app.css", NL.join([
+            ".card {",
+            "  color: var(--color-text, #111827);",
+            "  background: var(--color-bg);",
+            "}",
+            "#fade { opacity: 0; }",
+            "/* legacy: #ccc */",
+            "",
+        ]))
+        a = run_engine(["audit", "--design", dpath, "--src", src, "--json"])
+        self.assertEqual(a.returncode, 0, a.stdout + a.stderr)
+        self.assertTrue(json.loads(a.stdout)["pass"])
+        # 对照：真实色值位的非 token 色值必须仍被报（收紧不得变松）
+        bad = self.write("diy-output/src/bad.css", "button { background: #111827; }" + NL)
+        a2 = run_engine(["audit", "--design", dpath, "--src", bad, "--json"])
+        self.assertEqual(a2.returncode, 1, a2.stdout + a2.stderr)
+        oneoffs = [v for v in json.loads(a2.stdout)["violations"]
+                   if v["kind"] == "one-off-color"]
+        self.assertTrue(oneoffs and "#111827" in oneoffs[0]["detail"], a2.stdout)
+        # 内联 style 是色值位：style 属性中的非 token 色值同样被抓
+        inline = self.write("diy-output/src/card.html",
+                            '<div style="color: #111827">x</div>' + NL)
+        a3 = run_engine(["audit", "--design", dpath, "--src", inline, "--json"])
+        self.assertEqual(a3.returncode, 1, a3.stdout + a3.stderr)
+        self.assertTrue(any(v["kind"] == "one-off-color"
+                            for v in json.loads(a3.stdout)["violations"]), a3.stdout)
+
     # trace: S-14 AC-14.3 TC-14.3.3
     def test_malformed_shapes_degrade_without_traceback(self):
         # 夹具一：token 色值为整数 123（形状未知）

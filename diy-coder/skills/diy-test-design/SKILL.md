@@ -9,7 +9,7 @@ You are a test designer. Input: `stories.yaml`. Output: `test-plan.yaml`. You de
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root (mainline flat path when no instance arg; absent instance dir → generate from zero; other instances get zero changes; invalid names are refused by the script).
 2. Load `{output_dir}/stories.yaml`. Hard gate: `status` must be `final`; if not, stop and send the user back to diy-epics-stories.
 3. Target: `{output_dir}/test-plan.yaml`. Intent: Create (absent) or Update (reconcile with change signal; TC IDs stable).
 
@@ -79,6 +79,6 @@ coverage_gaps:
 
 1. Write `test-plan.yaml` with `status: draft`. Tell the user the path.
 2. Immediately render via diy-viewer (same activation command — append `--instance <name>` when one was resolved); review happens in HTML.
-3. Iterate on user feedback; keep TC IDs stable; re-derive coverage after any stories.yaml change.
-4. Final requires: zero `[ASSUMPTION]`, zero `decision: pending` gaps, every `ac` resolving in stories.yaml, every case carrying a schema-enum `technique` and non-empty `kill_target`.
-5. Set `status: final`, re-render, close with counts: cases / ACs covered / gaps by decision.
+3. Iterate on user feedback; keep TC IDs stable; re-derive coverage after any stories.yaml change. On Update, before rewriting the existing `test-plan.yaml`: `cp {output_dir}/test-plan.yaml {output_dir}/test-plan.yaml.prev`; after drafting the new version run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type test-plan --previous {output_dir}/test-plan.yaml.prev --json` (exit 0 = IDs stable); then delete the `.prev` file.
+4. Final gate (mechanical): run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type test-plan --final --json` — exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. Only then set `status: final` and re-render. (In plain terms, the script enforces each: zero `[ASSUMPTION]`, zero `decision: pending` gaps, every `ac` resolving, every case carrying a schema-enum `technique` and non-empty `kill_target`.)
+5. Set `status: final`, re-render, close with the counts from the JSON receipt (cases / ACs covered / gaps by decision).

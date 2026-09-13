@@ -2,11 +2,13 @@
 """diy-design 确定性引擎：前端需求检测 + 易用性自检 + schema 校验。
 
 子命令：
-  detect  扫 prd.yaml FR statement → has_frontend（命中词∩¬排除词，启发式；
-          LLM 在 SKILL.md 层保留语义复核权）
+  detect  扫 prd.yaml FR statement → has_frontend（命中词 ∩ ¬机器锚词，启发式；
+          普通动词不构成否决，机器锚词按词边界锚定；LLM 在 SKILL.md 层保留语义复核权）
   check   design.yaml + 原型三项自检：WCAG AA 对比度（角色配对）、
           非色彩唯一信号（states.signals）、语义 HTML（h1/input label/img alt）
   validate design.yaml 结构契约：direction 非空、token 三类、每页四交互状态、原型存在
+  audit   扫 src 实现源码的 one-off 色值/字号（hex 按语法位置判定：只判声明值/
+          内联 style 等真实色值位，var() fallback 与选择器/注释不算）
 
 只读检测；design.yaml 与原型由 diy-design 会话（LLM）创作。实例解析对齐 FR-4.5/D-9。
 """
@@ -27,8 +29,13 @@ INSTANCE_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?")
 
 HIT_WORDS = ("页面", "界面", "登录", "表单", "图表", "看板", "仪表盘",
              "导航栏", "弹窗", "轮播", "输入框", "按钮", "列表页", "详情页")
-EXCLUDE_WORDS = ("yaml", "skill", "diy-", "渲染", "产出", "生成", "原型",
-                 "token", "html", "浏览器", "查看器")
+# 机器锚词否决（finding determinism-1 修复）：只有工具链/文档语境的机器锚词能否决命中——
+# 文件名扩展名（prd.yaml）、技能名前缀（diy-）、技术术语（html/token/skill）与套件组件名
+# （viewer），按词边界锚定。普通动词（生成/渲染/产出…）不再构成否决：它们出现在真实 UI
+# 需求句中是常态（如「系统应生成订单详情页」，靠 viewer/diy- 等锚词而非动词排除）。
+MACHINE_VETO_RE = re.compile(
+    r"(?<![a-z0-9])(?:yaml|html|tokens?|skills?|viewers?)(?![a-z0-9])|diy-[a-z0-9]",
+    re.IGNORECASE)
 
 REQUIRED_STATES = ("hover", "empty", "loading", "error")
 CONTRAST_PAIRS = (
@@ -56,7 +63,7 @@ def resolve_output_dir(project_root, instance):  # trace: S-16 AC-16.1 D-9 实�
     return os.path.join(project_root, output_dir)
 
 
-def cmd_detect(args):  # trace: S-14 AC-14.2 TC-14.2.1 前端需求启发式（命中词+排除词），skip 判定证据
+def cmd_detect(args):  # trace: S-14 AC-14.2 TC-14.2.1 前端需求启发式（命中词+机器锚词否决），skip 判定证据
     output_dir = resolve_output_dir(args.project_root, args.instance)
     prd_path = os.path.join(output_dir, "prd.yaml")
     if not os.path.isfile(prd_path):
@@ -67,14 +74,13 @@ def cmd_detect(args):  # trace: S-14 AC-14.2 TC-14.2.1 前端需求启发式（�
     for group in prd.get("features", []) or []:
         for fr in group.get("requirements", []) or []:
             text = str(fr.get("statement", ""))
-            if any(w in text for w in HIT_WORDS) and not any(
-                    w in text.lower() or w in text for w in EXCLUDE_WORDS):
+            if any(w in text for w in HIT_WORDS) and not MACHINE_VETO_RE.search(text):
                 hits.append({"fr": fr.get("id"), "text": text[:80]})
     result = {
         "has_frontend": bool(hits),
         "hits": hits,
         "skip_reason": None if hits else
-        "PRD 未检测到面向用户的界面需求（启发式零命中）；LLM 可语义复核否决",
+        "PRD 未检测到面向用户的界面需求（启发式：命中词零命中或机器锚词否决）；LLM 可语义复核否决",
     }
     print(json.dumps(result, ensure_ascii=False, indent=2) if args.json
           else ("检测到前端需求：%s" % json.dumps(hits, ensure_ascii=False)
@@ -310,12 +316,89 @@ def collect_font_sizes(design):  # trace: S-15 AC-15.2 合法字号集合（typo
     return {str(s).strip() for s in (typo.get("scale") or [])}
 
 
+# ---- audit 位置判定（finding determinism-2 修复）：hex 只判「真实颜色值位」 ----
+
+# 色属性白名单（闸门）：只有这些属性的值位才算色值；键按小写去连字符归一（兼容 JSX camelCase）
+_COLOR_PROPS = frozenset((
+    "color", "backgroundcolor", "backgroundimage", "bordercolor", "outline", "outlinecolor",
+    "boxshadow", "textshadow", "fill", "stroke", "caretcolor", "accentcolor",
+    "textdecorationcolor", "columnrulecolor", "filter",
+))
+JS_EXTS = (".js", ".ts", ".jsx", ".tsx")
+
+HEX_RE = re.compile(r"#[0-9a-fA-F]{3,8}\b")
+# CSS/HTML 声明位：prop: value（止于 ; } 换行或引号；值内逗号合法不作终止）
+_DECL_RE = re.compile(r"(?P<prop>--[a-zA-Z][\w-]*|[a-zA-Z][\w-]*)\s*:\s*(?P<val>[^;{}\n\"']*)")
+# JS 声明位：无引号值的 prop: value（值止于 ; { } , 换行或引号，不吞同对象下一键）
+_JS_DECL_RE = re.compile(r"(?P<prop>--[a-zA-Z][\w-]*|[a-zA-Z][\w-]*)\s*:\s*(?P<val>[^;{},\n\"']+)")
+# 引号值位：color: '#fff' / 'backgroundColor': "#fff"
+_QUOTED_DECL_RE = re.compile(
+    r"['\"]?(?P<prop>[a-zA-Z][\w-]*)['\"]?\s*:\s*['\"](?P<val>[^'\"]*)['\"]")
+# 属性/赋值位：<Button color="#fff">、el.style.color = '#fff'
+_ATTR_RE = re.compile(r"(?P<prop>[a-zA-Z][\w-]*)\s*=\s*['\"](?P<val>[^'\"]*)['\"]")
+_FUNC_RE = re.compile(r"(?<![a-z0-9-])(?:var|url)\s*\(", re.IGNORECASE)
+_BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
+_HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
+_LINE_COMMENT_RE = re.compile(r"(?m)(?<![\w:])//[^\n]*")
+
+
+def is_color_prop(prop):
+    """色属性白名单：CSS 色属性 / JSX camelCase 样式键 / CSS 自定义属性（--* 定义位）。"""
+    if prop.startswith("--"):
+        return True
+    p = prop.lower().replace("-", "").replace("_", "")
+    return p in _COLOR_PROPS or p.startswith("border") or p.startswith("background")
+
+
+def strip_css_functions(value):
+    """剥离 var(...)/url(...) 整体（配平括号含嵌套 fallback）：它们不是 one-off 色值。"""
+    out, i = [], 0
+    while i < len(value):
+        m = _FUNC_RE.match(value, i)
+        if not m:
+            out.append(value[i])
+            i += 1
+            continue
+        depth, j = 1, m.end()
+        while j < len(value) and depth:
+            depth += 1 if value[j] == "(" else (-1 if value[j] == ")" else 0)
+            j += 1
+        i = j
+    return "".join(out)
+
+
+def strip_comments(text, ext):
+    """按语法剥注释：块注释与 HTML 注释全部剥；JS 系另剥行注释（避开 http:// 形态）。"""
+    text = _BLOCK_COMMENT_RE.sub(" ", text)
+    text = _HTML_COMMENT_RE.sub(" ", text)
+    if ext in JS_EXTS:
+        text = _LINE_COMMENT_RE.sub(" ", text)
+    return text
+
+
+def iter_color_value_spans(text, ext):
+    """产出「真实颜色值位」的文本（已剥 var()/url()）：声明值/引号样式键/属性赋值位。
+
+    选择器（#fade）、注释（/* #ccc */）、var() fallback 不在此列；重叠匹配只产出一次。
+    """
+    rxs = (_JS_DECL_RE if ext in JS_EXTS else _DECL_RE, _QUOTED_DECL_RE, _ATTR_RE)
+    taken = []
+    for rx in rxs:
+        for m in rx.finditer(text):
+            if not is_color_prop(m.group("prop")):
+                continue
+            s, e = m.span("val")
+            if any(s < te and ts < e for ts, te in taken):
+                continue
+            taken.append((s, e))
+            yield strip_css_functions(m.group("val"))
+
+
 def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 TC-14.3.2 one-off 色值/字号审计（归一比较，token 单一源）
     design, shape_problems = load_design_or_die(args.design)
     hex_ok = collect_token_hexes(design)
     fs_ok = collect_font_sizes(design)
     violations = [{"kind": "malformed", "detail": p} for p in shape_problems]
-    hex_re = re.compile(r"#[0-9a-fA-F]{3,8}\b")
     fs_re = re.compile(r"font-size:\s*([^;{}]+)")
     if not os.path.exists(args.src):
         sys.stderr.write("src not found: %s\n" % args.src)
@@ -329,18 +412,20 @@ def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 TC-14.3.2 one-off 色值/�
     else:
         files = [args.src]
     for fpath in files:
-        text = io.open(fpath, encoding="utf-8").read()
+        ext = os.path.splitext(fpath)[1].lower()
+        text = strip_comments(io.open(fpath, encoding="utf-8").read(), ext)
         rel = os.path.basename(fpath)
-        for m in hex_re.finditer(text):
-            try:
-                norm = normalize_hex(m.group(0))
-            except ValueError:
-                norm = None
-            if norm not in hex_ok:
-                violations.append({
-                    "kind": "one-off-color",
-                    "detail": "%s: 色值 %s 不在 design token（单一源违规）" % (
-                        rel, m.group(0))})
+        for value in iter_color_value_spans(text, ext):
+            for m in HEX_RE.finditer(value):
+                try:
+                    norm = normalize_hex(m.group(0))
+                except ValueError:
+                    norm = None
+                if norm not in hex_ok:
+                    violations.append({
+                        "kind": "one-off-color",
+                        "detail": "%s: 色值 %s 不在 design token（单一源违规）" % (
+                            rel, m.group(0))})
         for m in fs_re.finditer(text):
             val = m.group(1).strip()
             if not (val.startswith("var(") or val in fs_ok):

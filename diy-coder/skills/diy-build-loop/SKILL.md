@@ -9,42 +9,44 @@ You are an iteration driver. Input: `sprint.yaml` + ONE target task. You orchest
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root (mainline flat path when no instance arg; absent instance dir → generate from zero; other instances get zero changes; invalid names are refused by the script).
 2. Hard gate: `{output_dir}/sprint.yaml` `project.status: final`. On failure stop and route back to diy-sprint.
 3. Resolve target: explicit story ID from the invocation args, else the first non-terminal task (`pending` → full run; `in-progress` → resume at dev stage; `review` → resume at review stage). A `done`/`blocked` target is refused with its state named — terminal means no work left.
-4. TDD gate (inherited from diy-dev): a `pending`/`in-progress` target whose `test_refs` are empty OR unresolvable in test-plan.yaml is set `blocked` with `blocked_reason` naming the missing/broken TC IDs (AC-9.2: ambiguity becomes blocked, not guessing). Zero implementation is produced. Refusal is a stop, not a workaround.
+4. TDD gate (inherited from diy-dev): a `pending`/`in-progress` target whose `test_refs` are empty OR unresolvable in test-plan.yaml is set `blocked` with `blocked_reason` naming the missing/broken TC IDs (AC-9.2: ambiguity becomes blocked, not guessing) — HALT write via `transition --to blocked --reason` (see the HALT protocol). Zero implementation is produced. Refusal is a stop, not a workaround.
 
 ## Design Discipline
 
 - **Orchestrate, don't duplicate.** Dev-stage behavior (red before green, minimal implementation, trace comments, evidence lines, static_checks before green) follows the diy-dev skill exactly; review-stage behavior (layers L1-L4, four routes, verdict rules) follows the diy-review skill exactly. This skill adds the loop, the bounds, and the HALT — nothing else.
 - **Terminal or nothing.** The run ends only with the target `done` or `blocked` (AC-9.1). No exiting in an intermediate state, no deferring the state write.
-- **HALT protocol (FR-3.6).** Every state transition (`pending→in-progress`, `in-progress→review`, `review→done`, `review→in-progress`, `any→blocked`) is written to sprint.yaml the moment it happens, with `project.updated` bumped. Interruption at any point leaves a truthful state on disk; the next invocation resumes from it (idempotent: existing evidence entries are kept, only missing TCs are run).
+- **HALT protocol (FR-3.6).** Every state transition (`pending→in-progress`, `in-progress→review`, `review→done`, `review→in-progress`, `pending|in-progress|review→blocked`) is written to sprint.yaml the moment it happens, with `project.updated` bumped — executed by `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" transition --story <S-x> --to <state> [--reason TEXT] [--rounds N] --json`, except `review→done`, which only the `done` command can write. Pass the current rework count as `--rounds N` on each HALT write so an interruption does not lose it; `loop.outcome` appears only in a terminal state (`blocked` via `transition --to blocked`, `done` via `done`). Interruption at any point leaves a truthful state on disk; the next invocation resumes from it (idempotent: existing evidence entries are kept, only missing TCs are run).
 - **Rework rounds are bounded.** Each `review: fail → dev rework → review` cycle counts one round. Maximum **2** rework rounds per run (aligns with R-4's retry cap). Exhausted with findings unresolved → `blocked`, `blocked_reason` citing the unresolved findings and the round count. Never loop to entertain yourself.
 - **bad_spec routes to blocked.** A review finding routed `bad_spec` means the spec is wrong — fixing stories.yaml/test-plan.yaml belongs to humans/upstream skills, not to the executor. The task goes `blocked` with the finding quoted in `blocked_reason`; the user corrects the spec, then re-runs. Never edit spec documents to unblock yourself.
 - **No falsification round in auto mode.** diy-review's optional post-pass falsification round stays user-triggered; this skill does not run it. Record nothing extra — its absence is not a finding.
 - **Narrow ownership.** This skill writes only the target task's entry: statuses along the cycle, `loop` summary, plus the evidence/review blocks its stages produce. It never touches other tasks and never rewrites `test_refs`.
-- **Terminal writes reach the sources of truth — 真源回填 (BUG-012).** `review → done` writes, in the same HALT breath: the story's `status: done` in `stories.yaml` and `status: pass` for every TC this run executed green in `test-plan.yaml` (the dev stage already writes these per diy-dev — the terminal write reconciles), bumping both `project.updated`. `blocked` is a sprint-level outcome only — it never writes `stories.yaml` or `test-plan.yaml`: the story is not delivered and nothing is passed. **Why:** the 2026-09-13 falsification round found the headless chain reaching terminal sprint states while the sources of truth stayed `pending`.
+- **Terminal writes reach the sources of truth — 真源回填 (BUG-012).** The `done` command (`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" done --story <S-x> --rounds N --json`) performs `review → done` plus the backfill as one atomic batch: task `status: done` with `loop: {at, rounds, outcome: done}` in sprint.yaml, the story's `status: done` in `stories.yaml`, and `status: pass` for every TC this run executed green in `test-plan.yaml` (the dev stage already wrote these per diy-dev — the terminal write reconciles), bumping all touched `project.updated`. `blocked` is a sprint-level outcome only — it never writes `stories.yaml` or `test-plan.yaml`: the story is not delivered and nothing is passed. **Why:** the 2026-09-13 falsification round found the headless chain reaching terminal sprint states while the sources of truth stayed `pending`.
 - Any judgment call carries the `[ASSUMPTION]` prefix in the YAML value.
 
 ## Single-Run Protocol
+
+(`diyc.py` below abbreviates the full invocation `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py"`.)
 
 ```
 resume-at = pending ? dev : (in-progress ? dev : review)
 rounds = 0
 if resume-at == dev:
-    pending → in-progress (HALT write)
-    dev stage: for each test_refs TC — red line, minimal impl, static_checks, green line (evidence written per diy-dev)
-    in-progress → review (HALT write)
+    pending → in-progress   (HALT: diyc.py transition --to in-progress --rounds <rounds>)
+    dev stage: for each test_refs TC — red line, minimal impl, static_checks (diyc.py static), green line (HALT: diyc.py green — evidence + test-plan backfill, one batch)
+    in-progress → review    (HALT: diyc.py transition --to review --rounds <rounds>)
 loop:
     review stage: layers L1-L4 + routing per diy-review; write review block (HALT write)
-    pass  → review → done (HALT write; backfill stories.yaml status: done + green TCs status: pass in test-plan.yaml); stop
+    pass  → done            (HALT: diyc.py done --rounds <rounds> — status + stories.yaml + test-plan.yaml, one batch); stop
     fail:
-        if any finding routed bad_spec → blocked (reason quotes it); stop
-        if rounds == 2                  → blocked (reason: rounds exhausted + unresolved findings); stop
+        if any finding routed bad_spec → blocked (HALT: diyc.py transition --to blocked --reason "<quote>" --rounds <rounds>); stop
+        if rounds == 2                  → blocked (HALT: diyc.py transition --to blocked --reason "rounds exhausted + unresolved findings" --rounds <rounds>); stop
         rounds += 1
-        review → in-progress (HALT write)
-        dev stage: rework ONLY the routed findings; evidence appended per reworked TC
-        in-progress → review (HALT write); repeat loop
+        review → in-progress (HALT: diyc.py transition --to in-progress --rounds <rounds>)
+        dev stage: rework ONLY the routed findings; evidence appended per reworked TC (diyc.py green)
+        in-progress → review (HALT: diyc.py transition --to review --rounds <rounds>); repeat loop
 ```
 
 A red that cannot turn green during any dev stage → `blocked` with `blocked_reason` (per diy-dev honesty rule) — same terminal exit, no weakened tests.
@@ -65,6 +67,6 @@ Task entry in `sprint.yaml` gains (evidence/review blocks as defined by diy-dev/
 ## Workflow
 
 1. Resolve gates and target; restate in one line: target task, its state, resume point.
-2. Execute the Single-Run Protocol; write every transition to sprint.yaml as it happens, and backfill the sources of truth (`stories.yaml`/`test-plan.yaml`) on the `done` terminal per the 真源回填 rule.
+2. Execute the Single-Run Protocol; write every transition to sprint.yaml as it happens via `diyc.py transition` / `green` / `done` (HALT), with the `done` terminal performing the 真源回填 backfill of `stories.yaml`/`test-plan.yaml` in the same atomic batch.
 3. Render via diy-viewer (same activation command — append `--instance <name>` when one was resolved) at the terminal state. In interactive runs report the path; in headless (runner-invoked) runs render silently — no path report. Rendering is best-effort: if the command is not permitted in the harness or fails, record a one-line note and continue — a failed render never blocks, reverses, or invalidates the terminal write.
-4. Close with counts: TCs red/green this run, rework rounds used, findings by route, final status + reason (if blocked, name the exact unblock step: fix spec → diy-test-design, or clarify intent → re-run with args).
+4. Close with the counts from the JSON receipts (TCs red/green this run, rework rounds used, findings by route, final status + reason; if blocked, name the exact unblock step: fix spec → diy-test-design, or clarify intent → re-run with args).

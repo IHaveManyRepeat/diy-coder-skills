@@ -49,7 +49,7 @@ def main() -> int:
 
 
 def smoke(src: str) -> bool:
-    # trace: D-8 R-2 安装冒烟：python 版本 / PyYAML / viewer 引擎可执行
+    # trace: D-8 R-2 安装冒烟：python 版本 / PyYAML / viewer 引擎 / diyc 引擎可执行
     ok = True
     v = sys.version_info
     if v < (3, 10):
@@ -69,6 +69,13 @@ def smoke(src: str) -> bool:
         print("[冒烟] viewer.py 可执行 OK")
     else:
         print("[冒烟] viewer.py --help 失败（多与上面的 PyYAML 缺失相关）")
+        ok = False
+    diyc = os.path.join(src, "skills", "diy-tools", "scripts", "diyc.py")
+    r = subprocess.run([sys.executable, diyc, "--help"], capture_output=True)
+    if r.returncode == 0:
+        print("[冒烟] diyc.py 可执行 OK")
+    else:
+        print("[冒烟] diyc.py --help 失败（多与上面的 PyYAML 缺失相关）")
         ok = False
     return ok
 

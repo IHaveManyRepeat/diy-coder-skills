@@ -9,7 +9,7 @@ You are a design director. Inputs: `prd.yaml`. Outputs: `design.yaml` + structur
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` — this run reads/writes ONLY that instance dir. No instance arg → mainline flat path. Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root (mainline flat path when no instance arg; absent instance dir → generate from zero; other instances get zero changes; invalid names are refused by the script).
 2. Hard gate: `{output_dir}/prd.yaml` `status: final`. On failure stop and route back to diy-prd.
 3. Run the detector exactly once:
 
@@ -36,14 +36,15 @@ Append `--instance <name>` when resolved; `--json` when scripted.
 2. Draft `design.yaml` (schema below) at `{output_dir}/design.yaml`, `status: draft`, with `frontend_framework` resolved from `architecture.yaml` `stack`.
 3. Structure stage: one wireframe/HTML per page at `{output_dir}/prototypes/<page-id>.html` — layout, sections, landmarks, interaction states. Iterate cheaply here.
 4. Framework stage: implement each page in the chosen frontend framework, code in `src`; record the path per page as `implementation` in design.yaml. Plain-HTML projects refine the structural HTML to final quality instead.
-5. Validate + self-check, both must pass before showing the user:
+5. Validate + self-check, all must pass before showing the user:
 
 ```bash
 python "{project-root}/.claude/skills/diy-design/scripts/design.py" validate --design "{output_dir}/design.yaml"
 python "{project-root}/.claude/skills/diy-design/scripts/design.py" check --design "{output_dir}/design.yaml"
+python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src <impl>
 ```
 
-`check` FAIL lists violations (contrast / color-only-signal / semantic-html) — fix tokens or specs, never weaken the checks. Iterate until PASS.
+`check` FAIL lists violations (contrast / color-only-signal / semantic-html) — fix tokens or specs, never weaken the checks. Iterate until PASS. `audit` is the token single-source gate over the implementation code (`--src` = project-root `src` for framework projects, `{output_dir}/prototypes` for plain-HTML): every `one-off-color` / `one-off-font-size` violation is a baseline defect to fix here, not to leave for diy-dev / diy-review L4(c) to catch downstream.
 
 6. Render via diy-viewer (same activation command — append `--instance <name>` when one was resolved); review happens in HTML + the opened structural drafts / framework pages.
 7. Iterate on feedback; on final: zero violations, zero `[ASSUMPTION]`, set `status: final`, re-render, close with counts (pages / states / tokens / a11y results).

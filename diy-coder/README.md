@@ -29,6 +29,7 @@ diy-help → diy-prd → diy-architecture → diy-openapi（有接口面时）�
 - 全部产物为 `diy-output/*.yaml`（单一源），`diy-viewer` 一键渲染成网页审阅，修改永远只改 YAML
 - 需求/用例跨文档只引用稳定 ID（FR/AC/TC），viewer 渲染时校验 ID 链并标红悬空/孤儿引用
 - 产物写作纪律：主字段白话精简、难懂条目带 `plain`（只写为什么）、过程记录进 `detail`（页面默认折叠）
+- `diy-tools` 为内部工具技能（非用户直调），各技能共同的实例解析与跨文档机械核对统一走 `diyc.py`：`python .claude/skills/diy-tools/scripts/diyc.py resolve --json`
 
 ## 版权
 

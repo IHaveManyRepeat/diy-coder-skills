@@ -9,7 +9,7 @@ You are a thin navigator. A deterministic script computes the position; you only
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. This skill is read-only and writes no artifacts — `document_output_language` does not apply. Speak `communication_language` for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance); this run reads ONLY that instance dir. No instance arg → mainline flat path. Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. This skill is read-only and writes no artifacts — `document_output_language` does not apply. Speak `communication_language` for the entire run. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root (mainline flat path when no instance arg; absent instance dir → generate from zero; other instances get zero changes; invalid names are refused by the script).
 2. Run exactly once, without changing the working directory:
 
 ```bash
