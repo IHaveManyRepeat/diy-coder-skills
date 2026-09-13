@@ -5,7 +5,12 @@
   check → diyc_check（懒加载）、写回五命令 → diyc_writeback（懒加载，按 args.command 分派）；
   resolve/trace/static 三个子命令由本文件直接实现。
 - 统一收口：解析 output_dir 写入 args.output_dir、设置 args.command、补公共回执键、
-  emit 输出并以 exit code 收尾（ok → 0，否则 1；用法错误 2 由 argparse 给出）。
+  emit 输出并以 exit code 收尾（ok → 0，否则 1；用法错误 2 由 argparse 给出）；
+  未预期内部异常（含配置读取失败）→ INTERNAL_ERROR 回执（exit 1，--json 面单行 JSON，
+  绝不空 stdout；用法错误 SystemExit 不被捕获，原语义保持）。
+- baseline（已知遗留台账）：审计命令（check/trace/static）收口后应用 diyc_lib.apply_baseline
+  ——命中 (code, where) 降级 known、悬空条目 BASELINE_STALE；写回命令不消费（D1-D4 裁定 2026-09-13）；
+  `baseline-add` 为唯一写入口（D3：仅用户裁定后调用，条目重复/文件损坏拒绝，零半写）。
 """
 # trace: S-6 AC-6.2 S-16 AC-16.1
 
@@ -64,8 +69,9 @@ def cmd_resolve(args) -> dict:
 
 
 def _human_resolve(result) -> list:
-    return ["output_dir: %s" % result["output_dir"],
-            "config_found: %s" % result["config_found"]]
+    # .get：兜底回执（INTERNAL_ERROR）无 config_found 键，渲染不得再崩（V 复验 N-2）
+    return ["output_dir: %s" % result.get("output_dir"),
+            "config_found: %s" % result.get("config_found")]
 
 
 # ---------------------------------------------------------------- trace
@@ -286,6 +292,21 @@ def _human_static(result) -> list:
             for x in result.get("layers") or []]
 
 
+# ---------------------------------------------------------------- baseline-add
+
+def cmd_baseline_add(args) -> dict:
+    # trace: baseline 台账唯一写入口（D1-D4 用户裁定 2026-09-13；仅用户裁定后调用）
+    base_rel = _rel_path(args.project_root,
+                         os.path.join(args.output_dir, diyc_lib.BASELINE_FILE))
+    entry, violations = diyc_lib.baseline_add(
+        args.project_root, args.output_dir, args.code, args.where, args.reason)
+    if entry is None:
+        return receipt("baseline-add", False, violations=violations)
+    entries, _ = diyc_lib.load_baseline(args.output_dir, base_rel)  # 写后回读自检
+    return receipt("baseline-add", True, entry=entry, updated=diyc_lib.today(),
+                   counts={"entries": len(entries)}, violations=[])
+
+
 # ---------------------------------------------------------------- main
 
 def build_parser() -> argparse.ArgumentParser:
@@ -304,13 +325,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--final", action="store_true", help="定稿级检查（--final 义务清单）")
     p.add_argument("--previous", default=None, help="旧稿路径（稳定 ID 集合比对）")
     p.add_argument("--story", default=None, help="限定 story（sprint/review 任务级检查）")
+    p.add_argument("--strict", action="store_true", help="忽略 baseline 台账（发布/CI 复核）")
 
     p = sub.add_parser("trace", parents=[common], help="trace 注释引用审计")
     p.add_argument("--src", action="append", default=None,
                    help="只扫这些路径（可重复；相对 project-root）")
+    p.add_argument("--strict", action="store_true", help="忽略 baseline 台账（发布/CI 复核）")
 
     p = sub.add_parser("static", parents=[common], help="执行 test-plan static_checks 链")
     p.add_argument("--timeout", type=int, default=600, help="单层超时秒数（默认 600）")
+    p.add_argument("--strict", action="store_true", help="忽略 baseline 台账（发布/CI 复核）")
 
     p = sub.add_parser("transition", parents=[common], help="HALT 状态迁移（diyc_writeback）")
     p.add_argument("--story", required=True)
@@ -335,6 +359,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("reconcile", parents=[common], help="sprint 任务与故事集对账")
     p.add_argument("--apply", action="store_true", help="执行写回（默认 dry-run 只算不写）")
+
+    p = sub.add_parser("baseline-add", parents=[common],
+                       help="追加已知遗留台账条目（仅用户裁定后；D3 纪律）")
+    p.add_argument("--code", required=True, help="违规码（须与 check 回执逐字一致）")
+    p.add_argument("--where", required=True, help="违规位置（须与 check 回执逐字一致）")
+    p.add_argument("--reason", required=True, help="裁定理由与日期（进台账，供追溯）")
     return ap
 
 
@@ -404,18 +434,31 @@ def main(argv=None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     _validate_check_flags(parser, args)
-    args.output_dir = diyc_lib.resolve_output_dir(args.project_root, args.instance)
-    if args.command == "resolve":
-        result = cmd_resolve(args)
-    elif args.command == "trace":
-        result = cmd_trace(args)
-    elif args.command == "static":
-        result = cmd_static(args)
-    else:
-        result = _run_behavior(args)
-        if result is None:
-            return 2
-    final = _finalize(result, args)
+    # 兜底占位：resolve 失败（如配置非 UTF-8）时回执仍需 output_dir（V 复验 N-1）
+    args.output_dir = os.path.join(args.project_root, diyc_lib.DEFAULT_OUTPUT_DIR)
+    try:
+        args.output_dir = diyc_lib.resolve_output_dir(args.project_root, args.instance)
+        if args.command == "resolve":
+            result = cmd_resolve(args)
+        elif args.command == "trace":
+            result = cmd_trace(args)
+        elif args.command == "static":
+            result = cmd_static(args)
+        elif args.command == "baseline-add":
+            result = cmd_baseline_add(args)
+        else:
+            result = _run_behavior(args)
+            if result is None:
+                return 2
+        final = _finalize(result, args)
+        if args.command in diyc_lib.AUDIT_COMMANDS and not getattr(args, "strict", False):
+            diyc_lib.apply_baseline(final, args.project_root, args.output_dir,
+                                    allow_stale=not getattr(args, "story", None))
+    except Exception as e:  # 顶层兜底（V 复验 F-1）：任何未预期异常转回执，
+        # 绝不空 stdout 静默失败；--json 面保持单行 JSON；异常回执不消费 baseline
+        final = _finalize(receipt(args.command, False, violations=[v(
+            "INTERNAL_ERROR", _rel_path(args.project_root, args.output_dir),
+            "未预期内部异常：%s: %s（操作可能部分完成，请核对现场后重试）" % (type(e).__name__, e))]), args)
     return diyc_lib.emit(final, args.json,
                          human_lines_fn=HUMAN_RENDERERS.get(args.command))
 

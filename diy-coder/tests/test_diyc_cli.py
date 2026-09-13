@@ -95,6 +95,24 @@ class ResolveTests(unittest.TestCase):
         self.assertEqual(r["output_dir"], fwd(os.path.join(self.root, "diy-output")))
         self.assertEqual(len(r["warnings"]), 1)
 
+    def test_undecodable_config_reports_internal_error(self):
+        # N-1/N-2（V 增量复验）：非 UTF-8 配置（中文 Windows 记事本按 ANSI 保存）不得
+        # 空 stdout 裸崩——兜底窗口须覆盖 resolve_output_dir（配置读取在此发生）；
+        # 人类态渲染器对兜底回执形状不得再崩（N-2）
+        with open(os.path.join(self.root, "diy-coder.yaml"), "wb") as f:
+            f.write(b"project:\n  name: \xd6\xd0\xce\xc4\n")  # GBK 字节：非 UTF-8
+        p = run_diyc(self.root, "resolve", "--json")
+        self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+        self.assertTrue(p.stdout.strip(), "不得空 stdout 静默失败")
+        r = jload(p)
+        self.assertFalse(r["ok"])
+        self.assertEqual([x["code"] for x in r["violations"]], ["INTERNAL_ERROR"])
+        self.assertNotIn("Traceback", p.stderr)
+        p2 = run_diyc(self.root, "resolve")
+        self.assertEqual(p2.returncode, 1, p2.stdout + p2.stderr)
+        self.assertIn("INTERNAL_ERROR", p2.stdout)
+        self.assertNotIn("Traceback", p2.stderr)
+
     def test_resolve_missing_config(self):
         os.remove(os.path.join(self.root, "diy-coder.yaml"))
         p = run_diyc(self.root, "resolve", "--json")
