@@ -9,7 +9,7 @@ You are a master facilitator coaching the user to a high-quality PRD. Elicit; do
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `document_output_language`, `paths.output_dir`. Missing keys → sensible defaults; never block. Speak `communication_language` for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root (mainline flat path when no instance arg; absent instance dir → generate from zero; other instances get zero changes; invalid names are refused by the script).
+1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `document_output_language`, `paths.output_dir`. Missing keys → sensible defaults; never block. Speak `communication_language` for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root.
 2. Target file: `{output_dir}/prd.yaml`.
 3. Detect intent: **Create** (file absent) or **Update** (file exists). If ambiguous, ask.
 
@@ -30,7 +30,7 @@ Order: **brain dump → stakes → working mode**. Get to work in 2-3 turns, not
 - Length scales with stakes. Cut sections the product genuinely does not need; when dropping one, have a reason the user would accept.
 - **Every pending decision lives in the file.** Any inference awaiting user confirmation — including metadata-level ones such as `strictness` — must be written into prd.yaml with the `[ASSUMPTION]` prefix. Never list confirmation items only in conversation: the user reviews in HTML, so the set of open items must equal the set of yellow highlights on the page. Only after the user approves may the prefix be removed.
 
-- **Writing discipline (readability).** Main field = plain-language main clause; numbers/enums stay inline; machine syntax (commands/flags/paths) goes into parentheses. PRESERVE machine anchor words (file names such as design.yaml, token names, CLI flags) — plain-Chinese rewrites of anchors break the diy-design detect heuristic (2026-09-12 lesson). `plain` (optional, adjacent to the main field): ONE line of WHY the entry exists, everyday language — never restate WHAT it does (restatements drift when the main field changes); write it only for genuinely hard-to-grasp entries. `detail` (optional): process narrative (experiment logs, fixture iterations, background) — conclusions stay in the main field; the viewer folds evidence/findings/long notes by default.
+- **Writing discipline.** Main field = plain-language main clause; numbers/enums inline; machine syntax (commands/flags/paths) in parentheses; keep machine anchors verbatim (file names, token names, CLI flags) — Chinese rewrites of anchors break the diy-design detect heuristic. If the schema defines `plain`: one line of WHY the entry exists, never WHAT (restatements drift); write it only for hard-to-grasp entries. If it defines `detail`: process narrative — conclusions stay in the main field.
 
 ## prd.yaml Schema (author exactly this shape; omit empty top-level keys)
 
@@ -70,9 +70,8 @@ open_questions:                   # resolved answers stay for audit; new ones ap
 
 ## Workflow
 
-1. Create/Update: write `{output_dir}/prd.yaml` with `status: draft`. Tell the user the path.
+1. Create mode: write `{output_dir}/prd.yaml` with `status: draft`; tell the user the path. Update mode: first `cp {output_dir}/prd.yaml {output_dir}/prd.yaml.prev`, then load the existing file and reconcile with the user's change signal — bump `updated`, keep all IDs stable — before writing; after drafting the new version run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --previous {output_dir}/prd.yaml.prev --json` (exit 0 = IDs stable); then delete the `.prev` file.
 2. Immediately render the draft for review: run diy-viewer (same activation command — append `--instance <name>` when one was resolved) so the user reviews in HTML, not raw YAML.
-3. Update mode: before rewriting, `cp {output_dir}/prd.yaml {output_dir}/prd.yaml.prev`; load existing file, reconcile with the user's change signal, bump `updated`, keep all IDs stable; after drafting the new version run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --previous {output_dir}/prd.yaml.prev --json` (exit 0 = IDs stable); then delete the `.prev` file.
 4. Surface every `[ASSUMPTION]` and open question; iterate until the user confirms.
 5. Final gate (mechanical): run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --final --json` — exit 0 is the only pass; fix every reported violation and re-run (entries in `known[]` are user-ratified baselines, not violations to fix); the JSON receipt (counts included) is the close-out evidence. Only then set `status: final` and re-render via diy-viewer (same activation command — append `--instance <name>` when one was resolved).
 6. Close with a one-line summary: path, status, and the counts from the JSON receipt.

@@ -9,7 +9,7 @@ You are a design director. Inputs: `prd.yaml`. Outputs: `design.yaml` + structur
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root (mainline flat path when no instance arg; absent instance dir → generate from zero; other instances get zero changes; invalid names are refused by the script).
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root.
 2. Hard gate: `{output_dir}/prd.yaml` `status: final`. On failure stop and route back to diy-prd.
 3. Run the detector exactly once:
 
@@ -26,16 +26,16 @@ Append `--instance <name>` when resolved; `--json` when scripted.
 ## Creation Discipline (AC-14.1)
 
 - **Committed aesthetic direction (承诺式).** Before any token or page: pick ONE named direction (e.g. Swiss editorial / neo-brutalism / dark luxury / bento …) with a one-line rationale, plus 2–3 anti-pattern prohibitions (what this project will NOT look like). Write both into `direction`. Never "clean minimal" by default.
-- **Tokens before pages.** Color (semantic roles: bg/surface/text/text_muted/accent/accent_text — WCAG AA ≥4.5:1 on every pairing the checker tests), spacing (unit + scale), typography (families + scale). Tokens are the ONLY style source — no one-off values later (FR-3.7 feeds diy-dev).
+- **Tokens before pages.** Token families and keys are exactly the schema below; every color pairing meets WCAG AA 4.5:1. Tokens are the ONLY style source — no one-off values later (FR-3.7 feeds diy-dev).
 - **Every page carries four interaction states**: hover / empty / loading / error. Each state declares `signals` — at least one NON-color signal (icon/text/shape/motion). Color alone never carries meaning.
-- **Three-stage deliverable (D-10)**: (1) tokens (above); (2) structure first — wireframe or plain HTML per page under `prototypes/` (cheap to restructure, tokens injected as `:root { --color-… }` CSS variables, semantic HTML: one h1, labeled inputs, alt); (3) framework implementation — read the project's frontend framework from `architecture.yaml` `stack` (record it as `frontend_framework` in design.yaml) and implement each page directly in that framework, code landing in `src`. The framework page is the high-fidelity design AND the initial implementation — diy-dev builds on it, never rewrites it. Plain-HTML projects (no framework in stack): the structural HTML IS the final design (`frontend_framework: html`), refine it to final quality instead of a second pass.
+- **Three-stage deliverable (D-10).** Tokens (above) → structural draft per page under `prototypes/` → that page implemented in the project's framework under `src` (mechanics in Workflow 2–4; plain-HTML projects stop at the refined structural HTML). The framework page is both the high-fidelity design and the initial implementation — diy-dev builds on it, never rewrites it.
 
 ## Workflow
 
 1. detect (above). Skip → declare and stop.
 2. Draft `design.yaml` (schema below) at `{output_dir}/design.yaml`, `status: draft`, with `frontend_framework` resolved from `architecture.yaml` `stack`.
 3. Structure stage: one wireframe/HTML per page at `{output_dir}/prototypes/<page-id>.html` — layout, sections, landmarks, interaction states. Iterate cheaply here.
-4. Framework stage: implement each page in the chosen frontend framework, code in `src`; record the path per page as `implementation` in design.yaml. Plain-HTML projects refine the structural HTML to final quality instead.
+4. Framework stage: implement each page in the chosen frontend framework, code in `src`; record the path per page as `implementation` in design.yaml.
 5. Validate + self-check, all must pass before showing the user:
 
 ```bash
@@ -55,7 +55,7 @@ python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --desi
 ```yaml
 project: {name, status: draft|final, created, updated}
 direction: 承诺式方向一句话 + 反模式禁令（2–3 条）
-frontend_framework: react|vue|svelte|…|html   # 来自 architecture.yaml stack；纯 HTML 项目写 html
+frontend_framework: react|vue|svelte|…|html   # 纯 HTML 项目写 html
 tokens:
   color: {bg, surface, text, text_muted, accent, accent_text}
   spacing: {unit, scale: [...]}
@@ -78,4 +78,3 @@ pages:
 1. The script requires PyYAML on the host Python. If it fails with `ModuleNotFoundError`, report the error and suggest `pip install pyyaml`. No silent fallback.
 2. Never fabricate pages: every page traces to at least one frontend-facing FR in prd.yaml (cite the FR ID in your summary).
 3. design.yaml is the single source; structural drafts regenerate from YAML. Framework pages evolve in `src` (they are the design AND the implementation); multi-version designs also live in `src` and are simply abandoned/deleted when a version loses — no isolation copies (D-10).
-4. diy-openapi analogy: this skill is on-demand (skip is a legitimate terminal outcome), not a mandatory chain node.
