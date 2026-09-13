@@ -1,0 +1,633 @@
+{
+  "modules": ["bmb", "automator"],
+  "moduleNames": {"bmb": "BMad Builder", "automator": "BMad Automator"},
+  "extractedBy": "w-bmb-automator",
+  "extractedAt": "2026-09-13",
+  "sourceRoot": "F:/code2/bmad-tool/.claude/skills",
+  "skillCount": 7,
+  "baselineSkillCount": 7,
+  "discrepancies": [
+    "本组 7 条技能实体均位于项目本地 F:/code2/bmad-tool/.claude/skills/（基线 location=project、skillDir 已解析），在全局技能目录 C:/Users/93559/.claude/skills/ 下不存在；实体内容完整（SKILL.md + references/scripts/assets），因此本组 7 条 evidenceLevel 全部为 local-source，无 catalog-only 条目。",
+    "bmad-workflow-builder 在基线 help CSV 中注册了 CW（convert-process，args 含 --convert），但本地技能正文无对应实现：SKILL.md 的 Intents 表只有 Build / Edit / Analyze 三条路径，references/ 下也没有 convert 流程文档，故 CW 无法核验流程，未给出其 steps。",
+    "bmad-eval-runner 在基线 help CSV 中 helpEntries 为空（未注册任何菜单码与 phase/依赖信息），但技能实体本地完整存在；技能内部实际提供 baseline / variant / quality / trigger 四种运行模式（来自 SKILL.md 正文，非 help 目录数据）。",
+    "bmad-story-automator 与 bmad-story-automator-review 的基线 helpEntries 中 action 与 args 均为空字符串（只有菜单码 SA / SAR 与 phase=4-implementation）。"
+  ],
+  "skills": [
+    {
+      "canonicalId": "bmad-agent-builder",
+      "module": "bmb",
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-agent-builder/SKILL.md",
+        "bmad-agent-builder/references/build-process.md",
+        "bmad-agent-builder/references/quality-analysis.md",
+        "bmad-agent-builder/references/edit-guidance.md",
+        "bmad-agent-builder/customize.toml"
+      ],
+      "summaryZh": "以架构向导身份，通过对话式发现把粗糙的 agent 设想打磨成精简、结果导向的 agent 技能；也可对既有 agent 做质量分析或定向编辑。当用户要创建、分析或编辑 Agent 时使用。构建产物分无状态 / 记忆 / 自主三种形态。",
+      "entry": "bmad-help 菜单 BA（构建 Agent）或 AA（分析 Agent）；也可直接描述需求、给出现有 agent 路径并说明分析/编辑/重建；支持 --headless / -H 非交互模式。",
+      "menu": [
+        {
+          "code": "BA",
+          "labelEn": "Build an Agent",
+          "labelZh": "构建 Agent",
+          "descZh": "通过对话式发现创建、编辑或重建 agent 技能。"
+        },
+        {
+          "code": "AA",
+          "labelEn": "Analyze an Agent",
+          "labelZh": "分析 Agent",
+          "descZh": "对现有 agent 运行质量分析——结构、内聚性、提示词工艺与增强机会。"
+        }
+      ],
+      "dependencies": [
+        {
+          "code": "BA",
+          "phase": "anytime",
+          "precededBy": [],
+          "followedBy": ["bmad-agent-builder:quality-analysis"],
+          "required": false,
+          "args": "{-H: headless mode}|{description: initial agent concept}|{path: existing agent to edit or rebuild}",
+          "outputLocation": "bmad_builder_output_folder",
+          "outputs": "agent skill"
+        },
+        {
+          "code": "AA",
+          "phase": "anytime",
+          "precededBy": ["bmad-agent-builder:build-process"],
+          "followedBy": [],
+          "required": false,
+          "args": "{-H: headless mode}|{path: agent to analyze}",
+          "outputLocation": "bmad_builder_reports",
+          "outputs": "quality report"
+        }
+      ],
+      "steps": [
+        {
+          "name": "三向路由",
+          "descZh": "读取调用意图，在 Create / Edit / Analyze 间分派，只加载对应的流程文档（build-process / edit-guidance / quality-analysis）。",
+          "optional": false
+        },
+        {
+          "name": "理解来意与确定形态",
+          "descZh": "从开放陈述中提炼核心结果与人格定位，通过自然提问确定无状态 / 记忆 / 自主形态（形态不设菜单，在产出时收敛）。",
+          "optional": false
+        },
+        {
+          "name": "提出愿景蕴含的能力",
+          "descZh": "补充用户未提出但目标隐含的能力与人格角度，用户取舍全程写入 {target-agent-path}/.memlog.md。",
+          "optional": false
+        },
+        {
+          "name": "先写最小可用版本",
+          "descZh": "按 prompt-quality-canon 写最小 persona + capabilities 草稿；逐能力在“引用已装技能”与“内部编写”之间做 fork。",
+          "optional": false
+        },
+        {
+          "name": "先看草稿再接线",
+          "descZh": "在改动代价最低时向用户展示人格口吻、能力清单与 First Breath 体感，暴露不确定点并迭代。",
+          "optional": false
+        },
+        {
+          "name": "eval 节点",
+          "descZh": "调用 bmad-eval-runner 对产出 agent 做 trigger / baseline / quality|variant 验证；evals_required 非空时成为发布门槛。",
+          "optional": true
+        },
+        {
+          "name": "定制化取舍与交付",
+          "descZh": "询问是否暴露 customize 覆盖钩子（默认否）；剥离仪式、并行跑 lint 门、按模板输出 agent 文件树，并带用户过一遍 memlog 审计。",
+          "optional": false
+        },
+        {
+          "name": "分析流程（AA）",
+          "descZh": "确定性 pre-pass JSON → 并行派发 6 个基础 lens（记忆型另加 sanctum lens）→ 自行合成 findings.json → 渲染并打开 HTML 报告。",
+          "optional": true
+        }
+      ],
+      "notes": "help CSV 仅注册 BA / AA 两个动作，且二者互为先后（BA followedBy AA，AA precededBy BA）；技能正文另有 Edit 路径（references/edit-guidance.md，保持既有设计的定向改动）未注册为菜单项。定制化配置键为 [agent]（customize.toml），这同时是将其归类为 agent 型技能的依据。"
+    },
+    {
+      "canonicalId": "bmad-bmb-setup",
+      "module": "bmb",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-bmb-setup/SKILL.md"
+      ],
+      "summaryZh": "把 BMad Builder 模块安装并配置到项目中：收集用户偏好，写入 config.yaml / config.user.yaml 与 module-help.csv，创建输出目录并清理旧版安装目录，使模块能力进入 help 菜单。",
+      "entry": "菜单 SB，或说 install bmb module / configure BMad Builder / setup BMad Builder；支持 -H 与内联值（如 user name is X）跳过交互提问。",
+      "menu": [
+        {
+          "code": "SB",
+          "labelEn": "Setup Builder Module",
+          "labelZh": "配置 Builder 模块",
+          "descZh": "安装或更新 BMad Builder 模块配置与帮助条目。"
+        }
+      ],
+      "dependencies": [
+        {
+          "code": "SB",
+          "phase": "anytime",
+          "precededBy": [],
+          "followedBy": [],
+          "required": false,
+          "args": "{-H: headless mode}|{inline values: skip prompts with provided values}",
+          "outputLocation": "{project-root}/_bmad",
+          "outputs": "config.yaml and config.user.yaml"
+        }
+      ],
+      "steps": [
+        {
+          "name": "读取模块元数据",
+          "descZh": "读取 assets/module.yaml 获取模块标识（name/code/version）与变量定义。",
+          "optional": false
+        },
+        {
+          "name": "检测安装类型",
+          "descZh": "区分全新安装、更新（config.yaml 已有本模块 section）、legacy 迁移（存在 _bmad/bmb/config.yaml 等旧格式），并告知用户。",
+          "optional": false
+        },
+        {
+          "name": "收集配置",
+          "descZh": "默认优先级：现有新配置 > legacy 配置 > module.yaml 默认值；核心设置（output_folder、document_output_language 等）与个人设置（user_name、communication_language）分开收集。",
+          "optional": false
+        },
+        {
+          "name": "写入配置与 help 注册",
+          "descZh": "写临时 JSON 答案文件后并行执行 merge-config.py 与 merge-help-csv.py（反僵尸模式：先移除本模块旧条目再写新值），两者失败即停。",
+          "optional": false
+        },
+        {
+          "name": "创建输出目录并清理 legacy",
+          "descZh": "按配置创建尚不存在的输出目录；确认技能已装到 .claude/skills/ 后用 cleanup-legacy.py 删除安装器包目录（幂等，缺目录不算错）。",
+          "optional": false
+        },
+        {
+          "name": "确认结果",
+          "descZh": "依据脚本 JSON 输出展示写入内容、新增 help 条目、fresh install 或 update，最后展示 module_greeting。",
+          "optional": false
+        }
+      ],
+      "notes": "个人设置（user_name / communication_language）只写入 config.user.yaml（设计上应被 gitignore）；{project-root} 在配置值中是字面 token 不得替换，但在传给脚本的文件系统路径参数中必须先解析为真实项目根，否则脚本报错。"
+    },
+    {
+      "canonicalId": "bmad-eval-runner",
+      "module": "bmb",
+      "kind": "utility 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-eval-runner/SKILL.md"
+      ],
+      "summaryZh": "运行某个技能的 evals 并如实汇报结果，用于评测技能、跑基准、校验触发词、优化描述或评审输出质量；所有运行时差异藏在 platform adapter 之后，不硬编码模型名。",
+      "entry": "直接调用并传技能路径与参数（位置参数为技能目录；--evals / --mode / --variant-path / --project-root / --output-dir / --runs / --headless）；基线 help CSV 中未注册任何菜单项。",
+      "menu": [],
+      "dependencies": [],
+      "steps": [
+        {
+          "name": "激活与配置解析",
+          "descZh": "按 bmad-workflow-builder 的方式解析配置（config.yaml / config.user.yaml，回退 bmb/config.yaml）；headless 时跳过所有确认取最安全默认；glob 输出目录检查未完成 run 的 .memlog.md 以续跑。",
+          "optional": false
+        },
+        {
+          "name": "定位技能与 adapter",
+          "descZh": "校验 <skill-path>/SKILL.md 存在（否则明确报错终止）；按 --adapter → BMAD_EVAL_ADAPTER → adapter.json → 内置 claude-code 适配的顺序解析 adapter。",
+          "optional": false
+        },
+        {
+          "name": "发现 cases 文件",
+          "descZh": "依次在 --evals、技能 evals/、上层 evals/<skill-name>/、项目 evals/ 中查找，取首个命中；找不到即终止——runner 不发明 case。",
+          "optional": false
+        },
+        {
+          "name": "执行评测",
+          "descZh": "按模式调用脚本：baseline / variant / quality 用 run_evals.py（每个 case 在干净工作目录隔离运行，立即落盘 timing.json），trigger 用 run_triggers.py 测量真实触发命中。",
+          "optional": false
+        },
+        {
+          "name": "质量评分",
+          "descZh": "quality 模式按 case 另起 grader 子代理按 rubric 评分（不给部分分，标注无区分度的断言）；子代理出错时标记 grading_error 而非默认通过。",
+          "optional": false
+        },
+        {
+          "name": "多次运行的聚合",
+          "descZh": "--runs > 1 时用 aggregate_benchmark.py 产出均值、样本标准差、极值与配置间差值。",
+          "optional": true
+        },
+        {
+          "name": "产物与汇报",
+          "descZh": "每个 run 写带日期的永久产物目录（prompt、transcript、cwd/、timing.json、grading.json）并记录 memlog；告知用户 run 目录位置，绝不删除或覆盖历史 run。",
+          "optional": false
+        }
+      ],
+      "notes": "基线 help CSV 中本条 helpEntries 为空（无菜单码、phase、依赖等信息），但技能实体本地完整（SKILL.md + scripts + references + adapter 资产）。技能内部实际有四种模式：baseline（能否胜过裸模型）、variant（某段落是否值得保留）、quality（输出是否满足 rubric）、trigger（描述是否命中正确查询），由 --mode 选择、可多选。失败或结果偏弱时可走 references/self-improvement.md 与 references/description-optimization.md。"
+    },
+    {
+      "canonicalId": "bmad-module-builder",
+      "module": "bmb",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-module-builder/SKILL.md",
+        "bmad-module-builder/references/ideate-module.md",
+        "bmad-module-builder/references/create-module.md",
+        "bmad-module-builder/references/validate-module.md"
+      ],
+      "summaryZh": "规划、创建并校验 BMad 模块：IM 以创意会话产出模块计划文档，CM 把已建好的技能脚手架成可安装模块（多技能生成 -setup 技能、单技能嵌自注册），VM 校验模块结构与能力注册的完整性。",
+      "entry": "菜单 IM / CM / VM；或按关键词路由（ideate/plan → IM，create/scaffold 或给路径 → CM，validate/check → VM）；CM 与 VM 支持 --headless。",
+      "menu": [
+        {
+          "code": "IM",
+          "labelEn": "Ideate Module",
+          "labelZh": "构思模块",
+          "descZh": "头脑风暴并规划 BMad 模块——探索想法、确定架构并产出构建计划。"
+        },
+        {
+          "code": "CM",
+          "labelEn": "Create Module",
+          "labelZh": "创建模块",
+          "descZh": "把已建技能脚手架成可安装的 BMad 模块基础设施。"
+        },
+        {
+          "code": "VM",
+          "labelEn": "Validate Module",
+          "labelZh": "校验模块",
+          "descZh": "检查模块结构是否完整正确、全部能力是否注册到位。"
+        }
+      ],
+      "dependencies": [
+        {
+          "code": "IM",
+          "phase": "anytime",
+          "precededBy": [],
+          "followedBy": ["bmad-module-builder:create-module"],
+          "required": false,
+          "args": "{description: initial module idea}",
+          "outputLocation": "bmad_builder_reports",
+          "outputs": "module plan"
+        },
+        {
+          "code": "CM",
+          "phase": "anytime",
+          "precededBy": ["bmad-module-builder:ideate-module"],
+          "followedBy": [],
+          "required": false,
+          "args": "{-H: headless mode}|{path: skills folder or single SKILL.md}",
+          "outputLocation": "bmad_builder_output_folder",
+          "outputs": "setup skill"
+        },
+        {
+          "code": "VM",
+          "phase": "anytime",
+          "precededBy": ["bmad-module-builder:create-module"],
+          "followedBy": [],
+          "required": false,
+          "args": "{-H: headless mode}|{path: module or skill to validate}",
+          "outputLocation": "bmad_builder_reports",
+          "outputs": "validation report"
+        }
+      ],
+      "steps": [
+        {
+          "name": "IM·建立计划文档",
+          "descZh": "复制 module-plan-template 为计划文档，先占位结构化区块；捕捉模块火花并锁定模块身份（名称、2-4 字母代码、描述、独立或扩展）。",
+          "optional": false
+        },
+        {
+          "name": "IM·创意探索",
+          "descZh": "用头脑风暴工具包深挖能力设想、边界案例与惊喜点，只写 Ideas Captured 原始区，刻意不提前结构化。",
+          "optional": false
+        },
+        {
+          "name": "IM·架构决策",
+          "descZh": "软门确认后进入结构化写作；引导“带能力的单 agent”与“多 agent 分工”之间的架构选择，并记录记忆架构与跨 agent 模式。",
+          "optional": false
+        },
+        {
+          "name": "IM·配置与扩展",
+          "descZh": "确定配置变量（key、prompt、默认值）、外部依赖（CLI/MCP）、UI 可视化与 setup 技能扩展，无配置也要显式写明。",
+          "optional": false
+        },
+        {
+          "name": "IM·技能简报与能力评审",
+          "descZh": "为每个规划技能写可零上下文交接给 BA/BW 的自包含简报（人格、核心结果、能力、输入输出、记忆），并逐技能交用户评审迭代到确认。",
+          "optional": false
+        },
+        {
+          "name": "IM·定稿交接",
+          "descZh": "补全计划文档全部区块并置 status=complete；按构建路线图指出第一个要建的技能，主动提议立即进入 BA 或 BW。",
+          "optional": false
+        },
+        {
+          "name": "CM·发现技能与确认路线",
+          "descZh": "读取技能文件夹内每个 SKILL.md（≤4 个并列读、≥5 个用并行子代理）并读 customize.toml 元数据；判定多技能（生成 -setup 技能）或单技能（standalone 自注册）路线。",
+          "optional": false
+        },
+        {
+          "name": "CM·身份/能力/名册/配置",
+          "descZh": "收集模块身份与版本；逐能力定义 help CSV 行（菜单码、action、args、前后依赖、输出）；填充 agent 名册与配置变量、外部依赖。",
+          "optional": false
+        },
+        {
+          "name": "CM·生成确认与脚手架",
+          "descZh": "预览完整 module.yaml 与 module-help.csv 直到确认；运行 scaffold-setup-skill.py（多技能）或 scaffold-standalone-module.py（单技能），standalone 还需把注册检查接入技能 On Activation。",
+          "optional": false
+        },
+        {
+          "name": "CM·确认与后续",
+          "descZh": "展示创建的文件与结构，说明安装方式；standalone 另需提示补全 marketplace.json 分发信息并可用 VM 校验。",
+          "optional": false
+        },
+        {
+          "name": "VM·结构校验",
+          "descZh": "运行 validate-module.py 确定性检查：模块结构、module.yaml 完整性、CSV 缺项/孤儿/重复菜单码/断裂前后引用/缺失必填字段（standalone 另验自注册文件与合并脚本）。",
+          "optional": false
+        },
+        {
+          "name": "VM·质量评估与报告",
+          "descZh": "逐条核对 CSV 与实际能力的完整性/准确性/描述质量/顺序关系/菜单码直觉性/agent 名册漂移；合并脚本发现输出报告，可保存为持久文件，headless 返回结构化 JSON。",
+          "optional": false
+        }
+      ],
+      "notes": "IM → CM → VM 在 help CSV 中构成三段递进链（IM followedBy CM，CM followedBy VM），且全部 phase=anytime。CM 的 headless 模式需要模块计划文档路径。IM 的计划文档本身就是给 BA/BW 的交接物，形成“IM → (BA/BW 逐个建技能) → CM → VM”的模块生产闭环。"
+    },
+    {
+      "canonicalId": "bmad-workflow-builder",
+      "module": "bmb",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-workflow-builder/SKILL.md",
+        "bmad-workflow-builder/references/build-process.md",
+        "bmad-workflow-builder/references/scan-orchestration.md",
+        "bmad-workflow-builder/customize.toml"
+      ],
+      "summaryZh": "以技能构建伙伴身份，把半成型想法做成精简、结果导向的 workflow 或 utility 技能；也可编辑既有技能，或用并行扫描器分析既有技能质量并出报告。",
+      "entry": "菜单 BW（构建工作流）/ AW（分析工作流）/ CW（转换技能）；也可直接描述需求或给出既有技能路径（说 analyze / edit / rebuild）；支持 --headless / -H。",
+      "menu": [
+        {
+          "code": "BW",
+          "labelEn": "Build a Workflow",
+          "labelZh": "构建工作流",
+          "descZh": "创建、编辑或重建 workflow 或 utility 技能。"
+        },
+        {
+          "code": "AW",
+          "labelEn": "Analyze a Workflow",
+          "labelZh": "分析工作流",
+          "descZh": "对现有 workflow/技能运行质量分析——结构与效率及增强机会。"
+        },
+        {
+          "code": "CW",
+          "labelEn": "Convert a Skill",
+          "labelZh": "转换技能",
+          "descZh": "把任意技能转换为 BMad 合规、结果导向的等价物，附前后对比 HTML 报告。"
+        }
+      ],
+      "dependencies": [
+        {
+          "code": "BW",
+          "phase": "anytime",
+          "precededBy": [],
+          "followedBy": ["bmad-workflow-builder:quality-analysis"],
+          "required": false,
+          "args": "{-H: headless mode}|{description: initial skill concept}|{path: existing skill to edit or rebuild}",
+          "outputLocation": "bmad_builder_output_folder",
+          "outputs": "workflow skill"
+        },
+        {
+          "code": "AW",
+          "phase": "anytime",
+          "precededBy": ["bmad-workflow-builder:build-process"],
+          "followedBy": [],
+          "required": false,
+          "args": "{-H: headless mode}|{path: skill to analyze}",
+          "outputLocation": "bmad_builder_reports",
+          "outputs": "quality report"
+        },
+        {
+          "code": "CW",
+          "phase": "anytime",
+          "precededBy": [],
+          "followedBy": [],
+          "required": false,
+          "args": "{--convert: path or URL to source skill}|{-H: headless mode}",
+          "outputLocation": "bmad_builder_reports",
+          "outputs": "converted skill + comparison report"
+        }
+      ],
+      "steps": [
+        {
+          "name": "路由并加载流程",
+          "descZh": "读取意图（Build / Edit / Analyze）并只加载对应流程文档；Build 与 Edit 共用同一条循环（编辑只是把循环指向既有技能）。",
+          "optional": false
+        },
+        {
+          "name": "理解来意",
+          "descZh": "从开放陈述与对话史中提炼用户真正要完成的事和他们对“好”的定义，只补问缺口。",
+          "optional": false
+        },
+        {
+          "name": "用真实经验打底并打磨想法",
+          "descZh": "索取能带来项目独有知识的来源（runbook、内部文档、事故记录、评审意见、手工做过一次的记录）；对半成型想法主动施压（一个还是三个技能、真实输入是什么、哪里会失败）。",
+          "optional": false
+        },
+        {
+          "name": "提出隐含模式并持续记忆",
+          "descZh": "提出想法隐含但未说出的模式与兄弟意图；决策与方向持续通过 memlog.py 写入 {target-skill-path}/.memlog.md，作为续跑与交接审计的凭据。",
+          "optional": false
+        },
+        {
+          "name": "先脚手架最小版本",
+          "descZh": "用 init_skill.py 规范化命名并生成 SKILL.md 模板；默认把整个 workflow 内联写进 SKILL.md（按相关性测试与 BMad 切分约定才外移），只写最小可用版本。",
+          "optional": false
+        },
+        {
+          "name": "真实输入试跑与 eval 节点",
+          "descZh": "在用户真实、混乱的输入上跑最小版本并读 transcript（试多种方案=指令太模糊、照搬不适用指令=太宽、在选项间卡住=没给默认值）；baseline 与 trigger 模式的 eval-runner 为可选项，evals_required 设置后成为发布门槛。",
+          "optional": false
+        },
+        {
+          "name": "有证据才加结构",
+          "descZh": "不做拍脑袋的脚手架——只有当两版本对比暴露了可命名的问题时才加结构，先自问更锐利的结果陈述能否替代。",
+          "optional": false
+        },
+        {
+          "name": "脚本机会与定制化决策",
+          "descZh": "全程用确定性测试与信号动词扫描挖掘脚本机会（pre-pass JSON 模式）；按 customize-toml-guide 询问一次是否暴露 customize.toml（默认否）。",
+          "optional": false
+        },
+        {
+          "name": "接线通用形态、剥离仪式并发布",
+          "descZh": "接线通用形态（工作状态策略、下游消费的 distillation、按需投影、评审门）；跑自身精简扫描器与 token 预算门、组织标准门；lint 三件套通过后交接并走 memlog 审计。",
+          "optional": false
+        },
+        {
+          "name": "分析流程（AW）",
+          "descZh": "确定性 pre-pass（4 个脚本并行）→ 并行 5 lens（leanness/architecture/determinism/customization/enhancement）→ 应用组织门 → 自行合成 findings.json → 渲染并打开报告（不手改 HTML）。",
+          "optional": true
+        }
+      ],
+      "notes": "CW（convert-process）的 help CSV 注册（args 含 --convert，输出为 converted skill + 前后对比报告）在本地技能副本中找不到实现：SKILL.md Intents 表只有 Build / Edit / Analyze 三条，references/ 无 convert 文档，故未提取 CW 的 steps，此 CW 信息仅来自基线目录。定制化配置键为 [workflow]（customize.toml），这是将其归类为 workflow 型技能的依据。BW 与 AW 在 help CSV 中互为先后关系。"
+    },
+    {
+      "canonicalId": "bmad-story-automator",
+      "module": "automator",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-story-automator/SKILL.md",
+        "bmad-story-automator/workflow.md",
+        "bmad-story-automator/steps-c/step-01-init.md",
+        "bmad-story-automator/steps-c/step-01b-continue.md",
+        "bmad-story-automator/steps-c/step-02-preflight.md",
+        "bmad-story-automator/steps-c/step-02a-preflight-config.md",
+        "bmad-story-automator/steps-c/step-02b-preflight-finalize.md",
+        "bmad-story-automator/steps-c/step-03-execute.md",
+        "bmad-story-automator/steps-c/step-03a-execute-review.md",
+        "bmad-story-automator/steps-c/step-03b-execute-finish.md",
+        "bmad-story-automator/steps-c/step-03c-execute-complete.md",
+        "bmad-story-automator/steps-c/step-04-wrapup.md",
+        "bmad-story-automator/steps-v/step-v-01-check.md",
+        "bmad-story-automator/steps-e/step-e-01-load.md"
+      ],
+      "summaryZh": "以构建循环编排者身份，自动化一个或多个 epic 中全部故事的开发：在隔离 tmux 会话中按序编排 create-story → dev-story → 测试自动化 → code-review → retrospective，全程可续跑、可并行、只在需要决策时升级打断用户。",
+      "entry": "菜单 SA，或说 run story automator / automate stories / run build cycle；内部模式词 create / resume / validate / edit（或 -r / -v / -e）决定入口步骤；前置条件是 sprint-status.yaml 已由 sprint-planning 生成。",
+      "menu": [
+        {
+          "code": "SA",
+          "labelEn": "Story Automator",
+          "labelZh": "故事自动化",
+          "descZh": "自动化 BMAD 故事构建循环，覆盖创建、开发、QA、评审与回顾步骤。"
+        }
+      ],
+      "dependencies": [
+        {
+          "code": "SA",
+          "phase": "4-implementation",
+          "precededBy": ["bmad-sprint-planning"],
+          "followedBy": [],
+          "required": false,
+          "args": "",
+          "outputLocation": "implementation_artifacts",
+          "outputs": "story automation run"
+        }
+      ],
+      "steps": [
+        {
+          "name": "初始化",
+          "descZh": "校验并安装 Stop hook（防编排中途停止，安装后需重启会话；Codex 需先信任项目）、加载编排规则、搜索未完成编排状态、强制校验 sprint-status.yaml 存在（缺失即中止并指向 sprint-planning）。",
+          "optional": false
+        },
+        {
+          "name": "续跑（可选）",
+          "descZh": "若发现未完成编排（或用户指定 state 文档），由 step-01b 载入已有状态并选择继续点，而非从零开始。",
+          "optional": true
+        },
+        {
+          "name": "预检",
+          "descZh": "确认 epic 文件（默认 planning-artifacts/epics.md）、解析故事清单与当前 sprint 状态、选择故事范围、用 Python 助手对每个故事强制程序化复杂度打分（禁止人工评估）、展示复杂度矩阵、收集自定义指令并落 preflight 快照。",
+          "optional": false
+        },
+        {
+          "name": "预检配置",
+          "descZh": "询问执行设置（是否跳过 automate 步骤、最大并行会话数）与复杂度感知的 agent 配置（默认 / 统一 / 自定义 / 载入预设，按 low/medium/high 分配主备 agent），创建编排状态文档。",
+          "optional": false
+        },
+        {
+          "name": "预检定稿",
+          "descZh": "写入 complexity 与 agents 文件、创建运行时 marker（并把 marker 条目加入 .gitignore）、状态置 IN_PROGRESS，进入执行。",
+          "optional": false
+        },
+        {
+          "name": "执行循环：创建与开发",
+          "descZh": "逐故事推进：A. create-story（故事文件已存在则跳过）→ B. dev-story；每步独立 spawn / monitor / kill tmux 会话（禁止链式执行），失败最多 5 次重试并交替 agent，同一任务 3 次平台期则 defer 该故事。",
+          "optional": false
+        },
+        {
+          "name": "执行循环：自动化与评审",
+          "descZh": "C. automate 测试护栏（可被 overrides 跳过，失败 3 次后降级为告警跳过）→ D. code-review 循环，直到审查通过。",
+          "optional": false
+        },
+        {
+          "name": "收尾：提交 / 校验 / 复盘触发",
+          "descZh": "E. git 提交（每个故事必做，失败升级）→ F. 校验 sprint 状态（故事文件作为回退依据，未 done 则回评审循环）→ G. 故事完成；H. 当 epic 内全部故事通过评审且 sprint 状态确认 done 时触发该 epic 的自动化复盘（YOLO 模式，失败只告警不阻塞）。",
+          "optional": false
+        },
+        {
+          "name": "执行完成汇总",
+          "descZh": "全部完成后输出故事结果表（或计数摘要）、说明并行批次与升级触发条件，状态置 EXECUTION_COMPLETE。",
+          "optional": false
+        },
+        {
+          "name": "收尾总结",
+          "descZh": "生成运行摘要、合并 learnings.md 累积经验、按观察给出建议、状态置 COMPLETE 并移除运行时 marker，工作流终止。",
+          "optional": false
+        }
+      ],
+      "notes": "help CSV 中 SA 的 action/args 为空。技能内部有四种运行模式：Create（步骤 steps-c/step-01-init 起）、Resume（-r，step-01b）、Validate（-v，steps-v/step-01-check 校验状态文档完整性与会话健康）、Edit（-e，steps-e/step-e-01-load 修改既有编排配置），另有 steps-c/step-03c 等微文件步骤架构（每次只加载当前步骤文件）。多 epic 支持：各 epic 独立处理与复盘。编排强依赖 tmux 与外部 helper CLI（scripts/story-automator 提供 tmux-wrapper / monitor-session / orchestrator-helper / commit-story 等命令），运行策略固定在 data/orchestration-policy.json。"
+    },
+    {
+      "canonicalId": "bmad-story-automator-review",
+      "module": "automator",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-story-automator-review/SKILL.md",
+        "bmad-story-automator-review/workflow.yaml",
+        "bmad-story-automator-review/instructions.xml",
+        "bmad-story-automator-review/checklist.md"
+      ],
+      "summaryZh": "运行 story automator 会话使用的自主代码审查流程：以对抗性审查核对故事声明与实际实现（AC、任务勾选状态、git 差异、代码与测试质量），支持自动修复，并把结果同步进故事文件与 sprint-status。",
+      "entry": "菜单 SAR；实际使用场景是 story automator 在非交互编排中要求对某个故事做审查时调用（“当 story automator 要求对故事做非交互审查时”）。",
+      "menu": [
+        {
+          "code": "SAR",
+          "labelEn": "Story Automator Review",
+          "labelZh": "故事自动化·代码审查",
+          "descZh": "运行 story automator 使用的自主代码审查流程，含自动修复处理与 sprint 状态同步。"
+        }
+      ],
+      "dependencies": [
+        {
+          "code": "SAR",
+          "phase": "4-implementation",
+          "precededBy": ["bmad-dev-story"],
+          "followedBy": [],
+          "required": false,
+          "args": "",
+          "outputLocation": "implementation_artifacts",
+          "outputs": "review report"
+        }
+      ],
+      "steps": [
+        {
+          "name": "加载故事并发现真实变更",
+          "descZh": "读完整故事文件，解析 Story / AC / Tasks / Dev Agent Record → File List；用 git status/diff 找出实际变更，与故事 File List 交叉比对，记录三类差异（改动未记录、声称却无变更、未提交未记录）。",
+          "optional": false
+        },
+        {
+          "name": "构建审查攻击计划",
+          "descZh": "提取全部 AC 与任务完成状态（[x] vs [ ]），制定四路计划：AC 验证、任务审计、代码质量（安全/性能/可维护性）、测试质量（真实断言 vs 占位）。",
+          "optional": false
+        },
+        {
+          "name": "执行对抗性审查",
+          "descZh": "逐个验证声明：标记 [x] 却未完成 = CRITICAL，AC 未实现 = HIGH，未记录的文件变更 = MEDIUM；逐文件深查安全（注入/校验/鉴权）、性能、错误处理与测试质量；目标每次至少给出 3-10 个具体问题（要求核实证据，不凑数）。",
+          "optional": false
+        },
+        {
+          "name": "呈现发现并处置",
+          "descZh": "按 CRITICAL / MEDIUM / LOW 分级展示后询问处置：1) 自动修复全部 HIGH+MEDIUM 并更新测试与故事记录；2) 作为 action items 写入故事 Tasks 的 Review Follow-ups 小节；3) 只看某个问题的细节。",
+          "optional": false
+        },
+        {
+          "name": "更新状态并同步 sprint",
+          "descZh": "仅按 CRITICAL 残留决定故事状态（0 个 → done，≥1 → in-progress）；若 sprint-status.yaml 存在则同步对应 story key 的 development_status（保留全部注释与结构），失败时明确告警。",
+          "optional": false
+        }
+      ],
+      "notes": "SKILL.md 极薄，只做四件事：读 workflow.yaml → 读 instructions.xml → 用 checklist.md 做校验 → 确定性执行；实际流程与 19 项验证清单全在 instructions.xml 与 checklist.md 中。instructions.xml 沿用 bmm code-review 风格的分级措辞（CRITICAL/HIGH/MEDIUM/LOW），v3.0 起只有 CRITICAL 阻塞自动化流转。workflow.yaml 的 config_source 指向 bmm 模块配置（{project-root}/_bmad/bmm/config.yaml），说明它设计上作为 bmm 工作流的伴生审查器由 automator 驱动；“自动修复”由调用方的 invocation 决定，非交互模式下不等待菜单。"
+    }
+  ]
+}

@@ -1,0 +1,913 @@
+{
+  "module": "bmm",
+  "group": "B-fixed",
+  "moduleName": "BMad Method",
+  "extractedBy": "w-bmm-b-redo",
+  "extractedAt": "2026-09-13",
+  "skillCount": 13,
+  "replaces": "module-bmm-b.json 中同名 13 条（旧版基于全局副本，作废）",
+  "sourceRoot": "F:/code2/bmad-tool/.claude/skills/<canonicalId>/（catalog-baseline.json 的 skillDir）；sourceFiles 均为该目录下真实存在的相对路径",
+  "coveredIds": [
+    "bmad-create-story",
+    "bmad-dev-story",
+    "bmad-code-review",
+    "bmad-sprint-planning",
+    "bmad-sprint-status",
+    "bmad-correct-course",
+    "bmad-retrospective",
+    "bmad-qa-generate-e2e-tests",
+    "bmad-check-implementation-readiness",
+    "bmad-create-architecture",
+    "bmad-create-epics-and-stories",
+    "bmad-generate-project-context",
+    "bmad-quick-dev"
+  ],
+  "discrepancies": [
+    "旧版 module-bmm-b.json 的 13 条取自全局副本（C:/Users/93559/.claude/skills/<id>/），sourceFiles 列出 workflow.md / steps-*/ 等在本项目本地不存在的路径；本版全部改为项目本地副本真实路径。",
+    "本地副本结构为 SKILL.md + customize.toml + 若干 *.md（部分技能含 steps/ 或 templates/ 子目录），没有 workflow.md。",
+    "create-story 本地版为 6 步，无全局副本的 3.5（测试用例生成）/3.6（自动化分类）步骤；dev-story 本地版为 10 步，RED-GREEN-REFACTOR 内嵌在 step 5，而非独立步骤。",
+    "bmad-correct-course/checklist.md 开头仍写着「executed as part of: ./workflow.md」，该文件在本地副本中不存在（迁移遗留的失效引用）。",
+    "官方目录 bmad-help.csv 描述 retrospective 为「if major issues consider CC」，但本地 bmad-retrospective/SKILL.md 全文未显式点名 correct-course；本地对应机制是 step 8/9 的「重大发现检测」，要求先更新下一个 epic 计划。",
+    "bmad-help.csv 中 bmad-dev-story / bmad-code-review 的 followed-by、output-location、outputs 列为空；故事循环（CR 发现问题回 DS，通过后进下一个 CS 或 ER）仅在 CSV 的 description 文本中描述，依赖关系字段本身未表达此闭环。"
+  ],
+  "skills": [
+    {
+      "canonicalId": "bmad-create-story",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "discover-inputs.md",
+        "template.md",
+        "checklist.md",
+        "customize.toml"
+      ],
+      "summaryZh": "故事循环的起点（CS）。从 sprint-status.yaml 自动定位第一个 backlog 故事，对 epics/PRD/架构/UX/前序故事/git 历史做穷尽式上下文分析，产出一份「开发代理无需再翻其他文档」的完整故事文件并置为 ready-for-dev，同时同步 sprint 状态。可选再跑 VS（validate）做独立校验。",
+      "entry": "直接调用技能；触发语如「create the next story」「create story 1-2-user-auth」，也可直接给故事文件路径。激活时先跑 resolve_customization.py 解析 workflow 块，再加载 _bmad/bmm/config.yaml 与 persistent_facts。",
+      "menu": [
+        {
+          "code": "CS",
+          "labelEn": "Create Story",
+          "labelZh": "创建故事",
+          "descZh": "主流程：定目标故事 → 穷尽分析产物 → 架构护栏 → 联网核实最新技术 → 生成含全部开发上下文的故事文件（ready-for-dev）→ 校验并同步 sprint-status"
+        },
+        {
+          "code": "VS",
+          "labelEn": "Validate Story",
+          "labelZh": "校验故事",
+          "descZh": "可选独立校验：在全新上下文中按 checklist.md 审查已生成的故事文件，找出遗漏与错误并修复；建议在 dev-story 之前执行"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": ["bmad-sprint-planning"],
+        "followedBy": ["bmad-create-story:validate"],
+        "required": "true（CS 条目；VS 条目为 false）",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": ["story"]
+      },
+      "steps": [
+        {
+          "name": "1. 确定目标故事",
+          "descZh": "用户给了故事路径或编号（如 2-4、1.6、epic 1 story 5）则直接解析出 epic_num/story_num/story_key；否则必须完整读完 sprint-status.yaml，按顺序找第一个 key 形如 number-number-name 且状态为 backlog 的故事。如果这是该 epic 的第一个故事，把 epic 状态从 backlog/contexted 置为 in-progress；epic 已 done 或状态非法则 HALT。找不到 backlog 故事时给出 3 个选项：跑 sprint-planning / 加载 PM 跑 correct-course 补故事 / 跑 retrospective。",
+          "optional": false
+        },
+        {
+          "name": "2. 加载并分析核心产物",
+          "descZh": "按 discover-inputs.md 加载 epics/PRD/架构/UX（整篇或分片），加上激活期加载的 project-context。从 epics 提取本 epic 目标/全部故事/本故事需求与 AC/技术约束/依赖/source hints。story_num>1 时读取上一个故事文件，提取其开发笔记、评审反馈、改动文件与踩坑经验；若检测到 git 仓库，分析最近 5 次提交的文件、模式、依赖与测试方式。",
+          "optional": false
+        },
+        {
+          "name": "3. 架构分析（开发护栏）",
+          "descZh": "逐节判断架构文档中与本故事相关的内容：技术栈与版本、代码结构、API 模式、数据库 schema、安全、性能、测试标准、部署、集成。强制动作：找出架构中标记为 UPDATE（非 NEW）且本故事会改动的每个文件，完整读一遍，并在 dev notes 中记录当前行为、本次改动点、必须保持不变的行为——这是实现失败与返工的首要来源。",
+          "optional": false
+        },
+        {
+          "name": "4. 联网研究最新技术细节",
+          "descZh": "对架构中提到的关键库/API/框架查最新稳定版本与关键变化（破坏性变更、安全更新、废弃项、当前版本最佳实践），把开发必须知道的外部信息写进故事。",
+          "optional": false
+        },
+        {
+          "name": "5. 生成完整故事文件",
+          "descZh": "以 template.md 初始化 {implementation_artifacts}/{{story_key}}.md，依次写入故事头、需求、开发者上下文段、技术需求、架构合规、库/框架要求、文件结构要求、测试要求、前序故事情报、git 情报、最新技术信息、项目上下文引用与完成状态，最后把 Status 设为 ready-for-dev。",
+          "optional": false
+        },
+        {
+          "name": "6. 校验、落库与收尾",
+          "descZh": "用 checklist.md 校验故事文件并修复；无条件保存。若 sprint-status 存在，把 development_status[{{story_key}}] 从 backlog 更新为 ready-for-dev 并更新 last_updated（保留全部注释与 STATUS DEFINITIONS）。最后输出完成报告并提示下一步：人工过一遍故事 → 跑 dev-story → 完成后跑 code-review（会自动置 done）。",
+          "optional": false
+        }
+      ],
+      "notes": "本地版是 6 步单文件流程；旧版全局副本的 3.5/3.6（测试用例生成与自动化分类）以及「验证自动化可行性报告归档脚本」在本地副本中不存在。VS（validate）动作在 CSV 中登记为独立条目，本地以 checklist.md 承载其校验逻辑。/bmad:tea:automate 被提为可选的 TEA 模块扩展，不是本流程必需步骤。"
+    },
+    {
+      "canonicalId": "bmad-dev-story",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": ["SKILL.md", "checklist.md", "customize.toml"],
+      "summaryZh": "执行故事实现（DS）：定位 ready-for-dev 故事并置 in-progress，按故事文件中任务的顺序逐个走「先写失败测试 → 最小实现 → 重构」，跑全量回归与质量检查，全部满足后把故事状态推到 review 并同步 sprint-status。若故事文件里已有代码评审结论，会自动识别为评审后续做，优先处理 [AI-Review] 待办项。",
+      "entry": "直接调用技能；触发语如「dev this story <路径>」「implement the next story in the sprint plan」。也可显式传故事文件路径跳过自动发现。",
+      "menu": [
+        {
+          "code": "DS",
+          "labelEn": "Dev Story",
+          "labelZh": "开发故事",
+          "descZh": "故事循环主体：找 ready-for-dev 故事 → 标记 in-progress 并记录 baseline_commit → 逐任务 red-green-refactor → 测试与回归 → 满足 DoD 后置 review"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": ["bmad-create-story:validate"],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "",
+        "outputs": []
+      },
+      "steps": [
+        {
+          "name": "1. 找到并加载下一个待开发故事",
+          "descZh": "显式 story_path 优先，直接读完整个故事文件。否则完整读 sprint-status.yaml，按顺序取第一个状态为 ready-for-dev 的故事及其文件。找不到时给出 4 个选项：跑 create-story / 跑 validate-create-story（推荐的质量检查）/ 手动指定故事文件 / 查看 sprint 状态；并提示「ready-for-dev 的故事可能尚未校验」。",
+          "optional": false
+        },
+        {
+          "name": "2. 加载项目上下文与故事信息",
+          "descZh": "加载 project-context（若存在）获取编码规范与项目模式，解析故事文件的 Story / AC / Tasks / Dev Notes / Dev Agent Record / File List / Change Log / Status 各段，把 Dev Notes 里的架构要求、前序经验、技术规格作为实现依据。",
+          "optional": false
+        },
+        {
+          "name": "3. 检测是否为评审后续做并提取评审上下文",
+          "descZh": "检查故事文件是否存在「Senior Developer Review (AI)」段与 Tasks 下的「Review Follow-ups (AI)」子段。存在则置 review_continuation=true，提取评审结论、日期、严重度分布与未勾选待办项，并声明策略：优先处理带 [AI-Review] 标记的评审后续项，再继续常规任务。不存在则按全新实现开局。",
+          "optional": false
+        },
+        {
+          "name": "4. 标记故事为进行中",
+          "descZh": "若故事 frontmatter 已含 baseline_commit 则保留不覆盖。若当前状态为 ready-for-dev 且无 baseline_commit，运行 git rev-parse HEAD 写入（无版本控制则写 NO_VCS）。sprint-status 存在时把状态从 ready-for-dev 更新为 in-progress 并更新 last_updated；本来已是 in-progress 则提示续做；无 sprint-status 则只在故事文件内跟踪。",
+          "optional": false
+        },
+        {
+          "name": "5. 按 red-green-refactor 循环实现任务",
+          "descZh": "严格按故事文件中任务/子任务顺序执行。RED：先写会失败的测试并确认失败；GREEN：写最小实现使测试通过，并覆盖任务规定的错误与边界情况；REFACTOR：在测试保持绿色的前提下改善结构，遵循 Dev Notes 中的架构模式与编码规范。把技术方案记入 Dev Agent Record → Implementation Plan。需要故事外的新依赖、连续 3 次实现失败、缺少必要配置时 HALT。",
+          "optional": false
+        },
+        {
+          "name": "6. 编写完整测试",
+          "descZh": "为核心业务逻辑写单元测试；按故事需求补组件交互的集成测试；关键用户流程按需补端到端测试；覆盖 Dev Notes 中识别出的边界与错误处理场景。",
+          "optional": false
+        },
+        {
+          "name": "7. 运行验证与测试",
+          "descZh": "推断本仓库测试框架并运行全部既有测试确保无回归，运行新测试确认实现正确，按项目配置运行 lint 与质量检查，逐条核对故事的全部验收标准（定量阈值必须显式满足）。回归或新测试失败必须停下来修完再继续。",
+          "optional": false
+        },
+        {
+          "name": "8. 仅在完全完成后标记任务完成",
+          "descZh": "校验门：本任务的测试确实存在且 100% 通过、实现与任务描述精确一致（不做多余功能）、相关 AC 全部满足、全量测试无回归。通过才勾选 [x]，更新 File List（相对仓库根的路径），并把完成说明写入 Dev Agent Record。若任务是 [AI-Review] 后续项，还要同步勾掉「Senior Developer Review (AI) → Action Items」中对应条目并记录「✅ Resolved review finding」。任务未清则回到 step 5，全清则进 step 9。",
+          "optional": false
+        },
+        {
+          "name": "9. 故事完成并标记待评审",
+          "descZh": "重新扫描确认全部任务已勾选，跑完整回归套件，确认 File List 覆盖所有改动文件，执行增强版 DoD 校验（测试存在且通过、无回归、质量检查通过、仅修改了允许的故事段落等），把故事 Status 置为 review；sprint-status 存在则把对应 key 从 in-progress 更新为 review。任一校验门不过则 HALT。",
+          "optional": false
+        },
+        {
+          "name": "10. 完成沟通与用户支持",
+          "descZh": "向用户汇报实现完成与关键改动、测试、文件清单，并按用户技术水平回答解释类问题。建议下一步：人工验证、跑 code-review（明确提示「最好换一个不同的 LLM 来做评审」），如装 TEA 模块可跑 /bmad:tea:automate 扩展护栏测试。",
+          "optional": false
+        }
+      ],
+      "notes": "本地版为 10 步、单文件流程，无独立 step 文件；RED/GREEN/REFACTOR 内嵌在 step 5 的 action 中，并非独立步骤（这是与旧版全局副本最直观的差异之一）。CSV 对 DS 的描述是「Execute story implementation tasks and tests then CR then back to DS if fixes needed」，但 CSV 的 followed-by / output-location / outputs 字段全为空；该闭环在本地副本中由 step 3（识别评审续做）与 step 8（处理 [AI-Review] 待办）实现，属于隐式而非显式声明的依赖关系。"
+    },
+    {
+      "canonicalId": "bmad-code-review",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "steps/step-01-gather-context.md",
+        "steps/step-02-review.md",
+        "steps/step-03-triage.md",
+        "steps/step-04-present.md",
+        "customize.toml"
+      ],
+      "summaryZh": "对抗式代码评审（CR）：先把评审目标（diff 来源 + 可选 spec）锁定，然后并行起三层互不共享上下文的评审子代理——Blind Hunter（只看 diff）、Edge Case Hunter（diff + 项目读权限）、Acceptance Auditor（diff + spec + 上下文文档），汇总去重后分诊为 decision_needed / patch / defer / dismiss，最后把结论写回故事文件的 Review Findings 段并据结果更新故事与 sprint 状态。",
+      "entry": "直接调用技能；触发语如「run code review」「review this code」。step-01 有 5 层目标检索：显式参数（PR/SHA/分支/spec/diff 关键词）→ 近期对话 → sprint 中处于 review 状态的故事 → 当前 git 分支状态 → 都不成立才问用户。",
+      "menu": [
+        {
+          "code": "CR",
+          "labelEn": "Code Review",
+          "labelZh": "代码评审",
+          "descZh": "故事循环的质检关：锁定 diff → 三层并行对抗评审 → 分诊归类 → 写回故事评审结论并决定故事回到 in-progress（有问题回 DS）还是 done（通过）"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": ["bmad-dev-story"],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "",
+        "outputs": []
+      },
+      "steps": [
+        {
+          "name": "1. 收集上下文并构造 diff",
+          "descZh": "按 5 层优先级确定评审目标：显式参数（PR 经 gh pr view 解析 / commit / 分支 / spec 文件 / staged·uncommitted·branch diff·commit range·粘贴 diff 等模式关键词）→ 近期对话 → sprint-status 中处于 review 的故事（唯一则建议之，多个则列选项）→ 当前非主分支的 HEAD（确认后按对主分支的分支 diff 处理）→ 最后才 HALT 询问。随后按来源构造 {diff_output}（staged 用 git diff --cached；未提交用 git diff HEAD；分支/区间先验证存在；文件清单逐个验证路径）。再确定 spec：有则 review_mode=full 并加载其 frontmatter context 引用的文档，无则 review_mode=no-spec。diff 超过约 3000 行时告警并提供按文件组切分。CHECKPOINT 展示 diff 统计并等用户确认。",
+          "optional": false
+        },
+        {
+          "name": "2. 并行执行三层对抗评审",
+          "descZh": "无会话上下文地并行起子代理：Blind Hunter 只拿 diff（走 bmad-review-adversarial-general 技能）；Edge Case Hunter 拿 diff 且有项目读权限（走 bmad-review-edge-case-hunter 技能）；Acceptance Auditor 仅在 full 模式下启用，拿 diff + spec 内容 + 上下文文档，检查 AC 违背、偏离 spec 意图、漏实现、spec 约束与代码矛盾。三层都须以当前会话同等模型能力运行。子代理不可用时改为在 {implementation_artifacts} 生成每角色的评审 prompt 文件并 HALT，让用户分头在独立会话（最好换 LLM）跑完再贴回结果。任一子代理失败/超时/空结果记入 failed_layers 并继续用其余层。no-spec 时明确提示「Acceptance Auditor 已跳过」。",
+          "optional": false
+        },
+        {
+          "name": "3. 分诊归类",
+          "descZh": "把三层结果归一化为统一字段（id/source/title/detail/location），跨层去重（同问题合并，具体证据优先，source 记合并来源），逐条归入四类之一：decision_needed（需人工定夺，仅 full 模式可能产生；no-spec 时降级为 patch 或 defer）、patch（可无歧义直接修）、defer（非本次改动引入的既有问题）、dismiss（噪音/误报）。丢弃 dismiss 并记录数量。failed_layers 非空时先报告失败层；若过滤后零发现且存在失败层，必须提示「评审可能不完整」而不是宣布干净通过。",
+          "optional": false
+        },
+        {
+          "name": "4. 呈现与行动",
+          "descZh": "零发现时直接跳到 sprint 状态更新。有 spec_file 时把发现按 decision-needed（未勾选）→ patch（未勾选）→ defer（已勾选并标注 pre-existing）顺序追加到故事文件的 Review Findings 子段，defer 项另写入 {implementation_artifacts}/deferred-work.md。逐条解决 decision-needed（可 defer 并记录一行原因）。对 patch 给出处理选项：全部应用 / 留作待办（仅在写了 story 时）/ 逐条走查。最后按结果定状态：decision-needed 与 patch 全部解决且无遗留高中危问题 → 故事置 done；有留作待办的 patch 或未解决项 → 置 in-progress；同步 sprint-status 的 development_status[story_key]。收尾给出后续选项：开始下一个故事（跑 dev-story）/ 重跑评审 / 结束。",
+          "optional": false
+        }
+      ],
+      "notes": "本地副本用 steps/ 下 4 个微步骤文件（step-file 架构），流程与旧版全局副本的 CR 差异较大——三层对抗评审角色（Blind Hunter / Edge Case Hunter / Acceptance Auditor）与四分类分诊是本地版特征。本技能是故事循环里的可选项（CSV required=false）：评审通过时故事转 done 并进入下一个 CS 或 ER；发现问题则把故事打回 in-progress，由 dev-story 的评审续做路径处理。CSV 的 followed-by/outputs 为空，闭环同样只写在 description 文本里。"
+    },
+    {
+      "canonicalId": "bmad-sprint-planning",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": ["SKILL.md", "checklist.md", "sprint-status-template.yaml", "customize.toml"],
+      "summaryZh": "从 epics 文件生成 sprint 追踪表（SP）：解析全部 epic 与故事，按「epic → 其故事 → 其 retrospective → 下一个 epic」的顺序构建 development_status，做智能状态检测（已存在故事文件的至少升为 ready-for-dev，已有状态文件中更高级的状态绝不降级），写出 sprint-status.yaml 并校验覆盖率与取值合法性。",
+      "entry": "直接调用技能；触发语如「run sprint planning」「generate sprint plan」。",
+      "menu": [
+        {
+          "code": "SP",
+          "labelEn": "Sprint Planning",
+          "labelZh": "Sprint 规划",
+          "descZh": "实施阶段启动动作：解析 epics → 建状态结构 → 智能识别已有进度 → 生成 sprint-status.yaml → 校验并汇报统计"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": ["sprint status"]
+      },
+      "steps": [
+        {
+          "name": "1. 解析 epic 文件并提取全部工作项",
+          "descZh": "文档发现：优先整篇（epics.md / bmm-epics.md / *epic*.md），否则按分片（epics/index.md + 各 epic-*.md）全部读入，两者都存在时用整篇；名称匹配要宽容。从标题提取 epic 号（## Epic 1:）与故事（### Story 1.1: User Authentication），把 Epic.Story: Title 转换成 kebab-case key（1-1-user-authentication）。",
+          "optional": false
+        },
+        {
+          "name": "2. 构建 sprint 状态结构",
+          "descZh": "每个 epic 按固定顺序生成三类条目：epic-{num}（默认 backlog）、各故事 key（默认 backlog）、epic-{num}-retrospective（默认 optional）。",
+          "optional": false
+        },
+        {
+          "name": "3. 智能状态检测",
+          "descZh": "逐个故事检查 {story_location}/{story-key}.md 是否存在，存在则状态至少升为 ready-for-dev。已存在 status 文件时保留其中更高级的状态，绝不降级（例如不会把 done 改回 ready-for-dev）。状态机：epic backlog→in-progress→done；故事 backlog→ready-for-dev→in-progress→review→done；retrospective optional↔done。",
+          "optional": false
+        },
+        {
+          "name": "4. 生成 sprint 状态文件",
+          "descZh": "写出 {implementation_artifacts}/sprint-status.yaml：元数据（generated/last_updated/project/project_key/tracking_system/story_location）同时以注释和 YAML 字段两种形式出现，并内嵌 STATUS DEFINITIONS 状态定义与流程说明，最后是 development_status 段。",
+          "optional": false
+        },
+        {
+          "name": "5. 校验与汇报",
+          "descZh": "校验：epic 文件中的每个 epic/故事都出现在状态文件中、每个 epic 都有 retrospective 条目、状态文件没有多余条目、所有状态取值合法、YAML 语法正确。统计 epic/故事总数与进行中/已完成数并展示，提示用户后续由各代理在工作的同时更新状态、需要时重跑本流程刷新。",
+          "optional": false
+        }
+      ],
+      "notes": "本地副本无独立 step 文件，5 步均在 SKILL.md 的 <workflow> 内；checklist.md 与 sprint-status-template.yaml 为配套校验清单与模板。描述状态流转时允许把遗留状态 contexted→in-progress、drafted→ready-for-dev 做兼容映射（见 sprint-status 技能）。"
+    },
+    {
+      "canonicalId": "bmad-sprint-status",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": ["SKILL.md", "customize.toml"],
+      "summaryZh": "随时可用的 sprint 汇总与路由入口（SS）：解析 sprint-status.yaml，按状态计数并识别风险（有 review 故事就建议 CR、全 backlog 就建议 CS、状态文件超 7 天未更新就告警、出现孤儿故事或空 epic 也告警），然后按优先级推荐下一个该跑的工作流。另含 data 与 validate 两个非交互模式，供其他流程内部调用。",
+      "entry": "直接调用技能；触发语如「check sprint status」「show sprint status」。可带 mode 参数（data / validate）供其它工作流调用。",
+      "menu": [
+        {
+          "code": "SS",
+          "labelEn": "Sprint Status",
+          "labelZh": "Sprint 状态",
+          "descZh": "随时可跑：汇总各状态计数、列出风险、按优先级推荐下一步该跑哪个工作流，也可导出数据或校验状态文件"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": ["bmad-sprint-planning"],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "",
+        "outputs": []
+      },
+      "steps": [
+        {
+          "name": "0. 判定执行模式",
+          "descZh": "调用方传了 mode 就用传入值，否则默认 interactive；data 跳到 step 20，validate 跳到 step 30，interactive 继续 step 1。",
+          "optional": false
+        },
+        {
+          "name": "1. 定位 sprint 状态文件",
+          "descZh": "加载 project-context（若存在），尝试读取 {implementation_artifacts}/sprint-status.yaml；文件不存在则提示先跑 sprint-planning 并退出。",
+          "optional": false
+        },
+        {
+          "name": "2. 读取解析、校验与风险检测",
+          "descZh": "完整读入并解析元数据；把 development_status 的 key 分为 epic（epic- 开头且非 -retrospective 结尾）、retrospective（-retrospective 结尾）与故事三类；做遗留映射（drafted→ready-for-dev、contexted→in-progress）；按状态计数。出现无法识别的状态时列出并要求用户给出修正（或跳过）。风险检测：有 review 故事→建议 code-review；有 in-progress 且无 ready-for-dev→建议专注当前故事；全 epic 都是 backlog 且无 ready-for-dev→建议 create-story；last_updated 超 7 天（缺失则回退 generated）→告警可能陈旧；故事 key 找不到对应 epic→孤儿故事告警；epic 进行中却无故事→告警。",
+          "optional": false
+        },
+        {
+          "name": "3. 选择下一步推荐",
+          "descZh": "按优先级取唯一推荐：有 in-progress 故事→dev-story（取其中第一个）；否则有 review→code-review；否则有 ready-for-dev→dev-story；否则有 backlog→create-story；否则有 retrospective 为 optional→retrospective；全无则宣告实施项全部完成。取「第一个」时按 epic 号再故事号排序。",
+          "optional": false
+        },
+        {
+          "name": "4. 展示汇总",
+          "descZh": "输出项目与追踪信息、故事各状态计数、epic 各状态计数、下一步推荐及其命令，以及风险列表。",
+          "optional": false
+        },
+        {
+          "name": "5. 提供操作选项",
+          "descZh": "四选一：立即运行推荐工作流（若目标带故事则设置 story_key）/ 按状态分组列出全部故事 / 展示 sprint-status.yaml 原文 / 退出。",
+          "optional": false
+        },
+        {
+          "name": "20. data 模式输出",
+          "descZh": "非交互：同 step 2/3 解析与推荐后，以 template-output 导出 next_workflow_id、next_story_id、各状态计数与 risks，返回调用方。",
+          "optional": false
+        },
+        {
+          "name": "30. validate 模式校验",
+          "descZh": "非交互：校验文件存在性与必需元数据字段、development_status 非空、状态取值合法，导出 is_valid / error / suggestion / message，供其它流程做前置检查。",
+          "optional": false
+        }
+      ],
+      "notes": "本地副本含 data 与 validate 两种非交互模式（旧版全局副本无此结构），这是它被其它流程当作「状态查询/校验服务」调用的原因，也是 CSV required=false（随时可用）的实际含义。"
+    },
+    {
+      "canonicalId": "bmad-correct-course",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": ["SKILL.md", "checklist.md", "customize.toml"],
+      "summaryZh": "冲刺执行期的重大变更导航（CC）：锁定触发问题后，用变更分析清单全面评估对 PRD、epics、架构、UX 的影响，起草逐处 old→new 的具体改动提案，汇总成一份 Sprint Change Proposal，并按变更规模把手交出去——Minor 由开发者直接实施、Moderate 需 PO/Dev 重排 backlog、Major 需 PM/架构师重新规划。",
+      "entry": "直接调用技能；触发语如「correct course」「propose sprint change」。",
+      "menu": [
+        {
+          "code": "CC",
+          "labelEn": "Correct Course",
+          "labelZh": "纠正航向",
+          "descZh": "任何时候可用的变更管理：分析影响 → 起草具体改动 → 生成 Sprint Change Proposal → 按 Minor/Moderate/Major 分级路由，可能建议回滚、更新 PRD、重做架构或重新 sprint planning"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "planning_artifacts",
+        "outputs": ["change proposal"]
+      },
+      "steps": [
+        {
+          "name": "1. 初始化变更导航",
+          "descZh": "确认变更触发点，让用户描述问题；核对文档可得性（PRD 与当前 Epics/故事为必需，架构与 UI/UX 可选）；让用户选交互模式：Incremental（推荐，逐条协作精修）或 Batch（一次性呈现全部改动）。触发问题描述不清，或 PRD/Epics 不可得时 HALT。",
+          "optional": false
+        },
+        {
+          "name": "2. 执行变更分析清单",
+          "descZh": "逐节执行 checklist.md 的系统性分析并与用户交互，每项标记 [x] Done / [N/A] 跳过 / [!] 需跟进，持续记录发现与影响，每完成一个大节汇报进度。清单无法完成时先与用户解决阻塞项。",
+          "optional": false
+        },
+        {
+          "name": "3. 起草具体变更提案",
+          "descZh": "按清单发现为每个受影响产物给出明确的编辑提案：故事改动（old→new 文本 + 故事 ID + 章节 + 理由）、PRD 修改（精确章节 + 当前 vs 提议 + 对 MVP 范围的影响）、架构变更（受影响组件/模式/技术选型、需更新的图、连带影响）、UI/UX 更新（具体界面/组件、线框或流程改动、用户体验影响）。Incremental 模式逐条呈现并等 Approve/Edit/Skip。",
+          "optional": false
+        },
+        {
+          "name": "4. 生成 Sprint Change Proposal",
+          "descZh": "汇总五段式提案：①问题摘要（触发点、发现时机与背景、证据）②影响分析（对 epic、当前与后续故事、PRD/架构/UI-UX 冲突、代码与基础设施的技术影响）③推荐路径（Direct Adjustment 改/加故事、Potential Rollback 回滚已完成工作、MVP Review 缩范围或改目标，附理由、工作量、风险与时间线影响）④详细变更提案（按产物分组，含 before/after 与论证）⑤实施交接（Minor 开发者直接做 / Moderate 需重组 backlog / Major 需根本性重新规划）。写入 {planning_artifacts}/sprint-change-proposal-{date}.md 并请用户确认或修改。",
+          "optional": false
+        },
+        {
+          "name": "5. 敲定并路由实施",
+          "descZh": "取得用户对提案的明确批准（yes/no/revise；revise 则回到 step 3 或 step 4）。批准后按规模分级交接：Minor → 开发者代理直接实施，交付最终编辑提案与实施任务；Moderate → PO/开发者代理，交付提案 + backlog 重组方案；Major → PM/方案架构师，交付完整提案 + 升级通知。确认交接完成并记录在流程执行日志中。",
+          "optional": false
+        },
+        {
+          "name": "6. 工作流收尾",
+          "descZh": "总结本次执行（处理的问题、变更规模、改动产物、交接对象），确认交付物齐全（提案文档、含 before/after 的具体编辑提案、实施交接计划），向用户报告完成并重申成功标准与开发者代理的后续步骤。",
+          "optional": false
+        }
+      ],
+      "notes": "本地目录下 checklist.md 开头仍引用 `./workflow.md`（本地副本无此文件），属迁移遗留的失效路径引用；实际执行时按 SKILL.md step 2 的指引读取同目录 checklist.md 即可。CSV 描述明确本技能可能建议「start over / update PRD / redo architecture / sprint planning」，对应 step 4 的三条推荐路径与 step 5 的三级交接，但本地文本用的是 Direct Adjustment / Rollback / MVP Review 这套术语。"
+    },
+    {
+      "canonicalId": "bmad-retrospective",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": ["SKILL.md", "customize.toml"],
+      "summaryZh": "epic 结束时的团队复盘（ER，**可选**）：由 Amelia 主持多方对话，深挖本 epic 全部故事记录、核对上个 retro 的行动项落实、预览下一个 epic，产出 SMART 行动项与下一 epic 准备任务，写入 {implementation_artifacts}/epic-N-retro-日期.md 并把 retrospective 状态置 done。若检测到重大发现（架构假设被推翻、范围重大变化、技术路线需根本调整等），会要求先更新下一个 epic 的计划再启动它。",
+      "entry": "直接调用技能；触发语如「run a retrospective」「lets retro the epic 2」。可带 epic 号参数。",
+      "menu": [
+        {
+          "code": "ER",
+          "labelEn": "Retrospective",
+          "labelZh": "史诗复盘",
+          "descZh": "epic 收尾的可选复盘：故事分析 + 上轮行动项对账 + 下个 epic 预览 → 行动项与准备任务 → 写复盘文档并标记完成；有重大发现则先改下一个 epic 计划"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": ["bmad-code-review"],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": ["retrospective"]
+      },
+      "steps": [
+        {
+          "name": "1. epic 发现（三级优先级）",
+          "descZh": "先查 sprint-status.yaml 找已完成故事的最高 epic 号并请用户确认；找不到就直接问用户刚完成哪个 epic；仍不确定则回退扫描 {implementation_artifacts} 中编号最高的故事文件推断。确定后核对该 epic 是否真的全部故事 done：未完成时提示三个选项（先做完剩余故事（推荐）/ 继续做部分复盘 / 跑 sprint-planning 刷新），用户选否则 HALT，选是则标记 partial_retrospective 并给出警示。",
+          "optional": false
+        },
+        {
+          "name": "0.5 发现并加载项目文档",
+          "descZh": "按 Input Files 表加载：epic（SELECTIVE_LOAD，只取本 epic，支持整篇/分片）、上一个 epic 的复盘（可选）、架构与 PRD（FULL_LOAD）、棕地项目文档（INDEX_GUIDED）。",
+          "optional": true
+        },
+        {
+          "name": "2. 深度故事分析",
+          "descZh": "逐个读本 epic 的故事文件，从 Dev Notes/挑战/实现笔记中提取卡点、意外复杂度、失败的技术决策；从评审段落提取反复出现的反馈主题；从经验教训段提取显式学习；从技术债/TODO 段提取捷径与债务；从测试段提取覆盖缺口与 bug 模式。再跨故事综合出共性卡点（2 个以上故事出现）、反复评审意见、突破性做法、速度趋势与协作亮点，作为复盘讨论素材。",
+          "optional": false
+        },
+        {
+          "name": "3. 加载并整合上一个 epic 的复盘",
+          "descZh": "仅当存在上一个 epic（prev_epic_num >= 1）时执行：按 {implementation_artifacts}/epic-{prev}-retro-*.md 找到复盘，逐项核对上轮承诺的行动项落实状态（✅完成/⏳进行中/❌未处理）、经验是否被应用、流程改进是否有效、技术债是消是长；既表彰成功应用的经验，也从无指责视角分析被忽略的教训与阻碍。",
+          "optional": true
+        },
+        {
+          "name": "4. 预览下一个 epic 并检测变化",
+          "descZh": "加载下一个 epic（先试分片 epic-{N+1}.md，再回退整篇文档），分析其目标、故事与复杂度、对本 epic 产物的依赖、新增技术需求、风险与成功标准；识别未完成工作造成的阻塞依赖、需要提前准备的技术/知识/重构/文档，以及必须就绪的 API、数据迁移、测试基础设施与部署环境。",
+          "optional": true
+        },
+        {
+          "name": "5. 以丰富上下文初始化复盘",
+          "descZh": "用已收集的 epic 内容、故事分析结论、上轮复盘对照与下一个 epic 预览，设定本次复盘的参与者与议题框架，开始团队对话。",
+          "optional": false
+        },
+        {
+          "name": "6. epic 回顾讨论（哪些做得好、哪些不好）",
+          "descZh": "主持多方对话式复盘，遵循心理安全、不追责、聚焦系统与流程、要求具体例子，逐个主题收集成功经验与改进点。",
+          "optional": false
+        },
+        {
+          "name": "7. 下一个 epic 准备讨论",
+          "descZh": "围绕下一个 epic 的准备事项交互讨论：需要补齐的技术前置、知识空白、重构与清理、关键路径阻塞项。",
+          "optional": false
+        },
+        {
+          "name": "8. 综合行动项并检测重大变化",
+          "descZh": "产出 SMART 行动项（明确描述、负责人、时间点、成功标准、类别）与下一 epic 准备任务清单，附关键路径阻塞项；随后做关键分析：若出现架构假设被推翻、重大范围变更、技术路线需根本调整、新依赖、用户需求理解偏差、性能/安全/合规问题、集成假设错误、团队能力缺口、技术债不可持续等任一情况，则发出重大发现告警，指出下一个 epic 基于哪些已失效的假设、需要哪些更新，并建议先开一次 epic 计划评审会（必要时更新 PRD），经用户同意后加入关键路径。",
+          "optional": false
+        },
+        {
+          "name": "9. 关键就绪度探索（交互深挖）",
+          "descZh": "关闭复盘前的最后就绪检查：epic 在 sprint-status 里标记完成，但是否真的完成了——逐项确认并请用户裁定。",
+          "optional": false
+        },
+        {
+          "name": "10. 复盘收尾",
+          "descZh": "以庆祝与承诺收束：回顾成果、确认各方对行动项与准备任务的认领。",
+          "optional": false
+        },
+        {
+          "name": "11. 保存复盘并更新 sprint 状态",
+          "descZh": "确保 {implementation_artifacts} 存在，生成含 epic 摘要与指标、参与者、优势与挑战、关键洞察、上轮复盘落实分析、下一 epic 预览与依赖、行动项与负责人、准备任务、关键路径、重大发现与更新建议、就绪评估的完整文档，存为 epic-{N}-retro-{date}.md；再把 sprint-status 中 epic-{N}-retrospective 置为 done（找不到该 key 时提示需手工同步）。",
+          "optional": false
+        },
+        {
+          "name": "12. 总结与交接",
+          "descZh": "输出复盘完成总结：epic 主题、复盘文档路径、承诺清单与下一步（准备任务、下一个 epic 的启动条件）。",
+          "optional": false
+        }
+      ],
+      "notes": "CSV 该条描述原文为「Optional at epic end: Review completed work lessons learned and next epic or if major issues consider CC」——整条 ER 在 epic 结束时是可选动作，且「若发现重大问题建议走 CC（correct course）」；本地 SKILL.md 确实实现了重大发现检测并会要求先更新下一个 epic 计划（step 8 的 SIGNIFICANT DISCOVERY ALERT、step 9 的就绪探索），但全文未显式点名调用 correct-course，CC 的关联来自官方目录描述。文件内步骤顺序为 1 → 0.5 → 2 → … → 12（0.5 为插入的文档加载步）。"
+    },
+    {
+      "canonicalId": "bmad-qa-generate-e2e-tests",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": ["SKILL.md", "checklist.md", "customize.toml"],
+      "summaryZh": "为已实现的功能生成自动化 API 与 E2E 测试（QA）：先探测项目已有的测试框架（没有就按技术栈推荐），确定被测特性后生成 API 测试（状态码、响应结构、正常路径 + 1-2 个错误场景）与 E2E 测试（用户流程、语义定位器、线性简单），跑通后输出测试摘要到 {implementation_artifacts}/tests/test-summary.md。明确不做代码评审与故事校验（那是 CR 的职责）。",
+      "entry": "直接调用技能；触发语如「create qa automated tests for <feature>」。",
+      "menu": [
+        {
+          "code": "QA",
+          "labelEn": "QA Automation Test",
+          "labelZh": "QA 自动化测试",
+          "descZh": "为已实现代码补自动化测试：探测框架 → 定位特性 → 生成 API 与 E2E 测试 → 运行修复 → 出测试摘要；不替代代码评审"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": ["bmad-dev-story"],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": ["test suite"]
+      },
+      "steps": [
+        {
+          "name": "0. 探测测试框架",
+          "descZh": "检查项目中已有的测试框架（package.json 依赖里的 playwright/jest/vitest/cypress 等）与现有测试文件的写法，一律沿用项目既有框架；完全没有时分析项目类型（React/Vue/Node API 等）并联网查该技术栈当前推荐的框架，向用户确认后使用。",
+          "optional": false
+        },
+        {
+          "name": "1. 识别被测特性",
+          "descZh": "询问用户要测什么：具体特性/组件名、要扫描的目录，或让工具在代码库中自动发现特性。",
+          "optional": false
+        },
+        {
+          "name": "2. 生成 API 测试（如适用）",
+          "descZh": "针对 API 端点/服务生成测试：校验状态码（200/400/404/500）、验证响应结构、覆盖正常路径加 1-2 个错误场景，并沿用项目既有测试框架的写法。",
+          "optional": false
+        },
+        {
+          "name": "3. 生成 E2E 测试（如存在 UI）",
+          "descZh": "针对 UI 生成端到端测试：覆盖用户工作流、使用语义化定位器（role/label/text）、聚焦点击/填表/导航等交互、断言可见结果、保持测试线性简单，并遵循项目既有测试模式。",
+          "optional": false
+        },
+        {
+          "name": "4. 运行测试",
+          "descZh": "用项目既有命令执行测试，出现失败立即修复。",
+          "optional": false
+        },
+        {
+          "name": "5. 生成测试摘要",
+          "descZh": "输出 markdown 摘要（生成的 API/E2E 测试清单、覆盖率统计、下一步建议），保存到 {implementation_artifacts}/tests/test-summary.md，并按 checklist.md 校验。",
+          "optional": false
+        }
+      ],
+      "notes": "本地副本为线性 Step 0-5，无独立 step 文件；末尾将「风险驱动测试策略、测试设计规划、质量门与 NFR 评估」等高级能力导向 TEA（Test Architecture Enterprise）模块，并附安装链接。CSV 描述特意强调「NOT for code review or story validation — use CR for that」，与 SKILL.md 的 Your Role 表述一致。"
+    },
+    {
+      "canonicalId": "bmad-check-implementation-readiness",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "steps/step-01-document-discovery.md",
+        "steps/step-02-prd-analysis.md",
+        "steps/step-03-epic-coverage-validation.md",
+        "steps/step-04-ux-alignment.md",
+        "steps/step-05-epic-quality-review.md",
+        "steps/step-06-final-assessment.md",
+        "templates/readiness-report-template.md",
+        "customize.toml"
+      ],
+      "summaryZh": "Phase 4 开工前的实施就绪校验（IR）：以需求可追溯性专家的视角，依次做文档清点、PRD 的 FR/NFR 全量提取、epic 覆盖校验、UX 与 PRD/架构的对齐检查、epic 质量评审（用户价值、独立性、依赖、技术型 epic 视为错误），最后给出总评与就绪结论，输出 implementation-readiness-report-日期.md。",
+      "entry": "直接调用技能；触发语如「check implementation readiness」。",
+      "menu": [
+        {
+          "code": "IR",
+          "labelEn": "Check Implementation Readiness",
+          "labelZh": "实施就绪校验",
+          "descZh": "开工前的对齐体检：文档清点 → PRD 全部 FR/NFR 提取 → epic 覆盖校验 → UX 对齐 → epic 质量评审 → 最终评估报告"
+        }
+      ],
+      "dependencies": {
+        "phase": "3-solutioning",
+        "precededBy": ["bmad-create-epics-and-stories"],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "planning_artifacts",
+        "outputs": ["readiness report"]
+      },
+      "steps": [
+        {
+          "name": "1. 文档发现",
+          "descZh": "发现、清点并组织全部项目文档，识别重复版本并确定以哪一份为准。",
+          "optional": false
+        },
+        {
+          "name": "2. PRD 分析",
+          "descZh": "完整读取 PRD（整篇或分片），提取全部功能性需求（FR）与非功能性需求（NFR），供后续与 epics 覆盖情况比对。",
+          "optional": false
+        },
+        {
+          "name": "3. epic 覆盖校验",
+          "descZh": "校验 PRD 中每条功能性需求是否都被 epics/stories 文档捕获，找出覆盖缺口。",
+          "optional": false
+        },
+        {
+          "name": "4. UX 对齐",
+          "descZh": "检查是否存在 UX 文档，并校验其与 PRD 需求、架构决策是否一致，架构是否同时照顾到 PRD 与 UX 的需要；若隐含 UI 需求却缺 UX 文档则给出警告。",
+          "optional": false
+        },
+        {
+          "name": "5. epic 质量评审",
+          "descZh": "按 create-epics-and-stories 的实践标准审查 epics/stories：用户价值、独立性、依赖关系与可实施性；技术型 epic 被视为错误，需挑战任何偏离标准的写法。",
+          "optional": false
+        },
+        {
+          "name": "6. 最终评估",
+          "descZh": "汇总全部发现并打磨报告，给出明确的建议与整体就绪状态，输出到 {planning_artifacts}/implementation-readiness-report-{{date}}.md（模板见 templates/readiness-report-template.md）。",
+          "optional": false
+        }
+      ],
+      "notes": "本地副本采用 step-file 架构（steps/ 下 6 个自包含步骤文件 + templates/ 报告模板），SKILL.md 只负责激活与指向第一步；输出文件路径由各 step 文件的 frontmatter outputFile 声明。文件头有「NEVER generate content without user input」「YOU ARE A FACILITATOR」等强约束。"
+    },
+    {
+      "canonicalId": "bmad-create-architecture",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "steps/step-01b-continue.md",
+        "steps/step-01-init.md",
+        "steps/step-02-context.md",
+        "steps/step-03-starter.md",
+        "steps/step-04-decisions.md",
+        "steps/step-05-patterns.md",
+        "steps/step-06-structure.md",
+        "steps/step-07-validation.md",
+        "steps/step-08-complete.md",
+        "architecture-decision-template.md",
+        "data/domain-complexity.csv",
+        "data/project-types.csv",
+        "customize.toml"
+      ],
+      "summaryZh": "以协作式分步发现的方式产出架构决策文档（CA）：从模板初始化 {planning_artifacts}/architecture.md，做项目上下文分析、起始模板评估（强制联网核实当前版本）、核心架构决策、实现模式与一致性规则、项目结构与边界，最后做架构校验、完成与交接，目标是让后续 AI 代理实现得一致。",
+      "entry": "直接调用技能；触发语如「lets create architecture」「create technical architecture」「create a solution design」。",
+      "menu": [
+        {
+          "code": "CA",
+          "labelEn": "Create Architecture",
+          "labelZh": "创建架构",
+          "descZh": "协作式架构设计：初始化文档 → 上下文分析 → 起始模板评估 → 核心决策 → 实现模式与一致性规则 → 结构与边界 → 校验 → 完成交接"
+        }
+      ],
+      "dependencies": {
+        "phase": "3-solutioning",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "planning_artifacts",
+        "outputs": ["architecture"]
+      },
+      "steps": [
+        {
+          "name": "1b. 流程续做处理",
+          "descZh": "检测是否存在进行中的架构工作流状态并正确接续（而非从头开始）。",
+          "optional": true
+        },
+        {
+          "name": "1. 架构工作流初始化",
+          "descZh": "检测是否已存在架构文档（{planning_artifacts}/*architecture*.md）；从 architecture-decision-template.md 拷贝模板生成 {planning_artifacts}/architecture.md，初始化 frontmatter 并置 stepsCompleted: [1]。",
+          "optional": false
+        },
+        {
+          "name": "2. 项目上下文分析",
+          "descZh": "分析项目上下文（PRD、现有系统、约束等），为架构决策建立事实基础。",
+          "optional": false
+        },
+        {
+          "name": "3. 起始模板评估",
+          "descZh": "评估起始模板/脚手架选项，强制联网核实当前版本，绝不信任硬编码版本号；生成分析后在 A/P/C 菜单中选择，只有选 C（Continue）才保存并进入下一步。",
+          "optional": false
+        },
+        {
+          "name": "4. 核心架构决策",
+          "descZh": "与用户共同敲定核心架构决策，记录到决策文档模板的各决策段。",
+          "optional": false
+        },
+        {
+          "name": "5. 实现模式与一致性规则",
+          "descZh": "定义实现层面的模式与一致性规则，防止后续多个 AI 代理实现风格分叉。",
+          "optional": false
+        },
+        {
+          "name": "6. 项目结构与边界",
+          "descZh": "确定项目目录结构、模块边界与文件组织方式。",
+          "optional": false
+        },
+        {
+          "name": "7. 架构校验与完成",
+          "descZh": "校验架构文档的完整性与自洽性，补齐缺口。",
+          "optional": false
+        },
+        {
+          "name": "8. 架构完成与交接",
+          "descZh": "给出完成总结与实施阶段的明确后续指引，更新 frontmatter 的最终状态收尾（本流程的最后一步）。",
+          "optional": false
+        }
+      ],
+      "notes": "本地副本为 step-file 架构（steps/ 下 9 个文件，含续做处理步 1b），另带 architecture-decision-template.md 与 data/ 下两份参考数据（domain-complexity.csv、project-types.csv）。所有步骤都强调「NEVER generate content without user input」「YOU ARE A FACILITATOR」以及「绝不做时间估算」。"
+    },
+    {
+      "canonicalId": "bmad-create-epics-and-stories",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "steps/step-01-validate-prerequisites.md",
+        "steps/step-02-design-epics.md",
+        "steps/step-03-create-stories.md",
+        "steps/step-04-final-validation.md",
+        "templates/epics-template.md",
+        "customize.toml"
+      ],
+      "summaryZh": "把 PRD 需求与架构决策拆解成按用户价值组织的 epics 与 stories（CE）：校验前置文档并抽取 FR/NFR 及 UX/架构附加要求，设计 epic 清单，生成含完整验收标准的故事，最后做覆盖率终验，输出 {planning_artifacts}/epics.md。",
+      "entry": "直接调用技能；触发语如「create the epics and stories list」。",
+      "menu": [
+        {
+          "code": "CE",
+          "labelEn": "Create Epics and Stories",
+          "labelZh": "创建史诗与故事",
+          "descZh": "需求拆解：校验前置文档并抽取需求 → 设计 epic 清单 → 生成 epics 与 stories → 覆盖率与就绪终验"
+        }
+      ],
+      "dependencies": {
+        "phase": "3-solutioning",
+        "precededBy": ["bmad-create-architecture"],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "planning_artifacts",
+        "outputs": ["epics and stories"]
+      },
+      "steps": [
+        {
+          "name": "1. 校验前置条件并抽取需求",
+          "descZh": "校验全部必需输入文档存在，抽取 FR、NFR 以及来自 UX/架构的附加要求；从 templates/epics-template.md 生成 {planning_artifacts}/epics.md 并在 frontmatter 的 inputDocuments 中列出输入文件；写入前先与用户确认纳入/排除哪些文档。每个阶段更新文档后需用户选 C（Continue）才进入下一步。",
+          "optional": false
+        },
+        {
+          "name": "2. 设计 epic 清单",
+          "descZh": "基于需求设计 epic 列表（按用户价值组织），与用户确认后再继续。",
+          "optional": false
+        },
+        {
+          "name": "3. 生成 epics 与 stories",
+          "descZh": "生成各 epic 的详细故事，包含完整、可执行的验收标准，写入 {planning_artifacts}/epics.md。",
+          "optional": false
+        },
+        {
+          "name": "4. 最终校验",
+          "descZh": "校验全部需求的完整覆盖，确认故事达到可供开发的状态。",
+          "optional": false
+        }
+      ],
+      "notes": "本地副本为 step-file 架构（steps/ 下 4 个步骤文件 + templates/epics-template.md）。CSV 中该条 description 为空，故流程描述全部取自本地源。"
+    },
+    {
+      "canonicalId": "bmad-generate-project-context",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "steps/step-01-discover.md",
+        "steps/step-02-generate.md",
+        "steps/step-03-complete.md",
+        "project-context-template.md",
+        "customize.toml"
+      ],
+      "summaryZh": "扫描既有代码库生成精简、面向 LLM 优化的 project-context.md（GPC）：只记录 AI 代理在实现代码时容易被忽略的关键规则、模式与约定，棕地项目尤其重要。产出为 {output_folder}/project-context.md。",
+      "entry": "直接调用技能；触发语如「generate project context」「create project context」。",
+      "menu": [
+        {
+          "code": "GPC",
+          "labelEn": "Generate Project Context",
+          "labelZh": "生成项目上下文",
+          "descZh": "棕地项目必备：发现既有上下文与技术栈 → 按类别生成 LLM 优化规则 → 精简定稿为 project-context.md"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "output_folder",
+        "outputs": ["project context"]
+      },
+      "steps": [
+        {
+          "name": "1. 上下文发现与初始化",
+          "descZh": "查找 {project_knowledge}/project-context.md 或 {project-root}/**/project-context.md 等既有上下文与技术栈线索，识别 AI 代理必须知道的关键实现规则；从 ../project-context-template.md 拷贝模板到 {output_folder}/project-context.md 并初始化 frontmatter。",
+          "optional": false
+        },
+        {
+          "name": "2. 上下文规则生成",
+          "descZh": "按规则类别逐项生成内容，聚焦 LLM 容易遗忘的非显然细节，与用户协作确认。",
+          "optional": false
+        },
+        {
+          "name": "3. 上下文完成与定稿",
+          "descZh": "为 LLM 上下文效率复核并优化内容，确保关键规则均已捕获且可执行，更新 frontmatter 完成状态收尾（本流程最后一步）。",
+          "optional": false
+        }
+      ],
+      "notes": "本地副本为 step-file 架构（steps/ 下 3 个步骤文件 + project-context-template.md）。CSV 的 output-location 记作 output_folder，与 step-01 中的 {output_folder}/project-context.md 一致，具体目录由 config 解析。"
+    },
+    {
+      "canonicalId": "bmad-quick-dev",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "step-01-clarify-and-route.md",
+        "step-02-plan.md",
+        "step-03-implement.md",
+        "step-04-review.md",
+        "step-05-present.md",
+        "step-oneshot.md",
+        "compile-epic-context.md",
+        "sync-sprint-status.md",
+        "spec-template.md",
+        "customize.toml"
+      ],
+      "summaryZh": "把任意意图直接变成可评审代码的通用通道（QQ）：澄清意图并判定路由（epic 故事走缓存/编译的 epic 上下文，自由意图走规划产物），写出 900-1600 token 的单目标 spec 并经人工批准，交给子代理实现，再用三层对抗评审做意图缺口/坏 spec/patch/defer 分类与回环，最后给出 Suggested Review Order、提交并打开编辑器。零爆炸半径的小改动走一步到位的 one-shot 通道。",
+      "entry": "直接调用技能；当用户想「build/fix/tweak/refactor/add/modify」任何代码时使用。可传 spec 文件路径（带 status frontmatter）直接续做草稿/实现/评审阶段。",
+      "menu": [
+        {
+          "code": "QQ",
+          "labelEn": "Quick Dev",
+          "labelZh": "快速开发",
+          "descZh": "意图进、代码出：澄清与路由 → 写并批准 spec → 实现 → 三层对抗评审与回环 → 呈现评审顺序并提交；小改动走 one-shot"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": ["spec and project implementation"]
+      },
+      "steps": [
+        {
+          "name": "1. 澄清与路由",
+          "descZh": "先做意图判定（显式参数里若是带 status frontmatter 的 spec，按 draft/ready-for-dev/in-progress/in-review 分别早退到 step-02/03/04；done 只当上下文）→ 近期对话 → 否则扫描 {implementation_artifacts} 中活跃 spec 让用户选择或新建。加载上下文：判断是否为 epic 故事，是则优先复用 {implementation_artifacts}/epic-N-context.md 缓存（无效则按 compile-epic-context.md 由子代理编译，失败则内联编译并校验），并加载同 epic 中编号更小且 done 的 spec 做连续性上下文；非 epic 则按需选择加载 PRD/架构/UX/epics/brief。随后澄清意图（成串提问须逐条答完）、版本控制健全检查（工作树脏或分支与意图明显不符须 HALT）、多目标检查（按 SCOPE STANDARD 判定是否需拆分，HALT 让用户选拆分或保留）。最后路由：零爆炸半径走 step-oneshot.md，其余走 plan-code-review（不确定时选后者）。",
+          "optional": false
+        },
+        {
+          "name": "2. 计划",
+          "descZh": "草稿续做时保留 <frozen-after-approval> 原文；调查代码库（深度探索隔离到子代理，只回蒸馏摘要）；按 spec-template.md 填写并写入 {implementation_artifacts}/spec-{slug}.md；按「Ready for Development」标准自审；有意图缺口就提问不臆测；spec 超过 1600 token 时展示计数并让用户选拆分或保留。CHECKPOINT 1 展示摘要（路径用 CWD 相对格式）并提示可用 bmad-advanced-elicitation / bmad-party-mode / bmad-code-review 外部打磨，HALT 让用户选 [A] 批准或 [E] 编辑。批准后重读磁盘文件（若文件消失则 HALT 停止），承认外部改动并把 status 置 ready-for-dev，frozen 区锁定。",
+          "optional": false
+        },
+        {
+          "name": "3. 实现",
+          "descZh": "先记录 baseline_commit（无版本控制记 NO_VCS）到 spec frontmatter，status 置 in-progress 并按 sync-sprint-status.md 同步；若 frontmatter 的 context 列表非空则先加载这些文件（交给子代理时随提示词一并给出）。把 spec 交给子代理实现，无子代理则自己直接实现。路径书写规则：spec 内链接用 spec 相对路径，终端输出用 CWD 相对加 :line。离开本步前逐项自检 Tasks & Acceptance，未完成的当场做完。",
+          "optional": false
+        },
+        {
+          "name": "4. 评审",
+          "descZh": "status 置 in-review；按 baseline_commit 构造含未跟踪文件的 diff（只读，不 git add）。无会话上下文地并行起三层子代理：Blind hunter（仅 diff，走 bmad-review-adversarial-general）、Edge case hunter（diff + 项目读权限，走 bmad-review-edge-case-hunter）、Acceptance auditor（diff + spec + spec 中 context 列出的文档）；无子代理则生成三份评审 prompt 文件并 HALT。去重后分类：intent_gap（改动引起且意图不完整）、bad_spec（改动引起、spec 本应写清，存疑时优先归此类）、patch（可小修）、defer（既有问题，记入 deferred-work.md）、reject（噪音丢弃）。级联处理：intent_gap/bad_spec 触发回环（回滚代码，前者回到人工澄清后重跑 step 2-4，后者先提炼 KEEP 指令、查 Spec Change Log、追加变更日志后重跑 step 3-4），specLoopIteration 超过 5 次则 HALT 升级。",
+          "optional": false
+        },
+        {
+          "name": "5. 呈现",
+          "descZh": "按 baseline_commit 生成 diff 并追加「Suggested Review Order」段（按关注点而非文件排序、以入口点领起、外围放最后，全部用 spec 相对的可点击链接并配一行说明）。spec status 置 done，按 sync-sprint-status.md 把 sprint 状态置 review。有版本控制且工作树脏时用约定式信息创建本地提交（绝不自动 push）。用 code -r 打开仓库根与 spec 供点击浏览，失败则降级提示路径。输出总结（含提交哈希、改动文件列表、评审结论统计、导航提示）并提供推送/建 PR 的选项后 HALT。",
+          "optional": false
+        },
+        {
+          "name": "one-shot 通道：实现、评审、呈现",
+          "descZh": "零爆炸半径、无意架构决策的清晰意图走此通道：同步 sprint 状态为 in-progress 后直接实现；用子代理跑 bmad-review-adversarial-general（无会话上下文，子代理不可用则写评审 prompt 文件并 HALT）；只分 patch（立即自动修）/defer（记入 deferred-work.md）/reject（丢弃）三类，若发现问题严重到不是小修则 HALT 交人工决定；随后生成精简 spec trace（frontmatter 加 route: one-shot，只保留标题与意图、Suggested Review Order），状态置 done 并同步 sprint 为 review；有版本控制则提交；最后打开编辑器呈现总结并 HALT。",
+          "optional": true
+        }
+      ],
+      "notes": "本地副本的 step 文件直接放在技能根目录（不是 steps/ 子目录），另有 compile-epic-context.md、sync-sprint-status.md、spec-template.md 三个被引用的配套文件。这是「随时可用」的通用实现入口（CSV phase=anytime、required=false），与故事循环（CS→DS→CR→ER）并行，不依赖 sprint 规划，但若识别出是 epic 故事会尝试复用 epic 上下文并同步 sprint 状态。"
+    }
+  ]
+}

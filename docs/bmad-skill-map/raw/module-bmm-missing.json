@@ -1,0 +1,330 @@
+{
+  "module": "bmm",
+  "group": "missing-fix",
+  "groupScope": "补漏：A/B 两组按目录切分时遗漏的 3 条 bmm 技能（bmad-agent-architect、bmad-agent-dev、bmad-investigate）",
+  "moduleName": "BMad Method",
+  "extractedBy": "w-bmm-fix",
+  "extractedAt": "2026-09-13",
+  "skillCount": 3,
+  "coveredIds": [
+    "bmad-agent-architect",
+    "bmad-agent-dev",
+    "bmad-investigate"
+  ],
+  "discrepancies": [
+    {
+      "type": "help CSV 行列错位（单行孤例）",
+      "detail": "bmad-investigate 在 _bmad/_config/bmad-help.csv 第 16 行与 _bmad/bmm/module-help.csv 中的行，自 args 列起整体左移一列。字面值为：args='4-implementation'、phase=''、preceded-by=''、followed-by='false'、required='implementation_artifacts'、output-location='investigation report'、outputs=''。按同表其余 90 行的列语义解码应为：args=''、phase='4-implementation'、followed-by=''、required='false'、output-location='implementation_artifacts'、outputs='investigation report'。本条目 dependencies 按解码值记录（否则会得到 phase 为空、required 为路径的无效数据）；扫描全表确认此错位仅此一行，其余 89 行对齐正常，属孤例数据缺陷。",
+      "evidence": [
+        "_bmad/_config/bmad-help.csv:16",
+        "_bmad/bmm/module-help.csv（bmad-investigate 行）"
+      ]
+    },
+    {
+      "type": "agent 未登记进 help 目录（系统性）",
+      "detail": "bmad-agent-architect 与 bmad-agent-dev 在 bmad-help.csv 与 _bmad/bmm/module-help.csv 中均无任何行（inHelpCatalog=false），用户无法通过 /bmad-help 目录发现入口。但这不是这两条独有的遗漏：bmm 模块 5 个人格 agent（analyst/pm/ux-designer/architect/dev）全部未登记，仅 bmad-agent-tech-writer 有 5 条目录条目（WD/US/MG/VD/EC）。入口依赖用户点名人格（Winston / Amelia）或直接调用技能名。",
+      "evidence": [
+        "_bmad/bmm/module-help.csv（31 行，无 architect/dev）",
+        "raw/catalog-baseline.json inHelpCatalog 字段"
+      ]
+    },
+    {
+      "type": "manifestPath 指向上游布局，本机不存在",
+      "detail": "基线 manifestPath（_bmad/bmm/3-solutioning/bmad-agent-architect/SKILL.md、_bmad/bmm/4-implementation/bmad-agent-dev/SKILL.md、_bmad/bmm/4-implementation/bmad-investigate/SKILL.md）在本机安装树中不存在：_bmad/bmm 下只有 1-analysis / 2-plan-workflows / 3-solutioning / 4-implementation / config.yaml / module-help.csv，且 4-implementation 目录为空。3 条实体均位于 .claude/skills/<canonicalId>/，故 evidenceLevel 全部为 local-source，无 catalog-only 条目。",
+      "evidence": [
+        "ls _bmad/bmm（仅目录骨架 + module-help.csv）",
+        "ls _bmad/bmm/4-implementation（空目录）"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "canonicalId": "bmad-agent-architect",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-architect",
+      "location": "project",
+      "inHelpCatalog": false,
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-agent-architect/SKILL.md",
+        ".claude/skills/bmad-agent-architect/customize.toml"
+      ],
+      "summaryZh": "人格化 agent：Winston，系统架构师。在 BMad Method 的方案设计阶段把 PRD 与 UX 转成能让实现不跑偏的技术架构决策，主张「抽象前先三次重复」「用保守技术求稳」「开发者生产力即架构」，回答给权衡而非结论。用户点名 Winston 或要求找架构师时激活。",
+      "entry": "直接调用技能 bmad-agent-architect（或在对话里点名 Winston / 架构师）。激活链：解析 agent 配置块 → 执行 prepend → 采用 Winston 人格 → 载入 persistent_facts 与 _bmad/bmm/config.yaml → 以 🏗️ 图标前缀问候并渲染菜单等待选择；人格、图标前缀与通信语言在此后每轮延续，直至用户解除。",
+      "menu": [
+        {
+          "code": "CA",
+          "labelEn": "Guided workflow to document technical decisions to keep implementation on track",
+          "labelZh": "创建架构",
+          "descZh": "引导式记录技术决策，使实现全程可对齐；调用 bmad-create-architecture。"
+        },
+        {
+          "code": "IR",
+          "labelEn": "Ensure the PRD, UX, Architecture and Epics and Stories List are all aligned",
+          "labelZh": "实现就绪检查",
+          "descZh": "校验 PRD、UX、架构与史诗/故事清单四者是否对齐；调用 bmad-check-implementation-readiness。"
+        }
+      ],
+      "dependencies": {},
+      "steps": [
+        {
+          "name": "1. 解析 agent 配置块",
+          "descZh": "运行 resolve_customization.py --skill {skill-root} --key agent；脚本失败则自行按 base→team→user 顺序读取 customize.toml、_bmad/custom/{skill-name}.toml、_bmad/custom/{skill-name}.user.toml 并做同样的结构合并（标量覆盖、表深合并、按 code/id 键的数组替换同名项并追加新项、其余数组追加）。",
+          "optional": false
+        },
+        {
+          "name": "2. 执行 prepend 步骤",
+          "descZh": "按顺序执行 {agent.activation_steps_prepend} 的每一项（本地默认空数组）。",
+          "optional": false
+        },
+        {
+          "name": "3. 采用 Winston 人格",
+          "descZh": "在 Overview 身份之上叠加定制层：扮演 {agent.role}（把 PRD 与 UX 转成架构决策以保障实现）、体现 {agent.identity}（Martin Fowler 的务实 + Werner Vogels 的云规模现实主义）、按 {agent.communication_style}（沉稳务实、权衡而非结论）说话、遵循 {agent.principles}；用户解除前不出戏，调用其他技能时人格延续。",
+          "optional": false
+        },
+        {
+          "name": "4. 载入持久事实",
+          "descZh": "把 {agent.persistent_facts} 每一项当作全程基础上下文；file: 前缀项按 {project-root} 下的路径或通配符加载实际内容，其余按字面事实（默认 file:{project-root}/**/project-context.md）。",
+          "optional": false
+        },
+        {
+          "name": "5. 载入配置",
+          "descZh": "读取 _bmad/bmm/config.yaml，解析 user_name（问候用）、communication_language（全部沟通）、document_output_language（输出文档）、planning_artifacts（输出位置与产物扫描）、project_knowledge（额外上下文扫描）。",
+          "optional": false
+        },
+        {
+          "name": "6. 问候用户",
+          "descZh": "以 Winston 身份按 {communication_language} 热情称呼 {user_name}，问候开头带 {agent.icon}（🏗️）便于一眼识别发言人，并提醒用户随时可调用 bmad-help；此后每条消息都保留图标前缀。",
+          "optional": false
+        },
+        {
+          "name": "7. 执行 append 步骤",
+          "descZh": "按顺序执行 {agent.activation_steps_append}（本地默认空数组）；完成后确认 prepend / append 均已在主流程开始前按序执行完。",
+          "optional": false
+        },
+        {
+          "name": "8. 分发或展示菜单",
+          "descZh": "用户首条消息若已明确对应菜单项（如\"Winston，我们来设计架构\"）则跳过菜单直接分发；否则把 {agent.menu} 渲染为 Code / Description / Action 编号表并停下等待输入，接受序号、菜单码或模糊描述匹配；两项以上接近时才追问一句，都不匹配则继续对话（闲聊、澄清、bmad-help 始终可用）。",
+          "optional": false
+        }
+      ],
+      "notes": "inHelpCatalog=false，bmad-help.csv 与 _bmad/bmm/module-help.csv 均未登记该 agent，用户无法通过 /bmad-help 目录发现。属该模块系统性现象：5 个人格 agent 中仅 bmad-agent-tech-writer 登记了目录条目，architect 与其余 3 个 agent 一样只能靠点名或直接调用技能名进入。菜单 2 项（CA / IR）来自 customize.toml 的 [[agent.menu]]，help 表中无对应行，故 dependencies 为空对象。persistent_facts 默认只加载项目内 project-context.md，activation_steps_prepend/append 均为空数组、可被 override 追加；项目级定制文件 _bmad/custom/bmad-agent-architect.toml 本机不存在。"
+    },
+    {
+      "canonicalId": "bmad-agent-dev",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-dev",
+      "location": "project",
+      "inHelpCatalog": false,
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-agent-dev/SKILL.md",
+        ".claude/skills/bmad-agent-dev/customize.toml"
+      ],
+      "summaryZh": "人格化 agent：Amelia，高级软件工程师。以测试先行（红-绿-重构，顺序不可换）纪律执行已批准的故事，交付满足每条验收标准的可验证代码；菜单覆盖实现、快速开发、测试生成、代码评审、冲刺规划、故事准备、史诗复盘与调查共 8 项。风格极简，以文件路径与 AC 编号为语言，用户点名 Amelia 或要求开发 agent 时激活。",
+      "entry": "直接调用技能 bmad-agent-dev（或在对话里点名 Amelia / 开发 agent）。激活链与 architect 同构：解析 agent 配置块 → prepend → 采用 Amelia 人格 → 载入 persistent_facts 与 _bmad/bmm/config.yaml → 以 💻 图标前缀问候并渲染 8 项菜单；人格延续至用户解除。",
+      "menu": [
+        {
+          "code": "DS",
+          "labelEn": "Write the next or specified story's tests and code",
+          "labelZh": "开发故事",
+          "descZh": "按测试先行写下一条或指定故事的测试与实现代码；调用 bmad-dev-story。"
+        },
+        {
+          "code": "QD",
+          "labelEn": "Unified quick flow — clarify intent, plan, implement, review, present",
+          "labelZh": "快速开发",
+          "descZh": "一体化快速流程：澄清意图 → 计划 → 实现 → 评审 → 交付；调用 bmad-quick-dev。"
+        },
+        {
+          "code": "QA",
+          "labelEn": "Generate API and E2E tests for existing features",
+          "labelZh": "生成端到端测试",
+          "descZh": "为已有功能生成 API 测试与 E2E 测试；调用 bmad-qa-generate-e2e-tests。"
+        },
+        {
+          "code": "CR",
+          "labelEn": "Initiate a comprehensive code review across multiple quality facets",
+          "labelZh": "代码评审",
+          "descZh": "发起覆盖多个质量维度的综合代码评审；调用 bmad-code-review。"
+        },
+        {
+          "code": "SP",
+          "labelEn": "Generate or update the sprint plan that sequences tasks for implementation",
+          "labelZh": "冲刺计划",
+          "descZh": "生成或更新为任务排定实现顺序的冲刺计划；调用 bmad-sprint-planning。"
+        },
+        {
+          "code": "CS",
+          "labelEn": "Prepare a story with all required context for implementation",
+          "labelZh": "创建故事",
+          "descZh": "准备故事并附上实现所需的全部上下文；调用 bmad-create-story。"
+        },
+        {
+          "code": "ER",
+          "labelEn": "Party mode review of all work completed across an epic",
+          "labelZh": "史诗复盘",
+          "descZh": "以 party mode 会审形式复盘某个史诗内已完成的全部工作；调用 bmad-retrospective。"
+        },
+        {
+          "code": "IN",
+          "labelEn": "Forensic case investigation with evidence-graded findings, calibrated to the input",
+          "labelZh": "调查",
+          "descZh": "取证式排查，产出按证据等级标注的调查结论；调用 bmad-investigate。"
+        }
+      ],
+      "dependencies": {},
+      "steps": [
+        {
+          "name": "1. 解析 agent 配置块",
+          "descZh": "运行 resolve_customization.py --skill {skill-root} --key agent；脚本失败则按 base→team→user 顺序手工读取 customize.toml 与 _bmad/custom/{skill-name}(.user).toml 并做同样的结构合并。",
+          "optional": false
+        },
+        {
+          "name": "2. 执行 prepend 步骤",
+          "descZh": "按顺序执行 {agent.activation_steps_prepend} 的每一项（本地默认空数组）。",
+          "optional": false
+        },
+        {
+          "name": "3. 采用 Amelia 人格",
+          "descZh": "叠加定制层：扮演 {agent.role}（以测试先行纪律实现已批准故事并交付可验证代码）、体现 {agent.identity}（Kent Beck 的 TDD 纪律 + 务实程序员的精确）、按 {agent.communication_style}（极简、以文件路径与 AC 编号说话、每句可引用、无废话）说话、遵循 {agent.principles}（无通过测试不算完成、红绿重构顺序不可换、任务按书写顺序执行）。",
+          "optional": false
+        },
+        {
+          "name": "4. 载入持久事实",
+          "descZh": "把 {agent.persistent_facts} 每一项当作全程基础上下文；file: 前缀项按 {project-root} 下的路径或通配符加载内容（默认 file:{project-root}/**/project-context.md）。",
+          "optional": false
+        },
+        {
+          "name": "5. 载入配置",
+          "descZh": "读取 _bmad/bmm/config.yaml，解析 user_name、communication_language、document_output_language、planning_artifacts、project_knowledge。",
+          "optional": false
+        },
+        {
+          "name": "6. 问候用户",
+          "descZh": "以 Amelia 身份按 {communication_language} 称呼 {user_name} 问候，开头带 {agent.icon}（💻），提示可随时调用 bmad-help；此后每条消息保留图标前缀。",
+          "optional": false
+        },
+        {
+          "name": "7. 执行 append 步骤",
+          "descZh": "按顺序执行 {agent.activation_steps_append}（本地默认空数组），并在进入主流程前确认 prepend / append 均已按序执行完。",
+          "optional": false
+        },
+        {
+          "name": "8. 分发或展示菜单",
+          "descZh": "用户首条消息若已明确对应菜单项（如\"Amelia，实现下一条故事\"）则跳过菜单直接分发；否则渲染 {agent.menu} 的 Code / Description / Action 编号表并停下等待输入，接受序号、菜单码或模糊描述匹配；无匹配则不强行分流，继续对话或转 bmad-help。",
+          "optional": false
+        }
+      ],
+      "notes": "inHelpCatalog=false，bmad-help.csv 与 _bmad/bmm/module-help.csv 均未登记该 agent，用户无法通过 /bmad-help 目录发现（同模块 5 个人格 agent 中仅 bmad-agent-tech-writer 有目录条目）。菜单 8 项（DS/QD/QA/CR/SP/CS/ER/IN）全部来自 customize.toml 的 [[agent.menu]]，help 表中无对应行，故 dependencies 为空对象；其中 IN → bmad-investigate 与本模块缺失条目同源，QD → bmad-quick-dev 的目录菜单码实为 QQ（help 表登记值），两处码不一致来自不同来源（本地 agent 菜单 vs help 目录）。activation_steps_prepend/append 默认空数组，persistent_facts 默认只加载 project-context.md；_bmad/custom/bmad-agent-dev.toml 本机不存在。"
+    },
+    {
+      "canonicalId": "bmad-investigate",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-investigate",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-investigate/SKILL.md",
+        ".claude/skills/bmad-investigate/customize.toml",
+        ".claude/skills/bmad-investigate/references/case-file-template.md"
+      ],
+      "summaryZh": "取证式调查工作流：从可得证据重建\"发生了什么\"或\"陌生代码区在做什么\"，产出一份别人能冷手接续的结构化结案文件。全程在缺陷追查（有症状）与区域探索（无症状）之间校准，所有结论按「已证实（可直接引用 path:line/日志时间戳/commit）/已推断（展示推理链）/待验证（写明证实与证伪条件）」三级标注；假设只更新状态不删除，缺失证据本身也算一条发现。调查止于诊断，修复实现不在范围内。",
+      "entry": "直接调用技能 bmad-investigate，参数为工单号、日志或诊断包路径、报错文本、代码区域名、问题描述，或指向已有结案文件的路径（该形态为续办，路由到 Outcome 0）。输出写入 {implementation_artifacts}/{workflow.case_file_subdir}/{workflow.case_file_filename}，即 {implementation_artifacts}/investigations/{slug}-investigation.md（slug 取工单号，否则与用户商定一个短名并规范为小写字母数字加连字符；路径冲突时询问改名为 slug-YYYY-MM-DD.md 还是续用原文件）。",
+      "menu": [
+        {
+          "code": "IN",
+          "labelEn": "Investigate",
+          "labelZh": "调查",
+          "descZh": "help 目录登记条目（display-name 为 Investigate）：取证式排查，按证据等级重建事件经过或建立代码区域心智模型，产出结案文件。"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": "investigation report"
+      },
+      "steps": [
+        {
+          "name": "1. 解析 workflow 配置块",
+          "descZh": "运行 resolve_customization.py --skill {skill-root} --key workflow；脚本失败即停止并暴露错误（与 agent 型不同，无手工兜底合并）。",
+          "optional": false
+        },
+        {
+          "name": "2. 执行 prepend 步骤",
+          "descZh": "按顺序执行 {workflow.activation_steps_prepend} 的每一项（本地默认空数组）。",
+          "optional": false
+        },
+        {
+          "name": "3. 载入持久事实",
+          "descZh": "把 {workflow.persistent_facts} 每一项当作基础上下文；file: 前缀项按 {project-root} 路径或通配符加载内容（默认 file:{project-root}/**/project-context.md），其余按字面事实。",
+          "optional": false
+        },
+        {
+          "name": "4. 载入配置",
+          "descZh": "读取 _bmad/bmm/config.yaml，解析 user_name、communication_language、document_output_language、implementation_artifacts、project_knowledge；若 implementation_artifacts 未解析，回落到 ./investigations/ 并在初始化前明确告知用户该回落。",
+          "optional": false
+        },
+        {
+          "name": "5. 问候",
+          "descZh": "按 {communication_language} 问候 {user_name}。",
+          "optional": false
+        },
+        {
+          "name": "6. 执行 append 步骤",
+          "descZh": "按顺序执行 {workflow.activation_steps_append}（本地默认空数组），并在主流程开始前确认 prepend / append 均已按序执行完。",
+          "optional": false
+        },
+        {
+          "name": "7. 确认输入并路由",
+          "descZh": "把用户输入登记为引用（只记录路径与 ID，不读原始内容）；若指向已有结案文件 → Outcome 0，否则 → Outcome 1。",
+          "optional": false
+        },
+        {
+          "name": "8. Outcome 0：载入并呈现既有案件",
+          "descZh": "读结案文件，按序呈现开放假设（Status=Open）及其证实/证伪标准、未完结待办（Status≠Done）、缺失证据行、上次结论与置信度，然后询问要拉哪条线；新证据以 ## Follow-up: {YYYY-MM-DD} 块追加（同日重入加 #2、#3）；呈现完停下等用户指令。",
+          "optional": true
+        },
+        {
+          "name": "9. Outcome 1：确立范围与据点",
+          "descZh": "按输入形态登记（工单：用 MCP 工具取全文；诊断包：记路径、文件数、时间窗；日志或堆栈：记路径与时间窗，仅用户消息里已有的栈帧入范围；自由描述：原文捕获并当作假设处理；代码区名：记入口；近期提交区：记提交范围）。用户自带假设则登记为 Hypothesis #1，但据点必须独立寻找——用户假设本身是要被据点验证或证伪的对象。据点 = 一条已证实证据（报错信息、函数名、HTTP 路由、配置项、测试用例）。分支前先用 {workflow.case_file_template} 初始化 {case_file}，填入 Hand-off Brief 粗稿、Case Info、问题陈述与初始证据清单。无任何可达的已证实证据时进入证据稀少分支：在 Hand-off Brief 标记 evidence-light、把待办填为按优先级排序的数据采集项、写下\"要推进，我需要以下之一：…\"，停下等用户补证据或授权 Outcome 2 扩大扫描。",
+          "optional": false
+        },
+        {
+          "name": "10. Outcome 2：摸清证据边界",
+          "descZh": "在六类相互独立的证据上并行勘查：诊断包、工单系统、版本控制、测试结果、静态分析、源码；任一类超过约 10K token 就委派子代理，只回收 JSON 清单（路径、大小、时间窗、以 path:line 引用的关键片段）。逐类标注 Available / Partial / Missing（Missing 本身即一条发现），更新证据清单与调查待办。",
+          "optional": false
+        },
+        {
+          "name": "11. Outcome 3：有纪律地推理成因",
+          "descZh": "追溯因果（症状驱动从症状反向追到产生条件与当时状态；探索型从输出——返回值、副作用、发出的消息——反向追到产生条件，同一手法换锚点）；交叉比对日志、系统事件、版本控制、用户观察重建时间线；假设先声明、再找证实与证伪证据、检索、定级为 Confirmed / Refuted / Open，假设永不删除只更新状态与 Resolution；每次假设趋近 Confirmed 都先主动做一轮证伪扫描并把尝试记进 Resolution；独立复核用户前提，证据不符就直说；新发现的线索入待办但不偏离当前线程。",
+          "optional": false
+        },
+        {
+          "name": "12. Outcome 4：追踪源码到关键处",
+          "descZh": "第一轮并行发出：精确报错串 grep、对受影响目录 glob 找并行实现、git log 看近期变更。随后串行：读周边代码、跟调用链、留意语言与进程边界跨越（编译产物→脚本、IPC、宿主→设备、配置流）。按案件类型侧重——探索型做 I/O 映射（触发、输出、依赖）、高频词扫描、控制流过滤（分支、循环、错误处理、状态机转移）；症状型先评估深度（根因能否从局部上下文触达，否则需更大区域模型，扩大范围必须明说不得静默），再做 trivial-fix 评估（off-by-one、缺 null 检查、参数颠倒 → 报告中给一行建议或草稿 diff；非 trivial → 停在根因区域）。",
+          "optional": false
+        },
+        {
+          "name": "13. Outcome 5：定稿报告并干净交接",
+          "descZh": "更新 {case_file}：Hand-off Brief 改为终稿（3 句、15 秒可读完）、Final Conclusion 带置信度（High=根因已证实且有确定性复现 / Medium=已推断、轻微不确定 / Low=待验证且有明确数据缺口）、适用时给修复方向（多因并存时按机制分类）与诊断步骤、适用时给 Reproduction Plan（探索型给验证计划）、Status 置 Active / Concluded / Blocked on evidence。随后呈现结论与下一步菜单：trivial fix → bmad-quick-dev、范围或计划调整 → bmad-correct-course、立成故事 → bmad-create-story、重新评审 → bmad-code-review，并推荐其中价值最高的一项；缓解措施与临时绕行只在用户明确要求时生成；{workflow.on_complete} 非空则执行。",
+          "optional": false
+        },
+        {
+          "name": "14. Follow-up 迭代与结案判定",
+          "descZh": "后续工作一律以新的 ## Follow-up: {YYYY-MM-DD} 块追加到 {case_file}（同日重入加 #2、#3）。满足任一条件即结案：根因已证实；根因待验证但数据缺口明确；心智模型已足够支撑用户声明的目标（探索型）；待办只剩需不可得证据的项；用户明确结束。",
+          "optional": true
+        }
+      ],
+      "notes": "inHelpCatalog=true，已登记进 bmad-help.csv 与 _bmad/bmm/module-help.csv（菜单码 IN、display-name=Investigate、描述含 evidence-graded 字样），用户可通过 /bmad-help 发现入口。但该行存在列错位（见 discrepancies 第 1 条）：基线 helpEntries 里 args='4-implementation'、phase=''、followed-by='false'、required='implementation_artifacts'、output-location='investigation report'；本条目 dependencies 已按表内列语义解码为 phase=4-implementation、required=false、outputLocation=implementation_artifacts、outputs=investigation report、args='' 记录。三条本地定制项均有实体支撑：case_file_template=references/case-file-template.md（本地存在，含 Hand-off Brief、证据清单、时间线、三级结论、Follow-up 等 20 个段落的结案文件骨架）、case_file_subdir=investigations、case_file_filename={slug}-investigation.md；on_complete 为空串（结案后无自动化动作）。persistent_facts 默认只加载 project-context.md，activation_steps_prepend/append 均为空数组；_bmad/custom/bmad-investigate.toml 本机不存在。SKILL.md 未引用除模板外的其他文件，故 sourceFiles 仅 3 项。"
+    }
+  ]
+}

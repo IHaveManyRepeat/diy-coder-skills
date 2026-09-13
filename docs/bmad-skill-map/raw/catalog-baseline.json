@@ -1,0 +1,1805 @@
+{
+ "generated": "2026-09-13",
+ "source": {
+  "catalog": "_bmad/_config/bmad-help.csv",
+  "manifest": "_bmad/_config/skill-manifest.csv"
+ },
+ "skillDirSearch": {
+  "project": "F:/code2/bmad-tool/.claude/skills",
+  "global": "C:/Users/93559/.claude/skills"
+ },
+ "skills": [
+  {
+   "canonicalId": "bmad-advanced-elicitation",
+   "module": "core",
+   "description": "Push the LLM to reconsider, refine, and improve its recent output. Use when user asks for deeper critique or mentions a known deeper critique method, e.g. socratic, first principles, pre-mortem, red team.",
+   "manifestPath": "_bmad/core/bmad-advanced-elicitation/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-advanced-elicitation",
+   "location": "project",
+   "installedAs": "bmad-advanced-elicitation",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-brainstorming",
+   "module": "core",
+   "description": "Facilitate interactive brainstorming sessions using diverse creative techniques and ideation methods. Use when the user says help me brainstorm or help me ideate.",
+   "manifestPath": "_bmad/core/bmad-brainstorming/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-brainstorming",
+   "location": "project",
+   "installedAs": "bmad-brainstorming",
+   "helpEntries": [
+    {
+     "displayName": "Brainstorm Project",
+     "menuCode": "BP",
+     "action": "",
+     "args": "",
+     "phase": "1-analysis",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts",
+     "outputs": "brainstorming session"
+    },
+    {
+     "displayName": "Brainstorming",
+     "menuCode": "BSP",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "{output_folder}/brainstorming",
+     "outputs": "brainstorming session"
+    },
+    {
+     "displayName": "Brainstorming",
+     "menuCode": "BS",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "output_folder",
+     "outputs": "brainstorming session results"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-customize",
+   "module": "core",
+   "description": "Authors and updates customization overrides for installed BMad skills. Use when the user says 'customize bmad', 'override a skill', 'change agent behavior', or 'customize a workflow'.",
+   "manifestPath": "_bmad/core/bmad-customize/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-customize",
+   "location": "project",
+   "installedAs": "bmad-customize",
+   "helpEntries": [
+    {
+     "displayName": "BMad Customize",
+     "menuCode": "BC",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "{project-root}/_bmad/custom",
+     "outputs": "TOML override files"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-editorial-review-prose",
+   "module": "core",
+   "description": "Clinical copy-editor that reviews text for communication issues. Use when user says review for prose or improve the prose",
+   "manifestPath": "_bmad/core/bmad-editorial-review-prose/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-editorial-review-prose",
+   "location": "project",
+   "installedAs": "bmad-editorial-review-prose",
+   "helpEntries": [
+    {
+     "displayName": "Editorial Review - Prose",
+     "menuCode": "EP",
+     "action": "",
+     "args": "[path]",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "report located with target document",
+     "outputs": "three-column markdown table with suggested fixes"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-editorial-review-structure",
+   "module": "core",
+   "description": "Structural editor that proposes cuts, reorganization, and simplification while preserving comprehension. Use when user requests structural review or editorial review of structure",
+   "manifestPath": "_bmad/core/bmad-editorial-review-structure/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-editorial-review-structure",
+   "location": "project",
+   "installedAs": "bmad-editorial-review-structure",
+   "helpEntries": [
+    {
+     "displayName": "Editorial Review - Structure",
+     "menuCode": "ES",
+     "action": "",
+     "args": "[path]",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "report located with target document",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-help",
+   "module": "core",
+   "description": "Analyzes current state and user query to answer BMad questions or recommend the next skill(s) to use. Use when user asks for help, bmad help, what to do next, or what to start with in BMad.",
+   "manifestPath": "_bmad/core/bmad-help/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-help",
+   "location": "project",
+   "installedAs": "bmad-help",
+   "helpEntries": [
+    {
+     "displayName": "BMad Help",
+     "menuCode": "BH",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-index-docs",
+   "module": "core",
+   "description": "Generates or updates an index.md to reference all docs in the folder. Use if user requests to create or update an index of all files in a specific folder",
+   "manifestPath": "_bmad/core/bmad-index-docs/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-index-docs",
+   "location": "project",
+   "installedAs": "bmad-index-docs",
+   "helpEntries": [
+    {
+     "displayName": "Index Docs",
+     "menuCode": "ID",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-party-mode",
+   "module": "core",
+   "description": "Orchestrates group discussions between installed BMAD agents, enabling natural multi-agent conversations where each agent is a real subagent with independent thinking. Use when user requests party mode, wants multiple agent perspectives, group discussion, roundtable, or multi-agent conversation about their project.",
+   "manifestPath": "_bmad/core/bmad-party-mode/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-party-mode",
+   "location": "project",
+   "installedAs": "bmad-party-mode",
+   "helpEntries": [
+    {
+     "displayName": "Party Mode",
+     "menuCode": "PM",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-review-adversarial-general",
+   "module": "core",
+   "description": "Perform a Cynical Review and produce a findings report. Use when the user requests a critical review of something",
+   "manifestPath": "_bmad/core/bmad-review-adversarial-general/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-review-adversarial-general",
+   "location": "project",
+   "installedAs": "bmad-review-adversarial-general",
+   "helpEntries": [
+    {
+     "displayName": "Adversarial Review",
+     "menuCode": "AR",
+     "action": "",
+     "args": "[path]",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-review-edge-case-hunter",
+   "module": "core",
+   "description": "Walk every branching path and boundary condition in content, report only unhandled edge cases. Orthogonal to adversarial review - method-driven not attitude-driven. Use when you need exhaustive edge-case analysis of code, specs, or diffs.",
+   "manifestPath": "_bmad/core/bmad-review-edge-case-hunter/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-review-edge-case-hunter",
+   "location": "project",
+   "installedAs": "bmad-review-edge-case-hunter",
+   "helpEntries": [
+    {
+     "displayName": "Edge Case Hunter Review",
+     "menuCode": "ECH",
+     "action": "",
+     "args": "[path]",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-shard-doc",
+   "module": "core",
+   "description": "Splits large markdown documents into smaller, organized files based on level 2 (default) sections. Use if the user says perform shard document",
+   "manifestPath": "_bmad/core/bmad-shard-doc/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-shard-doc",
+   "location": "project",
+   "installedAs": "bmad-shard-doc",
+   "helpEntries": [
+    {
+     "displayName": "Shard Document",
+     "menuCode": "SD",
+     "action": "",
+     "args": "[path]",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-spec",
+   "module": "core",
+   "description": "Distill any intent input into the SPEC kernel + companions — the canonical, preservation-validated machine contract for downstream work. Use when the user says \"create a spec\", \"distill this into a spec\", \"validate this spec\", or \"update the spec\".",
+   "manifestPath": "_bmad/core/bmad-spec/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-spec",
+   "location": "project",
+   "installedAs": "bmad-spec",
+   "helpEntries": [
+    {
+     "displayName": "Spec",
+     "menuCode": "SP",
+     "action": "",
+     "args": "[path]",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "{output_folder}/specs/spec-{slug}",
+     "outputs": "SPEC.md + companion files"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-agent-analyst",
+   "module": "bmm",
+   "description": "Strategic business analyst and requirements expert. Use when the user asks to talk to Mary or requests the business analyst.",
+   "manifestPath": "_bmad/bmm/1-analysis/bmad-agent-analyst/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-analyst",
+   "location": "project",
+   "installedAs": "bmad-agent-analyst",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-agent-tech-writer",
+   "module": "bmm",
+   "description": "Technical documentation specialist and knowledge curator. Use when the user asks to talk to Paige or requests the tech writer.",
+   "manifestPath": "_bmad/bmm/1-analysis/bmad-agent-tech-writer/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-tech-writer",
+   "location": "project",
+   "installedAs": "bmad-agent-tech-writer",
+   "helpEntries": [
+    {
+     "displayName": "Write Document",
+     "menuCode": "WD",
+     "action": "write",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "project-knowledge",
+     "outputs": "document"
+    },
+    {
+     "displayName": "Update Standards",
+     "menuCode": "US",
+     "action": "update-standards",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "_bmad/_memory/tech-writer-sidecar",
+     "outputs": "standards"
+    },
+    {
+     "displayName": "Mermaid Generate",
+     "menuCode": "MG",
+     "action": "mermaid",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts",
+     "outputs": "mermaid diagram"
+    },
+    {
+     "displayName": "Validate Document",
+     "menuCode": "VD",
+     "action": "validate",
+     "args": "[path]",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts",
+     "outputs": "validation report"
+    },
+    {
+     "displayName": "Explain Concept",
+     "menuCode": "EC",
+     "action": "explain",
+     "args": "[topic]",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "project_knowledge",
+     "outputs": "explanation"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-document-project",
+   "module": "bmm",
+   "description": "Document brownfield projects for AI context. Use when the user says \"document this project\" or \"generate project docs\"",
+   "manifestPath": "_bmad/bmm/1-analysis/bmad-document-project/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-document-project",
+   "location": "project",
+   "installedAs": "bmad-document-project",
+   "helpEntries": [
+    {
+     "displayName": "Document Project",
+     "menuCode": "DP",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "project-knowledge",
+     "outputs": "*"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-prfaq",
+   "module": "bmm",
+   "description": "Working Backwards PRFAQ challenge to forge product concepts. Use when the user requests to 'create a PRFAQ', 'work backwards', or 'run the PRFAQ challenge'.",
+   "manifestPath": "_bmad/bmm/1-analysis/bmad-prfaq/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-prfaq",
+   "location": "project",
+   "installedAs": "bmad-prfaq",
+   "helpEntries": [
+    {
+     "displayName": "PRFAQ Challenge",
+     "menuCode": "WB",
+     "action": "",
+     "args": "-H",
+     "phase": "1-analysis",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts",
+     "outputs": "prfaq document"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-product-brief",
+   "module": "bmm",
+   "description": "Create, update, or validate a product brief. Use when the user wants help producing, editing, or validating a brief.",
+   "manifestPath": "_bmad/bmm/1-analysis/bmad-product-brief/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-product-brief",
+   "location": "project",
+   "installedAs": "bmad-product-brief",
+   "helpEntries": [
+    {
+     "displayName": "Create Brief",
+     "menuCode": "CB",
+     "action": "",
+     "args": "-A",
+     "phase": "1-analysis",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts",
+     "outputs": "product brief"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-domain-research",
+   "module": "bmm",
+   "description": "Conduct domain and industry research. Use when the user says wants to do domain research for a topic or industry",
+   "manifestPath": "_bmad/bmm/1-analysis/research/bmad-domain-research/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-domain-research",
+   "location": "project",
+   "installedAs": "bmad-domain-research",
+   "helpEntries": [
+    {
+     "displayName": "Domain Research",
+     "menuCode": "DR",
+     "action": "",
+     "args": "",
+     "phase": "1-analysis",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts|project_knowledge",
+     "outputs": "research documents"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-market-research",
+   "module": "bmm",
+   "description": "Conduct market research on competition and customers. Use when the user says they need market research",
+   "manifestPath": "_bmad/bmm/1-analysis/research/bmad-market-research/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-market-research",
+   "location": "project",
+   "installedAs": "bmad-market-research",
+   "helpEntries": [
+    {
+     "displayName": "Market Research",
+     "menuCode": "MR",
+     "action": "",
+     "args": "",
+     "phase": "1-analysis",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts|project-knowledge",
+     "outputs": "research documents"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-technical-research",
+   "module": "bmm",
+   "description": "Conduct technical research on technologies and architecture. Use when the user says they would like to do or produce a technical research report",
+   "manifestPath": "_bmad/bmm/1-analysis/research/bmad-technical-research/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-technical-research",
+   "location": "project",
+   "installedAs": "bmad-technical-research",
+   "helpEntries": [
+    {
+     "displayName": "Technical Research",
+     "menuCode": "TR",
+     "action": "",
+     "args": "",
+     "phase": "1-analysis",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts|project_knowledge",
+     "outputs": "research documents"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-agent-pm",
+   "module": "bmm",
+   "description": "Product manager for PRD creation and requirements discovery. Use when the user asks to talk to John or requests the product manager.",
+   "manifestPath": "_bmad/bmm/2-plan-workflows/bmad-agent-pm/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-pm",
+   "location": "project",
+   "installedAs": "bmad-agent-pm",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-agent-ux-designer",
+   "module": "bmm",
+   "description": "UX designer and UI specialist. Use when the user asks to talk to Sally or requests the UX designer.",
+   "manifestPath": "_bmad/bmm/2-plan-workflows/bmad-agent-ux-designer/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-ux-designer",
+   "location": "project",
+   "installedAs": "bmad-agent-ux-designer",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-create-prd",
+   "module": "bmm",
+   "description": "DEPRECATED — consolidated into bmad-prd create intent - this skill will be removed in v7 in favor of `bmad-prd`.",
+   "manifestPath": "_bmad/bmm/2-plan-workflows/bmad-create-prd/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-create-prd",
+   "location": "project",
+   "installedAs": "bmad-create-prd",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-edit-prd",
+   "module": "bmm",
+   "description": "DEPRECATED — consolidated into bmad-prd update intent - this skill will be removed in v7 in favor of `bmad-prd`.",
+   "manifestPath": "_bmad/bmm/2-plan-workflows/bmad-edit-prd/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-edit-prd",
+   "location": "project",
+   "installedAs": "bmad-edit-prd",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-prd",
+   "module": "bmm",
+   "description": "Create, update, or validate a PRD. Use when the user wants help producing, editing, or validating a PRD.",
+   "manifestPath": "_bmad/bmm/2-plan-workflows/bmad-prd/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-prd",
+   "location": "project",
+   "installedAs": "bmad-prd",
+   "helpEntries": [
+    {
+     "displayName": "Create Edit and Review PRD",
+     "menuCode": "PRD",
+     "action": "",
+     "args": "",
+     "phase": "2-planning",
+     "precededBy": "bmad-product-brief",
+     "followedBy": "",
+     "required": "true",
+     "outputLocation": "planning_artifacts",
+     "outputs": "prd"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-ux",
+   "module": "bmm",
+   "description": "Plan UX patterns and design specifications. Use when the user says \"lets create UX design\" or \"create UX specifications\" or \"help me plan the UX\"",
+   "manifestPath": "_bmad/bmm/2-plan-workflows/bmad-ux/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-ux",
+   "location": "project",
+   "installedAs": "bmad-ux",
+   "helpEntries": [
+    {
+     "displayName": "Create UX",
+     "menuCode": "CU",
+     "action": "",
+     "args": "",
+     "phase": "2-planning",
+     "precededBy": "bmad-prd",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts",
+     "outputs": "ux design"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-validate-prd",
+   "module": "bmm",
+   "description": "DEPRECATED — consolidated into bmad-prd validate intent - this skill will be removed in v7 in favor of `bmad-prd`.",
+   "manifestPath": "_bmad/bmm/2-plan-workflows/bmad-validate-prd/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-validate-prd",
+   "location": "project",
+   "installedAs": "bmad-validate-prd",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-agent-architect",
+   "module": "bmm",
+   "description": "System architect and technical design leader. Use when the user asks to talk to Winston or requests the architect.",
+   "manifestPath": "_bmad/bmm/3-solutioning/bmad-agent-architect/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-architect",
+   "location": "project",
+   "installedAs": "bmad-agent-architect",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-check-implementation-readiness",
+   "module": "bmm",
+   "description": "Validate PRD, UX, Architecture and Epics specs are complete. Use when the user says \"check implementation readiness\".",
+   "manifestPath": "_bmad/bmm/3-solutioning/bmad-check-implementation-readiness/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-check-implementation-readiness",
+   "location": "project",
+   "installedAs": "bmad-check-implementation-readiness",
+   "helpEntries": [
+    {
+     "displayName": "Check Implementation Readiness",
+     "menuCode": "IR",
+     "action": "",
+     "args": "",
+     "phase": "3-solutioning",
+     "precededBy": "bmad-create-epics-and-stories",
+     "followedBy": "",
+     "required": "true",
+     "outputLocation": "planning_artifacts",
+     "outputs": "readiness report"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-create-architecture",
+   "module": "bmm",
+   "description": "Create architecture solution design decisions for AI agent consistency. Use when the user says \"lets create architecture\" or \"create technical architecture\" or \"create a solution design\"",
+   "manifestPath": "_bmad/bmm/3-solutioning/bmad-create-architecture/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-create-architecture",
+   "location": "project",
+   "installedAs": "bmad-create-architecture",
+   "helpEntries": [
+    {
+     "displayName": "Create Architecture",
+     "menuCode": "CA",
+     "action": "",
+     "args": "",
+     "phase": "3-solutioning",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "true",
+     "outputLocation": "planning_artifacts",
+     "outputs": "architecture"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-create-epics-and-stories",
+   "module": "bmm",
+   "description": "Break requirements into epics and user stories. Use when the user says \"create the epics and stories list\"",
+   "manifestPath": "_bmad/bmm/3-solutioning/bmad-create-epics-and-stories/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-create-epics-and-stories",
+   "location": "project",
+   "installedAs": "bmad-create-epics-and-stories",
+   "helpEntries": [
+    {
+     "displayName": "Create Epics and Stories",
+     "menuCode": "CE",
+     "action": "",
+     "args": "",
+     "phase": "3-solutioning",
+     "precededBy": "bmad-create-architecture",
+     "followedBy": "",
+     "required": "true",
+     "outputLocation": "planning_artifacts",
+     "outputs": "epics and stories"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-generate-project-context",
+   "module": "bmm",
+   "description": "Create project-context.md with AI rules. Use when the user says \"generate project context\" or \"create project context\"",
+   "manifestPath": "_bmad/bmm/3-solutioning/bmad-generate-project-context/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-generate-project-context",
+   "location": "project",
+   "installedAs": "bmad-generate-project-context",
+   "helpEntries": [
+    {
+     "displayName": "Generate Project Context",
+     "menuCode": "GPC",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "output_folder",
+     "outputs": "project context"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-agent-dev",
+   "module": "bmm",
+   "description": "Senior software engineer for story execution and code implementation. Use when the user asks to talk to Amelia or requests the developer agent.",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-agent-dev/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-dev",
+   "location": "project",
+   "installedAs": "bmad-agent-dev",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-checkpoint-preview",
+   "module": "bmm",
+   "description": "LLM-assisted human-in-the-loop review. Make sense of a change, focus attention where it matters, test. Use when the user says \"checkpoint\", \"human review\", or \"walk me through this change\".",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-checkpoint-preview/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-checkpoint-preview",
+   "location": "project",
+   "installedAs": "bmad-checkpoint-preview",
+   "helpEntries": [
+    {
+     "displayName": "Checkpoint",
+     "menuCode": "CK",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-code-review",
+   "module": "bmm",
+   "description": "Review code changes adversarially using parallel review layers (Blind Hunter, Edge Case Hunter, Acceptance Auditor) with structured triage into actionable categories. Use when the user says \"run code review\" or \"review this code\"",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-code-review/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-code-review",
+   "location": "project",
+   "installedAs": "bmad-code-review",
+   "helpEntries": [
+    {
+     "displayName": "Code Review",
+     "menuCode": "CR",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-dev-story",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-correct-course",
+   "module": "bmm",
+   "description": "Manage significant changes during sprint execution. Use when the user says \"correct course\" or \"propose sprint change\"",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-correct-course/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-correct-course",
+   "location": "project",
+   "installedAs": "bmad-correct-course",
+   "helpEntries": [
+    {
+     "displayName": "Correct Course",
+     "menuCode": "CC",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "planning_artifacts",
+     "outputs": "change proposal"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-create-story",
+   "module": "bmm",
+   "description": "Creates a dedicated story file with all the context the agent will need to implement it later. Use when the user says \"create the next story\" or \"create story [story identifier]\"",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-create-story/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-create-story",
+   "location": "project",
+   "installedAs": "bmad-create-story",
+   "helpEntries": [
+    {
+     "displayName": "Create Story",
+     "menuCode": "CS",
+     "action": "create",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-sprint-planning",
+     "followedBy": "bmad-create-story:validate",
+     "required": "true",
+     "outputLocation": "implementation_artifacts",
+     "outputs": "story"
+    },
+    {
+     "displayName": "Validate Story",
+     "menuCode": "VS",
+     "action": "validate",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-create-story:create",
+     "followedBy": "bmad-dev-story",
+     "required": "false",
+     "outputLocation": "implementation_artifacts",
+     "outputs": "story validation report"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-dev-story",
+   "module": "bmm",
+   "description": "Execute story implementation following a context filled story spec file. Use when the user says \"dev this story [story file]\" or \"implement the next story in the sprint plan\"",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-dev-story/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-dev-story",
+   "location": "project",
+   "installedAs": "bmad-dev-story",
+   "helpEntries": [
+    {
+     "displayName": "Dev Story",
+     "menuCode": "DS",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-create-story:validate",
+     "followedBy": "",
+     "required": "true",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-investigate",
+   "module": "bmm",
+   "description": "Forensic case investigation with evidence-graded findings, calibrated to the input. Use when the user asks to investigate a bug, trace what caused an incident, walk through unfamiliar code, or build a mental model of a code area before working on it.",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-investigate/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-investigate",
+   "location": "project",
+   "installedAs": "bmad-investigate",
+   "helpEntries": [
+    {
+     "displayName": "Investigate",
+     "menuCode": "IN",
+     "action": "",
+     "args": "4-implementation",
+     "phase": "",
+     "precededBy": "",
+     "followedBy": "false",
+     "required": "implementation_artifacts",
+     "outputLocation": "investigation report",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-qa-generate-e2e-tests",
+   "module": "bmm",
+   "description": "Generate end to end automated tests for existing features. Use when the user says \"create qa automated tests for [feature]\"",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-qa-generate-e2e-tests/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-qa-generate-e2e-tests",
+   "location": "project",
+   "installedAs": "bmad-qa-generate-e2e-tests",
+   "helpEntries": [
+    {
+     "displayName": "QA Automation Test",
+     "menuCode": "QA",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-dev-story",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "implementation_artifacts",
+     "outputs": "test suite"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-quick-dev",
+   "module": "bmm",
+   "description": "Implements any user intent, requirement, story, bug fix or change request by producing clean working code artifacts that follow the project's existing architecture, patterns and conventions. Use when the user wants to build, fix, tweak, refactor, add or modify any code, component or feature.",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-quick-dev/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-quick-dev",
+   "location": "project",
+   "installedAs": "bmad-quick-dev",
+   "helpEntries": [
+    {
+     "displayName": "Quick Dev",
+     "menuCode": "QQ",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "implementation_artifacts",
+     "outputs": "spec and project implementation"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-retrospective",
+   "module": "bmm",
+   "description": "Post-epic review to extract lessons and assess success. Use when the user says \"run a retrospective\" or \"lets retro the epic [epic]\"",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-retrospective/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-retrospective",
+   "location": "project",
+   "installedAs": "bmad-retrospective",
+   "helpEntries": [
+    {
+     "displayName": "Retrospective",
+     "menuCode": "ER",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-code-review",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "implementation_artifacts",
+     "outputs": "retrospective"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-sprint-planning",
+   "module": "bmm",
+   "description": "Generate sprint status tracking from epics. Use when the user says \"run sprint planning\" or \"generate sprint plan\"",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-sprint-planning/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-sprint-planning",
+   "location": "project",
+   "installedAs": "bmad-sprint-planning",
+   "helpEntries": [
+    {
+     "displayName": "Sprint Planning",
+     "menuCode": "SP",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "true",
+     "outputLocation": "implementation_artifacts",
+     "outputs": "sprint status"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-sprint-status",
+   "module": "bmm",
+   "description": "Summarize sprint status and surface risks. Use when the user says \"check sprint status\" or \"show sprint status\"",
+   "manifestPath": "_bmad/bmm/4-implementation/bmad-sprint-status/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-sprint-status",
+   "location": "project",
+   "installedAs": "bmad-sprint-status",
+   "helpEntries": [
+    {
+     "displayName": "Sprint Status",
+     "menuCode": "SS",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-sprint-planning",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "",
+     "outputs": ""
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-tea",
+   "module": "tea",
+   "description": "Master Test Architect and Quality Advisor. Use when the user asks to talk to Murat or requests the Test Architect.",
+   "manifestPath": "_bmad/tea/agents/bmad-tea/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-tea",
+   "location": "project",
+   "installedAs": "bmad-tea",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-teach-me-testing",
+   "module": "tea",
+   "description": "Teach testing progressively through structured sessions. Use when user says \"lets learn testing\" or \"I want to study test practices\"",
+   "manifestPath": "_bmad/tea/workflows/testarch/bmad-teach-me-testing/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-teach-me-testing",
+   "location": "project",
+   "installedAs": "bmad-teach-me-testing",
+   "helpEntries": [
+    {
+     "displayName": "Teach Me Testing",
+     "menuCode": "TMT",
+     "action": "",
+     "args": "",
+     "phase": "0-learning",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "test_artifacts",
+     "outputs": "progress file|session notes|completion summary"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-testarch-atdd",
+   "module": "tea",
+   "description": "Generate red-phase acceptance test scaffolds using the TDD cycle. Use when the user says \"lets write acceptance tests\" or \"I want to do ATDD\"",
+   "manifestPath": "_bmad/tea/workflows/testarch/bmad-testarch-atdd/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-testarch-atdd",
+   "location": "project",
+   "installedAs": "bmad-testarch-atdd",
+   "helpEntries": [
+    {
+     "displayName": "ATDD",
+     "menuCode": "AT",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-create-story:create",
+     "followedBy": "bmad-dev-story",
+     "required": "false",
+     "outputLocation": "test_artifacts",
+     "outputs": "atdd-checklist|red-phase acceptance tests"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-testarch-automate",
+   "module": "tea",
+   "description": "Expand test automation coverage for codebase. Use when user says \"lets expand test coverage\" or \"I want to automate tests\"",
+   "manifestPath": "_bmad/tea/workflows/testarch/bmad-testarch-automate/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-testarch-automate",
+   "location": "project",
+   "installedAs": "bmad-testarch-automate",
+   "helpEntries": [
+    {
+     "displayName": "Test Automation",
+     "menuCode": "TA",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-testarch-atdd",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "test_artifacts",
+     "outputs": "test suite"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-testarch-ci",
+   "module": "tea",
+   "description": "Scaffold CI/CD quality pipeline with test execution. Use when the user says \"lets setup CI pipeline\" or \"I want to create quality gates\"",
+   "manifestPath": "_bmad/tea/workflows/testarch/bmad-testarch-ci/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-testarch-ci",
+   "location": "project",
+   "installedAs": "bmad-testarch-ci",
+   "helpEntries": [
+    {
+     "displayName": "CI Setup",
+     "menuCode": "CI",
+     "action": "",
+     "args": "",
+     "phase": "3-solutioning",
+     "precededBy": "bmad-testarch-framework",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "test_artifacts",
+     "outputs": "ci config"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-testarch-framework",
+   "module": "tea",
+   "description": "Initialize test framework with Playwright or Cypress. Use when the user says \"lets setup test framework\" or \"I want to initialize testing framework\"",
+   "manifestPath": "_bmad/tea/workflows/testarch/bmad-testarch-framework/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-testarch-framework",
+   "location": "project",
+   "installedAs": "bmad-testarch-framework",
+   "helpEntries": [
+    {
+     "displayName": "Test Framework",
+     "menuCode": "TF",
+     "action": "",
+     "args": "",
+     "phase": "3-solutioning",
+     "precededBy": "bmad-testarch-test-design",
+     "followedBy": "bmad-testarch-ci",
+     "required": "false",
+     "outputLocation": "test_artifacts",
+     "outputs": "framework scaffold"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-testarch-nfr",
+   "module": "tea",
+   "description": "Audit NFR evidence for performance, security, reliability, and maintainability. Use when implementation evidence exists and the user says \"audit NFR evidence\", \"audit NFRs\", or \"evaluate non-functional requirements\"",
+   "manifestPath": "_bmad/tea/workflows/testarch/bmad-testarch-nfr/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-testarch-nfr",
+   "location": "project",
+   "installedAs": "bmad-testarch-nfr",
+   "helpEntries": [
+    {
+     "displayName": "NFR Evidence Audit",
+     "menuCode": "NR",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-testarch-automate",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "test_artifacts",
+     "outputs": "nfr report"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-testarch-test-design",
+   "module": "tea",
+   "description": "Create system-level or epic-level test plans. Use when the user says \"lets design test plan\" or \"I want to create test strategy\"",
+   "manifestPath": "_bmad/tea/workflows/testarch/bmad-testarch-test-design/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-testarch-test-design",
+   "location": "project",
+   "installedAs": "bmad-testarch-test-design",
+   "helpEntries": [
+    {
+     "displayName": "Test Design",
+     "menuCode": "TD",
+     "action": "",
+     "args": "",
+     "phase": "3-solutioning",
+     "precededBy": "",
+     "followedBy": "bmad-testarch-framework",
+     "required": "false",
+     "outputLocation": "test_artifacts",
+     "outputs": "test design document"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-testarch-test-review",
+   "module": "tea",
+   "description": "Review test quality using best practices validation. Use when user says \"lets review tests\" or \"I want to evaluate test quality\"",
+   "manifestPath": "_bmad/tea/workflows/testarch/bmad-testarch-test-review/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-testarch-test-review",
+   "location": "project",
+   "installedAs": "bmad-testarch-test-review",
+   "helpEntries": [
+    {
+     "displayName": "Test Review",
+     "menuCode": "RV",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-testarch-automate",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "test_artifacts",
+     "outputs": "review report"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-testarch-trace",
+   "module": "tea",
+   "description": "Generate traceability matrix and quality gate decision. Use when the user says \"lets create traceability matrix\" or \"I want to analyze test coverage\"",
+   "manifestPath": "_bmad/tea/workflows/testarch/bmad-testarch-trace/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-testarch-trace",
+   "location": "project",
+   "installedAs": "bmad-testarch-trace",
+   "helpEntries": [
+    {
+     "displayName": "Traceability",
+     "menuCode": "TR",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-testarch-test-review",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "test_artifacts",
+     "outputs": "traceability matrix|gate decision"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-agent-builder",
+   "module": "bmb",
+   "description": "Builds, edits or analyzes Agent Skills through conversational discovery. Use when the user requests to \"Create an Agent\", \"Analyze an Agent\" or \"Edit an Agent\".",
+   "manifestPath": "_bmad/bmb/bmad-agent-builder/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-builder",
+   "location": "project",
+   "installedAs": "bmad-agent-builder",
+   "helpEntries": [
+    {
+     "displayName": "Build an Agent",
+     "menuCode": "BA",
+     "action": "build-process",
+     "args": "{-H: headless mode}|{description: initial agent concept}|{path: existing agent to edit or rebuild}",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "bmad-agent-builder:quality-analysis",
+     "required": "false",
+     "outputLocation": "bmad_builder_output_folder",
+     "outputs": "agent skill"
+    },
+    {
+     "displayName": "Analyze an Agent",
+     "menuCode": "AA",
+     "action": "quality-analysis",
+     "args": "{-H: headless mode}|{path: agent to analyze}",
+     "phase": "anytime",
+     "precededBy": "bmad-agent-builder:build-process",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "bmad_builder_reports",
+     "outputs": "quality report"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-bmb-setup",
+   "module": "bmb",
+   "description": "Sets up BMad Builder module in a project. Use when the user requests to 'install bmb module', 'configure BMad Builder', or 'setup BMad Builder'.",
+   "manifestPath": "_bmad/bmb/bmad-bmb-setup/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-bmb-setup",
+   "location": "project",
+   "installedAs": "bmad-bmb-setup",
+   "helpEntries": [
+    {
+     "displayName": "Setup Builder Module",
+     "menuCode": "SB",
+     "action": "configure",
+     "args": "{-H: headless mode}|{inline values: skip prompts with provided values}",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "{project-root}/_bmad",
+     "outputs": "config.yaml and config.user.yaml"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-eval-runner",
+   "module": "bmb",
+   "description": "Run a skill's evals and report results. Use when the user wants to evaluate a skill, run evals, benchmark a skill, validate triggers, optimize a description, or grade skill outputs.",
+   "manifestPath": "_bmad/bmb/bmad-eval-runner/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-eval-runner",
+   "location": "project",
+   "installedAs": "bmad-eval-runner",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-module-builder",
+   "module": "bmb",
+   "description": "Plans, creates, and validates BMad modules. Use when the user requests to 'ideate module', 'plan a module', 'create module', 'build a module', or 'validate module'.",
+   "manifestPath": "_bmad/bmb/bmad-module-builder/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-module-builder",
+   "location": "project",
+   "installedAs": "bmad-module-builder",
+   "helpEntries": [
+    {
+     "displayName": "Ideate Module",
+     "menuCode": "IM",
+     "action": "ideate-module",
+     "args": "{description: initial module idea}",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "bmad-module-builder:create-module",
+     "required": "false",
+     "outputLocation": "bmad_builder_reports",
+     "outputs": "module plan"
+    },
+    {
+     "displayName": "Create Module",
+     "menuCode": "CM",
+     "action": "create-module",
+     "args": "{-H: headless mode}|{path: skills folder or single SKILL.md}",
+     "phase": "anytime",
+     "precededBy": "bmad-module-builder:ideate-module",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "bmad_builder_output_folder",
+     "outputs": "setup skill"
+    },
+    {
+     "displayName": "Validate Module",
+     "menuCode": "VM",
+     "action": "validate-module",
+     "args": "{-H: headless mode}|{path: module or skill to validate}",
+     "phase": "anytime",
+     "precededBy": "bmad-module-builder:create-module",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "bmad_builder_reports",
+     "outputs": "validation report"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-workflow-builder",
+   "module": "bmb",
+   "description": "Builds, edits, and analyzes workflows and skills. Use when the user requests to \"build a workflow\", \"modify a workflow\", \"quality check workflow\", or \"analyze skill\".",
+   "manifestPath": "_bmad/bmb/bmad-workflow-builder/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-workflow-builder",
+   "location": "project",
+   "installedAs": "bmad-workflow-builder",
+   "helpEntries": [
+    {
+     "displayName": "Build a Workflow",
+     "menuCode": "BW",
+     "action": "build-process",
+     "args": "{-H: headless mode}|{description: initial skill concept}|{path: existing skill to edit or rebuild}",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "bmad-workflow-builder:quality-analysis",
+     "required": "false",
+     "outputLocation": "bmad_builder_output_folder",
+     "outputs": "workflow skill"
+    },
+    {
+     "displayName": "Analyze a Workflow",
+     "menuCode": "AW",
+     "action": "quality-analysis",
+     "args": "{-H: headless mode}|{path: skill to analyze}",
+     "phase": "anytime",
+     "precededBy": "bmad-workflow-builder:build-process",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "bmad_builder_reports",
+     "outputs": "quality report"
+    },
+    {
+     "displayName": "Convert a Skill",
+     "menuCode": "CW",
+     "action": "convert-process",
+     "args": "{--convert: path or URL to source skill}|{-H: headless mode}",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "bmad_builder_reports",
+     "outputs": "converted skill + comparison report"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-story-automator",
+   "module": "automator",
+   "description": "Automate the BMAD story build cycle across create, dev, QA automation, review, and retrospective steps with resumable tmux orchestration. Use when the user says \"run story automator\", \"automate stories\", or asks to build all stories in an epic.",
+   "manifestPath": "_bmad/automator/bmad-story-automator/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-story-automator",
+   "location": "project",
+   "installedAs": "bmad-story-automator",
+   "helpEntries": [
+    {
+     "displayName": "Story Automator",
+     "menuCode": "SA",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-sprint-planning",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "implementation_artifacts",
+     "outputs": "story automation run"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-story-automator-review",
+   "module": "automator",
+   "description": "Runs the autonomous code review flow used by story automator sessions, including auto-fix handling and sprint-status sync. Use when the story automator asks for a non-interactive review of a story.",
+   "manifestPath": "_bmad/automator/bmad-story-automator-review/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-story-automator-review",
+   "location": "project",
+   "installedAs": "bmad-story-automator-review",
+   "helpEntries": [
+    {
+     "displayName": "Story Automator Review",
+     "menuCode": "SAR",
+     "action": "",
+     "args": "",
+     "phase": "4-implementation",
+     "precededBy": "bmad-dev-story",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "implementation_artifacts",
+     "outputs": "review report"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-cis-agent-brainstorming-coach",
+   "module": "cis",
+   "description": "Elite brainstorming specialist for facilitated ideation sessions. Use when the user asks to talk to Carson or requests the Brainstorming Specialist.",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-agent-brainstorming-coach/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-agent-brainstorming-coach",
+   "location": "project",
+   "installedAs": "bmad-cis-agent-brainstorming-coach",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-cis-agent-creative-problem-solver",
+   "module": "cis",
+   "description": "Master problem solver for systematic problem-solving methodologies. Use when the user asks to talk to Dr. Quinn or requests the Master Problem Solver.",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-agent-creative-problem-solver/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-agent-creative-problem-solver",
+   "location": "project",
+   "installedAs": "bmad-cis-agent-creative-problem-solver",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-cis-agent-design-thinking-coach",
+   "module": "cis",
+   "description": "Design thinking maestro for human-centered design processes. Use when the user asks to talk to Maya or requests the Design Thinking Maestro.",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-agent-design-thinking-coach/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-agent-design-thinking-coach",
+   "location": "project",
+   "installedAs": "bmad-cis-agent-design-thinking-coach",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-cis-agent-innovation-strategist",
+   "module": "cis",
+   "description": "Disruptive innovation oracle for business model innovation and strategic disruption. Use when the user asks to talk to Victor or requests the Disruptive Innovation Oracle.",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-agent-innovation-strategist/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-agent-innovation-strategist",
+   "location": "project",
+   "installedAs": "bmad-cis-agent-innovation-strategist",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-cis-agent-presentation-master",
+   "module": "cis",
+   "description": "Visual communication and presentation expert for slide decks, pitch decks, and visual storytelling. Use when the user asks to talk to Caravaggio or requests the Presentation Expert.",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-agent-presentation-master/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-agent-presentation-master",
+   "location": "project",
+   "installedAs": "bmad-cis-agent-presentation-master",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-cis-agent-storyteller",
+   "module": "cis",
+   "description": "Master storyteller for compelling narratives using proven frameworks. Use when the user asks to talk to Sophia or requests the Master Storyteller.",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-agent-storyteller/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-agent-storyteller",
+   "location": "project",
+   "installedAs": "bmad-cis-agent-storyteller",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "bmad-cis-design-thinking",
+   "module": "cis",
+   "description": "Guide human-centered design processes using empathy-driven methodologies. Use when the user says \"lets run design thinking\" or \"I want to apply design thinking\"",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-design-thinking/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-design-thinking",
+   "location": "project",
+   "installedAs": "bmad-cis-design-thinking",
+   "helpEntries": [
+    {
+     "displayName": "Design Thinking",
+     "menuCode": "DT",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "output_folder",
+     "outputs": "design thinking"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-cis-innovation-strategy",
+   "module": "cis",
+   "description": "Identify disruption opportunities and architect business model innovation. Use when the user says \"lets create an innovation strategy\" or \"I want to find disruption opportunities\"",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-innovation-strategy/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-innovation-strategy",
+   "location": "project",
+   "installedAs": "bmad-cis-innovation-strategy",
+   "helpEntries": [
+    {
+     "displayName": "Innovation Strategy",
+     "menuCode": "IS",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "output_folder",
+     "outputs": "innovation strategy"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-cis-problem-solving",
+   "module": "cis",
+   "description": "Apply systematic problem-solving methodologies to complex challenges. Use when the user says \"guide me through structured problem solving\" or \"I want to crack this challenge with guided problem solving techniques\"",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-problem-solving/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-problem-solving",
+   "location": "project",
+   "installedAs": "bmad-cis-problem-solving",
+   "helpEntries": [
+    {
+     "displayName": "Problem Solving",
+     "menuCode": "PS",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "output_folder",
+     "outputs": "problem solution"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "bmad-cis-storytelling",
+   "module": "cis",
+   "description": "Craft compelling narratives using story frameworks. Use when the user says \"help me with storytelling\" or \"I want to create a narrative through storytelling\"",
+   "manifestPath": "_bmad/cis/skills/bmad-cis-storytelling/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-cis-storytelling",
+   "location": "project",
+   "installedAs": "bmad-cis-storytelling",
+   "helpEntries": [
+    {
+     "displayName": "Storytelling",
+     "menuCode": "ST",
+     "action": "",
+     "args": "",
+     "phase": "anytime",
+     "precededBy": "",
+     "followedBy": "",
+     "required": "false",
+     "outputLocation": "output_folder",
+     "outputs": "narrative/story"
+    }
+   ],
+   "inHelpCatalog": true
+  },
+  {
+   "canonicalId": "wds-agent-freya-ux",
+   "module": "wds",
+   "description": "Strategic UX designer and design thinking partner for WDS. Use when the user asks to talk to Freya or requests the WDS designer.",
+   "manifestPath": "_bmad/wds/agents/wds-agent-freya-ux/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-agent-freya-ux",
+   "location": "project",
+   "installedAs": "wds-agent-freya-ux",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-agent-mimir-builder",
+   "module": "wds",
+   "description": "Implementation agent. Owns the tech audit, the PRD, and the build. Reads Freya's Work Orders and turns them into working code — one verified task at a time.",
+   "manifestPath": "_bmad/wds/agents/wds-agent-mimir-builder/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-agent-mimir-builder",
+   "location": "project",
+   "installedAs": "wds-agent-mimir-builder",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-agent-saga-analyst",
+   "module": "wds",
+   "description": "Strategic business analyst and product discovery partner for WDS. Use when the user asks to talk to Saga or requests the WDS analyst.",
+   "manifestPath": "_bmad/wds/agents/wds-agent-saga-analyst/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-agent-saga-analyst",
+   "location": "project",
+   "installedAs": "wds-agent-saga-analyst",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "memory",
+   "module": "wds",
+   "description": "Session state backend for WDS. Called by wrap, start, and handoff tools — never directly by users. Writes to progress/ in the project repo.",
+   "manifestPath": "_bmad/wds/tools/memory/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/memory",
+   "location": "project",
+   "installedAs": "memory",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "sync",
+   "module": "wds",
+   "description": "Syncs WDS skills from the current project (_bmad/wds/) to ~/.claude/commands/ so they work in any project. Called automatically on every agent activation.",
+   "manifestPath": "_bmad/wds/tools/sync/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/sync",
+   "location": "project",
+   "installedAs": "sync",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-0-alignment-signoff",
+   "module": "wds",
+   "description": "Create alignment around your idea before starting the project",
+   "manifestPath": "_bmad/wds/workflows/wds-0-alignment-signoff/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-0-alignment-signoff",
+   "location": "project",
+   "installedAs": "wds-0-alignment-signoff",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-0-project-setup",
+   "module": "wds",
+   "description": "Project onboarding - determine project type, complexity, tech stack, and route to correct phase",
+   "manifestPath": "_bmad/wds/workflows/wds-0-project-setup/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-0-project-setup",
+   "location": "project",
+   "installedAs": "wds-0-project-setup",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-1-project-brief",
+   "module": "wds",
+   "description": "Establish project context - foundation for all design work",
+   "manifestPath": "_bmad/wds/workflows/wds-1-project-brief/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-1-project-brief",
+   "location": "project",
+   "installedAs": "wds-1-project-brief",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-2-trigger-mapping",
+   "module": "wds",
+   "description": "Map business goals to user psychology through structured workshops",
+   "manifestPath": "_bmad/wds/workflows/wds-2-trigger-mapping/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-2-trigger-mapping",
+   "location": "project",
+   "installedAs": "wds-2-trigger-mapping",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-3-scenarios",
+   "module": "wds",
+   "description": "Create UX scenario outlines from Trigger Map through structured micro-steps",
+   "manifestPath": "_bmad/wds/workflows/wds-3-scenarios/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-3-scenarios",
+   "location": "project",
+   "installedAs": "wds-3-scenarios",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-4-ux-design",
+   "module": "wds",
+   "description": "Transform ideas into detailed visual specifications through scenario-driven design",
+   "manifestPath": "_bmad/wds/workflows/wds-4-ux-design/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-4-ux-design",
+   "location": "project",
+   "installedAs": "wds-4-ux-design",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-5-agentic-development",
+   "module": "wds",
+   "description": "AI-assisted development, testing, and reverse engineering through structured agent collaboration",
+   "manifestPath": "_bmad/wds/workflows/wds-5-agentic-development/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-5-agentic-development",
+   "location": "project",
+   "installedAs": "wds-5-agentic-development",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-6-asset-generation",
+   "module": "wds",
+   "description": "Generate visual and text assets from specifications through AI-powered creative production",
+   "manifestPath": "_bmad/wds/workflows/wds-6-asset-generation/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-6-asset-generation",
+   "location": "project",
+   "installedAs": "wds-6-asset-generation",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-7-design-system",
+   "module": "wds",
+   "description": "Create, import, browse, and maintain design system components and tokens",
+   "manifestPath": "_bmad/wds/workflows/wds-7-design-system/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-7-design-system",
+   "location": "project",
+   "installedAs": "wds-7-design-system",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  },
+  {
+   "canonicalId": "wds-8-product-evolution",
+   "module": "wds",
+   "description": "Brownfield improvements — the full WDS pipeline in miniature for existing products",
+   "manifestPath": "_bmad/wds/workflows/wds-8-product-evolution/SKILL.md",
+   "skillDir": "F:/code2/bmad-tool/.claude/skills/wds-8-product-evolution",
+   "location": "project",
+   "installedAs": "wds-8-product-evolution",
+   "helpEntries": [],
+   "inHelpCatalog": false
+  }
+ ]
+}

@@ -1,0 +1,1600 @@
+{
+  "module": "bmm",
+  "group": "A",
+  "groupScope": "1-analysis + 2-planning",
+  "moduleName": "BMad Method",
+  "extractedBy": "w-bmm-a",
+  "extractedAt": "2026-09-13",
+  "skillCount": 15,
+  "baselineSkillCount": 15,
+  "sourceRoot": "F:/code2/bmad-tool",
+  "coveredIds": [
+    "bmad-agent-analyst",
+    "bmad-agent-tech-writer",
+    "bmad-document-project",
+    "bmad-prfaq",
+    "bmad-product-brief",
+    "bmad-domain-research",
+    "bmad-market-research",
+    "bmad-technical-research",
+    "bmad-agent-pm",
+    "bmad-agent-ux-designer",
+    "bmad-create-prd",
+    "bmad-edit-prd",
+    "bmad-prd",
+    "bmad-ux",
+    "bmad-validate-prd"
+  ],
+  "schemaNotes": "sourceFiles 均为相对 sourceRoot 的路径。entry = {command, args, howZh}。dependencies 为数组，逐条对应基线 helpEntries 的每条动作记录（字段名与基线 CSV 一致，required 保留原始字符串 \"true\"/\"false\"）；技能在 CSV 中无条目时为空数组。menu 为技能内可选分支（agent 型取 customize.toml 的 capabilities 菜单码；workflow 型取技能正文中的用户可选分支，此类分支原文无菜单码，code 为依据动作名派生的语义码）。steps 为流程步骤，optional 表示原文标注的“可跳过/条件触发”步骤。 每技能含基线 v2（2026-09-13）新增字段：skillDir（实体绝对路径）、location（project/global）、inHelpCatalog（是否登记进 bmad-help.csv）。",
+  "discrepancies": [
+    "数据源路径已由基线 v2 字段消歧：本组 15 条全部 location=project，skillDir 指向 F:/code2/bmad-tool/.claude/skills/<id>，与本次提取实读路径一致，故 15 条全部 local-source、无 catalog-only。全局 C:/Users/93559/.claude/skills/ 为旧版安装（缺 bmad-prd、bmad-ux；bmad-create-prd 非废弃 shim 形态），不作为数据源。",
+    "A 组实际技能数 15（_bmad/bmm/1-analysis 目录 8 个 + 2-plan-workflows 目录 7 个），与任务卡预估的 16 不符。与 B 组按目录切分无重叠无遗漏：3-solutioning 5 个 + 4-implementation 12 个 = 17，合计 32 = 基线的 bmm 全量。",
+    "bmad-agent-tech-writer 与 bmad-document-project 的 help CSV phase 为 anytime，但物理位于 1-analysis 目录，按目录归属纳入 A 组。",
+    "登记错位（对应基线 inHelpCatalog 字段）：本组 15 条中 true 9 条、false 6 条。false 的 6 条：bmad-agent-analyst / bmad-agent-pm / bmad-agent-ux-designer（CSV 完全未收录 agent 自身）与 bmad-create-prd / bmad-edit-prd / bmad-validate-prd（help 目录把 create/update/validate 三意图合并登记为单条 bmad-prd，menuCode=PRD）。这 6 条 dependencies 一律为空数组，已在各技能 notes 首句标明。",
+    "项目级定制 _bmad/custom/{bmad-prd,bmad-ux,bmad-prfaq,bmad-product-brief,bmad-document-project,bmad-domain-research,bmad-market-research,bmad-technical-research}.toml 均只追加 persistent_facts（file:{project-root}/_bmad/custom/doc-style.md），不改变菜单与流程分支。"
+  ],
+  "skills": [
+    {
+      "canonicalId": "bmad-agent-analyst",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-analyst",
+      "location": "project",
+      "inHelpCatalog": false,
+      "kind": "agent",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-agent-analyst/SKILL.md",
+        ".claude/skills/bmad-agent-analyst/customize.toml"
+      ],
+      "summaryZh": "人设型 agent「Mary · 商业分析师」。在立项前的研究/分析阶段陪用户做创意发散、市场与领域调研、需求梳理，把模糊想法变成有证据支撑的结论。用户说“找 Mary”或“要商业分析师”时激活。",
+      "entry": {
+        "command": "bmad-agent-analyst",
+        "args": [],
+        "howZh": "按技能名调用（或用户点名 Mary）。激活后先采纳人设、载入 persistent_facts 与 bmm/config.yaml，再按菜单分派；用户首句若已明确意图则跳过菜单直接执行。"
+      },
+      "menu": [
+        {
+          "code": "BP",
+          "labelEn": "Expert guided brainstorming facilitation",
+          "labelZh": "头脑风暴",
+          "descZh": "专家引导式创意发散，调用 bmad-brainstorming 技能"
+        },
+        {
+          "code": "MR",
+          "labelEn": "Market analysis, competitive landscape, customer needs and trends",
+          "labelZh": "市场调研",
+          "descZh": "市场分析、竞争格局、客户需求与趋势，调用 bmad-market-research"
+        },
+        {
+          "code": "DR",
+          "labelEn": "Industry domain deep dive, subject matter expertise and terminology",
+          "labelZh": "领域调研",
+          "descZh": "行业领域深挖、术语与专业知识，调用 bmad-domain-research"
+        },
+        {
+          "code": "TR",
+          "labelEn": "Technical feasibility, architecture options and implementation approaches",
+          "labelZh": "技术调研",
+          "descZh": "技术可行性、架构选型与实现路径，调用 bmad-technical-research"
+        },
+        {
+          "code": "CB",
+          "labelEn": "Create or update product briefs through guided or autonomous discovery",
+          "labelZh": "产品简介",
+          "descZh": "创建或更新 Product Brief，调用 bmad-product-brief"
+        },
+        {
+          "code": "WB",
+          "labelEn": "Working Backwards PRFAQ challenge",
+          "labelZh": "PRFAQ 挑战",
+          "descZh": "亚马逊 Working Backwards 式概念锻造与压力测试，调用 bmad-prfaq"
+        },
+        {
+          "code": "DP",
+          "labelEn": "Analyze an existing project to produce documentation for human and LLM consumption",
+          "labelZh": "项目文档化",
+          "descZh": "扫描既有项目生成文档（跨阶段技能，属 anytime），调用 bmad-document-project"
+        }
+      ],
+      "dependencies": [],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "解析 agent 配置块",
+          "summaryZh": "运行 resolve_customization.py 取 agent 段；失败则按 base→team→user 顺序手工合并 customize.toml 与 _bmad/custom/*.toml。",
+          "optional": false,
+          "source": "SKILL.md Step 1"
+        },
+        {
+          "id": "S2",
+          "titleZh": "采用人设",
+          "summaryZh": "代入 Mary / 商业分析师身份，叠加 role、identity、communication_style、principles。",
+          "optional": false,
+          "source": "SKILL.md Step 3"
+        },
+        {
+          "id": "S3",
+          "titleZh": "载入持久事实",
+          "summaryZh": "把 persistent_facts 作为全程基础上下文（默认 file:{project-root}/**/project-context.md）。",
+          "optional": false,
+          "source": "SKILL.md Step 4"
+        },
+        {
+          "id": "S4",
+          "titleZh": "载入配置",
+          "summaryZh": "读 _bmad/bmm/config.yaml，解析 user_name、communication_language、planning_artifacts、project_knowledge。",
+          "optional": false,
+          "source": "SKILL.md Step 5"
+        },
+        {
+          "id": "S5",
+          "titleZh": "问候并呈现菜单",
+          "summaryZh": "以人设图标 + 用户名问候，提醒可随时用 bmad-help，然后渲染菜单等待输入或直接分派明确意图。",
+          "optional": false,
+          "source": "SKILL.md Step 6/8"
+        },
+        {
+          "id": "S6",
+          "titleZh": "会话内保持人设",
+          "summaryZh": "分派到子技能后，Mary 的人设、图标前缀与语言设置继续贯穿每个回合，直到用户解除。",
+          "optional": false,
+          "source": "SKILL.md Step 8"
+        }
+      ],
+      "notes": "inHelpCatalog=false：bmad-help.csv 未登记该 agent 自身，依赖字段留空。 基线 help CSV 中无该 agent 的任何条目，菜单与角色描述全部取自 customize.toml。菜单里 DP 指向 phase=anytime 的 bmad-document-project、BP 指向 core 模块的 bmad-brainstorming，属跨阶段/跨模块分派。activation_steps_prepend/append 默认为空数组，可被 override 追加。"
+    },
+    {
+      "canonicalId": "bmad-agent-tech-writer",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-tech-writer",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "agent",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-agent-tech-writer/SKILL.md",
+        ".claude/skills/bmad-agent-tech-writer/customize.toml",
+        ".claude/skills/bmad-agent-tech-writer/write-document.md",
+        ".claude/skills/bmad-agent-tech-writer/mermaid-gen.md",
+        ".claude/skills/bmad-agent-tech-writer/validate-doc.md",
+        ".claude/skills/bmad-agent-tech-writer/explain-concept.md"
+      ],
+      "summaryZh": "人设型 agent「Paige · 技术文档专家」，负责把复杂概念写成可读文档、画 Mermaid 图、校验文档规范、做项目文档化，沉淀项目知识供人和后续 AI 复用。用户说“找 Paige”或“要技术文档专家”时激活。",
+      "entry": {
+        "command": "bmad-agent-tech-writer",
+        "args": [],
+        "howZh": "按技能名调用（或用户点名 Paige）。激活序列与其它 agent 相同：解析 agent 配置 → 人设 → 持久事实 → 配置 → 问候 → 呈现菜单或直接分派。"
+      },
+      "menu": [
+        {
+          "code": "DP",
+          "labelEn": "Generate comprehensive project documentation (brownfield analysis, architecture scanning)",
+          "labelZh": "项目文档化",
+          "descZh": "对既有项目做全面文档生成（棕地分析、架构扫描），调用 bmad-document-project"
+        },
+        {
+          "code": "WD",
+          "labelEn": "Author a document following documentation best practices through guided conversation",
+          "labelZh": "写文档",
+          "descZh": "多轮对话澄清意图后，按文档最佳实践撰写完整文档（写 → 研究 → 起草 → 复核）"
+        },
+        {
+          "code": "MG",
+          "labelEn": "Create a Mermaid-compliant diagram based on your description",
+          "labelZh": "生成 Mermaid 图",
+          "descZh": "按描述建议图形类型并生成符合 Mermaid 语法与 CommonMark 围栏规范的图"
+        },
+        {
+          "code": "VD",
+          "labelEn": "Validate documentation against standards and best practices",
+          "labelZh": "文档校验",
+          "descZh": "针对指定文档输出按优先级排列的可操作改进建议"
+        },
+        {
+          "code": "EC",
+          "labelEn": "Create clear technical explanations with examples and diagrams",
+          "labelZh": "概念讲解",
+          "descZh": "面向指定受众，用示例与 Mermaid 图把复杂概念讲清楚"
+        }
+      ],
+      "dependencies": [
+        {
+          "menuCode": "WD",
+          "displayName": "Write Document",
+          "phase": "anytime",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "",
+          "outputLocation": "project-knowledge",
+          "outputs": "document"
+        },
+        {
+          "menuCode": "US",
+          "displayName": "Update Standards",
+          "phase": "anytime",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "",
+          "outputLocation": "_bmad/_memory/tech-writer-sidecar",
+          "outputs": "standards"
+        },
+        {
+          "menuCode": "MG",
+          "displayName": "Mermaid Generate",
+          "phase": "anytime",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "",
+          "outputLocation": "planning_artifacts",
+          "outputs": "mermaid diagram"
+        },
+        {
+          "menuCode": "VD",
+          "displayName": "Validate Document",
+          "phase": "anytime",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "[path]",
+          "outputLocation": "planning_artifacts",
+          "outputs": "validation report"
+        },
+        {
+          "menuCode": "EC",
+          "displayName": "Explain Concept",
+          "phase": "anytime",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "[topic]",
+          "outputLocation": "project_knowledge",
+          "outputs": "explanation"
+        }
+      ],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "解析 agent 配置块",
+          "summaryZh": "同其它 agent：脚本解析失败则按 base→team→user 手工合并 customize.toml。",
+          "optional": false,
+          "source": "SKILL.md Step 1"
+        },
+        {
+          "id": "S2",
+          "titleZh": "采用 Paige 人设",
+          "summaryZh": "技术文档专家身份，叠加 role/identity/communication_style/principles。",
+          "optional": false,
+          "source": "SKILL.md Step 3"
+        },
+        {
+          "id": "S3",
+          "titleZh": "载入持久事实与配置",
+          "summaryZh": "载入 persistent_facts（默认 project-context.md）与 _bmad/bmm/config.yaml。",
+          "optional": false,
+          "source": "SKILL.md Step 4/5"
+        },
+        {
+          "id": "S4",
+          "titleZh": "问候 + 菜单分派",
+          "summaryZh": "以 Paige 身份问候并提醒 bmad-help，然后按菜单码分派到 DP/WD/MG/VD/EC 之一。",
+          "optional": false,
+          "source": "SKILL.md Step 6/8"
+        },
+        {
+          "id": "S5",
+          "titleZh": "WD 写文档子流程",
+          "summaryZh": "澄清意图 → 子代理研究参考资料 → 起草 → 子进程复核内容与规范，产出完整文档。",
+          "optional": false,
+          "source": "write-document.md"
+        },
+        {
+          "id": "S6",
+          "titleZh": "MG 绘图子流程",
+          "summaryZh": "明确要可视化的对象 → 推荐图形类型 → 严格按 Mermaid 语法生成 → 按反馈迭代。",
+          "optional": false,
+          "source": "mermaid-gen.md"
+        },
+        {
+          "id": "S7",
+          "titleZh": "VD 校验子流程",
+          "summaryZh": "完整读入文档 → 按文档标准与用户指定焦点分析 → 输出按优先级排序的改进清单。",
+          "optional": false,
+          "source": "validate-doc.md"
+        },
+        {
+          "id": "S8",
+          "titleZh": "EC 讲解子流程",
+          "summaryZh": "明确概念与受众 → 按任务导向拆节 → 配代码示例与 Mermaid 图 → 用适配受众的语言交付。",
+          "optional": false,
+          "source": "explain-concept.md"
+        }
+      ],
+      "notes": "help CSV 与该技能实体存在两处对不上：(1) CSV 列有 US（Update Standards，action=update-standards，输出到 _bmad/_memory/tech-writer-sidecar），但 SKILL/customize.toml 菜单里已无 US，改为 DP（项目文档化）——菜单集不同但条数恰好都是 5；(2) 项目内 _bmad/_memory 目录不存在，US 的 outputLocation 当前落空。另 CSV 的 output-location 命名不统一（WD 用 project-knowledge，EC 用 project_knowledge，MG/VD 用 planning_artifacts）。"
+    },
+    {
+      "canonicalId": "bmad-document-project",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-document-project",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-document-project/SKILL.md",
+        ".claude/skills/bmad-document-project/customize.toml",
+        ".claude/skills/bmad-document-project/instructions.md",
+        ".claude/skills/bmad-document-project/workflows/full-scan-workflow.md",
+        ".claude/skills/bmad-document-project/workflows/full-scan-instructions.md",
+        ".claude/skills/bmad-document-project/workflows/deep-dive-workflow.md",
+        ".claude/skills/bmad-document-project/workflows/deep-dive-instructions.md"
+      ],
+      "summaryZh": "把既有（棕地）项目扫描成结构化文档集，供人和 LLM 当上下文用。支持首次全量扫描、重扫，以及针对某模块的逐文件深挖。用户说“document this project”“生成项目文档”时使用。",
+      "entry": {
+        "command": "bmad-document-project",
+        "args": [],
+        "howZh": "按技能名调用。SKILL.md 落激活序列后转 instructions.md 路由器：先查断点状态文件，再决定 initial_scan / full_rescan / deep_dive 模式并转对应子工作流。"
+      },
+      "menu": [
+        {
+          "code": "resume",
+          "labelEn": "Resume from where we left off",
+          "labelZh": "断点续跑",
+          "descZh": "存在 project-scan-report.json 时选择 1：从记录的 current_step 继续，复用缓存的 project type"
+        },
+        {
+          "code": "full-rescan",
+          "labelEn": "Re-scan entire project",
+          "labelZh": "全量重扫",
+          "descZh": "已存在 index.md 时选择 1：按最新变更更新全部文档（旧状态归档到 .archive/）"
+        },
+        {
+          "code": "deep-dive",
+          "labelEn": "Deep-dive into specific area",
+          "labelZh": "指定区域深挖",
+          "descZh": "已存在 index.md 时选择 2：对某功能/模块/目录做 exhaustive 级逐文件深挖文档"
+        },
+        {
+          "code": "cancel",
+          "labelEn": "Cancel",
+          "labelZh": "取消",
+          "descZh": "保留既有文档原样退出；状态文件超过 24 小时则自动归档并重新扫描"
+        }
+      ],
+      "dependencies": [
+        {
+          "menuCode": "DP",
+          "displayName": "Document Project",
+          "phase": "anytime",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "",
+          "outputLocation": "project-knowledge",
+          "outputs": "*"
+        }
+      ],
+      "steps": [
+        {
+          "id": "0.5",
+          "titleZh": "载入文档需求数据",
+          "summaryZh": "非续跑时载入 documentation-requirements.csv，取得各项目类型应产出的文档清单。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "1",
+          "titleZh": "识别项目结构并分类",
+          "summaryZh": "探测项目部件（parts）并归类项目类型，决定后续分析范围。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "2",
+          "titleZh": "盘点既有文档与用户上下文",
+          "summaryZh": "按 README/ARCHITECTURE/API 等模式扫描既有文档，建立清单并补采用户上下文。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "3",
+          "titleZh": "逐部件分析技术栈",
+          "summaryZh": "解析 package.json/go.mod 等清单，产出框架、语言、版本、依赖的技术表。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "4",
+          "titleZh": "按项目类型做条件分析",
+          "summaryZh": "依 scan_level（quick/deep/exhaustive）分批读文件、提取、写盘、校验并清出上下文。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "5",
+          "titleZh": "生成带注释的源码树",
+          "summaryZh": "产出 source-tree 分析文档，标注关键目录与文件职责。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "6",
+          "titleZh": "提取开发与运维信息",
+          "summaryZh": "整理构建、部署、环境变量、运行方式等开发运维信息。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "7",
+          "titleZh": "检测多部件集成架构",
+          "summaryZh": "仅当项目含多个部件时：梳理部件间 REST/GraphQL/gRPC/消息队列等契约与数据流。",
+          "optional": true,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "8",
+          "titleZh": "逐部件生成架构文档",
+          "summaryZh": "为每个部件产出架构说明。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "9",
+          "titleZh": "生成配套文档",
+          "summaryZh": "产出项目概览等支撑文档。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "10",
+          "titleZh": "生成主索引",
+          "summaryZh": "产出 index.md 作为 AI 检索的主入口。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "11",
+          "titleZh": "校验与复核文档",
+          "summaryZh": "对生成文档做完整性与质量校验。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "12",
+          "titleZh": "收尾并给出下一步",
+          "summaryZh": "交付文档并提示后续动作。",
+          "optional": false,
+          "source": "workflows/full-scan-instructions.md"
+        },
+        {
+          "id": "13a-13g",
+          "titleZh": "深挖子流程（13a-13g）",
+          "summaryZh": "选定区域 → exhaustive 逐文件扫描 → 关系与数据流分析 → 关联代码与相似模式 → 生成深挖文档 → 回写主索引 → 询问继续或结束。",
+          "optional": true,
+          "source": "workflows/deep-dive-instructions.md"
+        }
+      ],
+      "notes": "instructions.md 路由器步骤号从 n=1 直接跳到 n=3，中间没有 step 2（疑似编号遗留）。子工作流以 scan_level=quick/deep/exhaustive 控制深度，deep-dive 一律 exhaustive 且明令禁止抽样。deep-dive-instructions.md 的步骤编号为 13a-13g，与主流程 0.5-12 同属一条编号序列。CSV 的 outputs 写的是 \"*\"（产出整套文档而非单一文件）。"
+    },
+    {
+      "canonicalId": "bmad-prfaq",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-prfaq",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-prfaq/SKILL.md",
+        ".claude/skills/bmad-prfaq/customize.toml",
+        ".claude/skills/bmad-prfaq/bmad-manifest.json",
+        ".claude/skills/bmad-prfaq/references/press-release.md",
+        ".claude/skills/bmad-prfaq/references/customer-faq.md",
+        ".claude/skills/bmad-prfaq/references/internal-faq.md",
+        ".claude/skills/bmad-prfaq/references/verdict.md",
+        ".claude/skills/bmad-prfaq/assets/prfaq-template.md"
+      ],
+      "summaryZh": "用亚马逊 Working Backwards 的 PRFAQ 方法锻造并拷问产品概念：先写“成品发布新闻稿”，再让客户几乎不可能回答的难题与内部可行性问题轮番质问，最后给出诚实判定。概念是否值得投入、要留档一份 PRFAQ 时使用。",
+      "entry": {
+        "command": "bmad-prfaq",
+        "args": [
+          "-H",
+          "--headless"
+        ],
+        "howZh": "按技能名调用即进入完整教练式“拷问”；加 --headless / -H 则依据给定上下文直接产出首稿（只校验输入 schema：customer/problem/stakes/solution 四项必需且不可含糊）。存在 {planning_artifacts}/prfaq-{project_name}.md 时仅读前 20 行 frontmatter 判断 stage 并询问是否续跑。"
+      },
+      "menu": [],
+      "dependencies": [
+        {
+          "menuCode": "WB",
+          "displayName": "PRFAQ Challenge",
+          "phase": "1-analysis",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "-H",
+          "outputLocation": "planning_artifacts",
+          "outputs": "prfaq document"
+        }
+      ],
+      "steps": [
+        {
+          "id": "S0",
+          "titleZh": "前置准备",
+          "summaryZh": "续跑检测 + 模式判定（headless 或完整交互）；随即定调：这不是温和探索，而是概念压力测试。",
+          "optional": false,
+          "source": "SKILL.md Pre-workflow Setup"
+        },
+        {
+          "id": "1",
+          "titleZh": "Stage 1 点火",
+          "summaryZh": "把原始概念摆上桌并强制客户优先：识别概念类型、采集客户/问题/利害/方案四要素，随后并行派出资料分析子代理与联网调研子代理，建档并写入首段内容。",
+          "optional": false,
+          "source": "SKILL.md Stage 1"
+        },
+        {
+          "id": "1b",
+          "titleZh": "Stage 1 加速与退路",
+          "summaryZh": "首条消息即含四要素可确认后直接建档进入下一阶段；若 2-3 轮后仍说不清客户或问题，则建议改用 bmad-brainstorming 继续发散。",
+          "optional": true,
+          "source": "SKILL.md Stage 1（Fast-track / Graceful redirect）"
+        },
+        {
+          "id": "2",
+          "titleZh": "Stage 2 新闻稿",
+          "summaryZh": "按标题→副标题→开篇→问题段→方案段→领导人引言→How It Works→客户引言→Getting Started 逐节锻造，标准是“无行话、无空话、经得起 so what 追问”。",
+          "optional": false,
+          "source": "references/press-release.md"
+        },
+        {
+          "id": "3",
+          "titleZh": "Stage 3 客户 FAQ",
+          "summaryZh": "化身被辜负过的忙碌客户提出 6-10 个最狠的问题（怀疑、信任、实用、边界、最不敢答的那题），逐题给出诚实且具体的回答。",
+          "optional": false,
+          "source": "references/customer-faq.md"
+        },
+        {
+          "id": "4",
+          "titleZh": "Stage 4 内部 FAQ",
+          "summaryZh": "换到工程/财务/法务/运营/CEO 视角提 6-10 题：可行性、商业可行性、资源现实、风险、战略契合，以及创始人不愿面对的那一题。",
+          "optional": false,
+          "source": "references/internal-faq.md"
+        },
+        {
+          "id": "5",
+          "titleZh": "Stage 5 判定与定稿",
+          "summaryZh": "给出概念强度叙述式判定，分「已锻造成钢 / 还需加热 / 地基裂缝」三类结论，定稿 PRFAQ，并始终产出下游 PRD 用的蒸馏稿（distillate）。",
+          "optional": false,
+          "source": "references/verdict.md"
+        }
+      ],
+      "notes": "该技能自带的 bmad-manifest.json 声明 preceded-by=[brainstorming, perform-research]、followed-by=[create-prd]、phase-name=1-analysis，而基线 help CSV 的对应字段全为空——两个来源的依赖信息不一致（CSV 缺依赖）。产出物为两份：prfaq-{project_name}.md 与 prfaq-{project_name}-distillate.md，后者 CSV 未体现。Args -H 在 SKILL.md 有定义；-A 只出现在 product-brief 的 CSV，见该技能备注。"
+    },
+    {
+      "canonicalId": "bmad-product-brief",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-product-brief",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-product-brief/SKILL.md",
+        ".claude/skills/bmad-product-brief/customize.toml",
+        ".claude/skills/bmad-product-brief/assets/brief-template.md"
+      ],
+      "summaryZh": "通过对话式教练帮用户写出一份“尺寸合适”的产品简介（Product Brief）：不催、不代想、答案单薄就追问，最终产出 1-2 页能直接喂给 PRD 的 brief。已有明确概念、需要一页纸去说服别人时使用。",
+      "entry": {
+        "command": "bmad-product-brief",
+        "args": [],
+        "howZh": "按技能名调用；激活后问候并识别意图 create/update/validate。无 PRD 之前的轻量概念文档入口，也可由 bmad-agent-analyst 的 CB 菜单分派。"
+      },
+      "menu": [
+        {
+          "code": "create",
+          "labelEn": "Create",
+          "labelZh": "创建简介",
+          "descZh": "先 Discovery 再成文；绑定 {planning_artifacts}/briefs/brief-{project_name}-{date}/ 并写出 brief.md 骨架（status: draft）与 .decision-log.md"
+        },
+        {
+          "code": "update",
+          "labelEn": "Update",
+          "labelZh": "更新简介",
+          "descZh": "用变更信号对齐既有 brief 与 decision-log；改前先摆出与既往决定的冲突；若属根本性变更则建议改走 Create"
+        },
+        {
+          "code": "validate",
+          "labelEn": "Validate",
+          "labelZh": "校验简介",
+          "descZh": "按 brief 自身目的做诚实点评，引用具体句子；结论直接对话内返回，除非用户要求单独成文"
+        },
+        {
+          "code": "fast-path",
+          "labelEn": "Fast path",
+          "labelZh": "快速路径",
+          "descZh": "把剩余缺口合并成一两次提问后直接成稿，推断处打 [ASSUMPTION] 标记；适合“明天就要讲”"
+        },
+        {
+          "code": "coaching-path",
+          "labelEn": "Coaching path",
+          "labelZh": "教练路径",
+          "descZh": "逐步共创、对薄弱假设当场追问、逐节起草；适合想写出自己满意的 brief 且时间不紧"
+        }
+      ],
+      "dependencies": [
+        {
+          "menuCode": "CB",
+          "displayName": "Create Brief",
+          "phase": "1-analysis",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "-A",
+          "outputLocation": "planning_artifacts",
+          "outputs": "product brief"
+        }
+      ],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "激活与意图识别",
+          "summaryZh": "解析 customization、执行 prepend、载入持久事实与 config，问候并判定 create/update/validate；headless 走无交互分支。",
+          "optional": false,
+          "source": "SKILL.md On Activation"
+        },
+        {
+          "id": "S2",
+          "titleZh": "Discovery 脑暴倾倒",
+          "summaryZh": "先请用户把全貌倒出来并交上已有素材；读完现有材料再补问缺失信息，末尾一句“还有别的吗？”常能带出遗忘项。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S3",
+          "titleZh": "风险级别校准",
+          "summaryZh": "尽早判断投入级别（业余项目/内部提案/投资输入/公开发布），据此决定追问力度与文档精细度。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S4",
+          "titleZh": "工作模式二选一",
+          "summaryZh": "Fast path（批量补齐缺口 + [ASSUMPTION] 标记）或 Coaching path（逐步共创、当场追问）。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S5",
+          "titleZh": "联网调研子代理",
+          "summaryZh": "倒料期间并行派 web 调研子代理摸清行业与可比产品，父会话只收摘要；深度市场/领域工作则转荐 bmad-market-research 或 bmad-domain-research。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S6",
+          "titleZh": "Finalize 1 决策日志审计",
+          "summaryZh": "逐条过 .decision-log.md，明确每条内容是进 brief、进 addendum 还是作为过程噪音搁置。",
+          "optional": false,
+          "source": "SKILL.md Finalize"
+        },
+        {
+          "id": "S7",
+          "titleZh": "Finalize 2 润色",
+          "summaryZh": "并行子代理按 doc_standards（默认结构评审 + 文字评审两个技能）先 brief.md 后 addendum.md 施加。",
+          "optional": false,
+          "source": "SKILL.md Finalize"
+        },
+        {
+          "id": "S8",
+          "titleZh": "Finalize 3 外部交接",
+          "summaryZh": "执行 external_handoffs 把产物送往 Confluence/Notion/工单等，回显 URL/ID；工具不可用则跳过并标注。",
+          "optional": true,
+          "source": "SKILL.md Finalize（默认空数组）"
+        },
+        {
+          "id": "S9",
+          "titleZh": "Finalize 4 交付并指路",
+          "summaryZh": "告知本地路径与外部落点，并调用 bmad-help 建议下一步。",
+          "optional": false,
+          "source": "SKILL.md Finalize"
+        }
+      ],
+      "notes": "help CSV 给的 args 是 -A，但 SKILL.md 正文未定义 -A（正文只讲 headless 行为，未给旗标名），两者对不上。addendum.md 的角色是承接不属于 brief 主体但需要留档的深度内容，须在对话过程中就写、不必等到 finalize。CSV 的 output-location 写 planning_artifacts，实际落点是 {planning_artifacts}/briefs/brief-{project_name}-{date}/。"
+    },
+    {
+      "canonicalId": "bmad-domain-research",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-domain-research",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-domain-research/SKILL.md",
+        ".claude/skills/bmad-domain-research/customize.toml",
+        ".claude/skills/bmad-domain-research/research.template.md",
+        ".claude/skills/bmad-domain-research/domain-steps/step-01-init.md",
+        ".claude/skills/bmad-domain-research/domain-steps/step-02-domain-analysis.md",
+        ".claude/skills/bmad-domain-research/domain-steps/step-03-competitive-landscape.md",
+        ".claude/skills/bmad-domain-research/domain-steps/step-04-regulatory-focus.md",
+        ".claude/skills/bmad-domain-research/domain-steps/step-05-technical-trends.md",
+        ".claude/skills/bmad-domain-research/domain-steps/step-06-research-synthesis.md"
+      ],
+      "summaryZh": "对某个行业/领域做基于实时联网数据的系统性调研，产出带引用的权威研究文档（行业结构、监管、技术趋势、竞争格局、供应链）。要摸清一个行业再决定做什么时使用。",
+      "entry": {
+        "command": "bmad-domain-research",
+        "args": [],
+        "howZh": "按技能名调用。前提条件是必须能联网检索，否则应中止并告知用户。激活后先做主题快速发现（主题/目标/范围），再复制 research.template.md 建初始文件并载入 step-01。"
+      },
+      "menu": [],
+      "dependencies": [
+        {
+          "menuCode": "DR",
+          "displayName": "Domain Research",
+          "phase": "1-analysis",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "",
+          "outputLocation": "planning_artifacts|project_knowledge",
+          "outputs": "research documents"
+        }
+      ],
+      "steps": [
+        {
+          "id": "1",
+          "titleZh": "范围确认",
+          "summaryZh": "与用户确认领域调研的范围与方法论（不开始检索），确认后写回文档并进入下一步。",
+          "optional": false,
+          "source": "domain-steps/step-01-init.md"
+        },
+        {
+          "id": "2",
+          "titleZh": "行业分析",
+          "summaryZh": "聚焦市场规模、增长与行业动态做分析，并用联网检索核实现状。",
+          "optional": false,
+          "source": "domain-steps/step-02-domain-analysis.md"
+        },
+        {
+          "id": "3",
+          "titleZh": "竞争格局",
+          "summaryZh": "分析主要玩家、市场份额与竞争动态，检索核实。",
+          "optional": false,
+          "source": "domain-steps/step-03-competitive-landscape.md"
+        },
+        {
+          "id": "4",
+          "titleZh": "监管合规",
+          "summaryZh": "聚焦影响该主题的法规与合规要求做专题分析。",
+          "optional": false,
+          "source": "domain-steps/step-04-regulatory-focus.md"
+        },
+        {
+          "id": "5",
+          "titleZh": "技术趋势",
+          "summaryZh": "分析创新与新兴技术对该领域的影响，全部基于实时联网数据。",
+          "optional": false,
+          "source": "domain-steps/step-05-technical-trends.md"
+        },
+        {
+          "id": "6",
+          "titleZh": "综合成文与收尾",
+          "summaryZh": "生成含执行摘要、目录、10 章正文与来源核验说明的完整研究报告，替换文首占位段并标记流程完成。",
+          "optional": false,
+          "source": "domain-steps/step-06-research-synthesis.md"
+        }
+      ],
+      "notes": "step-06 的跨步引用编号与文件名错位：正文写“regulatory focus from step-03 / technical trends from step-04”，但监管实为 step-04、技术趋势实为 step-05（step-03 是竞争格局），疑似沿用旧版编号。step-06 的完成协议里 stepsCompleted 也写成了 [1,2,3,4,5]，漏 6，同文件另一处又写 [1,2,3,4,5,6]。全流程无“可跳过”步骤标注。输出文件命名：{planning_artifacts}/research/domain-{slug}-research-{date}.md。"
+    },
+    {
+      "canonicalId": "bmad-market-research",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-market-research",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-market-research/SKILL.md",
+        ".claude/skills/bmad-market-research/customize.toml",
+        ".claude/skills/bmad-market-research/research.template.md",
+        ".claude/skills/bmad-market-research/steps/step-01-init.md",
+        ".claude/skills/bmad-market-research/steps/step-02-customer-behavior.md",
+        ".claude/skills/bmad-market-research/steps/step-03-customer-pain-points.md",
+        ".claude/skills/bmad-market-research/steps/step-04-customer-decisions.md",
+        ".claude/skills/bmad-market-research/steps/step-05-competitive-analysis.md",
+        ".claude/skills/bmad-market-research/steps/step-06-research-completion.md"
+      ],
+      "summaryZh": "围绕客户与竞争做市场调研：客户行为与分层、痛点与需求、决策路径，再到竞争格局，最终产出带引用的市场研究报告。需要判断“这个市场值不值得做”时使用。",
+      "entry": {
+        "command": "bmad-market-research",
+        "args": [],
+        "howZh": "按技能名调用。同 domain-research：必须能联网检索否则中止；先快速发现主题/目标/范围，再建 research 文件并载入 step-01。"
+      },
+      "menu": [],
+      "dependencies": [
+        {
+          "menuCode": "MR",
+          "displayName": "Market Research",
+          "phase": "1-analysis",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "",
+          "outputLocation": "planning_artifacts|project-knowledge",
+          "outputs": "research documents"
+        }
+      ],
+      "steps": [
+        {
+          "id": "1",
+          "titleZh": "初始化与范围确认",
+          "summaryZh": "确认对研究主题的理解并确立清晰的研究范围。",
+          "optional": false,
+          "source": "steps/step-01-init.md"
+        },
+        {
+          "id": "2",
+          "titleZh": "客户行为与分层",
+          "summaryZh": "分析客户行为模式与人群分层特征。",
+          "optional": false,
+          "source": "steps/step-02-customer-behavior.md"
+        },
+        {
+          "id": "3",
+          "titleZh": "客户痛点与需求",
+          "summaryZh": "梳理客户的挑战、挫败点与真实需求。",
+          "optional": false,
+          "source": "steps/step-03-customer-pain-points.md"
+        },
+        {
+          "id": "4",
+          "titleZh": "客户决策与旅程",
+          "summaryZh": "分析决策因素并绘制客户决策旅程。",
+          "optional": false,
+          "source": "steps/step-04-customer-decisions.md"
+        },
+        {
+          "id": "5",
+          "titleZh": "竞争分析",
+          "summaryZh": "聚焦市场定位做全面竞争分析。",
+          "optional": false,
+          "source": "steps/step-05-competitive-analysis.md"
+        },
+        {
+          "id": "6",
+          "titleZh": "综合成文与完成",
+          "summaryZh": "产出含叙事性导言、详细目录与执行摘要的权威市场研究报告。",
+          "optional": false,
+          "source": "steps/step-06-research-completion.md"
+        }
+      ],
+      "notes": "全流程无“可跳过”步骤标注。输出文件命名：{planning_artifacts}/research/market-{slug}-research-{date}.md。CSV 的 outputLocation 用竖线并列 planning_artifacts|project-knowledge，与 domain-research 的 planning_artifacts|project_knowledge 写法不一致（同一含义两种拼法）。"
+    },
+    {
+      "canonicalId": "bmad-technical-research",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-technical-research",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-technical-research/SKILL.md",
+        ".claude/skills/bmad-technical-research/customize.toml",
+        ".claude/skills/bmad-technical-research/research.template.md",
+        ".claude/skills/bmad-technical-research/technical-steps/step-01-init.md",
+        ".claude/skills/bmad-technical-research/technical-steps/step-02-technical-overview.md",
+        ".claude/skills/bmad-technical-research/technical-steps/step-03-integration-patterns.md",
+        ".claude/skills/bmad-technical-research/technical-steps/step-04-architectural-patterns.md",
+        ".claude/skills/bmad-technical-research/technical-steps/step-05-implementation-research.md",
+        ".claude/skills/bmad-technical-research/technical-steps/step-06-research-synthesis.md"
+      ],
+      "summaryZh": "对技术选型做基于实时联网数据的调研：技术栈、集成方式、架构模式、落地实现路径，最终产出带引用的技术研究报告。要在几个技术方案之间做取舍时使用。",
+      "entry": {
+        "command": "bmad-technical-research",
+        "args": [],
+        "howZh": "按技能名调用。必须能联网检索否则中止；先快速发现主题/目标/范围，再建 research 文件并载入 step-01。"
+      },
+      "menu": [],
+      "dependencies": [
+        {
+          "menuCode": "TR",
+          "displayName": "Technical Research",
+          "phase": "1-analysis",
+          "precededBy": "",
+          "followedBy": "",
+          "required": "false",
+          "args": "",
+          "outputLocation": "planning_artifacts|project_knowledge",
+          "outputs": "research documents"
+        }
+      ],
+      "steps": [
+        {
+          "id": "1",
+          "titleZh": "范围确认",
+          "summaryZh": "与用户确认技术调研的范围与方法。",
+          "optional": false,
+          "source": "technical-steps/step-01-init.md"
+        },
+        {
+          "id": "2",
+          "titleZh": "技术栈分析",
+          "summaryZh": "分析语言、框架、工具与平台，联网核实当前事实。",
+          "optional": false,
+          "source": "technical-steps/step-02-technical-overview.md"
+        },
+        {
+          "id": "3",
+          "titleZh": "集成模式",
+          "summaryZh": "分析 API、通信协议与系统互通的集成模式。",
+          "optional": false,
+          "source": "technical-steps/step-03-integration-patterns.md"
+        },
+        {
+          "id": "4",
+          "titleZh": "架构模式",
+          "summaryZh": "围绕设计取舍与实现方式做架构模式分析。",
+          "optional": false,
+          "source": "technical-steps/step-04-architectural-patterns.md"
+        },
+        {
+          "id": "5",
+          "titleZh": "实现路径调研",
+          "summaryZh": "聚焦可落地的实现方式与技术采用策略。",
+          "optional": false,
+          "source": "technical-steps/step-05-implementation-research.md"
+        },
+        {
+          "id": "6",
+          "titleZh": "综合成文与完成",
+          "summaryZh": "产出含叙事导言、详细目录与执行摘要的权威技术研究报告。",
+          "optional": false,
+          "source": "technical-steps/step-06-research-synthesis.md"
+        }
+      ],
+      "notes": "全流程无“可跳过”步骤标注。输出文件命名：{planning_artifacts}/research/technical-{slug}-research-{date}.md。三个 research 技能结构同族（SKILL.md 做主题发现 + 6 个 step 文件），仅步骤目录名与内容主题不同。"
+    },
+    {
+      "canonicalId": "bmad-agent-pm",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-pm",
+      "location": "project",
+      "inHelpCatalog": false,
+      "kind": "agent",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-agent-pm/SKILL.md",
+        ".claude/skills/bmad-agent-pm/customize.toml"
+      ],
+      "summaryZh": "人设型 agent「John · 产品经理」，通过用户访谈和需求挖掘把产品愿景变成可开发的小增量 PRD，并负责把 Epics/Stories 和就绪检查串起来。用户说“找 John”或“要产品经理”时激活。",
+      "entry": {
+        "command": "bmad-agent-pm",
+        "args": [],
+        "howZh": "按技能名调用（或用户点名 John）。激活后采纳人设、载入 persistent_facts 与配置、问候，然后按菜单分派；首句意图明确则跳过菜单。"
+      },
+      "menu": [
+        {
+          "code": "PRD",
+          "labelEn": "Create, update, or validate a PRD",
+          "labelZh": "PRD 全流程",
+          "descZh": "创建/更新/校验 PRD，说出意图即可，未说明时技能会主动问；调用 bmad-prd"
+        },
+        {
+          "code": "CE",
+          "labelEn": "Create the Epics and Stories Listing that will drive development",
+          "labelZh": "创建史诗与故事",
+          "descZh": "生成驱动开发的 Epics 与 Stories 清单；调用 bmad-create-epics-and-stories（属 3-solutioning 阶段）"
+        },
+        {
+          "code": "IR",
+          "labelEn": "Ensure the PRD, UX, Architecture and Epics and Stories List are all aligned",
+          "labelZh": "实现就绪检查",
+          "descZh": "核对 PRD/UX/架构/Epics-Stories 四者是否对齐；调用 bmad-check-implementation-readiness"
+        },
+        {
+          "code": "CC",
+          "labelEn": "Determine how to proceed if major need for change is discovered mid implementation",
+          "labelZh": "中途改道",
+          "descZh": "实现中途发现重大变更需求时决定如何继续；调用 bmad-correct-course"
+        }
+      ],
+      "dependencies": [],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "解析 agent 配置块",
+          "summaryZh": "脚本解析 agent 段，失败则按 base→team→user 手工合并 customize.toml。",
+          "optional": false,
+          "source": "SKILL.md Step 1"
+        },
+        {
+          "id": "S2",
+          "titleZh": "采用 John 人设",
+          "summaryZh": "产品经理身份（以 Marty Cagan / Teresa Torres 为思维参照、Bezos 六页纸写作纪律），叠加自定义 role/principles。",
+          "optional": false,
+          "source": "SKILL.md Step 3"
+        },
+        {
+          "id": "S3",
+          "titleZh": "载入持久事实与配置",
+          "summaryZh": "载入 persistent_facts（默认 project-context.md）与 _bmad/bmm/config.yaml。",
+          "optional": false,
+          "source": "SKILL.md Step 4/5"
+        },
+        {
+          "id": "S4",
+          "titleZh": "问候并分派",
+          "summaryZh": "以 John 身份问候，提醒可随时用 bmad-help，然后渲染菜单等待输入或按首句意图直接分派。",
+          "optional": false,
+          "source": "SKILL.md Step 6/8"
+        }
+      ],
+      "notes": "inHelpCatalog=false：bmad-help.csv 未登记该 agent 自身，依赖字段留空。 基线 help CSV 无该 agent 条目。菜单里有 3 项（CE/IR/CC）指向 3-solutioning 与 4-implementation 阶段的技能，属跨阶段分派；本技能自身归属 2-plan-workflows 目录。"
+    },
+    {
+      "canonicalId": "bmad-agent-ux-designer",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-ux-designer",
+      "location": "project",
+      "inHelpCatalog": false,
+      "kind": "agent",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-agent-ux-designer/SKILL.md",
+        ".claude/skills/bmad-agent-ux-designer/customize.toml"
+      ],
+      "summaryZh": "人设型 agent「Sally · UX 设计师」，把用户需求翻译成交互设计与 UX 规范，兼顾共情与边界情况严谨性，为架构与实现提供明确的设计意图。用户说“找 Sally”或“要 UX 设计师”时激活。",
+      "entry": {
+        "command": "bmad-agent-ux-designer",
+        "args": [],
+        "howZh": "按技能名调用（或用户点名 Sally）。激活序列与其它 agent 一致，之后按菜单分派。"
+      },
+      "menu": [
+        {
+          "code": "CU",
+          "labelEn": "Guidance through realizing the plan for your UX to inform architecture and implementation",
+          "labelZh": "创建 UX",
+          "descZh": "引导把 UX 方案落地成规范，供架构与实现使用；调用 bmad-ux"
+        }
+      ],
+      "dependencies": [],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "解析 agent 配置块",
+          "summaryZh": "脚本解析 agent 段，失败则按 base→team→user 手工合并 customize.toml。",
+          "optional": false,
+          "source": "SKILL.md Step 1"
+        },
+        {
+          "id": "S2",
+          "titleZh": "采用 Sally 人设",
+          "summaryZh": "UX 设计师身份（以 Don Norman 的人本设计与 Alan Cooper 的角色纪律为参照），叠加自定义 role/principles。",
+          "optional": false,
+          "source": "SKILL.md Step 3"
+        },
+        {
+          "id": "S3",
+          "titleZh": "载入持久事实与配置",
+          "summaryZh": "载入 persistent_facts（默认 project-context.md）与 _bmad/bmm/config.yaml。",
+          "optional": false,
+          "source": "SKILL.md Step 4/5"
+        },
+        {
+          "id": "S4",
+          "titleZh": "问候并分派",
+          "summaryZh": "以 Sally 身份问候并提醒 bmad-help，菜单当前只有 CU 一项，通常直接进入 bmad-ux。",
+          "optional": false,
+          "source": "SKILL.md Step 6/8"
+        }
+      ],
+      "notes": "inHelpCatalog=false：bmad-help.csv 未登记该 agent 自身，依赖字段留空。 基线 help CSV 无该 agent 条目；菜单仅 1 项（CU → bmad-ux），是三个 bmm agent 中菜单最短的，本质上是 bmad-ux 的人设外壳。"
+    },
+    {
+      "canonicalId": "bmad-create-prd",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-create-prd",
+      "location": "project",
+      "inHelpCatalog": false,
+      "kind": "utility",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-create-prd/SKILL.md",
+        ".claude/skills/bmad-create-prd/customize.toml"
+      ],
+      "summaryZh": "已废弃的兼容垫片，把旧调用名转发给 bmad-prd 的 create 意图，并在转发前向用户提示弃用信息。仅为兼容既有按名调用与 _bmad/custom/bmad-create-prd.toml 覆盖文件而保留，v7 计划移除。",
+      "entry": {
+        "command": "bmad-create-prd",
+        "args": [],
+        "howZh": "按旧技能名调用即触发；先解析 customization，再显式告知弃用通知，然后以 intent=create 的上下文调用 bmad-prd，自身不再执行后续步骤。"
+      },
+      "menu": [],
+      "dependencies": [],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "解析旧定制字段",
+          "summaryZh": "取 activation_steps_prepend/append、persistent_facts、on_complete 四个遗留字段。",
+          "optional": false,
+          "source": "SKILL.md On Activation 1"
+        },
+        {
+          "id": "S2",
+          "titleZh": "载入配置",
+          "summaryZh": "读 _bmad/bmm/config.yaml 解析 user_name 与 communication_language。",
+          "optional": false,
+          "source": "SKILL.md On Activation 2"
+        },
+        {
+          "id": "S3",
+          "titleZh": "发出弃用通知",
+          "summaryZh": "以用户语言提示已弃用，并说明迁移到 bmad-prd 后可获得更多定制字段。",
+          "optional": false,
+          "source": "SKILL.md On Activation 3"
+        },
+        {
+          "id": "S4",
+          "titleZh": "转发到 bmad-prd",
+          "summaryZh": "带 intent=create、预解析的遗留定制与用户原始输入调用 bmad-prd，之后不再执行任何步骤。",
+          "optional": false,
+          "source": "SKILL.md On Activation 4"
+        }
+      ],
+      "notes": "inHelpCatalog=false：help 目录将 create/update/validate 三种意图合并登记为单条 bmad-prd（menuCode=PRD），该 shim 自身无登记行，依赖字段留空。 基线 help CSV 无任何条目（无菜单码、无 phase），因此该技能在 help 体系里不可见；其存在意义仅为向后兼容。旧版本（C:/Users/93559/.claude/skills/bmad-create-prd/）仍是完整 PRD 全流程 + steps-c 步骤目录，与本项目内的垫片版本完全不同——比较跨机技能时需注意。"
+    },
+    {
+      "canonicalId": "bmad-edit-prd",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-edit-prd",
+      "location": "project",
+      "inHelpCatalog": false,
+      "kind": "utility",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-edit-prd/SKILL.md",
+        ".claude/skills/bmad-edit-prd/customize.toml"
+      ],
+      "summaryZh": "已废弃的兼容垫片，把旧调用名转发给 bmad-prd 的 update 意图（修改既有 PRD），并提示弃用信息。仅为兼容旧调用名与旧覆盖文件保留，v7 计划移除。",
+      "entry": {
+        "command": "bmad-edit-prd",
+        "args": [],
+        "howZh": "按旧技能名调用即触发；转发时会把用户原始输入（目标 PRD 路径、变更信号等）原样带给 bmad-prd。"
+      },
+      "menu": [],
+      "dependencies": [],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "解析旧定制字段",
+          "summaryZh": "取四个遗留字段（prepend/append/persistent_facts/on_complete）。",
+          "optional": false,
+          "source": "SKILL.md On Activation 1"
+        },
+        {
+          "id": "S2",
+          "titleZh": "载入配置",
+          "summaryZh": "读 bmm/config.yaml 解析用户名与语言。",
+          "optional": false,
+          "source": "SKILL.md On Activation 2"
+        },
+        {
+          "id": "S3",
+          "titleZh": "发出弃用通知",
+          "summaryZh": "提示已弃用并说明迁移方式。",
+          "optional": false,
+          "source": "SKILL.md On Activation 3"
+        },
+        {
+          "id": "S4",
+          "titleZh": "转发到 bmad-prd（update）",
+          "summaryZh": "带 intent=update 与用户原始输入调用 bmad-prd，之后止步。",
+          "optional": false,
+          "source": "SKILL.md On Activation 4"
+        }
+      ],
+      "notes": "inHelpCatalog=false：help 目录将 create/update/validate 三种意图合并登记为单条 bmad-prd（menuCode=PRD），该 shim 自身无登记行，依赖字段留空。 基线 help CSV 无条目。与 bmad-create-prd、bmad-validate-prd 构成同一批弃用垫片，三者结构完全同构，仅 intent 不同。"
+    },
+    {
+      "canonicalId": "bmad-prd",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-prd",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-prd/SKILL.md",
+        ".claude/skills/bmad-prd/customize.toml",
+        ".claude/skills/bmad-prd/references/validate.md",
+        ".claude/skills/bmad-prd/references/headless.md",
+        ".claude/skills/bmad-prd/assets/prd-template.md",
+        ".claude/skills/bmad-prd/assets/prd-validation-checklist.md",
+        ".claude/skills/bmad-prd/assets/headless-schemas.md"
+      ],
+      "summaryZh": "由资深教练陪跑，创建、更新或校验一份与投入级别匹配的高质量 PRD：创建走 Discovery 挖需求，更新按变更信号对齐既往决策，校验只批改不动稿并产出 HTML 报告。需要一份能直接驱动 UX/架构/Epics 的 PRD 时使用。",
+      "entry": {
+        "command": "bmad-prd",
+        "args": [],
+        "howZh": "按技能名调用；技能自己从对话判定意图（Create/Update/Validate），也可由 bmad-agent-pm 的 PRD 菜单或三个弃用垫片带 intent 转入。headless 调用走 references/headless.md 全流程。"
+      },
+      "menu": [
+        {
+          "code": "create",
+          "labelEn": "Create",
+          "labelZh": "创建 PRD",
+          "descZh": "无既有 PRD 时：先查是否有未完成的 prd-* run 可供续跑，再绑定工作目录、建 prd.md（status: draft）与 .decision-log.md，然后 Discovery → Finalize"
+        },
+        {
+          "code": "update",
+          "labelEn": "Update",
+          "labelZh": "更新 PRD",
+          "descZh": "有既有 PRD 时：对 PRD、addendum、decision-log 与原始输入做来源抽取式对账，先摆出与既往决定的冲突再改动，随后直接进 Finalize"
+        },
+        {
+          "code": "validate",
+          "labelEn": "Validate",
+          "labelZh": "校验 PRD",
+          "descZh": "只批改不改稿：跑评审门 + 合成流水线，产出 validation-report.html 与 .md 并自动打开浏览器；结束后不执行 Finalize"
+        },
+        {
+          "code": "fast-path",
+          "labelEn": "Fast path",
+          "labelZh": "快速路径",
+          "descZh": "Discovery 工作模式之一：把剩余缺口合并成一两次提问后直接成稿，推断处打 [ASSUMPTION] 标记"
+        },
+        {
+          "code": "coaching-path",
+          "labelEn": "Coaching path",
+          "labelZh": "教练路径",
+          "descZh": "Discovery 工作模式之一：共同走 PM 思考段落；入口再二选一——Vision + Features（能力优先）或 Journey-led（用户旅程优先），也可让 AI 建议"
+        }
+      ],
+      "dependencies": [
+        {
+          "menuCode": "PRD",
+          "displayName": "Create Edit and Review PRD",
+          "phase": "2-planning",
+          "precededBy": "bmad-product-brief",
+          "followedBy": "",
+          "required": "true",
+          "args": "",
+          "outputLocation": "planning_artifacts",
+          "outputs": "prd"
+        }
+      ],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "激活与意图判定",
+          "summaryZh": "解析 customization、执行 prepend、载入持久事实与配置；headless 转 headless 手册，否则问候并做误路由分流（一页纸→product-brief、验证点子→prfaq 等）。",
+          "optional": false,
+          "source": "SKILL.md On Activation"
+        },
+        {
+          "id": "S2",
+          "titleZh": "Create：续跑检测与建工作区",
+          "summaryZh": "扫 prd_output_path 下未完成的 run 并询问是否续跑；否则绑定 {planning_artifacts}/prds/prd-{project}-{date}/ 并写 prd.md 骨架与决策日志。",
+          "optional": true,
+          "source": "SKILL.md Intent Modes（仅 Create 意图）"
+        },
+        {
+          "id": "S3",
+          "titleZh": "Discovery：脑暴倾倒",
+          "summaryZh": "无论用户是否已铺垫背景，都先请其口述背景并交出已有输入（brief、调研、访谈等）；大文档交给子代理抽取，末尾补一句“还有别的吗？”。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S4",
+          "titleZh": "Discovery：联网调研子代理",
+          "summaryZh": "默认并行派 web 调研子代理摸清同类产品与当前格局，父会话只收摘要。",
+          "optional": true,
+          "source": "SKILL.md Discovery（Research subagents 默认执行）"
+        },
+        {
+          "id": "S5",
+          "titleZh": "Discovery：风险校准与工作模式",
+          "summaryZh": "先用一次短探校准 rigor（业余/内部/发布），再让用户选 Fast path 或 Coaching path；Coaching 下再选 Vision+Features / Journey-led 入口，选完即定章节顺序。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S6",
+          "titleZh": "Discovery：关注点扫描与形态确认",
+          "summaryZh": "点名该产品真实承载的关注点（合规、集成密度、SLA、硬件约束、计费、数据治理等）以决定引入哪些模板章节；未言明形态时追问 mobile/web/desktop/多端/硬件/API。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S7",
+          "titleZh": "Discovery：用户旅程采集",
+          "summaryZh": "旅程是采集而非创作：请用户以有名有姓的主角讲述真实使用过程，再整理为 UJ-N 并确认；内部工具、纯技术 PRD 等场景可降级或省略。",
+          "optional": true,
+          "source": "SKILL.md Discovery（User Journeys，按产品类型取舍）"
+        },
+        {
+          "id": "S8",
+          "titleZh": "成稿：Essential Spine + Adapt-In Menu",
+          "summaryZh": "默认写全 Essential Spine（Vision/Target User/Glossary/Features+NFR/MVP/Success Metrics 等），按关注点引入 Adapt-In Menu 章节；篇幅随投入级别伸缩，溢出内容进 addendum.md。",
+          "optional": false,
+          "source": "SKILL.md PRD Discipline + assets/prd-template.md"
+        },
+        {
+          "id": "S9",
+          "titleZh": "Finalize 1 决策日志审计",
+          "summaryZh": "逐条过 .decision-log.md，明确每条被 PRD、addendum 吸收还是搁置。",
+          "optional": false,
+          "source": "SKILL.md Finalize 1"
+        },
+        {
+          "id": "S10",
+          "titleZh": "Finalize 2 输入对账",
+          "summaryZh": "每个用户提供的输入配一个子代理对账 prd.md/addendum.md，产出 reconcile-{slug}.md 并只回摘要，重点捞定量结构漏掉的定性想法。",
+          "optional": false,
+          "source": "SKILL.md Finalize 2"
+        },
+        {
+          "id": "S11",
+          "titleZh": "Finalize 3 评审门",
+          "summaryZh": "组菜单：rubric walker（默认项）+ finalize_reviewers + 临时评审；并行子代理各自写 review-{slug}.md 只回摘要，父会话分层呈现结论。低投入场景可静默执行或跳过。",
+          "optional": true,
+          "source": "SKILL.md Reviewer Gate"
+        },
+        {
+          "id": "S12",
+          "titleZh": "Finalize 4 开放项分级",
+          "summaryZh": "逐个处理 Open Questions、[ASSUMPTION]、[NOTE FOR PM]：phase-blocker 一对一解决，非阻塞项带责任人与复查条件记入决策日志。",
+          "optional": false,
+          "source": "SKILL.md Finalize 4"
+        },
+        {
+          "id": "S13",
+          "titleZh": "Finalize 5 润色",
+          "summaryZh": "按 doc_standards（默认结构评审 + 文字评审两个技能）先结构后文字施加于 prd.md 与 addendum.md；跨文档并行、单文档串行。",
+          "optional": false,
+          "source": "SKILL.md Finalize 5"
+        },
+        {
+          "id": "S14",
+          "titleZh": "Finalize 6 外部交接",
+          "summaryZh": "执行 external_handoffs 把产物送出本地（Confluence/Notion 等）并回显 URL；工具不可用则跳过并标注。默认配置为空数组。",
+          "optional": true,
+          "source": "SKILL.md Finalize 6"
+        },
+        {
+          "id": "S15",
+          "titleZh": "Finalize 7 收尾",
+          "summaryZh": "把 frontmatter status 置 final、更新时间戳、记录定稿，交付路径并提示常见下一步（bmad-ux / bmad-create-architecture / bmad-create-epics-and-stories）。",
+          "optional": false,
+          "source": "SKILL.md Finalize 7"
+        },
+        {
+          "id": "V1",
+          "titleZh": "Validate：评审与合成报告",
+          "summaryZh": "跑评审门后必须走合成流水线：读全部 review-*.md，按评分卡七维度填 HTML 模板（Excellent/Good/Fair/Poor 四档），写 validation-report.html 与 .md 并打开浏览器（headless 跳过打开）。",
+          "optional": true,
+          "source": "references/validate.md"
+        }
+      ],
+      "notes": "CSV 是唯一必填技能（required=true），且明确 preceded-by=bmad-product-brief，但 PRFAQ 路径并未在依赖里体现（bmad-manifest.json 的 prfaq 声明 followed-by=create-prd，链路靠 skill 文本自述）。校验评分卡为七维度：Decision-readiness / Substance over theater / Strategic coherence / Done-ness clarity / Scope honesty / Downstream usability / Shape fit。内部小矛盾：references/validate.md 说评审门默认会派 adversarial-general 评审员，而 customize.toml 的 finalize_reviewers 默认是空数组（需用户或组织 override 追加）。该技能在基线中 installedAs 为 null，但项目 .claude/skills/bmad-prd/ 实体齐全。"
+    },
+    {
+      "canonicalId": "bmad-ux",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-ux",
+      "location": "project",
+      "inHelpCatalog": true,
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-ux/SKILL.md",
+        ".claude/skills/bmad-ux/customize.toml",
+        ".claude/skills/bmad-ux/references/validate.md",
+        ".claude/skills/bmad-ux/references/headless.md",
+        ".claude/skills/bmad-ux/references/creative-tools.md",
+        ".claude/skills/bmad-ux/references/design-md-spec.md",
+        ".claude/skills/bmad-ux/assets/key-screens.md"
+      ],
+      "summaryZh": "以“采集而非代笔”的教练方式帮用户产出两份并列契约：DESIGN.md（视觉身份，遵循 Google Labs 规范）与 EXPERIENCE.md（信息架构、行为、状态、交互、可访问性、关键流程）。PRD 之后要把界面与体验定下来时使用。",
+      "entry": {
+        "command": "bmad-ux",
+        "args": [],
+        "howZh": "按技能名调用（或由 bmad-agent-ux-designer 的 CU 菜单分派）；技能自行判定 Create/Update/Validate 意图，headless 调用走 references/headless.md。"
+      },
+      "menu": [
+        {
+          "code": "create",
+          "labelEn": "Create",
+          "labelZh": "创建 UX 契约",
+          "descZh": "绑定 {planning_artifacts}/ux-designs/ux-{project}-{date}/，建 .working/、imports/、.decision-log.md 与两份仅有 frontmatter 的骨架，再走 Discovery → Finalize"
+        },
+        {
+          "code": "update",
+          "labelEn": "Update",
+          "labelZh": "更新 UX 契约",
+          "descZh": "读两份 spine、日志与来源，必要时补建日志（本次更新即第一条记录），先摆出与既往决定的冲突再改，随后进 Finalize"
+        },
+        {
+          "code": "validate",
+          "labelEn": "Validate",
+          "labelZh": "校验 UX 契约",
+          "descZh": "只批判不改稿；跑评审透镜菜单后走合成流水线，产出 validation-report.html/.md 并打开浏览器"
+        },
+        {
+          "code": "fast-path",
+          "labelEn": "Fast path",
+          "labelZh": "快速路径",
+          "descZh": "批量补齐缺口后直接起草两份 spine，推断处打 [ASSUMPTION]，跳过创意工具"
+        },
+        {
+          "code": "coaching-path",
+          "labelEn": "Coaching path",
+          "labelZh": "教练路径",
+          "descZh": "逐步共同决策，创意工具（配色主题、设计方向、Excalidraw 线框）穿插使用"
+        },
+        {
+          "code": "design-handoff",
+          "labelEn": "Design handoff",
+          "labelZh": "设计外包交接",
+          "descZh": "把采集到的 Discovery 内容整理成生产者格式的提示词，用户在外部工具（默认 Google Stitch）产出后回存到工作区；EXPERIENCE.md 可后续用 Update 补齐"
+        }
+      ],
+      "dependencies": [
+        {
+          "menuCode": "CU",
+          "displayName": "Create UX",
+          "phase": "2-planning",
+          "precededBy": "bmad-prd",
+          "followedBy": "",
+          "required": "false",
+          "args": "",
+          "outputLocation": "planning_artifacts",
+          "outputs": "ux design"
+        }
+      ],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "激活与意图判定",
+          "summaryZh": "解析 customization、载入持久事实与配置，headless 转手册；否则问候并做误路由分流（PRD→bmad-prd、架构→bmad-create-architecture、游戏 UX→GDS 等）。",
+          "optional": false,
+          "source": "SKILL.md On Activation"
+        },
+        {
+          "id": "S2",
+          "titleZh": "Create：续跑检测与建工作区",
+          "summaryZh": "扫 ux_output_path 下未完成 run（DESIGN.md frontmatter status 非 final）并询问是否续跑，否则建目录骨架。",
+          "optional": true,
+          "source": "SKILL.md Modes（仅 Create 意图）"
+        },
+        {
+          "id": "S3",
+          "titleZh": "Discovery：来源扫描",
+          "summaryZh": "对 {planning_artifacts}/ 做 glob 找候选输入，父会话只露路径不读内容，用户确认后由子代理抽取。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S4",
+          "titleZh": "Discovery：脑暴与风险校准",
+          "summaryZh": "先请用户倾倒信息（大文档交子代理），加一句“还有别的吗？”，并判定投入级别（业余/内部/消费级/受监管）。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S5",
+          "titleZh": "Discovery：工作模式与创意工具",
+          "summaryZh": "Fast path / Coaching path / Design handoff 三选一；Creative tools 按需调用（默认 HTML 配色主题、设计方向、Excalidraw 线框，Finalize 时还有 1:1 关键屏 HTML 稿）。",
+          "optional": false,
+          "source": "SKILL.md Discovery + references/creative-tools.md"
+        },
+        {
+          "id": "S6",
+          "titleZh": "Discovery：关注点扫描",
+          "summaryZh": "点名这份 UX 承载的关注点（可访问性、平台、品牌、受监管用语、动效、i18n、深色模式、离线、内容密度、输入方式、通知等），开放式清单，驱动自造章节。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S7",
+          "titleZh": "Discovery：旅程与形态、界面闭包",
+          "summaryZh": "用户以有名主角讲述真实会话并整理成带高潮节拍的编号步骤；形态（手机/网页/桌面/多端）必须在 IA 定稿前确认；每个需求都要有承载界面、每个界面都要有旅程抵达，闭包失败就追问而非臆造。",
+          "optional": false,
+          "source": "SKILL.md Discovery"
+        },
+        {
+          "id": "S8",
+          "titleZh": "Finalize：蒸馏两份 spine",
+          "summaryZh": "子代理读决策日志、.working/、imports/ 与来源，按 DESIGN.md spine（品牌与风格/色彩/字体/布局间距/层级/形状/组件/Do&Don't，顺序锁定可省略）与 EXPERIENCE.md spine（Foundation/IA/语气/组件模式/状态/交互原语/可访问底线/关键流程）产出，并主动跑评分卡 Pass 1 覆盖检查。",
+          "optional": false,
+          "source": "SKILL.md Finalize + references/validate.md"
+        },
+        {
+          "id": "S9",
+          "titleZh": "Finalize：输入对账与开放项",
+          "summaryZh": "每个用户输入配对账子代理产出 reconcile-{slug}.md，重点捞被丢掉的定性想法；随后一对一处理 Open Questions/[ASSUMPTION]/[NOTE FOR UX]。",
+          "optional": false,
+          "source": "SKILL.md Finalize"
+        },
+        {
+          "id": "S10",
+          "titleZh": "Finalize：评审门（可选）",
+          "summaryZh": "先问是否要跑校验（明示可轻松跳过），再给透镜菜单（rubric walker + finalize_reviewers + 临时透镜如可访问性），用户可选全部/部分/不选；有透镜运行才走合成报告。",
+          "optional": true,
+          "source": "SKILL.md Reviewer Gate"
+        },
+        {
+          "id": "S11",
+          "titleZh": "Finalize：关键屏稿与覆盖确认",
+          "summaryZh": "对布局驱动行为的界面渲染关键屏 HTML 稿到 .working/，再逐界面盘点“已出稿/仅靠 spine”，问用户是否还要视觉参考。",
+          "optional": true,
+          "source": "SKILL.md Finalize"
+        },
+        {
+          "id": "S12",
+          "titleZh": "Finalize：产物提升与定稿交付",
+          "summaryZh": "蒸馏子代理回读 .working/ 与 imports/ 把视觉决定并回 DESIGN.md、行为决定并回 EXPERIENCE.md；把有留存价值的稿件提升到 mockups/ 或 wireframes/；按 doc_standards 润色、执行 external_handoffs、两份文件置 status: final，并提示常见下一步。",
+          "optional": false,
+          "source": "SKILL.md Finalize"
+        }
+      ],
+      "notes": "CSV 为唯一 predecessor 指向 bmad-prd 的非必填技能（required=false）。评审评分卡为 5 项机械覆盖（流程覆盖/Token 完整/组件覆盖/状态覆盖/视觉引用覆盖）+ 3 项判断（臃肿与过度规格/继承纪律/形态契合）。ux 的评分卡不给总分级（PRD 版本给 Excellent/Good/Fair/Poor），只给逐项裁定。该技能在基线中 installedAs 为 null，但项目 .claude/skills/bmad-ux/ 实体齐全。"
+    },
+    {
+      "canonicalId": "bmad-validate-prd",
+      "module": "bmm",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-validate-prd",
+      "location": "project",
+      "inHelpCatalog": false,
+      "kind": "utility",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/bmad-validate-prd/SKILL.md",
+        ".claude/skills/bmad-validate-prd/customize.toml"
+      ],
+      "summaryZh": "已废弃的兼容垫片，把旧调用名转发给 bmad-prd 的 validate 意图（只批改、产出校验报告），并提示弃用信息。仅为兼容旧调用名与旧覆盖文件保留，v7 计划移除。",
+      "entry": {
+        "command": "bmad-validate-prd",
+        "args": [],
+        "howZh": "按旧技能名调用即触发；转发时把用户原始输入（目标 PRD 路径等）原样带给 bmad-prd。"
+      },
+      "menu": [],
+      "dependencies": [],
+      "steps": [
+        {
+          "id": "S1",
+          "titleZh": "解析旧定制字段",
+          "summaryZh": "取四个遗留字段（prepend/append/persistent_facts/on_complete）。",
+          "optional": false,
+          "source": "SKILL.md On Activation 1"
+        },
+        {
+          "id": "S2",
+          "titleZh": "载入配置",
+          "summaryZh": "读 bmm/config.yaml 解析用户名与语言。",
+          "optional": false,
+          "source": "SKILL.md On Activation 2"
+        },
+        {
+          "id": "S3",
+          "titleZh": "发出弃用通知",
+          "summaryZh": "提示已弃用并说明迁移方式。",
+          "optional": false,
+          "source": "SKILL.md On Activation 3"
+        },
+        {
+          "id": "S4",
+          "titleZh": "转发到 bmad-prd（validate）",
+          "summaryZh": "带 intent=validate 与用户原始输入调用 bmad-prd，之后止步；实际校验逻辑与 HTML 报告由 bmad-prd 承担。",
+          "optional": false,
+          "source": "SKILL.md On Activation 4"
+        }
+      ],
+      "notes": "inHelpCatalog=false：help 目录将 create/update/validate 三种意图合并登记为单条 bmad-prd（menuCode=PRD），该 shim 自身无登记行，依赖字段留空。 基线 help CSV 无条目。旧版本（全局安装）该技能自带 steps-v 校验流程，本项目版本已退化为纯转发垫片，验证能力全部合并进 bmad-prd。"
+    }
+  ]
+}

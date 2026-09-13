@@ -1,0 +1,458 @@
+[
+ {
+  "canonicalId": "bmad-customize",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-spec",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-agent-analyst",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "bmad-skill-manifest.yaml"
+ },
+ {
+  "canonicalId": "bmad-agent-tech-writer",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "bmad-skill-manifest.yaml"
+ },
+ {
+  "canonicalId": "bmad-document-project",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-prfaq",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-product-brief",
+  "status": "内容不一致",
+  "onlyInProject": "assets/brief-template.md；customize.toml",
+  "onlyInGlobal": "agents/artifact-analyzer.md；agents/opportunity-reviewer.md；agents/skeptic-reviewer.md；agents/web-researcher.md；bmad-manifest.json；prompts/contextual-discovery.md…"
+ },
+ {
+  "canonicalId": "bmad-domain-research",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-market-research",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-technical-research",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-agent-pm",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "bmad-skill-manifest.yaml"
+ },
+ {
+  "canonicalId": "bmad-agent-ux-designer",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "bmad-skill-manifest.yaml"
+ },
+ {
+  "canonicalId": "bmad-create-prd",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "data/domain-complexity.csv；data/prd-purpose.md；data/project-types.csv；steps-c/step-01-init.md；steps-c/step-01b-continue.md；steps-c/step-02-discovery.md…"
+ },
+ {
+  "canonicalId": "bmad-edit-prd",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "data/prd-purpose.md；steps-e/step-e-01-discovery.md；steps-e/step-e-01b-legacy-conversion.md；steps-e/step-e-02-review.md；steps-e/step-e-03-edit.md；steps-e/step-e-04-complete.md…"
+ },
+ {
+  "canonicalId": "bmad-prd",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-ux",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-validate-prd",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "data/domain-complexity.csv；data/prd-purpose.md；data/project-types.csv；steps-v/step-v-01-discovery.md；steps-v/step-v-02-format-detection.md；steps-v/step-v-02b-parity-check.md…"
+ },
+ {
+  "canonicalId": "bmad-agent-architect",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "bmad-skill-manifest.yaml"
+ },
+ {
+  "canonicalId": "bmad-check-implementation-readiness",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-create-architecture",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-create-epics-and-stories",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-generate-project-context",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-agent-dev",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "bmad-skill-manifest.yaml"
+ },
+ {
+  "canonicalId": "bmad-checkpoint-preview",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-code-review",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-correct-course",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-create-story",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "api-test-strategy.md；automation-classification.md；automation-mapping.md；automation-tools-catalog.md；test-case-guide.md；workflow.md"
+ },
+ {
+  "canonicalId": "bmad-dev-story",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-investigate",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-qa-generate-e2e-tests",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-quick-dev",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-retrospective",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-sprint-planning",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-sprint-status",
+  "status": "内容不一致",
+  "onlyInProject": "customize.toml",
+  "onlyInGlobal": "workflow.md"
+ },
+ {
+  "canonicalId": "bmad-tea",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-teach-me-testing",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-testarch-atdd",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-testarch-automate",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-testarch-ci",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-testarch-framework",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-testarch-nfr",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-testarch-test-design",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-testarch-test-review",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-testarch-trace",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-agent-builder",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-bmb-setup",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-eval-runner",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-module-builder",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-workflow-builder",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-story-automator",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-story-automator-review",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-agent-brainstorming-coach",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-agent-creative-problem-solver",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-agent-design-thinking-coach",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-agent-innovation-strategist",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-agent-presentation-master",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-agent-storyteller",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-design-thinking",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-innovation-strategy",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-problem-solving",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "bmad-cis-storytelling",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-agent-freya-ux",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-agent-mimir-builder",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-agent-saga-analyst",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "memory",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "sync",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-0-alignment-signoff",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-0-project-setup",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-1-project-brief",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-2-trigger-mapping",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-3-scenarios",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-4-ux-design",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-5-agentic-development",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-6-asset-generation",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-7-design-system",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ },
+ {
+  "canonicalId": "wds-8-product-evolution",
+  "status": "仅项目副本",
+  "onlyInProject": "",
+  "onlyInGlobal": ""
+ }
+]

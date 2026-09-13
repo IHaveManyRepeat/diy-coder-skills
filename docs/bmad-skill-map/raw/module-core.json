@@ -1,0 +1,652 @@
+{
+ "module": "core",
+ "moduleName": "Core",
+ "extractedBy": "w-core",
+ "extractedAt": "2026-09-13",
+ "skillCount": 12,
+ "baselineSkillCount": 12,
+ "discrepancies": [],
+ "skills": [
+  {
+   "canonicalId": "bmad-advanced-elicitation",
+   "displayName": "Advanced Elicitation",
+   "module": "core",
+   "kind": "utility 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-advanced-elicitation/SKILL.md",
+    ".claude/skills/bmad-advanced-elicitation/methods.csv"
+   ],
+   "summaryZh": "在已有产出上叠加批判与增强方法：加载方法库 methods.csv（69 个方法、12 类），按当前上下文的类型与复杂度智能挑选 5 个方法供用户选择，套用后给出增强版本并询问是否应用；可独立使用，也可被其他技能间接调用以增强指定章节。",
+   "entry": "SKILL.md 内联 FLOW（Step 1-3 + INTEGRATION 间接调用协议），无独立流程文件；方法库为同级 methods.csv；当 party-mode 可能参与时，经 _bmad/scripts/resolve_config.py 解析 agent 名单",
+   "menu": [
+    {
+     "code": "1-5",
+     "labelEn": "Select Method",
+     "labelZh": "选择方法（动态 1-5）",
+     "descZh": "从当前呈现的 5 个引导方法中选择一个执行；执行后询问是否把改动应用到文档，并再次回到本菜单"
+    },
+    {
+     "code": "r",
+     "labelEn": "Reshuffle",
+     "labelZh": "重新洗牌",
+     "descZh": "从方法库随机抽取 5 个新方法替换当前列表，尽量覆盖不同类别"
+    },
+    {
+     "code": "a",
+     "labelEn": "List All",
+     "labelZh": "列出全部方法",
+     "descZh": "以紧凑表格列出方法库全部 69 个方法及描述，可按名称或编号选择"
+    },
+    {
+     "code": "x",
+     "labelEn": "Proceed / No Further Actions",
+     "labelZh": "继续 / 结束增强",
+     "descZh": "结束本轮增强；若为间接调用则把增强后的内容返回给调用技能替换原章节"
+    }
+   ],
+   "dependencies": {
+    "phase": null,
+    "required": null,
+    "args": null,
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": null,
+    "outputs": null,
+    "menuCode": null,
+    "entries": []
+   },
+   "steps": null,
+   "notes": "该技能在项目级 .claude/skills 下有实体，但未登记进 help 目录（inHelpCatalog 为 false）：所有 module-help.csv 与主 bmad-help.csv 均无其行，仅出现在 skill-manifest.csv，因此无菜单码、基线 helpEntries 为空，dependencies 各字段如实留空。displayName 取自 SKILL.md 一级标题，非目录登记。",
+   "menuCode": null
+  },
+  {
+   "canonicalId": "bmad-brainstorming",
+   "displayName": "Brainstorming",
+   "module": "core",
+   "kind": "workflow 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-brainstorming/SKILL.md",
+    ".claude/skills/bmad-brainstorming/workflow.md",
+    ".claude/skills/bmad-brainstorming/steps/step-01-session-setup.md",
+    ".claude/skills/bmad-brainstorming/steps/step-01b-continue.md",
+    ".claude/skills/bmad-brainstorming/steps/step-02a-user-selected.md",
+    ".claude/skills/bmad-brainstorming/steps/step-02b-ai-recommended.md",
+    ".claude/skills/bmad-brainstorming/steps/step-02c-random-selection.md",
+    ".claude/skills/bmad-brainstorming/steps/step-02d-progressive-flow.md",
+    ".claude/skills/bmad-brainstorming/steps/step-03-technique-execution.md",
+    ".claude/skills/bmad-brainstorming/steps/step-04-idea-organization.md"
+   ],
+   "summaryZh": "引导式头脑风暴会话：完成会话设置（议题、目标、续接检测）后，用户从四种方式选择技法（自选、AI 推荐、随机、渐进流程），在选定技法下持续发散——目标是 100+ 个经用户对话共同发展的想法（协作产出，非批量生成清单），最后收敛为组织好的想法与行动规划。",
+   "entry": "SKILL.md 指向 ./workflow.md；workflow.md 负责配置加载与输出路径解析后转 ./steps/ 系列 micro-file 步骤（每步一个自包含文件，frontmatter 记录进度）",
+   "menu": [
+    {
+     "code": "1",
+     "labelEn": "User-Selected Techniques",
+     "labelZh": "用户自选技术",
+     "descZh": "浏览完整技术库（brain-methods.csv，61 个技术、10 类）并自行挑选"
+    },
+    {
+     "code": "2",
+     "labelEn": "AI-Recommended Techniques",
+     "labelZh": "AI 推荐技术",
+     "descZh": "分析会话目标、约束与偏好，从技术库匹配推荐并说明理由"
+    },
+    {
+     "code": "3",
+     "labelEn": "Random Technique Selection",
+     "labelZh": "随机选择技术",
+     "descZh": "随机抽取互补技法组合，制造意料之外的发现"
+    },
+    {
+     "code": "4",
+     "labelEn": "Progressive Technique Flow",
+     "labelZh": "渐进式技术流",
+     "descZh": "设计从发散到收敛的分阶段技法序列，系统性推进创意旅程"
+    }
+   ],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "{output_folder}/brainstorming",
+    "outputs": "brainstorming session",
+    "menuCode": "BSP",
+    "entries": [
+     {
+      "displayName": "Brainstorm Project",
+      "menuCode": "BP",
+      "action": "",
+      "phase": "1-analysis",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "",
+      "outputLocation": "planning_artifacts",
+      "outputs": "brainstorming session"
+     },
+     {
+      "displayName": "Brainstorming",
+      "menuCode": "BSP",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "",
+      "outputLocation": "{output_folder}/brainstorming",
+      "outputs": "brainstorming session"
+     },
+     {
+      "displayName": "Brainstorming",
+      "menuCode": "BS",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "",
+      "outputLocation": "output_folder",
+      "outputs": "brainstorming session results"
+     }
+    ]
+   },
+   "steps": [
+    {
+     "name": "步骤 1：会话设置与续接检测",
+     "file": "steps/step-01-session-setup.md",
+     "descZh": "检查既有会话文件（只列文件名不读内容），询问继续/新建/查看全部；收集议题与目标，初始化会话文档 frontmatter，并让用户四选一技术选取方式。"
+    },
+    {
+     "name": "步骤 1b：工作流续接",
+     "file": "steps/step-01b-continue.md",
+     "descZh": "仅在选择继续已有会话时进入：加载现有文档与 frontmatter 进度，列出已完成内容与剩余选项，不重复提问。"
+    },
+    {
+     "name": "步骤 2a：用户自选技术",
+     "file": "steps/step-02a-user-selected.md",
+     "descZh": "充当技术图书管理员：按类别呈现 brain-methods.csv 技术库，由用户自行挑选，提供 [B] 返回 / [C] 继续。"
+    },
+    {
+     "name": "步骤 2b：AI 推荐技术",
+     "file": "steps/step-02b-ai-recommended.md",
+     "descZh": "分析会话目标、约束与偏好，从技术库匹配推荐组合并给出理由，等待用户确认。"
+    },
+    {
+     "name": "步骤 2c：随机选择技术",
+     "file": "steps/step-02c-random-selection.md",
+     "descZh": "随机抽取互补的技术组合制造意外发现，不干预或二次猜测随机结果。"
+    },
+    {
+     "name": "步骤 2d：渐进式技术流",
+     "file": "steps/step-02d-progressive-flow.md",
+     "descZh": "设计从发散到收敛的分阶段技法旅程，给出旅程地图并等待确认。"
+    },
+    {
+     "name": "步骤 3：交互式技法执行",
+     "file": "steps/step-03-technique-execution.md",
+     "descZh": "在选定技法下逐元素引导发散：一次至多提出一个新想法/挑衅/角度后等待用户输入，目标 100+ 个协作式想法（不批量生成），默认持续探索直到用户明确要求收敛。"
+    },
+    {
+     "name": "步骤 4：想法组织与行动规划",
+     "file": "steps/step-04-idea-organization.md",
+     "descZh": "收敛整理全部想法，按优先级归类并形成可执行的下一步，完成会话文档与 frontmatter 收尾。"
+    }
+   ],
+   "notes": "同一 canonicalId 被 3 个模块重复登记：BMad Method 的 BP（phase 1-analysis、输出 planning_artifacts）、Core 的 BSP（anytime）、CIS 的 BS（anytime），故基线含 3 条 helpEntries；dependencies 顶层取 Core 主注册 BSP。技能内另有会话续接菜单 [1] 继续现有会话 / [2] 新建 / [3] 查看全部。",
+   "menuCode": "BSP"
+  },
+  {
+   "canonicalId": "bmad-customize",
+   "displayName": "BMad Customize",
+   "module": "core",
+   "kind": "utility 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-customize/SKILL.md",
+    ".claude/skills/bmad-customize/scripts/list_customizable_skills.py"
+   ],
+   "summaryZh": "把用户的定制意图翻译成正确落位的 TOML 覆盖文件（写入 {project-root}/_bmad/custom/）：分类意图（定向/探索/审计迭代/跨面）→ 用自带脚本枚举可定制技能 → 读目标的 customize.toml 确定 agent 或 workflow 覆盖面 → 按合并语义撰写稀疏覆盖（标量覆盖、数组追加、键控表按键合并）→ 选择团队/个人落位 → 展示确认后写入并用 resolve_customization.py 验证合并结果。",
+   "entry": "SKILL.md 内联（Preflight → Activation → Step 1-6 → Complete when），无独立流程文件；发现阶段调用技能自带 scripts/list_customizable_skills.py",
+   "menu": [],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "{project-root}/_bmad/custom",
+    "outputs": "TOML override files",
+    "menuCode": "BC",
+    "entries": [
+     {
+      "displayName": "BMad Customize",
+      "menuCode": "BC",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "",
+      "outputLocation": "{project-root}/_bmad/custom",
+      "outputs": "TOML override files"
+     }
+    ]
+   },
+   "steps": null,
+   "notes": "技能根含 scripts/（list_customizable_skills.py 及其测试），扫描同级技能目录中的 customize.toml 并按 agent/workflow 分类；写入后依赖 {project-root}/_bmad/scripts/resolve_customization.py 验证，脚本缺失时回退人工合并说明。v1 范围仅限单技能 [agent]/[workflow] 覆盖，中央 config.toml 不在范围内。",
+   "menuCode": "BC"
+  },
+  {
+   "canonicalId": "bmad-editorial-review-prose",
+   "displayName": "Editorial Review - Prose",
+   "module": "core",
+   "kind": "utility 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-editorial-review-prose/SKILL.md"
+   ],
+   "summaryZh": "临床校对式文字评审：只修阻碍理解的沟通问题（语法、歧义、冗余等），不改观点、不做风格偏好改写，逐条给出最小修正，输出三列表格（原文 / 建议改法 / 改动说明）。可按读者类型（humans / llm）校准，并支持项目 style_guide 覆盖。",
+   "entry": "SKILL.md 内联 STEPS（Step 1-4），含 PRINCIPLES 与 HALT 条件，无独立流程文件",
+   "menu": [],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "[path]",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "report located with target document",
+    "outputs": "three-column markdown table with suggested fixes",
+    "menuCode": "EP",
+    "entries": [
+     {
+      "displayName": "Editorial Review - Prose",
+      "menuCode": "EP",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "[path]",
+      "outputLocation": "report located with target document",
+      "outputs": "three-column markdown table with suggested fixes"
+     }
+    ]
+   },
+   "steps": null,
+   "notes": null,
+   "menuCode": "EP"
+  },
+  {
+   "canonicalId": "bmad-editorial-review-structure",
+   "displayName": "Editorial Review - Structure",
+   "module": "core",
+   "kind": "utility 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-editorial-review-structure/SKILL.md"
+   ],
+   "summaryZh": "结构性评审，应在文字校对之前运行：按文档用途选择结构模型（教程 / 参考 / 解释 / 提示 / 战略），逐节评估存留价值，产出切分 / 合并 / 移动 / 压缩 / 质询 / 保留六类建议及预计缩减量。对 humans 读者保留理解辅助要素，对 llm 读者追求精度与密度。",
+   "entry": "SKILL.md 内联 STEPS（Step 1-6），含 Structure Models、Human/LLM Reader Principles 与 HALT 条件",
+   "menu": [],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "[path]",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "report located with target document",
+    "outputs": "",
+    "menuCode": "ES",
+    "entries": [
+     {
+      "displayName": "Editorial Review - Structure",
+      "menuCode": "ES",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "[path]",
+      "outputLocation": "report located with target document",
+      "outputs": ""
+     }
+    ]
+   },
+   "steps": null,
+   "notes": null,
+   "menuCode": "ES"
+  },
+  {
+   "canonicalId": "bmad-help",
+   "displayName": "BMad Help",
+   "module": "core",
+   "kind": "utility 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-help/SKILL.md"
+   ],
+   "summaryZh": "BMad 导航与答疑：以 bmad-help.csv 目录（含 phase、preceded-by / followed-by 排序提示、required 门禁）为主数据源，结合配置与已产出的产物判断用户所处模块与阶段，解释菜单码与调用方式，推荐下一步应运行的技能（含参数），当下一步唯一明确时可直接提议帮你运行。",
+   "entry": "SKILL.md 内联（Purpose / Data Sources / CSV Interpretation / Response Format），无步骤文件",
+   "menu": [],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "",
+    "outputs": "",
+    "menuCode": "BH",
+    "entries": [
+     {
+      "displayName": "BMad Help",
+      "menuCode": "BH",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "",
+      "outputLocation": "",
+      "outputs": ""
+     }
+    ]
+   },
+   "steps": null,
+   "notes": null,
+   "menuCode": "BH"
+  },
+  {
+   "canonicalId": "bmad-index-docs",
+   "displayName": "Index Docs",
+   "module": "core",
+   "kind": "utility 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-index-docs/SKILL.md"
+   ],
+   "summaryZh": "为指定文件夹生成或更新 index.md：扫描目录内容、按类型或用途分组、逐个读取文件内容生成 3-10 词简介，输出带 ./ 相对链接的索引文件（含子目录分组）。",
+   "entry": "SKILL.md 内联 EXECUTION（Step 1-4）与 OUTPUT FORMAT 模板",
+   "menu": [],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "",
+    "outputs": "",
+    "menuCode": "ID",
+    "entries": [
+     {
+      "displayName": "Index Docs",
+      "menuCode": "ID",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "",
+      "outputLocation": "",
+      "outputs": ""
+     }
+    ]
+   },
+   "steps": null,
+   "notes": null,
+   "menuCode": "ID"
+  },
+  {
+   "canonicalId": "bmad-party-mode",
+   "displayName": "Party Mode",
+   "module": "core",
+   "kind": "utility 型（多 agent 编排）",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-party-mode/SKILL.md"
+   ],
+   "summaryZh": "多智能体圆桌：经 resolve_config.py 解析 agent 名单（_bmad 基础配置与 custom 覆盖共四层合并）后挑选 2-4 个相关角色，用 Agent 工具并行派生真实 subagent（各自独立判断、允许互相反对），逐条完整呈现观点并支持点名追问与交叉回应；--solo 模式退回单模型扮演全部角色。",
+   "entry": "SKILL.md 内联（On Activation + The Core Loop + Follow-ups），无步骤文件",
+   "menu": [
+    {
+     "code": "--model <model>",
+     "labelEn": "--model",
+     "labelZh": "指定模型",
+     "descZh": "强制所有子代理使用指定模型（如 haiku、opus）；缺省时按话题深度为每轮选择合适模型"
+    },
+    {
+     "code": "--solo",
+     "labelEn": "--solo",
+     "labelZh": "单人模式",
+     "descZh": "不派生子代理，由编排者自己扮演所有角色响应（子代理不可用或更看重速度时使用）"
+    }
+   ],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "",
+    "outputs": "",
+    "menuCode": "PM",
+    "entries": [
+     {
+      "displayName": "Party Mode",
+      "menuCode": "PM",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "",
+      "outputLocation": "",
+      "outputs": ""
+     }
+    ]
+   },
+   "steps": null,
+   "notes": "支持 --model / --solo 调用参数（SKILL.md Arguments 一节），这两个参数未登记进 help CSV 的 args 字段。agent 名单由 resolve_config.py 输出（字段：code、name、title、icon、description、module、team），不再读取 agent-manifest.csv。",
+   "menuCode": "PM"
+  },
+  {
+   "canonicalId": "bmad-review-adversarial-general",
+   "displayName": "Adversarial Review",
+   "module": "core",
+   "kind": "utility 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-review-adversarial-general/SKILL.md"
+   ],
+   "summaryZh": "对抗式审查：以冷漠挑剔的审查者姿态全面挑刺（默认至少给出 10 条发现，零发现本身视为可疑），只列问题清单、不下结论、不做人身攻击。用于交付前的质量施压，其它模块的代码评审会内联调用它。",
+   "entry": "SKILL.md 内联 EXECUTION（Step 1-3）与 HALT 条件",
+   "menu": [],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "[path]",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "",
+    "outputs": "",
+    "menuCode": "AR",
+    "entries": [
+     {
+      "displayName": "Adversarial Review",
+      "menuCode": "AR",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "[path]",
+      "outputLocation": "",
+      "outputs": ""
+     }
+    ]
+   },
+   "steps": null,
+   "notes": null,
+   "menuCode": "AR"
+  },
+  {
+   "canonicalId": "bmad-review-edge-case-hunter",
+   "displayName": "Edge Case Hunter Review",
+   "module": "core",
+   "kind": "utility 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-review-edge-case-hunter/SKILL.md"
+   ],
+   "summaryZh": "边界条件猎人：机械枚举范围内每条分支路径与边界条件（控制流 + 领域边界），只报告未处理的路径，严格输出 JSON 数组（location / trigger_condition / guard_snippet / potential_consequence）。方法驱动而非态度驱动，与对抗审查正交互补。",
+   "entry": "SKILL.md 内联 EXECUTION（Step 1-4）与 OUTPUT FORMAT（严格 JSON）",
+   "menu": [],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "[path]",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "",
+    "outputs": "",
+    "menuCode": "ECH",
+    "entries": [
+     {
+      "displayName": "Edge Case Hunter Review",
+      "menuCode": "ECH",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "[path]",
+      "outputLocation": "",
+      "outputs": ""
+     }
+    ]
+   },
+   "steps": null,
+   "notes": null,
+   "menuCode": "ECH"
+  },
+  {
+   "canonicalId": "bmad-shard-doc",
+   "displayName": "Shard Document",
+   "module": "core",
+   "kind": "utility 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-shard-doc/SKILL.md"
+   ],
+   "summaryZh": "大文档分片：按二级标题把 Markdown 拆分为组织化的小文件（默认输出到与源文件同名的文件夹），调用 npx @kayvan/markdown-tree-parser explode 执行，校验分片与 index.md 生成，最后让用户决定原文档去留（删除 / 归档 / 保留）。",
+   "entry": "SKILL.md 内联 EXECUTION（Step 1-6），无独立流程文件",
+   "menu": [
+    {
+     "code": "d",
+     "labelEn": "Delete",
+     "labelZh": "删除原文档",
+     "descZh": "删除原始大文档（推荐选项，分片可按序拼接还原）"
+    },
+    {
+     "code": "m",
+     "labelEn": "Move to archive",
+     "labelZh": "移入归档",
+     "descZh": "把原文档移动到同目录 archive 子文件夹（可自定义归档路径）"
+    },
+    {
+     "code": "k",
+     "labelEn": "Keep",
+     "labelZh": "保留原文档",
+     "descZh": "原文档留在原地（不推荐：会造成重复内容，且输入发现协议可能加载错版本）"
+    }
+   ],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "[path]",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "",
+    "outputs": "",
+    "menuCode": "SD",
+    "entries": [
+     {
+      "displayName": "Shard Document",
+      "menuCode": "SD",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "[path]",
+      "outputLocation": "",
+      "outputs": ""
+     }
+    ]
+   },
+   "steps": null,
+   "notes": "实际拆分依赖外部 npm 包 @kayvan/markdown-tree-parser（通过 npx 调用）。",
+   "menuCode": "SD"
+  },
+  {
+   "canonicalId": "bmad-spec",
+   "displayName": "Spec",
+   "module": "core",
+   "kind": "workflow 型",
+   "evidenceLevel": "local-source",
+   "sourceFiles": [
+    ".claude/skills/bmad-spec/SKILL.md",
+    ".claude/skills/bmad-spec/customize.toml",
+    ".claude/skills/bmad-spec/assets/spec-template.md",
+    ".claude/skills/bmad-spec/assets/headless-schemas.md"
+   ],
+   "summaryZh": "把任意意图输入（简报、PRD、GDD、RFC、访谈记录、脑暴、多源混合）提炼为 SPEC.md 五字段内核（Why / Capabilities / Constraints / Non-goals / Success signal）+ 伴随文件，形成下游技能共同消费的机器契约；每次创建或更新后做连贯性与保全性双重自检并写决策日志，同一 slug 再次调用为原地更新且能力 ID 保持稳定。",
+   "entry": "SKILL.md 内联（On Activation → Workspace → The Operation → Spec Law → Self-Validate → Output）；支持 interactive/headless 双模式，headless 按 assets/headless-schemas.md 返回 JSON",
+   "menu": [
+    {
+     "code": "express",
+     "labelEn": "Express",
+     "labelZh": "快速提炼",
+     "descZh": "输入稀疏时尽力提炼，每个缺口记入 open_questions[]；headless 模式默认此项并记录选择"
+    },
+    {
+     "code": "guided",
+     "labelEn": "Guided",
+     "labelZh": "引导式提炼",
+     "descZh": "输入稀疏时与用户逐项走完五个内核字段；interactive 模式下由用户选择"
+    }
+   ],
+   "dependencies": {
+    "phase": "anytime",
+    "required": false,
+    "args": "[path]",
+    "precededBy": [],
+    "followedBy": [],
+    "outputLocation": "{output_folder}/specs/spec-{slug}",
+    "outputs": "SPEC.md + companion files",
+    "menuCode": "SP",
+    "entries": [
+     {
+      "displayName": "Spec",
+      "menuCode": "SP",
+      "action": "",
+      "phase": "anytime",
+      "precededBy": [],
+      "followedBy": [],
+      "required": false,
+      "args": "[path]",
+      "outputLocation": "{output_folder}/specs/spec-{slug}",
+      "outputs": "SPEC.md + companion files"
+     }
+    ]
+   },
+   "steps": null,
+   "notes": "技能根含 customize.toml（顶层 [workflow] 块，暴露 spec_template、spec_output_path、run_folder_pattern、on_complete、persistent_facts 等可覆盖字段，BMAD 官方据此将其归为 workflow 类型）与 assets/（五字段模板、headless JSON schema）；无独立 workflow.md，流程内联在 SKILL.md。headless 模式定义 error_code：insufficient_intent（输入过薄）、missing_slug（缺 slug）。",
+   "menuCode": "SP"
+  }
+ ]
+}

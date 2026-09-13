@@ -1,0 +1,1734 @@
+{
+  "module": "wds",
+  "moduleName": "Web Design Studio",
+  "extractedBy": "w-wds",
+  "extractedAt": "2026-09-13",
+  "skillCount": 15,
+  "baselineSkillCount": 15,
+  "catalogOnlyCount": 8,
+  "idMappingSummary": "manifest 用「wds-N-*」目录式命名（15 条，实体均在 .claude/skills/ 下、location=project），help CSV 用「bmad-wds-*」前缀命名（18 条），两套命名字符串不可匹配——基线因此把 WDS 15 条的 helpEntries 全置空、installedAs 置 null、inHelpCatalog 置 false；该 false 仅表示未登记进 bmad-help 可发现目录，不代表技能未实现（15 条实体经 skillDir 逐一核实均存在）。help 18 条逐条核对：10 条与实体 1:1 对应（bmad-wds-saga→wds-agent-saga-analyst、bmad-wds-freya→wds-agent-freya-ux、alignment→wds-0-alignment-signoff、project-brief→wds-1-project-brief、trigger-mapping→wds-2-trigger-mapping、outline-scenarios→wds-3-scenarios、visual-design→wds-6-asset-generation、design-system→wds-7-design-system、agentic-development→wds-5-agentic-development、product-evolution→wds-8-product-evolution）；7 条无独立实体目录、功能被 wds-N-* 吸收（platform-requirements→wds-1；conceptual-sketching、storyboarding、conceptual-specs、design-delivery→wds-4；functional-components→wds-7；usability-testing→wds-5）；1 条（bmad-wds-idun）在 help 与实体两侧均无对应实现，属纯 help 残留条目。manifest 侧合计 11 条 matched（10 条 1:1 + wds-4 经 4 条 absorbed 行命中）、4 条 manifest-only 未登记 help（wds-0-project-setup、wds-agent-mimir-builder、memory、sync）。",
+  "discrepancies": [
+    {
+      "type": "命名体系不一致",
+      "detail": "manifest canonicalId 为 wds-agent-freya-ux / wds-1-project-brief / memory / sync 等目录式命名；bmad-help.csv 的 skill 字段全部为 bmad-wds-* 前缀（bmad-wds-saga、bmad-wds-project-brief、bmad-wds-visual-design 等）。基线生成器因字符串不匹配，将 WDS 15 条的 helpEntries 全部置空、installedAs 全部置 null、inHelpCatalog 全部置 false（对比：全库 86 条中 54 条有 helpEntries、39 条有 installedAs）。注意 inHelpCatalog=false 的语义是「未登记进 bmad-help 可发现目录」，不是「无实体」——按更新后基线的 skillDir 逐一核实，15 条实体目录全部存在且 location 均为 project。"
+    },
+    {
+      "type": "help CSV 独有条目（8 条）",
+      "detail": "help 侧独有 8 条，按实体存在性再分两类：(1) 纯 help 条目 1 条——bmad-wds-idun，manifest 无此 agent、本地 .claude/skills 亦无实体目录，help 与实体两侧均无实现；(2) 有实体但无独立目录 7 条——实体功能已并入新版技能：platform-requirements→wds-1-project-brief、conceptual-sketching/storyboarding/conceptual-specs/design-delivery→wds-4-ux-design、functional-components→wds-7-design-system、usability-testing→wds-5-agentic-development。这 7 条已同时出现在对应主技能的 idMapping.catalogIds 中（matchStatus=catalog-only 表示 help 行无专属 manifest 技能），catalogOnlySkills 单列仅为完整性核对。"
+    },
+    {
+      "type": "manifest 独有技能（4 条）",
+      "detail": "wds-0-project-setup、wds-agent-mimir-builder、memory、sync 在 help CSV 中无任何对应条目。其中 project-setup 明示为 WDS 全流程起点（可跳过），mimir 的 /TA /PR /BU 三个子技能为 SKILL.md 内联定义，memory/sync 为工具型技能。"
+    },
+    {
+      "type": "菜单悬空引用",
+      "detail": "三个 agent 的 customize.toml 菜单引用了 4 个 help CSV 未登记的技能：bmad-wds-spec-audit（Freya SA）、bmad-wds-tech-audit / bmad-wds-prd / bmad-wds-build（Mimir TA/PR/BU）。前者的职能落在 wds-4-ux-design 的 [V] Validate Specs；后三者是 Mimir SKILL.md 内联定义的技能。"
+    },
+    {
+      "type": "阶段编号口径不一致",
+      "detail": "技能文档自述的 Phase 编号与 help CSV 的 phase 分组不一致：wds-2-trigger-mapping 自述 Phase 2、CSV 归「1-wds-strategy」；wds-3-scenarios 自述 Phase 3、CSV 归「2-wds-design」；wds-8-product-evolution 自述 Phase 8、CSV 归「3-wds-build」；design-delivery 在 Freya 菜单标 Phase 5、在 CSV 归「2-wds-design」。dependencies.phase 一律以 CSV 为准。"
+    },
+    {
+      "type": "产出位置差异",
+      "detail": "CSV 的 output-location/outputs 与当前技能实际输出不一致：bmad-wds-visual-design 标 design_artifacts/C-UX-Scenarios + html-prototypes，而 wds-6-asset-generation 实际输出 {output_folder}/E-Assets/；bmad-wds-agentic-development 标 _progress/agent-experiences，wds-5 实际另有测试报告与问题单产出；bmad-wds-usability-testing 标 design_artifacts/E-Development。属新旧版本记录差异，未做调和。"
+    },
+    {
+      "type": "计数口径",
+      "detail": "本文件共记录 23 条：skills 15 条（manifest 口径，含 11 条有 catalog 映射、4 条 manifest-only）+ catalogOnlySkills 8 条（help CSV 独有口径）。两口径重叠 7 条（已并入者），净增量为 1 条（bmad-wds-idun）。"
+    },
+    {
+      "type": "文档内部瑕疵",
+      "detail": "wds-1-project-brief/workflow.md 的步骤表编号从 03 直接跳到 05（无 04 步），按原文保留。"
+    }
+  ],
+  "skills": [
+    {
+      "canonicalId": "wds-agent-freya-ux",
+      "module": "wds",
+      "kind": "agent",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-agent-freya-ux/SKILL.md",
+        ".claude/skills/wds-agent-freya-ux/customize.toml"
+      ],
+      "summaryZh": "WDS 的专职 UX 设计师 persona（Freya），覆盖阶段 3-8 的设计工作：UX 场景、页面设计与规格、视觉资产生成、设计系统与产品演进。用户说「和 Freya 对话」或「找 WDS 设计师」时激活；激活时会检查前置条件并向用户提供菜单。安装 WDS 后它取代 BMM 的 Sally（bmad-agent-ux-designer）。",
+      "entry": "用户以自然语言召唤（如「和 Freya 对话」「找 WDS 设计师」）触发激活序列：解析 agent 配置（customize.toml + _bmad/custom 覆盖）→ 载入 persistent_facts 与 persona → 读取 _bmad/wds/config.yaml → 问候并按意图直接派发或渲染菜单等待选择。经 sync 同步后也可用全局命令 /freya 调用。",
+      "menu": [
+        {
+          "code": "SC",
+          "labelEn": "Scenarios",
+          "labelZh": "场景梳理",
+          "descZh": "梳理用户流程与旅程（阶段 3），派发 bmad-wds-outline-scenarios"
+        },
+        {
+          "code": "UX",
+          "labelEn": "UX Design",
+          "labelZh": "UX 设计",
+          "descZh": "创建页面与故事板（阶段 4），派发 bmad-wds-conceptual-sketching"
+        },
+        {
+          "code": "SP",
+          "labelEn": "Specifications",
+          "labelZh": "规格撰写",
+          "descZh": "编写内容、交互、功能规格（阶段 4），派发 bmad-wds-conceptual-specs"
+        },
+        {
+          "code": "SA",
+          "labelEn": "Audit",
+          "labelZh": "规格审计",
+          "descZh": "检查规格完整性与质量（阶段 4），派发 bmad-wds-spec-audit（CSV 未登记，职能落在 wds-4 的 [V] Validate Specs）"
+        },
+        {
+          "code": "GA",
+          "labelEn": "Generate Assets",
+          "labelZh": "资产生成",
+          "descZh": "用 Nano Banana、Stitch 等服务生成资产（阶段 6），派发 bmad-wds-visual-design"
+        },
+        {
+          "code": "DS",
+          "labelEn": "Design System",
+          "labelZh": "设计系统",
+          "descZh": "构建设计令牌与组件库（阶段 7），派发 bmad-wds-design-system"
+        },
+        {
+          "code": "DD",
+          "labelEn": "Design Delivery",
+          "labelZh": "设计交付",
+          "descZh": "打包交付流程给开发（菜单标阶段 5；内容见 wds-4 的 [H] Handover），派发 bmad-wds-design-delivery"
+        },
+        {
+          "code": "PE",
+          "labelEn": "Product Evolution",
+          "labelZh": "产品演进",
+          "descZh": "面向在线产品的持续改进（阶段 8），派发 bmad-wds-product-evolution"
+        }
+      ],
+      "dependencies": {
+        "phase": "0-wds-agents",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": [
+        {
+          "name": "Resolve Agent Block",
+          "descZh": "运行 resolve_customization.py 解析 agent 配置；失败时按 base→team→user 顺序手工合并",
+          "optional": false
+        },
+        {
+          "name": "Execute Prepend Steps",
+          "descZh": "按序执行 activation_steps_prepend 中的条目",
+          "optional": false
+        },
+        {
+          "name": "Adopt Persona",
+          "descZh": "采用 Freya / WDS Designer 身份，叠加定制 persona 的角色、沟通风格与原则",
+          "optional": false
+        },
+        {
+          "name": "Load Persistent Facts",
+          "descZh": "载入 persistent_facts；file: 前缀条目按路径/通配加载为事实",
+          "optional": false
+        },
+        {
+          "name": "Load Config",
+          "descZh": "读取 _bmad/wds/config.yaml，解析 user_name、communication_language、document_output_language",
+          "optional": false
+        },
+        {
+          "name": "Greet the User",
+          "descZh": "以 persona 身份问候用户（带 agent.icon 前缀），提示可随时调用 bmad-help",
+          "optional": false
+        },
+        {
+          "name": "Execute Append Steps",
+          "descZh": "按序执行 activation_steps_append 中的条目",
+          "optional": false
+        },
+        {
+          "name": "Dispatch or Present the Menu",
+          "descZh": "意图明确则直接派发对应菜单项，否则渲染编号菜单并等待输入",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-agent-freya-ux",
+        "catalogIds": [
+          "bmad-wds-freya"
+        ],
+        "matchStatus": "matched",
+        "note": "CSV 条目 bmad-wds-freya（displayName「Wake Freya」，menuCode FREYA，phase 0-wds-agents）描述「UX Designer agent for Phases 3-4. Checks prerequisites and offers next steps.」与本技能一致；但 customize.toml 菜单指向的 bmad-wds-* 技能名与 CSV 的 18 条并不完全对应（见 discrepancies 悬空引用）。"
+      },
+      "notes": "principle 明确「Replaces BMM Sally (UX Designer) when WDS is installed」。领域覆盖：阶段 3、4、5、6、7（可选）、8。菜单中的 bmad-wds-visual-design 标「(Phase 6)」是 visual-design→wds-6-asset-generation 映射的关键证据。"
+    },
+    {
+      "canonicalId": "wds-agent-mimir-builder",
+      "module": "wds",
+      "kind": "agent",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-agent-mimir-builder/SKILL.md",
+        ".claude/skills/wds-agent-mimir-builder/customize.toml"
+      ],
+      "summaryZh": "WDS 的实现 agent（Mimir），负责技术审计、PRD 与构建三件事：读 Freya 的 Work Order，写成正式需求，然后一次一个任务地实现并逐项验证。非创造型角色——创造发生在上游，他只做严谨的实现与验证。",
+      "entry": "用户召唤「和 Mimir 对话」或作为 WDS 阶段 5 的执行入口。激活时先读 _wds/tools/memory/SKILL.md 的 load 操作恢复状态（agent_id: mimir），再扫描 E-Development/ 目录判断路由（无技术审计→/TA；有 Work Order 无 PRD→/PR；有 PRD→/BU）。",
+      "menu": [
+        {
+          "code": "TA",
+          "labelEn": "Tech Audit",
+          "labelZh": "技术审计",
+          "descZh": "读取代码库并产出现行架构文档 E-Development/000-tech-audit.md（首次进入）"
+        },
+        {
+          "code": "PR",
+          "labelEn": "PRD",
+          "labelZh": "需求文档",
+          "descZh": "把 Freya 的 Work Order 写成正式 PRD：平台需求、接口需求、验收标准"
+        },
+        {
+          "code": "BU",
+          "labelEn": "Build",
+          "labelZh": "构建",
+          "descZh": "按 PRD 逐条实现：实现→提交→验证→下一条"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "precededBy": [],
+        "followedBy": [],
+        "required": null,
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": [
+        {
+          "name": "Load State",
+          "descZh": "调用 memory 的 load 操作恢复 mimir 会话状态；有状态则展示「上次进度/下一步」并等待确认",
+          "optional": false
+        },
+        {
+          "name": "Scan Project Context",
+          "descZh": "扫描输出目录的 E-Development/（Work Order、PRD、技术审计）并识别代码库根目录",
+          "optional": false
+        },
+        {
+          "name": "Route",
+          "descZh": "按条件路由：无审计→/TA；有 Work Order 无 PRD→/PR；PRD 就绪→/BU；带参数则直达对应工作流",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-agent-mimir-builder",
+        "catalogIds": [],
+        "matchStatus": "manifest-only",
+        "note": "help CSV 无 Mimir 条目。CSV 中唯一的另一个 agent 条目 bmad-wds-idun（Setup and governance agent）职能与本技能完全不同，不可互替。Mimir 的 /TA /PR /BU 子技能在 CSV 中亦无登记。"
+      },
+      "notes": "输出路径文档写作 _wds/tools/memory/SKILL.md（注意前缀为 _wds 而非 _bmad/wds），且 config 使用 {output_folder}。principle 明确「Domain: Phase 5 (Agentic Development)」，但 CSV 无对应 phase 记录。"
+    },
+    {
+      "canonicalId": "wds-agent-saga-analyst",
+      "module": "wds",
+      "kind": "agent",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-agent-saga-analyst/SKILL.md",
+        ".claude/skills/wds-agent-saga-analyst/customize.toml"
+      ],
+      "summaryZh": "WDS 的战略分析师 persona（Saga，领域为阶段 1-2），通过对话创建产品简报（Product Brief）与触发地图（Trigger Map）两份北极星文档，用于协调从愿景到交付的所有团队。安装 WDS 后取代 BMM 的 Mary（bmad-agent-analyst）。",
+      "entry": "用户召唤「和 Saga 对话」触发激活序列。激活时按 config 的 starting_point 分支：pitch（先自由对话再进 Product Brief）或 brief（直接进 [PB]）；意图明确则直接派发菜单项。经 sync 同步后也可用全局命令 /saga 调用。",
+      "menu": [
+        {
+          "code": "AS",
+          "labelEn": "Alignment & Signoff",
+          "labelZh": "对齐与签核",
+          "descZh": "开工前锁定干系人对齐（阶段 0），派发 bmad-wds-alignment"
+        },
+        {
+          "code": "PB",
+          "labelEn": "Product Brief",
+          "labelZh": "产品简报",
+          "descZh": "创建含战略基础的综合产品简报（阶段 1），派发 bmad-wds-project-brief"
+        },
+        {
+          "code": "TM",
+          "labelEn": "Trigger Mapping",
+          "labelZh": "触发地图",
+          "descZh": "创建含用户心理与业务目标的触发地图（阶段 2），派发 bmad-wds-trigger-mapping"
+        },
+        {
+          "code": "BP",
+          "labelEn": "Brainstorm Project",
+          "labelZh": "项目头脑风暴",
+          "descZh": "引导式头脑风暴探索项目愿景与目标，派发 bmad-brainstorming（core 模块）"
+        },
+        {
+          "code": "RS",
+          "labelEn": "Research",
+          "labelZh": "调研",
+          "descZh": "市场、领域、竞品或技术调研，派发 bmad-market-research（BMM 模块）"
+        },
+        {
+          "code": "DP",
+          "labelEn": "Document Project",
+          "labelZh": "项目文档化",
+          "descZh": "分析既有项目产出文档（存量项目），派发 bmad-document-project（BMM 模块）"
+        }
+      ],
+      "dependencies": {
+        "phase": "0-wds-agents",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": [
+        {
+          "name": "Resolve Agent Block",
+          "descZh": "运行 resolve_customization.py 解析 agent 配置（失败则手工按 base→team→user 合并）",
+          "optional": false
+        },
+        {
+          "name": "Execute Prepend Steps",
+          "descZh": "按序执行 activation_steps_prepend",
+          "optional": false
+        },
+        {
+          "name": "Adopt Persona",
+          "descZh": "采用 Saga / WDS Analyst 身份与定制 persona",
+          "optional": false
+        },
+        {
+          "name": "Load Persistent Facts",
+          "descZh": "载入 persistent_facts（含 file: 前缀的路径/通配条目）",
+          "optional": false
+        },
+        {
+          "name": "Load Config",
+          "descZh": "读取 config.yaml：user_name、communication_language、document_output_language、project_name、starting_point",
+          "optional": false
+        },
+        {
+          "name": "Greet the User",
+          "descZh": "以 Saga 身份问候并自我介绍（按 project_name 定制），提示可随时调用 bmad-help",
+          "optional": false
+        },
+        {
+          "name": "Execute Append Steps",
+          "descZh": "按序执行 activation_steps_append",
+          "optional": false
+        },
+        {
+          "name": "Dispatch or Present the Menu",
+          "descZh": "意图明确直接派发；否则按 starting_point 走 pitch/brief 分支，或渲染菜单等待选择",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-agent-saga-analyst",
+        "catalogIds": [
+          "bmad-wds-saga"
+        ],
+        "matchStatus": "matched",
+        "note": "CSV 条目 bmad-wds-saga（displayName「Wake Saga」，menuCode SAGA，phase 0-wds-agents）描述「Strategic Analyst agent for Phases 1-2. Scans repos and offers next steps.」与本技能一致。"
+      },
+      "notes": "principle 明确「Replaces BMM Mary (Analyst) when WDS is installed」。菜单跨模块引用 BMM/Core 技能（bmad-brainstorming、bmad-market-research、bmad-document-project），说明 WDS agent 是模块编排入口。"
+    },
+    {
+      "canonicalId": "memory",
+      "module": "wds",
+      "kind": "utility",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/memory/SKILL.md"
+      ],
+      "summaryZh": "WDS 的会话状态后端：两个操作 save/load，把各 agent 的会话状态写到项目根的 progress/ 目录（机器本地、不进 git）。明确标注「从不被用户直接调用」——save 由 wrap 与 handoff 调用，load 由 start 调用。",
+      "entry": "无用户入口。由 WDS 工具链内部调用：wrap/handoff 的第 3 步调用 save；start 的第 2 步调用 load。",
+      "menu": [],
+      "dependencies": {
+        "phase": null,
+        "precededBy": [],
+        "followedBy": [],
+        "required": null,
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": [
+        {
+          "name": "save",
+          "descZh": "确保项目根存在 progress/；把调用方给的状态块原样写入 progress/[agent_id].md；返回保存路径",
+          "optional": false
+        },
+        {
+          "name": "load",
+          "descZh": "检查 progress/[agent_id].md 是否存在：存在返回全文，不存在返回空（由调用方处理全新会话）",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "memory",
+        "catalogIds": [],
+        "matchStatus": "manifest-only",
+        "note": "help CSV 无 memory 条目（18 条 WDS 记录中不存在工具型技能）。"
+      },
+      "notes": "SKILL frontmatter 声明 agents: [saga, freya, mimir]，即三个 agent 共用的状态后端。文档建议 progress/ 加入 .gitignore（机器本地会话上下文，非项目内容）。"
+    },
+    {
+      "canonicalId": "sync",
+      "module": "wds",
+      "kind": "utility",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/sync/SKILL.md"
+      ],
+      "summaryZh": "把当前项目 _bmad/wds/ 下的 WDS 技能同步到 ~/.claude/commands/（以及 ~/.claude/wds/tools 与 data），使 /saga /freya /mimir /start /wrap /handoff 在任意项目的 Claude Code 会话中可用。每次 agent 激活时静默执行，用户也可直接触发。",
+      "entry": "两种：agent 每次激活时的静默调用（首次询问一次、之后按需静默同步，失败不阻塞激活）；用户显式请求（说「sync」「update WDS」「sync skills」「check for updates」）进入 verbose 模式逐步汇报。",
+      "menu": [],
+      "dependencies": {
+        "phase": null,
+        "precededBy": [],
+        "followedBy": [],
+        "required": null,
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": [
+        {
+          "name": "Locate Project Installation",
+          "descZh": "定位项目根的 _bmad/wds/；不存在时静默停止（verbose 模式提示先安装）",
+          "optional": false
+        },
+        {
+          "name": "Detect Home Directory",
+          "descZh": "识别 HOME（Mac/Linux 用 $HOME，Windows 用 $env:USERPROFILE）并确定命令/工具/数据三类目标目录",
+          "optional": false
+        },
+        {
+          "name": "Check Sync State",
+          "descZh": "检查 ~/.claude/commands/wrap.md 是否存在；已同步则 diff 比对，相同则静默结束",
+          "optional": false
+        },
+        {
+          "name": "First Time Ask",
+          "descZh": "首次同步前询问一次（[Y/n]）：是否将技能加入全局；选 n 则本会话不再询问",
+          "optional": true
+        },
+        {
+          "name": "Sync Files",
+          "descZh": "创建目标目录，复制 6 个命令文件（saga/freya/mimir/start/wrap/handoff）与 memory、glossary、agent-contracts、shared-activation；缺失源文件跳过不报错",
+          "optional": false
+        },
+        {
+          "name": "Report",
+          "descZh": "按场景输出同步结果（首次/直接调用详细；静默更新简略；无变化时不输出或提示已最新）",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "sync",
+        "catalogIds": [],
+        "matchStatus": "manifest-only",
+        "note": "help CSV 无 sync 条目（18 条 WDS 记录中不存在工具型技能）。"
+      },
+      "notes": "源文件清单显示 WDS 技能以 skills/saga.activation.md、freya.activation.md、mimir.activation.md、start.md、wrap.md、handoff.md 为全局命令源；本机 ~/.claude/commands/ 未发现这些文件（仅 loop-start.md），说明本项目尚未执行过 sync。"
+    },
+    {
+      "canonicalId": "wds-0-alignment-signoff",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-0-alignment-signoff/SKILL.md",
+        ".claude/skills/wds-0-alignment-signoff/workflow.md"
+      ],
+      "summaryZh": "开工前与干系人对齐想法并取得签核：适用于需要他人批准的场景（顾问向客户提案、企业采购外包、内部立项审批），产出 pitch、合同/服务协议/内部签核三类文档。自己独立做产品可跳过，直接进 Product Brief。",
+      "entry": "Saga 菜单 [AS] 派发；或项目需要干系人批准时直接使用。初始化时读取 config.yaml 与设计日志，从 steps-c/step-01a-understand-situation.md 开始。",
+      "menu": [],
+      "dependencies": {
+        "phase": "0-wds-pitch",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "design_artifacts/A-Product-Brief",
+        "outputs": "pitch service-agreement signoff"
+      },
+      "steps": [
+        {
+          "name": "Start & Understand",
+          "descZh": "评估用户处境（01a-01e）：判断是否需要本流程、可否从现有沟通材料提取信息、确定探索起点",
+          "optional": false
+        },
+        {
+          "name": "Explore Sections",
+          "descZh": "按灵活顺序探索对齐文档的 10 个章节（02a-02k）：现实认知→解决方案→价值→路径→承诺 等",
+          "optional": false
+        },
+        {
+          "name": "Synthesize & Present",
+          "descZh": "综合理解并回述确认（03a）、生成对齐文档（03b）、提交干系人批准（03d）",
+          "optional": false
+        },
+        {
+          "name": "Generate Signoff",
+          "descZh": "提供签核选项（04a）并按业务模式路由（04b）：合同 / 服务协议 / 内部签核",
+          "optional": false
+        },
+        {
+          "name": "Build Contract",
+          "descZh": "构建合同 11 个章节（05a-05l）：项目概述、业务模式、范围、付款、时间线、保密、上限、启动、条款、批准",
+          "optional": false
+        },
+        {
+          "name": "Build Internal Signoff",
+          "descZh": "生成内部批准文档（06a-06b）并保存",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-0-alignment-signoff",
+        "catalogIds": [
+          "bmad-wds-alignment"
+        ],
+        "matchStatus": "matched",
+        "note": "CSV 条目 bmad-wds-alignment（displayName「Alignment & Signoff」，menuCode AS，phase 0-wds-pitch）描述「Stakeholder buy-in pitch and service agreement. Skip if building your own product.」与本技能一致，含可跳过的显式标注。"
+      },
+      "notes": "完成后的 AFTER COMPLETION 指向 skill:wds-1-project-brief。步骤体系较大（35 个步骤文件），合同章节 05a-05l 覆盖完整商务条款。"
+    },
+    {
+      "canonicalId": "wds-0-project-setup",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-0-project-setup/SKILL.md",
+        ".claude/skills/wds-0-project-setup/workflow.md"
+      ],
+      "summaryZh": "每个 WDS 项目的起点（3-5 分钟）：介绍 WDS、判定新项目（Greenfield）还是存量项目（Brownfield）、产品复杂度（落地页/网站/应用）、技术栈与组件库、brief 层级（完整/简化）与战略分析深度（full/simplified/skip），创建目录结构并路由到正确阶段。文档明言头号错误是「带着存量代码从阶段 1 开始」。",
+      "entry": "首次使用 WDS、开始新项目、加入既有项目或不确定用哪个工作流时进入。已在 steps/step-01-welcome.md 起步。",
+      "menu": [],
+      "dependencies": {
+        "phase": null,
+        "precededBy": [],
+        "followedBy": [],
+        "required": null,
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": [
+        {
+          "name": "Welcome & Orientation",
+          "descZh": "简介 WDS，判定 Greenfield（走阶段 1-7）还是 Brownfield（走阶段 8）",
+          "optional": false
+        },
+        {
+          "name": "Configuration & Structure",
+          "descZh": "配置项目名、复杂度、技术栈、组件库、brief 层级、战略分析深度；创建目录结构并生成项目大纲；按类型路由",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-0-project-setup",
+        "catalogIds": [],
+        "matchStatus": "manifest-only",
+        "note": "help CSV 无 project-setup 条目；CSV 的阶段划分从 0-wds-pitch/0-wds-agents 直接开始，没有「项目引导」这一层。"
+      },
+      "notes": "整体可跳过：项目大纲 .wds-project-outline.yaml 已存在、明确知道所需阶段、或继续既有 WDS 项目时。配置项与影响在 workflow.md 有完整表格（Project Type/Complexity/Tech Stack/Component Library/Brief Level/Strategic Analysis）。产出路由：Greenfield→阶段 1（full 分析时进阶段 2）；Brownfield→阶段 8。"
+    },
+    {
+      "canonicalId": "wds-1-project-brief",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-1-project-brief/SKILL.md",
+        ".claude/skills/wds-1-project-brief/workflow.md"
+      ],
+      "summaryZh": "建立所有设计工作的战略地基：通过协作探询产出 Product Brief（愿景、定位、业务模式、目标用户、成功标准、约束），并延伸出内容与语言、视觉方向、平台需求三份配套文档。CSV 标注为必需（required=true），并要求每个设计决策可回溯到这份文档。",
+      "entry": "阶段 0 路由（Greenfield）或 Saga 菜单 [PB] 派发；也可由 wds-0-alignment-signoff 完成后交接。按 config 的 brief_level 分流：simplified 走 step-00-simplified-brief.md，complete 走 step-01-init.md；带 validate 参数走 workflow-validate.md。",
+      "menu": [],
+      "dependencies": {
+        "phase": "1-wds-strategy",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "true",
+        "args": null,
+        "outputLocation": "design_artifacts/A-Product-Brief",
+        "outputs": "project-brief.md"
+      },
+      "steps": [
+        {
+          "name": "Simplified Brief (alternative entry)",
+          "descZh": "brief_level=simplified 时的替代入口：一份精简简报替代完整 36 步流程",
+          "optional": true
+        },
+        {
+          "name": "01 Init",
+          "descZh": "载入上下文，确认就绪",
+          "optional": false
+        },
+        {
+          "name": "01a Client Profile",
+          "descZh": "客户画像：组织、关键人、决策文化、内部驱动因素",
+          "optional": false
+        },
+        {
+          "name": "02 Vision",
+          "descZh": "探索并记录项目愿景",
+          "optional": false
+        },
+        {
+          "name": "03 Positioning",
+          "descZh": "定义市场定位",
+          "optional": false
+        },
+        {
+          "name": "05 Business Model",
+          "descZh": "定义收入/业务模式（文档步骤编号从 03 跳到 05，无 04 步）",
+          "optional": false
+        },
+        {
+          "name": "06 Business Customers",
+          "descZh": "识别 B2B 客户（如适用）",
+          "optional": true
+        },
+        {
+          "name": "07 Target Users",
+          "descZh": "定义最终用户",
+          "optional": false
+        },
+        {
+          "name": "07a Product Concept",
+          "descZh": "澄清产品概念",
+          "optional": false
+        },
+        {
+          "name": "08 Success Criteria",
+          "descZh": "定义可衡量的成功指标",
+          "optional": false
+        },
+        {
+          "name": "09 Competitive Landscape",
+          "descZh": "分析竞争格局",
+          "optional": false
+        },
+        {
+          "name": "10 Constraints",
+          "descZh": "记录项目约束",
+          "optional": false
+        },
+        {
+          "name": "10a Platform Strategy",
+          "descZh": "定义平台策略",
+          "optional": false
+        },
+        {
+          "name": "11 Tone of Voice",
+          "descZh": "建立品牌语气",
+          "optional": false
+        },
+        {
+          "name": "12 Create Product Brief",
+          "descZh": "生成 Product Brief 主文档",
+          "optional": false
+        },
+        {
+          "name": "13 Content Init",
+          "descZh": "初始化内容与语言策略",
+          "optional": false
+        },
+        {
+          "name": "14 Personality",
+          "descZh": "定义品牌人格",
+          "optional": false
+        },
+        {
+          "name": "15 Tone",
+          "descZh": "细化语气指南",
+          "optional": false
+        },
+        {
+          "name": "16 Languages",
+          "descZh": "制定语言策略",
+          "optional": false
+        },
+        {
+          "name": "17 SEO Keywords",
+          "descZh": "定义关键词地图",
+          "optional": false
+        },
+        {
+          "name": "17a Content Structure",
+          "descZh": "搭建内容架构",
+          "optional": false
+        },
+        {
+          "name": "18 Create Content Document",
+          "descZh": "生成内容与语言文档",
+          "optional": false
+        },
+        {
+          "name": "19 Inspiration Workshop",
+          "descZh": "分析参考站点",
+          "optional": false
+        },
+        {
+          "name": "20 Visual Init",
+          "descZh": "初始化视觉方向",
+          "optional": false
+        },
+        {
+          "name": "21 Existing Brand",
+          "descZh": "记录现有品牌资产",
+          "optional": false
+        },
+        {
+          "name": "22 References",
+          "descZh": "收集视觉参考",
+          "optional": false
+        },
+        {
+          "name": "23 Design Style",
+          "descZh": "定义设计风格",
+          "optional": false
+        },
+        {
+          "name": "24 Layout & Effects",
+          "descZh": "定义布局模式与效果",
+          "optional": false
+        },
+        {
+          "name": "25 Imagery",
+          "descZh": "确定摄影与插画方向",
+          "optional": false
+        },
+        {
+          "name": "26 Create Visual Document",
+          "descZh": "生成视觉方向文档",
+          "optional": false
+        },
+        {
+          "name": "27 Platform Init",
+          "descZh": "初始化平台需求",
+          "optional": false
+        },
+        {
+          "name": "28 Tech Stack",
+          "descZh": "定义技术选型",
+          "optional": false
+        },
+        {
+          "name": "29 Integrations",
+          "descZh": "梳理第三方集成",
+          "optional": false
+        },
+        {
+          "name": "30 Contact Strategy",
+          "descZh": "定义联系表单与通讯策略",
+          "optional": false
+        },
+        {
+          "name": "31 Multilingual",
+          "descZh": "多语言设置",
+          "optional": false
+        },
+        {
+          "name": "32 Create Platform Document",
+          "descZh": "生成平台需求文档",
+          "optional": false
+        },
+        {
+          "name": "33 Analyze Brief",
+          "descZh": "复核阶段 1 全部产物",
+          "optional": false
+        },
+        {
+          "name": "34 Create Summary",
+          "descZh": "生成交接摘要",
+          "optional": false
+        },
+        {
+          "name": "35 Update Design Log",
+          "descZh": "在设计日志记录阶段 1 决策",
+          "optional": false
+        },
+        {
+          "name": "36 Provide Activation",
+          "descZh": "给出阶段 2 的激活提示",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-1-project-brief",
+        "catalogIds": [
+          "bmad-wds-project-brief",
+          "bmad-wds-platform-requirements"
+        ],
+        "matchStatus": "matched",
+        "note": "主条目 bmad-wds-project-brief（PB，1-wds-strategy，required=true，产出 project-brief.md）一对一对应；bmad-wds-platform-requirements（PR，「Skip for simple landing pages」）无独立 manifest 技能，其产出 platform-requirements.md 由本技能步骤 27-32 和 resources/wds-1-project-brief/templates/platform-requirements.template.md 实现，故归入本技能。"
+      },
+      "notes": "本技能含大量模板资源（resources/wds-1-project-brief/templates/：project-brief、content-language、platform-requirements、visual-direction、simplified-brief、pitch、contract、service-agreement、signoff 等）。dependencies 的 outputLocation/outputs 取主条目值；platform-requirements 条目的独立值为 outputLocation=design_artifacts/A-Product-Brief、outputs=platform-requirements.md、required=false。"
+    },
+    {
+      "canonicalId": "wds-2-trigger-mapping",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-2-trigger-mapping/SKILL.md",
+        ".claude/skills/wds-2-trigger-mapping/workflow.md",
+        ".claude/skills/wds-2-trigger-mapping/steps-c/step-01-overview.md"
+      ],
+      "summaryZh": "通过结构化工作坊把业务目标映射到用户心理：依次产出业务目标、目标群体、驱动因素与优先级，再生成人物画像、特征影响分析与 Mermaid 影响力图，形成协调所有团队的战略北极星。方法基于 inUse 的 Effect Mapping（Mijo Balic 与 Ingrid Domingues），WDS 做了简化（去特征）并增强负向驱动因素。",
+      "entry": "Saga 菜单 [TM] 派发；或由 wds-1-project-brief 完成后交接。三个入口：默认从零工作坊（step-01-overview）、从既有文档综合（step-00a-documentation-synthesis）、validate 校验（workflow-validate.md）。",
+      "menu": [
+        {
+          "code": "W",
+          "labelEn": "Workshop",
+          "labelZh": "工作坊",
+          "descZh": "我主持、你提供洞察（45-60 分钟）；选 W 后再选全部 4 个工作坊一次跑完 [A] 或逐个进行 [O]"
+        },
+        {
+          "code": "S",
+          "labelEn": "Suggest",
+          "labelZh": "建议模式",
+          "descZh": "我逐步建议、你逐步复核（20-35 分钟），基于 WDS 方法+产品简报+领域研究生成"
+        },
+        {
+          "code": "D",
+          "labelEn": "Dream",
+          "labelZh": "代做模式",
+          "descZh": "我自主完成全部步骤、你复核最终结果（15-25 分钟），含设计日志与自审循环"
+        }
+      ],
+      "dependencies": {
+        "phase": "1-wds-strategy",
+        "precededBy": [
+          "bmad-wds-project-brief"
+        ],
+        "followedBy": [],
+        "required": "true",
+        "args": null,
+        "outputLocation": "design_artifacts/B-Trigger-Map",
+        "outputs": "trigger-map.md personas/ feature-impact-analysis.md"
+      },
+      "steps": [
+        {
+          "name": "Mode Selection",
+          "descZh": "展示阶段 2 概览并提供 Workshop/Suggest/Dream 三种参与模式（禁止替用户自动选择）",
+          "optional": false
+        },
+        {
+          "name": "Documentation Synthesis (alternative entry)",
+          "descZh": "从既有文档综合提取（step-00a-00f）：业务目标、目标群体、驱动因素、优先级提取与差距分析",
+          "optional": true
+        },
+        {
+          "name": "Business Goals",
+          "descZh": "梳理并确认业务目标",
+          "optional": false
+        },
+        {
+          "name": "Target Groups",
+          "descZh": "识别并划分目标群体",
+          "optional": false
+        },
+        {
+          "name": "Driving Forces",
+          "descZh": "识别正向与负向驱动因素",
+          "optional": false
+        },
+        {
+          "name": "Prioritization",
+          "descZh": "对驱动因素做优先级排序",
+          "optional": false
+        },
+        {
+          "name": "Feature Impact Analysis",
+          "descZh": "提取特征并按驱动因素评分（06a-06e），生成特征影响文档",
+          "optional": false
+        },
+        {
+          "name": "Generate Documents",
+          "descZh": "生成产出（07a-07g）：hub、业务目标、主/次/三级人物画像、关键洞察，含质量检查",
+          "optional": false
+        },
+        {
+          "name": "Mermaid Impact Map",
+          "descZh": "生成 Mermaid 影响力图（08a-08h）：结构、业务目标、平台、目标群体、驱动因素、连接与样式",
+          "optional": false
+        },
+        {
+          "name": "Finalize & Handover",
+          "descZh": "收尾（09a-09d）：定稿 hub、加交叉引用、质量检查、创建交接包",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-2-trigger-mapping",
+        "catalogIds": [
+          "bmad-wds-trigger-mapping"
+        ],
+        "matchStatus": "matched",
+        "note": "CSV 条目 bmad-wds-trigger-mapping（TM，1-wds-strategy，preceded-by=bmad-wds-project-brief，required=true，产出 trigger-map.md personas/ feature-impact-analysis.md）与本技能产出完全一致。"
+      },
+      "notes": "阶段编号差异：技能文档自述「Phase 2: Trigger Mapping」，CSV 归「1-wds-strategy」（见 discrepancies）。工作流含严格步骤纪律（禁止同时载入多个步骤文件）与 5 层生成管线（Learn Form→Project Context→Domain Research→Generate→Self-Review，Dream/Suggest 模式下最多 5 轮自审循环）。"
+    },
+    {
+      "canonicalId": "wds-3-scenarios",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-3-scenarios/SKILL.md",
+        ".claude/skills/wds-3-scenarios/workflow.md"
+      ],
+      "summaryZh": "把触发地图转成具体 UX 场景大纲：以「人物+目标+结果」定义用户旅程的阳光路径，让所有待设计页面暴露出来接受审视。步骤 02 与 04 设用户确认关卡，步骤 07 按评分表做质量校验。",
+      "entry": "Freya 菜单 [SC] 派发；或由 wds-2-trigger-mapping 交接。初始化后从 steps-c/step-01-load-context.md 开始；带 validate 参数走 workflow-validate.md。",
+      "menu": [],
+      "dependencies": {
+        "phase": "2-wds-design",
+        "precededBy": [
+          "bmad-wds-trigger-mapping"
+        ],
+        "followedBy": [],
+        "required": "true",
+        "args": null,
+        "outputLocation": "design_artifacts/C-UX-Scenarios",
+        "outputs": "scenario-overview.md"
+      },
+      "steps": [
+        {
+          "name": "Load Context",
+          "descZh": "读取全部前置产物（产品简报、触发地图），检测项目状态",
+          "optional": false
+        },
+        {
+          "name": "Analyze Scope",
+          "descZh": "确定站点类型、页面与规模策略（用户确认关卡）",
+          "optional": false
+        },
+        {
+          "name": "Build Strategic Context",
+          "descZh": "从触发地图提取战略上下文",
+          "optional": false
+        },
+        {
+          "name": "Suggest Scenarios",
+          "descZh": "提交场景计划供批准（用户确认关卡）",
+          "optional": false
+        },
+        {
+          "name": "Outline Scenario",
+          "descZh": "逐个细化场景（循环执行每个场景）",
+          "optional": false
+        },
+        {
+          "name": "Generate Overview",
+          "descZh": "生成 00-ux-scenarios.md 索引与覆盖矩阵",
+          "optional": false
+        },
+        {
+          "name": "Quality Review",
+          "descZh": "对照评分表自审",
+          "optional": false
+        },
+        {
+          "name": "Update Design Log",
+          "descZh": "在项目日志记录阶段完成",
+          "optional": false
+        },
+        {
+          "name": "Handover",
+          "descZh": "完成阶段 3 并准备阶段 4",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-3-scenarios",
+        "catalogIds": [
+          "bmad-wds-outline-scenarios"
+        ],
+        "matchStatus": "matched",
+        "note": "CSV 条目 bmad-wds-outline-scenarios（OS，「Define user journeys as persona+goal+outcome. Each connects to a Trigger Map driving force.」，preceded-by=bmad-wds-trigger-mapping，required=true）与本技能一致。"
+      },
+      "notes": "阶段编号差异：技能自述「Phase 3」，CSV 归「2-wds-design」。另有 workflow-validate.md（steps-v/ 5 项校验：场景覆盖、导航模式、大纲完整性、跨场景一致性、SEO 关键词对齐）。"
+    },
+    {
+      "canonicalId": "wds-4-ux-design",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-4-ux-design/SKILL.md",
+        ".claude/skills/wds-4-ux-design/workflow.md",
+        ".claude/skills/wds-4-ux-design/workflow-conceptualize.md",
+        ".claude/skills/wds-4-ux-design/workflow-sketch.md",
+        ".claude/skills/wds-4-ux-design/workflow-specify.md",
+        ".claude/skills/wds-4-ux-design/workflow-visual.md",
+        ".claude/skills/wds-4-ux-design/workflow-design-system.md",
+        ".claude/skills/wds-4-ux-design/workflow-handover.md"
+      ],
+      "summaryZh": "以场景为驱动的设计主战场：启动时读取设计日志呈现自适应仪表盘，建议下一步；围绕每个场景做讨论、草图解读、建议式/代做式设计，撰写实现级页面规格，生成视觉表现，管理设计系统并打包交付。产出开发可直接实现的页面规格与 Design Delivery 包。",
+      "entry": "Freya 菜单 [UX]/[SP] 等派发；或由 wds-3-scenarios 交接（scenario 的 design_intent 可预选活动）。初始化读取 config.yaml 与 _progress/00-design-log.md，无日志则先引导做阶段 0 设置；带 validate 参数走 workflow-validate.md。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Discuss",
+          "labelZh": "讨论",
+          "descZh": "页面设计的创意对话（默认活动）：讨论页面需求→可视化→写规格，跑 8 步设计循环"
+        },
+        {
+          "code": "K",
+          "labelEn": "Analyse Sketches",
+          "labelZh": "解读草图",
+          "descZh": "分析用户提供的草图（照片、截图、线框）并转成结构化页面规格"
+        },
+        {
+          "code": "S",
+          "labelEn": "Suggest Design",
+          "labelZh": "建议式设计",
+          "descZh": "我来提议设计、你逐步确认"
+        },
+        {
+          "code": "D",
+          "labelEn": "Dream Up Design",
+          "labelZh": "代做式设计",
+          "descZh": "我全部做完、你来复核（自主模式）"
+        },
+        {
+          "code": "P",
+          "labelEn": "Write Specifications",
+          "labelZh": "编写规格",
+          "descZh": "内容、交互、间距、排版规格的完整编写（steps-p/ 9 步）"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate Specs",
+          "labelZh": "校验规格",
+          "descZh": "审计规格完整性与质量（steps-v/ 10 项校验）"
+        },
+        {
+          "code": "W",
+          "labelEn": "Visual Design",
+          "labelZh": "视觉设计",
+          "descZh": "用 Nano Banana、Stitch、Figma、Pencil.io 等工具创建视觉表现并整合回规格"
+        },
+        {
+          "code": "M",
+          "labelEn": "Design System",
+          "labelZh": "设计系统",
+          "descZh": "提取或更新共享组件（首次出现内联、第二次使用才提取）"
+        },
+        {
+          "code": "H",
+          "labelEn": "Design Delivery",
+          "labelZh": "设计交付",
+          "descZh": "把完整可测的流程打包为 DD-XXX Design Delivery 并移交开发（steps-h/ 6 步）"
+        }
+      ],
+      "dependencies": {
+        "phase": "2-wds-design",
+        "precededBy": [
+          "bmad-wds-outline-scenarios"
+        ],
+        "followedBy": [],
+        "required": "true",
+        "args": null,
+        "outputLocation": "design_artifacts/C-UX-Scenarios",
+        "outputs": "page-specs scenario-specs"
+      },
+      "steps": [
+        {
+          "name": "Design",
+          "descZh": "设计与探索组：讨论（C）、解读草图（K）、建议（S）、代做（D）",
+          "optional": true
+        },
+        {
+          "name": "Specify",
+          "descZh": "规格组：编写规格（P）、校验规格（V）",
+          "optional": true
+        },
+        {
+          "name": "Produce",
+          "descZh": "产出组：视觉设计（W）、设计系统（M）、设计交付（H）",
+          "optional": true
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-4-ux-design",
+        "catalogIds": [
+          "bmad-wds-conceptual-sketching",
+          "bmad-wds-storyboarding",
+          "bmad-wds-conceptual-specs",
+          "bmad-wds-design-delivery"
+        ],
+        "matchStatus": "matched",
+        "note": "本技能合并了 4 条 CSV 条目：conceptual-sketching（「Fast rough visual exploration before detailed specification」，落于 [C] Discuss 与 [K] Analyse Sketches）、storyboarding（「Sequence the user journey through screens...」，落于 [S]/[D] 与 storyboard 模板）、conceptual-specs（「Document every design decision...Developers build directly from this」，落于 [P] Specify，required=true）、design-delivery（「package as DD yaml files」，落于 [H] Handover，产出 templates/design-delivery.template.yaml，required=true）。dependencies 取主条目 conceptual-specs 的值（[P] 为规格核心且 required=true）。"
+      },
+      "notes": "Freya 菜单用 CSV 名称引用本技能的两个活动：UX→bmad-wds-conceptual-sketching、SP→bmad-wds-conceptual-specs、DD→bmad-wds-design-delivery，可作为映射的直接证据。storyboarding 无独立活动码，storyboard 相关文件（data/modular-architecture/02-workflows/storyboards-guide.md、templates/storyboard-specification.template.md）出现在 suggest/dream 流程中。设计日志（Design Log）是本技能跨会话的记忆机制，含 Backlog/Current/Design Loop Status/Log 四区。"
+    },
+    {
+      "canonicalId": "wds-5-agentic-development",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-5-agentic-development/SKILL.md",
+        ".claude/skills/wds-5-agentic-development/workflow.md",
+        ".claude/skills/wds-5-agentic-development/workflow-acceptance-testing.md",
+        ".claude/skills/wds-5-agentic-development/data/testing-guide.md",
+        ".claude/skills/wds-5-agentic-development/data/guides/PROTOTYPE-ANALYSIS.md"
+      ],
+      "summaryZh": "AI 辅助的开发、测试与逆向工程：菜单驱动而非线性，从原型、生产开发、修缺陷、功能演进、代码分析、逆向工程到验收测试共 7 类活动任选。核心原则「规格即事实」——所有工作回溯到已批准的规格，设计日志驱动状态跟踪。",
+      "entry": "Freya 菜单（阶段 5）或直接调用。初始化读取 config.yaml 与设计日志后呈现活动菜单。",
+      "menu": [
+        {
+          "code": "P",
+          "labelEn": "Prototyping",
+          "labelZh": "原型构建",
+          "descZh": "从规格构建可交互原型（steps-p/ 含逻辑视图拆解、分节实现、展示测试）"
+        },
+        {
+          "code": "D",
+          "labelEn": "Development",
+          "labelZh": "生产开发",
+          "descZh": "编写生产代码（steps-d/ 5 步：界定与计划、环境、实现、验证、收尾）"
+        },
+        {
+          "code": "F",
+          "labelEn": "Bugfixing",
+          "labelZh": "缺陷修复",
+          "descZh": "修复既有代码中的缺陷（steps-f/ 5 步：复现、调查、修复、验证、记录）"
+        },
+        {
+          "code": "E",
+          "labelEn": "Evolution",
+          "labelZh": "功能演进",
+          "descZh": "为在线产品添加功能（steps-e/ 5 步：界定变更、影响分析、实现计划、实现、验证与记录）"
+        },
+        {
+          "code": "A",
+          "labelEn": "Analysis",
+          "labelZh": "代码分析",
+          "descZh": "理解自己的代码库并产出分析文档（steps-a/ 4 步）"
+        },
+        {
+          "code": "R",
+          "labelEn": "Reverse Engineering",
+          "labelZh": "逆向工程",
+          "descZh": "从任意软件/网站提取规格（steps-r/）"
+        },
+        {
+          "code": "T",
+          "labelEn": "Acceptance Testing",
+          "labelZh": "验收测试",
+          "descZh": "从规格验收标准设计并运行测试（steps-t/ 5 步：准备、执行、记录问题、报告、迭代）"
+        }
+      ],
+      "dependencies": {
+        "phase": "3-wds-build",
+        "precededBy": [
+          "bmad-wds-design-delivery"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "_progress/agent-experiences",
+        "outputs": "experience-documents"
+      },
+      "steps": null,
+      "idMapping": {
+        "manifestId": "wds-5-agentic-development",
+        "catalogIds": [
+          "bmad-wds-agentic-development",
+          "bmad-wds-usability-testing"
+        ],
+        "matchStatus": "matched",
+        "note": "主条目 bmad-wds-agentic-development（AD，preceded-by=bmad-wds-design-delivery，产出 experience-documents）一对一对应；bmad-wds-usability-testing（displayName 恰为「Acceptance Testing」，preceded-by=agentic-development）无独立 manifest 技能，其职能对应本技能的 [T] Acceptance Testing 活动（workflow-acceptance-testing.md），故归入本技能。"
+      },
+      "notes": "未完全对齐之处：CSV 的 usability-testing 描述为「Test on real users in their environment with retrospective think-aloud sessions」（真人用户环境测试），而本地 [T] Acceptance Testing 是设计师对照规格验证（data/testing-guide.md 标题为「Acceptance Testing (Designer Validation)」），think-aloud 表述仅见于 data/guides/PROTOTYPE-ANALYSIS.md 的「real usability testing」提法，未见完整流程。二者按 displayName 一致 + 流程链位置判定为同一职能的新旧版本差异。"
+    },
+    {
+      "canonicalId": "wds-6-asset-generation",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-6-asset-generation/SKILL.md",
+        ".claude/skills/wds-6-asset-generation/workflow.md",
+        ".claude/skills/wds-6-asset-generation/workflow-page-designs.md"
+      ],
+      "summaryZh": "把规格变成生产级资产：线框、页面设计稿、UI 元素、图标、图片、视频、策略文案与 Figma 导出共 8 类。内置设计风格库与内容风格库保证视觉一致性，支持批量生成与参考图，优先走 MCP 服务生成、不可用时导出提示词给外部工具。",
+      "entry": "阶段 5/6 由 Freya 菜单 [GA] 派发（菜单引用 bmad-wds-visual-design 并标注 Phase 6）；或直接调用。初始化读取 config.yaml 与设计日志后进入活动菜单。",
+      "menu": [
+        {
+          "code": "W",
+          "labelEn": "Wireframes",
+          "labelZh": "线框图",
+          "descZh": "从页面规格生成轮廓线框"
+        },
+        {
+          "code": "P",
+          "labelEn": "Page Designs",
+          "labelZh": "页面设计稿",
+          "descZh": "完整的页面设计构图"
+        },
+        {
+          "code": "U",
+          "labelEn": "UI Elements",
+          "labelZh": "UI 元素",
+          "descZh": "按钮、卡片、表单、组件类资产"
+        },
+        {
+          "code": "I",
+          "labelEn": "Icons",
+          "labelZh": "图标",
+          "descZh": "图标集与单个图标"
+        },
+        {
+          "code": "M",
+          "labelEn": "Images",
+          "labelZh": "图片",
+          "descZh": "照片、插画、背景图"
+        },
+        {
+          "code": "V",
+          "labelEn": "Videos",
+          "labelZh": "视频",
+          "descZh": "动效内容与动画"
+        },
+        {
+          "code": "C",
+          "labelEn": "Content",
+          "labelZh": "文案内容",
+          "descZh": "策略性文本内容（5 模型框架）"
+        },
+        {
+          "code": "E",
+          "labelEn": "Export to Figma",
+          "labelZh": "导出到 Figma",
+          "descZh": "把规格与资产推送到 Figma"
+        }
+      ],
+      "dependencies": {
+        "phase": "2-wds-design",
+        "precededBy": [
+          "bmad-wds-conceptual-specs"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "design_artifacts/C-UX-Scenarios",
+        "outputs": "html-prototypes visual-designs"
+      },
+      "steps": [
+        {
+          "name": "Load Context",
+          "descZh": "读取相关页面规格、设计系统与视觉方向",
+          "optional": false
+        },
+        {
+          "name": "Asset Inventory",
+          "descZh": "盘点所需资产（单个或批量）",
+          "optional": false
+        },
+        {
+          "name": "Select Style",
+          "descZh": "从风格库选择设计风格与内容风格",
+          "optional": false
+        },
+        {
+          "name": "Reference Images",
+          "descZh": "附参考图保证批量视觉一致性（服务支持时）",
+          "optional": false
+        },
+        {
+          "name": "Craft Prompts",
+          "descZh": "把规格+风格+参考翻译为生成提示词",
+          "optional": false
+        },
+        {
+          "name": "Select Service",
+          "descZh": "路由到 MCP 服务或导出提示词供外部工具使用",
+          "optional": false
+        },
+        {
+          "name": "Generate & Review",
+          "descZh": "执行生成、审阅结果、迭代",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-6-asset-generation",
+        "catalogIds": [
+          "bmad-wds-visual-design"
+        ],
+        "matchStatus": "matched",
+        "note": "映射依据：Freya 菜单 GA 项标注「Generate Assets: Nano Banana, Stitch and other services (Phase 6)」并指向 bmad-wds-visual-design，Phase 6 正是本技能。CSV 条目 bmad-wds-visual-design（VD，「Transform specs into styled HTML prototypes with Figma round-trips」，产出 html-prototypes visual-designs）为旧版命名，其「HTML 原型 + Figma 往返」职能在新版中部分由本技能（资产/页面设计/Figma 导出）承担、部分由 wds-4 的 [W] Visual Design 活动承担。"
+      },
+      "notes": "本技能覆盖 8 类资产、体量较大（styles 目录含 6 类设计风格与 10 类内容风格）。产出位置与 CSV 记录不一致：本技能实际输出 {output_folder}/E-Assets/（按类型组织），CSV 记为 design_artifacts/C-UX-Scenarios。"
+    },
+    {
+      "canonicalId": "wds-7-design-system",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-7-design-system/SKILL.md",
+        ".claude/skills/wds-7-design-system/workflow.md",
+        ".claude/skills/wds-7-design-system/workflow-create.md"
+      ],
+      "summaryZh": "创建、导入、浏览、编辑、维护设计系统：组件与设计令牌以代码为唯一事实源，新增组件时内部做相似度重复检测（复用/扩展/新建三选一），并可生成一次性的 localhost 应用做可视化浏览（令牌浏览器、关系视图、意图搜索、组件目录），Figma 用于视觉编辑。",
+      "entry": "Freya 菜单 [DS] 派发；或由 wds-4 的 [M] Manage Design System 深入而来。初始化读取 config.yaml（含 design_system_mode: none/basic/full）与设计日志后进入活动菜单。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create Design System",
+          "labelZh": "创建设计系统",
+          "descZh": "从规格构建新设计系统（含重复检测）"
+        },
+        {
+          "code": "I",
+          "labelEn": "Import Design System",
+          "labelZh": "导入设计系统",
+          "descZh": "引入既有设计系统"
+        },
+        {
+          "code": "V",
+          "labelEn": "View Components",
+          "labelZh": "预览组件",
+          "descZh": "在 localhost 预览选定组件"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit Components",
+          "labelZh": "编辑组件",
+          "descZh": "在 Figma 中打开选定组件编辑"
+        },
+        {
+          "code": "B",
+          "labelEn": "Browse Design System",
+          "labelZh": "浏览设计系统",
+          "descZh": "在 localhost 搜索与探索令牌和组件"
+        }
+      ],
+      "dependencies": {
+        "phase": "2-wds-design",
+        "precededBy": [
+          "bmad-wds-functional-components"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "design_artifacts/D-Design-System",
+        "outputs": "components/ design-tokens.md"
+      },
+      "steps": [
+        {
+          "name": "Initialize",
+          "descZh": "初始化设计系统结构：令牌类别、组件组织、命名规范（steps-c/step-08a）",
+          "optional": true
+        },
+        {
+          "name": "Duplicate Detection",
+          "descZh": "新增组件前做重复检测（steps-c/step-01-07）：扫描既有、属性对比、相似度计算、机会与风险识别、呈现决策",
+          "optional": false
+        },
+        {
+          "name": "Create or Update Component",
+          "descZh": "执行决策（steps-c/step-08b-08e）：新建/更新/加变体/生成目录",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-7-design-system",
+        "catalogIds": [
+          "bmad-wds-design-system",
+          "bmad-wds-functional-components"
+        ],
+        "matchStatus": "matched",
+        "note": "主条目 bmad-wds-design-system（DS，「Manage component library and design tokens. Skip if Design System Mode None.」，preceded-by=bmad-wds-functional-components，产出 components/ + design-tokens.md）一对一对应；bmad-wds-functional-components（FI，「Extract reusable patterns from specs into component definitions. Skip if Design System Mode None.」，产出 component-candidates）无独立 manifest 技能，其职能落在本技能 workflow-create.md 的「Build a new design system or add components from specifications」流程，故归入本技能（同时 wds-4 的 [M] 活动也含页面内提取规则，属跨技能重叠）。"
+      },
+      "notes": "「Skip if Design System Mode None」与本技能的 design_system_mode 配置（config.yaml: none/basic/full）直接对应，是 functional-components 归属本技能的依据之一。产出位置：{output_folder}/D-Design-System/components/*.md、design-tokens.md、component-library-config.md。"
+    },
+    {
+      "canonicalId": "wds-8-product-evolution",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        ".claude/skills/wds-8-product-evolution/SKILL.md",
+        ".claude/skills/wds-8-product-evolution/workflow.md",
+        ".claude/skills/wds-8-product-evolution/workflow-test.md"
+      ],
+      "summaryZh": "存量产品的持续改良：完整 WDS 流水线的微缩版，每个循环聚焦一处改进（分析→界定→设计→实现→验收→部署），每次变更走独立 git 分支直至部署。基于 Kaizen 理念：小步、增量、数据驱动，每个循环反哺下一个。",
+      "entry": "新项目判定为 Brownfield 时由阶段 0 路由进入；Freya 菜单 [PE] 派发；或对既有产品做改进时直接调用。初始化读取 config.yaml 与设计日志后进入活动菜单。",
+      "menu": [
+        {
+          "code": "A",
+          "labelEn": "Analyze Product",
+          "labelZh": "分析产品",
+          "descZh": "理解现状、寻找改进目标（steps-a/，借用阶段 3 场景方法）"
+        },
+        {
+          "code": "S",
+          "labelEn": "Scope Improvement",
+          "labelZh": "界定改进",
+          "descZh": "为具体更新创建场景（借用阶段 3）"
+        },
+        {
+          "code": "D",
+          "labelEn": "Design Solution",
+          "labelZh": "设计方案",
+          "descZh": "草拟并规格化更新（steps-d/，借用阶段 4 UX 设计）"
+        },
+        {
+          "code": "I",
+          "labelEn": "Implement",
+          "labelZh": "实现",
+          "descZh": "在新分支写代码（借用阶段 5）"
+        },
+        {
+          "code": "T",
+          "labelEn": "Acceptance Test",
+          "labelZh": "验收测试",
+          "descZh": "对照规格测试（steps-t/，借用阶段 5 的 [T]）"
+        },
+        {
+          "code": "P",
+          "labelEn": "Deploy",
+          "labelZh": "部署",
+          "descZh": "提 PR 并交付团队（steps-p/，借用阶段 4 的 [H] 交付）"
+        }
+      ],
+      "dependencies": {
+        "phase": "3-wds-build",
+        "precededBy": [
+          "bmad-wds-usability-testing"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "design_artifacts",
+        "outputs": "updated-artifacts"
+      },
+      "steps": [
+        {
+          "name": "Analyze",
+          "descZh": "理解产品现状并找改进目标",
+          "optional": false
+        },
+        {
+          "name": "Scope",
+          "descZh": "把改进界定为一个场景（单视图、单一改进点）",
+          "optional": false
+        },
+        {
+          "name": "Design",
+          "descZh": "草拟并规格化改进方案",
+          "optional": false
+        },
+        {
+          "name": "Implement",
+          "descZh": "在独立分支编码",
+          "optional": false
+        },
+        {
+          "name": "Test",
+          "descZh": "对照规格做验收测试",
+          "optional": false
+        },
+        {
+          "name": "Deploy",
+          "descZh": "PR 与交付",
+          "optional": false
+        }
+      ],
+      "idMapping": {
+        "manifestId": "wds-8-product-evolution",
+        "catalogIds": [
+          "bmad-wds-product-evolution"
+        ],
+        "matchStatus": "matched",
+        "note": "CSV 条目 bmad-wds-product-evolution（PE，「Continuous improvement: feedback to Trigger Map to spec update to code to verify.」，preceded-by=bmad-wds-usability-testing，产出 updated-artifacts）与本技能一致。"
+      },
+      "notes": "阶段编号差异：技能自述「Phase 8」，CSV 归「3-wds-build」。产出路径：{output_folder}/evolution/{scenarios,specs,test-reports}/。工作流明确「Full Pipeline in Miniature」并标注各活动借用自哪个主阶段。"
+    }
+  ],
+  "catalogOnlySkills": [
+    {
+      "canonicalId": "bmad-wds-idun",
+      "module": "wds",
+      "kind": "agent",
+      "evidenceLevel": "catalog-only",
+      "sourceFiles": [],
+      "summaryZh": "CSV 登记的 Setup and governance agent：通过访谈组织来配置 Agent Space 与权限模型。manifest 中无任何对应技能，本地 .claude/skills 下也无实现目录，属纯目录条目。",
+      "entry": null,
+      "menu": [],
+      "dependencies": {
+        "phase": "0-wds-agents",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": null,
+      "idMapping": {
+        "manifestId": null,
+        "catalogIds": [
+          "bmad-wds-idun"
+        ],
+        "matchStatus": "catalog-only",
+        "note": "help CSV 18 条 WDS 记录中唯一完全无对应者：manifest 无此 agent，本地亦无安装。CSV 同组另有 bmad-wds-saga、bmad-wds-freya 分别对应 manifest 的 wds-agent-saga-analyst、wds-agent-freya-ux，但 Mimir（builder）无 CSV 条目、Idun 无 manifest 条目，两侧 agent 集合不对称。"
+      },
+      "notes": "description「Setup and governance agent. Interviews org to configure Agent Space and authority model.」中的 Agent Space / 权限模型概念在当前安装的任何 WDS 文件中均未出现。"
+    },
+    {
+      "canonicalId": "bmad-wds-platform-requirements",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "catalog-only",
+      "sourceFiles": [
+        ".claude/skills/wds-1-project-brief/steps-c/step-10a-platform-strategy.md",
+        ".claude/skills/wds-1-project-brief/workflow.md"
+      ],
+      "summaryZh": "技术边界定义：平台、设备、集成与约束。CSV 标注「Skip for simple landing pages」，preceded-by 为项目简报。",
+      "entry": "并入 wds-1-project-brief：阶段 1 的步骤 27-32（Platform Init→Tech Stack→Integrations→Contact Strategy→Multilingual→Create Platform Document）。",
+      "menu": [],
+      "dependencies": {
+        "phase": "1-wds-strategy",
+        "precededBy": [
+          "bmad-wds-project-brief"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "design_artifacts/A-Product-Brief",
+        "outputs": "platform-requirements.md"
+      },
+      "steps": null,
+      "idMapping": {
+        "manifestId": "wds-1-project-brief",
+        "catalogIds": [
+          "bmad-wds-platform-requirements"
+        ],
+        "matchStatus": "catalog-only",
+        "note": "无独立 manifest 技能；模板 resources/wds-1-project-brief/templates/platform-requirements.template.md(.yaml) 已装入 wds-1-project-brief。"
+      },
+      "notes": "在 CSV 的 1-wds-strategy 分组中与 project-brief、trigger-mapping 并列，但 manifest 未单列。"
+    },
+    {
+      "canonicalId": "bmad-wds-conceptual-sketching",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "catalog-only",
+      "sourceFiles": [
+        ".claude/skills/wds-4-ux-design/workflow-conceptualize.md",
+        ".claude/skills/wds-4-ux-design/workflow-sketch.md"
+      ],
+      "summaryZh": "详细规格前的快速粗略视觉探索（「Skip for straightforward scenarios」）。",
+      "entry": "并入 wds-4-ux-design：对应 [C] Discuss（创意对话+线框迭代）与 [K] Analyse Sketches（解读用户草图）；Freya 菜单 UX 项直接指向本 catalog 名。",
+      "menu": [],
+      "dependencies": {
+        "phase": "2-wds-design",
+        "precededBy": [
+          "bmad-wds-outline-scenarios"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "design_artifacts/C-UX-Scenarios",
+        "outputs": "sketches"
+      },
+      "steps": null,
+      "idMapping": {
+        "manifestId": "wds-4-ux-design",
+        "catalogIds": [
+          "bmad-wds-conceptual-sketching"
+        ],
+        "matchStatus": "catalog-only",
+        "note": "无独立 manifest 技能；Freya customize.toml 菜单 UX 项 skill=bmad-wds-conceptual-sketching 是其并入 wds-4 的直接证据。"
+      },
+      "notes": "工作流文件注明 [C] 是「default design activity」，与 CSV 的「快速粗略探索」定位存在一定宽窄差异。"
+    },
+    {
+      "canonicalId": "bmad-wds-storyboarding",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "catalog-only",
+      "sourceFiles": [
+        ".claude/skills/wds-4-ux-design/data/modular-architecture/02-workflows/storyboards-guide.md",
+        ".claude/skills/wds-4-ux-design/templates/storyboard-specification.template.md"
+      ],
+      "summaryZh": "把用户旅程按屏幕序列化：入口点、转场与错误路径（「Skip for simple scenarios」）。",
+      "entry": "并入 wds-4-ux-design：storyboard 材料分布于 [S] Suggest / [D] Dream 流程与 storyboard 模板；无独立活动码。",
+      "menu": [],
+      "dependencies": {
+        "phase": "2-wds-design",
+        "precededBy": [
+          "bmad-wds-outline-scenarios"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "design_artifacts/C-UX-Scenarios",
+        "outputs": "storyboards"
+      },
+      "steps": null,
+      "idMapping": {
+        "manifestId": "wds-4-ux-design",
+        "catalogIds": [
+          "bmad-wds-storyboarding"
+        ],
+        "matchStatus": "catalog-only",
+        "note": "无独立 manifest 技能；storyboard 指南与模板均装在 wds-4-ux-design 内。"
+      },
+      "notes": "「storyboard」在 wds-4 的 workflow.md、workflow-suggest.md、workflow-dream.md 中均有出现，但未形成带菜单码的独立活动。"
+    },
+    {
+      "canonicalId": "bmad-wds-conceptual-specs",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "catalog-only",
+      "sourceFiles": [
+        ".claude/skills/wds-4-ux-design/workflow-specify.md"
+      ],
+      "summaryZh": "为每个页面的每个元素记录全部设计决策，开发者据此直接构建（required=true）。",
+      "entry": "并入 wds-4-ux-design：对应 [P] Write Specifications（steps-p/ 9 步）；Freya 菜单 SP 项直接指向本 catalog 名。",
+      "menu": [],
+      "dependencies": {
+        "phase": "2-wds-design",
+        "precededBy": [
+          "bmad-wds-outline-scenarios"
+        ],
+        "followedBy": [],
+        "required": "true",
+        "args": null,
+        "outputLocation": "design_artifacts/C-UX-Scenarios",
+        "outputs": "page-specs scenario-specs"
+      },
+      "steps": null,
+      "idMapping": {
+        "manifestId": "wds-4-ux-design",
+        "catalogIds": [
+          "bmad-wds-conceptual-specs"
+        ],
+        "matchStatus": "catalog-only",
+        "note": "无独立 manifest 技能；Freya customize.toml 菜单 SP 项 skill=bmad-wds-conceptual-specs 是其并入 wds-4 的直接证据（[P] 活动）。"
+      },
+      "notes": "CSV 中 required=true 的 design 阶段条目；Freya 菜单 SP 项为其入口证据。"
+    },
+    {
+      "canonicalId": "bmad-wds-functional-components",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "catalog-only",
+      "sourceFiles": [
+        ".claude/skills/wds-7-design-system/workflow-create.md"
+      ],
+      "summaryZh": "把规格中的可复用模式提取为组件定义（「Skip if Design System Mode None」），产出组件候选。",
+      "entry": "并入 wds-7-design-system：对应 workflow-create.md 的「Build a new design system or add components from specifications」与重复检测流程；wds-4 的 [M] 亦含页面内提取规则。",
+      "menu": [],
+      "dependencies": {
+        "phase": "2-wds-design",
+        "precededBy": [
+          "bmad-wds-conceptual-specs"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "design_artifacts/C-UX-Scenarios",
+        "outputs": "component-candidates"
+      },
+      "steps": null,
+      "idMapping": {
+        "manifestId": "wds-7-design-system",
+        "catalogIds": [
+          "bmad-wds-functional-components"
+        ],
+        "matchStatus": "catalog-only",
+        "note": "无独立 manifest 技能；归属依据：CSV 链（本条目 followed-by 即 design-system）+「Skip if Design System Mode None」与 wds-7 的 design_system_mode 配置对应；wds-4 [M] 的 second-use 提取规则为跨技能重叠部分。"
+      },
+      "notes": "CSV 中它是 bmad-wds-design-system 的 preceded-by。"
+    },
+    {
+      "canonicalId": "bmad-wds-design-delivery",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "catalog-only",
+      "sourceFiles": [
+        ".claude/skills/wds-4-ux-design/workflow-handover.md",
+        ".claude/skills/wds-4-ux-design/templates/design-delivery.template.yaml"
+      ],
+      "summaryZh": "校验规格完整性并打包为 DD yaml 交付包，附验收标准，移交开发（required=true）。",
+      "entry": "并入 wds-4-ux-design：对应 [H] Design Delivery / Handover（steps-h/ 6 步，产出 DD-XXX）；Freya 菜单 DD 项直接指向本 catalog 名。",
+      "menu": [],
+      "dependencies": {
+        "phase": "2-wds-design",
+        "precededBy": [
+          "bmad-wds-conceptual-specs"
+        ],
+        "followedBy": [],
+        "required": "true",
+        "args": null,
+        "outputLocation": "design_artifacts/E-Development",
+        "outputs": "delivery-package acceptance-criteria"
+      },
+      "steps": null,
+      "idMapping": {
+        "manifestId": "wds-4-ux-design",
+        "catalogIds": [
+          "bmad-wds-design-delivery"
+        ],
+        "matchStatus": "catalog-only",
+        "note": "无独立 manifest 技能；Freya 菜单 DD 项 skill=bmad-wds-design-delivery（菜单标 Phase 5，CSV 标 2-wds-design）是其并入 wds-4 [H] 的直接证据。"
+      },
+      "notes": "design-delivery.template.yaml 与 workflow-handover.md 的「Package a complete testable flow into a Design Delivery」描述高度一致。"
+    },
+    {
+      "canonicalId": "bmad-wds-usability-testing",
+      "module": "wds",
+      "kind": "workflow",
+      "evidenceLevel": "catalog-only",
+      "sourceFiles": [
+        ".claude/skills/wds-5-agentic-development/workflow-acceptance-testing.md",
+        ".claude/skills/wds-5-agentic-development/data/testing-guide.md"
+      ],
+      "summaryZh": "在用户真实环境中做真人测试，含回顾式出声思考（think-aloud）环节；displayName 登记为「Acceptance Testing」。",
+      "entry": "并入 wds-5-agentic-development：按 displayName 与流程链位置对应 [T] Acceptance Testing 活动（steps-t/ 5 步）。",
+      "menu": [],
+      "dependencies": {
+        "phase": "3-wds-build",
+        "precededBy": [
+          "bmad-wds-agentic-development"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": null,
+        "outputLocation": "design_artifacts/E-Development",
+        "outputs": "test-results findings"
+      },
+      "steps": null,
+      "idMapping": {
+        "manifestId": "wds-5-agentic-development",
+        "catalogIds": [
+          "bmad-wds-usability-testing"
+        ],
+        "matchStatus": "catalog-only",
+        "note": "无独立 manifest 技能；displayName「Acceptance Testing」与 wds-5 的 [T] 活动同名，且 CSV 链（preceded-by=agentic-development、product-evolution 以其为前置）与 wds-5→wds-8 的流程一致。"
+      },
+      "notes": "描述与本地实现的差异见 wds-5-agentic-development 的 notes：本地 [T] 是 designer validation，think-aloud 真人测试表述仅在 PROTOTYPE-ANALYSIS.md 出现，未形成完整流程，判定为版本演进差异。"
+    }
+  ]
+}

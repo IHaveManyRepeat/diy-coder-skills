@@ -1,0 +1,1719 @@
+{
+  "modules": [
+    "tea",
+    "cis"
+  ],
+  "moduleNames": {
+    "tea": "Test Architecture Enterprise",
+    "cis": "Creative Intelligence Suite"
+  },
+  "extractedBy": "w-tea-cis",
+  "extractedAt": "2026-09-13",
+  "skillCount": 20,
+  "baselineSkillCount": 20,
+  "moduleVersions": {
+    "tea": "v1.23.3",
+    "cis": "v0.3.1"
+  },
+  "discrepancies": [
+    "登记错位（非无实现）：7 条技能（bmad-tea 与 6 个 bmad-cis-agent-*）实体完整且 location=project，但仅 skill-manifest.csv 有登记，bmad-help.csv 与各自 module-help.csv 均无行（inHelpCatalog=false），用户无法从 /bmad-help 发现入口。",
+    "cis module-help.csv 含一条 bmad-brainstorming（菜单码 BS）行，但该技能在 skill-manifest.csv 中归属 core 模块。同一技能在 bmad-help.csv 中共有 3 条不同模块登记：BMad Method（BP）、Core（BSP）、CIS（BS）。入口登记模块与技能归属模块不一致。",
+    "bmad-testarch-test-design 基线 phase=3-solutioning 只对应该工作流的系统级模式；工作流本体还支持 epic 级模式（Phase 4），且刻意不设 default_output_file，输出随模式变化（系统级 3 份、epic 级 1 份）。",
+    "基线 manifestPath 指向上游源码布局（如 _bmad/tea/agents/bmad-tea/SKILL.md），本机安装中该路径不存在：_bmad/tea 与 _bmad/cis 下仅有 config.yaml 与 module-help.csv，20 条技能实体全部位于 .claude/skills/<canonicalId>/。因此本组 evidenceLevel 均为 local-source，与基线 installedAs=null 的表面含义不同（installedAs 只反映 CSV 字段，不代表是否安装）。",
+    "bmad-testarch-framework 与 bmad-testarch-ci 的 workflow.yaml default_output_file 落在 {project-root}（分别为 {test_dir}/README.md 与 .github/workflows/test.yml），而基线 outputLocation 统一记为 test_artifacts，两者口径不一致。"
+  ],
+  "skills": [
+    {
+      "canonicalId": "bmad-tea",
+      "displayName": "Murat — Master Test Architect and Quality Advisor",
+      "module": "tea",
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-tea/SKILL.md",
+        "bmad-tea/customize.toml",
+        "bmad-tea/resources/tea-index.csv"
+      ],
+      "summaryZh": "TEA 模块的总入口与人格化测试架构师（Murat）。统管风险驱动测试策略、fixture 架构、ATDD、API/UI 自动化、CI/CD 治理与质量门禁，本身不产出文档，而是把用户路由到 9 条 testarch 工作流与 TMT 教学技能。启动时加载 test_artifacts 与模块配置，并强制持久化人格与图标前缀。",
+      "entry": "以技能名直接调用（Claude Code 用 /bmad-tea，Codex 用 $bmad-tea），或说“找 Murat / Test Architect”。激活序列共 8 步：解析 agent 定制块 → 执行 prepend → 采用人格 → 载入持久事实 → 读 {project-root}/_bmad/tea/config.yaml → 问候 → append → 展示菜单或直接派发。菜单项定义在 customize.toml 的 [[agent.menu]]。",
+      "menu": [
+        {
+          "code": "TMT",
+          "labelEn": "Teach Me Testing",
+          "labelZh": "测试教学",
+          "descZh": "7 节渐进式测试课程教学，从基础到进阶"
+        },
+        {
+          "code": "TD",
+          "labelEn": "Test Design",
+          "labelZh": "测试设计",
+          "descZh": "风险评估、NFR 规划与覆盖率策略（系统级或 epic 级）"
+        },
+        {
+          "code": "TF",
+          "labelEn": "Test Framework",
+          "labelZh": "测试框架",
+          "descZh": "初始化生产级测试框架架构"
+        },
+        {
+          "code": "CI",
+          "labelEn": "Continuous Integration",
+          "labelZh": "CI 流水线",
+          "descZh": "推荐并搭建 CI/CD 质量流水线"
+        },
+        {
+          "code": "AT",
+          "labelEn": "ATDD",
+          "labelZh": "验收测试驱动开发",
+          "descZh": "开发前生成失败态验收测试与实现清单"
+        },
+        {
+          "code": "TA",
+          "labelEn": "Test Automation",
+          "labelZh": "测试自动化",
+          "descZh": "为 story 或 feature 生成分优先级的 API/E2E 测试、fixture 与 DoD 摘要"
+        },
+        {
+          "code": "GATE",
+          "labelEn": "Release Gate",
+          "labelZh": "发布门禁（路由项）",
+          "descZh": "先判断现有证据，再推荐正确顺序：可选 test-review 最终质量审计、可选 NFR 证据审计，最后 trace Phase 2 出 PASS/CONCERNS/FAIL/WAIVED 判定。明确要求不合并这三个工作流"
+        },
+        {
+          "code": "RV",
+          "labelEn": "Review Tests",
+          "labelZh": "测试评审",
+          "descZh": "按知识库与最佳实践对已写测试做质量检查"
+        },
+        {
+          "code": "NR",
+          "labelEn": "NFR Evidence Audit",
+          "labelZh": "非功能需求证据审计",
+          "descZh": "评估已实现的 NFR 证据并给出行动建议"
+        },
+        {
+          "code": "TR",
+          "labelEn": "Trace Coverage",
+          "labelZh": "覆盖追溯",
+          "descZh": "Phase 1 需求到测试的映射，Phase 2 出质量门禁判定"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "required": null,
+        "args": null,
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": null,
+        "outputs": null,
+        "menuCode": null,
+        "entries": []
+      },
+      "steps": null,
+      "notes": "登记错位（非无实现）：实体完整可用（baseline location=project，skillDir 指向项目级 .claude/skills），仅 skill-manifest.csv 有登记，bmad-help.csv 与 module-help.csv 均无行（inHelpCatalog=false），故 /bmad-help 发现不到该入口。customize.toml 定义 10 项菜单（9 项绑定技能 + 1 项 GATE 为 prompt 型路由）。GATE 不是技能，而是引导用户自行走 RV→NR→TR 的发布门禁路径。另：技能载入 ./resources/tea-index.csv（59 个知识片段索引）按需拉取 resources/knowledge/ 下的片段，并强制校验 Playwright/Cypress/Pact/k6/pytest/JUnit/Go test 与 CI 平台官方文档。",
+      "menuCode": null
+    },
+    {
+      "canonicalId": "bmad-teach-me-testing",
+      "displayName": "Teach Me Testing",
+      "module": "tea",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-teach-me-testing/SKILL.md",
+        "bmad-teach-me-testing/instructions.md",
+        "bmad-teach-me-testing/data/curriculum.yaml",
+        "bmad-teach-me-testing/customize.toml"
+      ],
+      "summaryZh": "TEA Academy：7 节课的渐进式测试教学，覆盖 QA 新人、开发者、Tech Lead、VP 四类角色，30-90 分钟一节课，可 1-2 周自定进度、随时暂停续学。每节课流程为「按需载入 TEA 文档 → 讲授 → 知识测验 → 生成课堂笔记 → 更新进度文件 → 回到课次菜单」。",
+      "entry": "以技能名直接调用（Claude Code/Cursor/Windsurf 用 /bmad-teach-me-testing，Codex 用 $bmad-teach-me-testing），或在 bmad-tea 菜单选 TMT。进度文件 {test_artifacts}/teaching-progress/{name}-tea-progress.yaml，课堂笔记与结业总结写在 {test_artifacts}/tea-academy/{name}/ 下。创建模式入口 steps-c/step-01-init.md，续学入口 steps-c/step-01b-continue.md。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create",
+          "labelZh": "开始学习",
+          "descZh": "开始新的学习会话，或从已有进度续学"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate",
+          "labelZh": "校验",
+          "descZh": "审查教学流程质量并生成校验报告"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit",
+          "labelZh": "编辑",
+          "descZh": "修改教学内容或结构"
+        },
+        {
+          "code": "01",
+          "labelEn": "Quick Start",
+          "labelZh": "快速上手",
+          "descZh": "30 分钟：TEA Lite 入门，实跑一遍 automate 工作流，理解参与模式"
+        },
+        {
+          "code": "02",
+          "labelEn": "Core Concepts",
+          "labelZh": "核心概念",
+          "descZh": "45 分钟：风险驱动测试、DoD、把测试当作工程的理念"
+        },
+        {
+          "code": "03",
+          "labelEn": "Architecture & Patterns",
+          "labelZh": "架构与模式",
+          "descZh": "60 分钟：fixture、网络先行模式、数据工厂、step-file 架构"
+        },
+        {
+          "code": "04",
+          "labelEn": "Test Design",
+          "labelZh": "测试设计",
+          "descZh": "60 分钟：风险评估与可测性评估、覆盖率规划"
+        },
+        {
+          "code": "05",
+          "labelEn": "ATDD & Automate",
+          "labelZh": "ATDD 与自动化",
+          "descZh": "60 分钟：ATDD 红相位、Automate 工作流、组件 TDD、API 测试"
+        },
+        {
+          "code": "06",
+          "labelEn": "Quality & Trace",
+          "labelZh": "质量与追溯",
+          "descZh": "45 分钟：测试评审与 Trace 工作流、质量指标"
+        },
+        {
+          "code": "07",
+          "labelEn": "Advanced Patterns",
+          "labelZh": "进阶模式",
+          "descZh": "时长不限：按菜单探索 59 个知识片段"
+        }
+      ],
+      "dependencies": {
+        "phase": "0-learning",
+        "required": false,
+        "args": "",
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": "test_artifacts",
+        "outputs": [
+          "progress file",
+          "session notes",
+          "completion summary"
+        ],
+        "menuCode": "TMT",
+        "entries": [
+          {
+            "displayName": "Teach Me Testing",
+            "menuCode": "TMT",
+            "action": "",
+            "args": "",
+            "phase": "0-learning",
+            "precededBy": "",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "test_artifacts",
+            "outputs": "progress file|session notes|completion summary"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：初始化 / 续学检测",
+          "descZh": "新建进度文件，或检测已有进度并恢复；同时校验 {test_artifacts} 可写",
+          "optional": false
+        },
+        {
+          "name": "Step 2：学员评估",
+          "descZh": "按角色（QA/Dev/Lead/VP）与经验等级（beginner/intermediate/experienced）确定学习路径",
+          "optional": false
+        },
+        {
+          "name": "Step 3：课次菜单",
+          "descZh": "展示 7 节课，允许按经验跳课；课程先修关系由 curriculum.yaml 定义（第 3-6 节均需先完成第 2 节）",
+          "optional": false
+        },
+        {
+          "name": "Step 4：逐节授课（7 节课）",
+          "descZh": "每节：按需载入 TEA 文档 → 讲授内容 → 交互式测验（≥70 分及格，每题最多 3 次机会）→ 生成笔记 → 更新进度 → 返回菜单",
+          "optional": false
+        },
+        {
+          "name": "Step 5：结业总结",
+          "descZh": "7 节全部完成才生成 completion summary（含完成日期、得分、技能清单、产物路径与后续建议）",
+          "optional": false
+        }
+      ],
+      "notes": "TEA 中 phase 0-learning 的唯一技能，与 testarch 流水线无前后依赖，属于并行可选轨道。跳课会失去结业资格：curriculum.yaml 规定 completion.minimum_sessions=7，选择了 intermediate/experienced 路径的 skip_optional 即 forfeited 结业总结。工作流为 tri-modal（steps-c/steps-e/steps-v）。课程内容映射到 tea-resources-index.yaml 与 session-content-map.yaml。",
+      "menuCode": "TMT"
+    },
+    {
+      "canonicalId": "bmad-testarch-test-design",
+      "displayName": "Test Design",
+      "module": "tea",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-testarch-test-design/SKILL.md",
+        "bmad-testarch-test-design/instructions.md",
+        "bmad-testarch-test-design/workflow.yaml",
+        "bmad-testarch-test-design/steps-c/step-01-detect-mode.md"
+      ],
+      "summaryZh": "风险驱动测试设计。自动判定模式：系统级（有 PRD+ADR、尚无 epic）做架构可测性评审，产出给架构/QA 团队的三份文档；epic 级（有 epic+stories）做单个 epic 的测试计划。含风险评估、优先级分类与执行顺序。",
+      "entry": "以技能名直接调用（/bmad-testarch-test-design），或经 bmad-tea 菜单码 TD。创建模式入口 steps-c/step-01-detect-mode.md；工作流内可选 Create/Resume/Validate/Edit 四模式。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create",
+          "labelZh": "创建",
+          "descZh": "从头执行工作流"
+        },
+        {
+          "code": "R",
+          "labelEn": "Resume",
+          "labelZh": "恢复",
+          "descZh": "恢复被中断的创建运行，读出进度元数据后路由到下一个未完成步骤"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate",
+          "labelZh": "校验",
+          "descZh": "依据 checklist.md 校验已有产物"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit",
+          "labelZh": "编辑",
+          "descZh": "修改已有产物"
+        }
+      ],
+      "dependencies": {
+        "phase": "3-solutioning",
+        "required": false,
+        "args": "",
+        "precededBy": [],
+        "followedBy": [
+          "bmad-testarch-framework"
+        ],
+        "outputLocation": "test_artifacts",
+        "outputs": [
+          "test design document"
+        ],
+        "menuCode": "TD",
+        "entries": [
+          {
+            "displayName": "Test Design",
+            "menuCode": "TD",
+            "action": "",
+            "args": "",
+            "phase": "3-solutioning",
+            "precededBy": "",
+            "followedBy": "bmad-testarch-framework",
+            "required": "false",
+            "outputLocation": "test_artifacts",
+            "outputs": "test design document"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：模式与前置检测",
+          "descZh": "判定系统级 / epic 级（用户意图优先：有 PRD+ADR 无 epic 走系统级，有 epic+stories 走 epic 级，两者都有优先系统级），并解析 run_key 命名进度检查点",
+          "optional": false
+        },
+        {
+          "name": "Step 2：载入上下文与知识库",
+          "descZh": "读取 PRD/ADR/epic、项目上下文，并按 tea-index.csv 拉取所需知识片段",
+          "optional": false
+        },
+        {
+          "name": "Step 3：可测性与风险评估",
+          "descZh": "评估架构可测性缺口，识别测试阻塞项与风险等级",
+          "optional": false
+        },
+        {
+          "name": "Step 4：覆盖率计划与执行策略",
+          "descZh": "按风险定覆盖层级与执行顺序，含 Not in Scope 排除项及其缓解说明",
+          "optional": false
+        },
+        {
+          "name": "Step 5：生成产物并校验",
+          "descZh": "按模式写系统级三份文档或 epic 级一份文档，并跑 checklist 校验",
+          "optional": false
+        }
+      ],
+      "notes": "基线只登记 3-solutioning，但工作流是双模式：系统级（Phase 3）产出 test-design-architecture.md（给架构）+ test-design-qa.md（给 QA）+ {project_name}-handoff.md（TEA→BMAD 交接）三份；epic 级（Phase 4）产出 test-design-epic-{n}.md 一份。刻意无 default_output_file，输出由模式决定。进度检查点按 run_key（system 或 epic-{num}）隔离，多 epic 并行或中断后不会互相覆盖；Resume 模式会拒绝续接属于另一个 run 的检查点。",
+      "menuCode": "TD"
+    },
+    {
+      "canonicalId": "bmad-testarch-framework",
+      "displayName": "Test Framework",
+      "module": "tea",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-testarch-framework/SKILL.md",
+        "bmad-testarch-framework/workflow.yaml",
+        "bmad-testarch-framework/customize.toml"
+      ],
+      "summaryZh": "初始化生产级测试框架架构（Playwright 或 Cypress），含 fixture、helpers、配置与运行脚本。支持 auto 检测项目规模与框架偏好，默认偏好 TypeScript。",
+      "entry": "以技能名直接调用（/bmad-testarch-framework），或经 bmad-tea 菜单码 TF。创建模式入口 steps-c/step-01-preflight.md；工作流内可选 Create/Resume/Validate/Edit 四模式。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create",
+          "labelZh": "创建",
+          "descZh": "从头执行工作流"
+        },
+        {
+          "code": "R",
+          "labelEn": "Resume",
+          "labelZh": "恢复",
+          "descZh": "恢复被中断的创建运行"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate",
+          "labelZh": "校验",
+          "descZh": "依据 checklist.md 校验已有产物"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit",
+          "labelZh": "编辑",
+          "descZh": "修改已有产物"
+        }
+      ],
+      "dependencies": {
+        "phase": "3-solutioning",
+        "required": false,
+        "args": "",
+        "precededBy": [
+          "bmad-testarch-test-design"
+        ],
+        "followedBy": [
+          "bmad-testarch-ci"
+        ],
+        "outputLocation": "test_artifacts",
+        "outputs": [
+          "framework scaffold"
+        ],
+        "menuCode": "TF",
+        "entries": [
+          {
+            "displayName": "Test Framework",
+            "menuCode": "TF",
+            "action": "",
+            "args": "",
+            "phase": "3-solutioning",
+            "precededBy": "bmad-testarch-test-design",
+            "followedBy": "bmad-testarch-ci",
+            "required": "false",
+            "outputLocation": "test_artifacts",
+            "outputs": "framework scaffold"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：预检",
+          "descZh": "检查现有框架、package.json、目录与依赖，判定是否可初始化",
+          "optional": false
+        },
+        {
+          "name": "Step 2：框架选择",
+          "descZh": "按项目规模与偏好选 Playwright 或 Cypress（framework_preference 默认 auto）",
+          "optional": false
+        },
+        {
+          "name": "Step 3：搭建框架骨架",
+          "descZh": "生成配置、fixtures、helpers 与目录结构",
+          "optional": false
+        },
+        {
+          "name": "Step 4：文档与脚本",
+          "descZh": "写测试目录 README 与运行脚本",
+          "optional": false
+        },
+        {
+          "name": "Step 5：校验与总结",
+          "descZh": "跑 checklist 校验并输出总结",
+          "optional": false
+        }
+      ],
+      "notes": "workflow.yaml 的 default_output_file 为 {test_dir}/README.md，即 {project-root}/tests/README.md，落在项目源码树而非 test_artifacts——基线 outputLocation 与工作流自述口径不一致。技能自带 resources/hooks/tea-enforce.cjs（可挂 CI 强制钩子）与 framework-setup-progress.example.md。",
+      "menuCode": "TF"
+    },
+    {
+      "canonicalId": "bmad-testarch-ci",
+      "displayName": "CI Setup",
+      "module": "tea",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-testarch-ci/SKILL.md",
+        "bmad-testarch-ci/workflow.yaml",
+        "bmad-testarch-ci/customize.toml"
+      ],
+      "summaryZh": "搭建 CI/CD 质量流水线：接入测试执行、burn-in 重复跑批与产物收集，并配置质量门禁与通知。支持 5 个平台（GitHub Actions / GitLab CI / Jenkins / Azure DevOps / Harness）。",
+      "entry": "以技能名直接调用（/bmad-testarch-ci），或经 bmad-tea 菜单码 CI。创建模式入口 steps-c/step-01-preflight.md；工作流内可选 Create/Resume/Validate/Edit 四模式。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create",
+          "labelZh": "创建",
+          "descZh": "从头执行工作流"
+        },
+        {
+          "code": "R",
+          "labelEn": "Resume",
+          "labelZh": "恢复",
+          "descZh": "恢复被中断的创建运行"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate",
+          "labelZh": "校验",
+          "descZh": "依据 checklist.md 校验已有产物"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit",
+          "labelZh": "编辑",
+          "descZh": "修改已有产物"
+        }
+      ],
+      "dependencies": {
+        "phase": "3-solutioning",
+        "required": false,
+        "args": "",
+        "precededBy": [
+          "bmad-testarch-framework"
+        ],
+        "followedBy": [],
+        "outputLocation": "test_artifacts",
+        "outputs": [
+          "ci config"
+        ],
+        "menuCode": "CI",
+        "entries": [
+          {
+            "displayName": "CI Setup",
+            "menuCode": "CI",
+            "action": "",
+            "args": "",
+            "phase": "3-solutioning",
+            "precededBy": "bmad-testarch-framework",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "test_artifacts",
+            "outputs": "ci config"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：预检",
+          "descZh": "探测现有 CI 配置、Node/包管理器版本、测试栈与框架，解析平台（ci_platform 默认 auto）",
+          "optional": false
+        },
+        {
+          "name": "Step 2：生成流水线",
+          "descZh": "按平台模板生成流水线文件并接入测试执行与 burn-in 循环",
+          "optional": false
+        },
+        {
+          "name": "Step 3：质量门禁与通知",
+          "descZh": "配置 gate 判定、产物收集与通知",
+          "optional": false
+        },
+        {
+          "name": "Step 4：校验与总结",
+          "descZh": "跑 checklist 校验并输出总结",
+          "optional": false
+        }
+      ],
+      "notes": "workflow.yaml 的 default_output_file 为 {project-root}/.github/workflows/test.yml（GitHub Actions 为默认，其余平台覆盖）——产物落在仓库而非 test_artifacts，与基线 outputLocation 口径不一致。技能自带 5 个平台模板：github-actions-template.yaml、gitlab-ci-template.yaml、jenkins-pipeline-template.groovy、azure-pipelines-template.yaml、harness-pipeline-template.yaml。执行提示为 interactive:false + autonomous:true + iterative:true（尽量自动检测、不阻塞提问）。",
+      "menuCode": "CI"
+    },
+    {
+      "canonicalId": "bmad-testarch-atdd",
+      "displayName": "ATDD",
+      "module": "tea",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-testarch-atdd/SKILL.md",
+        "bmad-testarch-atdd/workflow.yaml",
+        "bmad-testarch-atdd/customize.toml"
+      ],
+      "summaryZh": "在实现之前生成红相位（失败态）验收测试脚手架，走 TDD 红-绿-重构循环。产出实现清单与可运行的失败测试，供随后 dev-story 逐个转绿。是 TEA 流水线里唯一横跨 BMad Method 模块的技能（前置 create-story、后接 dev-story）。",
+      "entry": "以技能名直接调用（/bmad-testarch-atdd），或经 bmad-tea 菜单码 AT。创建模式入口 steps-c/step-01-preflight-and-context.md；工作流内可选 Create/Resume/Validate/Edit 四模式。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create",
+          "labelZh": "创建",
+          "descZh": "从头执行工作流"
+        },
+        {
+          "code": "R",
+          "labelEn": "Resume",
+          "labelZh": "恢复",
+          "descZh": "恢复被中断的创建运行"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate",
+          "labelZh": "校验",
+          "descZh": "依据 checklist.md 校验已有产物"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit",
+          "labelZh": "编辑",
+          "descZh": "修改已有产物"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "required": false,
+        "args": "",
+        "precededBy": [
+          "bmad-create-story:create"
+        ],
+        "followedBy": [
+          "bmad-dev-story"
+        ],
+        "outputLocation": "test_artifacts",
+        "outputs": [
+          "atdd-checklist",
+          "red-phase acceptance tests"
+        ],
+        "menuCode": "AT",
+        "entries": [
+          {
+            "displayName": "ATDD",
+            "menuCode": "AT",
+            "action": "",
+            "args": "",
+            "phase": "4-implementation",
+            "precededBy": "bmad-create-story:create",
+            "followedBy": "bmad-dev-story",
+            "required": "false",
+            "outputLocation": "test_artifacts",
+            "outputs": "atdd-checklist|red-phase acceptance tests"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：预检与上下文载入",
+          "descZh": "读 story、框架配置，检查现存 fixture 与相似测试模式",
+          "optional": false
+        },
+        {
+          "name": "Step 2：生成模式选择",
+          "descZh": "确定生成策略与范围（API / E2E / 两者）",
+          "optional": false
+        },
+        {
+          "name": "Step 3：测试策略",
+          "descZh": "按 story 验收标准划定测试策略与断言层级",
+          "optional": false
+        },
+        {
+          "name": "Step 4：编排自适应红相位脚手架生成",
+          "descZh": "并行子代理：4A 生成 API 失败测试、4B 生成 E2E 失败测试，4C 聚合结果；由 step-04 编排并控制执行模式",
+          "optional": false
+        },
+        {
+          "name": "Step 5：校验与完成",
+          "descZh": "校验测试确实处于红相位、产出 atdd-checklist-{story_key}.md 并收尾",
+          "optional": false
+        }
+      ],
+      "notes": "TEA 唯一跨模块依赖链：precededBy=bmad-create-story:create（bmm 模块）、followedBy=bmad-dev-story（bmm 模块），说明 ATDD 被设计为嵌在 BMad Method 的 story 循环里跑，而非独立跑。default_output_file = {test_artifacts}/atdd-checklist-{story_key}.md，模板为 atdd-checklist-template.md。execution_hints.interactive=false，倾向少打断。",
+      "menuCode": "AT"
+    },
+    {
+      "canonicalId": "bmad-testarch-automate",
+      "displayName": "Test Automation",
+      "module": "tea",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-testarch-automate/SKILL.md",
+        "bmad-testarch-automate/workflow.yaml",
+        "bmad-testarch-automate/customize.toml"
+      ],
+      "summaryZh": "实现之后扩充测试自动化覆盖：在存量代码库上识别目标、生成分层测试（API / 后端 / E2E / 移动端）、补齐 fixture 与数据工厂，最后出 DoD 摘要。既可在 BMad 流程内跑，也可在无 BMad 产物的纯代码库上独立跑。",
+      "entry": "以技能名直接调用（/bmad-testarch-automate），或经 bmad-tea 菜单码 TA。创建模式入口 steps-c/step-01-preflight-and-context.md；工作流内可选 Create/Resume/Validate/Edit 四模式。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create",
+          "labelZh": "创建",
+          "descZh": "从头执行工作流"
+        },
+        {
+          "code": "R",
+          "labelEn": "Resume",
+          "labelZh": "恢复",
+          "descZh": "恢复被中断的创建运行"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate",
+          "labelZh": "校验",
+          "descZh": "依据 checklist.md 校验已有产物"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit",
+          "labelZh": "编辑",
+          "descZh": "修改已有产物"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "required": false,
+        "args": "",
+        "precededBy": [
+          "bmad-testarch-atdd"
+        ],
+        "followedBy": [],
+        "outputLocation": "test_artifacts",
+        "outputs": [
+          "test suite"
+        ],
+        "menuCode": "TA",
+        "entries": [
+          {
+            "displayName": "Test Automation",
+            "menuCode": "TA",
+            "action": "",
+            "args": "",
+            "phase": "4-implementation",
+            "precededBy": "bmad-testarch-atdd",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "test_artifacts",
+            "outputs": "test suite"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：预检与上下文载入",
+          "descZh": "读源码、既有测试与 BMad 产物，确认覆盖目标（coverage_target 默认 critical-paths）",
+          "optional": false
+        },
+        {
+          "name": "Step 2：识别自动化目标",
+          "descZh": "定位未覆盖的关键路径与缺口优先级",
+          "optional": false
+        },
+        {
+          "name": "Step 3：编排自适应测试生成",
+          "descZh": "按栈派发子代理：3A API 测试、3B 后端测试、3B E2E 测试、3B 移动端测试，3C 聚合结果",
+          "optional": false
+        },
+        {
+          "name": "Step 4：校验与总结",
+          "descZh": "校验测试可运行，产出 automation-summary.md",
+          "optional": false
+        }
+      ],
+      "notes": "workflow.yaml 声明 standalone_mode: true，可在无 BMad 产物的存量代码库上单独运行（这是 TEA 各技能里唯一显式声明独立运行的）。TA 是分叉点：测试评审（RV）与 NFR 证据审计（NR）都以它为前置。default_output_file = {test_artifacts}/automation-summary.md。",
+      "menuCode": "TA"
+    },
+    {
+      "canonicalId": "bmad-testarch-test-review",
+      "displayName": "Test Review",
+      "module": "tea",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-testarch-test-review/SKILL.md",
+        "bmad-testarch-test-review/workflow.yaml",
+        "bmad-testarch-test-review/customize.toml",
+        "bmad-testarch-test-review/steps-c/criteria-registry.md",
+        "bmad-testarch-test-review/steps-c/step-03f-aggregate-scores.md"
+      ],
+      "summaryZh": "对已写测试做质量审计：按知识库与最佳实践评估确定性、隔离性、可维护性、性能四个维度，聚合成 0-100 总分，并给出可执行的修复建议（含违规行定位）。",
+      "entry": "以技能名直接调用（/bmad-testarch-test-review），或经 bmad-tea 菜单码 RV（也可经 GATE 路由项）。创建模式入口 steps-c/step-01-load-context.md；交互模式下可选 Create/Resume/Validate/Edit 四模式。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create",
+          "labelZh": "创建",
+          "descZh": "从头执行工作流"
+        },
+        {
+          "code": "R",
+          "labelEn": "Resume",
+          "labelZh": "恢复",
+          "descZh": "恢复被中断的创建运行"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate",
+          "labelZh": "校验",
+          "descZh": "依据 checklist.md 校验已有产物"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit",
+          "labelZh": "编辑",
+          "descZh": "修改已有产物"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "required": false,
+        "args": "",
+        "precededBy": [
+          "bmad-testarch-automate"
+        ],
+        "followedBy": [],
+        "outputLocation": "test_artifacts",
+        "outputs": [
+          "review report"
+        ],
+        "menuCode": "RV",
+        "entries": [
+          {
+            "displayName": "Test Review",
+            "menuCode": "RV",
+            "action": "",
+            "args": "",
+            "phase": "4-implementation",
+            "precededBy": "bmad-testarch-automate",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "test_artifacts",
+            "outputs": "review report"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：载入上下文与知识库",
+          "descZh": "解析 review 范围（review_scope 或权威的 review_files）、只读 context_files，并载入知识片段",
+          "optional": false
+        },
+        {
+          "name": "Step 2：发现并解析测试",
+          "descZh": "发现测试文件并解析结构；review_files 非空时跳过 glob 发现，以之为完整评审集",
+          "optional": false
+        },
+        {
+          "name": "Step 3：编排自适应质量评估",
+          "descZh": "按执行模式（auto/subagent/agent-team/sequential）跑四维检查：3A 确定性、3B 隔离性、3C 可维护性、3E 性能，3F 聚合为 0-100 总分",
+          "optional": false
+        },
+        {
+          "name": "Step 4：生成报告与校验",
+          "descZh": "写 review report（默认 {test_artifacts}/test-review.md），可选出内联 TODO 注释，并跑 checklist",
+          "optional": false
+        }
+      ],
+      "notes": "TEA 中唯一支持 headless 非交互运行的工作流（headless=true 时跳过问候与模式菜单，供 tea-test-review CLI 调用），并暴露 review_files / context_files / output_file_override / generate_inline_comments 四个一等输入。质量维度是 4 个（确定性、隔离性、可维护性、性能），不含第 5 个；聚合为 0-100 分。默认 generate_inline_comments=false 即纯报告模式，不改动被测文件。评分规则见 steps-c/criteria-registry.md，分 CRITICAL/HIGH 等门类，并对项目既有惯例做「已确立/新兴/不存在/未知」四种状态的推断后决定是否扣分。checklist.md 与 test-review-template.md 为配套。",
+      "menuCode": "RV"
+    },
+    {
+      "canonicalId": "bmad-testarch-nfr",
+      "displayName": "NFR Evidence Audit",
+      "module": "tea",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-testarch-nfr/SKILL.md",
+        "bmad-testarch-nfr/workflow.yaml",
+        "bmad-testarch-nfr/customize.toml"
+      ],
+      "summaryZh": "审计已实现的非功能需求证据：先定义类别与阈值，再收集证据，然后按安全、性能、可靠性、可维护性四个方向做证据审计，最后出 NFR 报告与行动建议。触发前提是实现证据已存在。",
+      "entry": "以技能名直接调用（/bmad-testarch-nfr），或经 bmad-tea 菜单码 NR（也可经 GATE 路由项）。创建模式入口 steps-c/step-01-load-context.md；工作流内可选 Create/Resume/Validate/Edit 四模式。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create",
+          "labelZh": "创建",
+          "descZh": "从头执行工作流"
+        },
+        {
+          "code": "R",
+          "labelEn": "Resume",
+          "labelZh": "恢复",
+          "descZh": "恢复被中断的创建运行"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate",
+          "labelZh": "校验",
+          "descZh": "依据 checklist.md 校验已有产物"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit",
+          "labelZh": "编辑",
+          "descZh": "修改已有产物"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "required": false,
+        "args": "",
+        "precededBy": [
+          "bmad-testarch-automate"
+        ],
+        "followedBy": [],
+        "outputLocation": "test_artifacts",
+        "outputs": [
+          "nfr report"
+        ],
+        "menuCode": "NR",
+        "entries": [
+          {
+            "displayName": "NFR Evidence Audit",
+            "menuCode": "NR",
+            "action": "",
+            "args": "",
+            "phase": "4-implementation",
+            "precededBy": "bmad-testarch-automate",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "test_artifacts",
+            "outputs": "nfr report"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：载入上下文与知识库",
+          "descZh": "读 story、测试结果、指标与日志，载入知识片段并确认证据可得性",
+          "optional": false
+        },
+        {
+          "name": "Step 2：定义 NFR 类别与阈值",
+          "descZh": "确定标准四类（安全/性能/可靠性/可维护性）的阈值，可加自定义类别（custom_nfr_categories）",
+          "optional": false
+        },
+        {
+          "name": "Step 3：收集证据",
+          "descZh": "按阈值要求定位测试结果、监控指标与日志作为证据",
+          "optional": false
+        },
+        {
+          "name": "Step 4：编排自适应 NFR 证据审计",
+          "descZh": "并行子代理：4A 安全、4B 性能、4C 可靠性、4D 可维护性，4E 聚合结果",
+          "optional": false
+        },
+        {
+          "name": "Step 5：生成报告与校验",
+          "descZh": "按 nfr-report-template.md 写报告并校验",
+          "optional": false
+        }
+      ],
+      "notes": "触发前提写在 description 里：实现证据已存在时才运行（「Audit NFR evidence ... Use when implementation evidence exists」）。default_output_file = {test_artifacts}/nfr-assessment.md，模板 nfr-report-template.md，另有 nfr-status-definitions.md 定义状态口径。与 RV 同属 TA 之后的分叉支线，两者可并行，再汇入 TR。",
+      "menuCode": "NR"
+    },
+    {
+      "canonicalId": "bmad-testarch-trace",
+      "displayName": "Traceability",
+      "module": "tea",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-testarch-trace/SKILL.md",
+        "bmad-testarch-trace/instructions.md",
+        "bmad-testarch-trace/workflow.yaml",
+        "bmad-testarch-trace/customize.toml"
+      ],
+      "summaryZh": "两阶段收敛：Phase 1 把覆盖基准（正式需求、契约或合成旅程）映射到测试，生成追溯矩阵并分析覆盖缺口；Phase 2 依据证据出质量门禁判定 PASS / CONCERNS / FAIL / WAIVED。",
+      "entry": "以技能名直接调用（/bmad-testarch-trace），或经 bmad-tea 菜单码 TR（也可经 GATE 路由项）。创建模式入口 steps-c/step-01-load-context.md；工作流内可选 Create/Resume/Validate/Edit 四模式。",
+      "menu": [
+        {
+          "code": "C",
+          "labelEn": "Create",
+          "labelZh": "创建",
+          "descZh": "从头执行工作流"
+        },
+        {
+          "code": "R",
+          "labelEn": "Resume",
+          "labelZh": "恢复",
+          "descZh": "恢复被中断的创建运行"
+        },
+        {
+          "code": "V",
+          "labelEn": "Validate",
+          "labelZh": "校验",
+          "descZh": "依据 checklist.md 校验已有产物"
+        },
+        {
+          "code": "E",
+          "labelEn": "Edit",
+          "labelZh": "编辑",
+          "descZh": "修改已有产物"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "required": false,
+        "args": "",
+        "precededBy": [
+          "bmad-testarch-test-review"
+        ],
+        "followedBy": [],
+        "outputLocation": "test_artifacts",
+        "outputs": [
+          "traceability matrix",
+          "gate decision"
+        ],
+        "menuCode": "TR",
+        "entries": [
+          {
+            "displayName": "Traceability",
+            "menuCode": "TR",
+            "action": "",
+            "args": "",
+            "phase": "4-implementation",
+            "precededBy": "bmad-testarch-test-review",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "test_artifacts",
+            "outputs": "traceability matrix|gate decision"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：解析覆盖基准并载入知识库",
+          "descZh": "按序解析 coverage oracle：正式需求 → 契约/规格产物 → 可解析的外部指针 → 从源码推断的合成需求；并持久化 coverage_basis 与 summary_confidence",
+          "optional": false
+        },
+        {
+          "name": "Step 2：发现并编目测试",
+          "descZh": "按 coverage_levels（默认 e2e,api,component,unit,live）发现并编目测试",
+          "optional": false
+        },
+        {
+          "name": "Step 3：覆盖基准映射到测试",
+          "descZh": "建立要求/旅程到测试的映射关系",
+          "optional": false
+        },
+        {
+          "name": "Step 4：完成 Phase 1 覆盖率矩阵",
+          "descZh": "生成追溯矩阵并分析缺口",
+          "optional": false
+        },
+        {
+          "name": "Step 5：Phase 2 门禁判定",
+          "descZh": "按 gate_type（默认 story）与 decision_mode（默认 deterministic 规则判定）出 PASS/CONCERNS/FAIL/WAIVED，写 gate-decision.json",
+          "optional": false
+        }
+      ],
+      "notes": "基线只登记 stage 为单一 phase 4-implementation，但技能内部明确分两阶段（Phase 1 矩阵、Phase 2 门禁），bmad-tea 的菜单描述也强调这一点。除 default_output_file（{test_artifacts}/traceability-matrix.md）外还产 e2e-trace-summary.json 与 gate-decision.json 供 CI/CD 消费；allow_gate 控制是否输出门禁信号，collection_mode 支持 contract_static/inventory_only/runtime_manifest/deferred_shared/waived/restricted/inaccessible 七种采集模式。checklist.md 与 trace-template.md 为配套。TR 是 TEA 流水线的末端收敛点：precededBy 只有 test-review，但 GATE 路由项描述里 RV 与 NR 都是可选的并行前置。",
+      "menuCode": "TR"
+    },
+    {
+      "canonicalId": "bmad-cis-innovation-strategy",
+      "displayName": "Innovation Strategy",
+      "module": "cis",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-innovation-strategy/SKILL.md",
+        "bmad-cis-innovation-strategy/innovation-frameworks.csv"
+      ],
+      "summaryZh": "通过严谨的市场分析、选项生成与执行规划，识别颠覆机会并设计商业模式创新。先逼出市场真相、再拆解现有商业模式、寻找颠覆向量，最后给出 3 个战略选项与推荐路线图。属于随时可用的创意/战略引导，不绑定开发阶段。",
+      "entry": "以技能名直接调用（/bmad-cis-innovation-strategy），或经 bmad-cis-agent-innovation-strategist（Victor）菜单码 IS。工作流为 SKILL.md 内联的 9 步 <workflow>，无独立 steps 目录。",
+      "menu": [
+        {
+          "code": "a",
+          "labelEn": "Advanced Elicitation",
+          "labelZh": "高级引导",
+          "descZh": "检查点选项；文档只给出选项名，未在本文件内定义语义（名称与 core 模块的 bmad-advanced-elicitation 一致）"
+        },
+        {
+          "code": "c",
+          "labelEn": "Continue",
+          "labelZh": "继续",
+          "descZh": "保存当前产物并进入下一步（文档内唯一明确定义的选项）"
+        },
+        {
+          "code": "p",
+          "labelEn": "Party-Mode",
+          "labelZh": "多方模式",
+          "descZh": "检查点选项；文档只给出选项名，未在本文件内定义语义（名称与 core 模块的 bmad-party-mode 一致）"
+        },
+        {
+          "code": "y",
+          "labelEn": "YOLO",
+          "labelZh": "YOLO",
+          "descZh": "检查点选项；文档只给出选项名 [y] YOLO，未在本文件内定义语义"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "required": false,
+        "args": "",
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": "output_folder",
+        "outputs": [
+          "innovation strategy"
+        ],
+        "menuCode": "IS",
+        "entries": [
+          {
+            "displayName": "Innovation Strategy",
+            "menuCode": "IS",
+            "action": "",
+            "args": "",
+            "phase": "anytime",
+            "precededBy": "",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "output_folder",
+            "outputs": "innovation strategy"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：建立战略背景",
+          "descZh": "问清公司/业务、驱动因素、现有商业模式、约束边界与突破性成功的定义",
+          "optional": false
+        },
+        {
+          "name": "Step 2：市场格局与竞争动态分析",
+          "descZh": "从市场分析类框架（TAM SAM SOM、五力、竞争定位图、市场时机）中选 2-4 个执行",
+          "optional": false
+        },
+        {
+          "name": "Step 3：拆解现有商业模式",
+          "descZh": "从商业模式类框架（商业模式画布、价值主张画布、收入/成本结构创新）中选 2-3 个，识别模型弱点",
+          "optional": false
+        },
+        {
+          "name": "Step 4：识别颠覆机会",
+          "descZh": "从颠覆类框架（颠覆式创新、JTBD、蓝海、平台革命）中选 2-3 个，寻找非消费者与未满足任务",
+          "optional": false
+        },
+        {
+          "name": "Step 5：生成创新机会",
+          "descZh": "从战略/价值链类框架中选 2-4 个，产出 5-10 项具体创新机会（商业模式、价值链、伙伴生态、技术驱动）",
+          "optional": false
+        },
+        {
+          "name": "Step 6：形成并评估战略选项",
+          "descZh": "合成 3 个不同战略方向，逐一评估契合度、市场时机、防御性、资源可行性与风险回报",
+          "optional": false
+        },
+        {
+          "name": "Step 7：推荐战略方向",
+          "descZh": "给出大胆推荐及理由，列出必须先验证的关键假设与关键成功要素",
+          "optional": false
+        },
+        {
+          "name": "Step 8：构建执行路线图",
+          "descZh": "分三阶段（立即见效 / 打基础 / 规模化）排出举措、资源、指标与决策门",
+          "optional": false
+        },
+        {
+          "name": "Step 9：定义指标与风险缓解",
+          "descZh": "区分领先/滞后指标，设决策门，识别致命风险与备份方案",
+          "optional": false
+        }
+      ],
+      "notes": "CIS 四个工作流结构一致：SKILL.md 内联 <workflow>（无 steps-c/e/v 目录、无 instructions.md/checklist.md），配 template.md 与方法库 CSV。本技能方法库 innovation-frameworks.csv 共 30 个框架，6 类各 5 个（market_analysis / business_model / disruption / strategic / value_chain / technology）。路径：template_file=./template.md、innovation_frameworks_file=./innovation-frameworks.csv、default_output_file={output_folder}/innovation-strategy-{date}.md。硬性行为约束：不得给时间估算；每次 <template-output> 后立即落盘并在检查点暂停等用户响应。含 energy-checkpoint 环节（第 3、5、8 步）。",
+      "menuCode": "IS"
+    },
+    {
+      "canonicalId": "bmad-cis-problem-solving",
+      "displayName": "Problem Solving",
+      "module": "cis",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-problem-solving/SKILL.md",
+        "bmad-cis-problem-solving/solving-methods.csv"
+      ],
+      "summaryZh": "系统化地诊断复杂问题：先把模糊抱怨精炼成精确问题陈述，再做边界诊断与根因分析，然后生成并评估方案，最后产出可落地的实施与验证计划。强调先诊断后开方，不做时间估算。",
+      "entry": "以技能名直接调用（/bmad-cis-problem-solving），或经 bmad-cis-agent-creative-problem-solver（Dr. Quinn）菜单码 PS。工作流为 SKILL.md 内联的 9 步 <workflow>，无独立 steps 目录。",
+      "menu": [
+        {
+          "code": "a",
+          "labelEn": "Advanced Elicitation",
+          "labelZh": "高级引导",
+          "descZh": "检查点选项；文档只给出选项名，未在本文件内定义语义（名称与 core 模块的 bmad-advanced-elicitation 一致）"
+        },
+        {
+          "code": "c",
+          "labelEn": "Continue",
+          "labelZh": "继续",
+          "descZh": "保存当前产物并进入下一步（文档内唯一明确定义的选项）"
+        },
+        {
+          "code": "p",
+          "labelEn": "Party-Mode",
+          "labelZh": "多方模式",
+          "descZh": "检查点选项；文档只给出选项名，未在本文件内定义语义（名称与 core 模块的 bmad-party-mode 一致）"
+        },
+        {
+          "code": "y",
+          "labelEn": "YOLO",
+          "labelZh": "YOLO",
+          "descZh": "检查点选项；文档只给出选项名 [y] YOLO，未在本文件内定义语义"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "required": false,
+        "args": "",
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": "output_folder",
+        "outputs": [
+          "problem solution"
+        ],
+        "menuCode": "PS",
+        "entries": [
+          {
+            "displayName": "Problem Solving",
+            "menuCode": "PS",
+            "action": "",
+            "args": "",
+            "phase": "anytime",
+            "precededBy": "",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "output_folder",
+            "outputs": "problem solution"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：定义并精炼问题",
+          "descZh": "用 Problem Statement Refinement 把模糊抱怨转成精确陈述，明确现状与目标的差距",
+          "optional": false
+        },
+        {
+          "name": "Step 2：诊断并界定问题边界",
+          "descZh": "用 Is/Is Not Analysis 划定发生/不发生的人、时、地、事，找出模式",
+          "optional": false
+        },
+        {
+          "name": "Step 3：根因分析",
+          "descZh": "从诊断类方法（五个为什么、鱼骨图、系统思考）中选 2-3 个下钻到根因与系统动力",
+          "optional": false
+        },
+        {
+          "name": "Step 4：分析驱动力与约束",
+          "descZh": "用力场分析列出推动/阻碍因素，识别真正的主约束（区分真实与假想）",
+          "optional": false
+        },
+        {
+          "name": "Step 5：生成方案选项",
+          "descZh": "从综合类与创意类方法（TRIZ、形态分析、仿生、横向思维、假设打破、逆向头脑风暴）中选 2-4 个，产出至少 10-15 个方案含「野」点子",
+          "optional": false
+        },
+        {
+          "name": "Step 6：评估并选定方案",
+          "descZh": "共同定义评估标准，从评估类方法（决策矩阵、成本效益、风险矩阵）中选 1-2 个执行并给出推荐及理由",
+          "optional": false
+        },
+        {
+          "name": "Step 7：规划实施",
+          "descZh": "确定实施策略（试点/分阶段/一次性），排出动作、顺序、依赖、责任人与资源，用 PDCA 迭代",
+          "optional": false
+        },
+        {
+          "name": "Step 8：建立监控与验证",
+          "descZh": "设成功指标与阈值、验证方式与试点，识别实施风险与触发调整/转向的条件",
+          "optional": false
+        },
+        {
+          "name": "Step 9：沉淀经验教训",
+          "descZh": "回顾过程：哪些有效、哪些要改、有什么意外洞察",
+          "optional": true
+        }
+      ],
+      "notes": "唯一带明确 optional 步骤的 CIS 工作流：Step 9（经验教训）标记 optional=true，且文档说明若不跑 Step 9，Step 8 结束时就执行 workflow.on_complete 终结指令。方法库 solving-methods.csv 共 30 个方法，6 类各 5 个（diagnosis / analysis / synthesis / evaluation / implementation / creative）。路径：default_output_file={output_folder}/problem-solution-{date}.md。含 energy-checkpoint（第 5、8 步），硬性不得给时间估算。",
+      "menuCode": "PS"
+    },
+    {
+      "canonicalId": "bmad-cis-design-thinking",
+      "displayName": "Design Thinking",
+      "module": "cis",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-design-thinking/SKILL.md",
+        "bmad-cis-design-thinking/design-methods.csv"
+      ],
+      "summaryZh": "以共情驱动的设计思维流程引导人本设计：从 EMPATHIZE 建立用户理解，到 DEFINE 框定问题、IDEATE 发散方案、PROTOTYPE 做可感知原型、TEST 用户验证，最后规划下一轮迭代。全程把用户放在中心，发散阶段不做评判。",
+      "entry": "以技能名直接调用（/bmad-cis-design-thinking），或经 bmad-cis-agent-design-thinking-coach（Maya）菜单码 DT。工作流为 SKILL.md 内联的 7 步 <workflow>，无独立 steps 目录。",
+      "menu": [
+        {
+          "code": "a",
+          "labelEn": "Advanced Elicitation",
+          "labelZh": "高级引导",
+          "descZh": "检查点选项；文档只给出选项名，未在本文件内定义语义（名称与 core 模块的 bmad-advanced-elicitation 一致）"
+        },
+        {
+          "code": "c",
+          "labelEn": "Continue",
+          "labelZh": "继续",
+          "descZh": "保存当前产物并进入下一步（文档内唯一明确定义的选项）"
+        },
+        {
+          "code": "p",
+          "labelEn": "Party-Mode",
+          "labelZh": "多方模式",
+          "descZh": "检查点选项；文档只给出选项名，未在本文件内定义语义（名称与 core 模块的 bmad-party-mode 一致）"
+        },
+        {
+          "code": "y",
+          "labelEn": "YOLO",
+          "labelZh": "YOLO",
+          "descZh": "检查点选项；文档只给出选项名 [y] YOLO，未在本文件内定义语义"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "required": false,
+        "args": "",
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": "output_folder",
+        "outputs": [
+          "design thinking"
+        ],
+        "menuCode": "DT",
+        "entries": [
+          {
+            "displayName": "Design Thinking",
+            "menuCode": "DT",
+            "action": "",
+            "args": "",
+            "phase": "anytime",
+            "precededBy": "",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "output_folder",
+            "outputs": "design thinking"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：收集背景并定义设计挑战",
+          "descZh": "明确要解决的设计挑战、目标用户与约束",
+          "optional": false
+        },
+        {
+          "name": "Step 2：EMPATHIZE 建立用户理解",
+          "descZh": "用共情阶段方法（用户访谈、共情地图、影子观察、旅程地图、日记研究）理解真实用户",
+          "optional": false
+        },
+        {
+          "name": "Step 3：DEFINE 框定问题",
+          "descZh": "用定义阶段方法（问题框定、How Might We、观点陈述）把洞察收敛成清晰问题",
+          "optional": false
+        },
+        {
+          "name": "Step 4：IDEATE 生成多样方案",
+          "descZh": "发散阶段不做评判，产出多样化解法",
+          "optional": false
+        },
+        {
+          "name": "Step 5：PROTOTYPE 让想法可感知",
+          "descZh": "快速做出低成本原型",
+          "optional": false
+        },
+        {
+          "name": "Step 6：TEST 用户验证",
+          "descZh": "用用户测试验证原型假设，收集反馈",
+          "optional": false
+        },
+        {
+          "name": "Step 7：规划下一轮迭代",
+          "descZh": "综合验证结果决定迭代方向",
+          "optional": false
+        }
+      ],
+      "notes": "方法库 design-methods.csv 共 30 个方法，按阶段均分 6 类各 5 个（empathize / define / ideate / prototype / test / implement）；注意方法库有 6 个阶段而工作流只走 7 步覆盖前 5 个阶段 + 迭代规划，implement 阶段的方法未被流程显式使用。路径：default_output_file={output_folder}/design-thinking-{date}.md。与 bmad-cis-agent-design-thinking-coach（Maya）直接对应。",
+      "menuCode": "DT"
+    },
+    {
+      "canonicalId": "bmad-cis-storytelling",
+      "displayName": "Storytelling",
+      "module": "cis",
+      "kind": "workflow 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-storytelling/SKILL.md",
+        "bmad-cis-storytelling/story-types.csv"
+      ],
+      "summaryZh": "用成熟叙事框架把想法变成有感染力的故事：先选故事框架，再收集素材、设计情绪弧、打磨开场钩子、写正文，然后做多渠道变体与使用指引，最后生成终稿。强调保留用户真实声音。",
+      "entry": "以技能名直接调用（/bmad-cis-storytelling），或经 bmad-cis-agent-storyteller（Sophia）菜单码 ST。工作流为 SKILL.md 内联的 10 步 <workflow>，无独立 steps 目录。",
+      "menu": [
+        {
+          "code": "a",
+          "labelEn": "Advanced Elicitation",
+          "labelZh": "高级引导",
+          "descZh": "检查点选项；文档只给出选项名，未在本文件内定义语义（名称与 core 模块的 bmad-advanced-elicitation 一致）"
+        },
+        {
+          "code": "c",
+          "labelEn": "Continue",
+          "labelZh": "继续",
+          "descZh": "保存当前产物并进入下一步（文档内唯一明确定义的选项）"
+        },
+        {
+          "code": "p",
+          "labelEn": "Party-Mode",
+          "labelZh": "多方模式",
+          "descZh": "检查点选项；文档只给出选项名，未在本文件内定义语义（名称与 core 模块的 bmad-party-mode 一致）"
+        },
+        {
+          "code": "y",
+          "labelEn": "YOLO",
+          "labelZh": "YOLO",
+          "descZh": "检查点选项；文档只给出选项名 [y] YOLO，未在本文件内定义语义"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "required": false,
+        "args": "",
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": "output_folder",
+        "outputs": [
+          "narrative/story"
+        ],
+        "menuCode": "ST",
+        "entries": [
+          {
+            "displayName": "Storytelling",
+            "menuCode": "ST",
+            "action": "",
+            "args": "",
+            "phase": "anytime",
+            "precededBy": "",
+            "followedBy": "",
+            "required": "false",
+            "outputLocation": "output_folder",
+            "outputs": "narrative/story"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "name": "Step 1：故事背景设定",
+          "descZh": "明确受众、目的、渠道与期望效果",
+          "optional": false
+        },
+        {
+          "name": "Step 2：选择故事框架",
+          "descZh": "从 story-types.csv 的 25 种故事类型中挑选合适框架",
+          "optional": false
+        },
+        {
+          "name": "Step 3：收集故事素材",
+          "descZh": "围绕所选框架收集人物、冲突、转折与细节素材",
+          "optional": false
+        },
+        {
+          "name": "Step 4：设计情绪弧",
+          "descZh": "规划情绪起伏曲线",
+          "optional": false
+        },
+        {
+          "name": "Step 5：打磨开场钩子",
+          "descZh": "设计能立刻抓住注意力的开头",
+          "optional": false
+        },
+        {
+          "name": "Step 6：撰写核心叙事",
+          "descZh": "按框架与情绪弧写出主体故事",
+          "optional": false
+        },
+        {
+          "name": "Step 7：生成故事变体",
+          "descZh": "按不同渠道/时长改写版本",
+          "optional": false
+        },
+        {
+          "name": "Step 8：使用指引",
+          "descZh": "给出讲/用这个故事的建议",
+          "optional": false
+        },
+        {
+          "name": "Step 9：精修与下一步",
+          "descZh": "按反馈精修",
+          "optional": false
+        },
+        {
+          "name": "Step 10：生成最终产出",
+          "descZh": "写终稿到 {output_folder}/story-{date}.md 并确认完成",
+          "optional": false
+        }
+      ],
+      "notes": "故事框架库 story-types.csv 共 25 条，5 类各 5 个（transformation / strategic / persuasive / analytical / emotional），每类含 5 个具体类型（如 hero-journey、pixar-spine、customer-journey、data-story、vulnerable-story 等）。路径：default_output_file={output_folder}/story-{date}.md。与 bmad-cis-agent-storyteller（Sophia）直接对应。",
+      "menuCode": "ST"
+    },
+    {
+      "canonicalId": "bmad-cis-agent-brainstorming-coach",
+      "displayName": "Carson — Elite Brainstorming Specialist",
+      "module": "cis",
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-agent-brainstorming-coach/SKILL.md",
+        "bmad-cis-agent-brainstorming-coach/customize.toml"
+      ],
+      "summaryZh": "头脑风暴引导专家 Carson，用创造性技术与系统化创新方法主持高产出创意会，营造「野想法安全落地、优中选优」的氛围。本身是人格化入口，实际执行时调用 core 模块的 bmad-brainstorming 技能。",
+      "entry": "说「找 Carson / Brainstorming Specialist」或按技能名直接调用激活。激活序列 8 步：解析 agent 定制块 → prepend → 采用人格 → 载入持久事实 → 读 {project-root}/_bmad/cis/config.yaml → 问候（带图标前缀）→ append → 展示菜单。",
+      "menu": [
+        {
+          "code": "BS",
+          "labelEn": "Facilitate a guided brainstorming session on any topic",
+          "labelZh": "引导式头脑风暴",
+          "descZh": "调用 bmad-brainstorming 技能，用一种或多种技术主持头脑风暴"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "required": null,
+        "args": null,
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": null,
+        "outputs": null,
+        "menuCode": null,
+        "entries": []
+      },
+      "steps": null,
+      "notes": "登记错位（非无实现）：实体完整可用（baseline location=project，skillDir 指向项目级 .claude/skills），仅 skill-manifest.csv 有登记，bmad-help.csv 与 module-help.csv 均无行（inHelpCatalog=false），故 /bmad-help 发现不到该入口。其菜单指向的 bmad-brainstorming 在 skill-manifest 中归属 core 模块，却在 cis module-help.csv 里以菜单码 BS 登记，形成「入口登记模块 ≠ 技能归属模块」的跨模块错位（该技能在 bmad-help.csv 中共有 3 条登记：BMad Method/BP、Core/BSP、CIS/BS）。",
+      "menuCode": null
+    },
+    {
+      "canonicalId": "bmad-cis-agent-creative-problem-solver",
+      "displayName": "Dr. Quinn — Master Problem Solver",
+      "module": "cis",
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-agent-creative-problem-solver/SKILL.md",
+        "bmad-cis-agent-creative-problem-solver/customize.toml"
+      ],
+      "summaryZh": "系统化问题求解专家 Dr. Quinn，用 TRIZ、约束理论、系统思考等方法解剖复杂难题，把根因逼出水面。人格化入口，实际执行时路由到 bmad-cis-problem-solving 工作流。",
+      "entry": "说「找 Dr. Quinn / Master Problem Solver」或按技能名直接调用激活；激活后从菜单选 PS 触发工作流。",
+      "menu": [
+        {
+          "code": "PS",
+          "labelEn": "Apply systematic problem-solving methodologies to a hard challenge",
+          "labelZh": "系统化问题求解",
+          "descZh": "调用 bmad-cis-problem-solving 工作流，对复杂挑战做结构化求解"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "required": null,
+        "args": null,
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": null,
+        "outputs": null,
+        "menuCode": null,
+        "entries": []
+      },
+      "steps": null,
+      "notes": "登记错位（非无实现）：实体完整可用（baseline location=project，skillDir 指向项目级 .claude/skills），仅 skill-manifest.csv 有登记，bmad-help.csv 与 module-help.csv 均无行（inHelpCatalog=false），故 /bmad-help 发现不到该入口。其路由目标 bmad-cis-problem-solving 本身已登记（PS，anytime）。人物设定参考 Genrich Altshuller 的 TRIZ 与 Donella Meadows 的系统思考。",
+      "menuCode": null
+    },
+    {
+      "canonicalId": "bmad-cis-agent-design-thinking-coach",
+      "displayName": "Maya — Design Thinking Maestro",
+      "module": "cis",
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-agent-design-thinking-coach/SKILL.md",
+        "bmad-cis-agent-design-thinking-coach/customize.toml"
+      ],
+      "summaryZh": "设计思维引导师 Maya，用共情驱动方法带团队走完人本设计流程，把真实用户需求转化为经验证的方案。人格化入口，实际执行时路由到 bmad-cis-design-thinking 工作流。",
+      "entry": "说「找 Maya / Design Thinking Maestro」或按技能名直接调用激活；激活后从菜单选 DT 触发工作流。",
+      "menu": [
+        {
+          "code": "DT",
+          "labelEn": "Guide a human-centered design process end-to-end",
+          "labelZh": "端到端设计思维引导",
+          "descZh": "调用 bmad-cis-design-thinking 工作流，走完共情到验证的完整流程"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "required": null,
+        "args": null,
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": null,
+        "outputs": null,
+        "menuCode": null,
+        "entries": []
+      },
+      "steps": null,
+      "notes": "登记错位（非无实现）：实体完整可用（baseline location=project，skillDir 指向项目级 .claude/skills），仅 skill-manifest.csv 有登记，bmad-help.csv 与 module-help.csv 均无行（inHelpCatalog=false），故 /bmad-help 发现不到该入口。其路由目标 bmad-cis-design-thinking 本身已登记（DT，anytime）。人物设定参考 Tim Brown（IDEO）与 Don Norman 的人本设计方法。",
+      "menuCode": null
+    },
+    {
+      "canonicalId": "bmad-cis-agent-innovation-strategist",
+      "displayName": "Victor — Disruptive Innovation Oracle",
+      "module": "cis",
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-agent-innovation-strategist/SKILL.md",
+        "bmad-cis-agent-innovation-strategist/customize.toml"
+      ],
+      "summaryZh": "颠覆式创新战略家 Victor，识别颠覆机会并设计商业模式创新，让战略转向落到真正有价值的位置。人格化入口，实际执行时路由到 bmad-cis-innovation-strategy 工作流。",
+      "entry": "说「找 Victor / Disruptive Innovation Oracle」或按技能名直接调用激活；激活后从菜单选 IS 触发工作流。",
+      "menu": [
+        {
+          "code": "IS",
+          "labelEn": "Identify disruption opportunities and architect business-model innovation",
+          "labelZh": "创新策略",
+          "descZh": "调用 bmad-cis-innovation-strategy 工作流，寻找颠覆机会并设计商业模式创新"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "required": null,
+        "args": null,
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": null,
+        "outputs": null,
+        "menuCode": null,
+        "entries": []
+      },
+      "steps": null,
+      "notes": "登记错位（非无实现）：实体完整可用（baseline location=project，skillDir 指向项目级 .claude/skills），仅 skill-manifest.csv 有登记，bmad-help.csv 与 module-help.csv 均无行（inHelpCatalog=false），故 /bmad-help 发现不到该入口。其路由目标 bmad-cis-innovation-strategy 本身已登记（IS，anytime）。人物设定参考 Clayton Christensen 的颠覆理论（与菜单描述里的 disruption opportunities 呼应）以及 Kim & Mauborgne 的蓝海战略重构。",
+      "menuCode": null
+    },
+    {
+      "canonicalId": "bmad-cis-agent-presentation-master",
+      "displayName": "Caravaggio — Visual Communication + Presentation Expert",
+      "module": "cis",
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-agent-presentation-master/SKILL.md",
+        "bmad-cis-agent-presentation-master/customize.toml"
+      ],
+      "summaryZh": "视觉传达与演示专家 Caravaggio，设计提案、路演、发布会与视频解说等各类演示与视觉叙事，覆盖从多页幻灯片到单张概念图。是 6 个 CIS agent 中唯一全部菜单项都为 prompt 型（不绑定任何技能）的一个。",
+      "entry": "说「找 Caravaggio / Presentation Expert」或按技能名直接调用激活；激活后从 7 项菜单中选具体演示类型（全部为 prompt 直接执行，无绑定技能）。",
+      "menu": [
+        {
+          "code": "SD",
+          "labelEn": "Create a multi-slide presentation with professional layouts and visual hierarchy",
+          "labelZh": "多页幻灯片",
+          "descZh": "用 Excalidraw 帧式布局做多页演示，含专业版式与视觉层级"
+        },
+        {
+          "code": "EX",
+          "labelEn": "Design a YouTube/video explainer layout with visual script and engagement hooks",
+          "labelZh": "视频解说版式",
+          "descZh": "产出含视觉脚本与留人钩子的视频解说版式"
+        },
+        {
+          "code": "PD",
+          "labelEn": "Craft an investor pitch presentation with data visualization and narrative arc",
+          "labelZh": "投资人路演",
+          "descZh": "构建「问题→方案」叙事弧并配数据可视化的路演材料"
+        },
+        {
+          "code": "CT",
+          "labelEn": "Build a conference talk or workshop presentation with speaker notes",
+          "labelZh": "大会演讲 / 工作坊",
+          "descZh": "逐页配演讲者备注的会议或工作坊演示"
+        },
+        {
+          "code": "IN",
+          "labelEn": "Design creative information visualization with visual storytelling",
+          "labelZh": "信息可视化",
+          "descZh": "按内容选图表/图解类型做创意信息可视化"
+        },
+        {
+          "code": "VM",
+          "labelEn": "Create conceptual illustrations (Rube Goldberg machines, journey maps, creative processes)",
+          "labelZh": "概念插画",
+          "descZh": "制作鲁布·戈德堡机械、旅程地图或创意流程类概念插画"
+        },
+        {
+          "code": "CV",
+          "labelEn": "Generate a single expressive image that explains an idea creatively and memorably",
+          "labelZh": "单张概念图",
+          "descZh": "生成一张能创造性地讲清某个想法的表达性图片"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "required": null,
+        "args": null,
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": null,
+        "outputs": null,
+        "menuCode": null,
+        "entries": []
+      },
+      "steps": null,
+      "notes": "登记错位（非无实现）：实体完整可用（baseline location=project，skillDir 指向项目级 .claude/skills），仅 skill-manifest.csv 有登记，bmad-help.csv 与 module-help.csv 均无行（inHelpCatalog=false），故 /bmad-help 发现不到该入口。特征最特殊：7 项菜单全部是 prompt 型（其余 5 个 CIS agent 各只有 1 项且均为 skill 型），意味着它的能力完全不在 help CSV 可发现范围内，只能靠激活该 agent 才能触达。CIS 模块另有视觉工具配置项 visual_tools: intermediate（见 cis/config.yaml）。",
+      "menuCode": null
+    },
+    {
+      "canonicalId": "bmad-cis-agent-storyteller",
+      "displayName": "Sophia — Master Storyteller",
+      "module": "cis",
+      "kind": "agent 型",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "bmad-cis-agent-storyteller/SKILL.md",
+        "bmad-cis-agent-storyteller/customize.toml"
+      ],
+      "summaryZh": "叙事大师 Sophia，用成熟故事框架让想法被记住、被传播、被信服，擅长情绪心理与叙事机制。人格化入口，实际执行时路由到 bmad-cis-storytelling 工作流。",
+      "entry": "说「找 Sophia / Master Storyteller」或按技能名直接调用激活；激活后从菜单选 ST 触发工作流。",
+      "menu": [
+        {
+          "code": "ST",
+          "labelEn": "Craft compelling narrative using proven story frameworks",
+          "labelZh": "叙事创作",
+          "descZh": "调用 bmad-cis-storytelling 工作流，用成熟故事框架写有感染力的叙事"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "required": null,
+        "args": null,
+        "precededBy": [],
+        "followedBy": [],
+        "outputLocation": null,
+        "outputs": null,
+        "menuCode": null,
+        "entries": []
+      },
+      "steps": null,
+      "notes": "登记错位（非无实现）：实体完整可用（baseline location=project，skillDir 指向项目级 .claude/skills），仅 skill-manifest.csv 有登记，bmad-help.csv 与 module-help.csv 均无行（inHelpCatalog=false），故 /bmad-help 发现不到该入口。其路由目标 bmad-cis-storytelling 本身已登记（ST，anytime）。人物设定参考 Robert McKee 的结构主义与 Joseph Campbell 的神话弧。",
+      "menuCode": null
+    }
+  ]
+}

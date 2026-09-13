@@ -1,0 +1,1440 @@
+{
+  "module": "bmm",
+  "group": "B",
+  "groupScope": "3-solutioning + 4-implementation（按 _bmad/bmm 目录归属，即 manifestPath 所在目录；原 groupScope 里的 anytime 是该 3 个技能的 catalog phase 标记，不是目录）",
+  "moduleName": "BMad Method",
+  "extractedBy": "w-bmm-b",
+  "extractedAt": "2026-09-13",
+  "sourceRoot": "F:/code2/bmad-tool/.claude/skills/<canonicalId>/（baseline 指认的项目副本，skillDir 为各技能实体绝对路径，sourceFiles 为该目录内相对路径）；注：既有 14 条实际提取自全局副本 C:/Users/93559/.claude/skills/<canonicalId>/，与项目副本存在版本差异，见 discrepancies",
+  "skillCount": 17,
+  "baselineSkillCount": 17,
+  "coveredIds": [
+    "bmad-create-story",
+    "bmad-dev-story",
+    "bmad-code-review",
+    "bmad-sprint-planning",
+    "bmad-sprint-status",
+    "bmad-correct-course",
+    "bmad-retrospective",
+    "bmad-qa-generate-e2e-tests",
+    "bmad-check-implementation-readiness",
+    "bmad-create-architecture",
+    "bmad-create-epics-and-stories",
+    "bmad-generate-project-context",
+    "bmad-checkpoint-preview",
+    "bmad-quick-dev",
+    "bmad-agent-architect",
+    "bmad-agent-dev",
+    "bmad-investigate"
+  ],
+  "discrepancies": [
+    "分组口径调整（本次）：改为按 _bmad/bmm 目录归属分组。原属本组的 bmad-document-project、bmad-agent-tech-writer（manifestPath 在 1-analysis）移交 A 组，消除与其重复；按目录补入 bmad-agent-architect（3-solutioning）与 bmad-agent-dev、bmad-investigate（4-implementation）。本组 16 → 17（3-solutioning 4 条 + 4-implementation 13 条）。",
+    "缺口技能的依赖字段缺失：bmad-agent-architect、bmad-agent-dev 的 inHelpCatalog=false 且 helpEntries 为空；bmad-investigate 虽 inHelpCatalog=true，但其 IN 条目字段整体错位（args 位置写着 \"4-implementation\"、required 位置写着 \"implementation_artifacts\"、outputLocation 位置写着 \"investigation report\"），语义不对应。三者 dependencies 均全部留空（不臆测），已在各自 notes 说明。附更正：team-lead 消息称 bmad-investigate 的 inHelpCatalog=false，实测为 true。",
+    "来源版本差异（待裁决）：本组既有 14 条实际提取自全局副本 C:/Users/93559/.claude/skills/（其 SKILL.md 是 200-380B 存根，正文在 workflow.md）；baseline 指认的项目副本 F:/code2/bmad-tool/.claude/skills/ 是另一种打包（SKILL.md 直接承载全文 + customize.toml，无 workflow.md），且不含本机定制。实测差异例：bmad-dev-story 全局版强制要求 quality-gates-config.yaml 并执行 12 道质量门禁 + 自动修复子代理循环 + repair-report.yaml（项目副本无此内容，步骤数为 6 个 ### Step 标题）；bmad-create-story 全局版有步骤 3.5/3.6 测试用例生成与自动化可行性报告（项目副本无）；bmad-code-review 全局版含 bmad-analyze-bug 交接路由（项目副本无 deferred-work 与 analyze-bug）。skillDir 已按要求填项目实体路径，但内容是否需按项目副本重核既有 14 条，请裁决。",
+    "路由到基线之外：bmad-sprint-status 在 status=pending-acceptance 时建议 /bmad-accept；bmad-code-review 在出现重大发现时可交接 bmad-analyze-bug。这两个技能本机已安装（C:/Users/93559/.claude/skills/ 下存在，bmad-analyze-bug 的 frontmatter 写明 phase: 4-implementation / after: bmad-code-review），但 catalog-baseline.json 中不存在。",
+    "bmad-create-story：catalog 把 CS(create) 与 VS(validate) 列为两条 helpEntry，但本地目录没有独立的 validate 流程文件；VS 在本地仅有 checklist.md、template.md 注释和 dev-story 文案中的 '*validate-create-story' 引用。",
+    "bmad-retrospective：本组任务简报预期「重大发现时建议 correct-course」，但本地 retrospective 源码并未点名 bmad-correct-course；它在检测到重大发现时建议的是：更新下一 epic 定义、更新受影响故事、必要时更新 PRD、召开 epic planning review 会话（并把该会话加入 critical path）。",
+    "全局副本文件瑕疵：bmad-create-story/workflow.md 的 step 1 内整段自动发现逻辑重复出现两次（约 54-208 行区间）。"
+  ],
+  "skills": [
+    {
+      "canonicalId": "bmad-create-story",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "template.md",
+        "checklist.md"
+      ],
+      "summaryZh": "把 epics 里的一条故事变成「上下文完备」的故事文件，让 dev agent 不再需要自己翻资料就能实现；自动从 sprint-status.yaml 找第一条 backlog 故事，穷尽分析 PRD/架构/UX/前序故事/git 历史，并强制产出测试用例与自动化可行性报告。这是故事循环的起点（CS）。",
+      "entry": "直接调用技能（SKILL.md 指向 workflow.md 顺序执行）；用户可说 \"create the next story\" 或给出故事编号（如 1-2-user-auth），也可给出故事文件路径。",
+      "menu": [
+        {
+          "code": "CS",
+          "labelEn": "Create Story",
+          "labelZh": "创建故事",
+          "descZh": "主流程：定位目标故事 → 穷尽分析产物 → 生成完整故事文件（状态 ready-for-dev）→ 校验并同步 sprint-status。"
+        },
+        {
+          "code": "VS",
+          "labelEn": "Validate Story",
+          "labelZh": "校验故事",
+          "descZh": "可选质量检查：对照 checklist.md 校验已创建的故事文件；本地无独立 validate 流程文件，仅 template.md 注释与 dev-story 文案引用 '*validate-create-story'。"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [
+          "bmad-sprint-planning",
+          "bmad-create-story:create"
+        ],
+        "followedBy": [
+          "bmad-create-story:validate",
+          "bmad-dev-story"
+        ],
+        "required": "true（CS 条目；VS 条目为 false）",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": [
+          "story",
+          "story validation report"
+        ]
+      },
+      "steps": [
+        {
+          "name": "1. 确定目标故事",
+          "descZh": "用户指定编号/路径则直接用；否则读完整 sprint-status.yaml，自上而下取第一条 backlog 故事；若为该 epic 首条故事则把 epic 状态由 backlog（或旧值 contexted）改为 in-progress；epic 已 done 或状态非法则 HALT；没有 backlog 故事时给出 1.重跑 sprint-planning / 2.用 correct-course 加故事 / 3.epic 完成则跑 retrospective 的选项。",
+          "optional": false
+        },
+        {
+          "name": "2. 加载并穷尽分析核心产物",
+          "descZh": "按 discover-inputs.md 读取 epics/PRD/架构/UX/project-context；抽取本 epic 全量与目标故事的用户故事、AC、技术约束；story_num>1 时读前一条故事吸取教训；有 git 则看最近 5 次提交提取模式。",
+          "optional": false
+        },
+        {
+          "name": "3. 架构分析提取开发护栏",
+          "descZh": "从架构文档逐节判断与本故事的相关性，提炼技术栈/代码结构/API/数据/安全/性能/测试/部署/集成等必须遵守的要求。",
+          "optional": false
+        },
+        {
+          "name": "3.5 从验收标准生成测试用例",
+          "descZh": "（本地定制）载入 test-case-guide.md 与用户测试方法论文档；按故事风险分级（HIGH/MEDIUM/LOW）为每个 AC 推导 TC，强制每个 TC 映射到至少一个 AC 与一个 Task，高风险故事额外生成韧性与对抗性测试。",
+          "optional": false
+        },
+        {
+          "name": "3.6 评估测试自动化可行性",
+          "descZh": "（本地定制）按 automation-classification.md 把每个 TC 分为 FULL/SEMI/MANUAL，匹配 automation-tools-catalog.md 的工具、识别卡点（BLK-*）、列出需安装与需开发工具，产出 Automation Feasibility Report 写入故事模板。",
+          "optional": false
+        },
+        {
+          "name": "4. 网络研究最新技术细节",
+          "descZh": "对架构中提到的关键库/API 研究最新稳定版本、破坏性变更、安全公告，并把关键信息写进故事。",
+          "optional": true
+        },
+        {
+          "name": "5. 生成完整故事文件",
+          "descZh": "以 template.md 初始化 {implementation_artifacts}/{{story_key}}.md，逐段写入故事头、需求、开发者上下文与护栏、测试用例段、前序故事情报、git 情报、最新技术信息、项目上下文引用，最后把状态置为 ready-for-dev。",
+          "optional": false
+        },
+        {
+          "name": "6. 校验、归档与收尾",
+          "descZh": "对照 checklist.md 校验并修复；如存在自动化可行性报告且有归档脚本则运行 verification-report-archive.js 归档；把 sprint-status 中该故事由 backlog 更新为 ready-for-dev；向用户呈现自动化可行性报告并等待 approve / approve tool-only / modify。",
+          "optional": false
+        }
+      ],
+      "notes": "step 3.5/3.6 与「验证自动化可行性报告」「归档脚本」为本机副本的定制增强（含中文指令与 pipeline-config.yaml 引用）。依赖关系是双条目：CS 的 followedBy 指向 VS，VS 的 followedBy 指向 DS（即 create → validate → dev 的理想链路，但 validate 为可选）。workflow.md 的 step 1 有一整段重复代码，属文件瑕疵。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-create-story"
+    },
+    {
+      "canonicalId": "bmad-dev-story",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md"
+      ],
+      "summaryZh": "按 ready-for-dev 的故事文件执行实现：加载上下文 → 检测是否为代码审查后的续跑 → TDD 红/绿/重构 → 路径覆盖 100% → 12 道质量门禁 → 把故事状态置为 review。它是故事循环的核心执行器，也是 code-review 发现问题后的回流落点（DS）。",
+      "entry": "直接调用技能（SKILL.md 指向 workflow.md）；可给故事文件路径，或由 sprint-status 自动取第一条 ready-for-dev 故事。",
+      "menu": [],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [
+          "bmad-create-story:validate"
+        ],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "",
+        "outputs": ""
+      },
+      "steps": [
+        {
+          "name": "1. 找到并加载下一条就绪故事",
+          "descZh": "显式路径优先；否则读完整 sprint-status.yaml 取第一条 ready-for-dev 故事并解析故事键，读完整故事文件、抽 Dev Notes 与首个未完成任务；没有就绪故事时给出回退菜单：1.create-story / 2.validate-create-story / 3.指定文件路径 / 4.只看 sprint 状态。",
+          "optional": false
+        },
+        {
+          "name": "2. 加载项目上下文与故事信息",
+          "descZh": "载入 project-context.md 的编码规范；若 planning_artifacts/prototypes/ 下存在该故事的已批准设计原型（prototypes-status.yaml 状态 all-approved），则强制要求实现 100% 还原设计稿，并保留 data-component/data-variant/data-state/data-id 语义标记。",
+          "optional": false
+        },
+        {
+          "name": "3. 检测是否为代码审查后的续跑",
+          "descZh": "故事文件里有 \"Senior Developer Review (AI)\" 段则设 review_continuation=true，提取审查结论、未勾选的 Review Follow-ups（[AI-Review]），后续优先处理这些项；没有则按全新实现开始。",
+          "optional": false
+        },
+        {
+          "name": "4. 标记故事进行中",
+          "descZh": "sprint-status.yaml 中把该故事 ready-for-dev → in-progress（已是 in-progress 则继续）；无 sprint 跟踪则仅记录在故事文件里。",
+          "optional": false
+        },
+        {
+          "name": "5. 载入测试用例并确定 TDD 模式",
+          "descZh": "故事含 ## Test Cases（TC-xxx）→ guided 模式（按 TC 编号写测试）；否则 ad-hoc（从 AC 推导 happy path/边界/错误路径）；新依赖或配置缺失则 HALT 等用户批准。",
+          "optional": false
+        },
+        {
+          "name": "6. RED：写会失败的测试",
+          "descZh": "用具体输入/输出值按 AAA 结构写测试并运行，必须确认失败才继续；测试不失败说明功能已存在或测试写错，不得进入 GREEN。",
+          "optional": false
+        },
+        {
+          "name": "7. GREEN：写最小实现",
+          "descZh": "只写让当前任务测试通过的最少代码；实现中发现新边界条件则先回第 6 步补测试；严禁实现当前任务之外的功能。",
+          "optional": false
+        },
+        {
+          "name": "8. REFACTOR：在测试保护下重构",
+          "descZh": "去重/命名/简化/抽公共件，每步跑测试；若加载了设计原型则比对布局/CSS/交互态/断点并运行语义标记校验（阈值 90%，不足则补齐 data-* 属性）；连续 3 次实现失败则 HALT 求指导。",
+          "optional": false
+        },
+        {
+          "name": "9. 路径覆盖 100% 校验（无轮次上限）",
+          "descZh": "按 pipeline-config.yaml 的 tdd.coverage 阈值（语句/分支/函数/行/路径全 100%）检查，未达标就补测试并循环回 6→7→8→9，此循环没有次数上限直到达标。",
+          "optional": false
+        },
+        {
+          "name": "10. 任务完成校验",
+          "descZh": "确认该任务全部测试真实存在且 100% 通过、无回归、TC 全覆盖，才允许勾选任务；审查回填项要同时在故事文件与 Review 段的 Action Items 上勾选并记入 Completion Notes；完成后回到第 5 步处理下一任务。",
+          "optional": false
+        },
+        {
+          "name": "11. 故事完成与质量门禁",
+          "descZh": "全任务勾选、跑完整回归、补全 File List、执行增强版 DoD；随后依次执行 12 道质量门禁（1 文件真实存在 / 2 代码可达 / 3 构建零错误 / 4 测试真实性——禁 mock 用真库真后端 / 5 路径覆盖 100% / 6 AC 一一对应 / 7 无回归 / 8 无硬编码密钥 / 9 设计还原 100% / 10 架构漂移检测 / 11 后端 API 规范（8 维度）/ 12 开发安全），失败会启动自动修复子代理（多数门禁 2 次，Gate 4/5 达 10 次），仍失败则记入 repair-report.yaml；最后把故事状态置为 review。",
+          "optional": false
+        },
+        {
+          "name": "12. 完成沟通",
+          "descZh": "汇总本次实现的重点、测试与改动文件，告知故事已就绪待审查，建议下一步跑 code-review（并提示换一个不同的 LLM 更佳）。",
+          "optional": false
+        }
+      ],
+      "notes": "质量门禁为本地定制：启动前强制要求项目根或 implementation_artifacts 存在 quality-gates-config.yaml，缺失则 HALT 并明确「编码前必须有门禁」。循环路径：CR 留下待办时把故事状态改回 in-progress，用户再跑 dev-story 即从第 3 步以续跑模式优先清理 [AI-Review] 项；DS 完成 → CR 审查通过且无遗留 → 由 CR 自动把故事置 done。故事状态为 review 时若未找到 ready-for-dev，回退菜单第 2 项推荐先跑 validate-create-story。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-dev-story"
+    },
+    {
+      "canonicalId": "bmad-code-review",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "steps/step-01-gather-context.md",
+        "steps/step-02-review.md",
+        "steps/step-03-triage.md",
+        "steps/step-04-present.md"
+      ],
+      "summaryZh": "对变更做对抗式代码审查：并行多个审查层（Blind Hunter 只看 diff、Edge Case Hunter、Acceptance Auditor、Architecture Compliance Reviewer、前后端分离时加 API Security Reviewer），四分类分诊后把结论写回故事文件并同步 sprint 状态；审查通过会把故事自动置 done（CR）。",
+      "entry": "直接调用技能（SKILL.md → steps/step-01 顺序执行）；触发方式是用户说 \"run code review\" 或给出 PR/commit/分支/spec，也可从 sprint 状态里 status=review 的故事入手。",
+      "menu": [
+        {
+          "code": "1",
+          "labelEn": "Start the next story",
+          "labelZh": "开始下一个故事",
+          "descZh": "审查收尾菜单选项：运行 dev-story 接续下一条 ready-for-dev 故事。"
+        },
+        {
+          "code": "2",
+          "labelEn": "Re-run code review",
+          "labelZh": "重跑代码审查",
+          "descZh": "处理完发现后再次审查。"
+        },
+        {
+          "code": "3",
+          "labelEn": "Done",
+          "labelZh": "结束",
+          "descZh": "结束流程。"
+        },
+        {
+          "code": "4",
+          "labelEn": "Trigger bug analysis",
+          "labelZh": "触发缺陷分析",
+          "descZh": "仅当存在 HIGH 严重度 patch 或流程级重大发现时出现：带着审查发现交接 bmad-analyze-bug（跳过其 step-01 从 step-02 代码图谱开始）。"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [
+          "bmad-dev-story"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "",
+        "outputs": ""
+      },
+      "steps": [
+        {
+          "name": "1. 收集上下文",
+          "descZh": "按 5 层级联定位审查目标（显式参数 → 近期对话 → sprint 跟踪中 status=review 的故事 → 当前 git 分支/HEAD → 询问），构造 diff（暂存/未暂存/分支对比/提交区间/自带 diff/文件清单），确认 spec 文件并定 review_mode（full / no-spec），超过约 3000 行提示分块；呈现摘要后 HALT 等确认。",
+          "optional": false
+        },
+        {
+          "name": "2. 并行发起审查层",
+          "descZh": "无对话上下文地并行启动子代理：Blind Hunter（只给 diff，调 bmad-review-adversarial-general）、Edge Case Hunter（diff+项目读权限，调 bmad-review-edge-case-hunter）、Acceptance Auditor（仅有 spec 时）、Architecture Compliance Reviewer（对照 PRD/架构查 6 类漂移）、API Security Reviewer（前后端分离时查 OWASP API Top 10）；子代理不可用则生成角色提示文件并 HALT 让用户另开会话执行后粘贴回来。",
+          "optional": false
+        },
+        {
+          "name": "3. 分诊",
+          "descZh": "归一化各层发现格式（id/source/title/detail/location/severity）→ 去重合并 → 分类为 decision_needed（需人裁决，仅 full 模式）/ patch（可无歧义修复）/ defer（历史遗留）/ dismiss（噪音）；架构层的 CRITICAL 必须落 decision_needed 或 patch；无 spec 时把 decision_needed 降级；有审查层失败要显式告警而不是宣布「没问题」。",
+          "optional": false
+        },
+        {
+          "name": "4. 呈现与执行",
+          "descZh": "把发现写进故事文件的 Review Findings（decision-needed 未勾选、patch 未勾选、defer 已勾选并在 deferred-work.md 记账）；先逐条让人裁决 decision-needed，再处理 patch（1 全量应用 / 2 留作待办 / 3 逐条走查）；按结果更新故事状态：所有项解决且无未决 HIGH/MEDIUM → done，留有 action items 或未决问题 → in-progress；同步 sprint-status；最后给出下一步菜单。",
+          "optional": false
+        }
+      ],
+      "notes": "CR↔DS 循环由状态机驱动：CR 把未解决问题写回故事并把状态置回 in-progress，随后用户跑 dev-story 以「审查续跑」模式清理；全部解决后 CR 直接把故事置 done（因此 catalog 中 CR 的 followedBy 为空，但实际是 DS→CR→（回 DS 或 done）→ 下一个 CS/ER）。QA 技能明确指向本技能做「代码审查/故事验证」。选项 4 交接的 bmad-analyze-bug 不在基线 catalog 中（本机已安装）。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-code-review"
+    },
+    {
+      "canonicalId": "bmad-sprint-planning",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "sprint-status-template.yaml"
+      ],
+      "summaryZh": "从 epics 文档生成/刷新 sprint-status.yaml：为每个 epic、故事、回顾建立状态条目，并智能探测已有故事文件把状态升级（从不降级）。它是整个故事循环的数据地基（SP）。",
+      "entry": "直接调用技能（SKILL.md 指向 workflow.md）；用户说 \"run sprint planning\" 或 \"generate sprint plan\"。",
+      "menu": [],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": [
+          "sprint status"
+        ]
+      },
+      "steps": [
+        {
+          "name": "1. 解析 epic 文件提取全部工作项",
+          "descZh": "在 planning_artifacts 下找 *epic*.md（整篇或分片 index），抽取 epic 编号与故事清单，按规则把 \"Story 1.1: User Authentication\" 转成键 1-1-user-authentication。",
+          "optional": false
+        },
+        {
+          "name": "2. 构建 sprint 状态结构",
+          "descZh": "每个 epic 依次生成 epic-{num}: backlog、其下故事条目、epic-{num}-retrospective: optional 三行，保持 epic→故事→回顾→下一个 epic 的顺序。",
+          "optional": false
+        },
+        {
+          "name": "3. 智能状态检测",
+          "descZh": "若 {implementation_artifacts}/{{story-key}}.md 已存在则状态至少升到 ready-for-dev；已有 sprint-status.yaml 中更靠后的状态一律保留，绝不降级。",
+          "optional": false
+        },
+        {
+          "name": "4. 生成 sprint 状态文件",
+          "descZh": "写出完整 YAML：元数据既以注释（#）文档化又以键值出现；文件头内嵌状态定义与工作流说明。",
+          "optional": false
+        },
+        {
+          "name": "5. 校验与汇报",
+          "descZh": "校验每个 epic/故事都有条目、每个 epic 有回顾条目、无多余项、状态值合法、YAML 语法正确，然后汇报 epic/故事总数与进行中/已完成数。",
+          "optional": false
+        }
+      ],
+      "notes": "状态机是全循环的公共契约——Epic: backlog→in-progress→done（首条故事创建时自动进 in-progress）；Story: backlog→ready-for-dev→in-progress→review→done；Retrospective: optional↔done。CS/DS/CR/ER/SS 全部读写该文件；故事默认顺序推进但支持并行。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-sprint-planning"
+    },
+    {
+      "canonicalId": "bmad-sprint-status",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md"
+      ],
+      "summaryZh": "随时汇总冲刺状态、暴露风险并推荐下一步该跑哪个流程（SS）。推荐优先级：in-progress → review → pending-acceptance → ready-for-dev → backlog → retrospective；是循环里「该走哪条路」的导航中枢。",
+      "entry": "直接调用技能（SKILL.md 指向 workflow.md）；用户说 \"check sprint status\" / \"show sprint status\"；也支持被其他流程以 data / validate 模式程序化调用。",
+      "menu": [
+        {
+          "code": "interactive",
+          "labelEn": "Interactive",
+          "labelZh": "交互模式",
+          "descZh": "默认模式：展示汇总、风险与推荐流程，并提供动作菜单。"
+        },
+        {
+          "code": "data",
+          "labelEn": "Data mode",
+          "labelZh": "数据模式",
+          "descZh": "供其他流程调用：输出 next_workflow_id、next_story_id 与各状态计数等变量后返回调用方，不做交互。"
+        },
+        {
+          "code": "validate",
+          "labelEn": "Validate mode",
+          "labelZh": "校验模式",
+          "descZh": "供其他流程调用：校验 sprint-status.yaml 的元数据与状态值合法性，返回 is_valid/error/suggestion。"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [
+          "bmad-sprint-planning"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "",
+        "outputs": ""
+      },
+      "steps": [
+        {
+          "name": "0. 模式判定",
+          "descZh": "调用方传入 mode 则用之（data→步骤 20，validate→步骤 30），否则 interactive。",
+          "optional": false
+        },
+        {
+          "name": "1. 定位 sprint-status.yaml",
+          "descZh": "缺失则提示先运行 sprint-planning 并退出。",
+          "optional": false
+        },
+        {
+          "name": "2. 读取解析与风险检测",
+          "descZh": "解析全部 development_status 并分类 epic/回顾/故事；把旧状态 drafted→ready-for-dev、contexted→in-progress；校验状态值（非法则交互纠正）；风险规则：有 review 故事→建议 code-review；有 pending-acceptance→建议 bmad-accept；有 in-progress 但无 ready-for-dev→建议专注当前故事；全 epic backlog 且无 ready-for-dev→建议 create-story；last_updated 超 7 天→提示文件可能过期；孤立故事/空 epic→告警。",
+          "optional": false
+        },
+        {
+          "name": "3. 选择下一步推荐",
+          "descZh": "按固定优先级挑第一个命中的：in-progress→dev-story；review→code-review；pending-acceptance→accept；ready-for-dev→dev-story；backlog→create-story；retrospective==optional→retrospective；否则全部完成并祝贺。",
+          "optional": false
+        },
+        {
+          "name": "4. 展示汇总",
+          "descZh": "输出故事/Epic 各状态计数、推荐流程与风险清单。",
+          "optional": false
+        },
+        {
+          "name": "5. 提供动作菜单",
+          "descZh": "1) 立即运行推荐流程 2) 按状态列出全部故事 3) 显示原始 YAML 4) 退出。",
+          "optional": false
+        },
+        {
+          "name": "20. 数据模式输出",
+          "descZh": "按步骤 2/3 计算并输出 next_workflow_id、next_story_id、各计数与 risks 变量后返回调用方。",
+          "optional": true
+        },
+        {
+          "name": "30. 校验模式",
+          "descZh": "校验文件存在、必需元数据字段、development_status 非空、状态值合法，返回 is_valid 与建议。",
+          "optional": true
+        }
+      ],
+      "notes": "两条对外路由：status=review → bmad-code-review（审查通过后故事才 done）；status=pending-acceptance → /bmad-accept（该技能不在基线 catalog，本机存在）。data/validate 模式使它同时充当其他流程可调用的工具接口。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-sprint-status"
+    },
+    {
+      "canonicalId": "bmad-correct-course",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "checklist.md"
+      ],
+      "summaryZh": "冲刺执行中遇到重大问题时的变更管理：分析触发问题对 Epic、PRD、架构、UX 的冲击，产出 Sprint Change Proposal（含逐条 before/after 编辑提案与实施交接方案）（CC）。anytime 可用，是循环里处理「计划与现实不符」的正式出口。",
+      "entry": "直接调用技能（SKILL.md 指向 workflow.md）；用户说 \"correct course\" 或 \"propose sprint change\"。",
+      "menu": [
+        {
+          "code": null,
+          "labelEn": "Incremental",
+          "labelZh": "增量模式（推荐）",
+          "descZh": "逐条呈现编辑提案，每条 Approve/Edit/Skip 地协作精修。"
+        },
+        {
+          "code": null,
+          "labelEn": "Batch",
+          "labelZh": "批量模式",
+          "descZh": "收集所有编辑提案后一次性呈现评审。"
+        },
+        {
+          "code": null,
+          "labelEn": "change scope: Minor",
+          "labelZh": "变更范围：轻微",
+          "descZh": "审批后判定为轻微：由 Developer agent 直接实现。"
+        },
+        {
+          "code": null,
+          "labelEn": "change scope: Moderate",
+          "labelZh": "变更范围：中等",
+          "descZh": "需重排 backlog，交由 Product Owner / Developer 协调（对应「重新 sprint planning」级别）。"
+        },
+        {
+          "code": null,
+          "labelEn": "change scope: Major",
+          "labelZh": "变更范围：重大",
+          "descZh": "需要根本性重规划，升级到 Product Manager / Solution Architect（对应「重做架构/重新规划」级别）。"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "planning_artifacts",
+        "outputs": [
+          "change proposal"
+        ]
+      },
+      "steps": [
+        {
+          "name": "1. 初始化变更导航",
+          "descZh": "确认触发问题与用户描述、核对必需文档（PRD/Epics/架构/UI-UX）、让用户选 Incremental 或 Batch 模式；触发不明或核心文档不可得则 HALT。",
+          "optional": false
+        },
+        {
+          "name": "2. 执行变更分析清单",
+          "descZh": "按 checklist.md 逐节与用户走查：触发与上下文（问题分类/证据）、Epic 影响（当前 epic 能否照原计划走、是否新增/删除/重定义/重排序 epic、后续 epic 是否受影响）、产物冲突（PRD/架构/UI-UX 哪些段落要改）等；每项标记 Done/N/A/Action-needed。",
+          "optional": false
+        },
+        {
+          "name": "3. 起草具体编辑提案",
+          "descZh": "针对故事、PRD、架构、UI/UX 分别给出 old→new 文本、影响段落与理由；Incremental 模式逐条 Approve/Edit/Skip，Batch 模式最后统一呈现。",
+          "optional": false
+        },
+        {
+          "name": "4. 生成 Sprint Change Proposal",
+          "descZh": "编写五段式文档（问题摘要 / 影响分析 / 推荐路径 / 详细变更提案 / 实施交接）并写入 {planning_artifacts}/sprint-change-proposal-{date}.md；推荐路径在三选一中给出：Direct Adjustment（在现有计划内调整/新增故事）、Potential Rollback（回退已完成工作以简化解决）、MVP Review（缩减范围或调整目标）；请用户 Continue 或 Edit。",
+          "optional": false
+        },
+        {
+          "name": "5. 审批与实施路由",
+          "descZh": "用户 yes/no/revise；no 或 revise 按意见回到第 3 或第 4 步；批准后按范围分类交接：Minor→Developer 直接实现；Moderate→PO/DEV 重排 backlog；Major→PM/架构师重新规划并发出升级通知。",
+          "optional": false
+        },
+        {
+          "name": "6. 流程收尾",
+          "descZh": "汇总处理的问题、范围分类、被改产物、交接对象，并提醒后续成功标准与下一步。",
+          "optional": false
+        }
+      ],
+      "notes": "本地源码未字面点名「跑某个技能」，交接对象是角色（Developer / PO / PM / Architect）；简报中「可能建议重来 / 更新 PRD / 重做架构 / 重新 sprint planning」对应：第 4 步的 Potential Rollback 与 MVP Review、第 3-4 步的 PRD/架构编辑提案、第 5 步 Moderate 的 backlog 重组。触发源既可以是执行中发现的技术问题，也可以是 retrospective 检测到的重大发现。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-correct-course"
+    },
+    {
+      "canonicalId": "bmad-retrospective",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md"
+      ],
+      "summaryZh": "Epic 结束后的团队回顾（ER）：深挖该 epic 全部故事记录，核对上一 epic 回顾的承诺兑现，预览下一 epic 的依赖与准备缺口，产出带 owner 的行动项与准备清单；以 party mode 多角色对话进行，用户作为 Project Lead 参与。",
+      "entry": "直接调用技能（SKILL.md 指向 workflow.md）；用户说 \"run a retrospective\" 或 \"lets retro the epic [epic]\"。",
+      "menu": [
+        {
+          "code": "1",
+          "labelEn": "Complete remaining stories",
+          "labelZh": "先完成剩余故事",
+          "descZh": "当 epic 尚未全部 done 时的选项（推荐）：结束回顾流程先去完成故事。"
+        },
+        {
+          "code": "2",
+          "labelEn": "Continue with partial retrospective",
+          "labelZh": "继续部分回顾",
+          "descZh": "仅对已完成故事做回顾（不理想但可行），会提示可能漏掉教训。"
+        },
+        {
+          "code": "3",
+          "labelEn": "Run sprint-planning",
+          "labelZh": "刷新 sprint 跟踪",
+          "descZh": "先重跑 sprint-planning 刷新故事跟踪再回顾。"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [
+          "bmad-code-review"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": [
+          "retrospective"
+        ]
+      },
+      "steps": [
+        {
+          "name": "1. Epic 发现与完成度校验",
+          "descZh": "优先级 1：从 sprint-status 找最近有 done 故事的最大 epic 编号并请用户确认；优先级 2：直接询问；优先级 3：从故事目录回退推断。随后校验该 epic 是否全部故事 done，未完成则给出 3 个选项（先完成/部分回顾/刷新 sprint 跟踪）。",
+          "optional": false
+        },
+        {
+          "name": "2. 深度故事分析",
+          "descZh": "逐条读该 epic 的故事文件，抽取 Dev Notes 与挣扎点、审查反馈模式、教训、技术债、测试与质量洞察，并跨故事综合共性挣扎、突破时刻、速度模式与协作亮点。",
+          "optional": false
+        },
+        {
+          "name": "3. 加载并整合上一 epic 回顾",
+          "descZh": "计算 prev_epic_num，查找 epic-{{prev}}-retro-*.md，逐条核对上次承诺的兑现状态（✅完成/⏳进行中/❌未处理）并评估经验是否被应用、流程改进是否有效、技术债增减；无上一回顾则标记为首次回顾。",
+          "optional": false
+        },
+        {
+          "name": "4. 预览下一 epic 与变更检测",
+          "descZh": "加载 epic-{{next}}（分片或整篇），分析目标故事、对刚完成 epic 的依赖、准备缺口、技术前提；下一 epic 不存在则跳过准备讨论。",
+          "optional": false
+        },
+        {
+          "name": "5. 初始化回顾现场",
+          "descZh": "从 agent-manifest.csv 加载角色，确保 PO/Developer（主持）/QA/架构师在场，展示 epic 交付指标、质量与技术数据、业务结果与下一 epic 预览，设定心理安全与不追责的基调，等待用户就绪。",
+          "optional": false
+        },
+        {
+          "name": "6. Epic 回顾讨论",
+          "descZh": "party mode 多角色对话：先成功经验后挑战，用户被反复邀请发言；回看上一回顾的承诺兑现作为问责与学习时刻；最后由主持人归纳成功/挑战/洞察主题。",
+          "optional": false
+        },
+        {
+          "name": "7. 下一 epic 准备讨论",
+          "descZh": "围绕对上一 epic 的依赖、技术准备、知识缺口、测试基建、重构与外部依赖展开辩论与取舍，把准备项分为关键（开工前必须完成）/并行（可随早期故事进行）/可选三档并指派 owner 与工作量。",
+          "optional": false
+        },
+        {
+          "name": "8. 行动项综合与重大变更检测",
+          "descZh": "产出符合 SMART 的行动项（owner/期限/成功标准）、技术债、文档与团队约定，以及下一 epic 准备任务和关键路径；若发现架构假设被推翻、范围重大变化、技术路线需改、依赖未计入、性能/安全/集成假设错误、技术债不可持续等，则触发「重大发现警报」，建议更新下一 epic 定义与受影响故事、必要时更新架构或 PRD、在开工前召开 epic planning review 会话，并请用户决定处理方式。",
+          "optional": false
+        },
+        {
+          "name": "9. 关键就绪度深挖",
+          "descZh": "逐项与用户核实：测试与质量、部署与发布、干系人验收、代码库技术健康、未决阻塞；有问题则加入关键路径并指派负责人。",
+          "optional": false
+        },
+        {
+          "name": "10. 收尾庆祝与承诺",
+          "descZh": "归纳关键收获、列出承诺数（行动项/准备任务/关键路径），给出下一步（执行准备 sprint、完成关键路径、下次站会复查行动项、视情况召开 epic 计划评审）。",
+          "optional": false
+        },
+        {
+          "name": "11. 保存回顾并更新 sprint 状态",
+          "descZh": "生成含全部结论的回顾文档到 {implementation_artifacts}/epic-{{n}}-retro-{date}.md，并把 sprint-status 中 epic-{{n}}-retrospective 由 optional 置为 done（找不到该键则警告需手工更新）。",
+          "optional": false
+        },
+        {
+          "name": "12. 最终总结与交接",
+          "descZh": "汇总 epic 回顾结论、承诺清单与下一步；若存在重大发现则强提醒「下一 epic 开工前必须做计划评审」，否则提示用 create-story 开始下一 epic（首条故事创建时 epic 自动转 in-progress）。",
+          "optional": false
+        }
+      ],
+      "notes": "⚠ 与任务简报的预期不符：本地源码并未点名建议 correct-course。检测到重大发现时它建议的是「更新 Epic {{next}} 定义 / 更新受影响故事 / 必要时更新架构或 PRD / 召开 epic planning review 会话」，交接对象是流程会话而非 CC 技能。catalog 的 precededBy=bmad-code-review（一个 epic 的故事都走完 CR 之后），是 epic 循环的收口；epic 流程收口后回到 CS 开启下一 epic。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-retrospective"
+    },
+    {
+      "canonicalId": "bmad-qa-generate-e2e-tests",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "checklist.md"
+      ],
+      "summaryZh": "为已实现功能生成 API 与 E2E 自动化测试：沿用项目现有测试框架，跑通后输出测试摘要（QA）。技能明确声明「只生成测试，不做代码审查或故事验证——那用 bmad-code-review」，是故事循环之外的旁路增强。",
+      "entry": "直接调用技能（SKILL.md 指向 workflow.md）；用户说 \"create qa automated tests for [feature]\"。",
+      "menu": [],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [
+          "bmad-dev-story"
+        ],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": [
+          "test suite"
+        ]
+      },
+      "steps": [
+        {
+          "name": "0. 检测测试框架",
+          "descZh": "查 package.json 依赖与既有测试文件（playwright/jest/vitest/cypress 等），优先复用项目已有框架；没有框架则分析源码判定项目类型、检索该栈当前推荐框架并提出确认。",
+          "optional": false
+        },
+        {
+          "name": "1. 识别要测的功能",
+          "descZh": "由用户给出功能名/目录，或在代码库中自动发现候选功能。",
+          "optional": false
+        },
+        {
+          "name": "2. 生成 API 测试",
+          "descZh": "针对接口/服务生成状态码（200/400/404/500）、响应结构校验，覆盖 happy path 加 1-2 个错误场景，遵循项目既有测试写法。",
+          "optional": false
+        },
+        {
+          "name": "3. 生成 E2E 测试",
+          "descZh": "针对 UI 生成端到端用户流程测试：语义定位器（role/label/text）、聚焦真实交互、断言可见结果、保持线性简单。",
+          "optional": false
+        },
+        {
+          "name": "4. 运行测试",
+          "descZh": "用项目测试命令执行并立即修复失败。",
+          "optional": false
+        },
+        {
+          "name": "5. 生成摘要",
+          "descZh": "输出 tests/test-summary.md（生成的测试清单、API/UI 覆盖率、下一步建议），最后对照 checklist.md 自查。",
+          "optional": false
+        }
+      ],
+      "notes": "技能首段即声明与 code-review 的分工（「不做代码审查或故事验证」）。工作流末尾指向 Test Architect (TEA) 模块做更高级的测试策略/质量门禁/NFR 评估（该模块在 catalog 中为 bmad-tea 等，不在本组范围）。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-qa-generate-e2e-tests"
+    },
+    {
+      "canonicalId": "bmad-check-implementation-readiness",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "steps/step-01-document-discovery.md",
+        "steps/step-02-prd-analysis.md",
+        "steps/step-03-epic-coverage-validation.md",
+        "steps/step-04-ux-alignment.md",
+        "steps/step-05-epic-quality-review.md",
+        "steps/step-06-final-assessment.md"
+      ],
+      "summaryZh": "进入第 4 阶段（实现）前，对 PRD / UX / 架构 / Epics 做完整性与一致性体检，输出 implementation-readiness-report：FR 覆盖矩阵、架构决策覆盖矩阵、UX 对齐、Epic 质量缺陷分级，并给出 READY / NEEDS WORK / NOT READY 结论（IR）。",
+      "entry": "直接调用技能（SKILL.md → steps/step-01 逐步执行，每步以 C 继续）；用户说 \"check implementation readiness\"。",
+      "menu": [],
+      "dependencies": {
+        "phase": "3-solutioning",
+        "precededBy": [
+          "bmad-create-epics-and-stories"
+        ],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "planning_artifacts",
+        "outputs": [
+          "readiness report"
+        ]
+      },
+      "steps": [
+        {
+          "name": "1. 文档发现与清点",
+          "descZh": "按 PRD/架构/Epics/UX 四类模式搜索整篇与分片文档，分组呈现并标出「整篇+分片同时存在」的重复冲突（必须由用户解决）；缺失必需文档给出警告；初始化 readiness-report-{date}.md。",
+          "optional": false
+        },
+        {
+          "name": "2. PRD 分析",
+          "descZh": "完整读 PRD，逐条抽取全部 FR 与 NFR（含性能/安全/可用性/可靠性/扩展性/合规）及附加约束，写入报告。",
+          "optional": false
+        },
+        {
+          "name": "3. Epic 覆盖校验",
+          "descZh": "抽取 epics 文档声明的 FR 覆盖映射，与 PRD 的 FR 清单做矩阵比对，记录每个未覆盖 FR；并新增「架构决策覆盖校验」：从 PRD/架构提取技术迁移与基础设施类决策，逐条核对是否有故事显式实现、AC 是否覆盖、故事标题是否诚实，另查 6 类禁止模式（跨切面混杂、标题夸大、旧技术无清理计划、迁移依赖标可选、配置可绕过决策、数据库技术错配）。",
+          "optional": false
+        },
+        {
+          "name": "4. UX 对齐",
+          "descZh": "查找 UX 文档；存在则校验 UX↔PRD、UX↔架构双向对齐；不存在且 PRD 暗示有 UI 则记警告。",
+          "optional": false
+        },
+        {
+          "name": "5. Epic 质量评审",
+          "descZh": "按 create-epics-and-stories 的标准逐条挑错：epic 是否交付用户价值（禁止技术里程碑式 epic）、epic 间依赖是否单向（Epic N 不能依赖 N+1）、故事是否可独立完成、AC 是否 Given/When/Then 可测、建表时机是否按需、starter 模板故事是否在位；按 Critical/Major/Minor 分级记录。",
+          "optional": false
+        },
+        {
+          "name": "6. 最终评估",
+          "descZh": "汇总所有发现，给出总体就绪状态（READY/NEEDS WORK/NOT READY）、必须立即处理的关键问题与建议行动项，完成并保存报告。",
+          "optional": false
+        }
+      ],
+      "notes": "catalog 中 required=true，且是 3-solutioning 阶段的最后一道闸（precededBy=bmad-create-epics-and-stories）。报告默认写 {planning_artifacts}/implementation-readiness-report-{date}.md。每步以用户选 'C' 为继续门，发现重复文档时不解决不得推进。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-check-implementation-readiness"
+    },
+    {
+      "canonicalId": "bmad-create-architecture",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "steps/step-01-init.md",
+        "steps/step-01b-continue.md",
+        "steps/step-02-context.md",
+        "steps/step-03-starter.md",
+        "steps/step-04-decisions.md",
+        "steps/step-05-patterns.md",
+        "steps/step-06-structure.md",
+        "steps/step-07-validation.md",
+        "steps/step-08-complete.md"
+      ],
+      "summaryZh": "与用户协作产出架构决策文档，目标是让多个 AI agent 实现风格一致：项目上下文分析 → starter 模板评估 → 核心架构决策 → 实现模式与一致性规则 → 项目结构与边界 → 校验完成（CA）。3-solutioning 阶段的第一支柱，输出去给 CE 和后续所有实现类技能。",
+      "entry": "直接调用技能（SKILL.md → workflow.md → steps/step-01-init.md 逐步执行）；用户说 \"lets create architecture\" / \"create technical architecture\" / \"create a solution design\"。",
+      "menu": [
+        {
+          "code": "A",
+          "labelEn": "Advanced Elicitation",
+          "labelZh": "高级扣问",
+          "descZh": "各生成型步骤（2-7）的通用协议菜单之一：调 bmad-advanced-elicitation 深挖更精细的架构考量。"
+        },
+        {
+          "code": "P",
+          "labelEn": "Party Mode",
+          "labelZh": "派对模式",
+          "descZh": "各生成型步骤（2-7）的通用协议菜单之一：调 bmad-party-mode 引入多角色视角。"
+        },
+        {
+          "code": "C",
+          "labelEn": "Continue",
+          "labelZh": "继续",
+          "descZh": "各生成型步骤（2-7）的通用协议菜单之一：确认当前段落并进入下一步。"
+        }
+      ],
+      "dependencies": {
+        "phase": "3-solutioning",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "planning_artifacts",
+        "outputs": [
+          "architecture"
+        ]
+      },
+      "steps": [
+        {
+          "name": "1. 初始化",
+          "descZh": "检测是否为续跑（已有输出文档则分支），发现输入文档（PRD/UX/项目知识）并初始化架构文档，为协作决策做准备。",
+          "optional": false
+        },
+        {
+          "name": "1b. 续跑处理",
+          "descZh": "当输出文档已存在且有未完成进度时，读取 frontmatter 的 stepsCompleted 从断点继续。",
+          "optional": true
+        },
+        {
+          "name": "2. 项目上下文分析",
+          "descZh": "完整读取已加载的项目文档，理解架构范围、需求与约束（含既有技术偏好）。",
+          "optional": false
+        },
+        {
+          "name": "3. Starter 模板评估",
+          "descZh": "先检查 project-context 中已有的技术偏好，再评估 starter 模板候选并确定项目起手骨架。",
+          "optional": false
+        },
+        {
+          "name": "4. 核心架构决策",
+          "descZh": "沿用已有偏好与 starter 选择，围绕剩余关键决策类别（数据/认证/API/基础设施等）逐类协作拍板。",
+          "optional": false
+        },
+        {
+          "name": "5. 实现模式与一致性规则",
+          "descZh": "识别多个 agent 并行实现时最可能冲突的点，定义命名/结构/状态管理等实现模式与一致性规则。",
+          "optional": false
+        },
+        {
+          "name": "6. 项目结构与边界",
+          "descZh": "在已定决策之上定义完整目录结构与模块边界，形成可执行的实现指南。",
+          "optional": false
+        },
+        {
+          "name": "7. 架构校验与完成",
+          "descZh": "校验架构的一致性、完整性与对 agent 的指导准备度，补齐缺口。",
+          "optional": false
+        },
+        {
+          "name": "8. 完成与交接",
+          "descZh": "更新文档 frontmatter（stepsCompleted: [1..8]、status: complete），祝贺用户并指引进入下一阶段。",
+          "optional": false
+        }
+      ],
+      "notes": "步骤 2-7 均定义 COLLABORATION MENUS (A/P/C) 协议菜单与 CONTEXT BOUNDARIES，是本组里协作菜单最密集的技能之一。产出的 architecture.md 是 IR 的校验对象、CE 的输入，以及 DS/CR 阶段「架构漂移检测」的基准。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-create-architecture"
+    },
+    {
+      "canonicalId": "bmad-create-epics-and-stories",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "steps/step-01-validate-prerequisites.md",
+        "steps/step-02-design-epics.md",
+        "steps/step-03-create-stories.md",
+        "steps/step-04-final-validation.md"
+      ],
+      "summaryZh": "把 PRD 需求与架构决策转成按用户价值组织的 epic 与用户故事（含完整验收标准），产出 planning_artifacts/epics.md（CE）。它是 solutioning 阶段从需求到可开发故事的转换器，直接喂给 sprint-planning 与 create-story。",
+      "entry": "直接调用技能（SKILL.md → steps/step-01 逐步执行，每步以 C 继续）；用户说 \"create the epics and stories list\"。",
+      "menu": [],
+      "dependencies": {
+        "phase": "3-solutioning",
+        "precededBy": [
+          "bmad-create-architecture"
+        ],
+        "followedBy": [],
+        "required": "true",
+        "args": "",
+        "outputLocation": "planning_artifacts",
+        "outputs": [
+          "epics and stories"
+        ]
+      },
+      "steps": [
+        {
+          "name": "1. 校验前置并抽取需求",
+          "descZh": "核对 PRD.md、Architecture.md、（有 UI 时）UX Design.md 是否齐备；按整篇优先/分片兜底的策略发现文档；与用户确认纳入与排除清单后，用 epics-template.md 建立 epics.md 并写入全部 FR/NFR/UX-DR/架构附加需求。",
+          "optional": false
+        },
+        {
+          "name": "2. 设计 epic 列表",
+          "descZh": "按「用户价值优先、需求聚合、增量交付、逻辑顺畅、epic 内无前向依赖」原则把需求编成 epic；明确好例（认证与档案/内容创作/社交互动/搜索发现）与坏例（数据库搭建/API 开发等技术分层）；产出 FR 覆盖映射与架构决策覆盖矩阵；必须拿到用户显式批准才能继续。",
+          "optional": false
+        },
+        {
+          "name": "3. 生成全部故事",
+          "descZh": "按已批准 epic 列表逐个（顺序、不跳 epic）按模板生成故事：单 dev agent 可完成、有明确用户价值、AC 具体、标注所满足的需求；遵守「建表按需」（禁止首个故事建全部表）与「故事不得依赖未来故事」两条硬规则；UX-DR 必须有故事承接。",
+          "optional": false
+        },
+        {
+          "name": "4. 最终校验",
+          "descZh": "逐条核对：每个 FR 至少出现在一个故事且 AC 真正覆盖；架构若指定 starter 模板则 Epic 1 Story 1 必须是初始化项目；建表时机合规；架构决策覆盖矩阵逐条有故事负责且跨切面（如数据库迁移）独立成故事；无前向依赖。",
+          "optional": false
+        }
+      ],
+      "notes": "catalog required=true，precededBy=bmad-create-architecture。硬性结构规则（用户价值 epic、无前向依赖、按需建表）与 IR 第 5 步的质量评审标准一一对应，是「计划→实现」之间最重要的一致性保障。每步需用户选 'C' 才推进。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-create-epics-and-stories"
+    },
+    {
+      "canonicalId": "bmad-generate-project-context",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "steps/step-01-discover.md",
+        "steps/step-02-generate.md",
+        "steps/step-03-complete.md"
+      ],
+      "summaryZh": "生成 project-context.md —— 给 AI agent 的项目级编码规则（技术栈与版本、约定、必须避免的坑），强调精简、面向 LLM 上下文效率、只写「不明显但关键」的规则（GPC）。anytime 可跑，被 CS/DS/CR、correct-course、retrospective 等几乎所有实现类技能作为基础上下文读取。",
+      "entry": "直接调用技能（SKILL.md → workflow.md → steps/step-01-discover.md）；用户说 \"generate project context\" 或 \"create project context\"。",
+      "menu": [
+        {
+          "code": "A",
+          "labelEn": "Advanced Elicitation",
+          "labelZh": "高级扣问",
+          "descZh": "step-02 每个规则类别后的协议菜单：调 bmad-advanced-elicitation 探索更细的规则边界。"
+        },
+        {
+          "code": "P",
+          "labelEn": "Party Mode",
+          "labelZh": "派对模式",
+          "descZh": "step-02 每个规则类别后的协议菜单：调 bmad-party-mode 引入多视角找边界情形。"
+        },
+        {
+          "code": "C",
+          "labelEn": "Continue",
+          "labelZh": "继续",
+          "descZh": "step-02 每个规则类别后的协议菜单：保存当前规则并进入下一类别。"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "output_folder",
+        "outputs": [
+          "project context"
+        ]
+      },
+      "steps": [
+        {
+          "name": "1. 上下文发现与初始化",
+          "descZh": "先查是否已有 project-context.md（有则问更新还是新建）；再扫描架构文档、包文件（package.json/requirements.txt/Cargo.toml 等）与配置（tsconfig、构建、lint、测试配置）确定技术栈精确版本。",
+          "optional": false
+        },
+        {
+          "name": "2. 生成规则",
+          "descZh": "按类别协作生成规则：技术栈与版本 → 各类实现约定与禁区；每类后呈现 A/P/C 菜单，只有选 C 才保存并进入下一类；只写防止实现错误的关键规则，追求精简。",
+          "optional": false
+        },
+        {
+          "name": "3. 完成与优化",
+          "descZh": "通读全文，为 LLM 上下文做瘦身（删冗余与显而易见项、合并同类、统一格式与层级），定稿并给出使用与维护建议。",
+          "optional": false
+        }
+      ],
+      "notes": "输出路径 = {output_folder}/project-context.md（catalog outputLocation 写作 output_folder）。虽是 anytime 技能，但生成质量直接决定后续 DS 的护栏强度（DS 第 2 步加载它）。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-generate-project-context"
+    },
+    {
+      "canonicalId": "bmad-checkpoint-preview",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "step-01-orientation.md",
+        "step-02-walkthrough.md",
+        "step-03-detail-pass.md",
+        "step-04-testing.md",
+        "step-05-wrapup.md",
+        "generate-trail.md"
+      ],
+      "summaryZh": "面向人的「带看变更」流程（human-in-the-loop）：先定方位（这是什么变更、想解决什么），再按设计意图（而非文件）走读，再做风险点详查（按爆炸半径排序），再给出可亲手验证的观察点，最后请人拍板 Approve/Rework/Discuss（CK）。",
+      "entry": "直接调用技能（SKILL.md → step-01-orientation.md 顺序执行）；用户说 \"checkpoint\" / \"human review\" / \"walk me through this change\"。",
+      "menu": [
+        {
+          "code": null,
+          "labelEn": "Approve",
+          "labelZh": "通过",
+          "descZh": "收尾决策之一：认可变更，可在发布前先做交互式修补；若是 PR 可提议 gh pr review --approve（需先确认，因为是共享资源上的可见操作）。"
+        },
+        {
+          "code": null,
+          "labelEn": "Rework",
+          "labelZh": "返工",
+          "descZh": "收尾决策之一：弄清是方案、spec 还是实现的问题，帮助决定下一步（回退提交/开 issue/修订 spec），必要时起草绑定 path:line 的具体反馈。"
+        },
+        {
+          "code": null,
+          "labelEn": "Discuss",
+          "labelZh": "继续讨论",
+          "descZh": "收尾决策之一：开放式答疑与深挖顾虑，讨论完回到决策提示。"
+        }
+      ],
+      "dependencies": {
+        "phase": "4-implementation",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "",
+        "outputs": ""
+      },
+      "steps": [
+        {
+          "name": "1. Orientation 定方位",
+          "descZh": "按 4 层级联定位变更（显式参数 → 近期对话 → sprint tracking 中 status=review 的故事 → 当前 git 分支/HEAD → 询问，3 轮问不出则 HALT）；补全 spec 与 commit 的配对；判定 review_mode：full-trail（spec 带 Suggested Review Order）/ spec-only / bare-commit（凭提交信息推断意图，过短则标 [inferred]）；必要时用 generate-trail.md 生成审查线索。",
+          "optional": false
+        },
+        {
+          "name": "2. Walkthrough 按关注点走读",
+          "descZh": "按设计意图（即 concern，如输入校验、状态管理、API 契约）而非文件组织内容，一个文件可出现在多个 concern 下；每个 concern 给「为什么这么做 + 关键 path:line 站点」，按理解顺序自上而下排列，典型 2-5 个 concern（超过 7 个提示范围可能过大）。",
+          "optional": false
+        },
+        {
+          "name": "3. Detail Pass 风险详查",
+          "descZh": "扫描 diff 挑 2-5 个「一旦错代价最大」的位置并打风险标签（[auth]/[public API]/[schema]/[billing]/[infra]/[security]/[config]/[other]），按爆炸半径排序；不评严重度分数；若 spec 有 Spec Change Log 则呈现其中对人有启发性的决策；找不出高风险点就明说，不硬凑。",
+          "optional": false
+        },
+        {
+          "name": "4. Testing 亲手验证",
+          "descZh": "针对可观察行为（UI/CLI 输出/API 响应/状态变化/错误路径）给 2-5 条「做什么-看什么-为何值得看」的观察建议；不重复 CI 与自动化测试；若无用户可见行为则明说。",
+          "optional": false
+        },
+        {
+          "name": "5. Wrap-Up 拍板",
+          "descZh": "给出 Approve / Rework / Discuss 三选一并 HALT；按选择执行：通过则按需交互修补或提议批准 PR，返工则定位问题层级并起草反馈，讨论则继续答疑后回到决策。",
+          "optional": false
+        }
+      ],
+      "notes": "菜单项在源码中无代码，code 置 null。与 code-review 的区别：CR 面向机器分诊与状态推进（写故事文件、改 sprint 状态），CK 面向人的理解与拍板（不写文件、不自动改状态）。全局规则：所有代码引用用 CWD 相对 path:line 便于 IDE 点击；每步一次性完整输出不中途提问。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-checkpoint-preview"
+    },
+    {
+      "canonicalId": "bmad-quick-dev",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "sourceFiles": [
+        "SKILL.md",
+        "workflow.md",
+        "step-01-clarify-and-route.md",
+        "step-02-plan.md",
+        "step-03-implement.md",
+        "step-04-review.md",
+        "step-05-present.md",
+        "step-oneshot.md",
+        "compile-epic-context.md",
+        "sync-sprint-status.md"
+      ],
+      "summaryZh": "轻量开发通道（anytime，QQ）：把任意意图/需求/故事/缺陷修复转成「可评审的硬化产物」——先澄清与路由，再规划出 900–1600 token 的单目标 spec，再实现，再对抗式自审，最后带「建议评审顺序」呈现；可一键 one-shot，也可走完整 plan-code-review。",
+      "entry": "直接调用技能（SKILL.md → workflow.md → step-01-clarify-and-route.md）；触发方式为用户提出要构建/修复/调整/重构的任意编码意图。",
+      "menu": [
+        {
+          "code": null,
+          "labelEn": "one-shot",
+          "labelZh": "一发式",
+          "descZh": "路由 a：零爆炸半径（没有可能意外波及其他地方的路径、意图清晰且无架构决策）时走 step-oneshot.md，实现-审查-呈现合一，spec 标记 route:'one-shot'、状态直接 done。"
+        },
+        {
+          "code": null,
+          "labelEn": "plan-code-review",
+          "labelZh": "完整计划-代码-审查",
+          "descZh": "路由 b：其余情况（拿不准是否零爆炸半径时一律选它），走 step-02 规划 → step-03 实现 → step-04 审查 → step-05 呈现。"
+        },
+        {
+          "code": "S",
+          "labelEn": "Split",
+          "labelZh": "拆分",
+          "descZh": "多目标检查时的选择：先做第一个目标，其余追加入 deferred-work.md 暂缓。"
+        },
+        {
+          "code": "K",
+          "labelEn": "Keep all goals",
+          "labelZh": "保留全部目标",
+          "descZh": "多目标检查时的选择：接受风险，全部目标一并处理。"
+        }
+      ],
+      "dependencies": {
+        "phase": "anytime",
+        "precededBy": [],
+        "followedBy": [],
+        "required": "false",
+        "args": "",
+        "outputLocation": "implementation_artifacts",
+        "outputs": [
+          "spec and project implementation"
+        ]
+      },
+      "steps": [
+        {
+          "name": "1. 澄清与路由",
+          "descZh": "先做意图识别（显式参数/近期对话/扫描 implementation_artifacts 中的活跃 spec，按 status 直接 EARLY EXIT 到对应步骤）；判定走 epic 故事路径（优先复用/编译 epic-<N>-context.md 缓存，做前序故事连贯性提取）还是自由路径（选择性加载 PRD/架构/UX/epics/brief）；循环澄清直到无疑问；做版本控制体检（工作树脏或分支明显不符则 HALT）；多目标检查（S 拆分 / K 保留）；最后二选一路由并生成 spec-{slug}.md 路径。另对所有路径执行 Story-key 解析（精确匹配 sprint-status 的前两段数字避免 1-1 撞 1-10）。",
+          "optional": false
+        },
+        {
+          "name": "2. Plan",
+          "descZh": "按侦察结果生成 spec（单用户目标、900–1600 token、AC 用 Given/When/Then、任务有文件路径与具体动作），状态从 draft 推进到 ready-for-dev。",
+          "optional": false
+        },
+        {
+          "name": "3. Implement",
+          "descZh": "按 spec 实现（前置要求 spec 状态就绪），代码遵循项目既有架构与约定。",
+          "optional": false
+        },
+        {
+          "name": "4. Review",
+          "descZh": "对抗式自审，发现与决策记入 spec 的 Spec Change Log（供后续 checkpoint-preview 呈现）。",
+          "optional": false
+        },
+        {
+          "name": "5. Present",
+          "descZh": "呈现结果摘要与 Suggested Review Order（建议评审顺序），供人接手审查。",
+          "optional": false
+        },
+        {
+          "name": "辅助：compile-epic-context.md",
+          "descZh": "把 epics 文件中某 epic 的上下文编译成 epic-<N>-context.md 缓存（可用子代理执行，无子代理则内联执行并校验输出），避免每次重复加载原始规划文档。",
+          "optional": true
+        },
+        {
+          "name": "辅助：sync-sprint-status.md",
+          "descZh": "共享子步骤，任何路由都可调用，把 sprint-status.yaml 中目标故事更新到 {target_status}。",
+          "optional": true
+        }
+      ],
+      "notes": "路由选择基于「爆炸半径」这一显式判定标准（不确定就选 plan-code-review）。spec 状态机：draft→ready-for-dev→in-progress→in-review→done，且 step-01 可凭 status 直接恢复进行中的工作（draft→step-02，ready/in-progress→step-03，in-review→step-04）。命中 epic 故事时会复用 sprint-status 同步（sync-sprint-status），从而与 DS/CR 的主循环数据打通；但本体不走 create-story 的故事文件，属 anytime 旁路。",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-quick-dev"
+    },
+    {
+      "canonicalId": "bmad-agent-architect",
+      "module": "bmm",
+      "kind": "agent",
+      "evidenceLevel": "local-source",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-architect",
+      "sourceFiles": [
+        "SKILL.md",
+        "customize.toml"
+      ],
+      "summaryZh": "系统架构师 Winston 的人格技能（icon 🏗️）：以「务实、给取舍不给判决」的风格把 PRD 与 UX 转成技术架构决策；激活后渲染 2 项能力菜单（CA 引导式架构工作流、IR 实现就绪对齐检查），均为转交对应 bmad 技能执行。",
+      "entry": "直接调用技能唤起 persona（用户说 \"talk to Winston\" 或请求 architect）；激活后解析 agent 定制块、加载配置与项目上下文，问候并渲染菜单等待选择，不自动执行。",
+      "menu": [
+        {
+          "code": "CA",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "引导式工作流：记录技术决策，确保实现不偏航（调用 bmad-create-architecture）。"
+        },
+        {
+          "code": "IR",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "确保 PRD、UX、架构与史诗/故事清单四者对齐（调用 bmad-check-implementation-readiness）。"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "precededBy": [],
+        "followedBy": [],
+        "required": null,
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": [
+        {
+          "name": "1. 解析 agent 定制块",
+          "descZh": "运行 resolve_customization.py --skill {skill-root} --key agent 解析 agent 定制块；脚本失败则按 base→team→user 顺序自行读取 customize.toml 与 _bmad/custom/{skill-name}.toml(.user.toml) 并按结构规则合并（标量覆盖、按 code/id 的表数组替换并追加、其余数组追加），缺失文件跳过。",
+          "optional": false
+        },
+        {
+          "name": "2. 执行前置步骤",
+          "descZh": "按序执行 {agent.activation_steps_prepend}（本机为空数组）。",
+          "optional": false
+        },
+        {
+          "name": "3. 采用人格",
+          "descZh": "把定制角色叠加到固定身份上：扮演 {agent.role}、体现 {agent.identity}、用 {agent.communication_style} 说话、遵守 {agent.principles}；用户未解除前不脱离角色，调用其它技能时人格延续。",
+          "optional": false
+        },
+        {
+          "name": "4. 加载持久事实",
+          "descZh": "persistent_facts 中 file: 前缀项按 {project-root} 下路径/glob 载入内容作为事实，其余按原文；本机配置为 file:{project-root}/**/project-context.md。",
+          "optional": false
+        },
+        {
+          "name": "5. 加载配置",
+          "descZh": "读 {project-root}/_bmad/bmm/config.yaml，解析 user_name（问候）、communication_language（交流）、document_output_language（产出文档）、planning_artifacts、project_knowledge。",
+          "optional": false
+        },
+        {
+          "name": "6. 问候用户",
+          "descZh": "以 Winston 口吻按 {communication_language} 问候 {user_name} 并带 {agent.icon} 前缀，提示可随时调用 bmad-help。",
+          "optional": false
+        },
+        {
+          "name": "7. 执行后置步骤",
+          "descZh": "按序执行 {agent.activation_steps_append}（本机为空数组）；前置/后置非空时须确认全部按序执行完才进入菜单。",
+          "optional": false
+        },
+        {
+          "name": "8. 调度或呈现菜单",
+          "descZh": "用户首条消息已明确指向菜单项则跳过菜单直接派发；否则以编号表渲染 {agent.menu}（Code/Description/Action）并停下等待输入，接受编号、菜单码或模糊匹配；匹配明确即调用对应 skill，模糊时只问一个短问句，菜单外话题可自由继续。（示例：\"hey Winston, let's architect this\" 直接分发 CA）",
+          "optional": false
+        }
+      ],
+      "notes": "agent 型技能，无独立流程文件，steps 为 8 步激活流程（3 步采用人格会叠加 customize.toml 的 role/identity/communication_style/principles）。baseline 中该条 inHelpCatalog=false、helpEntries 为空，依赖字段无从可取，已全部留空（不臆测）；本次由 lead 按 _bmad/bmm/3-solutioning 目录归属指派补入本组。菜单定义在 customize.toml 的 [[agent.menu]]（code/description/skill 三键），原文只有英文 description、无中英标签，故 labelEn/labelZh 留空、中文写在 descZh。"
+    },
+    {
+      "canonicalId": "bmad-agent-dev",
+      "module": "bmm",
+      "kind": "agent",
+      "evidenceLevel": "local-source",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-agent-dev",
+      "sourceFiles": [
+        "SKILL.md",
+        "customize.toml"
+      ],
+      "summaryZh": "高级软件工程师 Amelia 的人格技能（icon 💻）：以 Kent Beck 式 TDD 与「只说文件路径和 AC 编号」的极简风格执行已批准故事、交付经验证的代码；菜单 8 项把实现阶段入口收拢到一个人格上——DS 故事实现 / QD 快速流 / QA 测试生成 / CR 代码审查 / SP 冲刺计划 / CS 故事准备 / ER 回顾 / IN 调查。",
+      "entry": "直接调用技能唤起 persona（用户说 \"talk to Amelia\" 或请求 developer agent）；激活后解析 agent 定制块、加载配置与项目上下文，问候并渲染菜单等待选择，不自动执行。",
+      "menu": [
+        {
+          "code": "DS",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "为下一条或指定故事编写测试与代码（调用 bmad-dev-story）。"
+        },
+        {
+          "code": "QD",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "统一快速流：澄清意图 → 规划 → 实现 → 审查 → 呈现（调用 bmad-quick-dev）。"
+        },
+        {
+          "code": "QA",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "为已实现功能生成 API 与 E2E 测试（调用 bmad-qa-generate-e2e-tests）。"
+        },
+        {
+          "code": "CR",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "发起覆盖多个质量面的综合代码审查（调用 bmad-code-review）。"
+        },
+        {
+          "code": "SP",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "生成或更新为实现排任务顺序的冲刺计划（调用 bmad-sprint-planning）。"
+        },
+        {
+          "code": "CS",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "准备带齐实现所需上下文的故事（调用 bmad-create-story）。"
+        },
+        {
+          "code": "ER",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "以派对模式回顾一个 epic 的全部已完成工作（调用 bmad-retrospective）。"
+        },
+        {
+          "code": "IN",
+          "labelEn": null,
+          "labelZh": null,
+          "descZh": "取证式案件调查，证据分级、按输入类型校准（调用 bmad-investigate）。"
+        }
+      ],
+      "dependencies": {
+        "phase": null,
+        "precededBy": [],
+        "followedBy": [],
+        "required": null,
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": [
+        {
+          "name": "1. 解析 agent 定制块",
+          "descZh": "运行 resolve_customization.py --skill {skill-root} --key agent 解析 agent 定制块；脚本失败则按 base→team→user 顺序自行读取 customize.toml 与 _bmad/custom/{skill-name}.toml(.user.toml) 并按结构规则合并（标量覆盖、按 code/id 的表数组替换并追加、其余数组追加），缺失文件跳过。",
+          "optional": false
+        },
+        {
+          "name": "2. 执行前置步骤",
+          "descZh": "按序执行 {agent.activation_steps_prepend}（本机为空数组）。",
+          "optional": false
+        },
+        {
+          "name": "3. 采用人格",
+          "descZh": "把定制角色叠加到固定身份上：扮演 {agent.role}、体现 {agent.identity}、用 {agent.communication_style} 说话、遵守 {agent.principles}；用户未解除前不脱离角色，调用其它技能时人格延续。",
+          "optional": false
+        },
+        {
+          "name": "4. 加载持久事实",
+          "descZh": "persistent_facts 中 file: 前缀项按 {project-root} 下路径/glob 载入内容作为事实，其余按原文；本机配置为 file:{project-root}/**/project-context.md。",
+          "optional": false
+        },
+        {
+          "name": "5. 加载配置",
+          "descZh": "读 {project-root}/_bmad/bmm/config.yaml，解析 user_name（问候）、communication_language（交流）、document_output_language（产出文档）、planning_artifacts、project_knowledge。",
+          "optional": false
+        },
+        {
+          "name": "6. 问候用户",
+          "descZh": "以 Amelia 口吻按 {communication_language} 问候 {user_name} 并带 {agent.icon} 前缀，提示可随时调用 bmad-help。",
+          "optional": false
+        },
+        {
+          "name": "7. 执行后置步骤",
+          "descZh": "按序执行 {agent.activation_steps_append}（本机为空数组）；前置/后置非空时须确认全部按序执行完才进入菜单。",
+          "optional": false
+        },
+        {
+          "name": "8. 调度或呈现菜单",
+          "descZh": "用户首条消息已明确指向菜单项则跳过菜单直接派发；否则以编号表渲染 {agent.menu}（Code/Description/Action）并停下等待输入，接受编号、菜单码或模糊匹配；匹配明确即调用对应 skill，模糊时只问一个短问句，菜单外话题可自由继续。（示例：\"hey Amelia, let's implement the next story\" 直接分发 DS）",
+          "optional": false
+        }
+      ],
+      "notes": "agent 型技能，无独立流程文件，steps 为 8 步激活流程。baseline 中该条 inHelpCatalog=false、helpEntries 为空，依赖字段无从可取，已全部留空（不臆测）；本次由 lead 按 _bmad/bmm/4-implementation 目录归属指派补入本组。该菜单是本组 agent 中最全的（8 项，覆盖 DS/QD/QA/CR/SP/CS/ER/IN），等于把实现阶段几乎所有流程入口收拢到一个人格下。菜单定义在 customize.toml 的 [[agent.menu]]（code/description/skill 三键），原文只有英文 description、无中英标签，故 labelEn/labelZh 留空、中文写在 descZh。"
+    },
+    {
+      "canonicalId": "bmad-investigate",
+      "module": "bmm",
+      "kind": "workflow",
+      "evidenceLevel": "local-source",
+      "skillDir": "F:/code2/bmad-tool/.claude/skills/bmad-investigate",
+      "sourceFiles": [
+        "SKILL.md",
+        "customize.toml",
+        "references/case-file-template.md"
+      ],
+      "summaryZh": "取证式调查工作流（IN）：从工单/日志/诊断包/报错/代码区域等输入重建「发生了什么」，产出可被他人冷启动接手结构化案件文件；证据强制三级分级（Confirmed 须给 path:line 等引证、Deduced 须给推导链、Hypothesized 须说明如何证实或证伪），先立强据点再向外扩展，止于诊断、不进入实现。",
+      "entry": "直接调用技能；参数为工单 ID、日志文件路径、诊断包、报错信息、代码区域名、问题描述，或既有案件文件路径（后者为续查，路由到 Outcome 0）。产出 {implementation_artifacts}/investigations/{slug}-investigation.md。",
+      "menu": [],
+      "dependencies": {
+        "phase": null,
+        "precededBy": [],
+        "followedBy": [],
+        "required": null,
+        "args": null,
+        "outputLocation": null,
+        "outputs": null
+      },
+      "steps": [
+        {
+          "name": "1. 解析 workflow 定制块",
+          "descZh": "运行 resolve_customization.py --skill {skill-root} --key workflow；脚本失败则停止并暴露错误。",
+          "optional": false
+        },
+        {
+          "name": "2. 执行前置步骤",
+          "descZh": "按序执行 {workflow.activation_steps_prepend}。",
+          "optional": false
+        },
+        {
+          "name": "3. 加载持久事实",
+          "descZh": "{workflow.persistent_facts} 中 file: 前缀项按 {project-root} 下路径/glob 载入内容，其余按原文。",
+          "optional": false
+        },
+        {
+          "name": "4. 加载配置",
+          "descZh": "读 {project-root}/_bmad/bmm/config.yaml，解析 user_name/communication_language/document_output_language/implementation_artifacts/project_knowledge；implementation_artifacts 解析不出则回退 ./investigations/ 并在初始化前明确提示。",
+          "optional": false
+        },
+        {
+          "name": "5. 问候用户",
+          "descZh": "按 {communication_language} 问候 {user_name}。",
+          "optional": false
+        },
+        {
+          "name": "6. 执行后置步骤",
+          "descZh": "按序执行 {workflow.activation_steps_append}；前置/后置非空时须确认全部按序执行完，未完成不得开始主流程。",
+          "optional": false
+        },
+        {
+          "name": "7. 受理输入并路由",
+          "descZh": "把输入登记为引用（只记路径与 ID，不读原文）；既有案件文件路径 → Outcome 0，其余 → Outcome 1。slug 取工单 ID，无工单则与用户商定短名并规范为小写字母数字加连字符；与已有案件文件撞名时问「改名 slug-YYYY-MM-DD.md 还是续用并转 Outcome 0」。",
+          "optional": false
+        },
+        {
+          "name": "Outcome 0 载入既有案件（续查）",
+          "descZh": "读案件文件，依次呈现：未决假设（Status=Open）及其证实/证伪判据、未完成待办（Status≠Done）、缺失证据行、最近结论与置信度；询问要拉哪条线索；新证据追加 ## Follow-up: {YYYY-MM-DD} 区块（同日重入加 #2/#3）。每次 Outcome 后都要先呈现所得并暂停等用户。",
+          "optional": true
+        },
+        {
+          "name": "Outcome 1 确立范围与强据点",
+          "descZh": "按输入形态登记（工单→取全量详情；诊断包→记路径/文件数/时间窗；日志或堆栈→只纳入用户消息中的那一帧；自由描述→逐字记下并按假设对待；代码区域→记入口点；近期提交区→记提交范围）。用户自带假设则登记为 Hypothesis #1，强据点须独立寻找（一条 Confirmed 证据：报错、函数名、HTTP 路由、配置项、测试用例）。分支前先用模板初始化 {case_file} 并填 Hand-off Brief（粗稿）、Case Info、Problem Statement、初始 Evidence Inventory。无可达 Confirmed 证据时走证据稀薄分支：标记 evidence-light、把数据采集项按优先级写进 Investigation Backlog、写明「要推进我需要下列之一…」并暂停。",
+          "optional": false
+        },
+        {
+          "name": "Outcome 2 测绘证据边界",
+          "descZh": "并行清点六类独立证据源：诊断包、工单系统、版本控制、测试结果、静态分析、源码；逐类标 Available/Partial/Missing（缺失本身就是发现）；单类超约 10K token 交子代理、只回 JSON 清单（路径/大小/时间窗/以 path:line 引证的关键片段）；更新 Evidence Inventory 与 Investigation Backlog。",
+          "optional": false
+        },
+        {
+          "name": "Outcome 3 有纪律地推理成因",
+          "descZh": "追溯因果（症状驱动：从症状回溯产生条件；探索型：从产出回溯产生条件）；交叉比对日志/系统事件/版本控制/用户观察重建时间线；提出假设→找证实与反驳证据→分级（Confirmed/Refuted/Open），假设永不删除、只更新 Status 并写 Resolution；每次假设趋向 Confirmed 时先主动做一轮反驳检索并记入 Resolution；核查用户前提，证据相反就明说；新发现的路径记入 backlog 不偏离当前线索。",
+          "optional": false
+        },
+        {
+          "name": "Outcome 4 追到源码关键处",
+          "descZh": "首轮并行发起：精确报错串 grep、受影响目录 glob 找平行实现、git log 查近期变更；再串行读周边代码、顺调用链上溯、盯住语言与进程边界（编译→脚本、IPC、主机→设备、配置流）。探索型侧重 I/O 映射、高频词扫描、控制流过滤；症状驱动型做深度评估（根因是否可从本地上下文触达，需要更大范围模型就显式升级、不得悄悄扩大范围）与「一行可修」评估（off-by-one、漏空值判断、传参颠倒→给一行建议或草稿 diff；非平凡→止于根因区域）。调查止于诊断，实现不在范围内。",
+          "optional": false
+        },
+        {
+          "name": "Outcome 5 定稿报告与干净交接",
+          "descZh": "更新案件文件：Hand-off Brief 改定稿（3 句、15 秒可读）、Final Conclusion 附置信度（High=Confirmed 根因且有确定性复现 / Medium=Deduced 有小不确定 / Low=Hypothesized 有明显数据缺口）、可修时给修复方向、仍不确定给诊断步骤、适用时给复现计划（探索型给验证计划）、Status 置 Active/Concluded/Blocked on evidence。呈现结论后给下一步菜单：小修→bmad-quick-dev；范围/计划调整→bmad-correct-course；需跟踪的故事→bmad-create-story；重新审查→bmad-code-review，并推荐价值最高的一项。缓解措施与绕行方案仅在用户显式要求时产出；{workflow.on_complete} 非空则执行。",
+          "optional": false
+        }
+      ],
+      "notes": "baseline 中该条 inHelpCatalog=true，但 IN 条目的字段整体错位（action/args/phase/precededBy/followedBy/required/outputLocation/outputs 与实际语义不对应，如 args 位置写着 \"4-implementation\"、required 位置写着 \"implementation_artifacts\"），依赖字段无从可靠取得，已全部留空（不臆测）；本次由 lead 按 _bmad/bmm/4-implementation 目录归属指派补入本组。硬范围：调查止于诊断，实现与缓解措施不在产出内（实现交由结束菜单推荐的技能）。续查机制：同一案件追加 ## Follow-up 区块，完成判据为「根因已 Confirmed / 根因 Hypothesized 且有明确数据缺口 / 心智模型已够用（探索型）/ backlog 只剩拿不到证据的项 / 用户显式结束」。证据分级与「先强据点后外扩、假设只更新不删除」是本技能的写作纪律。"
+    }
+  ]
+}
