@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>套件分析报告 × 迁移计划 —— 增益评估</title>
+<style>
+  :root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+        --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+       font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 24px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:18px;margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+  .meta{color:var(--dim);font-size:13px;margin-bottom:4px}
+  table{border-collapse:collapse;width:100%;background:var(--panel);
+        border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:14px}
+  th,td{border-bottom:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+  th{background:#eef2f8;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  .ok{color:var(--ok);font-weight:600}
+  .bad{color:var(--bad);font-weight:600}
+  code,pre{background:var(--code);border-radius:6px;font-family:ui-monospace,Consolas,monospace;
+           font-size:13px}
+  code{padding:1px 5px}
+  pre{padding:12px 14px;overflow:auto;border:1px solid var(--line)}
+  .card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent);
+        border-radius:8px;padding:14px 18px;margin:14px 0}
+  .card h3{margin:0 0 8px;font-size:15px}
+  .card.suggest{border-left-color:var(--warn)}
+  .tag{display:inline-block;background:#e3ebfa;color:var(--accent);border-radius:99px;
+       padding:1px 10px;font-size:12px;margin-left:6px}
+  ul{margin:6px 0;padding-left:22px}
+  li{margin:3px 0}
+  .foot{color:var(--dim);font-size:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>套件分析报告 × 迁移计划 —— 增益评估</h1>
+<div class="meta">日期：2026-09-13 ｜ 输入：<code>diy-coder/.analysis/2026-09-13-cross-skill/</code>（五透镜分析 235 findings + 批次 1/2/3/3.5 修复 + diyc 契约 + 独立验证）｜ 对照物：<code>docs/bmad-skill-map/迁移计划.md</code></div>
+
+<div class="card">
+<h3>结论</h3>
+<p><strong>是迁移的刚需输入，不是参考资料。</strong>① 它给出了 34 个新技能的「正确形状」（现成模板，防缺陷复刻）；② 它暴露了迁移计划的过期数字与作业面撞车（12→14 / 46→48；批次 4 与阶段 C 同改一批文件）；③ 它跑通的验证工作法（独立 V + 证据收官 + baseline）可直接搬进迁移流程。</p>
+</div>
+
+<div class="card suggest">
+<h3>裁定记录（2026-09-13）</h3>
+<p>用户「都同意」——D1–D4 全部采纳；<strong>批次 4（写作块压缩）在另一窗口先行</strong>。本文结论已落回 <code>迁移计划.md</code>（§一 数字校正 / §二 验收第 12 项 + 确定性下沉载体 / §四 缺口 1 覆盖范围 + WDS 机械写回补记 / §五 阶段 P 前置 + C1/C5/C7 / §七 已定吸收条目）。</p>
+</div>
+
+<h2>1. 现成模板：新技能照抄即得（防缺陷复刻）</h2>
+<p>分析线修掉的 6 类跨技能缺陷，正是 34 个新技能「按直觉写」时会重新长出来的东西。对应关系：</p>
+<table>
+  <tr><th>#</th><th>分析线产出</th><th>对迁移的用处</th><th>落点</th></tr>
+  <tr>
+    <td>1</td>
+    <td>批次 3 接线模板（<code>batch3-contract.md</code> §8）：激活句委托 <code>diyc resolve</code> / 终门句 <code>diyc check --type &lt;T&gt; --final</code>（exit 0 唯一放行）/ Update 前 ID 稳定走 <code>--previous</code> / 收尾计数引回执</td>
+    <td>新技能 SKILL.md 骨架；验收标准 #9「读取成本纪律」与「确定性下沉原则」从原则变成可执行条款</td>
+    <td>P1 样板即按此写，B1–B7 全批继承</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>实例解析统一（<code>diyc resolve</code>；此前 INSTANCE_RE 在 5 份脚本各自实现，白名单漏洞修了 5 处）</td>
+    <td>新技能禁止再手写实例解析——第 6 次实现就是第 6 个漂移点</td>
+    <td>所有新技能 On Activation</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>语言绑定统一模板（批次 2 包 C：<code>communication_language</code> / <code>document_output_language</code> / <code>paths.output_dir</code> 分工，机器锚点逐字保留）</td>
+    <td>新技能直接复制，避免「解析了但零消费」的悬空重演</td>
+    <td>全批</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>写权边界 + 原子写回（diy-augment 窄写权先例：只写三面；diyc writeback 原子替换；baseline 仅用户裁定后写）</td>
+    <td>新技能 Update 模式声明「本技能只写哪些文件/字段」，回填走命令而非手改 YAML</td>
+    <td>建议增补为验收项</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>viewer 映射纪律（批次 1：type 重键、design 族缺失、枚举徽章；并立「schema 新增字段须同步 viewer 映射 + 渲染断言测试」）</td>
+    <td>缺口 2 通用降级渲染的设计输入；新技能新增产物字段时的联动义务</td>
+    <td>缺口 2 落地 + 新技能自检</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>共享文本教训（写作纪律块 6 份逐字复制、md5 一致；批次 4 压缩<strong>未开工</strong>）</td>
+    <td><strong>B1 开工前先裁定唯一文本</strong>——否则 6 份复制变成 40 份，压缩成本翻倍</td>
+    <td>批次 4 先行或前置裁定</td>
+  </tr>
+</table>
+<p>另：批次 1 修的 help.py 三个缺陷（CHAIN 漏 design 节点 / 多文件节点缺兄弟文件仍计完成 / <code>paths</code> 形状崩溃）恰好是缺口 1「登记表驱动导航」重写后的验收清单。</p>
+
+<h2>2. 需要校正迁移计划的地方（数字与排序）</h2>
+<table>
+  <tr><th>#</th><th>迁移计划现状</th><th>实际（2026-09-13 实测）</th><th>影响</th></tr>
+  <tr>
+    <td>1</td>
+    <td>「12（现有）+ 34 = 46」；C 阶段「46 技能双线导航验证 / 46 技能同步测试 / 现有 12 技能回改」（§一、§二、§五、§七共 5 处）</td>
+    <td>套件已 <strong>14</strong> 技能——批次 2 新增 <code>diy-augment</code>、批次 3 新增 <code>diy-tools</code>（<code>ls skills/</code> 与 <code>.claude/skills/</code> 均为 14）；总数应为 <strong>48</strong></td>
+    <td>install.py 分发清单与同步测试的验收面；缺口 1 登记表须覆盖 14 个存量技能，并给内部技能留口径（diy-tools 非用户直调；diy-augment 主要由 runner spawn，登记表应支持「内部技能不参与推荐」）</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>C3 现有技能升级（diy-design/diy-dev/diy-review/diy-architecture）、C4 横切入口补接线（diy-prd/diy-architecture/diy-epics-stories）、C7 读取成本纪律回改（全部存量）</td>
+    <td>分析批次 4（写作块压缩 + leanness 12 条）改的是<strong>同一批 SKILL.md</strong>（prd/epics-stories/sprint/dev/viewer/openapi/review）</td>
+    <td>四个工作面叠在同一批文件上——须定序或并轨，否则两拨 team 改同一文件（正是迁移计划风险表第 3 条）</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>验收标准 #6「viewer 渲染新产物类型」、#9「校验走脚本」</td>
+    <td>校验分工已裁定并冻结：diyc = 跨文档机械核对（8 类型）；design.py = 设计领域引擎</td>
+    <td>新产物类型的校验归属照此分工扩展，不必重新论证</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>缺口 1「runner 不区分线，按登记表依赖编排」</td>
+    <td>diyc 的写回命令面（transition/green/done）只覆盖主线产物（sprint/stories/test-plan）；WDS 线状态（design.yaml <code>page.status</code>）目前无机械写回入口</td>
+    <td>要让 WDS 线真被 runner 无头编排，须有等价写回命令面（design.py 领域引擎扩展或 diyc 新类型）——否则重演主线批次 3 前的「手改 YAML、无脚本防护」</td>
+  </tr>
+</table>
+
+<h2>3. 工作法可搬运</h2>
+<table>
+  <tr><th>#</th><th>分析线已跑通的</th><th>迁移计划里的对应物</th></tr>
+  <tr>
+    <td>1</td>
+    <td>五透镜分析 → findings.json → 分批修复 → <strong>独立 V 验证（不采信实现者报告）</strong> → 证据收官（closeout md+html，含判定表/复现命令/实测记录）</td>
+    <td>「保真度差异报告 + 每批 1 个独立验证 teammate」——形态直接照搬，连证据格式都是现成的</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>diy-augment（批次 2）、diy-tools（批次 3）两次「新增技能端到端」彩排</td>
+    <td>新技能 DoD 现成清单：薄 SKILL.md + <code>scripts/</code> 子目录 + install.py 分发 + tests + sync 冒烟 +（如需）runner 接线。34 个技能逐个照此验收</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>baseline 已知遗留台账（只收编指名条目 / reason 必填 / STALE 反噬，债务只减不增）</td>
+    <td>迁移引入新校验规则后历史产物变红的通用解法；避免审计面永久红、真违规被历史债淹没</td>
+  </tr>
+</table>
+
+<h2>4. 裁定结果（2026-09-13：D1–D4 全部同意）</h2>
+<table>
+  <tr><th>#</th><th>决策项</th><th>建议</th></tr>
+  <tr><td>D1</td><td>迁移计划数字校正：12→14、46→48（§一、§二、§五 C1/C5/C7、§七共 5 处）+ 登记表内部技能口径</td><td><strong>采纳</strong>（机械校正；不校正则 install 同步测试验收面从一开始就错）</td></tr>
+  <tr><td>D2</td><td>批次 4（写作块压缩）与迁移的排序</td><td><strong>批次 4 先行</strong>（材料齐、范围明确），其压缩结论成为新技能写作蓝本；C3/C4/C7 排其后。最低限度：B1 开工前冻结「共享写作块唯一文本」</td></tr>
+  <tr><td>D3</td><td>验收标准增补：新技能一律（a）激活句委托 <code>diyc resolve</code>；（b）终门走 <code>diyc check --final</code>；（c）Update 前 ID 校验走 <code>--previous</code>；（d）语言绑定用包 C 模板；（e）声明写权边界</td><td><strong>采纳</strong>并入第二节验收标准表；P1 样板即按此写</td></tr>
+  <tr><td>D4</td><td>本评估结论落回 <code>迁移计划.md</code>（第四节补充 + 第七节已定）</td><td>待 D1–D3 裁定后一次性更新（未经许可不改该文件）</td></tr>
+</table>
+
+<p class="foot">证据锚点：<code>diy-coder/.analysis/2026-09-13-cross-skill/</code>（skill-analysis-report / batch1-3-closeout / batch3-contract §8 / proposal-baseline / review/*.md）；实测：<code>ls diy-coder/skills | wc -l</code> = 14、<code>.claude/skills/diy-*</code> = 14。本评估只读分析，未改动迁移计划、技能源码与产物。</p>
+
+</div>
+</body>
+</html>
