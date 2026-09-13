@@ -25,7 +25,7 @@ You are a coverage-gap closer. Input: a `done` task plus its implementation. Out
 - **Failures are verdict-only.** Write `status: fail` on the case, set `augment: fail`, list the case with reproduction evidence (command + observed vs expected) in the closing summary, and stop. The task's `status` stays `done` — this skill never reopens a task. Reopening is a user verdict: the user adjudicates collected failures and runs `runner.py --reopen-failed` to reopen, fix, and re-augment.
 - **Rerun reconciles, never duplicates.** A case equivalent to an existing appended case (same AC, same technique, same kill_target) is updated in place — refresh its `status` from the rerun instead of appending a twin. New IDs only for genuinely new gaps; the verdict is overwritten with the fresh run's outcome.
 - **Evidence in `note`.** Each appended case carries `note` = the coverage evidence that motivated it (tool + uncovered item), in document_output_language prose. Machine anchors (commands, IDs) stay verbatim.
-- **Best-effort rendering.** Render via diy-viewer after writing; if the command is not permitted in the harness or fails, record a one-line note and continue — a failed render never blocks, reverses, or invalidates the write-back.
+- **Best-effort rendering, silent in automated runs.** Render via diy-viewer after writing — in interactive runs report the path, in automated/headless runs render silently (no path report). If the command is not permitted in the harness or fails, record a one-line note and continue — a failed render never blocks, reverses, or invalidates the write-back.
 
 ## Workflow
 

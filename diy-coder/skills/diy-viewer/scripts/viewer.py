@@ -485,6 +485,21 @@ def load_config(project_root: Path) -> dict:
     }  # 展示语言固定中文；回复语言属 agent 侧 SKILL.md 契约，脚本不读此键
 
 
+def _is_interactive() -> bool:
+    # trace: 2026-09-13 裁定——自动打开仅发生在人工交互终端（stdout 连 TTY）；
+    # AI/自动化环境（Claude 会话、runner 子进程、CI、沙箱）stdout 为管道，天然判非交互
+    return sys.stdout.isatty()
+
+
+def should_open(auto_open: bool, no_open: bool, force_open: bool,
+                interactive: bool) -> bool:
+    # trace: 2026-09-13 裁定——打开浏览器是给在场人看的副作用：自动化环境静默跳过，
+    # 不报路径、不阻塞流程。优先级：--no-open 一票否决 > --open 显式强制 > 配置 + 交互终端
+    if no_open:
+        return False
+    return force_open or (auto_open and interactive)
+
+
 def resolve_instance(out_dir: Path, instance):
     # trace: S-16 AC-16.1 AC-16.2 TC-16.1.1 TC-16.2.1 D-9
     # 目录即实例：带实例名 → <output_dir>/<实例名>/；无 → 主线平铺零迁移。
@@ -1058,6 +1073,9 @@ def main() -> int:
     # trace: S-16 AC-16.1 AC-16.2 TC-16.1.1 TC-16.2.1 D-9（--instance 接线：实例目录解析与主线平铺兼容）
     ap = argparse.ArgumentParser(description="diy-coder YAML → HTML viewer")
     ap.add_argument("--project-root", default=".", help="project root directory")
+    ap.add_argument("--open", dest="force_open", action="store_true",
+                    help="force-open the browser even in non-interactive environments "
+                         "(overridden by --no-open)")
     ap.add_argument("--no-open", action="store_true", help="do not open the browser")
     ap.add_argument("--instance", default=None,
                     help="instance name (FR-4.5/D-9): artifacts under <output_dir>/<name>/; "
@@ -1139,7 +1157,9 @@ def main() -> int:
     if errors:
         print(f"[diy-viewer] {len(errors)} file(s) skipped (see stderr)", file=sys.stderr)
 
-    if cfg["auto_open"] and not args.no_open and docs:
+    # trace: 2026-09-13 裁定——自动打开仅限人工交互终端；AI/自动化环境静默跳过（不阻塞）
+    if docs and should_open(cfg["auto_open"], args.no_open, args.force_open,
+                            _is_interactive()):
         webbrowser.open(index.resolve().as_uri())
     return 0
 

@@ -66,5 +66,5 @@ Task entry in `sprint.yaml` gains (evidence/review blocks as defined by diy-dev/
 
 1. Resolve gates and target; restate in one line: target task, its state, resume point.
 2. Execute the Single-Run Protocol; write every transition to sprint.yaml as it happens, and backfill the sources of truth (`stories.yaml`/`test-plan.yaml`) on the `done` terminal per the 真源回填 rule.
-3. Render via diy-viewer (same activation command — append `--instance <name>` when one was resolved) at the terminal state; report the path. Rendering is best-effort: if the command is not permitted in the harness or fails, record a one-line note and continue — a failed render never blocks, reverses, or invalidates the terminal write.
+3. Render via diy-viewer (same activation command — append `--instance <name>` when one was resolved) at the terminal state. In interactive runs report the path; in headless (runner-invoked) runs render silently — no path report. Rendering is best-effort: if the command is not permitted in the harness or fails, record a one-line note and continue — a failed render never blocks, reverses, or invalidates the terminal write.
 4. Close with counts: TCs red/green this run, rework rounds used, findings by route, final status + reason (if blocked, name the exact unblock step: fix spec → diy-test-design, or clarify intent → re-run with args).
