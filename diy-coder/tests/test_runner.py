@@ -226,5 +226,69 @@ class TC_10_4_1_StrictlySerial(unittest.TestCase):
         self.assertEqual(tasks["S-2"]["status"], "done")
 
 
+class TC_10_1_2_MissingClaudeCmd(unittest.TestCase):
+    # trace: S-10 AC-10.1 TC-10.1.2
+    def setUp(self):
+        self.root, self.sprint = make_fixture({"S-1": "pending"})
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def test_missing_cli_reports_one_line(self):
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(RUNNER),
+                "--project-root",
+                str(self.root),
+                "--claude-cmd",
+                "definitely-not-a-real-binary-xyz",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdin=subprocess.DEVNULL,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("[runner]", result.stderr)
+        self.assertIn("definitely-not-a-real-binary-xyz", result.stderr)
+
+
+class TC_10_1_2_CorruptSprintGate(unittest.TestCase):
+    # trace: S-10 AC-10.1 TC-10.1.2
+    def setUp(self):
+        self.root, self.sprint = make_fixture({"S-1": "pending"})
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def run_gate(self):
+        return subprocess.run(
+            [sys.executable, str(RUNNER), "--project-root", str(self.root),
+             "--claude-cmd", sys.executable, str(STUB)],
+            capture_output=True, text=True, encoding="utf-8",
+            errors="replace", stdin=subprocess.DEVNULL, timeout=60,
+        )
+
+    def test_unparsable_sprint_reports_one_line(self):
+        # 对抗审查 R3：sprint.yaml 语法损坏必须一行报错，不落 yaml 裸栈
+        self.sprint.write_text("project: [broken" + chr(10), encoding="utf-8")
+        r = self.run_gate()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn("[runner]", r.stderr)
+
+    def test_non_map_project_reports_one_line(self):
+        # 对抗审查 R3：project 节点形状异常（列表）同样一行报错
+        self.sprint.write_text(
+            "project:" + chr(10) + "  - not-a-map" + chr(10), encoding="utf-8")
+        r = self.run_gate()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn("[runner]", r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

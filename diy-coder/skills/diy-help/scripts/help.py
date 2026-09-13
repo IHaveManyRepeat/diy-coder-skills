@@ -44,8 +44,15 @@ def resolve_output_dir(project_root, instance):  # trace: S-16 AC-16.1 D-9 实�
     cfg_path = os.path.join(project_root, "diy-coder.yaml")
     output_dir = "diy-output"
     if os.path.isfile(cfg_path):
-        cfg = load_yaml(cfg_path)
-        output_dir = cfg.get("paths", {}).get("output_dir", output_dir)
+        # trace: S-13 AC-13.1 TC-13.1.6 配置损坏/半写（paths 为 null 等）降级默认值，不崩
+        try:
+            cfg = load_yaml(cfg_path)
+        except yaml.YAMLError as e:
+            sys.stderr.write("WARN diy-coder.yaml: %s\n" % e)
+            cfg = {}
+        if not isinstance(cfg, dict):
+            cfg = {}
+        output_dir = (cfg.get("paths") or {}).get("output_dir", output_dir)
     if instance:
         if not INSTANCE_RE.match(instance):
             sys.stderr.write("invalid instance name: %s\n" % instance)
@@ -54,14 +61,23 @@ def resolve_output_dir(project_root, instance):  # trace: S-16 AC-16.1 D-9 实�
     return os.path.join(project_root, output_dir)
 
 
-def read_status(path):  # trace: S-13 AC-13.1 读产物 project.status；损坏文件降级 unparsable 而非崩溃
-    """读产物 project.status；文件损坏时返回 'unparsable' 并在 stderr 报告。"""
+def read_status(path):  # trace: S-13 AC-13.1 TC-13.1.6 读产物 project.status；语法/形状/半写降级 unparsable 而非崩溃
+    """读产物 project.status；文件损坏或形状异常时返回 'unparsable' 并在 stderr 报告。"""
     try:
         doc = load_yaml(path)
     except yaml.YAMLError as e:
         sys.stderr.write("WARN %s: %s\n" % (os.path.basename(path), e))
         return "unparsable"
-    return doc.get("project", {}).get("status", "unknown")
+    if not isinstance(doc, dict):
+        sys.stderr.write("WARN %s: 顶层不是映射，按 unparsable 处理\n"
+                         % os.path.basename(path))
+        return "unparsable"
+    proj = doc.get("project") or {}
+    if not isinstance(proj, dict):
+        sys.stderr.write("WARN %s: project 节点形状异常，按 unparsable 处理\n"
+                         % os.path.basename(path))
+        return "unparsable"
+    return proj.get("status", "unknown")
 
 
 def scan_chain(output_dir):  # trace: S-13 AC-13.1 TC-13.1.1 TC-13.1.2 存在性+status 扫链定位置/推荐
@@ -85,13 +101,20 @@ def scan_chain(output_dir):  # trace: S-13 AC-13.1 TC-13.1.1 TC-13.1.2 存在性
     return completed, None, None, notes
 
 
-def scan_sprint(output_dir):  # trace: S-13 AC-13.1 链后读 sprint 任务：build-loop/全done/blocked 三分支
+def scan_sprint(output_dir):  # trace: S-13 AC-13.1 TC-13.1.6 链后读 sprint 任务；tasks 形状异常降级阻断
     """链走完后读 sprint 任务状态。返回 (next_skill, blocked, workflow_done)。"""
     sprint = load_yaml(os.path.join(output_dir, "sprint.yaml"))
-    tasks = sprint.get("tasks", [])
+    tasks = sprint.get("tasks")
+    if not isinstance(tasks, list) or not all(isinstance(t, dict) for t in tasks):
+        blocked = {
+            "file": "sprint.yaml",
+            "status": "unparsable",
+            "action": "sprint.yaml 的 tasks 形状异常（半写/损坏），修复后重跑",
+        }
+        return None, blocked, False
     blocked_tasks = [t for t in tasks if t.get("status") == "blocked"]
     if blocked_tasks:
-        names = ", ".join(t.get("story", "?") for t in blocked_tasks)
+        names = ", ".join(str(t.get("story", "?")) for t in blocked_tasks)
         blocked = {
             "file": "sprint.yaml",
             "status": "blocked",

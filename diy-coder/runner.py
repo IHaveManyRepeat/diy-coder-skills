@@ -17,10 +17,16 @@ DEFAULT_MAX_RETRIES = 2  # R-4：重试上限 2 次封顶
 
 
 def load_sprint(sprint_path: Path) -> dict:
-    # trace: S-10 AC-10.2 D-4 读取 sprint.yaml；final 硬门（非 final 拒绝，路由 diy-sprint）
-    doc = yaml.safe_load(sprint_path.read_text(encoding="utf-8"))
-    if not isinstance(doc, dict) or doc.get("project", {}).get("status") != "final":
-        raise SystemExit(f"sprint.yaml 非 final，先运行 diy-sprint: {sprint_path}")
+    # trace: S-10 AC-10.2 AC-10.1 D-4 读取 sprint.yaml；final 硬门（非 final 拒绝，路由 diy-sprint）；
+    # 语法损坏/形状异常一行中文报错（对抗审查 R3，BUG-011 同类：错误路径与主路径同等标准）
+    try:
+        doc = yaml.safe_load(sprint_path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as e:
+        raise SystemExit(f"[runner] sprint.yaml 解析失败（{e.__class__.__name__}）："
+                         f"{sprint_path}——修复后重跑")
+    proj = doc.get("project") if isinstance(doc, dict) else None
+    if not isinstance(proj, dict) or proj.get("status") != "final":
+        raise SystemExit(f"[runner] sprint.yaml 非 final，先运行 diy-sprint: {sprint_path}")
     return doc
 
 
@@ -101,7 +107,7 @@ def drive_task(sprint_path: Path, claude_cmd: list, project_root: Path,
 
 
 def main(argv=None) -> int:
-    # trace: S-10 AC-10.1 AC-10.4 TC-10.1.1 TC-10.4.1 串行主循环：一次至多驱动一个任务
+    # trace: S-10 AC-10.1 AC-10.4 TC-10.1.1 TC-10.1.2 TC-10.4.1 串行主循环：一次至多驱动一个任务
     # （不并发 spawn），直至全部任务终态
     parser = argparse.ArgumentParser(description="diy-coder 循环编排器（无人值守驱动 sprint 全部任务）")
     parser.add_argument("--project-root", default=".", help="项目根目录（默认当前目录）")
@@ -125,11 +131,34 @@ def main(argv=None) -> int:
     resolved = shutil.which(args.claude_cmd[0])
     if resolved:
         args.claude_cmd[0] = resolved
+    # trace: S-10 AC-10.1 TC-10.1.2 BUG-011 前置显式校验：外部依赖缺失给一行中文报错，
+    # 不落 spawn 层 FileNotFoundError 裸栈
+    if resolved is None:
+        print(f"[runner] 找不到命令 {args.claude_cmd[0]}（PATH 中无此可执行文件）——"
+              f"安装 claude CLI，或用 --claude-cmd 指定完整路径", file=sys.stderr)
+        return 1
 
     root = Path(args.project_root).resolve()
-    config = yaml.safe_load((root / "diy-coder.yaml").read_text(encoding="utf-8"))
-    output_dir = root / config.get("paths", {}).get("output_dir", "diy-output")
+    cfg_path = root / "diy-coder.yaml"
+    if not cfg_path.exists():
+        print(f"[runner] 找不到 {cfg_path}——请在项目根目录运行，或用 --project-root 指定",
+              file=sys.stderr)
+        return 1
+    try:
+        config = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as e:
+        print(f"[runner] diy-coder.yaml 解析失败（{e.__class__.__name__}）：{cfg_path}",
+              file=sys.stderr)
+        return 1
+    if not isinstance(config, dict):
+        print(f"[runner] diy-coder.yaml 顶层不是映射：{cfg_path}", file=sys.stderr)
+        return 1
+    output_dir = root / (config.get("paths") or {}).get("output_dir", "diy-output")
     sprint_path = output_dir / "sprint.yaml"
+    if not sprint_path.exists():
+        print(f"[runner] 找不到 {sprint_path}——先运行 diy-sprint 生成 sprint.yaml",
+              file=sys.stderr)
+        return 1
     load_sprint(sprint_path)
 
     while True:

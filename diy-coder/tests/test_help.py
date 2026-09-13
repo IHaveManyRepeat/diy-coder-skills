@@ -137,6 +137,55 @@ class HelpStateMachineTests(unittest.TestCase):
         self.assertIn("S-9", blocked["action"])
         self.assertIn("人工", blocked["action"])
 
+    # trace: S-13 AC-13.1 TC-13.1.6
+    def test_half_written_artifacts_do_not_crash(self):
+        # 夹具一：sprint.yaml 的 project 与 tasks 均为 null（LLM 半写中断）
+        planning_chain_final(self.out)
+        with open(os.path.join(self.out, "sprint.yaml"), "w", encoding="utf-8") as f:
+            f.write("project:" + chr(10) + "tasks:" + chr(10))
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["blocked"]["file"], "sprint.yaml")
+        self.assertTrue(data["blocked"]["action"])
+        # 夹具二：配置 paths 为 null
+        os.remove(os.path.join(self.out, "sprint.yaml"))
+        with open(os.path.join(self.root, "diy-coder.yaml"), "w", encoding="utf-8") as f:
+            f.write("paths:" + chr(10))
+        p2 = run_help(self.root)
+        self.assertEqual(p2.returncode, 0, p2.stderr)
+        self.assertNotIn("Traceback", p2.stderr)
+        json.loads(p2.stdout)  # 输出仍是合法 JSON
+
+    # trace: S-13 AC-13.1 TC-13.1.6
+    def test_sprint_final_but_tasks_null_blocks_at_sprint_stage(self):
+        # 对抗审查 R2：链全 final 时 tasks: null 不得被 `or []` 吞成"推荐 build-loop"
+        planning_chain_final(self.out)
+        with open(os.path.join(self.out, "sprint.yaml"), "w", encoding="utf-8") as f:
+            f.write("project:" + chr(10) + "  status: final" + chr(10) + "tasks:" + chr(10))
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["blocked"]["file"], "sprint.yaml")
+        self.assertEqual(data["blocked"]["status"], "unparsable")
+
+    # trace: S-13 AC-13.1 TC-13.1.6
+    def test_non_string_story_in_blocked_task_no_crash(self):
+        # 对抗审查 R2：story 节点为映射时 ", ".join 不得裸栈
+        planning_chain_final(self.out)
+        with open(os.path.join(self.out, "sprint.yaml"), "w", encoding="utf-8") as f:
+            f.write("project:" + chr(10) + "  status: final" + chr(10) + "tasks:" + chr(10)
+                    + "- story:" + chr(10) + "    id: S-1" + chr(10)
+                    + "  status: blocked" + chr(10))
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["blocked"]["status"], "blocked")
+        self.assertIn("S-1", data["blocked"]["action"])
+
 
 if __name__ == "__main__":
     unittest.main()

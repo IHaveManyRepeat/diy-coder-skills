@@ -215,8 +215,14 @@ def gloss(text: str) -> str:
     return f'<span class="term" data-tip="{esc(tip)}">{text}</span>'
 
 
-def _collect_ids(node, doc: str) -> None:
+def _collect_ids(node, doc: str, _seen=None) -> None:
+    # trace: S-11 AC-11.1 TC-11.1.1 防环：自引用锚点（YAML 合法）结构只访问一次，不无限递归
+    if _seen is None:
+        _seen = set()
     if isinstance(node, dict):
+        if id(node) in _seen:
+            return
+        _seen.add(id(node))
         i = node.get("id")
         if isinstance(i, str) and i not in ID_INDEX:
             preview = next(
@@ -226,19 +232,28 @@ def _collect_ids(node, doc: str) -> None:
             )
             ID_INDEX[i] = {"doc": doc, "preview": preview[:120], "node": node}
         for v in node.values():
-            _collect_ids(v, doc)
+            _collect_ids(v, doc, _seen)
     elif isinstance(node, list):
+        if id(node) in _seen:
+            return
+        _seen.add(id(node))
         for x in node:
-            _collect_ids(x, doc)
+            _collect_ids(x, doc, _seen)
 
 
 def is_id_string(v) -> bool:
     return isinstance(v, str) and ID_FULL_RE.fullmatch(v.strip()) is not None
 
 
-def iter_ref_values(node):
-    # trace: S-12 AC-12.1 AC-12.2 产出引用型字段的全部字符串值（悬空/孤儿共用遍历）
+def iter_ref_values(node, _seen=None):
+    # trace: S-12 AC-12.1 AC-12.2 产出引用型字段的全部字符串值（悬空/孤儿共用遍历）；
+    # S-11 AC-11.1 TC-11.1.1 防环：自引用结构只访问一次
+    if _seen is None:
+        _seen = set()
     if isinstance(node, dict):
+        if id(node) in _seen:
+            return
+        _seen.add(id(node))
         for k, v in node.items():
             if k in REF_KEYS:
                 vals = v if isinstance(v, list) else [v]
@@ -246,10 +261,13 @@ def iter_ref_values(node):
                     if isinstance(x, str):
                         yield x
             else:
-                yield from iter_ref_values(v)
+                yield from iter_ref_values(v, _seen)
     elif isinstance(node, list):
+        if id(node) in _seen:
+            return
+        _seen.add(id(node))
         for x in node:
-            yield from iter_ref_values(x)
+            yield from iter_ref_values(x, _seen)
 
 
 def collect_dangling(node, found: list) -> None:
@@ -682,13 +700,22 @@ def page(title: str, body: str, nav: str = "") -> str:
 """
 
 
-def count_assumptions(node) -> int:
+def count_assumptions(node, _seen=None) -> int:
+    # trace: S-11 AC-11.1 TC-11.1.1 防环：自引用结构只访问一次（build_index 卡片在渲染隔离外，不得崩）
+    if _seen is None:
+        _seen = set()
     if isinstance(node, str):
         return 1 if node.startswith("[ASSUMPTION]") else 0
     if isinstance(node, dict):
-        return sum(count_assumptions(v) for v in node.values())
+        if id(node) in _seen:
+            return 0
+        _seen.add(id(node))
+        return sum(count_assumptions(v, _seen) for v in node.values())
     if isinstance(node, list):
-        return sum(count_assumptions(x) for x in node)
+        if id(node) in _seen:
+            return 0
+        _seen.add(id(node))
+        return sum(count_assumptions(x, _seen) for x in node)
     return 0
 
 
@@ -762,7 +789,7 @@ def render_doc_page(name: str, data, others: list) -> str:
     return page(DOC_LABELS.get(name, name), body, " · ".join(links))
 
 
-def build_index(docs: list) -> str:
+def build_index(docs: list, errors=None) -> str:
     cards = []
     for name, data in docs:
         meta = get_meta(data)
@@ -780,10 +807,16 @@ def build_index(docs: list) -> str:
         body = '<p class="dim">未找到 YAML 文档。</p>'
     else:
         body = f'<div class="grid">{"".join(cards)}</div>'
+    # trace: S-11 AC-11.1 TC-11.1.1 跳过的文件在索引中保留错误卡片（HTML 可见标记）
+    if errors:
+        body += (f'<div class="alert alert-bad">⚠ {len(errors)} 个文件未能渲染'
+                 f'（形状异常、语法损坏或渲染失败）</div>'
+                 + "<ul>" + "".join(f"<li>{esc(e)}</li>" for e in errors) + "</ul>")
     return page("diy-coder 文档索引", body)
 
 
 def load_docs(paths) -> tuple:
+    # trace: S-11 AC-11.1 TC-11.1.1 形状守卫：语法/形状/空文档三类异常统一降级为一行报告，不崩
     docs, errors = [], []
     for p in paths:
         try:
@@ -793,6 +826,9 @@ def load_docs(paths) -> tuple:
             continue
         if data is None:
             errors.append(f"{p.name}: empty document")
+            continue
+        if not isinstance(data, dict):
+            errors.append(f"{p.name}: 顶层不是映射（{type(data).__name__}），已跳过")
             continue
         docs.append((p.stem, data))
     return docs, errors
@@ -830,10 +866,6 @@ def main() -> int:
         for m in sorted(req - {f"{n}.yaml" for n, _ in all_docs}):
             errors.append(f"{m}: not found under {out_dir}")
 
-    if errors:
-        for e in errors:
-            print(f"[diy-viewer] skipped — {e}", file=sys.stderr)
-
     view_dir = out_dir / cfg["view_dir"]
     view_dir.mkdir(parents=True, exist_ok=True)
 
@@ -858,10 +890,19 @@ def main() -> int:
     for name, data in docs:
         others = all_docs
         f = view_dir / f"{name}.html"
-        f.write_text(render_doc_page(name, data, others), encoding="utf-8")
+        # trace: S-11 AC-11.1 TC-11.1.1 逐文件隔离：单文件渲染失败降级为错误页，不中断整批
+        try:
+            body = render_doc_page(name, data, others)
+        except Exception as e:  # noqa: BLE001 兜底隔离，失败详情写入错误页与索引
+            errors.append(f"{name}.yaml: 渲染失败（{e.__class__.__name__}: {e}）")
+            body = page(DOC_LABELS.get(name, name),
+                        f'<div class="alert alert-bad">⚠ 渲染失败：{esc(e)}</div>')
+        f.write_text(body, encoding="utf-8")
         written.append(f)
     index = view_dir / "index.html"
-    index.write_text(build_index(all_docs), encoding="utf-8")
+    index.write_text(build_index(all_docs, errors), encoding="utf-8")
+    for e in errors:
+        print(f"[diy-viewer] skipped — {e}", file=sys.stderr)
 
     print(f"[diy-viewer] rendered {len(written)} doc(s) -> {view_dir}")
     if errors:

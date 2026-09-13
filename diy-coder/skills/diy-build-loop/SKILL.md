@@ -23,6 +23,7 @@ You are an iteration driver. Input: `sprint.yaml` + ONE target task. You orchest
 - **bad_spec routes to blocked.** A review finding routed `bad_spec` means the spec is wrong — fixing stories.yaml/test-plan.yaml belongs to humans/upstream skills, not to the executor. The task goes `blocked` with the finding quoted in `blocked_reason`; the user corrects the spec, then re-runs. Never edit spec documents to unblock yourself.
 - **No falsification round in auto mode.** diy-review's optional post-pass falsification round stays user-triggered; this skill does not run it. Record nothing extra — its absence is not a finding.
 - **Narrow ownership.** This skill writes only the target task's entry: statuses along the cycle, `loop` summary, plus the evidence/review blocks its stages produce. It never touches other tasks and never rewrites `test_refs`.
+- **Terminal writes reach the sources of truth — 真源回填 (BUG-012).** `review → done` writes, in the same HALT breath: the story's `status: done` in `stories.yaml` and `status: pass` for every TC this run executed green in `test-plan.yaml` (the dev stage already writes these per diy-dev — the terminal write reconciles), bumping both `project.updated`. `blocked` is a sprint-level outcome only — it never writes `stories.yaml` or `test-plan.yaml`: the story is not delivered and nothing is passed. **Why:** the 2026-09-13 falsification round found the headless chain reaching terminal sprint states while the sources of truth stayed `pending`.
 - Any judgment call carries the `[ASSUMPTION]` prefix in the YAML value.
 
 ## Single-Run Protocol
@@ -36,7 +37,7 @@ if resume-at == dev:
     in-progress → review (HALT write)
 loop:
     review stage: three layers + routing per diy-review; write review block (HALT write)
-    pass  → review → done (HALT write); stop
+    pass  → review → done (HALT write; backfill stories.yaml status: done + green TCs status: pass in test-plan.yaml); stop
     fail:
         if any finding routed bad_spec → blocked (reason quotes it); stop
         if rounds == 2                  → blocked (reason: rounds exhausted + unresolved findings); stop
@@ -64,6 +65,6 @@ Task entry in `sprint.yaml` gains (evidence/review blocks as defined by diy-dev/
 ## Workflow
 
 1. Resolve gates and target; restate in one line: target task, its state, resume point.
-2. Execute the Single-Run Protocol; write every transition to sprint.yaml as it happens.
+2. Execute the Single-Run Protocol; write every transition to sprint.yaml as it happens, and backfill the sources of truth (`stories.yaml`/`test-plan.yaml`) on the `done` terminal per the 真源回填 rule.
 3. Render via diy-viewer at the terminal state; report the path.
 4. Close with counts: TCs red/green this run, rework rounds used, findings by route, final status + reason (if blocked, name the exact unblock step: fix spec → diy-test-design, or clarify intent → re-run with args).

@@ -168,6 +168,43 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual(c2.returncode, 0, c2.stdout)
         self.assertTrue(json.loads(c2.stdout)["pass"])
 
+    # trace: S-14 AC-14.3 TC-14.3.2
+    def test_three_digit_hex_parity_across_check_and_audit(self):
+        design = GOOD_DESIGN.replace("bg: '#ffffff'", "bg: '#fff'")
+        design = design.replace("text: '#1a1a1a'", "text: '#000'")
+        dpath = self.write("diy-output/design.yaml", design)
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        c = run_engine(["check", "--design", dpath, "--json"])
+        self.assertEqual(c.returncode, 0, c.stdout + c.stderr)
+        data = json.loads(c.stdout)
+        self.assertTrue(data["pass"], data["violations"])
+        # audit 同口径：token 三位 #fff/#000 vs 源码六位 #ffffff/#000000 → 命中不判 one-off
+        src = self.write("diy-output/src/app.css",
+                         "body { background: #ffffff; color: #000000; }" + NL)
+        a = run_engine(["audit", "--design", dpath, "--src", src, "--json"])
+        self.assertEqual(a.returncode, 0, a.stdout + a.stderr)
+        self.assertTrue(json.loads(a.stdout)["pass"])
+
+    # trace: S-14 AC-14.3 TC-14.3.3
+    def test_malformed_shapes_degrade_without_traceback(self):
+        # 夹具一：token 色值为整数 123（形状未知）
+        bad = GOOD_DESIGN.replace("bg: '#ffffff'", "bg: 123")
+        dpath = self.write("diy-output/design.yaml", bad)
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        c = run_engine(["check", "--design", dpath, "--json"])
+        self.assertNotIn("Traceback", c.stderr)
+        self.assertEqual(c.returncode, 1, c.stdout + c.stderr)
+        self.assertFalse(json.loads(c.stdout)["pass"])
+        # 夹具二：pages.states 混入裸字符串（半写条目）
+        bad2 = GOOD_DESIGN.replace(
+            "- name: hover" + NL + "    signals: [icon, motion]",
+            "- 半写字符串" + NL + "  - name: hover" + NL + "    signals: [icon, motion]")
+        self.write("diy-output/design.yaml", bad2)
+        c2 = run_engine(["check", "--design", dpath, "--json"])
+        self.assertNotIn("Traceback", c2.stderr)
+        self.assertEqual(c2.returncode, 1, c2.stdout + c2.stderr)
+        self.assertFalse(json.loads(c2.stdout)["pass"])
+
 
 if __name__ == "__main__":
     unittest.main()

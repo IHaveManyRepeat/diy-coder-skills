@@ -84,9 +84,27 @@ def rel_lum(channel):  # trace: S-14 AC-14.3 WCAG 相对亮度（sRGB→linear�
     return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
 
 
+def parse_hex(color):  # trace: S-14 AC-14.3 TC-14.3.2 单一权威 hex 解析：3/4 位展开、8 位截 alpha；非法抛 ValueError
+    """#abc / #aabbcc / #rgba / #rrggbbaa → (r, g, b)；非字符串或非法长度抛 ValueError。"""
+    if not isinstance(color, str):
+        raise ValueError(color)
+    h = color.strip().lstrip("#").lower()
+    if len(h) in (3, 4):
+        h = "".join(c * 2 for c in h[:3])
+    elif len(h) == 8:
+        h = h[:6]
+    if len(h) != 6 or any(c not in "0123456789abcdef" for c in h):
+        raise ValueError(color)
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def normalize_hex(color):  # trace: S-14 AC-14.3 TC-14.3.2 归一形 #rrggbb（check/audit 同口径比较的权威实现）
+    r, g, b = parse_hex(color)
+    return "#%02x%02x%02x" % (r, g, b)
+
+
 def hex_lum(color):  # trace: S-14 AC-14.3 hex → 相对亮度 L
-    h = color.lstrip("#")
-    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    r, g, b = parse_hex(color)
     return 0.2126 * rel_lum(r) + 0.7152 * rel_lum(g) + 0.0722 * rel_lum(b)
 
 
@@ -123,24 +141,65 @@ class SemanticChecker(HTMLParser):  # trace: S-14 AC-14.3 语义 HTML 启发式�
                                     if i not in self._label_for])
 
 
-def load_design_or_die(path):  # trace: S-14 AC-14.3 损坏 YAML 一行报错而非裸栈
+def coerce_design(doc):  # trace: S-14 AC-14.3 TC-14.3.3 形状归一：半写/畸形容器降级为空并记录问题
+    """把未知形状归一为可安全遍历的结构；返回 (归一后文档, 问题清单)。"""
+    problems = []
+
+    def take_map(v, path):
+        if isinstance(v, dict):
+            return v
+        if v is not None:
+            problems.append("%s 不是映射（%s），已按缺失处理" % (path, type(v).__name__))
+        return {}
+
+    def take_seq(v, path):
+        if isinstance(v, list):
+            return v
+        if v is not None:
+            problems.append("%s 不是列表（%s），已按空处理" % (path, type(v).__name__))
+        return []
+
+    doc = take_map(doc, "design.yaml 顶层")
+    tokens = take_map(doc.get("tokens"), "tokens")
+    for fam in ("color", "spacing", "typography"):
+        tokens = {**tokens, fam: take_map(tokens.get(fam), "tokens." + fam)}
+    typo = tokens["typography"]
+    tokens = {**tokens, "typography": {**typo,
+              "scale": take_seq(typo.get("scale"), "tokens.typography.scale")}}
+    pages = []
+    for i, page in enumerate(take_seq(doc.get("pages"), "pages")):
+        path = "pages[%d]" % i
+        page = take_map(page, path)
+        states = []
+        for j, st in enumerate(take_seq(page.get("states"), path + ".states")):
+            spath = "%s.states[%d]" % (path, j)
+            st = take_map(st, spath)
+            states.append({**st,
+                           "signals": take_seq(st.get("signals"), spath + ".signals")})
+        pages.append({**page, "states": states})
+    return {**doc, "tokens": tokens, "pages": pages}, problems
+
+
+def load_design_or_die(path):  # trace: S-14 AC-14.3 TC-14.3.3 损坏 YAML 一行报错；形状问题随返回值上报（列违规）
+    """读 design.yaml：语法损坏 → 一行报错退出；形状未知 → 归一 + 问题清单。"""
     try:
-        return load_yaml(path)
+        doc = load_yaml(path)
     except yaml.YAMLError as e:
         sys.stderr.write("design.yaml unparsable: %s" % e)
         sys.exit(1)
+    return coerce_design(doc)
 
 
-def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 三项自检：fail 列违规清单
-    design = load_design_or_die(args.design)
+def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 三项自检：fail 列违规清单（含形状问题）
+    design, shape_problems = load_design_or_die(args.design)
     base = os.path.dirname(os.path.abspath(args.design))
     tokens = (design.get("tokens") or {}).get("color") or {}
-    violations = []
+    violations = [{"kind": "malformed", "detail": p} for p in shape_problems]
     for fg, bg in CONTRAST_PAIRS:
         if fg in tokens and bg in tokens:
             try:
                 ratio = contrast(tokens[fg], tokens[bg])
-            except (ValueError, IndexError):
+            except ValueError:
                 violations.append({
                     "kind": "contrast",
                     "detail": "%s(%s)/%s(%s) 不是合法 hex 色值" % (
@@ -162,7 +221,7 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 三项自检：fail 列违
         proto = page.get("prototype")
         if not proto:
             continue
-        ppath = os.path.join(base, proto)
+        ppath = os.path.join(base, str(proto))
         if not os.path.isfile(ppath):
             violations.append({
                 "kind": "semantic-html",
@@ -196,10 +255,10 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 三项自检：fail 列违
         sys.exit(1)
 
 
-def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 design.yaml 结构契约校验；D-10 三段式字段
-    design = load_design_or_die(args.design)
+def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 TC-14.3.3 design.yaml 结构契约校验（含形状问题）；D-10 三段式字段
+    design, shape_problems = load_design_or_die(args.design)
     base = os.path.dirname(os.path.abspath(args.design))
-    errors = []
+    errors = list(shape_problems)
     if not str(design.get("direction") or "").strip():
         errors.append("direction（承诺式美学方向）为空")
     if not str(design.get("frontend_framework") or "").strip():
@@ -221,10 +280,10 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 design.yaml 结构契�
         if missing:
             errors.append("%s 缺交互状态 %s" % (page.get("id"), "/".join(missing)))
         proto = page.get("prototype")
-        if not proto or not os.path.isfile(os.path.join(base, proto)):
+        if not proto or not os.path.isfile(os.path.join(base, str(proto))):
             errors.append("%s 结构稿缺失：%s" % (page.get("id"), proto))
         impl = page.get("implementation")
-        if impl and not os.path.isfile(os.path.join(base, impl)):
+        if impl and not os.path.isfile(os.path.join(base, str(impl))):
             errors.append("%s 实现稿缺失：%s" % (page.get("id"), impl))
     result = {"valid": not errors, "errors": errors}
     print(json.dumps(result, ensure_ascii=False, indent=2) if args.json
@@ -233,10 +292,15 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 design.yaml 结构契�
         sys.exit(1)
 
 
-def collect_token_hexes(design):  # trace: S-15 AC-15.2 design token 色值全集（audit 白名单）
+def collect_token_hexes(design):  # trace: S-15 AC-15.2 TC-14.3.2 token 色值归一集（与 check 共用 parse_hex 口径）
     colors = (design.get("tokens") or {}).get("color") or {}
-    return {str(v).strip().lower() for v in colors.values()
-            if re.fullmatch(r"#[0-9a-fA-F]{3,8}", str(v).strip())}
+    hexes = set()
+    for v in colors.values():
+        try:
+            hexes.add(normalize_hex(v))
+        except ValueError:
+            continue
+    return hexes
 
 
 def collect_font_sizes(design):  # trace: S-15 AC-15.2 合法字号集合（typography.scale）
@@ -244,11 +308,11 @@ def collect_font_sizes(design):  # trace: S-15 AC-15.2 合法字号集合（typo
     return {str(s).strip() for s in (typo.get("scale") or [])}
 
 
-def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 one-off 色值/字号审计（token 单一源）
-    design = load_design_or_die(args.design)
+def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 TC-14.3.2 one-off 色值/字号审计（归一比较，token 单一源）
+    design, shape_problems = load_design_or_die(args.design)
     hex_ok = collect_token_hexes(design)
     fs_ok = collect_font_sizes(design)
-    violations = []
+    violations = [{"kind": "malformed", "detail": p} for p in shape_problems]
     hex_re = re.compile(r"#[0-9a-fA-F]{3,8}\b")
     fs_re = re.compile(r"font-size:\s*([^;{}]+)")
     if not os.path.exists(args.src):
@@ -266,7 +330,11 @@ def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 one-off 色值/字号审�
         text = io.open(fpath, encoding="utf-8").read()
         rel = os.path.basename(fpath)
         for m in hex_re.finditer(text):
-            if m.group(0).lower() not in hex_ok:
+            try:
+                norm = normalize_hex(m.group(0))
+            except ValueError:
+                norm = None
+            if norm not in hex_ok:
                 violations.append({
                     "kind": "one-off-color",
                     "detail": "%s: 色值 %s 不在 design token（单一源违规）" % (

@@ -2,9 +2,10 @@
 # exp-sync.py — 全局经验库同步器（一期：上行 + 表格投影）
 # 组织方式：按 bug 类型分桶（bugs/<subclass>.yaml，一个中类一个文件），
 # 三级分类 class(大类)→subclass(中类)→type(小类，自由扩展，登记于 taxonomy.yaml)。
-# 条目真源在项目 bug-log.yaml；经验库文件是投影（每次整文件重写）。
+# 条目真源在项目 bug-log.yaml；经验库文件是投影——push 按 origin_project 分片重写本项目条目，
+# 他项目条目原样保留（跨项目合并写入，不静默删他源数据）。
 # index.html 为表格投影：大类→中类分节，供人工按类筛选浏览。
-# 多机注意：单人使用按「后写者以本地为准」；同桶并发覆盖的三方合并留二期。
+# 多机注意：单人使用按「后写者以本地为准」（限本项目分片）；同桶同项目并发覆盖的三方合并留二期。
 # 用法（在项目根目录运行）：
 #   python diy-coder/exp-sync.py init [repo-url]   # 初始化骨架，可选绑定远端，写回配置
 #   python diy-coder/exp-sync.py push              # 上行 + 重生成 index.html + 推送
@@ -36,6 +37,33 @@ FIELDS = ("id", "date", "origin_project", "source", "class", "subclass", "type",
           "trigger", "fix", "prevention")
 
 
+# trace: S-17 AC-17.2 TC-17.2.1
+def resolve_repo(cfg):
+    repo = (cfg.get("paths") or {}).get("experience_repo") or DEFAULT_ROOT
+    return os.path.expandvars(os.path.expanduser(str(repo)))
+
+
+# trace: S-17 AC-17.1 AC-17.2 TC-17.1.1 TC-17.2.2
+def read_bugs_file(path):
+    """读取桶文件条目；语法损坏或顶层非映射时一行中文报错退出。"""
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    except yaml.YAMLError as e:
+        sys.exit(f"[exp-sync] 桶文件解析失败（{e.__class__.__name__}）：{path}——先修复或删除该桶再重试")
+    if not isinstance(data, dict):
+        sys.exit(f"[exp-sync] 桶文件顶层不是映射（{type(data).__name__}）：{path}——先修复或删除该桶再重试")
+    bugs = data.get("bugs")
+    if bugs is None:
+        return []
+    if not isinstance(bugs, list):
+        sys.exit(f"[exp-sync] 桶文件 bugs 不是列表（{type(bugs).__name__}）：{path}——先修复或删除该桶再重试")
+    return bugs
+
+
+# trace: S-17 AC-17.2 TC-17.2.1
 def sh(*args, cwd, check=True):
     r = subprocess.run(args, cwd=cwd, capture_output=True, text=True, encoding="utf-8")
     if check and r.returncode != 0:
@@ -43,14 +71,22 @@ def sh(*args, cwd, check=True):
     return r
 
 
+# trace: S-17 AC-17.2 TC-17.2.1
 def read_config(root):
     cfg_path = os.path.join(root, "diy-coder.yaml")
     if not os.path.exists(cfg_path):
         sys.exit("[exp-sync] 找不到 diy-coder.yaml，请在项目根目录运行")
-    with open(cfg_path, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}, cfg_path
+    try:
+        with open(cfg_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    except yaml.YAMLError as e:
+        sys.exit(f"[exp-sync] diy-coder.yaml 解析失败（{e.__class__.__name__}）：{cfg_path}")
+    if not isinstance(data, dict):
+        sys.exit(f"[exp-sync] diy-coder.yaml 顶层不是映射（{type(data).__name__}）：{cfg_path}")
+    return data, cfg_path
 
 
+# trace: S-17 AC-17.2 TC-17.2.1 init 后把仓库路径写回项目配置
 def write_back_repo_path(cfg_path, repo):
     with open(cfg_path, encoding="utf-8") as f:
         txt = f.read()
@@ -62,15 +98,23 @@ def write_back_repo_path(cfg_path, repo):
         f.write(txt)
 
 
+# trace: S-17 AC-17.1 TC-17.1.1
 def load_taxonomy(repo):
     path = os.path.join(repo, "taxonomy.yaml")
     if os.path.exists(path):
-        with open(path, encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}, path, []
+        try:
+            with open(path, encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+        except yaml.YAMLError as e:
+            sys.exit(f"[exp-sync] taxonomy.yaml 解析失败（{e.__class__.__name__}）：{path}——先修复再重试")
+        if not isinstance(data, dict):
+            sys.exit(f"[exp-sync] taxonomy.yaml 顶层不是映射（{type(data).__name__}）：{path}")
+        return data, path, []
     data = {"categories": BASE_TAXONOMY}
     return data, path, None
 
 
+# trace: S-17 AC-17.1 TC-17.1.1 三级分类注册表落盘
 def save_taxonomy(repo, path, taxo):
     with open(path, "w", encoding="utf-8") as f:
         f.write("# taxonomy.yaml — 三级分类注册表：class(大类)→subclass(中类)→types(小类)\n"
@@ -78,17 +122,21 @@ def save_taxonomy(repo, path, taxo):
         yaml.safe_dump(taxo, f, allow_unicode=True, sort_keys=False)
 
 
+# trace: S-17 AC-17.1 TC-17.1.1
 def render_html(repo):
     buckets = {}
     bugs_dir = os.path.join(repo, "bugs")
-    for fn in sorted(os.listdir(bugs_dir)):
-        if not fn.endswith(".yaml"):
-            continue
-        with open(os.path.join(bugs_dir, fn), encoding="utf-8") as f:
-            for e in (yaml.safe_load(f) or {}).get("bugs") or []:
-                buckets.setdefault(e.get("subclass", "other"), []).append(e)
-    with open(os.path.join(repo, "taxonomy.yaml"), encoding="utf-8") as f:
-        taxo = yaml.safe_load(f) or {}
+    if os.path.isdir(bugs_dir):
+        for fn in sorted(os.listdir(bugs_dir)):
+            if not fn.endswith(".yaml"):
+                continue
+            for e in read_bugs_file(os.path.join(bugs_dir, fn)):
+                if isinstance(e, dict):
+                    buckets.setdefault(e.get("subclass", "other"), []).append(e)
+    tpath = os.path.join(repo, "taxonomy.yaml")
+    with open(tpath, encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    taxo = data if isinstance(data, dict) else {}
     cats = taxo.get("categories") or {}
     parts = [
         "<!doctype html><html lang=zh-CN><meta charset=utf-8>",
@@ -129,9 +177,10 @@ def render_html(repo):
         f.write("".join(parts))
 
 
+# trace: S-17 AC-17.2 TC-17.2.1
 def do_init(root, cfg, cfg_path):
     url = sys.argv[2] if len(sys.argv) > 2 else None
-    repo = (cfg.get("paths") or {}).get("experience_repo") or DEFAULT_ROOT
+    repo = resolve_repo(cfg)
     os.makedirs(os.path.join(repo, "bugs"), exist_ok=True)
     readme = os.path.join(repo, "README.md")
     if not os.path.exists(readme):
@@ -159,16 +208,25 @@ def do_init(root, cfg, cfg_path):
     print(f"[exp-sync] 经验库已就绪: {repo}{state}")
 
 
+# trace: S-17 AC-17.1 AC-17.2 TC-17.1.1 TC-17.2.2
 def do_push(root, cfg, cfg_path):
-    repo = (cfg.get("paths") or {}).get("experience_repo") or DEFAULT_ROOT
+    repo = resolve_repo(cfg)
     if not os.path.isdir(os.path.join(repo, ".git")):
         sys.exit("[exp-sync] 经验库未初始化，先运行 exp-sync.py init")
-    out_dir = os.path.join(root, cfg.get("paths", {}).get("output_dir", "diy-output"))
+    bugs_dir = os.path.join(repo, "bugs")
+    if not os.path.isdir(bugs_dir):
+        sys.exit(f"[exp-sync] 经验库结构不完整（缺 {bugs_dir}），先运行 exp-sync.py init 修复")
+    out_dir = os.path.join(root, (cfg.get("paths") or {}).get("output_dir", "diy-output"))
     log_path = os.path.join(out_dir, "bug-log.yaml")
     if not os.path.exists(log_path):
         sys.exit(f"[exp-sync] 找不到 {log_path}")
-    with open(log_path, encoding="utf-8") as f:
-        log = yaml.safe_load(f) or {}
+    try:
+        with open(log_path, encoding="utf-8") as f:
+            log = yaml.safe_load(f) or {}
+    except yaml.YAMLError as e:
+        sys.exit(f"[exp-sync] bug-log.yaml 解析失败（{e.__class__.__name__}）：{log_path}——先修复再 push")
+    if not isinstance(log, dict):
+        sys.exit(f"[exp-sync] bug-log.yaml 顶层不是映射（{type(log).__name__}）：{log_path}")
     proj = (log.get("project") or {}).get("name") or (cfg.get("project") or {}).get("name") or "default"
     bugs = []
     for b in log.get("bugs") or []:
@@ -176,17 +234,20 @@ def do_push(root, cfg, cfg_path):
         e.setdefault("origin_project", proj)
         if "id" in e:
             bugs.append(e)
-    # 按中类分桶（整文件投影重写；真源在项目 bug-log）
+    # 按中类分桶；写桶时按 origin_project 分片：本项目条目整段重写（幂等、支持项目内删除），
+    # 他项目条目原样保留（跨项目合并写入，防止整文件重写冲掉他源数据）
     buckets = defaultdict(list)
     for e in bugs:
         buckets.setdefault(e.get("subclass") or "other", []).append(e)
     new_types = []
     for sub, entries in sorted(buckets.items()):
-        target = os.path.join(repo, "bugs", f"{sub}.yaml")
+        target = os.path.join(bugs_dir, f"{sub}.yaml")
+        kept = [e for e in read_bugs_file(target)
+                if not isinstance(e, dict) or e.get("origin_project") != proj]
         with open(target, "w", encoding="utf-8") as f:
             f.write(f"# bugs/{sub}.yaml — 中类「{sub}」缺陷模式桶（跨项目，按 type 小类细分）\n"
-                    f"# 投影文件：真源在各项目 bug-log.yaml，exp-sync.py push 整文件重写\n")
-            yaml.safe_dump({"bugs": entries}, f, allow_unicode=True, sort_keys=False)
+                    f"# 投影文件：真源在各项目 bug-log.yaml；push 按 origin_project 分片重写本项目条目\n")
+            yaml.safe_dump({"bugs": kept + entries}, f, allow_unicode=True, sort_keys=False)
         new_types += [e["type"] for e in entries if e.get("type")]
     # taxonomy 自动扩展：登记未收录的小类
     taxo, taxo_path, _ = load_taxonomy(repo)
@@ -221,8 +282,9 @@ def do_push(root, cfg, cfg_path):
         print("[exp-sync] 无变化，已是最新")
 
 
+# trace: S-17 AC-17.2 TC-17.2.2
 def do_status(root, cfg, cfg_path):
-    repo = (cfg.get("paths") or {}).get("experience_repo") or DEFAULT_ROOT
+    repo = resolve_repo(cfg)
     print(f"[exp-sync] 经验库路径: {repo}")
     if not os.path.isdir(os.path.join(repo, ".git")):
         print("[exp-sync] 状态: 未初始化（运行 exp-sync.py init）")
@@ -230,17 +292,20 @@ def do_status(root, cfg, cfg_path):
     remotes = sh("git", "remote", cwd=repo).stdout.split()
     print(f"[exp-sync] 状态: 已初始化，远端: {remotes[0] if remotes else '未绑定'}")
     bugs_dir = os.path.join(repo, "bugs")
+    if not os.path.isdir(bugs_dir):
+        print(f"[exp-sync] 桶目录缺失（{bugs_dir}），先运行 exp-sync.py init 修复")
+        return
     total = 0
     for fn in sorted(os.listdir(bugs_dir)):
         if not fn.endswith(".yaml"):
             continue
-        with open(os.path.join(bugs_dir, fn), encoding="utf-8") as f:
-            n = len((yaml.safe_load(f) or {}).get("bugs") or [])
+        n = len(read_bugs_file(os.path.join(bugs_dir, fn)))
         total += n
         print(f"  - {fn}: {n} 条")
     print(f"  共 {total} 条 · 表格投影: {os.path.join(repo, 'index.html')}")
 
 
+# trace: S-17 AC-17.1 AC-17.2 TC-17.1.1 TC-17.2.1 TC-17.2.2
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
