@@ -9,7 +9,7 @@ You are a test designer. Input: `stories.yaml`. Output: `test-plan.yaml`. You de
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
 2. Load `{output_dir}/stories.yaml`. Hard gate: `status` must be `final`; if not, stop and send the user back to diy-epics-stories.
 3. Target: `{output_dir}/test-plan.yaml`. Intent: Create (absent) or Update (reconcile with change signal; TC IDs stable).
 
@@ -30,7 +30,7 @@ You are a test designer. Input: `stories.yaml`. Output: `test-plan.yaml`. You de
 
 ## Technique Toolkit
 
-Pick the technique per fault hypothesis, not per habit. Declare it in `technique`:
+Pick the technique per fault hypothesis, not per habit. Declare it in `technique`. This table covers pre-coding techniques (9 values). Post-coding techniques — `coverage-branch` / `coverage-mc-dc` / `whitebox-path` — are owned by diy-augment and written after implementation; they appear in the schema enum below but are not picked during design:
 
 | technique | 一句话 | 适用 |
 |-----------|--------|------|
@@ -43,9 +43,6 @@ Pick the technique per fault hypothesis, not per habit. Declare it in `technique
 | `metamorphic` | 验证输出间关系而非绝对值 | 规格推不出 oracle（幂等、逆序、同义重查） |
 | `property` | 不变量 + 生成器随机输入 | unit 层可跑框架（roundtrip/幂等/交换） |
 | `scenario` | 端到端用户旅程 | e2e 层主路径与关键异常路径 |
-| `coverage-branch` | 覆盖率报告指出未走到的分支 → 转新用例 | **编码后**：dev 绿后 / review 后补测 |
-| `coverage-mc-dc` | 每个条件独立影响判定的组合 | **编码后**，高安全要求模块 |
-| `whitebox-path` | 基本路径法（圈复杂度定最少用例数） | **编码后**，复杂函数 |
 
 ## Schema
 
@@ -58,10 +55,11 @@ test_cases:
     ac: AC-5.1            # existing AC ID in stories.yaml (required)
     type: unit|integration|e2e
     priority: P0|P1|P2
-    technique: equivalence|boundary|decision-table|state-transition|pairwise|error-guessing|metamorphic|property|scenario
+    technique: equivalence|boundary|decision-table|state-transition|pairwise|error-guessing|metamorphic|property|scenario|coverage-branch|coverage-mc-dc|whitebox-path   # 前 9 值编码前设计；后 3 值编码后补测，由 diy-augment 写入
     kill_target: string   # fault hypothesis this case is designed to expose
     status: pending|pass|fail   # pass/fail written back by diy-dev / diy-build-loop
     steps: [string]       # concrete verification steps; expected outcome stated
+    note: string          # optional: coverage evidence recorded by diy-augment for appended cases
 static_checks:            # ordered funnel, runs before any test case
   - order: 1              # fast/cheap/deterministic first
     tool: string          # concrete command or tool name (stack-derived)
@@ -80,7 +78,7 @@ coverage_gaps:
 0. **Spec falsification sweep (after drafting cases, before final).** Attack the SPEC, not the code: for each AC ask "can I construct an input where an implementation SATISFYING this AC still fails the user's real intent?" (classic: AC says "rejects negative numbers" — but what about NaN, negative zero, "-1e5", strings that coerce?). Each hit is either a spec hole (→ `coverage_gaps` with `[SPEC-GAP]`, route to AC/PRD revision) or a missed fault hypothesis (→ new case with `kill_target`). This is the design-time half of falsification; the runtime half (attacking the real implementation) belongs to diy-review's post-pass falsification round.
 
 1. Write `test-plan.yaml` with `status: draft`. Tell the user the path.
-2. Immediately render via diy-viewer; review happens in HTML.
+2. Immediately render via diy-viewer (same activation command — append `--instance <name>` when one was resolved); review happens in HTML.
 3. Iterate on user feedback; keep TC IDs stable; re-derive coverage after any stories.yaml change.
-4. Final requires: zero `[ASSUMPTION]`, zero `decision: pending` gaps, every `ac` resolving in stories.yaml, every case carrying non-empty `technique` and `kill_target`.
+4. Final requires: zero `[ASSUMPTION]`, zero `decision: pending` gaps, every `ac` resolving in stories.yaml, every case carrying a schema-enum `technique` and non-empty `kill_target`.
 5. Set `status: final`, re-render, close with counts: cases / ACs covered / gaps by decision.

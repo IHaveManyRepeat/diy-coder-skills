@@ -5,10 +5,11 @@ The YAML files are the single source of truth. This script only projects them
 into disposable HTML under <output_dir>/<view_dir>/.
 
 Usage:
-    uv run --with pyyaml viewer.py --project-root . [yaml paths ...]
+    python viewer.py --project-root . [yaml paths ...]
 """
 
 import argparse
+import datetime
 import html
 import json
 import re
@@ -19,10 +20,16 @@ from pathlib import Path
 import yaml
 
 BADGE_KEYS = {"status", "priority", "state"}
-ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "technique", "gate", "class", "subclass", "source"}
+ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "technique", "gate", "class", "subclass", "source", "augment"}
+# 自由文本字段 (doc, key)：schema 无枚举约束——同名 key 在别的产物可以是枚举。
+# 依据：diy-architecture SKILL.md:43 decision=what was chosen；diy-review SKILL.md:31 type=short tag；
+# diy-design SKILL.md:65 route=/path
+FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design", "route")}
 BADGE_CLASSES = {
     "final": "ok", "done": "ok", "pass": "ok", "passing": "ok", "must": "must",
+    "accepted": "ok",
     "draft": "dim", "could": "dim", "pending": "dim", "skipped": "dim",
+    "proposed": "dim", "skip": "dim",
     "in-progress": "warn", "in_review": "warn", "should": "warn", "wip": "warn",
     "blocked": "bad", "fail": "bad", "failed": "bad", "red": "bad",
     "blocking": "bad", "advisory": "warn",
@@ -56,6 +63,7 @@ KEY_LABELS = {
     "method": "方法", "path": "路径", "operationId": "操作 ID",
     "summary": "摘要", "x-fr": "关联需求",
     "tasks": "任务", "blocked_reason": "阻塞原因", "test_refs": "关联用例",
+    "augment": "编码后验证",
     "evidence": "执行证据", "tc": "用例", "red": "红", "green": "绿",
     "review": "审查记录", "verdict": "结论", "findings": "发现清单",
     "layer": "层", "route": "路由",
@@ -65,35 +73,51 @@ KEY_LABELS = {
     "kills": "消灭问题", "gate": "门禁",
     "bugs": "缺陷记录", "class": "大类", "subclass": "中类",
     "symptom": "症状", "root_cause": "根因", "pattern": "模式",
-    "source": "来源", "date": "日期",
-    "type": "小类", "trigger": "触发方法", "fix": "修复方案",
+    "source": "来源", "date": "日期", "trigger": "触发方法", "fix": "修复方案",
     "prevention": "根治机制", "taxonomy": "分类注册表",
     "plain": "通俗解释", "detail": "过程详情",
+    # design 族（diy-design schema）：B2 补齐，防英文直出
+    "direction": "方向", "frontend_framework": "前端框架", "tokens": "设计令牌",
+    "color": "颜色", "spacing": "间距", "typography": "字号", "scale": "缩放",
+    "pages": "页面", "states": "状态", "signals": "信号",
+    "prototype": "结构稿", "implementation": "实现路径", "design_ref": "关联页面",
+    "unit": "基准单位", "family_base": "正文字体", "family_heading": "标题字体",
+    "bg": "背景", "surface": "表面", "text": "文字", "text_muted": "次要文字",
+    "accent": "强调色", "accent_text": "强调色文字",
 }
 VALUE_LABELS = {
     "draft": "草稿", "final": "已定稿", "pending": "待办",
     "in-progress": "进行中", "review": "待审查", "done": "已完成",
     "blocked": "已阻塞", "pass": "通过", "fail": "失败", "skipped": "已跳过",
+    "skip": "已跳过",
     "must": "必须", "should": "应该", "could": "可选",
     "unit": "单元", "integration": "集成", "e2e": "端到端",
     "waived": "已豁免", "accept-gap": "接受缺口",
-    "correctness": "正确性", "boundary": "边界", "coverage": "覆盖审计",
+    "correctness": "正确性", "boundary": "边界", "coverage": "覆盖审计", "design": "设计采用",
     "intent_gap": "意图缺口", "bad_spec": "规格缺陷", "patch": "小修", "defer": "后置",
     "equivalence": "等价类", "decision-table": "决策表", "state-transition": "状态迁移",
     "pairwise": "成对组合", "error-guessing": "错误猜测", "metamorphic": "蜕变测试",
     "property": "属性测试", "scenario": "场景",
+    "coverage-branch": "覆盖分支", "coverage-mc-dc": "MC-DC 覆盖", "whitebox-path": "白盒路径",
     "blocking": "阻断", "advisory": "记录不阻断",
     "functional": "功能型", "non-functional": "非功能型",
     "logic": "逻辑", "data": "数据", "state": "状态",
     "performance": "性能", "UX": "用户体验", "security": "安全",
     "compatibility": "兼容性", "reliability": "可靠性",
     "dev": "开发", "audit": "审查发现", "falsification": "证伪轮", "user": "用户",
+    "proposed": "待定", "accepted": "已采纳",
+    "icon": "图标", "text": "文字", "motion": "动效",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
     "stories": "故事列表", "test-plan": "测试计划", "openapi": "接口契约",
     "sprint": "冲刺任务",
-    "bug-log": "缺陷模式库",
+    "bug-log": "缺陷模式库", "design": "设计稿",
+}
+# 文档级标签覆盖（B1）：同一 key 在不同文档语义不同——bug-log 的 type 是缺陷三级分类，
+# 其余文档（test-plan/openapi 等）回落全局 type=类型
+DOC_KEY_LABELS = {
+    "bug-log": {"type": "小类"},
 }
 # 术语表（展示层，FR-4.1 可读性）：标签/徽章/标题命中即挂悬浮解释，YAML 单一源不动。
 # key = 渲染后的展示文本（已 esc，纯中文无 HTML 字符，查找安全）。
@@ -112,7 +136,7 @@ GLOSSARY = {
     "冲刺任务": "按顺序执行的任务清单，串行驱动：同一时间至多一个任务在跑",
     # 状态与流程
     "已定稿": "内容已确认锁定，后续修改需走变更流程（改产物+过 ID 链校验）",
-    "待审查": "编码完成，等待三层审查后决定完成或打回",
+    "待审查": "编码完成，等待分层审查（正确性/边界/覆盖/设计采用）后决定完成或打回",
     "已阻塞": "任务被卡住（缺规格/歧义/超修复上限），需要人来处理",
     "红": "TDD 第一步：先写测试并确认它失败，证明测试真的在测东西",
     "绿": "实现完成后测试转通过；必须先有红再有绿才算数",
@@ -121,11 +145,12 @@ GLOSSARY = {
     "修复轮数": "被审查打回后重修的次数，上限 2 次，超了转阻塞",
     "阻塞原因": "任务被卡住的具体原因，人工处理后重跑",
     # 审查
-    "审查记录": "三层审查（正确性/边界/覆盖审计）的结论与发现清单",
+    "审查记录": "分层审查（正确性/边界/覆盖审计/设计采用）的结论与发现清单",
     "发现清单": "审查发现的问题列表，每条带路由：小修/后置/规格缺陷/意图缺口",
     "正确性": "第一层审查：实现是否按验收标准做对了",
     "边界": "专抓边界情况：空值、最大最小、刚好越界",
     "覆盖审计": "第三层审查：检查测试是否真的覆盖了验收标准，而非走形式",
+    "设计采用": "第四层审查（仅界面任务）：实现必须构建在设计稿框架代码上，不得重写",
     "小修": "问题路由：执行者当场修掉",
     "后置": "问题路由：记录下来以后再修，不阻塞本任务",
     "规格缺陷": "规格本身写错或写不清；执行者无权改规格，转人工",
@@ -181,9 +206,16 @@ GLOSSARY = {
     "孤儿": "必须级需求没有被任何故事或测试用例引用，可能被遗漏了",
     "关联需求": "向上引用的需求编号（ID 链），点击可看详情",
     "关联用例": "该任务必须通过的测试用例编号；为空则任务无法启动（TDD 门）",
+    "编码后验证": "任务完成编码后由 diy-augment 跑的覆盖率驱动补测：通过=已完整交付；失败=有缺陷待裁断处理；已跳过=环境缺工具未跑",
     "关联功能组": "该史诗对应的功能组编号",
     "待确认假设": "[ASSUMPTION] 标记的推测内容，需人工逐条确认后才能定稿",
 }
+# 徽章值词汇表（B3）：值命中 VALUE_LABELS/已知分类/术语表（如 P0/P1/P2）才出徽章，
+# 自由文本/URL 回落 cell() 纯文本
+BADGE_VALUES = ({k.lower() for k in VALUE_LABELS}
+                | {k.lower() for k in BADGE_CLASSES}
+                | {k.lower() for k in GLOSSARY})
+_VALUE_LABELS_CI = {k.lower(): v for k, v in VALUE_LABELS.items()}
 # ID 链：带 id 字段的条目卡片生成锚点；文本中命中的 ID 链接到其所在文档并带悬停预览。
 # 引用型字段（REF_KEYS）在正文只显示编号链接；点击后右侧浮动详情面板展示完整内容
 # （页面尾部以 <template> 预渲染全部 ID 详情，面板内链接可链式查看）。
@@ -203,8 +235,35 @@ DANGLING_BY_DOC: dict = {}
 ORPHAN_IDS: set = set()
 
 
+# 当前渲染文档名（B1 文档级标签覆盖的查表上下文）；模板按节点归属文档逐条切换
+_RENDER_DOC = ""
+_UNMAPPED_SEEN: set = set()
+
+
+def _diag_unmapped(value) -> None:
+    # trace: B1/B3 未映射枚举诊断（只打 stderr，不改输出）：契约漂移一行可见
+    s = str(value)
+    if not s or s in _UNMAPPED_SEEN:
+        return
+    _UNMAPPED_SEEN.add(s)
+    print(f"[diy-viewer] unmapped enum: {s}", file=sys.stderr)
+
+
+def is_enum_key(k: str) -> bool:
+    # trace: B1/B3 枚举判定带文档上下文：自由文本字段不做徽章尝试、不报漂移诊断
+    return k in ENUM_KEYS and (_RENDER_DOC, k) not in FREE_TEXT_FIELDS
+
+
 def key_label(k: str) -> str:
-    return KEY_LABELS.get(k, k)
+    # trace: B1 文档级覆盖优先（bug-log type→小类），再回落全局表（type→类型）
+    label = DOC_KEY_LABELS.get(_RENDER_DOC, {}).get(k)
+    if label is None:
+        label = KEY_LABELS.get(k)
+    if label is None:
+        if is_enum_key(k):
+            _diag_unmapped(k)
+        return k
+    return label
 
 
 def gloss(text: str) -> str:
@@ -306,7 +365,7 @@ def render_compact_kv(d: dict) -> str:
     """紧凑 kv 表（字段竖排）：详情面板内的条目渲染。"""
     rows = "".join(
         f'<tr><th>{gloss(esc(key_label(k)))}</th>'
-        f'<td>{badge(k, v) if k in ENUM_KEYS else cell(v)}</td></tr>'
+        f'<td>{badge(k, v) if is_enum_key(k) else cell(v)}</td></tr>'
         for k, v in d.items()
     )
     return f'<table class="kv compact"><tbody>{rows}</tbody></table>'
@@ -358,10 +417,16 @@ def render_ref_list(items: list) -> str:
 
 def build_templates() -> str:
     """全量 ID 详情模板：点击编号链接时填充右侧面板。"""
-    return "".join(
-        f'<template data-detail="{esc(i)}">{render_detail(h["node"])}</template>'
-        for i, h in ID_INDEX.items()
-    )
+    # trace: B1 详情模板按节点归属文档切换标签上下文（跨文档打开面板时 type 仍按源文档语义）
+    global _RENDER_DOC
+    parts = []
+    for i, h in ID_INDEX.items():
+        prev, _RENDER_DOC = _RENDER_DOC, h.get("doc", "")
+        try:
+            parts.append(f'<template data-detail="{esc(i)}">{render_detail(h["node"])}</template>')
+        finally:
+            _RENDER_DOC = prev
+    return "".join(parts)
 
 
 def build_id_index(docs: list) -> None:
@@ -390,24 +455,46 @@ def load_config(project_root: Path) -> dict:
             cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
         except yaml.YAMLError as e:
             print(f"[diy-viewer] warning: cannot parse {cfg_path}: {e}", file=sys.stderr)
-    paths = cfg.get("paths", {}) or {}
+        else:
+            # trace: 对抗审查修复——配置为手写文件，顶层/paths/viewer 段或值为非预期形状时
+            # 一行警告 + 降级默认，不裸栈（同类守卫：runner.py / exp-sync.py / diy-help）
+            if not isinstance(cfg, dict):
+                print(f"[diy-viewer] warning: {cfg_path} 顶层不是映射，按默认配置处理",
+                      file=sys.stderr)
+                cfg = {}
+    paths, viewer = cfg.get("paths"), cfg.get("viewer")
+    if paths is not None and not isinstance(paths, dict):
+        print(f"[diy-viewer] warning: {cfg_path} 的 paths 不是映射，按默认处理", file=sys.stderr)
+        paths = None
+    if viewer is not None and not isinstance(viewer, dict):
+        print(f"[diy-viewer] warning: {cfg_path} 的 viewer 不是映射，按默认处理", file=sys.stderr)
+        viewer = None
+    output_dir = (paths or {}).get("output_dir", "diy-output")
+    view_dir = (paths or {}).get("view_dir", ".view")
+    if not isinstance(output_dir, str) or not isinstance(view_dir, str):
+        print(f"[diy-viewer] warning: {cfg_path} 的 output_dir/view_dir 不是字符串，按默认处理",
+              file=sys.stderr)
+        if not isinstance(output_dir, str):
+            output_dir = "diy-output"
+        if not isinstance(view_dir, str):
+            view_dir = ".view"
     return {
-        "output_dir": paths.get("output_dir", "diy-output"),
-        "view_dir": paths.get("view_dir", ".view"),
-        "auto_open": bool((cfg.get("viewer", {}) or {}).get("auto_open", True)),
-        "language": (cfg.get("project", {}) or {}).get("communication_language", "zh-CN"),
-    }
+        "output_dir": output_dir,
+        "view_dir": view_dir,
+        "auto_open": bool((viewer or {}).get("auto_open", True)),
+    }  # 展示语言固定中文；回复语言属 agent 侧 SKILL.md 契约，脚本不读此键
 
 
 def resolve_instance(out_dir: Path, instance):
     # trace: S-16 AC-16.1 AC-16.2 TC-16.1.1 TC-16.2.1 D-9
     # 目录即实例：带实例名 → <output_dir>/<实例名>/；无 → 主线平铺零迁移。
-    # 白名单首字符字母数字，天然拒绝点目录、分隔符与盘符注入
+    # 白名单首字符字母数字，天然拒绝点目录、分隔符与盘符注入；
+    # 末字符禁点（对抗审查修复：Windows 目录名尾点被静默折叠，b. ≡ b 破坏实例隔离）
     if instance is None:
         return out_dir
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", instance):
+    if not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?", instance):
         raise SystemExit(
-            f"[diy-viewer] 非法实例名: {instance!r}（仅 [A-Za-z0-9][A-Za-z0-9._-]）")
+            f"[diy-viewer] 非法实例名: {instance!r}（字母数字开头和结尾，中间可含 . _ -）")
     return out_dir / instance
 
 
@@ -432,9 +519,16 @@ def cell(v) -> str:
 
 
 def badge(key: str, v) -> str:
-    cls = BADGE_CLASSES.get(str(v).strip().lower(), "neutral")
-    text = VALUE_LABELS.get(str(v), str(v))
-    return f'<span class="badge b-{cls}">{gloss(esc(text))}</span>'
+    # trace: B3 值感知——值不在词汇表（决策自由文本/route URL 等）→ 回落 cell() 纯文本；
+    # None 与非标量同样回落 cell()（「—」/降级），不再输出字面 None
+    if v is not None and not isinstance(v, (dict, list)):
+        s = str(v).strip()
+        if s.lower() in BADGE_VALUES:
+            cls = BADGE_CLASSES.get(s.lower(), "neutral")
+            text = _VALUE_LABELS_CI.get(s.lower(), s)
+            return f'<span class="badge b-{cls}">{gloss(esc(text))}</span>'
+        _diag_unmapped(s)
+    return cell(v)
 
 
 def render_table(items: list, with_row_ids: bool = True) -> str:
@@ -449,7 +543,7 @@ def render_table(items: list, with_row_ids: bool = True) -> str:
         tds = []
         for h in headers:
             v = item.get(h)
-            tds.append(f"<td>{badge(h, v) if h in ENUM_KEYS else cell(v)}</td>")
+            tds.append(f"<td>{badge(h, v) if is_enum_key(h) else cell(v)}</td>")
         rid = item.get("id") if with_row_ids else None
         anchor = f' id="{esc(rid)}"' if isinstance(rid, str) and rid else ""
         # trace: S-12 AC-12.2 TC-12.2.1 孤儿 must FR：行标红 + 徽章提示
@@ -466,7 +560,7 @@ def render_dict_fields(d: dict) -> str:
     def field(k, v):
         if k in REF_KEYS and is_id_string(v):
             return ref_cell(str(v))
-        return badge(k, v) if k in ENUM_KEYS else cell(v)
+        return badge(k, v) if is_enum_key(k) else cell(v)
 
     rows = "".join(
         f'<tr><th>{gloss(esc(key_label(k)))}</th><td>{field(k, v)}</td></tr>'
@@ -535,10 +629,15 @@ def _render_value_raw(key: str, v, depth: int) -> str:
                 anchor = f' id="{esc(cid)}"' if isinstance(cid, str) and cid else ""
                 cards.append(f'<div class="card"{anchor}>{render_value("", x, depth + 1)}</div>')
             return title + "".join(cards)
-        return title + "<ul>" + "".join(f"<li>{cell(x)}</li>" for x in v) + "</ul>"
+        # trace: 对抗审查修复——列表标量命中值词表（signals: icon/motion 等）时中文化，未命中原样
+        lis = []
+        for x in v:
+            label = _VALUE_LABELS_CI.get(str(x).strip().lower()) if isinstance(x, str) else None
+            lis.append(f"<li>{cell(label or x)}</li>")
+        return title + "<ul>" + "".join(lis) + "</ul>"
     if key in REF_KEYS and is_id_string(v):
         return title + ref_cell(v)
-    return title + (badge(key, v) if key in ENUM_KEYS else f"<p>{cell(v)}</p>")
+    return title + (badge(key, v) if is_enum_key(key) else f"<p>{cell(v)}</p>")
 
 
 CSS = """
@@ -617,6 +716,8 @@ font-size:.88em;user-select:none}
 details.detail summary:hover{color:var(--accent)}
 details.detail[open] summary{border-bottom:1px dashed var(--line)}
 details.detail .d-body{padding:6px 14px 10px;font-size:.95em;color:var(--mut)}
+.foot{color:var(--mut);font-size:.85em;border-top:1px solid var(--line);
+margin-top:40px;padding-top:12px}
 """
 
 
@@ -672,7 +773,11 @@ document.addEventListener('scroll',hide,true);
 """
 
 
-def page(title: str, body: str, nav: str = "") -> str:
+def page(title: str, body: str, nav: str = "", source: str = "") -> str:
+    # trace: B4 新鲜度 meta：页脚落生成时间与来源目录（含实例名），.view 落后于 YAML 一眼可见
+    stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    src = f" · 来源 {esc(source)}" if source else ""
+    foot = f'<footer class="foot">生成于 {stamp}{src}</footer>'
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -685,6 +790,7 @@ def page(title: str, body: str, nav: str = "") -> str:
 <header class="top"><div class="wrap"><h1>{esc(title)}</h1><nav>{nav}</nav></div></header>
 <main>
 {body}
+{foot}
 </main>
 <aside id="refpane" aria-label="引用详情">
 <div class="rp-head"><h3 id="rp-title"></h3>
@@ -756,7 +862,61 @@ def render_openapi_section(data: dict) -> str:
     return out
 
 
-def render_doc_page(name: str, data, others: list) -> str:
+def render_augment_panel(data, others: list) -> str:
+    # trace: 2026-09-13 裁定——补测待裁断聚合面板：sprint 页集中列出 augment:fail 任务
+    # 与其失败用例（跨 test-plan/stories 反查），裁断三途径同屏可见；无 fail 任务零输出
+    fails = [t for t in (data.get("tasks") or [])
+             if isinstance(t, dict) and t.get("augment") == "fail"]
+    if not fails:
+        return ""
+    tp = next((d for n, d in others if n == "test-plan"), None)
+    tc_by_id = {}
+    if isinstance(tp, dict):
+        for tc in tp.get("test_cases") or []:
+            if isinstance(tc, dict) and isinstance(tc.get("id"), str):
+                tc_by_id[tc["id"].strip()] = tc
+    story_title = {}
+    st = next((d for n, d in others if n == "stories"), None)
+    if isinstance(st, dict):
+        for s in st.get("stories") or []:
+            if isinstance(s, dict) and isinstance(s.get("id"), str):
+                story_title[s["id"].strip()] = str(s.get("title", "")).strip()
+    rows = []
+    for t in fails:
+        sid = str(t.get("story", "")).strip()
+        head = render_ref_item(sid) if sid else '<span class="dim">—</span>'
+        title = story_title.get(sid)
+        if title:
+            head += f'<span class="refsum">{esc(title)}</span>'
+        refs = t.get("test_refs") if isinstance(t.get("test_refs"), list) else []
+        hits = []
+        for r in refs:
+            tc = tc_by_id.get(str(r).strip())
+            if not isinstance(tc, dict) or tc.get("status") != "fail":
+                continue
+            item = render_ref_item(str(r))
+            kt = str(tc.get("kill_target", "")).strip()
+            if kt:
+                item += f'<span class="refsum">{esc(kt)}</span>'
+            n = tc.get("note")
+            if isinstance(n, str) and n.strip():
+                item += f'<div class="dim">{cell(n)}</div>'
+            hits.append(item)
+        hits_html = "<br>".join(hits) if hits else '<span class="dim">（test_refs 中无 fail 用例记录）</span>'
+        rows.append(f"<tr><td>{head}</td><td>{hits_html}</td></tr>")
+    return (
+        '<h2 id="augment-panel">补测待裁断</h2>'
+        f'<div class="alert alert-bad">⚠ {len(fails)} 个任务编码后验证未通过 —— '
+        '裁断三途径：代码缺陷 → <code>python runner.py --reopen-failed</code> 批量重开修复；'
+        '用例设计问题 → 直接更新 test-plan.yaml；规格问题 → 回 stories.yaml / prd.yaml 层处理</div>'
+        f'<table class="data"><thead><tr><th>{gloss("任务")}</th>'
+        f'<th>失败用例与目标缺陷</th></tr></thead><tbody>{"".join(rows)}</tbody></table>'
+    )
+
+
+def render_doc_page(name: str, data, others: list, source: str = "") -> str:
+    global _RENDER_DOC
+    _RENDER_DOC = name  # trace: B1 文档级标签覆盖上下文
     meta = get_meta(data)
     meta_line = []
     if isinstance(meta, dict):
@@ -774,6 +934,8 @@ def render_doc_page(name: str, data, others: list) -> str:
         ids = "、".join(f"<code>{esc(i)}</code>" for i in dang)
         alert += f'<div class="alert alert-bad">⚠ {gloss("悬空引用")}：{ids}（未定义的 ID）</div>'
     body = f'<p class="doc-meta">{" · ".join(meta_line)}</p>' + alert
+    if name == "sprint":
+        body += render_augment_panel(data, others)  # trace: 2026-09-13 裁定 补测待裁断面板
     if name == "openapi":
         body += render_openapi_section(data)
     for k, v in (data or {}).items():
@@ -786,10 +948,10 @@ def render_doc_page(name: str, data, others: list) -> str:
     links = ['<a href="index.html">⌂ 首页</a>'] + [
         f'<a href="{esc(n)}.html">{gloss(esc(DOC_LABELS.get(n, n)))}</a>' for n, _ in others if n != name
     ]
-    return page(DOC_LABELS.get(name, name), body, " · ".join(links))
+    return page(DOC_LABELS.get(name, name), body, " · ".join(links), source)
 
 
-def build_index(docs: list, errors=None) -> str:
+def build_index(docs: list, errors=None, source: str = "") -> str:
     cards = []
     for name, data in docs:
         meta = get_meta(data)
@@ -797,6 +959,12 @@ def build_index(docs: list, errors=None) -> str:
         status_html = badge("status", st) if st else ""
         n_open = count_assumptions(data)
         open_html = f'<span class="badge b-warn">待确认 {n_open}</span>' if n_open else ""
+        # trace: 2026-09-13 裁定——索引卡片露出补测待裁断数（不点进 sprint 页也可见）
+        if name == "sprint":
+            n_fail = len([t for t in (data.get("tasks") or [])
+                          if isinstance(t, dict) and t.get("augment") == "fail"])
+            if n_fail:
+                open_html += f'<span class="badge b-bad">补测待裁断 {n_fail}</span>'
         cards.append(
             f'<a class="doc-card" href="{esc(name)}.html">'
             f'<div class="name">{gloss(esc(DOC_LABELS.get(name, name)))}'
@@ -812,7 +980,7 @@ def build_index(docs: list, errors=None) -> str:
         body += (f'<div class="alert alert-bad">⚠ {len(errors)} 个文件未能渲染'
                  f'（形状异常、语法损坏或渲染失败）</div>'
                  + "<ul>" + "".join(f"<li>{esc(e)}</li>" for e in errors) + "</ul>")
-    return page("diy-coder 文档索引", body)
+    return page("diy-coder 文档索引", body, source=source)
 
 
 def load_docs(paths) -> tuple:
@@ -834,7 +1002,59 @@ def load_docs(paths) -> tuple:
     return docs, errors
 
 
+def nested_instance_dirs(out_dir: Path) -> list:
+    # trace: B5① 主线目录无 YAML 而其下存在含 YAML 的子目录 → 疑似实例目录（忘传 --instance）
+    try:
+        return sorted(
+            d.name for d in out_dir.iterdir()
+            if d.is_dir() and next(d.glob("*.yaml"), None) is not None
+        )
+    except OSError:
+        return []
+
+
+def select_explicit_docs(all_docs: list, files, out_dir: Path, errors: list) -> tuple:
+    # trace: B5② 显式路径优先：路径存在 → 直接按该路径渲染该文件；不存在 → 回落 basename
+    # 在解析根内查找；路径存在但在解析根之外 → stderr 警告后仍渲染给定文件
+    # （不得静默替换为同名文件）。显式文档覆盖同名条目，其后仍参与 ID 索引与导航。
+    req: set = set()
+    explicit = []
+    for f in files:
+        p = Path(f)
+        if p.is_file():
+            try:
+                inside = p.resolve().is_relative_to(out_dir.resolve())
+            except OSError:
+                inside = False
+            if not inside:
+                print(f"[diy-viewer] warning: {p} 不在解析根 {out_dir} 内，按给定路径渲染",
+                      file=sys.stderr)
+            explicit.append(p)
+        else:
+            req.add(p.name)
+    ex_docs, ex_errors = load_docs(explicit)
+    errors.extend(ex_errors)
+    for name, data in ex_docs:
+        idx = next((i for i, (n, _) in enumerate(all_docs) if n == name), None)
+        if idx is None:
+            all_docs.append((name, data))
+        else:
+            all_docs[idx] = (name, data)
+    # trace: 对抗审查修复——load_docs 以 p.stem 为名，过滤须按 stem 匹配，
+    # 否则显式给出的非 .yaml 扩展文件（如 prd.yml）被静默丢弃（违背 B5② 契约）
+    wanted = {Path(n).stem for n in req} | {p.stem for p in explicit}
+    docs = [(n, d) for n, d in all_docs if n in wanted]
+    known = {n for n, _ in all_docs}
+    for m in sorted(m for m in req if Path(m).stem not in known):
+        errors.append(f"{m}: not found under {out_dir}")
+    return docs, all_docs
+
+
 def main() -> int:
+    # trace: S-11 AC-11.1（stderr 含中文与 em dash：Windows 管道默认 cp936 会写出 GBK，消费方按 UTF-8 解码即崩）
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
     # trace: S-16 AC-16.1 AC-16.2 TC-16.1.1 TC-16.2.1 D-9（--instance 接线：实例目录解析与主线平铺兼容）
     ap = argparse.ArgumentParser(description="diy-coder YAML → HTML viewer")
     ap.add_argument("--project-root", default=".", help="project root directory")
@@ -857,14 +1077,24 @@ def main() -> int:
         print(f"[diy-viewer] output path is not a directory: {out_dir}", file=sys.stderr)
         return 1
 
+    # trace: B5① 主线空而其下存在实例目录 → 把「忘传 --instance」变成一行可见诊断
+    if not any(out_dir.glob("*.yaml")):
+        inst_dirs = nested_instance_dirs(out_dir)
+        if inst_dirs:
+            print(f"[diy-viewer] found instance dirs: {', '.join(inst_dirs)} — "
+                  "pass --instance <name>", file=sys.stderr)
+
     # ID 链接索引与跨文档导航必须基于全量文档构建，即使本次只渲染子集。
     all_docs, errors = load_docs(sorted(out_dir.glob("*.yaml")))
     docs = all_docs
     if args.files:
-        req = {Path(f).name for f in args.files}
-        docs = [(n, d) for n, d in all_docs if f"{n}.yaml" in req]
-        for m in sorted(req - {f"{n}.yaml" for n, _ in all_docs}):
-            errors.append(f"{m}: not found under {out_dir}")
+        docs, all_docs = select_explicit_docs(all_docs, args.files, out_dir, errors)
+
+    # trace: B4 来源展示：output_dir 相对项目根路径（含实例名）
+    try:
+        source_disp = out_dir.relative_to(root).as_posix()
+    except ValueError:
+        source_disp = str(out_dir)
 
     view_dir = out_dir / cfg["view_dir"]
     view_dir.mkdir(parents=True, exist_ok=True)
@@ -892,15 +1122,16 @@ def main() -> int:
         f = view_dir / f"{name}.html"
         # trace: S-11 AC-11.1 TC-11.1.1 逐文件隔离：单文件渲染失败降级为错误页，不中断整批
         try:
-            body = render_doc_page(name, data, others)
+            body = render_doc_page(name, data, others, source_disp)
         except Exception as e:  # noqa: BLE001 兜底隔离，失败详情写入错误页与索引
             errors.append(f"{name}.yaml: 渲染失败（{e.__class__.__name__}: {e}）")
             body = page(DOC_LABELS.get(name, name),
-                        f'<div class="alert alert-bad">⚠ 渲染失败：{esc(e)}</div>')
+                        f'<div class="alert alert-bad">⚠ 渲染失败：{esc(e)}</div>',
+                        source=source_disp)
         f.write_text(body, encoding="utf-8")
         written.append(f)
     index = view_dir / "index.html"
-    index.write_text(build_index(all_docs, errors), encoding="utf-8")
+    index.write_text(build_index(all_docs, errors, source_disp), encoding="utf-8")
     for e in errors:
         print(f"[diy-viewer] skipped — {e}", file=sys.stderr)
 

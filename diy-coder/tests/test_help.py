@@ -15,10 +15,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HELP_PY = os.path.join(HERE, "..", "skills", "diy-help", "scripts", "help.py")
 
 
-def run_help(root):
+def run_help(root, *extra):
     p = subprocess.run(
-        [sys.executable, HELP_PY, "--project-root", root, "--json"],
-        capture_output=True, text=True, encoding="utf-8",
+        [sys.executable, HELP_PY, "--project-root", root, "--json", *extra],
+        capture_output=True, text=True, encoding="utf-8", timeout=60,
     )
     return p
 
@@ -33,6 +33,13 @@ def planning_chain_final(out):
     for name in ("prd.yaml", "architecture.yaml",
                  "epics.yaml", "stories.yaml", "test-plan.yaml"):
         write_artifact(out, name, "final")
+
+
+def write_openapi(out, status, meta_key="x-project"):
+    # 契约来源：diy-openapi/SKILL.md:19 —— 项目元数据在 x-project 扩展（非 project 根键）
+    with open(os.path.join(out, "openapi.yaml"), "w", encoding="utf-8") as f:
+        f.write("openapi: 3.1.0" + chr(10) + "%s:" % meta_key + chr(10)
+                + "  status: %s" % status + chr(10))
 
 
 def write_sprint(out, tasks):
@@ -185,6 +192,173 @@ class HelpStateMachineTests(unittest.TestCase):
         data = json.loads(p.stdout)
         self.assertEqual(data["blocked"]["status"], "blocked")
         self.assertIn("S-1", data["blocked"]["action"])
+
+
+    # trace: F-A1-1（openapi 定稿写在 x-project.status，链必须继续而非假阻塞）
+    def test_openapi_x_project_final_advances_chain(self):
+        planning_chain_final(self.out)
+        write_openapi(self.out, "final")
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["next_skill"], "diy-sprint")
+        self.assertIsNone(data["blocked"])
+        self.assertIn("diy-openapi", data["completed_steps"])
+
+    # trace: F-A1-1（声明路径读不到时回落 project.status，兼容两种 meta 位置）
+    def test_openapi_project_status_fallback_still_reads(self):
+        planning_chain_final(self.out)
+        write_openapi(self.out, "final", meta_key="project")
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["next_skill"], "diy-sprint")
+        self.assertIsNone(data["blocked"])
+
+    # trace: F-A1-2（x-project.status: draft → 阻塞在 openapi，动作指向 diy-openapi）
+    def test_openapi_x_project_draft_blocks_with_action(self):
+        write_artifact(self.out, "prd.yaml", "final")
+        write_artifact(self.out, "architecture.yaml", "final")
+        write_openapi(self.out, "draft")
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertIsNone(data["next_skill"])
+        self.assertEqual(data["blocked"]["file"], "openapi.yaml")
+        self.assertEqual(data["blocked"]["status"], "draft")
+        self.assertIn("diy-openapi", data["blocked"]["action"])
+
+    # trace: F-A2-1（design.yaml 缺失=optional 跳过，notes 给 diy-design 提示）
+    def test_design_missing_is_optional_with_note(self):
+        planning_chain_final(self.out)
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["next_skill"], "diy-sprint")
+        self.assertTrue(any("diy-design" in n for n in data["notes"]),
+                        "design.yaml 缺失时未给出 diy-design 提示：%s" % data["notes"])
+
+    # trace: F-A2-2（design.yaml 存在但 draft → 半成品不可静默跳过）
+    def test_design_draft_blocks_at_design(self):
+        write_artifact(self.out, "prd.yaml", "final")
+        write_artifact(self.out, "architecture.yaml", "final")
+        write_artifact(self.out, "design.yaml", "draft")
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertIsNone(data["next_skill"])
+        self.assertEqual(data["blocked"]["file"], "design.yaml")
+        self.assertEqual(data["blocked"]["status"], "draft")
+        self.assertIn("diy-design", data["blocked"]["action"])
+
+    # trace: F-A2-3（design.yaml final → 计入 completed 并推进）
+    def test_design_final_advances_to_epics(self):
+        write_artifact(self.out, "prd.yaml", "final")
+        write_artifact(self.out, "architecture.yaml", "final")
+        write_artifact(self.out, "design.yaml", "final")
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["next_skill"], "diy-epics-stories")
+        self.assertIn("diy-design", data["completed_steps"])
+
+    # trace: F-A2-4（位置分母自动含 design 节点：7 步）
+    def test_step_denominator_covers_seven_nodes(self):
+        write_artifact(self.out, "prd.yaml", "final")
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["position"], "第 2/7 步：diy-architecture")
+
+    # trace: F-A3a（多文件节点只落一半 → 不得计入 completed，推荐本节点 skill）
+    def test_partial_multi_file_node_not_completed(self):
+        write_artifact(self.out, "prd.yaml", "final")
+        write_artifact(self.out, "architecture.yaml", "final")
+        write_artifact(self.out, "epics.yaml", "final")  # stories.yaml 缺失=半写
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["next_skill"], "diy-epics-stories")
+        self.assertNotIn("diy-epics-stories", data["completed_steps"])
+        self.assertIsNone(data["blocked"])
+
+    # trace: F-A3b（paths 为真值标量 → 降级默认值，不崩）
+    def test_scalar_paths_config_degrades_to_default(self):
+        with open(os.path.join(self.root, "diy-coder.yaml"), "w", encoding="utf-8") as f:
+            f.write("paths: diy-output" + chr(10))
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["next_skill"], "diy-prd")
+
+    # trace: 对抗审查修复——paths.output_dir 值非字符串（如 123）降级默认，不崩
+    def test_non_string_output_dir_degrades_to_default(self):
+        with open(os.path.join(self.root, "diy-coder.yaml"), "w", encoding="utf-8") as f:
+            f.write("paths:" + chr(10) + "  output_dir: 123" + chr(10))
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["next_skill"], "diy-prd")
+
+    # trace: 对抗审查修复——中段键值为标量（project: 3）判 unparsable，不静默回落 unknown
+    def test_scalar_meta_section_marks_unparsable(self):
+        with open(os.path.join(self.out, "prd.yaml"), "w", encoding="utf-8") as f:
+            f.write("project: 3" + chr(10))
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["blocked"]["status"], "unparsable")
+
+    # trace: 对抗审查修复——实例名白名单统一（fullmatch 去 $ 漏洞）："a\n"/尾点等必须拒
+    def test_invalid_instance_name_rejected(self):
+        for bad in ("a" + chr(10), "a.", ".hidden", "a/b"):
+            with self.subTest(instance=bad):
+                p = run_help(self.root, "--instance", bad)
+                self.assertNotEqual(p.returncode, 0, f"{bad!r} 未被拒绝")
+                self.assertNotIn("Traceback", p.stderr)
+                self.assertIn("非法实例名", p.stderr)
+
+    def test_legal_instance_name_accepted(self):
+        p = run_help(self.root, "--instance", "case-a")
+        self.assertEqual(p.returncode, 0, p.stderr)
+
+    # trace: F-A3c（YAML 损坏 → 阻塞动作是「修复后重跑」，不是「继续定稿」）
+    def test_corrupt_prd_yaml_blocks_with_repair_action(self):
+        with open(os.path.join(self.out, "prd.yaml"), "w", encoding="utf-8") as f:
+            f.write("project: [unclosed" + chr(10))
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["blocked"]["file"], "prd.yaml")
+        self.assertEqual(data["blocked"]["status"], "unparsable")
+        self.assertIn("修复", data["blocked"]["action"])
+
+    # trace: F-A3c（status 为 null → 归一 unknown，不给「当前状态 None」）
+    def test_null_status_normalized_to_unknown(self):
+        with open(os.path.join(self.out, "prd.yaml"), "w", encoding="utf-8") as f:
+            f.write("project:" + chr(10) + "  status:" + chr(10))
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["blocked"]["status"], "unknown")
+        self.assertIn("修复", data["blocked"]["action"])
+
+    # trace: F-A3d（tasks: [] 与 tasks: null 同判阻断）
+    def test_sprint_empty_tasks_blocks(self):
+        planning_chain_final(self.out)
+        with open(os.path.join(self.out, "sprint.yaml"), "w", encoding="utf-8") as f:
+            f.write("project:" + chr(10) + "  status: final" + chr(10)
+                    + "tasks: []" + chr(10))
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertIsNone(data["next_skill"])
+        self.assertEqual(data["blocked"]["file"], "sprint.yaml")
+        self.assertIn("空", data["blocked"]["action"])
 
 
 if __name__ == "__main__":

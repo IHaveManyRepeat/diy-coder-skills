@@ -5,6 +5,7 @@
 - diy-dev：绿线后回填 test-plan.yaml 对应 TC 的 status: pass 并 bump project.updated
 - diy-build-loop：review→done 回填 stories.yaml 故事 status: done 与 test-plan.yaml
   执行过的绿 TC status: pass；blocked 终态不回写真源
+- diy-review：独立路径的 review→done 同样回填（2026-09-13 质量分析 F-enhancement-2）
 条款缺失 = 无人值守路径只写 sprint 投影，真源留 pending（BUG-012 复发）。
 """
 import io
@@ -14,6 +15,7 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_DEV = os.path.join(HERE, "..", "skills", "diy-dev", "SKILL.md")
 SKILL_LOOP = os.path.join(HERE, "..", "skills", "diy-build-loop", "SKILL.md")
+SKILL_REVIEW = os.path.join(HERE, "..", "skills", "diy-review", "SKILL.md")
 
 
 class WritebackTermsTests(unittest.TestCase):
@@ -41,6 +43,22 @@ class WritebackTermsTests(unittest.TestCase):
         self.assertIn("test-plan.yaml", loop)
         self.assertIn("status: pass", loop, "缺绿 TC 回填")
         self.assertIn("never writes `stories.yaml`", loop, "缺 blocked 不回写真源的边界")
+
+    # trace: F-enhancement-2（独立 review 路径 review→done 不回写真源）
+    def test_review_contract_backfills_terminal_sources(self):
+        with io.open(SKILL_REVIEW, encoding="utf-8") as f:
+            review = f.read()
+        self.assertIn("真源回填", review, "diy-review 缺真源回填条款")
+        self.assertIn("stories.yaml", review)
+        self.assertIn("status: done", review, "缺故事终态回填")
+        self.assertIn("test-plan.yaml", review)
+        self.assertIn("status: pass", review, "缺绿 TC 回填")
+
+    # trace: F-enhancement-2（对抗审查 R6 同款：重复插入 assertIn 查不出）
+    def test_review_clause_not_duplicated(self):
+        with io.open(SKILL_REVIEW, encoding="utf-8") as f:
+            review = f.read()
+        self.assertEqual(review.count("真源回填"), 1, "diy-review 真源回填条款重复插入")
 
 
 if __name__ == "__main__":

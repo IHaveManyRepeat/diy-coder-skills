@@ -9,7 +9,7 @@ You are a sprint planner. Inputs: `stories.yaml` + `test-plan.yaml`. Output: `sp
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
 2. Hard gates, in order: `{output_dir}/stories.yaml` `status: final`; `{output_dir}/test-plan.yaml` `status: final`. On failure stop and route the user back to the owning skill (diy-epics-stories / diy-test-design).
 3. Target: `{output_dir}/sprint.yaml`. Intent: **Create** (absent) or **Update** (exists — reconcile, see below).
 
@@ -35,6 +35,8 @@ any → blocked (障碍：用例缺失/依赖故障)  →  pending (障碍解除
 
 Ownership: diy-dev moves pending→in-progress→review; diy-review moves review→done (or back); diy-build-loop drives the cycle via runner. This skill only ever writes the initial state and reconciliations.
 
+`augment` is an orthogonal verdict field, owned by diy-augment after `done`: `done` + `augment: pass` = verified completion; `augment: fail` = defects await a user verdict; absent = not yet augmented. It never changes the five-state machine. One sanctioned transition crosses it: a user adjudicating collected failures may reopen `done` → `in-progress` (clearing the verdict), executed by `runner.py --reopen-failed` — the fix is then driven by the normal loop and re-augmentation overwrites the verdict.
+
 ## Schema
 
 `sprint.yaml`:
@@ -44,6 +46,7 @@ tasks:
   - story: S-1            # existing story ID in stories.yaml (required, unique)
     status: pending|in-progress|review|done|blocked
     test_refs: [TC-1.1.1] # test case IDs covering this story's ACs (from test-plan.yaml)
+    augment: pass|fail|skip # coded-post verdict by diy-augment (optional; absent = not yet augmented)
     blocked_reason: string # required iff status: blocked
     note: string           # done-backfill citations, assumptions, ordering notes
 ```
@@ -52,7 +55,7 @@ tasks:
 
 1. Cross-check ID chain: every `story` resolves in stories.yaml; every `test_refs` entry resolves in test-plan.yaml. Report broken references — do not emit them.
 2. Write `sprint.yaml` with `status: draft`. Tell the user the path.
-3. Immediately render via diy-viewer; review happens in HTML.
+3. Immediately render via diy-viewer (same activation command — append `--instance <name>` when one was resolved); review happens in HTML.
 4. Iterate on user feedback; task order follows story order unless the user reorders.
-5. Final requires: zero `[ASSUMPTION]`; task `story` set == story ID set; every `blocked` task has `blocked_reason`; every `pending` task has non-empty `test_refs`.
+5. Final requires: zero `[ASSUMPTION]`; task `story` set == story ID set; every `blocked` task has `blocked_reason`; every `pending` task has non-empty `test_refs` resolving in test-plan.yaml.
 6. Set `status: final`, re-render, close with counts: tasks by status / blocked reasons / TDD gate outcome.

@@ -9,14 +9,14 @@ You are an iteration driver. Input: `sprint.yaml` + ONE target task. You orchest
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
 2. Hard gate: `{output_dir}/sprint.yaml` `project.status: final`. On failure stop and route back to diy-sprint.
 3. Resolve target: explicit story ID from the invocation args, else the first non-terminal task (`pending` → full run; `in-progress` → resume at dev stage; `review` → resume at review stage). A `done`/`blocked` target is refused with its state named — terminal means no work left.
 4. TDD gate (inherited from diy-dev): a `pending`/`in-progress` target whose `test_refs` are empty OR unresolvable in test-plan.yaml is set `blocked` with `blocked_reason` naming the missing/broken TC IDs (AC-9.2: ambiguity becomes blocked, not guessing). Zero implementation is produced. Refusal is a stop, not a workaround.
 
 ## Design Discipline
 
-- **Orchestrate, don't duplicate.** Dev-stage behavior (red before green, minimal implementation, trace comments, evidence lines, static_checks before green) follows the diy-dev skill exactly; review-stage behavior (three layers, four routes, verdict rules) follows the diy-review skill exactly. This skill adds the loop, the bounds, and the HALT — nothing else.
+- **Orchestrate, don't duplicate.** Dev-stage behavior (red before green, minimal implementation, trace comments, evidence lines, static_checks before green) follows the diy-dev skill exactly; review-stage behavior (layers L1-L4, four routes, verdict rules) follows the diy-review skill exactly. This skill adds the loop, the bounds, and the HALT — nothing else.
 - **Terminal or nothing.** The run ends only with the target `done` or `blocked` (AC-9.1). No exiting in an intermediate state, no deferring the state write.
 - **HALT protocol (FR-3.6).** Every state transition (`pending→in-progress`, `in-progress→review`, `review→done`, `review→in-progress`, `any→blocked`) is written to sprint.yaml the moment it happens, with `project.updated` bumped. Interruption at any point leaves a truthful state on disk; the next invocation resumes from it (idempotent: existing evidence entries are kept, only missing TCs are run).
 - **Rework rounds are bounded.** Each `review: fail → dev rework → review` cycle counts one round. Maximum **2** rework rounds per run (aligns with R-4's retry cap). Exhausted with findings unresolved → `blocked`, `blocked_reason` citing the unresolved findings and the round count. Never loop to entertain yourself.
@@ -36,7 +36,7 @@ if resume-at == dev:
     dev stage: for each test_refs TC — red line, minimal impl, static_checks, green line (evidence written per diy-dev)
     in-progress → review (HALT write)
 loop:
-    review stage: three layers + routing per diy-review; write review block (HALT write)
+    review stage: layers L1-L4 + routing per diy-review; write review block (HALT write)
     pass  → review → done (HALT write; backfill stories.yaml status: done + green TCs status: pass in test-plan.yaml); stop
     fail:
         if any finding routed bad_spec → blocked (reason quotes it); stop
@@ -66,5 +66,5 @@ Task entry in `sprint.yaml` gains (evidence/review blocks as defined by diy-dev/
 
 1. Resolve gates and target; restate in one line: target task, its state, resume point.
 2. Execute the Single-Run Protocol; write every transition to sprint.yaml as it happens, and backfill the sources of truth (`stories.yaml`/`test-plan.yaml`) on the `done` terminal per the 真源回填 rule.
-3. Render via diy-viewer at the terminal state; report the path.
+3. Render via diy-viewer (same activation command — append `--instance <name>` when one was resolved) at the terminal state; report the path. Rendering is best-effort: if the command is not permitted in the harness or fails, record a one-line note and continue — a failed render never blocks, reverses, or invalidates the terminal write.
 4. Close with counts: TCs red/green this run, rework rounds used, findings by route, final status + reason (if blocked, name the exact unblock step: fix spec → diy-test-design, or clarify intent → re-run with args).

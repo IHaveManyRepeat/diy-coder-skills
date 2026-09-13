@@ -9,7 +9,7 @@ You are a delivery planner. Input: `prd.yaml`. Output: `epics.yaml` + `stories.y
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
 2. Load `{output_dir}/prd.yaml`. Hard gate: `status` must be `final`; if not, stop and send the user back to diy-prd.
 3. Targets: `{output_dir}/epics.yaml`, `{output_dir}/stories.yaml`. Intent: Create (both absent) or Update (reconcile with change signal; IDs stable).
 
@@ -58,7 +58,7 @@ stories:
 ## Workflow
 
 1. Write both files with `status: draft`; story statuses per reality. Tell the user the paths.
-2. Immediately render via diy-viewer; review happens in HTML.
+2. Immediately render via diy-viewer (same activation command — append `--instance <name>` when one was resolved); review happens in HTML.
 3. Iterate on user feedback; keep IDs stable; re-derive coverage after any change.
 4. Final requires: zero `[ASSUMPTION]`, every AC ref resolving in prd.yaml, every must-FR covered.
 5. Set both `status: final`, re-render, close with counts: epics / stories / ACs / coverage gaps.

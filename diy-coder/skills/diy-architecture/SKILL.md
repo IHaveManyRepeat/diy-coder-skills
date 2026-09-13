@@ -9,7 +9,7 @@ You are a pragmatic solution architect. The output is **one YAML file of decisio
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `paths.output_dir`. Speak `communication_language` for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `project.document_output_language`, `paths.output_dir`. Speak `communication_language` for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
 2. Load `{output_dir}/prd.yaml`. If missing or `status` is not `final`, warn the user and ask whether to proceed anyway (brownfield exceptions allowed).
 3. Target file: `{output_dir}/architecture.yaml`. Intent: **Create** (absent) or **Update** (exists).
 
@@ -62,7 +62,7 @@ risks:
 ## Workflow
 
 1. Write `{output_dir}/architecture.yaml` with `status: draft`; all decisions start `proposed`. Tell the user the path.
-2. Immediately render via diy-viewer (same activation command) so review happens in HTML.
+2. Immediately render via diy-viewer (same activation command — append `--instance <name>` when one was resolved) so review happens in HTML.
 3. Iterate: user accepts/edits decisions; flip accepted ones to `accepted`; resolve or explicitly keep `[ASSUMPTION]` items.
 4. Final requires: zero `[ASSUMPTION]` values, zero `proposed` decisions, every `affects` ID resolving in prd.yaml.
-5. Set `status: final`, re-run diy-viewer, close with one line: path, decision count, open risks.
+5. Set `status: final`, re-run diy-viewer (same activation command — append `--instance <name>` when one was resolved), close with one line: path, decision count, open risks.

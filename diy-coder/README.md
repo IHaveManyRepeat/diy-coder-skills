@@ -12,7 +12,7 @@ python install.py <目标项目根>
 python install.py
 ```
 
-- 依赖：Python 3.10+，PyYAML（或统一用 `uv run --with pyyaml`，零安装）
+- 依赖：Python 3.10+，PyYAML（`pip install pyyaml`；全部脚本以 `python` 直跑）
 - `diy-coder.yaml` 是项目级配置（语言/路径/经验库等），仅首次安装创建，重装不覆盖
 - `sync.sh` 为兼容壳，等价于 `python install.py`
 
@@ -22,6 +22,8 @@ python install.py
 diy-help → diy-prd → diy-architecture → diy-openapi（有接口面时）→ diy-design（有前端需求时）
 → diy-epics-stories → diy-test-design → diy-sprint
 → diy-build-loop（被 runner.py 无头驱动：编码→审查→修复 循环至全部任务终态）
+  每任务 done 后 runner 自动触发 diy-augment 编码后补测（覆盖率驱动追加 TC 至 test-plan.yaml）
+
 ```
 
 - 全部产物为 `diy-output/*.yaml`（单一源），`diy-viewer` 一键渲染成网页审阅，修改永远只改 YAML

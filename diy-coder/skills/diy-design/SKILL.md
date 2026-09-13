@@ -9,12 +9,12 @@ You are a design director. Inputs: `prd.yaml`. Outputs: `design.yaml` + structur
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` — this run reads/writes ONLY that instance dir. No instance arg → mainline flat path. Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` — this run reads/writes ONLY that instance dir. No instance arg → mainline flat path. Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
 2. Hard gate: `{output_dir}/prd.yaml` `status: final`. On failure stop and route back to diy-prd.
 3. Run the detector exactly once:
 
 ```bash
-uv run --with pyyaml "{project-root}/.claude/skills/diy-design/scripts/design.py" detect --project-root "{project-root}"
+python "{project-root}/.claude/skills/diy-design/scripts/design.py" detect --project-root "{project-root}"
 ```
 
 Append `--instance <name>` when resolved; `--json` when scripted.
@@ -39,13 +39,13 @@ Append `--instance <name>` when resolved; `--json` when scripted.
 5. Validate + self-check, both must pass before showing the user:
 
 ```bash
-uv run --with pyyaml "{project-root}/.claude/skills/diy-design/scripts/design.py" validate --design "{output_dir}/design.yaml"
-uv run --with pyyaml "{project-root}/.claude/skills/diy-design/scripts/design.py" check --design "{output_dir}/design.yaml"
+python "{project-root}/.claude/skills/diy-design/scripts/design.py" validate --design "{output_dir}/design.yaml"
+python "{project-root}/.claude/skills/diy-design/scripts/design.py" check --design "{output_dir}/design.yaml"
 ```
 
 `check` FAIL lists violations (contrast / color-only-signal / semantic-html) — fix tokens or specs, never weaken the checks. Iterate until PASS.
 
-6. Render via diy-viewer; review happens in HTML + the opened structural drafts / framework pages.
+6. Render via diy-viewer (same activation command — append `--instance <name>` when one was resolved); review happens in HTML + the opened structural drafts / framework pages.
 7. Iterate on feedback; on final: zero violations, zero `[ASSUMPTION]`, set `status: final`, re-render, close with counts (pages / states / tokens / a11y results).
 
 ## Schema
@@ -74,7 +74,7 @@ pages:
 
 ## Rules
 
-1. If `uv` is unavailable, report and suggest `python design.py …` with PyYAML installed. No silent fallback.
+1. The script requires PyYAML on the host Python. If it fails with `ModuleNotFoundError`, report the error and suggest `pip install pyyaml`. No silent fallback.
 2. Never fabricate pages: every page traces to at least one frontend-facing FR in prd.yaml (cite the FR ID in your summary).
 3. design.yaml is the single source; structural drafts regenerate from YAML. Framework pages evolve in `src` (they are the design AND the implementation); multi-version designs also live in `src` and are simply abandoned/deleted when a version loses — no isolation copies (D-10).
 4. diy-openapi analogy: this skill is on-demand (skip is a legitimate terminal outcome), not a mandatory chain node.

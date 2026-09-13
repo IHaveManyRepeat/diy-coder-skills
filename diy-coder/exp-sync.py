@@ -8,7 +8,7 @@
 # 多机注意：单人使用按「后写者以本地为准」（限本项目分片）；同桶同项目并发覆盖的三方合并留二期。
 # 用法（在项目根目录运行）：
 #   python diy-coder/exp-sync.py init [repo-url]   # 初始化骨架，可选绑定远端，写回配置
-#   python diy-coder/exp-sync.py push              # 上行 + 重生成 index.html + 推送
+#   python diy-coder/exp-sync.py push [--instance <name>]   # 上行 + 重生成 index.html + 推送（实例目录）
 #   python diy-coder/exp-sync.py status            # 查看位置/远端/各桶条数
 import html
 import os
@@ -39,7 +39,11 @@ FIELDS = ("id", "date", "origin_project", "source", "class", "subclass", "type",
 
 # trace: S-17 AC-17.2 TC-17.2.1
 def resolve_repo(cfg):
-    repo = (cfg.get("paths") or {}).get("experience_repo") or DEFAULT_ROOT
+    # trace: 对抗审查修复——paths 段形状守卫（标量/列表时一行报错，不裸栈；与 viewer/runner/diy-help 同源）
+    paths = cfg.get("paths")
+    if paths is not None and not isinstance(paths, dict):
+        sys.exit("[exp-sync] diy-coder.yaml 的 paths 不是映射，无法读取 experience_repo")
+    repo = (paths or {}).get("experience_repo") or DEFAULT_ROOT
     return os.path.expandvars(os.path.expanduser(str(repo)))
 
 
@@ -209,14 +213,20 @@ def do_init(root, cfg, cfg_path):
 
 
 # trace: S-17 AC-17.1 AC-17.2 TC-17.1.1 TC-17.2.2
-def do_push(root, cfg, cfg_path):
+def do_push(root, cfg, cfg_path, instance=None):
     repo = resolve_repo(cfg)
     if not os.path.isdir(os.path.join(repo, ".git")):
         sys.exit("[exp-sync] 经验库未初始化，先运行 exp-sync.py init")
     bugs_dir = os.path.join(repo, "bugs")
     if not os.path.isdir(bugs_dir):
         sys.exit(f"[exp-sync] 经验库结构不完整（缺 {bugs_dir}），先运行 exp-sync.py init 修复")
-    out_dir = os.path.join(root, (cfg.get("paths") or {}).get("output_dir", "diy-output"))
+    # trace: 对抗审查修复——output_dir 值形状异常时一行报错（paths 段形状已由 resolve_repo 公共入口拒掉）
+    output_dir_name = (cfg.get("paths") or {}).get("output_dir", "diy-output")
+    if not isinstance(output_dir_name, str):
+        sys.exit("[exp-sync] diy-coder.yaml 的 output_dir 不是字符串，无法定位 output_dir")
+    out_dir = os.path.join(root, output_dir_name)
+    if instance:
+        out_dir = os.path.join(out_dir, instance)
     log_path = os.path.join(out_dir, "bug-log.yaml")
     if not os.path.exists(log_path):
         sys.exit(f"[exp-sync] 找不到 {log_path}")
@@ -305,17 +315,39 @@ def do_status(root, cfg, cfg_path):
     print(f"  共 {total} 条 · 表格投影: {os.path.join(repo, 'index.html')}")
 
 
+# 实例名白名单（与 viewer/runner/diy-help 同源）：字母数字开头和结尾，中间可含 . _ -。
+# 末字符禁点：Windows 目录名尾点被静默折叠（b. ≡ b）；fullmatch 避免 $ 放行尾换行
+INSTANCE_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?")
+
+
+# trace: 2026-09-13 质量分析 F-customization-1（实例模式推送提示失效）
+def read_instance(args):
+    """提取 `--instance <name>`（FR-4.5/D-9 惯例）；未给出返回 None，非法即拒。"""
+    name = None
+    if "--instance" in args:
+        i = args.index("--instance")
+        if i + 1 >= len(args):
+            sys.exit("[exp-sync] --instance 缺名称")
+        name = args[i + 1]
+    if name is not None and not INSTANCE_RE.fullmatch(name):
+        sys.exit(f"[exp-sync] 实例名非法（字母数字开头和结尾，中间可含 . _ -）: {name}")
+    return name
+
+
 # trace: S-17 AC-17.1 AC-17.2 TC-17.1.1 TC-17.2.1 TC-17.2.2
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
+    instance = read_instance(sys.argv[2:])
+    if instance and cmd != "push":
+        sys.exit(f"[exp-sync] --instance 仅 push 支持（当前子命令: {cmd}）")
     root = os.getcwd()
     cfg, cfg_path = read_config(root)
     if cmd == "init":
         do_init(root, cfg, cfg_path)
     elif cmd == "push":
-        do_push(root, cfg, cfg_path)
+        do_push(root, cfg, cfg_path, instance)
     elif cmd == "status":
         do_status(root, cfg, cfg_path)
     else:

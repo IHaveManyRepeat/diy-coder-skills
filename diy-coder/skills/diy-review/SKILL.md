@@ -1,6 +1,6 @@
 ---
 name: diy-review
-description: Review a sprint task in review state with three layers - correctness, boundary, and acceptance-coverage audit. Every finding routes to exactly one of intent_gap / bad_spec / patch / defer. Verdict pass moves the task to done, fail sends it back to in-progress. Real defects found are also logged into bug-log.yaml (two-level classification) to feed future fault hypotheses. Optional falsification round after pass: attack the finished work with bug-log patterns and non-functional dimensions. Use when the user wants to review/audit a finished implementation or when diy-dev hands off.
+description: Review a sprint task in review state with layered audits - L1 correctness, L2 boundary, L3 acceptance-coverage, plus L4 design adoption for UI tasks whose ACs carry design_ref. Every finding routes to exactly one of intent_gap / bad_spec / patch / defer. Verdict pass moves the task to done after backfilling stories.yaml and test-plan.yaml; a fail with bad_spec blocks the task for upstream spec repair, any other fail sends it back to in-progress. Real defects found are also logged into bug-log.yaml (three-level classification) to feed future fault hypotheses. Optional falsification round after pass (--falsify <story|all>, accepted on done targets): attack the finished work with bug-log patterns and non-functional dimensions. Use when the user wants to review/audit a finished implementation or when diy-dev hands off.
 ---
 
 # diy-review — 分层审查与路由（YAML 单一源）
@@ -9,16 +9,16 @@ You are a reviewer. Inputs: `sprint.yaml` + a task in `review` state + its imple
 
 ## On Activation
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `paths.output_dir`. Speak it for the entire run. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must match `[A-Za-z0-9][A-Za-z0-9._-]*`, else refuse.
-2. Hard gate: `{output_dir}/sprint.yaml` `project.status: final`. Target task must be `status: review`; any other state is refused with its state named (pending → diy-dev first; in-progress → dev loop not finished; done/blocked → nothing to review).
+1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9): if the activation args carry an instance name (`--instance <name>` or 「实例 <name>」), resolve `output_dir` as `<output_dir>/<name>/` (the directory IS the instance; absent → generate from zero) — this run reads/writes ONLY that instance dir; mainline and other instances get zero changes. No instance arg → mainline flat path (zero migration, zero behavior change). Instance name must start with an alphanumeric character and must not end with a dot (`.` `_` `-` allowed inside), else refuse.
+2. Hard gate: `{output_dir}/sprint.yaml` `project.status: final`. Target task must be `status: review`; any other state is refused with its state named (pending → diy-dev first; in-progress → dev loop not finished). Exception: `--falsify <story|all>` also accepts `done` targets — that run executes ONLY step 6 (falsification), never the layer audits. `blocked` is always refused.
 3. Material: the task's implementation files + its `evidence` entries + the story's ACs + the referenced TC steps.
 
-## Three Layers
+## Layers
 
 - **L1 correctness (正确性).** Does the implementation do exactly what the ACs say — no missing then-clause, no extra unasked behavior? Compare AC by AC. Trace discipline gives you the grip: every method in the diff must carry a `# trace:` comment (see diy-dev) whose IDs resolve in stories/test-plan — a missing or unresolvable trace is a finding (route `patch`). For each traced method, check its behavior against the traced AC: code claiming `AC-9.1` but not delivering its then-clause is an L1 correctness finding naming the trace line.
 - **L2 boundary (边界).** Walk failure modes the ACs imply but do not spell out: bad input, empty/None, concurrency, error paths, silent fallbacks. Report only unhandled cases that could bite.
-- **L3 coverage audit (验收覆盖审计).** You do NOT re-accept manually. You check records against claims: every `test_refs` TC has an `evidence` entry; every red line precedes its green; evidence results agree with test-plan TC `status`; TC steps actually assert the AC's then-clause. Also check kill-target discipline: every TC bound to the task carries non-empty `technique` and `kill_target` — a missing declaration means the case may be decorative (cannot distinguish correct code from the fault it should kill); flag it naming the TC ID. Any mismatch — missing record, contradictory result, vacuous step, missing kill_target — is a finding naming the TC ID, the claim, and the actual record (AC-8.2).
-- **L4 design adoption (设计采用审查, FR-3.7/D-10 — UI tasks only).** When the task's ACs carry `design_ref`, verify ADOPTION — the design deliverable (framework pages written by diy-design) is the baseline the implementation must build on. Screenshot comparison is deprecated (pixel diff proved unreliable; the `compare` engine was deleted 2026-09-12). Check four things, each violation a `patch` finding, task back to `in-progress` (HALT): (a) 结构对照 — implementation page structure must match the 线框（wireframe/HTML）structural draft (`prototype` in design.yaml): sections, hierarchy, landmark order; (b) 零重写 — implementation builds ON the design code (`implementation` paths in design.yaml), not a re-implementation of it; a rewritten UI is a finding even if it looks similar; (c) token 单一源 — `design.py audit --design {output_dir}/design.yaml --src <impl>` — every `one-off-*` violation is a finding; (d) accessibility — `design.py check --design {output_dir}/design.yaml` violations are findings. Never skip the layer silently — a skip needs the user's explicit call.
+- **L3 coverage audit (验收覆盖审计).** You do NOT re-accept manually. You check records against claims: every `test_refs` TC has an `evidence` entry; every red line precedes its green; evidence results agree with test-plan TC `status`; TC steps actually assert the AC's then-clause. Also check kill-target discipline: every TC bound to the task carries non-empty `kill_target` and a `technique` valid against the test-plan schema enum (diy-test-design) — a missing or out-of-enum declaration means the case may be decorative (cannot distinguish correct code from the fault it should kill); flag it naming the TC ID. Any mismatch — missing record, contradictory result, vacuous step, missing kill_target — is a finding naming the TC ID, the claim, and the actual record (AC-8.2).
+- **L4 design adoption (设计采用审查, FR-3.7/D-10 — UI tasks only).** When the task's ACs carry `design_ref`, verify ADOPTION — the design deliverable (framework pages written by diy-design) is the baseline the implementation must build on. Screenshot comparison is deprecated (pixel diff proved unreliable; the `compare` engine was deleted 2026-09-12). Check four things, each violation a `patch` finding, task back to `in-progress` (HALT): (a) 结构对照 — implementation page structure must match the 线框（wireframe/HTML）structural draft (`prototype` in design.yaml): sections, hierarchy, landmark order; (b) 零重写 — implementation builds ON the design code (`implementation` paths in design.yaml), not a re-implementation of it; a rewritten UI is a finding even if it looks similar; (c) token 单一源 — `python design.py audit --design {output_dir}/design.yaml --src <impl>` — every `one-off-*` violation is a finding; (d) accessibility — `python design.py check --design {output_dir}/design.yaml` violations are findings. Never skip the layer silently — a skip needs the user's explicit call.
 
 - **Writing discipline (readability).** Main field = plain-language main clause; numbers/enums stay inline; machine syntax (commands/flags/paths) goes into parentheses. PRESERVE machine anchor words (file names such as design.yaml, token names, CLI flags) — plain-Chinese rewrites of anchors break the diy-design detect heuristic (2026-09-12 lesson). `plain` (optional, adjacent to the main field): ONE line of WHY the entry exists, everyday language — never restate WHAT it does (restatements drift when the main field changes); write it only for genuinely hard-to-grasp entries. `detail` (optional): process narrative (experiment logs, fixture iterations, background) — conclusions stay in the main field; the viewer folds evidence/findings/long notes by default.
 
@@ -47,7 +47,7 @@ bugs:
     pattern: one line, abstracted fault hypothesis for reuse
 ```
 
-If `paths.experience_repo` is configured and present, remind the user to run `python diy-coder/exp-sync.py push` (project root) — it buckets full entries into `bugs/<subclass>.yaml` (organized BY TYPE, cross-project), auto-registers new `type` tags into `taxonomy.yaml`, regenerates the table projection `index.html` (columns: 项目/时间/触发方法/修复方案/根治机制), and pushes. Experience files are projections; the project bug-log stays the source of truth. Cross-machine sync rides on git; automation belongs to the phase-2 runner.
+If `paths.experience_repo` is configured and present, remind the user to run `python diy-coder/exp-sync.py push` from the project root — add `--instance <name>` in instance runs (the bug-log lives in the instance dir). It buckets entries by `subclass` into the cross-project experience repo and registers new `type` tags. The experience repo is a projection; this task's `bug-log.yaml` stays the source of truth.
 
 ## Routing (each finding gets exactly one)
 
@@ -60,9 +60,11 @@ If `paths.experience_repo` is configured and present, remind the user to run `py
 
 ## Verdict Rules
 
-- **fail** if any finding routes `intent_gap` / `patch` / `bad_spec` → task `status: in-progress` (back to the dev loop), findings written to the task entry.
+- **fail** if any finding routes `intent_gap` / `patch` / `bad_spec`; findings written to the task entry.
+- Disposition of a fail: any `bad_spec` present → `status: blocked` with `blocked_reason` quoting the finding — the spec is fixed upstream, never by an executor (matches diy-build-loop); else → `status: in-progress` (back to the dev loop).
 - **pass** if findings are empty or all `defer` → task `status: done` with note citing the review date.
-- State ownership is narrow: this skill writes `review → done` (pass) and `review → in-progress` (fail). Nothing else.
+- **真源回填 (BUG-012).** On pass, `review → done` also writes, in the same HALT breath: the story's `status: done` in `stories.yaml` and `status: pass` for every TC this task confirmed green in L3 (`diy-dev` writes the TC lines per green line; the terminal write reconciles), bumping both `project.updated`. `blocked` never writes either file — nothing is delivered or passed. **Why:** the 2026-09-13 quality analysis found this standalone path reporting `done` while the sources of truth stayed `pending` (same class as BUG-012 in the headless chain).
+- Task-state ownership in `sprint.yaml`: `review → done` (pass), `review → in-progress` (fail), `review → blocked` (bad_spec), and `done → in-progress` (a falsification hit — step 6). Nothing else.
 - Any judgment call carries the `[ASSUMPTION]` prefix in the YAML value.
 
 ## Schema
@@ -73,16 +75,16 @@ Task entry in `sprint.yaml` gains:
       at: 2026-09-05
       verdict: pass|fail
       findings:                  # may be empty on clean pass
-        - layer: correctness|boundary|coverage
+        - layer: correctness|boundary|coverage|design   # design = L4; a falsification hit uses the layer it belongs to
           route: intent_gap|bad_spec|patch|defer
           note: one-line finding (coverage findings name TC ID + claim vs record)
 ```
 
 ## Workflow
 
-1. Load target task, ACs, TC steps, implementation, evidence. Restate the review scope in one line.
-2. Run L1, L2, L3 in order; collect findings. Verify each route choice against the table — exactly one per finding.
-3. Write the `review` block into the task entry; set status per verdict; bump `project.updated`.
-4. Render via diy-viewer; report the review surface (path) with the verdict and routed findings.
-5. On fail, name the next step (diy-dev rework items); on pass, close with counts: findings by layer, findings by route, verdict.
-6. **Falsification round (optional, user-triggered, after pass).** Attack mindset: assume the implementation IS buggy. (a) Load `bug-log.yaml` patterns and re-aim each relevant one at this implementation; (b) walk the non-functional checklist — performance, UX, security, compatibility, reliability, boundary — asking "how would this break?"; (c) design and run ad-hoc attacks. Any hit: append to bug-log.yaml AND route (intent_gap / patch → back to dev; the task leaves done). Clean round: record one line in the task `note` (date + "证伪轮通过").
+1. Load the material named in On Activation; restate the review scope in one line. (With `--falsify` on a `done` target, skip straight to step 6.)
+2. Run L1 → L2 → L3 → L4 in order; L4 runs only when the task's ACs carry `design_ref` — a skip is stated in the report, never silent. Collect findings; verify each route against the table — exactly one per finding.
+3. Write the `review` block into the task entry; set status and write-backs per Verdict Rules; bump `project.updated`.
+4. Render via diy-viewer (same activation command — append `--instance <name>` when one was resolved); report the review surface (path) with the verdict and routed findings.
+5. On fail, name the next step (diy-dev rework items; blocked → the upstream spec fix in stories.yaml / test-plan.yaml); on pass, close with counts: findings by layer, findings by route, verdict.
+6. **Falsification round (optional — `--falsify <story|all>`, accepted on `done` targets; `all` = every done task in the sprint).** Goal: break the finished work — assume it IS buggy. Aim the `bug-log.yaml` patterns at this implementation, walk the non-functional checklist (performance, UX, security, compatibility, reliability, boundary) asking "how would this break?", and run ad-hoc attacks. Any hit: append to bug-log.yaml, route it (`intent_gap` / `patch`), and the task leaves `done` → `in-progress` (HALT write). Clean round: record one line in the task `note` (date + "证伪轮通过").

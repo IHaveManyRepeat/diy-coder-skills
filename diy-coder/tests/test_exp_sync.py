@@ -159,6 +159,62 @@ class ExpSyncTests(unittest.TestCase):
         self.assertNotIn("Traceback", p.stderr)
         self.assertIn("init", p.stderr)
 
+    # trace: 2026-09-13 质量分析 F-customization-1（实例模式 push 提示失效，硬编码主线 bug-log 路径）
+    def test_push_instance_reads_instance_bug_log(self):
+        write_project(self.proj_a, "proj-a",
+                      BUG_TMPL.format(proj="proj-a", bid="BUG-MAIN"), self.repo)
+        inst = os.path.join(self.proj_a, "diy-output", "inst-x")
+        os.makedirs(inst)
+        with open(os.path.join(inst, "bug-log.yaml"), "w", encoding="utf-8") as f:
+            f.write(BUG_TMPL.format(proj="proj-a", bid="BUG-INST"))
+        p = run_exp(["push", "--instance", "inst-x"], cwd=self.proj_a)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        ids = self.bucket_ids()
+        self.assertIn("BUG-INST", ids)
+        self.assertNotIn("BUG-MAIN", ids, "实例 push 读到了主线 bug-log")
+
+    # trace: 2026-09-13 质量分析 F-customization-1（实例名校验同各 skill 规则 FR-4.5/D-9）；
+    # 对抗审查修复后锁定：尾点（Windows 目录名折叠）、尾换行（$ 锚点漏洞）必须拒
+    def test_push_invalid_instance_name_refused(self):
+        write_project(self.proj_a, "proj-a",
+                      BUG_TMPL.format(proj="proj-a", bid="BUG-A1"), self.repo)
+        for bad in ("../evil", "a.", "a" + chr(10)):
+            with self.subTest(instance=bad):
+                p = run_exp(["push", "--instance", bad], cwd=self.proj_a)
+                self.assertNotEqual(p.returncode, 0, f"{bad!r} 未被拒绝")
+                self.assertNotIn("Traceback", p.stderr)
+                self.assertIn("[exp-sync]", p.stderr)
+
+    # trace: 对抗审查修复（P2）——paths 段标量（resolve_repo 拒）或 output_dir 值非字符串（do_push 拒）
+    # 时一行报错，不裸栈
+    def test_malformed_paths_config_reports_one_line(self):
+        repo_fwd = self.repo.replace(os.sep, "/")
+        cases = [
+            "paths: diy-output" + chr(10),
+            "paths:" + chr(10) + "  output_dir: 123" + chr(10)
+            + "  experience_repo: \"%s\"" % repo_fwd + chr(10),
+        ]
+        for cfg in cases:
+            with self.subTest(cfg=cfg.strip()):
+                write_project(self.proj_a, "proj-a",
+                              BUG_TMPL.format(proj="proj-a", bid="BUG-A1"), self.repo)
+                with open(os.path.join(self.proj_a, "diy-coder.yaml"), "w",
+                          encoding="utf-8") as f:
+                    f.write("project:" + chr(10) + "  name: proj-a" + chr(10) + cfg)
+                p = run_exp(["push"], cwd=self.proj_a)
+                self.assertNotEqual(p.returncode, 0)
+                self.assertNotIn("Traceback", p.stderr)
+                self.assertIn("[exp-sync]", p.stderr)
+                self.assertIn("diy-coder.yaml", p.stderr)
+
+    # trace: 2026-09-13 质量分析 F-customization-1（--instance 仅 push 有意义，静默忽略即撒谎）
+    def test_instance_flag_refused_for_status(self):
+        write_project(self.proj_a, "proj-a",
+                      BUG_TMPL.format(proj="proj-a", bid="BUG-A1"), self.repo)
+        p = run_exp(["status", "--instance", "inst-x"], cwd=self.proj_a)
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("[exp-sync]", p.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

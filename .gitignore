@@ -14,3 +14,6 @@ __pycache__/
 _bmad/
 _bmad-output/
 diy-output/
+
+# 技能质量分析产物（本地保留可查阅，不入库）
+.analysis/

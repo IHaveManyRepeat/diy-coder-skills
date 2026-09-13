@@ -61,7 +61,7 @@ def smoke(src: str) -> bool:
         import yaml
         print(f"[冒烟] PyYAML {yaml.__version__} OK")
     except ImportError:
-        print("[冒烟] PyYAML 未安装：可 pip install pyyaml，或统一用 uv run --with pyyaml")
+        print("[冒烟] PyYAML 未安装：pip install pyyaml（viewer/help/runner 均用宿主 python 直跑）")
         ok = False
     viewer = os.path.join(src, "skills", "diy-viewer", "scripts", "viewer.py")
     r = subprocess.run([sys.executable, viewer, "--help"], capture_output=True)
