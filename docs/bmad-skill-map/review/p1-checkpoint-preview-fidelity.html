@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P1 样板保真度报告 —— diy-checkpoint-preview</title>
+<style>
+  :root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+        --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+       font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 24px 80px}
+  h1{font-size:24px;margin:0 0 6px}
+  h2{font-size:18px;margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+  .meta{color:var(--dim);font-size:13px;margin-bottom:4px}
+  table{border-collapse:collapse;width:100%;background:var(--panel);
+        border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:14px}
+  th,td{border-bottom:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+  th{background:#eef2f8;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  .ok{color:var(--ok);font-weight:600}
+  .warn{color:var(--warn);font-weight:600}
+  code,pre{background:var(--code);border-radius:6px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+  code{padding:1px 5px}
+  .card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent);
+        border-radius:8px;padding:14px 18px;margin:14px 0}
+  .card h3{margin:0 0 8px;font-size:15px}
+  .card.decide{border-left-color:var(--warn)}
+  .tag{display:inline-block;background:#e3ebfa;color:var(--accent);border-radius:99px;
+       padding:1px 10px;font-size:12px;margin-left:6px}
+  ul{margin:6px 0;padding-left:22px}
+  li{margin:3px 0}
+  .foot{color:var(--dim);font-size:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>P1 样板保真度报告 —— diy-checkpoint-preview</h1>
+<div class="meta">日期：2026-09-13 ｜ 批次：迁移 P 阶段 P1（首个样板技能）｜ 执行：agent team（W1 引擎与测试 / W2 技能文件 / V 独立验证两阶段）</div>
+<div class="meta">输入：BMAD <code>bmad-checkpoint-preview</code>（SKILL.md + step-01..05 + generate-trail.md）｜ 产出：<code>diy-coder/skills/diy-checkpoint-preview/</code>（薄主文件 + steps/ + 领域引擎）</div>
+
+<div class="card">
+<h3>结论</h3>
+<p><strong>样板全项通过；2 条范式裁定已于 2026-09-13 拍板（见「范式裁定项」）。</strong>V 独立验证：116 条能力清点<strong>零丢失</strong>、无阻断裂、<strong>可发布 yes</strong>；终审计发现的 3 处范式措辞摩擦（F1/F2/G-O1）已当场修复并经 V 复验关闭。验收 12 项 = 11 <span class="ok">✅</span> + 1 N/A（#10 非交汇技能）+ 2 条适配（#12 b/c，见 R1）。</p>
+</div>
+
+<h2>1. 差异报告（计划规定格式）</h2>
+<table>
+  <tr><th>项</th><th>结果</th></tr>
+  <tr><td>技能名</td><td><code>diy-checkpoint-preview</code>（原 <code>bmad-checkpoint-preview</code>）</td></tr>
+  <tr><td>工作流步数</td><td>原 5 步 → diy 5 步（语义一一对应；细节下沉 steps/，主文件只给路由）</td></tr>
+  <tr><td>菜单/分支</td><td>原 3（Approve / Rework / Discuss）→ 3（+ discuss 循环回决策点）</td></tr>
+  <tr><td>丢失能力清单</td><td><strong>无</strong>（2 项生态钩子按裁定裁剪：advanced elicitation / party mode 属 B4 未建，登记 C 阶段「B4 后回接」）</td></tr>
+  <tr><td>门禁自检</td><td><span class="ok">✅</span> 零产出退出 + 路由（用例：空项目 exit 1、目录零写入）</td></tr>
+  <tr><td>ID 链自检</td><td><span class="ok">✅</span> story 引用解析（悬空 S-99 → UNKNOWN_ID exit 1）；CK-### 顺序/唯一/不重用（DUPLICATE_ID 实测）</td></tr>
+  <tr><td>viewer 自检</td><td><span class="ok">✅</span> 通用降级渲染 rc=0；<span class="warn">⚠️</span> 2 条标签缺口登记 C 阶段（枚举值 approve/git 无中文映射、文档名 checkpoint 无中文标签）</td></tr>
+</table>
+
+<h2>2. 交付物与指纹（定稿版）</h2>
+<table>
+  <tr><th>文件</th><th>行数</th><th>md5（前 8 位）</th></tr>
+  <tr><td><code>SKILL.md</code>（四段 + 两段冻结文本）</td><td>77（≤90）</td><td><code>9004e1b3</code></td></tr>
+  <tr><td><code>steps/01-orientation.md</code></td><td>114</td><td>—</td></tr>
+  <tr><td><code>steps/02-walkthrough.md</code></td><td>78</td><td>—</td></tr>
+  <tr><td><code>steps/03-detail-pass.md</code></td><td>101</td><td>—</td></tr>
+  <tr><td><code>steps/04-testing.md</code></td><td>74</td><td>—</td></tr>
+  <tr><td><code>steps/05-wrapup.md</code></td><td>41</td><td>—</td></tr>
+  <tr><td><code>scripts/checkpoint.py</code>（领域引擎：target / check）</td><td>665</td><td><code>790ca4ca</code></td></tr>
+  <tr><td><code>tests/test_checkpoint.py</code></td><td>449</td><td><code>72f7bf35</code></td></tr>
+</table>
+<p class="meta">冻结文本逐字校验（修复全程复跑 3 次均一致）：实例解析句 md5 <code>5445f98b…</code> <span class="ok">✅</span> ／ 写作纪律块 md5 <code>f1b3b6fb…</code> <span class="ok">✅</span></p>
+
+<h2>3. 验收 12 项对照</h2>
+<table>
+  <tr><th>#</th><th>验收项</th><th>结果</th><th>证据</th></tr>
+  <tr><td>1</td><td>薄主文件 + 厚子文件（steps/ 首次落地）</td><td><span class="ok">✅</span></td><td>77 行主文件只给路由；5 个步骤文件承载细节；读取纪律「一次只加载一个」入 Rules</td></tr>
+  <tr><td>2</td><td>产物 YAML schema（diy-output/ + 稳定 ID）</td><td><span class="ok">✅</span></td><td><code>checkpoint.yaml</code>，<code>CK-###</code> 三位序号；单一源 + revisions 段</td></tr>
+  <tr><td>3</td><td>前置门禁（零产出退出 + 路由）</td><td><span class="ok">✅</span></td><td>用例断言 exit 1 + 目录零写入</td></tr>
+  <tr><td>4</td><td>ID 链接入</td><td><span class="ok">✅</span></td><td>story 引用可解析校验；CK ID 唯一/不复用（DUPLICATE_ID）</td></tr>
+  <tr><td>5</td><td>注册</td><td><span class="ok">✅</span></td><td><code>sync.sh</code> 安装 15 技能；源/副本 7 文件 md5 全一致（修复后重同步复验）</td></tr>
+  <tr><td>6</td><td>viewer 渲染</td><td><span class="ok">✅</span><span class="warn">⚠️</span></td><td>通用降级 rc=0（3 文档）；标签/枚举映射缺口登记 C 阶段</td></tr>
+  <tr><td>7</td><td>冒烟 TC</td><td><span class="ok">✅</span></td><td>20 用例全过（含门禁拒绝、契约冒烟、阈值边界 9/10 词、WORKTREE null、空仓库、损坏 YAML）</td></tr>
+  <tr><td>8</td><td>登记元数据</td><td><span class="ok">✅</span></td><td>frontmatter：phase/precededBy/followedBy/required 与 skill-map.json 逐字一致；line/outputs 见 R2</td></tr>
+  <tr><td>9</td><td>读取成本纪律</td><td><span class="ok">✅</span></td><td>On Activation 明确读取清单；checkpoint.yaml 仅铸造 CK-### / 按 id 定位改单条；校验走引擎回执</td></tr>
+  <tr><td>10</td><td>双源输入声明</td><td>N/A</td><td>本技能为通用入口型（主线/WDS 线均可挂），非主线×WDS 交汇点</td></tr>
+  <tr><td>11</td><td>渲染静默</td><td><span class="ok">✅</span></td><td>渲染只写命令；零新增浏览器/路径等待交互点（非 TTY <code>--no-open</code> 静默已验证）</td></tr>
+  <tr><td>12</td><td>diyc 接线</td><td><span class="ok">✅</span>（2 条适配）</td><td>a 实例句委托 diyc resolve（冻结文本逐字）；d 语言绑定套件模板；e Rules 写权边界；<strong>b/c 适配见 R1</strong>（V 曾发现 b 项时序自指措辞 F2 → 已修复复验）</td></tr>
+</table>
+
+<h2>4. 能力保真（V 独立清点对照）</h2>
+<div class="card">
+<h3>结论：116 条能力清点零丢失</h3>
+<p>V 独立复现：307 全量 / 20 专项 / 双 md5 / sync 一致 / 真实仓库冒烟 / 夹具四态校验 / 渲染 / 边界零裸栈 / 引擎零写操作。</p>
+</div>
+<ul>
+  <li><strong>分组核对</strong>（A 全局 13 / B SKILL 9 / C step-01 27 / D step-02 13 / E step-03 22 / F step-04 11 / G step-05 7 / H generate-trail 11 / I customize 3）：必须保留项全部存活；裁剪/合并均属已裁定适配（customize 机制整体不迁；生态钩子按 §7.6；generate-trail 并入 step-01）。</li>
+  <li><strong>十条差异观察</strong>：全部「保留」或「已裁定适配」，未发现与裁定不符项。样例：级联三分支双处存活（恰好一个→确认／多个→编号选项／无→fall through）；交互能力（dig into / EARLY EXIT / Discuss 循环）以 steps 文本承载、未误移入引擎；risk 标签 8 项<strong>逐字</strong>保留；零悬空技能引用。</li>
+  <li><strong>终审计发现与关闭</strong>：F1（inferred: null 写入冲突）、F2（终门时序自指）、G-O1（inferred: false 措辞张力）——3 处均为文本级范式措辞（引擎/测试零改动），已修复并经 V 增量复验 <span class="ok">G1/G2 通过 + G-O1 关闭</span>。</li>
+  <li><strong>遗留观察 5 条</strong>（O1/O2/O4/O5/O6，均无功能影响，记录不修）。其中 O6 说明：Machine Hardening 的 <code>## Spec Change Log</code> 数据源在 diy 侧等价物是 stories.yaml（结构化 YAML 无该 markdown 段）——该分支保留但不激活，范式完整，待后续批次出现 markdown spec 场景自然启用。</li>
+  <li><strong>W1 收口附注</strong>（引擎侧未决项裁定）：<code>mode</code>↔<code>target.source</code> 一致性不做硬约束（LLM 可在有 story 锚点时修正引擎建议）；<code>inferred</code> 词数阈值照原文英文口径（&lt;10 空白分词），中文提交标题通常 1 词 → 恒判 <code>true</code>——<strong>保守方向</strong>（仅提示人工核对、不产生错值）；精确化需自造 CJK 折算规则（偏离原文），登记为后续批次可选项。</li>
+</ul>
+
+<h2>5. 范式裁定项（已拍板 2026-09-13，2 条）</h2>
+<div class="card decide">
+<h3>R1 —— 新产物类型的终门载体：技能自带领域引擎（同构契约），而非扩展 diyc <span class="tag">已拍板</span></h3>
+<p><code>diyc.py check --type T</code> 类型集硬编码 7 类（prd/architecture/openapi/epics/stories/test-plan/sprint/review）；<code>checkpoint</code> 属新类型。按批次 3 已立分工裁定（「diyc = 跨文档机械核对、X.py = 领域引擎」，design 即出此例），本技能终门 = <code>scripts/checkpoint.py check --final</code>（exit 0 唯一放行 / --json 单行回执 / violations+counts 同构）。同时适配验收 #12(c)：本技能记录只追加、CK ID 不重用，无需 --previous（Rules 8 显式声明）。</p>
+<p><strong>若裁定「必须扩展 diyc 类型集」</strong>：需改动冻结的 diyc 三文件并增量复核，且 34 个新技能将各自触发一次 diyc 改动——建议维持引擎形态。</p>
+</div>
+<div class="card decide">
+<h3>R2 —— 登记元数据落 SKILL.md frontmatter <span class="tag">已拍板</span></h3>
+<p>样本已落 6 字段（<code>phase / precededBy / followedBy / required / line / outputs</code>；前四项值取自 skill-map.json 逐字一致）。<code>line: any</code> 为扩展值（skill-map 无此字段；本技能跨两条线通用）——需确认 <code>any</code> 进登记表枚举（C 阶段缺口 1 落地时 diy-help 读取该字段）。</p>
+</div>
+
+<h2>6. P2 缺口定论（P1 实证）</h2>
+<table>
+  <tr><th>缺口</th><th>定论</th></tr>
+  <tr><td>缺口 1（diy-help 承载力）</td><td>载体选定 = 各技能 frontmatter 声明（样本已示范）；现状 help.py 硬编码 CHAIN 未受影响；C 阶段按 48 技能重写为登记表驱动，line 枚举需含 any</td></tr>
+  <tr><td>缺口 2（viewer 产物类型）</td><td><strong>通用降级已存在且可用</strong>（未知类型递归渲染，不崩不空——本批实测）；剩余 = 展示层映射缺口（checkpoint 文档标签 + 枚举值中文映射），小而明确，C 阶段一次补齐</td></tr>
+  <tr><td>缺口 3（人设类）</td><td>已定（方案 B），本批无涉</td></tr>
+</table>
+
+<h2>7. 集成证据（全部亲跑，修复后复验过）</h2>
+<table>
+  <tr><th>项</th><th>命令/值</th><th>结果</th></tr>
+  <tr><td>全量回归</td><td><code>cd diy-coder &amp;&amp; python -m unittest discover -s tests -v</code></td><td><strong>307 passed</strong>（287 基线 + 20 新增，零回归；修复后专项复跑 20/20 仍绿）</td></tr>
+  <tr><td>分发同步</td><td><code>bash diy-coder/sync.sh</code></td><td>15 技能安装 + 冒烟全过；源/副本 md5 全一致（修复后重同步复验）</td></tr>
+  <tr><td>夹具终门</td><td><code>checkpoint.py check --final</code></td><td>exit 0；counts：checkpoints 1 / approve 1 / concerns 2 / risks 2 / observations 2</td></tr>
+  <tr><td>真实仓库冒烟</td><td><code>checkpoint.py target</code>（只读）</td><td>exit 0；级联轨迹：explicit 未命中 → sprint 无 review 任务 → git 命中（WORKTREE）</td></tr>
+  <tr><td>渲染</td><td><code>viewer.py</code>（夹具，非 TTY 静默）</td><td>rc=0，3 文档；2 条未映射枚举警示（已登记 C 阶段）</td></tr>
+  <tr><td>冻结文本</td><td>md5 双校验（修复全程 3 次复跑）</td><td><code>5445f98b…</code> / <code>f1b3b6fb…</code> 逐字节一致</td></tr>
+</table>
+
+<h2>8. 遗留项与下一步</h2>
+<p><strong>C 阶段增补清单（本批新增 3 项）</strong></p>
+<ul>
+  <li>viewer 展示层：<code>DOC_LABELS["checkpoint"]</code> 中文标签 + 枚举值映射（approve/rework/discuss、source 值、risk label 值、inferred 布尔显示）</li>
+  <li>横切入口回接：本技能步骤内的深化/多角色邀请语，在 B4 批 diy-elicit / diy-party-mode 落地后按原挂载位置接回</li>
+  <li>登记表（缺口 1）读取 frontmatter 六字段；line 枚举含 any</li>
+</ul>
+<p><strong>下一步（B1 批，已具备启动条件）</strong>：5 个新技能 —— diy-research(3合1) / diy-product-brief / diy-prfaq / diy-readiness-check / diy-project-context(2合1)；diy-checkpoint-preview 已在本批建成。</p>
+<p><strong>本会话暂停点</strong>：P1 全交付（文件落盘、.claude 已同步、测试全绿）；工作区未提交（等你指令）；B1 未启动（P 强制人工审通过后才铺开）。</p>
+
+<div class="foot">档案：任务书与验证全文见 <code>diy-coder/.analysis/2026-09-13-migration-p1/</code>（taskbook.md / v-capability-inventory.md / v-verdict.md）｜ 冻结文本蓝本：<code>diy-coder/.analysis/2026-09-13-cross-skill/batch4/frozen-texts.md</code></div>
+
+</div>
+</body>
+</html>
