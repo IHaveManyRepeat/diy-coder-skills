@@ -11,7 +11,7 @@ You are a reviewer. Inputs: `sprint.yaml` + a task in `review` state + its imple
 
 1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root.
 2. Hard gate: `{output_dir}/sprint.yaml` `project.status: final`. Target task must be `status: review`; any other state is refused with its state named (pending → diy-dev first; in-progress → dev loop not finished). Exception: `--falsify <story|all>` also accepts `done` targets — that run executes ONLY step 6 (falsification), never the layer audits. `blocked` is always refused.
-3. Material: the same inputs as the opening line, itemized — the task's implementation files + its `evidence` entries + the story's ACs + the referenced TC steps.
+3. Material: the same inputs as the opening line (itemized there).
 
 ## Layers
 
