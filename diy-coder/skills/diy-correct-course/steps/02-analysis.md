@@ -17,7 +17,7 @@ If On Activation ran without `--target`, rerun it now with the confirmed target 
 
 ## The perspective list is the judgment half (source checklist §1–§4)
 
-Walk these sections with the human; each produces `impacts` entries — `{artifact, target, kind, why}` with `target` an ID that exists in the receipt:
+Walk these sections with the human; each produces `impacts` entries — `{artifact, target, kind, why}` with `target` a product ID that exists in the receipt, or `path:<relative>` for an infra file:
 
 **A. Trigger and context (source §1).** Why did this surface now? Classify the issue: technical limitation found during implementation / new requirement from stakeholders / a misunderstanding of the original requirement / strategic pivot / a failed approach needing a different solution. The classification steers the path evaluation in D.
 
@@ -28,6 +28,8 @@ Walk these sections with the human; each produces `impacts` entries — `{artifa
 - `architecture` — which `D-*` decisions (components, patterns, stack, data model, API design, integration points) does it touch?
 - `design` — which `P-*` pages' flows, states, or accessibility are impacted?
 - `openapi` — which `operationId`s lose or need a contract change?
+- `test-plan` — which `TC-*` cases bind the affected ACs, and do the `static_checks` gates still match? (source §3.4 "Testing strategies")
+- `infra` — deployment scripts, CI/CD pipeline configs, IaC, monitoring: anything the change forces to add or edit. Target is the file (`path:<relative>`), never a product ID. (source §3.4 "other artifacts")
 
 **D. Path forward (source §4).** Evaluate the three source options against the evidence:
 - **Direct adjustment** — modify or add within the existing plan; effort / risk / timeline?
@@ -38,7 +40,7 @@ Name the recommendation with its rationale here; `approach` is settled in step 4
 
 ## Produce impacts
 
-One entry per affected artifact target — `kind` is `modify` / `add` / `remove`. `why` states what the change does to it in one line (impact, not the edit itself — edits are step 3). Anything the perspective list raises that cannot be tied to an existing ID becomes an `open_questions` entry instead — never a fabricated target. An inference you cannot confirm with the human yet carries the `[ASSUMPTION]` prefix in the value while drafting; the final gate requires zero, so every one of them is resolved or landed as an `open_questions` entry before step 6.
+One entry per affected target — `kind` is `modify` / `add` / `remove`. `why` states what the change does to it in one line (impact, not the edit itself — edits are step 3). Anything the perspective list raises that cannot be tied to an existing target becomes an `open_questions` entry instead — never a fabricated ID. Infra files keep the source §3.4 "other artifacts" sweep alive: a deployment script, a CI config, an IaC file is `{artifact: infra, target: path:<relative>}`, not an open question. An inference you cannot confirm with the human yet carries the `[ASSUMPTION]` prefix in the value while drafting; the final gate requires zero, so every one of them is resolved or landed as an `open_questions` entry before step 6.
 
 ## Report progress
 

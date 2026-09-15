@@ -28,10 +28,12 @@ For an addition there is no current value: write `old: (absent)` — the field m
 - **PRD** — the exact FR/NFR IDs and the MVP-scope consequence (`F-*` stays stable; a new requirement gets a new `FR-x.y`, never a renumber).
 - **Architecture** — affected `D-*` decisions, components, or tech choices, plus what that ripples into downstream; a new decision is `add`, not a rewrite of an accepted one.
 - **Design / openapi** — the page `P-*` or `operationId` touched, and the user-visible or contract consequence.
+- **Test-plan** — the `TC-*` cases binding edited ACs; touch `static_checks` when the tooling or CI gates themselves move.
+- **Infra** — a deployment script / CI config / IaC file: `target: path:<relative>`, `field` naming the config path inside it (e.g. `jobs.test.steps`); `old: (absent)` for a file yet to create.
 
 ## Verify each edit before presenting
 
-- the target ID exists in the `collect` receipt (document summaries or chain);
+- the target ID exists in the `collect` receipt (document summaries or chain); an infra `path:` target is exempt from that lookup (the file may be yet to create) and is checked for form instead — relative, forward slashes, no `..`;
 - the field path names something real in that artifact's schema (SKILL.md schemas of the owning skills are the authorities);
 - `old` reflects the current value — when you write it from the receipt's summary rather than the artifact, say so and keep it summarised, never invented verbatim.
 

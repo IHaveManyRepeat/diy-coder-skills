@@ -464,7 +464,6 @@ def classify_part(part_dir, manifests):
     strong = marker_type(part_dir)
     if strong:
         return strong
-    names = {m.get("package_name", "") for m in manifests}
     deps = set()
     for entry in manifests:
         deps.update(entry.get("deps") or ())

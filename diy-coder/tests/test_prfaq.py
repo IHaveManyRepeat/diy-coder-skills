@@ -402,7 +402,7 @@ class SkillContractTests(unittest.TestCase):
     # trace: B1 diy-prfaq §2.1（写作纪律块逐字，置 Rules 段末尾）
     def test_writing_discipline_block_is_frozen_verbatim(self):
         raw = self.read_skill().replace(chr(13), "")
-        lines = [l for l in raw.split(NL) if l.startswith(DISCIPLINE_ANCHOR)]
+        lines = [line for line in raw.split(NL) if line.startswith(DISCIPLINE_ANCHOR)]
         self.assertEqual(len(lines), 1, "SKILL.md 写作纪律块数量异常：%d" % len(lines))
         self.assertEqual(len(lines[0]), 497, "纪律块字符数偏离冻结文本（497）")
         self.assertEqual(hashlib.md5((lines[0] + NL).encode("utf-8")).hexdigest(),

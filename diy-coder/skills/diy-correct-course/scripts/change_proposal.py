@@ -19,12 +19,14 @@
              4 引用链（--target ID）：跨文档扫描该 ID 的上游/下游引用点（epics.feature_refs /
                AC.refs / AC.design_ref / decisions.affects / openapi x-fr / TC.ac /
                sprint test_refs + prd feature→FR、story→AC 归属边），迭代两跳；命中集合即
-               变更涟漪面（施工影响的机械证据）。target 格式非法 → ENUM_INVALID，产物中无此
-               ID → UNKNOWN_ID，均 exit 1 零产出。
+               变更涟漪面（施工影响的机械证据）。引用链仅支持稳定 ID（文件类 path: 目标
+               不参与遍历）；target 格式非法 → ENUM_INVALID，产物中无此 ID → UNKNOWN_ID，
+               均 exit 1 零产出。
   check    校验 {output_dir}/change-proposal.yaml（CP-### 集合）：schema / 枚举
            （status/mode/scope/artifact/kind）/ edits 完整（old+new+rationale 非空且
-           old != new）/ impacts target 格式 / handoff.route 白名单 / ID 唯一 / 单项 --id
-           过滤；--final 附加：status ∈ {final, approved}、zero [ASSUMPTION]、
+           old != new）/ impacts 与 edits 的 target 形态（产物类稳定 ID / infra 类
+           path:<相对路径>，形态与 artifact 双向绑定）/ handoff.route 白名单 / ID 唯一 /
+           单项 --id 过滤；--final 附加：status ∈ {final, approved}、zero [ASSUMPTION]、
            handoff.route 在场且白名单、impacts 非空、approach 已选定（PENDING_DECISION）、
            scope 与 handoff 一致性（minor→单技能直改 / moderate→backlog 重组 /
            major→规划层）。exit 0 唯一放行。
@@ -73,7 +75,13 @@ STATUSES = ("draft", "final", "approved", "rejected")
 FINAL_STATUSES = ("final", "approved")
 MODES = ("incremental", "batch")
 SCOPES = ("minor", "moderate", "major")
-ARTIFACTS = ("prd", "epics", "stories", "architecture", "openapi", "design")
+# 目标归属：产物类（target 用稳定 ID）+ infra 类（部署脚本 / CI 配置 / IaC / 监控，
+# target 用 path:<相对路径>）——源 checklist §3.4「其他工件」的承接面；
+# 2026-09-14 用户裁定：test-plan 与 infra 此前被整体裁剪且理由部分不实，修正为可表达
+ARTIFACTS = ("prd", "epics", "stories", "architecture", "openapi", "design",
+             "test-plan", "infra")
+INFRA = "infra"
+PATH_PREFIX = "path:"
 KINDS = ("modify", "add", "remove")
 APPROACH_PATHS = ("direct-adjustment", "rollback", "mvp-review")
 
@@ -154,6 +162,38 @@ def collect_strings(node):
 
 def is_target_id(value):
     return bool(TARGET_RE.fullmatch(str(value)))
+
+
+def is_path_target(value):
+    """path:<相对路径> 形态：正斜杠、相对（无 / 开头、无盘符、无 . 与 .. 段）。"""
+    s = str(value)
+    if not s.startswith(PATH_PREFIX):
+        return False
+    body = s[len(PATH_PREFIX):]
+    if not body or body.startswith("/") or "\\" in body or bool(re.match(r"^[A-Za-z]:", body)):
+        return False
+    return all(part not in ("", ".", "..") for part in body.split("/"))
+
+
+def check_target(artifact, target, where):
+    """target 形态校验 + 与 artifact 的双向绑定：产物类用稳定 ID，infra 用 path:。"""
+    if not nonempty(target):
+        return [v("EMPTY_FIELD", where, "target 缺失")]
+    t = str(target)
+    if is_target_id(t):
+        if str(artifact) == INFRA:
+            return [v("ENUM_INVALID", where,
+                      "artifact: infra 的目标须为文件路径（path:<相对路径>），"
+                      "不能是产物 ID：%s" % t)]
+        return []
+    if is_path_target(t):
+        if nonempty(artifact) and str(artifact) != INFRA:
+            return [v("ENUM_INVALID", where,
+                      "path: 文件目标须配 artifact: infra（实为 %s）：%s" % (artifact, t))]
+        return []
+    return [v("ENUM_INVALID", where,
+              "target 须为稳定 ID（如 FR-x.y / F-x / S-x / AC-x.y / D-x / TC-x.y.z）"
+              "或文件路径（path:<相对路径>），实为 %s" % t)]
 
 
 # ---------------------------------------------------------------- 文档装载与摘要
@@ -533,8 +573,9 @@ def cmd_collect(args):
     target = args.target
     if nonempty(target) and not is_target_id(str(target)):
         payload["violations"] = [v("ENUM_INVALID", "--target",
-                                   "target 须为稳定 ID（如 FR-x.y / F-x / S-x / AC-x.y / D-x），"
-                                   "实为 %s" % target)]
+                                   "引用链遍历仅支持稳定 ID（如 FR-x.y / F-x / S-x / "
+                                   "AC-x.y / D-x / TC-x.y.z）；文件类目标（path:...）"
+                                   "不参与引用链，实为 %s" % target)]
         payload["warnings"] = warnings
         emit(payload, args.json, human_collect)
         return 1
@@ -663,13 +704,8 @@ def check_impacts(record, where, final):
         else:
             violations += check_enum(impact.get("artifact"), ARTIFACTS,
                                      iw + ".artifact", "artifact")
-        target = impact.get("target")
-        if not nonempty(target):
-            violations.append(v("EMPTY_FIELD", iw + ".target", "target 缺失"))
-        elif not is_target_id(str(target)):
-            violations.append(v("ENUM_INVALID", iw + ".target",
-                                "target 须为稳定 ID（如 FR-x.y / F-x / S-x / AC-x.y / D-x），"
-                                "实为 %s" % target))
+        violations += check_target(impact.get("artifact"), impact.get("target"),
+                                   iw + ".target")
         if not nonempty(impact.get("kind")):
             violations.append(v("EMPTY_FIELD", iw + ".kind", "kind 缺失"))
         else:
@@ -699,13 +735,8 @@ def check_edits(record, where, final):
         else:
             violations += check_enum(edit.get("artifact"), ARTIFACTS,
                                      ew + ".artifact", "artifact")
-        target = edit.get("target")
-        if not nonempty(target):
-            violations.append(v("EMPTY_FIELD", ew + ".target", "target 缺失"))
-        elif not is_target_id(str(target)):
-            violations.append(v("ENUM_INVALID", ew + ".target",
-                                "target 须为稳定 ID（如 FR-x.y / S-x / AC-x.y / D-x），"
-                                "实为 %s" % target))
+        violations += check_target(edit.get("artifact"), edit.get("target"),
+                                   ew + ".target")
         if not nonempty(edit.get("field")):
             violations.append(v("EMPTY_FIELD", ew + ".field", "field 缺失（目标字段路径）"))
         old = edit.get("old")

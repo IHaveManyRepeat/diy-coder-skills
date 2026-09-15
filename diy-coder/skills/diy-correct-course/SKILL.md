@@ -26,7 +26,7 @@ You are a change navigator. Input: one trigger issue surfaced mid-sprint. Output
 
 ## Workflow
 
-Global step rules: load exactly one `steps/` file at a time — never preload or batch-load the six step files; front-load — one step's output in one message, no mid-step questions; every impact and edit carries its target ID; write artifact prose in `document_output_language` while speaking `communication_language`.
+Global step rules: load exactly one `steps/` file at a time — never preload or batch-load the six step files; front-load — one step's output in one message, no mid-step questions; every impact and edit carries its target (a stable ID, or `path:<relative>` for infra files); write artifact prose in `document_output_language` while speaking `communication_language`.
 
 1. `steps/01-init.md` — confirm the trigger from the user's own words, settle `mode`, draft the record.
 2. `steps/02-analysis.md` — walk the systematic analysis perspective list; the mechanical half is the receipt, the judgment half produces `impacts`.
@@ -53,9 +53,10 @@ proposals:
     mode: incremental|batch
     scope: minor|moderate|major
     impacts:                  # reference-only impact list
-      - {artifact: prd|epics|stories|architecture|openapi|design, target: FR-x.y|F-x|S-x|AC-x.y|D-x|..., kind: modify|add|remove, why: <string>}
+      - {artifact: prd|epics|stories|architecture|openapi|design|test-plan, target: FR-x.y|F-x|S-x|AC-x.y|D-x|TC-x.y.z|..., kind: modify|add|remove, why: <string>}
+      - {artifact: infra, target: 'path:<relative>', kind: modify|add|remove, why: <string>}   # deployment scripts / CI / IaC files — file targets, never product IDs
     edits:                    # the concrete proposal (source old→new); `old` quotes the current value or writes (absent)
-      - {artifact: <same enum>, target: <ID>, field: <path>, old: <string>, new: <string>, rationale: <string>}
+      - {artifact: <same enum>, target: <ID or path:<relative>>, field: <path>, old: <string>, new: <string>, rationale: <string>}
     ripple: [<string>]        # downstream fallout along the reference chain
     effort: {estimate, risk, timeline_impact}
     approach: {path: direct-adjustment|rollback|mvp-review, why: <string>}
@@ -67,7 +68,7 @@ revisions: []                 # {date, change, reason} — appended when an exis
 ## Rules
 
 1. Write scope: `{output_dir}/change-proposal.yaml` only — records and their `revisions`. This skill never edits the source artifacts (`prd.yaml` / `epics.yaml` / `stories.yaml` / `architecture.yaml` / `openapi.yaml` / `design.yaml` / `sprint.yaml`); `handoff.route` names who executes, and the fix is theirs.
-2. Reference, never copy: `impacts.target` and `edits.target` carry stable IDs; `old` / `new` quote the smallest decisive value (an ID plus a one-line gist), never a pasted section. The full rewrite is the owning skill's job.
+2. Reference, never copy: `impacts.target` and `edits.target` carry a stable ID (product artifacts) or `path:<relative>` (`artifact: infra` — deployment / CI / IaC files; never a product ID); `old` / `new` quote the smallest decisive value (an ID plus a one-line gist), never a pasted section. The full rewrite is the owning skill's job.
 3. Impact facts come from the `collect` receipt: document summaries, `diyc.check.violations` and the `chain` are copied, never re-derived by hand. Cross-document mechanics (ID chains, reference resolution) belong to diyc — never re-check them by eye.
 4. An unclear trigger stops the run (source HALT): no proposal is written from a vague issue. Every impact names the evidence that showed it — never invent impact. Drafting may mark an unconfirmed inference with an `[ASSUMPTION]` prefix; the final gate requires zero — resolve it with the human or land it as an explicit `open_questions` entry.
 5. Records are appended, never renumbered or reused; amending an existing record appends to `revisions` (date / change / reason). No `--previous` round is needed — proposal records are append-only, never rewritten wholesale.

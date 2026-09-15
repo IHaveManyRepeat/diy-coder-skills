@@ -48,7 +48,7 @@
 | ID 链 | epic/evidence/prev_followup/next_epic.id 全解析，悬空 `UNKNOWN_ID`；RT-### 稳定 |
 | viewer | 仅渲染命令、零交互点；retrospective 标签缺口入 C 阶段清单 |
 
-**核心改造**：输入面从 story md 的 dev notes → **结构化产物**（sprint note/evidence/loop/review.findings + bug-log + test-plan + stories）；指标由 `collect` 机械采集（与 `check --final` 共用 `collect_metrics()` 单一函数互证，不符即 `SET_MISMATCH`）。源 party-mode 五角色剧本整段裁剪，**保留** facilitations 纪律（no blame / 系统非个人 / 具体例证）与四视角清单（开发者/产品/QA/架构）。写权：不碰 sprint.yaml/stories.yaml（源 sprint-status 更新在 diy 无对应物）；significant_changes 只出条目 + 路由 diy-correct-course。**B4 后回接**：若 diy-party-mode 建成，回顾对话形态可回接。
+**核心改造**：输入面从 story md 的 dev notes → **结构化产物**（sprint note/evidence/loop/review.findings + bug-log + test-plan + stories）；指标由 `collect` 机械采集（与 `check --final` 共用 `collect_metrics()` 单一函数互证，不符即 `SET_MISMATCH`）。源 party-mode 五角色剧本整段裁剪（另裁 Team Collaboration Highlights——单人 + AI 语境无 pair/mob programming），**保留** facilitations 纪律（no blame / 系统非个人 / 具体例证）与四视角清单（开发者/产品/QA/架构）。写权：不碰 sprint.yaml/stories.yaml（源 sprint-status 更新在 diy 无对应物）；significant_changes 只出条目 + 路由 diy-correct-course。**B4 后回接**：若 diy-party-mode 建成，回顾对话形态可回接。
 
 ### 2.3 diy-correct-course
 

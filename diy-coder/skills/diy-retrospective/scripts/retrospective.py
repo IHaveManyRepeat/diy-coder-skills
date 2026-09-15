@@ -498,7 +498,6 @@ def cmd_collect(args):
         return 1
 
     block = epic_stories_block(epic, docs)
-    tasks = epic_tasks(epic, docs)
     bugs = epic_bugs(epic, docs)
     coverage = epic_coverage(epic, docs)
     first_retro, prev = prev_actions(epic, docs)

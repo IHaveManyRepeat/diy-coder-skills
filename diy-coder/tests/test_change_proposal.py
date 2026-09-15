@@ -222,6 +222,38 @@ PROPOSAL_YAML = NL.join([
     "revisions: []",
 ]) + NL
 
+# infra 类目标 + path: 形态夹具（2026-09-14 用户裁定：部署/CI 面须可表达）
+PROPOSAL_INFRA_YAML = NL.join([
+    "project:",
+    "  name: mini",
+    "  created: '2026-09-14'",
+    "  updated: '2026-09-14'",
+    "proposals:",
+    "- id: CP-001",
+    "  date: '2026-09-14'",
+    "  status: final",
+    "  trigger: 部署方式改为容器化",
+    "  mode: incremental",
+    "  scope: minor",
+    "  impacts:",
+    "  - {artifact: architecture, target: D-1, kind: modify, why: 部署决策须改容器化}",
+    "  - {artifact: infra, target: path:Dockerfile, kind: add, why: 需新建镜像构建文件}",
+    "  - {artifact: test-plan, target: TC-1.1.1, kind: modify, why: 用例须按容器环境调整}",
+    "  edits:",
+    "  - artifact: infra",
+    "    target: path:.github/workflows/ci.yml",
+    "    field: jobs.test.steps",
+    "    old: (absent)",
+    "    new: 增加容器构建与推送步骤",
+    "    rationale: 容器化后 CI 须构建镜像",
+    "  ripple: []",
+    "  effort: {estimate: 中, risk: 中, timeline_impact: 一个 sprint}",
+    "  approach: {path: direct-adjustment, why: 现有部署面小}",
+    "  handoff: {route: diy-dev, note: 新建 Dockerfile 并补 CI 步骤}",
+    "  open_questions: []",
+    "revisions: []",
+]) + NL
+
 
 def run_engine(args):
     import subprocess
@@ -527,6 +559,69 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(data["counts"]["proposals"], 0)
 
 
+class TargetFormTests(EngineCase):
+    """2026-09-14 用户裁定（部署/CI 面）：artifact 枚举补 test-plan / infra；
+    infra 类目标走 path:<相对路径> 形态（与 artifact 双向绑定）。
+
+    来源：源 checklist §3.4「其他工件」（Testing strategies / Deployment scripts / CI-CD）
+    此前被整体裁剪，理由「diy 无此类产物」对 test-plan 不实（diy 侧有产物），对
+    部署/CI 则缺表达面——本次修正为可表达：产物类用 ID，infra 文件用 path:。
+    """
+
+    def write_proposal(self, text):
+        self.write("diy-output/change-proposal.yaml", text)
+
+    # trace: 源 checklist §3.4 Testing strategies → test-plan 影响面可表达
+    def test_test_plan_artifact_accepted(self):
+        text = PROPOSAL_YAML.replace(
+            "{artifact: stories, target: AC-1.1, kind: add, why: 缺 2FA 验收标准}",
+            "{artifact: test-plan, target: TC-1.1.1, kind: add, why: 缺 2FA 用例}")
+        self.write_proposal(text)
+        r = self.check()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    # trace: 源 checklist §3.4 Deployment scripts / CI-CD → infra 类 + path: 目标
+    def test_infra_path_target_accepted(self):
+        self.write_proposal(PROPOSAL_INFRA_YAML)
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    # trace: infra ⟺ path: 双向绑定（infra 不得配产物 ID；产物类不得配 path）
+    def test_artifact_target_form_binding(self):
+        text = PROPOSAL_INFRA_YAML.replace("target: path:Dockerfile", "target: D-1")
+        self.write_proposal(text)
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r.stdout)["violations"]})
+
+        text = PROPOSAL_YAML.replace("target: FR-1.1, kind: modify",
+                                     "target: path:Dockerfile, kind: modify")
+        self.write_proposal(text)
+        r2 = self.check()
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
+
+    # trace: path 形态纪律（相对 / 正斜杠 / 无 . .. 段 / 非空）
+    def test_malformed_path_targets_rejected(self):
+        for bad in ('path:../x', 'path:/abs/x', r'path:a\b', 'path:./x', '"path:"'):
+            text = PROPOSAL_INFRA_YAML.replace("target: path:Dockerfile",
+                                               "target: %s" % bad)
+            self.write_proposal(text)
+            r = self.check()
+            self.assertEqual(r.returncode, 1, r.stdout)
+            self.assertIn("ENUM_INVALID",
+                          {x["code"] for x in json.loads(r.stdout)["violations"]},
+                          "非法 path 未报出：%s" % bad)
+
+    # trace: collect --target 引用链仅支持 ID（path 目标不参与遍历，文案给指引）
+    def test_collect_target_path_refused_with_guidance(self):
+        self.write_six()
+        r = self.collect("--target", "path:Dockerfile")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        msg = json.loads(r.stdout)["violations"][0]["msg"]
+        self.assertIn("引用链", msg)
+
+
 class SkillContractTests(unittest.TestCase):
     """用例 9：SKILL.md 契约冒烟（冻结文本逐字 + 终门句指向本技能引擎 + 写权边界）。"""
 
@@ -568,6 +663,13 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("viewer.py", skill, "缺渲染静默命令")
         self.assertIn("never edit", skill, "缺写权边界声明")
         self.assertNotIn("bmad-help", skill, "不得引用不存在的技能")
+
+    # trace: 2026-09-14 用户裁定（部署/CI 面）——schema 枚举含 test-plan 与 infra
+    def test_schema_lists_test_plan_and_infra(self):
+        skill = self.read_skill()
+        self.assertIn("test-plan", skill, "schema 枚举缺 test-plan")
+        self.assertIn("infra", skill, "schema 枚举缺 infra")
+        self.assertIn("path:", skill, "schema 缺 path: 目标形态说明")
 
 
 if __name__ == "__main__":

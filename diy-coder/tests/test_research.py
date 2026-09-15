@@ -13,7 +13,6 @@
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；不依赖本机 git 状态。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_research.py" -v
 """
-import copy
 import hashlib
 import io
 import json
