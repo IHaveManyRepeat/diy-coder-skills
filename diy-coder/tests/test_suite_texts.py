@@ -166,8 +166,8 @@ retrospective spec-scan viewer
         lacking = _lacking(anchor, candidates)
         if pending:
             self.assertEqual(lacking, set(pending),
-                             "锚串 %r 的未落地集与台账不符（已落地未登出：%s；"
-                             "台账多登：%s）——已落地的技能请从 PENDING 台账删除"
+                             "锚串 %r 的未落地集与台账不符（缺锚串但未登记：%s ← 落地时漏登；"
+                             "已含锚串但仍在台账：%s ← 请从 PENDING 台账删除）"
                              % (anchor[:24],
                                 sorted(lacking - set(pending)),
                                 sorted(set(pending) - lacking)))
