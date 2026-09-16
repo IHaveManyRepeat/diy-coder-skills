@@ -9,6 +9,9 @@
 - done：三真源同批回填、空 test_refs 豁免、evidence 不完整/状态非 review/故事不存在拒绝、rounds outcome；
 - bug-add：序号铸造（既有 BUG-013 → BUG-014；无文件 → BUG-001 骨架）、--entry-file、
   枚举（source/class/subclass 对照）与必填拒绝、坏 JSON 拒绝、互斥参数拒绝；
+- defer-add（2026-09-15 副作用纪律修订）：序号铸造（既有 DA-003 → DA-004；无文件 →
+  DA-001 骨架）、四类 reason 全收、可选字段缺席不留空键、append 保留既有条目、
+  枚举/必填/坏 JSON/互斥参数拒绝；
 - reconcile：dry-run 零落盘 / --apply 落盘、add（缺覆盖→blocked+reason、story done→done、
   waived 缺口视为覆盖）、remove 孤儿任务、changed 门重算（in-progress→blocked、blocked→pending 清 reason）、
   review/done 不动、done story 任务非 done 只 warning 不伪造、test_refs 重推、新任务按 story 序插入、
@@ -455,6 +458,98 @@ class BugAddTests(WritebackCase):
 
     def test_both_entry_sources_rejected(self):
         res = diyc_writeback.run(self.args("bug-add", entry="{}", entry_file="x.json"))
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "SET_MISMATCH")
+
+
+@NEEDS_W1
+class DeferAddTests(WritebackCase):
+    """defer-add（2026-09-15 副作用纪律修订）：保留确认类动作入队。"""
+
+    ENTRY = {
+        "skill": "diy-test-framework",
+        "action": "合并 hook 到 .claude/settings.json",
+        "command": "python scripts/merge-hook.py",
+        "target": ".claude/settings.json",
+        "reason": "user-config",
+    }
+
+    def _add(self, entry=None, **kw):
+        payload = dict(self.ENTRY if entry is None else entry)
+        return diyc_writeback.run(self.args(
+            "defer-add", entry=json.dumps(payload, ensure_ascii=False),
+            entry_file=None, **kw))
+
+    def test_sequence_minted_after_existing(self):
+        actions = [{"id": f"DA-{i:03d}", "date": "2026-01-01", "skill": "s",
+                    "action": "a", "reason": "user-only", "status": "pending"}
+                   for i in range(1, 4)]
+        self.write("deferred-actions",
+                   {"project": diyc_fixture.project_meta(), "actions": actions})
+        res = self._add()
+        self.assertTrue(res["ok"], res)
+        self.assertEqual(res["id"], "DA-004")
+        doc = self.read("deferred-actions")
+        self.assertEqual(len(doc["actions"]), 4)
+        self.assertEqual(doc["actions"][-1]["id"], "DA-004")
+        self.assertEqual(doc["actions"][-1]["date"], diyc_lib.today())
+        self.assertEqual(doc["actions"][-1]["status"], "pending")
+        self.assertEqual(doc["project"]["updated"], diyc_lib.today())
+        self.assertEqual(res["file"], "diy-output/deferred-actions.yaml")
+
+    def test_missing_file_creates_skeleton(self):
+        self.write("sprint", _sprint_doc(_task("S-1", "pending")))  # 供骨架取 project.name
+        res = self._add()
+        self.assertTrue(res["ok"], res)
+        self.assertEqual(res["id"], "DA-001")
+        doc = self.read("deferred-actions")
+        self.assertEqual(doc["actions"][0]["id"], "DA-001")
+        self.assertEqual(doc["project"]["name"], "diy-coder-skill")
+        self.assertEqual(set(doc["project"]), {"name", "created", "updated"})
+
+    def test_optional_fields_omitted_when_absent(self):
+        entry = {k: v for k, v in self.ENTRY.items() if k not in ("command", "target")}
+        res = self._add(entry)
+        self.assertTrue(res["ok"], res)
+        item = self.read("deferred-actions")["actions"][0]
+        self.assertNotIn("command", item)
+        self.assertNotIn("target", item)
+        self.assertEqual(item["reason"], "user-config")
+
+    def test_append_keeps_existing_entries(self):
+        first = self._add()
+        self.assertTrue(first["ok"], first)
+        second = self._add({**self.ENTRY, "reason": "user-only", "action": "配置 API key"})
+        self.assertTrue(second["ok"], second)
+        doc = self.read("deferred-actions")
+        self.assertEqual([a["id"] for a in doc["actions"]], ["DA-001", "DA-002"])
+        self.assertEqual(doc["actions"][0]["reason"], "user-config")  # 既有条目原样
+
+    def test_all_four_reasons_accepted(self):
+        for reason in ("user-config", "destructive", "out-of-bounds", "user-only"):
+            with self.subTest(reason=reason):
+                res = self._add({**self.ENTRY, "reason": reason})
+                self.assertTrue(res["ok"], res)
+
+    def test_bad_reason_rejected(self):
+        res = self._add({**self.ENTRY, "reason": "whatever"})
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "ENUM_INVALID")
+
+    def test_missing_required_field_rejected(self):
+        entry = {k: v for k, v in self.ENTRY.items() if k != "action"}
+        res = self._add(entry)
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "EMPTY_FIELD")
+        self.assertIn("action", res["violations"][0]["msg"])
+
+    def test_bad_json_rejected(self):
+        res = diyc_writeback.run(self.args("defer-add", entry="{不是 json", entry_file=None))
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "ENTRY_INVALID")
+
+    def test_both_entry_sources_rejected(self):
+        res = diyc_writeback.run(self.args("defer-add", entry="{}", entry_file="x.json"))
         self.assertFalse(res["ok"])
         self.assertEqual(res["violations"][0]["code"], "SET_MISMATCH")
 

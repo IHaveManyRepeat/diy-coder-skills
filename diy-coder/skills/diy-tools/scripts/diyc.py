@@ -31,7 +31,7 @@ CHECK_TYPES = ("prd", "architecture", "openapi", "epics", "stories",
                "test-plan", "sprint", "review")
 # --previous 稳定 ID 比对仅这些类型支持（契约 §4.2）
 PREVIOUS_TYPES = ("prd", "openapi", "epics", "stories", "test-plan")
-WRITEBACK_COMMANDS = ("transition", "green", "done", "bug-add", "reconcile")
+WRITEBACK_COMMANDS = ("transition", "green", "done", "bug-add", "defer-add", "reconcile")
 
 # trace 扫描：文件扩展集与目录排除（契约 §4.3）
 TRACE_SCAN_EXTS = {".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".go", ".rs",
@@ -353,6 +353,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--rounds", type=int, default=None)
 
     p = sub.add_parser("bug-add", parents=[common], help="缺陷入库（bug-log.yaml）")
+    g = p.add_mutually_exclusive_group(required=True)
+    g.add_argument("--entry", default=None, help="JSON 对象字符串")
+    g.add_argument("--entry-file", default=None, help="JSON 对象文件路径")
+
+    p = sub.add_parser("defer-add", parents=[common],
+                       help="待确认动作入队（deferred-actions.yaml）")
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--entry", default=None, help="JSON 对象字符串")
     g.add_argument("--entry-file", default=None, help="JSON 对象文件路径")

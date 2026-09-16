@@ -17,10 +17,10 @@
 import diyc_lib
 
 # 枚举（逐条对照各 SKILL.md Schema 节的机器锚）
-# rule: diy-test-design/SKILL.md:Schema technique 12 值（前 9 设计期 + 后 3 补测）
+# rule: diy-test-design/SKILL.md:Schema technique 13 值（前 9 设计期 + 后 4 补测）
 TECHNIQUES = ("equivalence", "boundary", "decision-table", "state-transition",
               "pairwise", "error-guessing", "metamorphic", "property", "scenario",
-              "coverage-branch", "coverage-mc-dc", "whitebox-path")
+              "coverage-branch", "coverage-mc-dc", "whitebox-path", "mutation-kill")
 CASE_TYPES = ("unit", "integration", "e2e")          # rule: diy-test-design/SKILL.md:Design Discipline（Type maps to layer）
 PRIORITIES = ("P0", "P1", "P2")                      # rule: diy-test-design/SKILL.md:Design Discipline（Priority maps to risk）
 TC_STATUSES = ("pending", "pass", "fail")            # rule: diy-test-design/SKILL.md:Schema status

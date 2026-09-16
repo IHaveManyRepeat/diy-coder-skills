@@ -22,17 +22,17 @@ When a sub-agent is available, launch it at the same model capability as this se
 ## Classify
 
 1. Deduplicate all findings.
-2. Route each finding **exactly once**:
-   - `intent_gap` — the change contradicts or misses the frozen `intent`. Do not infer intent unless there is exactly one possible reading.
-   - `bad_spec` — caused by the change, including direct deviations from the record; the non-frozen sections should have prevented it. When in doubt between `bad_spec` and `patch`, prefer `bad_spec` — a spec-level fix produces more coherent code.
-   - `patch` — caused by the change and trivially fixable without human input.
-   - `defer` — real, but pre-existing and not this change's problem. When unsure between `defer` and dropping it, drop it: only defer findings you are confident are real.
+2. Route each finding **exactly once**. The four route names and their meanings are diy-review's table — authoritative, never restated here. Two of them land differently in this channel, which owns no `stories.yaml` / `test-plan.yaml`:
+   - `intent_gap` — as diy-review defines it: the change contradicts or misses the frozen `intent`. Do not infer intent unless there is exactly one possible reading.
+   - `bad_spec` — diy-review's target (fix the spec, not the code) lands here on the record's **non-frozen** sections: when `boundaries` / `io_matrix` / `code_map` / `tasks` / `acceptance` are wrong or ambiguous, the record is what gets fixed. When in doubt between `bad_spec` and `patch`, prefer `bad_spec` — a spec-level fix produces more coherent code.
+   - `patch` — as diy-review defines it: small, localized, fixed in place without human input.
+   - `defer` — **narrowed here** to pre-existing findings that are not this change's problem; a real finding this change caused is never `defer`. When unsure between `defer` and dropping it, drop it: only defer findings you are confident are real.
 3. Process in cascading order — `intent_gap` / `bad_spec` trigger a loopback and lower findings become moot; increment `rounds` on each loopback; above 5 HALT and escalate to the human.
 
 ## Apply the route
 
 - **intent_gap** — root cause is inside the frozen `intent`. Revert the code changes, loop back to the human to renegotiate the intent, then re-run `./02-plan.md` → this step. The human owns this edit; you never rewrite `intent` yourself.
-- **bad_spec** — root cause is outside `intent`. Before reverting: extract KEEP instructions (what worked and must survive). Revert the code, respect every existing `change_log` constraint, append one new `change_log` entry (`finding` / `amended` / `avoided` / `keep`), then re-run `./03-implement.md` → this step.
+- **bad_spec** — root cause is outside `intent`: the non-frozen sections are wrong or ambiguous, so **the record is what gets fixed, not the code**. Before editing anything: extract KEEP instructions (what worked and must survive). Amend the affected sections and append one new `change_log` entry (`finding` / `amended` / `avoided` / `keep`), respecting every existing entry — never edit one. Then re-derive against the amended record: revert the code the amendment invalidates (and only that), and re-run `./03-implement.md` → this step.
 - **patch** — fix it now. These are the only findings that survive loopbacks.
 - **defer** — append `{finding, why, date}` to `deferred`. Recorded, does not block.
 - Anything without a route — noise. Drop it silently and say so only in the aggregate ("N rejected").

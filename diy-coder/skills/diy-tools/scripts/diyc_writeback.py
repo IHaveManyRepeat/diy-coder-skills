@@ -12,6 +12,9 @@
 - §4.8 bug-add：diy-review 缺陷入库——枚举校验 + BUG- 序号铸造（现有最大 +1，三位补零）。
 - §4.9 reconcile：diy-sprint Create/Update 机制化——任务集对账；TDD 门判定只经
   diyc_lib.Docs.story_covered()（与 check 共享唯一定义，禁止二份实现）。
+- §4.10 defer-add（2026-09-15 副作用纪律修订）：保留确认类动作入队——reason 枚举校验 +
+  DA- 序号铸造（现有最大 +1，三位补零）→ deferred-actions.yaml（append-only，
+  无头/循环场景不阻塞任务，供用户事后确认执行）。
 
 写回纪律（契约 §3）：全文 load → 就地改 → safe_dump(allow_unicode=True,
 sort_keys=False) → 同目录临时文件 + os.replace 原子替换，统一经
@@ -53,6 +56,13 @@ BUG_REQUIRED = ("source", "story", "class", "subclass", "type", "symptom",
                 "root_cause", "trigger", "fix", "prevention", "pattern")
 BUG_ID_RE = re.compile(r"BUG-(\d+)\Z")
 
+# defer-add（2026-09-15 副作用纪律修订）：保留确认类动作的入队原因枚举——
+# user-config 改用户级配置 / destructive 破坏性或共享操作 / out-of-bounds 越界写盘 /
+# user-only AI 做不了（secrets、登录、外部服务授权）
+DEFER_REASONS = ("user-config", "destructive", "out-of-bounds", "user-only")
+DEFER_REQUIRED = ("skill", "action", "reason")
+DEFER_ID_RE = re.compile(r"DA-(\d+)\Z")
+
 
 def run(args) -> dict:
     # 入口（契约 §2）：args 由 diyc.py 组装（含 resolved output_dir 与 args.command）
@@ -64,6 +74,8 @@ def run(args) -> dict:
         return _done(args)
     if args.command == "bug-add":
         return _bug_add(args)
+    if args.command == "defer-add":
+        return _defer_add(args)
     if args.command == "reconcile":
         return _reconcile(args)
     raise ValueError(f"diyc_writeback 不认识的子命令：{args.command!r}（diyc.py 接线 bug）")
@@ -418,15 +430,15 @@ def _done(args):
 
 # ---- bug-add（§4.8） ----
 
-def _read_entry(args):
+def _read_entry(args, command):
     """解析 --entry / --entry-file 的 JSON 对象；返回 (entry, violation)。"""
     entry_arg = args.entry
     entry_file = args.entry_file
     if entry_arg and entry_file:
-        return None, lib.v("SET_MISMATCH", "bug-add --entry",
+        return None, lib.v("SET_MISMATCH", f"{command} --entry",
                            "--entry 与 --entry-file 互斥，只给其一")
     if not entry_arg and not entry_file:
-        return None, lib.v("EMPTY_FIELD", "bug-add --entry",
+        return None, lib.v("EMPTY_FIELD", f"{command} --entry",
                            "必须给 --entry '<json>' 或 --entry-file PATH")
     if entry_file:
         if not os.path.isfile(entry_file):
@@ -442,10 +454,10 @@ def _read_entry(args):
     try:
         data = json.loads(text)
     except (ValueError, TypeError) as e:
-        return None, lib.v("ENTRY_INVALID", "bug-add --entry",
+        return None, lib.v("ENTRY_INVALID", f"{command} --entry",
                            f"entry 不是合法 JSON（{e.__class__.__name__}）——检查引号与转义")
     if not isinstance(data, dict):
-        return None, lib.v("ENTRY_INVALID", "bug-add --entry", "entry 顶层必须是 JSON 对象")
+        return None, lib.v("ENTRY_INVALID", f"{command} --entry", "entry 顶层必须是 JSON 对象")
     return data, None
 
 
@@ -467,7 +479,7 @@ def _project_name(args):
 
 def _bug_add(args):
     # trace: S-8 AC-8.1 TC-8.2.1（diy-review 缺陷入库：枚举校验 + BUG 序号铸造）
-    entry, viol = _read_entry(args)
+    entry, viol = _read_entry(args, "bug-add")
     if viol:
         return _fail(args, viol)
     entry = {k: (v.strip() if isinstance(v, str) else v) for k, v in entry.items()}
@@ -532,6 +544,74 @@ def _bug_add(args):
     # 新建骨架是明确支持场景（首个缺陷/新实例），output_dir 可能尚未创建
     os.makedirs(os.path.dirname(bug_path), exist_ok=True)
     lib.save_yaml_atomic(bug_path, doc)
+    return _receipt(args, True, updated=doc["project"]["updated"], id=new_id, file=rel)
+
+
+# ---- defer-add（2026-09-15 副作用纪律修订） ----
+
+def _defer_add(args):
+    # trace: 2026-09-15 副作用纪律修订（B3 任务书 §0 纪律 5 / 迁移计划 §十三）——
+    # 保留确认类动作入队（不阻塞任务）：reason 枚举校验 + DA 序号铸造 + 追加写
+    entry, viol = _read_entry(args, "defer-add")
+    if viol:
+        return _fail(args, viol)
+    entry = {k: (v.strip() if isinstance(v, str) else v) for k, v in entry.items()}
+    missing = [k for k in DEFER_REQUIRED if not _nonempty(entry.get(k))]
+    if missing:
+        return _fail(args, lib.v("EMPTY_FIELD", "defer-add --entry",
+                                 f"必填字段缺失或为空：{'、'.join(missing)}"))
+    if entry["reason"] not in DEFER_REASONS:
+        return _fail(args, lib.v("ENUM_INVALID", "defer-add --entry.reason",
+                                 f"reason={entry['reason']!r} 非法，"
+                                 f"合法值：{'/'.join(DEFER_REASONS)}"))
+
+    path = _doc_path(args, "deferred-actions")
+    rel = _rel(args, path)
+    if os.path.isfile(path):
+        doc, _, viol = _load(args, "deferred-actions")
+        if viol:
+            return _fail(args, viol)
+        viol = _bump(args, path, doc)
+        if viol:
+            return _fail(args, viol)
+        actions = doc.get("actions")
+        if actions is None:
+            actions = []
+            doc["actions"] = actions
+        elif not isinstance(actions, list):
+            return _fail(args, lib.v("UNPARSABLE_YAML", f"{rel} actions",
+                                     f"{rel} 的 actions 不是列表（形状异常）——拒绝改写"))
+    else:
+        # 无文件 → 新建骨架（本体系首个待确认动作；output_dir 可能尚未创建）
+        doc = {"project": {"name": _project_name(args), "created": lib.today(),
+                           "updated": lib.today()},
+               "actions": []}
+        actions = doc["actions"]
+
+    max_n = 0
+    for a in actions:
+        if not isinstance(a, dict):
+            continue
+        m = DEFER_ID_RE.match(str(a.get("id") or ""))
+        if m:
+            max_n = max(max_n, int(m.group(1)))
+    new_id = f"DA-{max_n + 1:03d}"
+
+    item = {
+        "id": new_id,
+        "date": entry["date"].strip() if _nonempty(entry.get("date")) else lib.today(),
+        "skill": entry["skill"],
+        "action": entry["action"],
+    }
+    if _nonempty(entry.get("command")):
+        item["command"] = entry["command"]
+    if _nonempty(entry.get("target")):
+        item["target"] = entry["target"]
+    item["reason"] = entry["reason"]
+    item["status"] = "pending"
+    actions.append(item)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    lib.save_yaml_atomic(path, doc)
     return _receipt(args, True, updated=doc["project"]["updated"], id=new_id, file=rel)
 
 

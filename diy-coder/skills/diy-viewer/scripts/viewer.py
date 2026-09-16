@@ -20,7 +20,7 @@ from pathlib import Path
 import yaml
 
 BADGE_KEYS = {"status", "priority", "state"}
-ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "technique", "gate", "class", "subclass", "source", "augment"}
+ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "technique", "gate", "class", "subclass", "source", "augment", "severity"}
 # 自由文本字段 (doc, key)：schema 无枚举约束——同名 key 在别的产物可以是枚举。
 # 依据：diy-architecture SKILL.md:43 decision=what was chosen；diy-review SKILL.md:31 type=short tag；
 # diy-design SKILL.md:65 route=/path
@@ -33,6 +33,7 @@ BADGE_CLASSES = {
     "in-progress": "warn", "in_review": "warn", "should": "warn", "wip": "warn",
     "blocked": "bad", "fail": "bad", "failed": "bad", "red": "bad",
     "blocking": "bad", "advisory": "warn",
+    "blocker": "bad", "major": "warn", "minor": "dim",
 }
 KEY_RE = re.compile(r"[^a-z0-9]+")
 META_KEYS = ("project", "x-project")
@@ -84,6 +85,11 @@ KEY_LABELS = {
     "unit": "基准单位", "family_base": "正文字体", "family_heading": "标题字体",
     "bg": "背景", "surface": "表面", "text": "文字", "text_muted": "次要文字",
     "accent": "强调色", "accent_text": "强调色文字",
+    # spec-scan 族（diy-spec-scan schema）：规格预演扫描的歧义清单
+    "scans": "扫描记录", "units": "扫描单元", "scanned": "已扫描",
+    "quote": "原文摘录", "read_as": "我读到什么", "stuck": "卡在哪",
+    "would_guess": "会猜成什么", "impact": "猜错后果", "suggestion": "建议裁定",
+    "severity": "严重度", "units_total": "单元总数", "units_scanned": "已扫描单元数",
 }
 VALUE_LABELS = {
     "draft": "草稿", "final": "已定稿", "pending": "待办",
@@ -99,6 +105,7 @@ VALUE_LABELS = {
     "pairwise": "成对组合", "error-guessing": "错误猜测", "metamorphic": "蜕变测试",
     "property": "属性测试", "scenario": "场景",
     "coverage-branch": "覆盖分支", "coverage-mc-dc": "MC-DC 覆盖", "whitebox-path": "白盒路径",
+    "mutation-kill": "变异杀伤",
     "blocking": "阻断", "advisory": "记录不阻断",
     "functional": "功能型", "non-functional": "非功能型",
     "logic": "逻辑", "data": "数据", "state": "状态",
@@ -107,17 +114,28 @@ VALUE_LABELS = {
     "dev": "开发", "audit": "审查发现", "falsification": "证伪轮", "user": "用户",
     "proposed": "待定", "accepted": "已采纳",
     "icon": "图标", "text": "文字", "motion": "动效",
+    # spec-scan：八类执行歧义 + 三档严重度
+    "UNDEFINED_BRANCH": "分支无定义", "TERM_CONFLICT": "术语冲突",
+    "INTERFACE_GAP": "接口缺口", "INPUT_UNDEFINED": "输入不明",
+    "OUTPUT_UNDEFINED": "输出不明", "ORDER_AMBIGUOUS": "时序不明",
+    "CONFLICT": "直接矛盾", "UNSTATED_ASSUMPTION": "隐含假设",
+    "blocker": "阻断", "major": "建议", "minor": "观察",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
     "stories": "故事列表", "test-plan": "测试计划", "openapi": "接口契约",
     "sprint": "冲刺任务",
     "bug-log": "缺陷模式库", "design": "设计稿",
+    "spec-scan": "规格歧义扫描",
 }
 # 文档级标签覆盖（B1）：同一 key 在不同文档语义不同——bug-log 的 type 是缺陷三级分类，
 # 其余文档（test-plan/openapi 等）回落全局 type=类型
 DOC_KEY_LABELS = {
     "bug-log": {"type": "小类"},
+    # spec-scan：全局 unit=基准单位（design 族）在扫描记录里指扫描单元；
+    # target/lines/files 收在此处——checkpoint 的 target 语义不同，不加全局映射
+    "spec-scan": {"unit": "单元", "type": "歧义类型", "kind": "目标类型",
+                  "target": "扫描目标", "lines": "行数", "files": "文件数"},
 }
 # 术语表（展示层，FR-4.1 可读性）：标签/徽章/标题命中即挂悬浮解释，YAML 单一源不动。
 # key = 渲染后的展示文本（已 esc，纯中文无 HTML 字符，查找安全）。

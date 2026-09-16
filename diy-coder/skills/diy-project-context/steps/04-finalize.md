@@ -15,9 +15,9 @@ Read the file as its consumer does — an agent that will act on it tomorrow wit
 
 Present the review with the counts, then halt before the gate if anything still needs the human.
 
-## Rescan check
+## Rewrite check
 
-Rescan mode only, and only when step 1 made a `.prev` copy:
+Rescan and deep-dive — the two modes that reshape a file which already exists — and only when step 1 made a `.prev` copy:
 
 ```
 python "{project-root}/.claude/skills/diy-project-context/scripts/context.py" check --previous {output_dir}/project-context.yaml.prev --json

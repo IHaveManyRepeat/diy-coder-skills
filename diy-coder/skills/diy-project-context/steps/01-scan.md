@@ -19,7 +19,7 @@ I found project context from {scan.date} — mode {scan.mode}, level {scan.level
 3. Cancel — keep the file as-is
 ```
 
-HALT — wait for the choice. **Cancel** ends the run with zero writes and a one-line closing message. **Deep-dive** sets `mode: deep-dive`, `level: exhaustive`, then runs the scan below and continues to `./05-deep-dive.md` instead of step 2. **Rescan** sets `mode: rescan` and, before any rewrite, runs:
+HALT — wait for the choice. **Cancel** ends the run with zero writes and a one-line closing message. **Deep-dive** sets `mode: deep-dive`, `level: exhaustive`, then runs the scan below and continues to `./05-deep-dive.md` instead of step 2 — it edits an existing file: `project` + `scan` are the only sections it writes, every other section is copied forward untouched. **Rescan** sets `mode: rescan`. Both modes reshape a file that already exists, so before any write either of them runs:
 
 ```
 cp {output_dir}/project-context.yaml {output_dir}/project-context.yaml.prev
@@ -83,7 +83,7 @@ rules: []
 revisions: []
 ```
 
-On a rescan, copy the existing sections forward first and edit in place — `revisions` records what changed.
+On a rescan or a deep-dive, copy the existing sections forward first and edit in place — `revisions` records what changed. The skeleton above is the **fresh-file** shape: writing it over an existing file would drop `stack` / `structure` / `architecture` / `rules` and every human-confirmed `PC-###` with them.
 
 ## Next
 
