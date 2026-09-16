@@ -19,7 +19,7 @@ outputs: spec-scan.yaml
 
 ## On Activation
 
-1. 读 `{project-root}/diy-coder.yaml`；解析 `communication_language` / `document_output_language` / `paths.output_dir`。全程说 `communication_language`，产物散文写 `document_output_language`，机器锚点（ID、枚举值、CLI 旗标、文件路径）逐字保留。实例解析（FR-4.5/D-9）交给工具脚本：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执的 `output_dir` 当作本次运行唯一的读写根目录。
+1. 读 `{project-root}/diy-coder.yaml`；解析 `communication_language` / `document_output_language` / `paths.output_dir`。全程说 `communication_language`，产物散文写 `document_output_language`，机器锚点（ID、枚举值、CLI 旗标、文件路径）逐字保留。实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 定位目标。用户显式给的路径优先；对话里已出现目标（"扫一下 B3 任务书"）直接取用；都没有则问一次。
 3. 硬门：目标存在且可读；且其中确实有「要照做的事」。纯参考资料 / 纯数据 → 一行拒绝说明本技能扫的是规格（给执行者的指令），然后零产出停止。
 4. 读取纪律：本次运行只读三类东西——本文件、`steps/` 下**当前步骤那一个**文件、被扫目标。绝不批量预载 steps。目标文件的读取按 step 1 切出的单元逐批进行。

@@ -4,13 +4,17 @@
 母本：`diy-coder/.analysis/2026-09-16-skill-remediation/suite-texts.md`
 用途：母本一处改 -> 机械复制 -> 本测试抓漂移（NFR-4 要求技能目录自带全部内容，不能运行时读共享文件）。
 
-两组：
-  A **强制组**（母本 §1 / §2，历史冻结、英文原形 + md5）—— 成员必须逐字同 md5，本组现在就绿。
-  B **待落地组**（母本 §3 / §4 / §5，母本已定、技能尚未改）—— 断言「缺该锚串的技能集 == 台账」。
-    中文化轮每落地一个技能，台账就要减一个；漏减则本测试红。台账清空后本组自动转为
-    「全部适用技能必须逐字含锚串」的强制断言。
+三组：
+  A **冻结片段组**（母本 §1 / §2）—— 分两态：
+      · 已转中文定稿的技能（`CONVERTED_*` 台账）-> 断言含中文定稿、且不再含英文原形；
+      · 未转的技能 -> 断言英文原形逐字同 md5。
+    每转一个技能就在台账里加一个；**漏登即红**（英文断言会失败）。
+  B **待落地组**（母本 §3 / §4 / §5）—— 母本已定、技能未改；断言「缺锚串的技能集 == 台账」。
+    每落地一个就从台账删一个；**漏删即红**。台账清空后转为「全部适用技能必须含锚串」。
+  C **非成员组** —— 工具类技能不得出现 §1 / §2 的任一形态。
 
-trace: 中文化轮前置（母本抽取），来源裁定见 dispositions.md 轮3 / C1；母本 §8 记录 spec-scan 缺口。
+trace: 中文化轮前置（母本抽取 + 全中文正典），来源裁定见 dispositions.md 轮3 / C1 / B10；
+       母本 §8 记录 spec-scan 处置（§1 补中文定稿、§2 保留自定短块）。
 """
 import hashlib
 import os
@@ -39,86 +43,102 @@ def md5(text):
     return hashlib.md5((text + NL).encode("utf-8")).hexdigest()
 
 
-# --------------------------------------------------------------- A 强制组
+# --------------------------------------------------------------- A 冻结片段
 
-INSTANCE_MD5 = "5445f98bc4d4821e6888b89406a97eac"
-INSTANCE_RE = re.compile(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*")
+INSTANCE_EN_MD5 = "5445f98bc4d4821e6888b89406a97eac"
+INSTANCE_EN_RE = re.compile(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*")
+INSTANCE_EN_MARK = "Instance resolution (FR-4.5/D-9)"
+
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+
 INSTANCE_MEMBERS = frozenset("""
 architecture augment build-loop checkpoint-preview correct-course create-story
 design dev e2e-tests epics-stories help investigate openapi prd prfaq
 product-brief project-context quick-dev readiness-check research retrospective
 review sprint test-design
 """.split())
+# 已转中文定稿的技能（中文化轮逐个加入）
+CONVERTED_INSTANCE = frozenset(["spec-scan"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
-DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
-DISCIPLINE_RE = re.compile(r"^- \*\*Writing discipline[^\r\n]*", re.M)
+DISCIPLINE_EN_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
+DISCIPLINE_EN_RE = re.compile(r"^- \*\*Writing discipline[^\r\n]*", re.M)
+
+DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
+                 "机器语法（命令/旗标/路径）进括号；机器锚点逐字保留"
+                 "（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 "
+                 "`diy-design` 的 detect 启发式。schema 若定义 `plain`："
+                 "一行写清该条目为什么存在，绝不写是什么（转述会漂移）；"
+                 "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
+
 DISCIPLINE_MEMBERS = frozenset("""
 architecture checkpoint-preview correct-course create-story e2e-tests
 epics-stories investigate prd prfaq product-brief project-context quick-dev
 readiness-check research retrospective review sprint test-design
 """.split())
-# spec-scan 带同前缀（`- **Writing discipline.**`）的技能自定短块——非 §2 成员，不参与 md5 断言
+CONVERTED_DISCIPLINE = frozenset()  # 中文化轮逐个加入
+# spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
 
 
 class FrozenTextsConsistencyTests(unittest.TestCase):
-    """母本 §1 / §2：成员逐字同 md5；非成员不得出现。"""
+    """母本 §1 / §2：已转者断言中文定稿，未转者断言英文原形 md5。"""
 
-    def _members_hitting(self, pattern, digest, non_members=()):
-        hit, miss = set(), set()
+    def _check(self, label, zh_text, en_re, en_md5, en_mark, members,
+               converted, non_members):
         for s in skills():
             if s in non_members:
                 continue
             text = read(s)
             if text is None:
                 continue
-            found = pattern.findall(text)
-            if not found:
+            if s in converted:
+                self.assertIn(zh_text, text,
+                              "%s：%s 已登记为中文定稿，但正文未含母本 %s 定稿" % (label, s, label))
+                if en_mark:
+                    self.assertNotIn(en_mark, text,
+                                     "%s：%s 已转中文定稿，仍残留英文原形" % (label, s))
                 continue
-            for frag in found:
-                if md5(frag.strip()) == digest:
-                    hit.add(s)
-                else:
-                    miss.add(s)
-        return hit, miss
+            if s not in members:
+                continue
+            frags = en_re.findall(text)
+            self.assertTrue(frags, "%s：%s 是母本成员却缺该片段" % (label, s))
+            for frag in frags:
+                self.assertEqual(md5(frag.strip()), en_md5,
+                                 "%s：%s 的片段既非英文原形 md5、也未登记为已转中文——"
+                                 "转了就请加入 CONVERTED 台账" % (label, s))
 
-    # trace: 母本 §1（实例解析句）—— 24 份逐字同 md5
-    def test_instance_resolution_sentence_is_verbatim(self):
-        hit, miss = self._members_hitting(INSTANCE_RE, INSTANCE_MD5)
-        self.assertEqual(miss, set(), "以下技能的实例解析句与母本 §1 不符：%s" % sorted(miss))
-        self.assertEqual(hit, set(INSTANCE_MEMBERS),
-                         "§1 成员集与母本不符（多：%s；少：%s）"
-                         % (sorted(hit - set(INSTANCE_MEMBERS)),
-                            sorted(set(INSTANCE_MEMBERS) - hit)))
+    # trace: 母本 §1（实例解析句）
+    def test_instance_resolution_sentence(self):
+        self._check("§1", INSTANCE_ZH, INSTANCE_EN_RE, INSTANCE_EN_MD5,
+                    INSTANCE_EN_MARK,
+                    set(INSTANCE_MEMBERS) | set(CONVERTED_INSTANCE),
+                    CONVERTED_INSTANCE, INSTANCE_NON_MEMBERS)
         for s in INSTANCE_NON_MEMBERS:
             text = read(s)
             if text is not None:
-                self.assertNotIn("Instance resolution (FR-4.5/D-9)", text,
-                                 "%s 不在 §1 成员内，不应出现该句" % s)
+                self.assertNotIn(INSTANCE_EN_MARK, text, "%s 不应出现 §1 英文原形" % s)
+                self.assertNotIn(INSTANCE_ZH, text, "%s 不应出现 §1 中文定稿" % s)
 
-    # trace: 母本 §2（写作纪律块）—— 18 份逐字同 md5
-    def test_writing_discipline_block_is_verbatim(self):
-        hit, miss = self._members_hitting(DISCIPLINE_RE, DISCIPLINE_MD5,
-                                          non_members=DISCIPLINE_NON_MEMBERS)
-        self.assertEqual(miss, set(), "以下技能的写作纪律块与母本 §2 不符：%s" % sorted(miss))
-        self.assertEqual(hit, set(DISCIPLINE_MEMBERS),
-                         "§2 成员集与母本不符（多：%s；少：%s）"
-                         % (sorted(hit - set(DISCIPLINE_MEMBERS)),
-                            sorted(set(DISCIPLINE_MEMBERS) - hit)))
+    # trace: 母本 §2（写作纪律块）
+    def test_writing_discipline_block(self):
+        self._check("§2", DISCIPLINE_ZH, DISCIPLINE_EN_RE, DISCIPLINE_EN_MD5, None,
+                    set(DISCIPLINE_MEMBERS) | set(CONVERTED_DISCIPLINE),
+                    CONVERTED_DISCIPLINE, DISCIPLINE_NON_MEMBERS)
 
 
-# --------------------------------------------------------------- B 待落地组
+# --------------------------------------------------------------- B 待落地
 
-# 母本 §3 / §4 / §5 的关键锚串（落地后须逐字出现在技能 SKILL.md）
 ANCHOR_RESOLVE_KEYS = ("解析 `project.communication_language` / "
                        "`project.document_output_language` / `paths.output_dir`")
 ANCHOR_READ_DISCIPLINE = ("读取纪律：`steps/` 下的步骤文件一次只读一个，绝不批量预载；"
                           "每个步骤开头的 `Read (input)` 行是该步读什么的唯一权威。")
 ANCHOR_RENDER_SILENT = "渲染是静默旁路——只写调用命令"
 
-_CONFIG_SKILLS = sorted(set(INSTANCE_MEMBERS))
-_READ_SKILLS = sorted(set(INSTANCE_MEMBERS))  # 不读 steps/ 的技能见母本 §4 例外
+_CONFIG_SKILLS = sorted(set(INSTANCE_MEMBERS) | set(CONVERTED_INSTANCE))
 
 
 def _lacking(anchor, candidates):
@@ -126,15 +146,10 @@ def _lacking(anchor, candidates):
 
 
 class PendingLandingTests(unittest.TestCase):
-    """母本 §3 / §4 / §5：母本已定、技能未改。台账 = 尚未落地的技能集。
+    """母本 §3 / §4 / §5：断言「缺锚串的技能集 == 台账」；漏删即红。"""
 
-    中文化轮每落地一个技能就把它从对应台账删掉；漏删 -> 本测试红（这是刻意设计的强制点）。
-    台账清空后，同一测试转为「全部适用技能必须含锚串」。
-    """
-
-    # 中文化轮落地后，逐个从下列集合删除
     PENDING_RESOLVE_KEYS = frozenset(_CONFIG_SKILLS)
-    PENDING_READ_DISCIPLINE = frozenset(_READ_SKILLS)
+    PENDING_READ_DISCIPLINE = frozenset(_CONFIG_SKILLS)
     PENDING_RENDER_SILENT = frozenset("""
 augment checkpoint-preview correct-course create-story e2e-tests investigate
 prfaq product-brief project-context quick-dev readiness-check research
@@ -145,14 +160,15 @@ retrospective spec-scan viewer
         lacking = _lacking(anchor, candidates)
         if pending:
             self.assertEqual(lacking, set(pending),
-                             "§锚串 %r 的未落地集与台账不符（实测多：%s；台账多：%s）——"
-                             "已落地的技能请从 PENDING 台账删除"
+                             "锚串 %r 的未落地集与台账不符（已落地未登出：%s；"
+                             "台账多登：%s）——已落地的技能请从 PENDING 台账删除"
                              % (anchor[:24],
                                 sorted(lacking - set(pending)),
                                 sorted(set(pending) - lacking)))
         else:
             self.assertEqual(lacking, set(),
-                             "台账已清空，以下技能仍缺锚串 %r：%s" % (anchor[:24], sorted(lacking)))
+                             "台账已清空，以下技能仍缺锚串 %r：%s"
+                             % (anchor[:24], sorted(lacking)))
 
     # trace: 母本 §3（配置解析键路径 + 缺省链）
     def test_pending_resolve_keys(self):
@@ -160,7 +176,7 @@ retrospective spec-scan viewer
 
     # trace: 母本 §4（读取纪律）
     def test_pending_read_discipline(self):
-        self._check(ANCHOR_READ_DISCIPLINE, _READ_SKILLS, self.PENDING_READ_DISCIPLINE)
+        self._check(ANCHOR_READ_DISCIPLINE, _CONFIG_SKILLS, self.PENDING_READ_DISCIPLINE)
 
     # trace: 母本 §5（渲染静默）
     def test_pending_render_silent(self):
