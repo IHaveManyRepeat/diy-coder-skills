@@ -134,11 +134,17 @@ class FrozenTextsConsistencyTests(unittest.TestCase):
 
 ANCHOR_RESOLVE_KEYS = ("解析 `project.communication_language` / "
                        "`project.document_output_language` / `paths.output_dir`")
-ANCHOR_READ_DISCIPLINE = ("读取纪律：`steps/` 下的步骤文件一次只读一个，绝不批量预载；"
-                          "每个步骤开头的 `Read (input)` 行是该步读什么的唯一权威。")
+ANCHOR_READ_DISCIPLINE = ("读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件"
+                          "——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，"
+                          "**主文件不列举封闭清单**。")
 ANCHOR_RENDER_SILENT = "渲染是静默旁路——只写调用命令"
 
 _CONFIG_SKILLS = sorted(set(INSTANCE_MEMBERS) | set(CONVERTED_INSTANCE))
+
+# B3 批新建技能（**落地时在此登记**）：它们**中文原生**——§1/§3/§4/§5 一次写到位，
+# 故只进 `CONVERTED_*` 与这里，**不进 `INSTANCE_MEMBERS` / `DISCIPLINE_MEMBERS` / 任何 `PENDING_*`**
+# （进 PENDING 会因它们已含锚串而判红；RS4-01/04/05）。
+NEW_SKILLS = frozenset()
 
 
 def _lacking(anchor, candidates):
@@ -148,8 +154,8 @@ def _lacking(anchor, candidates):
 class PendingLandingTests(unittest.TestCase):
     """母本 §3 / §4 / §5：断言「缺锚串的技能集 == 台账」；漏删即红。"""
 
-    PENDING_RESOLVE_KEYS = frozenset(_CONFIG_SKILLS)
-    PENDING_READ_DISCIPLINE = frozenset(_CONFIG_SKILLS)
+    PENDING_RESOLVE_KEYS = frozenset(set(_CONFIG_SKILLS) - NEW_SKILLS)
+    PENDING_READ_DISCIPLINE = frozenset(set(_CONFIG_SKILLS) - NEW_SKILLS)
     PENDING_RENDER_SILENT = frozenset("""
 augment checkpoint-preview correct-course create-story e2e-tests investigate
 prfaq product-brief project-context quick-dev readiness-check research
