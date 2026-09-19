@@ -1,9 +1,9 @@
 # Step 1 — 定位与切分（Collect）
 
-Progress: `[Collect] → Dry Run → Cross Check → Report`
+Progress: `[定位与切分] → 预演执行 → 交叉验证 → 落盘与交付`
 
-**读入：** 目标路径（On Activation 定下的）；引擎 `collect` 的回执。
-**写出：** `{output_dir}/spec-scan.yaml` 的草稿记录（`id` / `date` / `target` / `units`）；给用户的进度播报。
+**Read (input):** 目标路径（激活段定下的）；引擎 `collect` 的回执。
+**Write (output):** `{output_dir}/spec-scan.yaml` 的草稿记录（`id` / `date` / `target` / `units`）；给用户的进度播报。
 
 ## 跑引擎
 
@@ -38,7 +38,7 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
 
 ```yaml
   - id: SS-001            # 下一个 = 已有序号最大值 + 1，三位零填充；不重编不重用
-    date: YYYY-MM-DD
+    date: YYYY-MM-DD        # 本次扫描的日子，不随 project.updated 变
     status: 草稿
     target: {kind: <判定值>, path: <相对路径>, files: N, lines: N}
     units:
@@ -54,4 +54,4 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
 
 给用户一句话：目标是什么、切出多少个单元、总共多少行、下一步开始预演。
 
-读完并执行 `./02-dry-run.md`。
+读全并照做 `./02-dry-run.md`。

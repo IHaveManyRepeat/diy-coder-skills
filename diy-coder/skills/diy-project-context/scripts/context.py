@@ -7,9 +7,12 @@
          （package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml / requirements.txt /
          pubspec.yaml / composer.json / *.csproj 按存在性探测）。语言无关：先探测再解析，
          未知清单降级「存在但未解析」+ MANIFEST_UNPARSED warning，不崩、不假设特定工具链。
-         另有既有文档发现（源 full-scan step-2 的 README/ARCHITECTURE/API/DEPLOYMENT/docs 模式）
-         与源码树渲染（深度/条目上限为内置常量）。scan_level 三档：快速=模式分析不读源码；
-         深入=加源文件计数；穷尽=再加 LOC（读文件，受文件数/字节上限约束）。
+         另有既有文档发现（README/ARCHITECTURE/API/DEPLOYMENT/docs 模式）与源码树渲染
+         （深度/条目上限为内置常量）。关键目录回执 `critical_dirs` 取
+         documentation-requirements.csv 的 critical_directories 列（按部件类型照录），
+         只报**实际存在**的那些（深入档的阅读面，见 CRITICAL_DIRS）。
+         scan_level 三档：快速=模式分析不读源码；
+         深入=加源文件计数（读面 = `critical_dirs`）；穷尽=再加 LOC（读文件，受文件数/字节上限约束）。
          部件/类型判定是启发式——LLM 在步骤 01 与用户确认（源 full-scan step-1 同样要求确认）。
   check  校验 {output_dir}/project-context.yaml：schema / 枚举 / scan.parts 非空 /
          rules 的 PC-### 唯一与类别枚举；--previous 比对旧稿 PC-### 集合（rescan 防丢规则，
@@ -107,6 +110,24 @@ MARKER_LANGUAGE = {
     "platformio.ini": "C/C++",
     "dbt_project.yml": "SQL",
     "airflow.cfg": "Python",
+}
+# 部件类型 → 该类型的关键目录（documentation-requirements.csv 的 critical_directories 列，逐项照录）：
+# 深入档的阅读面；回执只报部件里**实际存在**的那些（大小写不敏感匹配，见 critical_dirs）。
+CRITICAL_DIRS = {
+    "网页": ("src", "app", "pages", "components", "api", "lib", "styles", "public", "static"),
+    "移动端": ("src", "app", "screens", "components", "services", "models", "assets", "ios", "android"),
+    "后端": ("src", "api", "services", "models", "routes", "controllers", "middleware",
+             "handlers", "repositories", "domain"),
+    "命令行": ("src", "cmd", "cli", "bin", "lib", "commands"),
+    "库": ("src", "lib", "dist", "pkg", "build", "target"),
+    "桌面端": ("src", "app", "components", "main", "renderer", "resources", "assets", "build"),
+    "游戏": ("Assets", "Scenes", "Scripts", "Prefabs", "Resources", "Content", "Source",
+             "src", "scenes", "scripts"),
+    "数据": ("dags", "pipelines", "models", "transformations", "notebooks", "sql", "etl", "jobs"),
+    "扩展": ("src", "popup", "content", "background", "assets", "components"),
+    "基础设施": ("terraform", "modules", "k8s", "charts", "playbooks", "roles", "policies", "stacks"),
+    "嵌入式": ("src", "lib", "include", "firmware", "drivers", "hal", "bsp", "components"),
+    # 「未知」不设表：类型未定 → 无从取关键目录
 }
 # 非清单但决定项目类型的强标记：glob → 类型（CSV key_file_patterns 的高置信子集）
 MARKER_TYPE_GLOBS = (
@@ -494,6 +515,33 @@ def classify_part(part_dir, manifests):
     return "未知"
 
 
+def critical_dirs(part_dir, ptype, project_root):
+    """该类型的关键目录里**实际存在**的那些（CSV critical_directories 列；深入档的阅读面）。
+
+    兼容大小写差异（CSV 的 `Assets/` 对上 `assets/`）；声明序即返回序，去重；
+    类型无表（`未知`）或目录不可读 → 空列表（不猜、不崩）。
+    """
+    declared = CRITICAL_DIRS.get(ptype)
+    if not declared:
+        return []
+    try:
+        actual = {}
+        for name in os.listdir(part_dir):
+            if os.path.isdir(os.path.join(part_dir, name)):
+                actual.setdefault(name.casefold(), name)
+    except OSError:
+        return []
+    found = []
+    seen = set()
+    for name in declared:
+        real = actual.get(name.casefold())
+        if not real or real in seen:
+            continue
+        seen.add(real)
+        found.append(display_path(os.path.join(part_dir, real), project_root))
+    return found
+
+
 # ---- 部件探测（多部件 / 单仓 / 单块） ----
 
 PART_DIR_HINTS = ("client", "server", "api", "web", "app", "apps", "frontend", "backend",
@@ -725,6 +773,7 @@ def cmd_scan(args):
     parts = []
     stack = []
     stats = {}
+    dirs_by_part = []
     for name, path in candidates:
         part, entry, part_stats, part_warn = build_part(root, name, path, args.level, excludes)
         parts.append(part)
@@ -732,6 +781,8 @@ def cmd_scan(args):
         warnings += part_warn
         if part_stats:
             stats[name] = part_stats
+        dirs_by_part.append({"part": name,
+                             "dirs": critical_dirs(path, part["type"], root)})
 
     docs = find_docs(root, root, parts, excludes)
     if args.part:
@@ -761,11 +812,11 @@ def cmd_scan(args):
     counts["files"] = sum(e["files"] for e in stats.values())
     counts["loc"] = sum(e["loc"] for e in stats.values())
     return emit_scan(args, repository_type, parts, stack, docs, tree, violations, warnings,
-                     args.part, existing, counts, stats)
+                     args.part, existing, counts, stats, dirs_by_part)
 
 
 def emit_scan(args, repository_type, parts, stack, docs, tree, violations, warnings,
-              part=None, existing=None, counts=None, stats=None):
+              part=None, existing=None, counts=None, stats=None, critical=None):
     ok = not violations
     payload = {
         "ok": ok,
@@ -780,6 +831,7 @@ def emit_scan(args, repository_type, parts, stack, docs, tree, violations, warni
         "stack": stack,
         "docs_found": docs,
         "tree": tree,
+        "critical_dirs": critical or [],
         "stats": stats or {},
         "existing_context": bool(existing),
         "existing_scan": existing or {},

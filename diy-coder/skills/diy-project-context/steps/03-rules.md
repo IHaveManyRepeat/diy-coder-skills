@@ -1,53 +1,53 @@
-# Step 3 — Rules（AI 关键规则）
+# Step 3 — 规则（AI 关键规则）
 
 Progress: `Scan → Context → [Rules] → Finalize`
 
-**Read (input):** the receipt's `stack` and `docs_found`; the code the rules point at, only where a claim needs a witness.
-**Write (output):** `rules[]` in `{output_dir}/project-context.yaml` — one `PC-###` at a time.
+**Read (input):** 回执的 `stack` 与 `docs_found`；规则所指的代码——只在某条断言需要见证时才读。
+**Write (output):** `{output_dir}/project-context.yaml` 的 `rules[]`——一次一条 `PC-###`。
 
-## What qualifies
+## 什么够格
 
-A rule here is an **unobvious detail an AI agent would otherwise miss** — the reason this file exists. Test each candidate:
+这里的一条规则是 **AI 代理否则会漏掉的不显然细节**——本文件存在的理由就是这个。逐条检验：
 
-- Would a competent agent get this wrong without being told? If not, cut it (obvious advice is context tax).
-- Is it specific and actionable, or a generality? "Use TypeScript strict mode and forbid `any`; `tsc --noEmit` gates it" is a rule; "write clean code" is not.
-- Does it carry a witness? `where` names the file or the command that proves it — no rule without a witness.
+- 一个称职的代理不被告知会做错吗？不会就砍掉（显然的忠告是语境税）。
+- 它具体可行，还是泛泛之谈？「开 TypeScript 严格模式并禁用 `any`；`tsc --noEmit` 把门」是规则，「写干净的代码」不是。
+- 它带见证吗？`where` 点名证明它的文件或命令——没有见证就没有规则。
 
-Work one category at a time, in this order (the seven rule domains of the source workflow):
+一次一个类别，按此顺序（七个规则域，= 引擎的类别枚举）：
 
-1. `技术栈` — version constraints and compatibility boundaries agents must respect.
-2. `语言` — configuration, imports/exports, error handling, async conventions of the actual language in use.
-3. `框架` — the framework's patterns in this codebase (hooks, routing, middleware, state).
-4. `测试` — structure, mocks, boundaries, coverage expectations; the real command.
-5. `质量` — lint/format gates, file and folder conventions, naming, documentation requirements.
-6. `工作流` — branches, commits, PR/review gates, deployment procedure, and the development/operations facts: prerequisites, install / build / run / test commands, environment setup, CI. Commands and paths verbatim — never paraphrased.
-7. `反模式` — what must not happen: forbidden shortcuts, the edge cases that burned this project, security and performance traps.
+1. `技术栈` —— 代理必须尊重的版本约束与兼容边界。
+2. `语言` —— 实际所用语言的配置、导入/导出、错误处理、异步约定。
+3. `框架` —— 框架在本代码库里的用法（hooks、路由、中间件、状态）。
+4. `测试` —— 结构、mock、边界、覆盖率预期；真正的命令。
+5. `质量` —— lint/format 门、文件与目录约定、命名、文档要求。
+6. `工作流` —— 分支、提交、PR/评审门、部署流程，以及开发与运维事实：前置条件、安装/构建/运行/测试命令、环境搭建、CI。命令与路径逐字——绝不转述。
+7. `反模式` —— 绝不能发生的事：被禁的捷径、烧过这个项目的边界情况、安全与性能陷阱。
 
-## Per category
+## 每类怎么做
 
-Draft the category's rules, show them, and wait:
+起草该类的规则，摆出来，等：
 
 ```
-{drafted rules for <category> — rule / why / where for each}
+{<类别> 的草稿规则 —— 每条给 rule / why / where}
 
-[C] Continue — save these and move to the next category
-[E] Edit — change a rule, drop one, or add your own
+[C] 继续 —— 存下这批，进下一个类别
+[E] 修改 —— 改一条、删一条，或加你自己的一条
 ```
 
-HALT — wait for the choice. On **C** write the category's rules into `rules[]`; on **E** revise and present again.
+HALT——等选择。选 **C** 就把该类的规则写进 `rules[]`；选 **E** 就改完再摆一次。
 
-Advanced-elicitation and party-mode passes are not wired to this skill (their B4 skills do not exist yet) — when the human wants deeper scrutiny, run the scrutiny in conversation and keep the same rule shape.
+进阶引导与 party-mode 两类手法未接入本技能（它们的 B4 技能尚未建成）——人要更深的拷问时，就在对话里做，规则形状不变。
 
-## Minting and amending
+## 铸造与修订
 
-- `id` — `PC-###`, three digits: next = highest existing + 1. IDs are sequential, stable, never renumbered or reused. Read the file to find the highest — do not guess.
-- Amend an existing rule by editing its entry in place, then append `{date, change, reason}` to `revisions`. Never mint a second ID for a changed rule.
-- Drop a rule only with a `revisions` entry naming what went and why — the **重扫** gate in step 4 fails on a silent disappearance (`ID_UNSTABLE`).
+- `id` —— `PC-###`，三位零填充：下一个 = 既有最大值 + 1。ID 顺序递增、稳定，永不重编号、永不复用。读文件找最大值——绝不猜。
+- 改既有规则就就地改它的条目，再往 `revisions` 追加 `{date, change, reason}`。改过的规则绝不另铸第二个 ID。
+- 删一条规则必须有 `revisions` 条目点名删了什么、为什么——第 4 步的 **重扫** 门会抓静默消失（`ID_UNSTABLE`）。
 
-## Lean by default
+## 缺省从简
 
-These rules are read by an agent on every future task, so length is a cost. One line per rule field; combine rules that share a witness; cut any rule the human cannot tie to a real file or command.
+这些规则会被未来的每个任务读到，所以长度就是成本。一条规则的字段各占一行；共享见证的规则合并；人无法把它系到真实文件或命令上的规则，砍掉。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./04-finalize.md`.
+读全 `./04-finalize.md` 并照做。

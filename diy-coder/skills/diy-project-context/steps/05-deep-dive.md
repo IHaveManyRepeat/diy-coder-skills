@@ -1,82 +1,82 @@
-# Step 5 — Deep-Dive（单区域逐文件深挖）
+# Step 5 — 深挖（单区域逐文件）
 
 Progress: `Scan → [Deep-Dive] → Finalize`
 
-**Read (input):** the scan receipt and `structure` from step 1; then every file in the chosen area, in full.
-**Write (output):** one `deep_dives[]` entry in `{output_dir}/project-context.yaml`; `revisions` when a rule changes.
+**Read (input):** 扫描回执；`{output_dir}/project-context.yaml` 里**既有的** `structure` 节（深挖模式下由第 1 步原样保留）；再读所选区域里的每个文件，全文。
+**Write (output):** `{output_dir}/project-context.yaml` 里一条 `deep_dives[]` 条目；规则有变时写 `revisions`。
 
-## The rule that governs this whole step
+## 管住整步的规则
 
-`深挖` mode requires **literal full-file review**. Sampling, guessing, or relying on tooling output alone is FORBIDDEN. Every file in scope is read line by line, and every claim in the entry traces to what was actually read.
+`深挖` 模式要求**逐文件实读**。抽样、猜测、只靠工具输出都 FORBIDDEN。范围内每个文件都逐行读完，条目里每条断言都能追到真正读过的内容。
 
-## 5a — Choose the area
+## 5a — 选区域
 
-Offer what the scan already knows, then take a custom path. For each part, derive candidate areas from `structure.key_dirs` and the receipt's file counts:
+把扫描已知的摆出来，再接受自定义路径。逐部件，从**既有文件的** `structure.key_dirs` 与回执的文件计数推候选区域：
 
 ```
-What area should I deep-dive?
+深挖哪个区域？
 
-1. {part.name} / {dir} — {n} files
-2. {part.name} / {dir} — {n} files
-   ... or name a folder, a file, or a feature.
+1. {part.name} / {dir} —— {n} 个文件
+2. {part.name} / {dir} —— {n} 个文件
+   ……或者点名一个文件夹、一个文件、一个特性。
 
-This reads EVERY file in the area.
+这会读遍该区域的每个文件。
 ```
 
-HALT — wait for the choice. Confirm the scope back with the type (folder / file / feature), the path, and the file count, and let the human narrow it. A file-scoped dive also covers its direct imports one level deep and asks who imports it; a feature-scoped dive pulls in the UI, the endpoints, the models, the services and the tests that implement it.
+HALT——等选择。把范围回述确认（类型：文件夹 / 文件 / 特性，路径，文件数），让人收窄。文件级深挖还要覆盖它直接导入的一层，并问谁导入它；特性级深挖要把实现它的 UI、端点、模型、服务与测试都拉进来。
 
-## 5b — Read it all
+## 5b — 全读
 
-Walk the area — `git ls-files`/`ls`, excluding `node_modules`, `.git`, `dist`, `build`, `coverage`, `*.min.js`, `*.map` — and for every remaining file read the complete contents, in batches per subfolder, writing conclusions down before opening the next batch. For each file capture:
+走遍该区域——`git ls-files`/`ls`，排除 `node_modules`、`.git`、`dist`、`build`、`coverage`、`*.min.js`、`*.map`——剩下的每个文件都读完整内容，一次一批（按子目录），每个结论写完再开下一批。逐文件记：
 
-- purpose in one or two plain sentences (behaviour, side effects, assumptions a modifier must know);
-- exports with signatures, and imports (what it depends on);
-- who imports it (its dependents);
-- notable logic, state handling, side effects (I/O, network, database), error handling;
-- TODOs / FIXMEs and the associated tests.
+- 一两句大白话的用途（行为、副作用、改动者必须知道的假设）；
+- 导出及其签名，以及导入（它依赖什么）；
+- 谁导入它（它的依赖方）；
+- 值得注意的逻辑、状态处理、副作用（I/O、网络、数据库）、错误处理；
+- TODO / FIXME 及关联的测试。
 
-A file you could not read is named as unread in the entry — never silently dropped.
+读不了的文件在条目里点名记为未读——绝不静默丢掉。
 
-## 5c — Relationships and data flow
+## 5c — 关系与数据流
 
-Build the picture across the files just read: the dependency edges between them, circular dependencies if any, entry points (nothing in scope imports them) and leaf nodes. Then trace the flow end to end — where data enters, how it is transformed, where it leaves — and name the integration points: external APIs consumed, internal services called, shared state touched, events published or subscribed, tables read or written.
+在刚读完的文件之间建图：它们之间的依赖边、有没有环、入口（范围内没人导入它）与叶子节点。然后端到端追数据流——数据从哪进、怎么变换、从哪出——并点名集成点：消费的外部 API、调用的内部服务、触碰的共享状态、发布或订阅的事件、读写的表。
 
-## 5d — Related code outside the area
+## 5d — 区域之外的相关代码
 
-Search the rest of the codebase for the same shapes: similar naming, similar signatures, an established pattern this area should follow, utilities that already solve part of the problem. Name the reuse opportunities concretely (`path:line`), and say when an existing pattern is deliberately not followed.
+在代码库其余部分搜同形之物：相似的命名、相似的签名、本区域该遵循的既有模式、已经解决了一部分问题的工具。具体点名复用机会（`path:line`），并说明某个既有模式是被刻意不遵循的。
 
-## 5e — Write the entry
+## 5e — 写条目
 
-Append to `deep_dives[]`:
+往 `deep_dives[]` 追加：
 
 ```yaml
-- area: <the area, as the human named it>
-  date: <today>
-  files_scanned: <n>            # every file in scope; unread ones named in notes
-  findings:                     # one line each, plain language, no code dumps
-    - <what this area is and how it is entered>
-    - <the dependency / data-flow facts that matter>
-    - <reuse opportunities and the patterns to follow>
-  notes: <risks, gotchas, verification steps before changing this area, tests to run>
+- area: <该区域，按人的叫法>
+  date: YYYY-MM-DD              # 这一次深潜的日子（与 scan.date 不必相同）
+  files_scanned: <n>            # 范围内每个文件；未读的在 notes 里点名
+  findings:                     # 一行一条，大白话，不堆代码
+    - <这个区域是什么、怎么进入>
+    - <要紧的依赖 / 数据流事实>
+    - <复用机会与该遵循的模式>
+  notes: <风险、坑、改这里的验证步骤、要跑的测试>
 ```
 
-`findings` carries conclusions, not process — the reading trail stays in the conversation. Aggregate the risks and the verification steps collected per file into `notes`; a deep dive that changes an existing rule amends that rule and appends to `revisions`.
+`findings` 装结论，不装过程——阅读轨迹留在对话里。逐文件收集的风险与验证步骤汇总进 `notes`；深挖若改了一条既有规则，就地改并往 `revisions` 追加。
 
-## 5f — Update the index
+## 5f — 更新索引
 
-The file itself is the index: the new entry is its own navigation. Bump `project.updated`, and when the dive covered a directory that was not yet in `structure.key_dirs`, add it with its purpose.
+文件本身就是索引：新条目自己就是导航。刷 `project.updated`；深潜覆盖了 `structure.key_dirs` 里还没有的目录时，补上它并给 purpose。
 
-## 5g — Continue or finish
+## 5g — 续做还是收尾
 
 ```
-Deep dive complete: {area} — {files_scanned} files.
+深挖完成：{area} —— {files_scanned} 个文件。
 
-1. **深挖** another area
-2. Finish
+1. **深挖** 另一个区域
+2. 收尾
 ```
 
-HALT — wait. **1** returns to 5a with a fresh area. **2** goes to the finalize step below.
+HALT——等选择。**1** 带一个新区域回 5a。**2** 进下面的定稿步。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./04-finalize.md` — the final gate runs there and covers everything this step wrote.
+读全 `./04-finalize.md` 并照做——终门在那里跑，覆盖本步写下的全部内容。

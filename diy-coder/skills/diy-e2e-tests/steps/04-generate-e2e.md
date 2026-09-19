@@ -1,39 +1,39 @@
-# Step 4 — Generate E2E（端到端用例生成与实跑）
+# Step 4 — 端到端用例生成与实跑
 
-Progress: `Detect → Targets → Generate API → [Generate E2E] → Record`
+Progress: `探测 → 目标 → 生成 API → [生成 E2E] → 记录`
 
-**Read (input):** the target list from step 2; the confirmed framework + existing patterns from step 1; the UI implementation and its routes.
-**Write (output):** E2E test files in the project's test directory, and the run results (pass/fail per case) carried into step 5.
+**Read (input):** 第 2 步的目标清单；第 1 步确认的框架 + 既有模式；UI 实现及其路由。
+**Write (output):** 项目测试目录里的 E2E 测试文件，以及实跑结果（逐条通过/失败）——带进第 5 步。
 
-## What an E2E case must contain
+## E2E 用例必须包含什么
 
-For each UI target (BMAD step-3):
+对每个 UI 目标（BMAD step-3）：
 
-- **Semantic locators** — role, label, text, placeholder. Never CSS/XPath paths that break on a class rename; a locator tied to an element's meaning survives refactors.
-- **A user workflow** — the journey as the user performs it: navigate, interact (click / fill / submit), observe. One linear flow per case; branches that need their own setup become their own case.
-- **Visible-outcome assertions** — assert what the user can see (text appears, URL changed, list gained the item), not internal state.
-- **Linear and simple** — no fixture composition frameworks, no page-object abstractions, no helper layers invented for a handful of cases (BMAD "Keep It Simple"). Readable beats DRY at this scale.
+- **语义定位器** —— role、label、text、placeholder。绝不用一改类名就断的 CSS/XPath 路径；绑在元素含义上的定位器能扛重构。
+- **一段用户旅程** —— 按用户的做法走：导航、交互（点击 / 填写 / 提交）、观察。一条用例一条线性流程；需要自备前提的分支另立一条用例。
+- **可见结果断言** —— 断言用户看得见的东西（文案出现、URL 变了、列表多了该项），不是内部状态。
+- **线性且简单** —— 不引入夹具组合框架、不做 page-object 抽象、不为几条用例发明辅助层（BMAD「Keep It Simple」）。这个体量下可读性胜过 DRY。
 
-## Quality gate before running (BMAD checklist, kept as discipline)
+## 跑之前的质量关（BMAD 清单，作纪律保留）
 
-Walk each generated case against these before executing:
+执行之前，拿这几条逐条走一遍生成好的用例：
 
-- Uses the framework's standard APIs and the project's existing test patterns.
-- Locators are semantic/accessible; no hardcoded waits or sleeps.
-- Cases are independent — no order dependency, no shared mutable state.
-- Descriptions say what behavior is verified.
-- The test directory layout matches `existing_patterns`.
+- 用框架的标准 API 与项目既有的测试模式。
+- 定位器语义化/可访问；没有硬等待或 sleep。
+- 用例相互独立——不依赖顺序、不共享可变状态。
+- 描述写明验证的是什么行为。
+- 测试目录布局与 `existing_patterns` 一致。
 
-Fix the case here, not after a flaky run.
+就在这里把用例修好，别等一次 flaky 之后。
 
-## Run them for real (BMAD step-4)
+## 真跑（BMAD step-4）
 
-Execute using the project's own test command (from step 1). **A case that has not been executed is not appended** — `record` accepts only `status: 通过|失败`, and the point of this skill is that the appended cases actually ran.
+用项目自己的测试命令执行——该命令按第 1 步的 runner 取值顺序推得（项目脚本 > framework 惯例命令 > 明写「按惯例推导」的原文）。**没执行过的用例不追加**——`record` 只收 `status: 通过|失败`，而本技能的要点正是追加的用例确实跑过。
 
-- Failure → fix the test immediately when the test is wrong; when the *implementation* is wrong, do not patch the test to hide it — leave the case red (`status: 失败`) and record the observed-vs-expected evidence for step 5.
-- Flakiness → make the wait deterministic (wait on the condition, not the clock) and re-run. Never leave a retry loop in the test.
-- Runner unavailable or environment cannot start the system → that is a first-class result: report it, set the affected cases to `失败` only if they actually ran red, and otherwise append nothing for them. Never append an unexecuted case.
+- 失败 → 测试本身写错就当场修；**实现**错时，不许把测试改绿来掩盖——留着红（`status: 失败`），把观察值 vs 预期值作为证据带进第 5 步。
+- 不稳定 → 把等待做成确定性的（等条件，不等时钟）再重跑。绝不把重试循环留在测试里。
+- runner 不可用、或环境起不来系统 → 那也是一等结果：报出来；只有当用例确实跑红时才置 `失败`，否则一条都不追加。绝不追加未执行的用例。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./05-record.md`.
+读全 `./05-record.md` 并照做。

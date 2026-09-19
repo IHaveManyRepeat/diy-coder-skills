@@ -1,15 +1,15 @@
 # Step 4 — 落盘与交付（Report）
 
-Progress: `Collect → Dry Run → Cross Check → [Report]`
+Progress: `定位与切分 → 预演执行 → 交叉验证 → [落盘与交付]`
 
-**读入：** 定稿的 findings；引擎 `check` 回执。
-**写出：** `{output_dir}/spec-scan.yaml` 定稿（`status: 已定稿`）；渲染；交付摘要。
+**Read (input):** 定稿的 findings；引擎 `check` 回执。
+**Write (output):** `{output_dir}/spec-scan.yaml` 定稿（`status: 已定稿`）；渲染；交付摘要。
 
 ## 定稿
 
 1. `open_questions` 收尾：无法定级的、需要用户拍板方向的，写进这里（≤5 条）。
-2. 记录改 `status: 已定稿`，`project.updated` 改今天。
-3. 全文档搜一遍 `[假设]`——本产物禁止该字面量（存疑走 `open_questions`，不用假设标记）。
+2. 记录改 `status: 已定稿`，`project.updated` 改今天（记录级 `date` 不动——它记的是本次扫描的日子）。
+3. `findings` 的**非 `quote` 字段**禁止 `[假设]` 字面量（存疑走 `open_questions`，不用假设标记）；**`quote` 豁免**——引文逐字照抄，被扫规格自带该标记时不改写；非 `quote` 字段确需提及该标记时写全角 ［假设］。终门只扫 `findings` 字段，其余部分不在扫描面内。
 
 ## 终门
 
@@ -49,5 +49,9 @@ Blocker（必须裁定）：
 ## 路由
 
 - 用户裁定完 → 规格修改由用户或对应负责人执行（本技能不改规格）。
-- 扫的是迁移任务书且裁定完成 → 可进入建设批次。
-- 想复查另一个目标 → 重新从 step 1 开始（新建 `SS-002` 记录）。
+- 裁定完成 → 规格由用户 / 对应负责人修订；修订后同一目标可**重扫一次**（新建 `SS-002` 记录）——比对 blocker 是否清零，即本轮整改的收尾凭证。
+- 想复查另一个目标 → 同样从 step 1 开始（铸下一条 `SS-0nn` 记录）。
+
+## 播报与下一步
+
+这是最后一个步骤文件——终门 exit 0 后本轮到此结束。结果由 `summary` 计数、`findings` 与 `open_questions` 承载；不再读任何 `steps/` 文件。

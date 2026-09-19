@@ -22,19 +22,25 @@
 - 用例 14：契约冒烟（--json 单行可解析 + 共同键齐全 + where 正斜杠相对；无 --json 时
            每条违规一行 `CODE where: msg` + 末尾汇总行）
 - 用例 15：--output-dir 与 collect --target 必填（用法错误 exit 2）
+- 用例 16：SKILL.md / steps 契约冒烟（中文化轮 2026-09-19——母本 §1/§3/§4/§6 逐字 +
+          §2 自定短块（母本 §8 登记的非成员变体）+ 四段中文标题 ≤93 行 + B-24 语义条目）
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_spec_scan.py" -v
 """
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ENGINE = os.path.join(HERE, "..", "skills", "diy-spec-scan", "scripts", "spec_scan.py")
+SKILL_DIR = os.path.join(HERE, "..", "skills", "diy-spec-scan")
+ENGINE = os.path.join(SKILL_DIR, "scripts", "spec_scan.py")
+SKILL_MD_PATH = os.path.join(SKILL_DIR, "SKILL.md")
+STEPS_DIR = os.path.join(SKILL_DIR, "steps")
 NL = chr(10)
 
 # 11 行：一级标题不算单元，`### ` 不算二级标题
@@ -402,6 +408,141 @@ class ContractTests(EngineCase):
                                      "--target", "x"]).returncode, 2)
         self.assertEqual(run_engine(["collect", "--project-root", self.root,
                                      "--output-dir", self.out]).returncode, 2)
+
+
+# 套件级句式母本（`suite-texts.md` 中文定稿，逐字）——2026-09-19 中文化轮
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+INSTANCE_EN_MARK = "Instance resolution (FR-4.5/D-9)"
+RESOLVE_KEYS_ZH = ("解析 `project.communication_language` / "
+                   "`project.document_output_language` / `paths.output_dir`")
+DEFAULT_CHAIN_ZH = ("缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执"
+                    "（引擎缺省 `diy-output`，异常形状降级并 warning）；"
+                    "缺 `document_output_language` 落 `project.communication_language`；"
+                    "两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。")
+INSTANCE_FLAG_ZH = ("实例名只在本次激活参数出现 `--instance <name>` 时才传"
+                    "（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；"
+                    "未传时回执的 `output_dir` 即主线平铺根。")
+READ_DISCIPLINE_ZH = ("读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件"
+                      "——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，"
+                      "**主文件不列举封闭清单**。")
+PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
+              "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
+# 本技能自定短块（母本 §8 登记的变体：§2 非成员，不参与套件级 §2 断言）
+DISCIPLINE_OWN_ZH = ("- **写作纪律。** findings 散文用 `document_output_language`；"
+                     "`quote` 里机器锚点（ID / 枚举值 / 命令 / 路径）逐字保留原文，不翻译。"
+                     "引文里可能出现 `[假设]` 等被禁字面量——照抄，终门对 `quote` 豁免。")
+DISCIPLINE_GENERIC_ZH = "- **写作纪律。** 主字段 = 大白话主句；"
+H1_RE = re.compile(r"^# Step (\d+) — .*[一-鿿]")
+
+
+class SkillContractTests(unittest.TestCase):
+    """用例 16：SKILL.md / steps 契约冒烟（中文化轮 2026-09-19 + B-24）。"""
+
+    def read(self, path):
+        with io.open(path, encoding="utf-8") as f:
+            return f.read()
+
+    def read_skill(self):
+        return self.read(SKILL_MD_PATH)
+
+    # trace: 母本 §1（实例解析句中文定稿逐字；英文原形随中文化退役）
+    def test_instance_sentence_is_mother_copy_verbatim(self):
+        raw = self.read_skill()
+        self.assertIn(INSTANCE_ZH, raw, "SKILL.md 缺母本 §1 中文定稿（逐字）")
+        self.assertNotIn(INSTANCE_EN_MARK, raw, "已转中文定稿，仍残留英文原形")
+
+    # trace: 母本 §3（A-3 键路径写全 project. 前缀 / A-2 缺省链 / A-1 实例触发条款）
+    def test_resolve_keys_default_chain_and_instance_flag(self):
+        raw = self.read_skill()
+        self.assertIn(RESOLVE_KEYS_ZH, raw, "缺母本 §3 键路径锚串（A-3：project. 前缀）")
+        self.assertIn(DEFAULT_CHAIN_ZH, raw, "缺母本 §3 缺省链（A-2）")
+        self.assertIn(INSTANCE_FLAG_ZH, raw, "缺母本 §3 实例触发条款（A-1）")
+
+    # trace: 母本 §4（A-5 C1 组：预载预算 + 执行期以 Read (input) 行为唯一权威）
+    def test_read_discipline_verbatim(self):
+        self.assertIn(READ_DISCIPLINE_ZH, self.read_skill(),
+                      "SKILL.md 缺母本 §4 定稿（逐字）")
+
+    # trace: 母本 §6（Rules 末尾、§2 之前）+ §8（自定短块，非通用 §2 块）
+    def test_precise_and_own_writing_discipline(self):
+        raw = self.read_skill()
+        self.assertIn(PRECISE_ZH, raw, "缺母本 §6 中文定稿")
+        self.assertIn(DISCIPLINE_OWN_ZH, raw, "缺本技能自定写作纪律短块（母本 §8）")
+        self.assertNotIn(DISCIPLINE_GENERIC_ZH, raw,
+                         "spec-scan 是 §2 非成员，不得改用通用 §2 写作纪律块")
+        self.assertLess(raw.index(PRECISE_ZH), raw.index(DISCIPLINE_OWN_ZH),
+                        "Rules 末尾顺序须为：§6 精准简练 → §2 自定短块")
+        self.assertTrue(raw.rstrip(NL).endswith(DISCIPLINE_OWN_ZH),
+                        "写作纪律块须置文件收尾行")
+
+    # trace: 中文化政策（四段中文标题 ≤93 行 + 无英文段名 + §5 渲染静默命令全文）
+    def test_four_chinese_sections_and_budget(self):
+        raw = self.read_skill()
+        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
+            self.assertIn(section, raw, "缺四段结构：%s" % section)
+        for legacy in ("## On Activation", "## Workflow", "## Schema", "## Rules"):
+            self.assertNotIn(legacy, raw, "英文段名残留：%s" % legacy)
+        self.assertIn('diy-viewer/scripts/viewer.py" --project-root "{project-root}"', raw,
+                      "缺渲染静默的 viewer 命令全文（母本 §5）")
+
+    # trace: B-24 · SS-026-02（产物 = 卡点清单；执行计划留对话）
+    def test_execution_plan_stays_in_conversation(self):
+        raw = self.read_skill()
+        self.assertIn("落盘的产物是卡点清单", raw, "SS-026-02 未收口到「产物 = 卡点清单」")
+        self.assertNotIn("是**执行计划 + 卡点清单**", raw, "SS-026-02 的旧口径残留")
+
+    # trace: B-24 · SS-026-04/05（单写者 + 号段规则：新增递增、删除/合并允许空缺、绝不重编号）
+    def test_single_writer_and_id_segment_rules(self):
+        step2 = self.read(os.path.join(STEPS_DIR, "02-dry-run.md"))
+        self.assertIn("单写者", step2, "SS-026-04 缺单写者条款")
+        self.assertIn("不带 `id`", step2, "SS-026-04 缺「回给调度者、不带 id」")
+        self.assertIn("不引入分片文件", step2, "SS-026-04 缺「不引入分片文件」")
+        self.assertIn("绝不重编号", step2, "SS-026-05 缺号段规则（绝不重编号）")
+        self.assertNotIn("连续不跳号", step2, "SS-026-05 旧口径「连续不跳号」残留")
+        step3 = self.read(os.path.join(STEPS_DIR, "03-cross-check.md"))
+        self.assertIn("空缺号不回收、不重排", step3, "SS-026-05 ② 未在去误报处同口径")
+
+    # trace: B-24 · SS-026-06（quote 豁免措辞补齐：SKILL.md 半句 + steps/04 扫描面收窄）
+    def test_quote_exemption_wording(self):
+        self.assertIn("终门对 `quote` 豁免", self.read_skill(),
+                      "SS-026-06 SKILL.md 侧豁免半句缺失")
+        step4 = self.read(os.path.join(STEPS_DIR, "04-report.md"))
+        self.assertIn("**`quote` 豁免**", step4, "SS-026-06 steps/04 缺 quote 豁免")
+        self.assertIn("非 `quote` 字段", step4, "SS-026-06 steps/04 未点名扫描面")
+        self.assertIn("全角", step4, "SS-026-06 缺全角 ［假设］ 出口")
+        self.assertNotIn("全文档", step4, "SS-026-06 旧口径「全文档」残留")
+
+    # trace: B-24 · SS-026-07（复核回路：删「可进入建设批次」，修订后同目标可重扫一次）
+    def test_recheck_loop_replaces_build_batch(self):
+        step4 = self.read(os.path.join(STEPS_DIR, "04-report.md"))
+        self.assertIn("重扫一次", step4, "SS-026-07 缺复核回路")
+        self.assertIn("SS-002", step4, "SS-026-07 缺机器锚点 SS-002")
+        self.assertIn("本技能不改规格", step4, "缺零改写纪律（本技能不改规格）")
+        self.assertNotIn("可进入建设批次", step4, "SS-026-07 的「可进入建设批次」未删")
+
+    # trace: steps 形态（H1 中文步名 + 步号与文件序一致 + Read/Write 行逐字英文 + 末段）
+    def test_steps_shape(self):
+        names = ["01-collect.md", "02-dry-run.md", "03-cross-check.md", "04-report.md"]
+        for i, name in enumerate(names, start=1):
+            text = self.read(os.path.join(STEPS_DIR, name))
+            lines = text.replace("\r\n", NL).split(NL)
+            match = H1_RE.match(lines[0])
+            self.assertTrue(match, "%s 的 H1 须为 '# Step N — <中文步名>'，实为 %r"
+                            % (name, lines[0]))
+            self.assertEqual(int(match.group(1)), i, "%s 步号与文件序不符" % name)
+            self.assertTrue(any(ln.startswith("**Read (input):**") for ln in lines),
+                            "%s 缺 '**Read (input):**' 行" % name)
+            self.assertTrue(any(ln.startswith("**Write (output):**") for ln in lines),
+                            "%s 缺 '**Write (output):**' 行" % name)
+            heads = [ln for ln in lines if ln.startswith("## ")]
+            self.assertEqual(heads[-1], "## 播报与下一步",
+                             "%s 末段须为 '## 播报与下一步'" % name)
+            self.assertNotIn("**读入：**", text, "%s 旧形态「读入」残留" % name)
+            self.assertNotIn("**写出：**", text, "%s 旧形态「写出」残留" % name)
 
 
 if __name__ == "__main__":

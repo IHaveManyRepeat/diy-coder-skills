@@ -1,9 +1,9 @@
 # Step 2 — 预演执行（Dry Run）
 
-Progress: `Collect → [Dry Run] → Cross Check → Report`
+Progress: `定位与切分 → [预演执行] → 交叉验证 → 落盘与交付`
 
-**读入：** 当前单元对应的目标文件片段；已积累的 findings（避免重复报同一处）。
-**写出：** 执行计划（对话里给出）；findings 追加进草稿记录；逐单元把 `scanned` 改 `true` 并重算 `summary`。
+**Read (input):** 当前单元对应的目标文件片段；已积累的 findings（避免重复报同一处）。
+**Write (output):** 执行计划（对话里给出）；findings 追加进草稿记录；逐单元把 `scanned` 改 `true` 并重算 `summary`。
 
 ## 你要扮演谁
 
@@ -45,7 +45,7 @@ Progress: `Collect → [Dry Run] → Cross Check → Report`
 ## 一条 finding 要写全字段
 
 ```yaml
-      - id: SS-001-01                  # 扫描序号 + 两位流水号，连续不跳号
+      - id: SS-001-01                  # 新增时在 SS-0nn 内递增铸造、不重号、不重用；删除或合并后允许号段空缺，绝不重编号
         type: <八类之一>
         where: <相对路径>:<行号>        # 原文所在位置；跨多处时写最主要那处
         quote: <原文摘录>               # 逐字，机器锚点不翻译；长句截关键片段
@@ -69,14 +69,17 @@ Progress: `Collect → [Dry Run] → Cross Check → Report`
 
 - **一批一批来**：单元多的时候（20+），每批 3-5 个，写完这批的执行计划与 findings 再开下一批。不要试图一次读完整个目标。
 - **每批收尾**：把该批单元 `scanned` 改 `true`、重算 `summary` 计数、findings 追加写回 `{output_dir}/spec-scan.yaml`。这是状态写回（断点恢复靠它），不是产物改写。
+- **单写者**：`{output_dir}/spec-scan.yaml` 同一时刻只有一个写者。目标被外层并行分工时，执行体**不写文件**——把本批 findings 条目（九个字段，**不带 `id`**）与单元名回给调度者，由调度者在单点写回时按批次顺序统一铸号（在该 `SS-0nn` 内递增、不重号、不重用）并改 `scanned` / `summary`；合并后 step 4 的 `check --final` 照跑。**不引入分片文件**（不新开写面）。
 - **同一处只报一次**：后续单元遇到与已报条目同源的问题，合并进原 finding（`stuck` 里补一句"另见 <位置>"），不新建条目。
 
 ## 跨单元 / 跨文件的问题
 
 有些歧义只在两个单元对照时才出现（A 单元说要 X，B 单元说要非 X）。这类 finding 的 `where` 写主要那个位置，`read_as` 里点名另一处位置。
 
-规格点名要参考的其他文档（任务书、契约、对接口技能的 `SKILL.md` / `steps/`）——读它们来判定接口类歧义（`接口缺口` / `术语冲突`），但**不读实现代码和产物实例**（见 SKILL.md Rules）。
+规格点名要参考的其他文档（任务书、契约、对接口技能的 `SKILL.md` / `steps/`）——读它们来判定接口类歧义（`接口缺口` / `术语冲突`），但**不读实现代码和产物实例**（见 SKILL.md「规则」）。
 
-## 下一步
+## 播报与下一步
 
-全部单元 `scanned: true` 后，读完并执行 `./03-cross-check.md`。
+给用户一句进度：已扫单元数 / 总数、本批新增几条 finding、还差多少。
+
+全部单元 `scanned: true` 后，读全并照做 `./03-cross-check.md`。

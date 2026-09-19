@@ -12,30 +12,40 @@
 - 用例 7：check 违规（edits 缺 rationale / old == new / handoff 未知技能 / impacts target 格式）
 - 用例 8：check --final 义务（status 未终态 / 零假设 / impacts 空 / approach 未定 /
           scope 与 handoff 不一致）
-- 用例 9：SKILL.md 契约冒烟（冻结实例句 md5 + 写作纪律块 md5 + 终门句指向 change_proposal.py
-          + 只出提案不改真源声明）
+- 用例 9：SKILL.md 契约冒烟（母本 §1 实例句 / §2 写作纪律块 / §6 精准简练中文定稿 + 终门句指向
+          change_proposal.py + 只出提案不改真源声明 + B-22 落点：无 BMAD 源对照标记、
+          `已驳回` 出口、`test-plan.yaml` 禁写、路由 = 被改产物的唯一所有者、retro 接收条款）
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_change_proposal.py" -v
 """
 import contextlib
-import hashlib
 import io
 import json
 import os
-import re
 import sys
 import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.join(HERE, "..", "skills", "diy-correct-course")
+STEPS_DIR = os.path.join(SKILL_DIR, "steps")
 ENGINE = os.path.join(SKILL_DIR, "scripts", "change_proposal.py")
 SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
 NL = chr(10)
 
-# 冻结文本校验值（batch4/frozen-texts.md §1/§2：逐字复制，md5 口径 = 文本 + 行尾 LF）
-INSTANCE_MD5 = "5445f98bc4d4821e6888b89406a97eac"
-DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
+# 母本中文定稿（suite-texts.md §1 / §2 / §6；中文化轮 2026-09-19，逐字一致）
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
+                 "机器语法（命令/旗标/路径）进括号；机器锚点逐字保留"
+                 "（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 "
+                 "`diy-design` 的 detect 启发式。schema 若定义 `plain`："
+                 "一行写清该条目为什么存在，绝不写是什么（转述会漂移）；"
+                 "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
+PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
+              "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
 
 PRD_YAML = NL.join([
     "project:",
@@ -623,7 +633,7 @@ class TargetFormTests(EngineCase):
 
 
 class SkillContractTests(unittest.TestCase):
-    """用例 9：SKILL.md 契约冒烟（冻结文本逐字 + 终门句指向本技能引擎 + 写权边界）。"""
+    """用例 9：SKILL.md 契约冒烟（母本中文定稿逐字 + 终门句指向本技能引擎 + 写权边界 + B-22 落点）。"""
 
     def read_skill(self):
         if not os.path.isfile(SKILL_MD):
@@ -631,25 +641,28 @@ class SkillContractTests(unittest.TestCase):
         with io.open(SKILL_MD, encoding="utf-8") as f:
             return f.read()
 
-    # trace: 任务书 §2.1（冻结实例句逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_instance_sentence_is_frozen_verbatim(self):
-        raw = self.read_skill()
-        m = re.search(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*", raw)
-        self.assertTrue(m, "SKILL.md 缺实例解析样板句")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 233, "实例句字符数偏离冻结文本（233）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), INSTANCE_MD5,
-                         "实例句与冻结文本不一致：%s" % frag)
+    def read_steps(self):
+        names = sorted(n for n in os.listdir(STEPS_DIR) if n.endswith(".md"))
+        self.assertTrue(names, "steps/ 无步骤文件")
+        out = {}
+        for name in names:
+            with io.open(os.path.join(STEPS_DIR, name), encoding="utf-8") as f:
+                out[name] = f.read()
+        return out
 
-    # trace: 任务书 §2.1（写作纪律块逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_writing_discipline_block_is_frozen_verbatim(self):
+    # trace: 母本 §1（实例解析句中文定稿逐字；中文化轮 2026-09-19）
+    def test_instance_sentence_is_chinese_definitive(self):
         raw = self.read_skill()
-        m = re.search(r"^- \*\*Writing discipline\.[^\r\n]*", raw, re.M)
-        self.assertTrue(m, "SKILL.md 缺写作纪律块")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 497, "纪律块字符数偏离冻结文本（497）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), DISCIPLINE_MD5,
-                         "纪律块与冻结文本不一致：%s" % frag)
+        self.assertIn(INSTANCE_ZH, raw, "SKILL.md 缺母本 §1 中文定稿")
+        self.assertNotIn("Instance resolution (FR-4.5/D-9)", raw,
+                         "已转中文定稿，仍残留 §1 英文原形")
+
+    # trace: 母本 §2 / §6（写作纪律块 + 精准简练中文定稿逐字）
+    def test_discipline_and_precise_blocks_are_chinese_definitive(self):
+        raw = self.read_skill()
+        self.assertIn(DISCIPLINE_ZH, raw, "SKILL.md 缺母本 §2 中文定稿")
+        self.assertNotIn("Writing discipline", raw, "已转中文定稿，仍残留 §2 英文原形")
+        self.assertIn(PRECISE_ZH, raw, "SKILL.md 缺母本 §6 精准简练")
 
     # trace: 任务书 §5/#11/#12（终门句指向 change_proposal.py check --final；渲染静默；
     #        读一条加载一条；只出提案不改真源）
@@ -659,9 +672,9 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("check --final", skill, "终门句缺 check --final")
         self.assertIn("--json", skill, "终门句缺 --json 回执")
         self.assertIn("collect", skill, "激活段未接线 collect")
-        self.assertIn("never batch-load", skill, "缺读取成本纪律")
+        self.assertIn("绝不批量预载", skill, "缺读取成本纪律")
         self.assertIn("viewer.py", skill, "缺渲染静默命令")
-        self.assertIn("never edit", skill, "缺写权边界声明")
+        self.assertIn("绝不改真源", skill, "缺写权边界声明")
         self.assertNotIn("bmad-help", skill, "不得引用不存在的技能")
 
     # trace: 2026-09-14 用户裁定（部署/CI 面）——schema 枚举含 test-plan 与 infra
@@ -670,6 +683,44 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("test-plan", skill, "schema 枚举缺 test-plan")
         self.assertIn("infra", skill, "schema 枚举缺 infra")
         self.assertIn("path:", skill, "schema 缺 path: 目标形态说明")
+
+    # trace: B-22 / A4②（BMAD 源对照标记全部清除，规则内容已内联；两源文件不再被指向）
+    def test_no_bmad_source_markers_left(self):
+        blobs = {"SKILL.md": self.read_skill()}
+        blobs.update(self.read_steps())
+        for name, text in blobs.items():
+            for marker in ("bmad", "(source", "source step-", "source checklist",
+                           "source §", "source workflow", "checklist §"):
+                self.assertNotIn(marker, text,
+                                 "%s 残留 BMAD 源对照标记 %r（应内联后删除）" % (name, marker))
+
+    # trace: B-22 / SS-014-01（`已驳回` 出口：不读终门、跑不带 --final 的 check）
+    def test_rejected_exit_and_receiving_clause(self):
+        steps = self.read_steps()
+        finish = steps["06-finish.md"]
+        self.assertIn("已驳回", finish, "第 6 步缺 `已驳回` 出口")
+        self.assertIn("不带 `--final`", finish, "`已驳回` 出口须跑不带 --final 的 check")
+        self.assertIn("check --project-root", finish, "`已驳回` 出口缺显式收口命令")
+        skill = self.read_skill()
+        self.assertIn("已驳回", skill, "SKILL.md 终门规则缺 `已驳回` 例外")
+        # SS-014-02：禁用清单各补 test-plan.yaml（首条边界句 + 规则 1 写范围）
+        self.assertIn("`test-plan.yaml`", skill, "SKILL.md 禁写清单缺 test-plan.yaml")
+        skill_lines = skill.split(NL)
+        scope_rule = [ln for ln in skill_lines if ln.startswith("1. 写范围")]
+        self.assertTrue(scope_rule, "SKILL.md 缺规则 1 写范围")
+        self.assertIn("test-plan.yaml", scope_rule[0], "规则 1 禁写清单缺 test-plan.yaml")
+        # SS-014-04：路由真判据 = 被改产物的唯一所有者（allow-list 降为粗筛）
+        self.assertIn("唯一所有者", steps["05-route.md"], "第 5 步缺「唯一所有者」判据")
+        self.assertIn("唯一所有者", skill, "SKILL.md 路由规则缺「唯一所有者」判据")
+        # SS-014-03：「凭记忆顶替 ID」例外已删，只留「链只能来自回执」
+        self.assertIn("链只能来自回执", steps["02-analysis.md"], "第 2 步缺链的唯一来源口径")
+        self.assertIn("绝不拿会话记忆里的 ID 链顶替", steps["02-analysis.md"],
+                      "第 2 步缺「不凭记忆顶替」的明写")
+        # SS-023-11 侧：retrospective 接收条款（输入面 + 第 1 步具名来源）
+        self.assertIn("retrospective.yaml", skill, "SKILL.md 输入面缺 retro 交接来源")
+        self.assertIn("significant_changes", skill, "SKILL.md 输入面缺 significant_changes")
+        self.assertIn("significant_changes", steps["01-init.md"], "第 1 步缺 retro 具名来源")
+        self.assertIn("只开一条 proposal", steps["01-init.md"], "整批须只开一条 proposal")
 
 
 if __name__ == "__main__":

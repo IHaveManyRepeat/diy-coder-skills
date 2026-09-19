@@ -1,44 +1,46 @@
-# Step 5 — Finalize and Route（批准与交接）
+# Step 5 — 批准与交接
 
-Progress: `Initialize → Analysis → Edits → Proposal → [Route] → Finish`
+Progress: `立案 → 分析 → 改动 → 提案 → [路由] → 收尾`
 
-**Read (input):** the presented draft record; the human's verdict.
-**Write (output):** `status` (已批准 on a yes), `scope`, `handoff` in the record.
+**Read (input):** 呈现过的草稿记录；人的裁决。
+**Write (output):** 记录里的 `status`（批准时写 `已批准`）、`scope`、`handoff`。
 
-## Take the explicit approval (source step-5)
+## 取显式批准
 
-Ask the source's question: **Do you approve this change proposal for implementation? (yes / no / revise)**
+问一句：**这条变更提案可以按此实施吗？（批准 [y] / 不批 [n] / 返修 [r]）**
 
-- **yes** → set `status: 已批准` and continue to the routing below.
-- **no / revise** → gather what needs adjusting. Changes to the edit set return to `./03-edits.md`; changes to the impact set, path, or structure are handled before that. A revised record appends `{date, change, reason}` to `revisions` — never rewrite the old reasoning out of the record.
-- **no approval, no revision** (the human drops the change) → set `status: 已驳回`, keep the record for the audit trail, close without a handoff routing.
+- **批准** → 写 `status: 已批准`，继续下面的路由。
+- **不批 / 返修** → 收集要调整之处。改改动集退回 `./03-edits.md`；改影响集、路径或结构在此处理后回退。返修过的记录往 `revisions` 追加 `{date, change, reason}`——绝不把旧理由从记录里抹掉。
+- **既不批准、也不返修**（人放弃这次变更）→ 写 `status: 已驳回`，保留记录作审计轨迹，不做交接路由，按 `./06-finish.md` 的 `已驳回` 出口收口。
 
-Approval is a hard prerequisite for routing in this step: an unapproved proposal is never handed off — the source's rule, enforced by the final gate's status check.
+批准是本步路由的硬前提：未批准的提案绝不交接——终门的状态检查强制这一点。
 
-## Classify scope (source step-5 / §5)
+## 判 scope
 
-Settle `scope` from the impact set actually recorded (step 1's value was provisional):
+按实际记录的影响集定 `scope`（第 1 步的值只是暂定）：
 
-- **`轻微`** — the change is implementable by one owning skill directly, no replanning.
-- **`中等`** — the backlog must be reworked (stories added/removed/resequenced; sprint gates recomputed).
-- **`重大`** — the plan itself is invalidated; the planning layer must replan before implementation resumes.
+- **`轻微`** —— 一个产物所有者技能直接可落，无需重规划。
+- **`中等`** —— backlog 必须重组（故事增删或重排；sprint 门重算）。
+- **`重大`** —— 计划本身失效；恢复实施前规划层必须重规划。
 
-## Set the handoff (source step-5; diy 侧角色 → 技能映射)
+## 定交接
 
-`handoff.route` names the diy skill that executes; `handoff.note` names what it inherits and the success criterion in one line. The route must sit in the scope's allow-list (the final gate enforces the pairing):
+`handoff.route` 点名执行的 diy 技能；`handoff.note` 一行写明它继承什么、成功判据是什么。路由必须落在该 scope 的 allow-list 内（终门强制配对）：
 
-| Scope | Allowed routes | The route's job |
+| Scope | 粗筛 allow-list | 该级要做的事 |
 | --- | --- | --- |
-| `轻微` | `diy-dev` / `diy-quick-dev` / `diy-prd` / `diy-architecture` / `diy-epics-stories` / `diy-openapi` / `diy-design` / `diy-create-story` / `diy-test-design` / `diy-e2e-tests` / `diy-review` | apply the named edits directly, then re-run its own gate |
-| `中等` | `diy-sprint` / `diy-epics-stories` / `diy-prd` | reshape the backlog (`reconcile` recomputes gates), re-derive coverage |
-| `重大` | `diy-prd` / `diy-architecture` / `diy-epics-stories` | replan: revise requirements / decisions / breakdown first |
+| `轻微` | `diy-dev` / `diy-quick-dev` / `diy-prd` / `diy-architecture` / `diy-epics-stories` / `diy-openapi` / `diy-design` / `diy-create-story` / `diy-test-design` / `diy-e2e-tests` / `diy-review` | 被点名的技能直接落实 edits，再跑它自己的门 |
+| `中等` | `diy-sprint` / `diy-epics-stories` / `diy-prd` | 重组 backlog（`reconcile` 重算门），重推覆盖 |
+| `重大` | `diy-prd` / `diy-architecture` / `diy-epics-stories` | 重规划：先改需求 / 决策 / 拆解 |
 
-This skill executes nothing itself: the rewrite of the source artifacts happens in the named skill's update mode, under its own gate. Confirm with the human which skill takes it when two are plausible, and record the exchange in `note`.
+**真判据 = 被改产物的唯一所有者。** allow-list 只是粗筛：`handoff.route` 必须是 `edits[].artifact` 的产物所有者技能——`prd` → `diy-prd`；`epics` / `stories` → `diy-epics-stories`；`architecture` → `diy-architecture`；`openapi` → `diy-openapi`；`design` → `diy-design`；`test-plan` → `diy-test-design`；`infra` → `diy-dev`。改动落在谁的写面内就交给谁；名单里有、写面却接不住这批 edits 的技能不是合法路由——改路由或改提案，绝不硬塞。`edits` 跨多个产物时按主产物路由，并在 `note` 里点名其余产物由谁接手。
 
-## Close the routing message
+本技能自己什么都不执行：真源产物的改写发生在被点名技能的 update 模式里、过它自己的门。两个候选都说得通时与人确认谁接手，并把这次交流记进 `note`。
 
-One message: scope, route, what the route inherits (the edits, in the record), and the success criterion (source: "confirm handoff completion and next steps"). Then move to the final gate.
+## 收束路由消息
 
-## Next
+一条消息：scope、路由、路由继承什么（记录里的 edits）、成功判据（交接完成的判据与下一步）。然后进终门。
 
-Read fully and follow `./06-finish.md`.
+## 播报与下一步
+
+读 `./06-finish.md` 并照做。

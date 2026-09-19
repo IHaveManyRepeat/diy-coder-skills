@@ -1,9 +1,9 @@
 # Step 3 — 交叉验证（Cross Check）
 
-Progress: `Collect → Dry Run → [Cross Check] → Report`
+Progress: `定位与切分 → 预演执行 → [交叉验证] → 落盘与交付`
 
-**读入：** 草稿记录里的全部 findings 与单元清单。
-**写出：** 新增 / 合并 / 删除后的 findings；重算后的 `summary`。
+**Read (input):** 草稿记录里的全部 findings 与单元清单。
+**Write (output):** 新增 / 合并 / 删除后的 findings；重算后的 `summary`。
 
 ## 为什么要这一步
 
@@ -25,7 +25,7 @@ Progress: `Collect → Dry Run → [Cross Check] → Report`
 - **这是留给实现者的自由吗？** 有些决策就是有意留给实现者的（"自定"、"可选"、"按项目情况"）——那是设计意图，不是歧义。删。
 - **这是我的措辞偏好吗？** 你在要求它换成你的写法——那是质量问题，不是执行歧义。删。
 
-移除的条目在对话里列一句"移除 N 条 + 一句话理由"，不必写回 YAML。
+移除的条目在对话里列一句"移除 N 条 + 一句话理由"，不必写回 YAML。空缺号不回收、不重排（见 step 2 的号段规则）。
 
 ### 3. 补漏（对覆盖清单过筛）
 
@@ -35,4 +35,8 @@ Progress: `Collect → Dry Run → [Cross Check] → Report`
 
 重算 `summary`（`total` / `blocker` / `major` / `minor` 与 findings 一致），确认所有 `units[].scanned` 为 `true`。
 
-读完并执行 `./04-report.md`。
+## 播报与下一步
+
+给用户一句话：复扫了几个单元、补了几条、移除几条、余下 blocker 几条。
+
+读全并照做 `./04-report.md`。

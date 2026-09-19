@@ -66,7 +66,8 @@ CONVERTED_INSTANCE = frozenset(["spec-scan", "prd", "teach-me-testing", "test-au
                                 "product-brief", "prfaq", "openapi", "epics-stories",
                                 "create-story", "checkpoint-preview", "sprint",
                                 "build-loop", "readiness-check", "test-design",
-                                "quick-dev", "help"])
+                                "quick-dev", "help", "augment", "e2e-tests",
+                                "correct-course", "project-context"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
 DISCIPLINE_EN_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
@@ -89,7 +90,9 @@ CONVERTED_DISCIPLINE = frozenset(["prd", "teach-me-testing", "test-author",
                                   "test-framework", "test-gate", "test-review",
                                   "product-brief", "prfaq", "epics-stories",
                                   "create-story", "checkpoint-preview", "sprint",
-                                  "readiness-check", "test-design", "quick-dev"])
+                                  "readiness-check", "test-design", "quick-dev",
+                                  "augment", "e2e-tests", "correct-course",
+                                  "project-context"])
 # spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
 
@@ -155,12 +158,15 @@ _CONFIG_SKILLS = sorted(set(INSTANCE_MEMBERS) | set(CONVERTED_INSTANCE))
 LANDED_RESOLVE_KEYS = frozenset(["prd", "product-brief", "prfaq", "openapi",
                                  "epics-stories", "create-story", "checkpoint-preview",
                                  "sprint", "build-loop", "readiness-check", "test-design",
-                                 "quick-dev", "help"])
+                                 "quick-dev", "help", "augment", "e2e-tests",
+                                 "correct-course", "spec-scan", "project-context"])
 
 # 已落 §4 读取纪律的技能（仅对有 `steps/` 的适用面生效；落地即从 PENDING_READ_DISCIPLINE 移除）
 LANDED_READ_DISCIPLINE = frozenset(["product-brief", "prfaq",
                                     "create-story", "checkpoint-preview",
-                                    "readiness-check", "quick-dev"])
+                                    "readiness-check", "quick-dev",
+                                    "e2e-tests", "correct-course", "spec-scan",
+                                    "project-context"])
 
 ANCHOR_PRECISE = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
                   "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
@@ -171,7 +177,8 @@ LANDED_PRECISE = frozenset(["prd", "teach-me-testing", "test-author",
                             "product-brief", "prfaq", "openapi", "epics-stories",
                             "create-story", "checkpoint-preview", "sprint",
                             "build-loop", "readiness-check", "test-design",
-                            "quick-dev", "help"])
+                            "quick-dev", "help", "augment", "e2e-tests",
+                            "correct-course", "spec-scan", "project-context"])
 
 
 def _steppers():
@@ -205,8 +212,7 @@ class PendingLandingTests(unittest.TestCase):
     # §6 适用面 = 全部技能（母本明示「不设非成员」）
     PENDING_PRECISE = frozenset(set(skills()) - NEW_SKILLS - LANDED_PRECISE)
     PENDING_RENDER_SILENT = frozenset("""
-augment correct-course e2e-tests investigate project-context
-research retrospective spec-scan viewer
+investigate research retrospective viewer
 """.split())
 
     def _check(self, anchor, candidates, pending):

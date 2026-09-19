@@ -1,46 +1,46 @@
-# Step 4 — Settle the Proposal（提案成形与呈现）
+# Step 4 — 提案成形与呈现
 
-Progress: `Initialize → Analysis → Edits → [Proposal] → Route → Finish`
+Progress: `立案 → 分析 → 改动 → [提案] → 路由 → 收尾`
 
-**Read (input):** the record as filled by steps 1–3; the `chain` from the `collect` receipt.
-**Write (output):** the record's `approach` / `ripple` / `effort` / `open_questions`; the draft presented for review.
+**Read (input):** 第 1–3 步填好的记录；`collect` 回执的 `chain`。
+**Write (output):** 记录的 `approach` / `ripple` / `effort` / `open_questions`；供审阅的草稿。
 
-## Map the source's five sections onto the record
+## 提案五段 → 记录字段
 
-The source compiled a five-part document; here each part is a field (no markdown report is written — the record is the report):
+一份完整提案有五段；这里的载体是记录字段（不另写 markdown 报告——记录就是报告）：
 
-| Source section | Record field |
+| 段 | 记录字段 |
 | --- | --- |
-| §1 Issue summary | `trigger` (+ the evidence gathered in step 2) |
-| §2 Impact analysis | `impacts` + `ripple` |
-| §3 Recommended approach | `approach` + `effort` |
-| §4 Detailed change proposals | `edits` |
-| §5 Implementation handoff | `handoff` (route set in step 5) |
+| ① 问题摘要 | `trigger`（+ 第 2 步收集的证据） |
+| ② 影响分析 | `impacts` + `ripple` |
+| ③ 推荐路径 | `approach` + `effort` |
+| ④ 具体改动提案 | `edits` |
+| ⑤ 落地交接 | `handoff`（第 5 步定路由） |
 
-## Settle the recommended path (source §3 / checklist §4)
+## 定推荐路径
 
-`approach.path` is one of three, chosen from the step-2 evaluation:
+`approach.path` 三选一，取自第 2 步的评估：
 
-- **`直接调整`** — modify or add within the existing plan;
-- **`回滚`** — revert completed work to simplify the fix;
-- **`MVP 复审`** — reduce scope or move goals.
+- **`直接调整`** —— 在既有计划内改或加；
+- **`回滚`** —— 回退已完成的工作以简化修法；
+- **`MVP 复审`** —— 缩范围或挪目标。
 
-`approach.why` carries the rationale, including the alternatives you rejected and why (source: trade-offs considered). The final gate refuses a record whose path is still undecided — this is the source's "select recommended path" made mechanical.
+`approach.why` 承载理由，含已否决的备选及否决原因。路径未定的记录被终门挡下——这是「选定推荐路径」的机械化。
 
-## Ripple (source §3 连带影响)
+## 连带影响
 
-`ripple` lists what the change pulls along **downstream of the edits** — the reference chain made readable: which ACs, TCs, or sprint tasks must be revisited after the edit lands. Take the points from the receipt's `chain`; add semantic couplings the chain cannot see (a report format another story consumes, a naming convention) as plain-language lines, each naming its ID. The chain is the evidence, not the limit — but never invent fallout without naming where it lands.
+`ripple` 列改动**下游**被拖着走的东西——把引用链读成人类可读的：改动落地后哪些 AC、TC 或 sprint 任务必须回看。取回执 `chain` 上的点；链看不见的语义耦合（另一条故事消费的报告格式、某个命名约定）补成大白话行，每行点名它的 ID。链是证据，不是上限——但绝不写不点名落点的连带影响。
 
-## Effort (source §3)
+## 工作量
 
-`effort` carries the three source dimensions: `estimate` (how much work), `risk` (what could go wrong), `timeline_impact` (what it does to the sprint). One line each — this is decision input, not a novel.
+`effort` 三个维度：`estimate`（多少工作量）、`risk`（可能出什么岔子）、`timeline_impact`（对 sprint 的影响）。各一行——这是决策输入，不是小说。
 
-## Present the complete proposal (source step-4 ask)
+## 呈现完整提案
 
-Render via diy-viewer — the silent side-step command from SKILL.md — then present the record in one message: trigger, impacts, edits, path and why, ripple, effort, open questions. Ask the source's question: **Continue [c] or Edit [e]?** Edits go back to `./03-edits.md`; structural changes (impact set, path) are handled here.
+用 diy-viewer 渲染——SKILL.md 里的静默旁路命令——然后在一条消息里呈现全案：触发、影响、改动、路径与理由、连带影响、工作量、开放问题。问这句：**继续 [c] 还是改 [e]？** 改动退回 `./03-edits.md`；结构性变更（影响集、路径）在此就地处理。
 
-The record stays `status: 草稿` until step 5's approval.
+第 5 步批准之前，记录保持 `status: 草稿`。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./05-route.md`.
+读 `./05-route.md` 并照做。

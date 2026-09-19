@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
-"""diy-project-context 确定性引擎 e2e 测试（B1 批任务书 §7 / §2.5）。
+"""diy-project-context 确定性引擎 e2e 测试（B1 批任务书 §7 / §2.5；中文化轮 B-23 同步）。
 
 覆盖：
-- 用例 1：scan 在合成多部件夹具上识别 parts / stack / 既有文档 / 源码树（语言无关探测）
+- 用例 1：scan 在合成多部件夹具上识别 parts / stack / 既有文档 / 源码树 / 关键目录回执（语言无关探测）
 - 用例 2：scan 遇未知清单降级「存在但未解析」+ 结构化 warning，不崩溃
 - 用例 3：scan 门禁（项目根不存在）→ exit 1 + 结构化拒绝 + 零产出
 - 用例 4：check 合法产物 exit 0 唯一放行；非法各带对应违规码（MISSING_FILE / ENUM_INVALID /
           DUPLICATE_ID / EMPTY_FIELD / ASSUMPTION_PRESENT）
 - 用例 5：rescan `--previous` 比对 PC-### 集合，旧有新无 → ID_UNSTABLE
-- 用例 6：SKILL.md 契约冒烟（冻结实例句逐字 md5 + 终门句指向 context.py check --final）
+- 用例 6：SKILL.md 契约冒烟（母本 §1–§6 中文定稿逐字 + 四段中文标题 + ≤93 行 + 终门句指向引擎）
+- 用例 7：steps/ 形态（H1 中文步名 + Read/Write 两行英文锚 + 末段点名下一个）
 - 附加：--output-dir 必填（用法错误 rc2）；--part 指名不存在 → UNKNOWN_ID
 
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；不依赖本机 git 状态。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_context.py" -v
 """
-import hashlib
 import io
 import json
 import os
@@ -25,16 +25,36 @@ import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ENGINE = os.path.join(HERE, "..", "skills", "diy-project-context",
-                      "scripts", "context.py")
-SKILL_MD = os.path.join(HERE, "..", "skills", "diy-project-context", "SKILL.md")
+SKILL_DIR = os.path.join(HERE, "..", "skills", "diy-project-context")
+ENGINE = os.path.join(SKILL_DIR, "scripts", "context.py")
+SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
+STEPS_DIR = os.path.join(SKILL_DIR, "steps")
 NL = chr(10)
 
-# 冻结文本校验值（batch4/frozen-texts.md §1：整句 233 字符，逐字复制）
-INSTANCE_MD5 = "5445f98bc4d4821e6888b89406a97eac"
-INSTANCE_ANCHOR = "Instance resolution (FR-4.5/D-9)"
-# 冻结文本校验值（frozen-texts.md §2：纪律块单行 497 字符，逐字复制）
-DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
+# 套件级句式母本（suite-texts.md §1 / §2 / §3 / §4 / §5 / §6 中文定稿，逐字）
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
+                 "机器语法（命令/旗标/路径）进括号；机器锚点逐字保留"
+                 "（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 "
+                 "`diy-design` 的 detect 启发式。schema 若定义 `plain`："
+                 "一行写清该条目为什么存在，绝不写是什么（转述会漂移）；"
+                 "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
+RESOLVE_KEYS_ZH = ("解析 `project.communication_language` / "
+                   "`project.document_output_language` / `paths.output_dir`")
+READ_DISCIPLINE_ZH = ("读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件"
+                      "——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，"
+                      "**主文件不列举封闭清单**。")
+RENDER_SILENT_ZH = "渲染是静默旁路——只写调用命令"
+PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
+              "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
+# 英文原形（历史，批 4 冻结）——中文化后不得残留
+INSTANCE_EN_MARK = "Instance resolution (FR-4.5/D-9)"
+DISCIPLINE_EN_MARK = "- **Writing discipline."
+STEPS = ("01-scan.md", "02-context.md", "03-rules.md", "04-finalize.md",
+         "05-deep-dive.md")
 
 PKG_JSON = ('{' + NL
             + '  "name": "web-client",' + NL
@@ -241,6 +261,28 @@ class ScanTests(EngineCase):
         self.assertEqual(data["parts"], [])
         self.assertEqual(os.listdir(self.out), [], "拒绝路径不得写任何文件")
 
+    # trace: A4④（CSV critical_directories 并入引擎：回执 critical_dirs 只报实际存在者）
+    def test_scan_reports_critical_dirs_per_part(self):
+        self.write("client/package.json", PKG_JSON)
+        self.write("client/src/main.ts", "export const a = 1" + NL)
+        self.write("client/app/entry.ts", "export const b = 2" + NL)
+        self.write("server/go.mod", GO_MOD)          # 后端声明表里的目录一个都不存在
+        r = self.scan()
+        self.assertEqual(r.returncode, 0, r.stderr + r.stdout)
+        data = json.loads(r.stdout)
+        dirs = {e["part"]: e["dirs"] for e in data["critical_dirs"]}
+        self.assertEqual(dirs["client"], ["client/src", "client/app"],
+                         "网页部件应按 CSV 声明序报存在的关键目录")
+        self.assertEqual(dirs["server"], [], "无命中 → 空列表，不猜")
+
+    # trace: A4④（`--part` 收窄部件时 critical_dirs 同步收窄）
+    def test_scan_critical_dirs_respect_part_filter(self):
+        self.write("client/package.json", PKG_JSON)
+        self.write("client/src/main.ts", "export const a = 1" + NL)
+        self.write("server/go.mod", GO_MOD)
+        data = json.loads(self.scan("--part", "client").stdout)
+        self.assertEqual([e["part"] for e in data["critical_dirs"]], ["client"])
+
     # trace: 任务书 §7（--part 指名不存在 → 冻结码 UNKNOWN_ID，不静默）
     def test_scan_unknown_part_is_refused(self):
         self.write("client/package.json", PKG_JSON)
@@ -379,49 +421,118 @@ class CheckValidationTests(EngineCase):
 
 
 class SkillContractTests(unittest.TestCase):
-    """用例 6：SKILL.md 契约冒烟（任务书 §2.1）。"""
+    """用例 6：SKILL.md 契约冒烟（任务书 §2.1 / 中文化轮 B-23）。"""
 
     def read_skill(self):
         if not os.path.isfile(SKILL_MD):
             self.skipTest("SKILL.md 尚未交付")
-        with io.open(SKILL_MD, encoding="utf-8") as f:
-            return f.read()
+        with io.open(SKILL_MD, encoding="utf-8", newline="") as f:
+            return f.read().replace("\r\n", "\n")
 
-    # trace: 任务书 §2.1（冻结实例句逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_instance_sentence_is_frozen_verbatim(self):
-        raw = self.read_skill()
-        m = re.search(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*", raw)
-        self.assertTrue(m, "SKILL.md 缺实例解析样板句")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 233, "实例句字符数偏离冻结文本（233）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), INSTANCE_MD5,
-                         "实例句与冻结文本不一致：%s" % frag)
+    def read_step(self, name):
+        with io.open(os.path.join(STEPS_DIR, name), encoding="utf-8", newline="") as f:
+            return f.read().replace("\r\n", "\n")
 
-    # trace: 任务书 §2.1（写作纪律块逐字；整块单行 497 字符）
-    def test_writing_discipline_block_is_frozen_verbatim(self):
-        raw = self.read_skill()
-        m = re.search(r"^- \*\*Writing discipline\..*$", raw, re.MULTILINE)
-        self.assertTrue(m, "SKILL.md 缺写作纪律块")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 497, "纪律块字符数偏离冻结文本（497）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(),
-                         DISCIPLINE_MD5, "纪律块与冻结文本不一致")
+    # trace: 母本 §1（实例解析句中文化定稿逐字）
+    def test_instance_sentence_verbatim(self):
+        skill = self.read_skill()
+        self.assertIn(INSTANCE_ZH, skill, "SKILL.md 缺母本 §1 中文定稿（逐字）")
+        self.assertNotIn(INSTANCE_EN_MARK, skill, "已转中文定稿，不得残留英文原形")
 
-    # trace: 任务书 §2.1（终门句指向本技能领域引擎 check --final）
+    # trace: 母本 §2（写作纪律块逐字，置 Rules 段末尾）
+    def test_writing_discipline_block_at_rules_end(self):
+        skill = self.read_skill()
+        self.assertIn(DISCIPLINE_ZH, skill, "SKILL.md 缺母本 §2 中文定稿")
+        self.assertNotIn(DISCIPLINE_EN_MARK, skill, "已转中文定稿，不得残留英文原形")
+        self.assertEqual(DISCIPLINE_ZH, skill.rstrip(NL).splitlines()[-1],
+                         "写作纪律块须置 Rules 段末尾")
+
+    # trace: 母本 §3 / §4 / §5 / §6（中文化轮落地锚串）
+    def test_mother_text_anchors(self):
+        skill = self.read_skill()
+        for label, frag in (("§3 配置解析键", RESOLVE_KEYS_ZH),
+                            ("§4 读取纪律", READ_DISCIPLINE_ZH),
+                            ("§5 渲染静默", RENDER_SILENT_ZH),
+                            ("§6 精准简练", PRECISE_ZH)):
+            self.assertIn(frag, skill, "SKILL.md 缺母本 %s 逐字文本" % label)
+
+    # trace: 任务书 §2.1（终门句指向本技能领域引擎 check --final；实例解析委托 diyc.py）
     def test_final_gate_points_to_engine(self):
         skill = self.read_skill()
         self.assertIn("context.py", skill, "终门句未指向领域引擎")
         self.assertIn("check --final", skill, "终门句缺 check --final")
         self.assertIn("--json", skill, "终门句缺 --json 回执")
+        self.assertIn("--output-dir", skill, "激活句/终门句须声明 --output-dir 必填")
+        self.assertIn("diyc.py\" resolve", skill, "实例解析未委托 diyc.py resolve")
 
-    # trace: 任务书 §2.1（薄主文件 ≤90 行 + 四段结构 + 读取纪律 + 渲染静默）
-    def test_main_file_is_thin_with_four_sections(self):
-        raw = self.read_skill()
-        self.assertLessEqual(len(raw.splitlines()), 90, "主文件须 ≤90 行")
-        for head in ("## On Activation", "## Workflow", "## Schema", "## Rules"):
-            self.assertIn(head, raw, "缺段：%s" % head)
-        self.assertIn("never batch-load", raw, "缺读取纪律")
-        self.assertIn("diy-viewer", raw, "缺渲染接线")
+    # trace: 母本 §四 / 政策（四段中文标题 + ≤93 行预算 + description 中文注释 + 步名点名）
+    def test_thin_main_file_structure(self):
+        skill = self.read_skill()
+        self.assertLessEqual(len(skill.splitlines()), 93, "薄主文件超出 93 行预算")
+        self.assertIn("name: diy-project-context", skill)
+        self.assertIn("outputs: project-context.yaml", skill)
+        self.assertIn("# ↑ 中文：", skill, "description 缺中文注释")
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
+            self.assertIn(section, skill, "SKILL.md 缺四段：%s" % section)
+        for name in STEPS:
+            self.assertIn(name, skill, "工作流未点名 %s" % name)
+
+    # trace: SS-024-13 / SS-024-08 / SS-024-09 / SS-024-06 / A4④ / SS-024-11（B-23 落点锁）
+    def test_b23_landings(self):
+        skill = self.read_skill()
+        # Rule 1 的 .prev 具名例外（写面与 Rule 9 的临时快照不冲突）
+        self.assertIn("project-context.yaml.prev", skill, "Rule 1 缺 .prev 具名例外")
+        # 两条 check 命令都在细节文件里带全实参（SKILL.md 只指路、不重复命令）
+        self.assertNotIn("check --previous {output_dir}", skill,
+                         "命令出处应收敛到 steps/04-finalize.md")
+        self.assertIn("steps/04-finalize.md", skill, "Rule 9 须指路 steps/04-finalize.md")
+        finalize = self.read_step("04-finalize.md")
+        for cmd in ("check --previous", "check --final"):
+            line = [ln for ln in finalize.splitlines() if cmd in ln]
+            self.assertTrue(line, "steps/04-finalize.md 缺 %s 命令行" % cmd)
+            self.assertIn('--project-root "{project-root}"', line[0])
+            self.assertIn('--output-dir "{output_dir}"', line[0])
+        self.assertIn("exit 0", finalize, "Rewrite check 须在 exit 0 后才删 .prev")
+        # 日期口径（A-7）：scan.date 一律写今天，不是首扫日
+        scan = self.read_step("01-scan.md")
+        self.assertIn("不是首扫日", scan, "steps/01-scan.md 缺 scan.date 口径")
+        self.assertIn("critical_dirs", scan, "steps/01-scan.md 未接线 critical_dirs 回执")
+        # A4④：critical_dirs 从回执取；A4③：不再指向源工作流的标注法
+        context = self.read_step("02-context.md")
+        self.assertIn("`critical_dirs`", context, "steps/02-context.md 未改「从回执取」")
+        self.assertNotIn("annotates it", context, "steps/02-context.md 冗余从句未删")
+        self.assertNotIn("source document (per-project-type", context, "文档映射表未删")
+        # SS-024-11：deep-dive 的读面 = 回执 + 既有文件里的 structure
+        deep = self.read_step("05-deep-dive.md")
+        self.assertIn("既有的", deep, "steps/05-deep-dive.md 未改读面")
+        self.assertNotIn("`structure` from step 1", deep, "steps/05-deep-dive.md 仍指 step 1 的 structure")
+
+    # trace: 母本 §三（steps 形态：H1 中文步名 + Read/Write 英文锚 + 末段点名下一个）
+    def test_steps_shape(self):
+        for i, name in enumerate(STEPS, start=1):
+            path = os.path.join(STEPS_DIR, name)
+            self.assertTrue(os.path.isfile(path), "缺步骤文件 %s" % name)
+            text = self.read_step(name)
+            lines = text.splitlines()
+            self.assertTrue(lines[0].startswith("# Step %d — " % i),
+                            "%s 的 H1 须为 '# Step %d — <中文步名>'，实为 %r"
+                            % (name, i, lines[0]))
+            self.assertTrue(re.search(r"[一-鿿]", lines[0]),
+                            "%s 的步名须含中文" % name)
+            self.assertTrue(any(ln.startswith("**Read (input):**") for ln in lines),
+                            "%s 缺 '**Read (input):**' 行" % name)
+            self.assertTrue(any(ln.startswith("**Write (output):**") for ln in lines),
+                            "%s 缺 '**Write (output):**' 行" % name)
+            self.assertIn("## 播报与下一步", text, "%s 缺末段 '## 播报与下一步'" % name)
+        # 线性链 + 深挖回接 + 末步声明
+        for name, nxt in zip(STEPS[:3], STEPS[1:4]):
+            self.assertIn(nxt, self.read_step(name), "%s 未点名下一个 %s" % (name, nxt))
+        self.assertIn("05-deep-dive.md", self.read_step("01-scan.md"),
+                      "steps/01-scan.md 须给深挖分支的改道")
+        self.assertIn("04-finalize.md", self.read_step("05-deep-dive.md"),
+                      "steps/05-deep-dive.md 须回接定稿步")
+        self.assertIn("最后一个步骤文件", self.read_step("04-finalize.md"),
+                      "steps/04-finalize.md 须声明本步是终局")
 
 
 if __name__ == "__main__":

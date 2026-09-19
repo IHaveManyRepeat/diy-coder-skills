@@ -1,27 +1,35 @@
-# Step 6 — Close Out（定稿门与收尾）
+# Step 6 — 定稿门与收尾
 
-Progress: `Initialize → Analysis → Edits → Proposal → Route → [Finish]`
+Progress: `立案 → 分析 → 改动 → 提案 → 路由 → [收尾]`
 
-**Read (input):** this run's record as filled by steps 1–5.
-**Write (output):** the settled record (`status` / `handoff` final) in `{output_dir}/change-proposal.yaml`; the rendered view; the closing summary.
+**Read (input):** 第 1–5 步填好的本轮记录。
+**Write (output):** `{output_dir}/change-proposal.yaml` 里定稿的记录（`status` / `handoff` 终值）；渲染视图；收尾摘要。
 
-## Final gate (mechanical)
+## 终门（机械）
 
-1. Write the terminal status first — `已定稿` (analysis settled, not yet approved) or `已批准` (the human said yes) — `已定稿` / `已批准` is what the gate inspects, not a product of it.
-2. Run `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" check --final --json` with the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run. The JSON receipt (counts included) is the close-out evidence.
-3. The gate enforces what routing requires: `handoff.route` present and inside its scope's allow-list, `impacts` non-empty, the path settled (`approach`), zero `[假设]` — an unconfirmed inference is resolved with the human or lands as an explicit `open_questions` entry before the gate.
-4. Render via diy-viewer — the silent side-step command from SKILL.md — only after exit 0; no browser interaction point, no path report that blocks.
+1. 先写终态——`已定稿`（分析已落定、尚未获准）或 `已批准`（人说了 yes）——`已定稿` / `已批准` 是门检查的对象，不是门的产物。
+2. 跑 `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两个实参同激活（`--output-dir` 必填、绝不缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑。JSON 回执（含计数）即收口证据。
+3. 门强制的正是路由的前提：`handoff.route` 在场且在该 scope 的 allow-list 内、`impacts` 非空、路径已定（`approach`）、零 `[假设]`——未确认的推断先与人落定，或落成一条显式 `open_questions` 再进终门。
+4. 渲染用 diy-viewer——SKILL.md 里的静默旁路命令——只在 exit 0 之后：不新增浏览器交互点、不报路径阻塞等待。
 
-## Summarize (source step-6)
+## `已驳回` 出口（不读终门）
 
-One closing message carrying the source's four facts plus the next step:
+第 5 步选了「既不批准、也不返修」时，记录已写 `status: 已驳回`，保留作审计轨迹。
 
-- **Issue addressed** — the `trigger` in one line;
-- **Change scope** — `scope` and why it landed there;
-- **Artifacts affected** — the distinct `artifact` values across `impacts` (and the edit count);
-- **Routed to** — `handoff.route` and what it inherits;
-- **Next** — the route runs its own gate; this record changes nothing until then. If the change is later implemented and new evidence arrives, a fresh `CP-###` is opened — this record is never rewritten.
+- 终门对本条**永不放行**——`--final` 要求 `status ∈ {已定稿, 已批准}`；把它改写成终态就是抹掉审计轨迹。**不读、不跑终门。**
+- 改跑**不带 `--final`** 的同一条命令收口：`python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" check --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 即记录形态合格（终门专属义务如 `impacts` 非空、`handoff` 在场在此不适用）；逐条修完上报的违规再重跑。
+- 不做交接路由、不渲染，也不算「交给谁」那一项；一行说明本记录以 `已驳回` 收口即可。
 
-## Exit
+## 收尾摘要
 
-This is the last step file — the run ends here once the final gate exits 0. The record's `handoff.route` carries the outcome; no further `steps/` file is read.
+一条收尾消息，四个事实加下一步：
+
+- **处理了什么** —— 一行写出 `trigger`；
+- **变更规模** —— `scope` 及其落档理由；
+- **波及产物** —— `impacts` 上去重后的 `artifact` 集合（加 edits 条数）；
+- **交给谁** —— `handoff.route` 与它继承什么；
+- **下一步** —— 路由技能跑它自己的门；在那之前本记录不改动任何东西。改动日后落地又出现新证据时，新开一条 `CP-###`——本记录永不重写。
+
+## 播报与下一步
+
+这是最后一个步骤文件——终门 exit 0（或 `已驳回` 出口 exit 0）后本轮到此结束。结果写在记录的 `handoff.route` 字段里；不再读任何 `steps/` 文件。

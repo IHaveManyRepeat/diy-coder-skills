@@ -1,51 +1,51 @@
-# Step 2 — Systematic Impact Analysis（影响面系统走查）
+# Step 2 — 影响面系统走查
 
-Progress: `Initialize → [Analysis] → Edits → Proposal → Route → Finish`
+Progress: `立案 → [分析] → 改动 → 提案 → 路由 → 收尾`
 
-**Read (input):** the `collect` receipt (`docs` / `diyc.check.violations` / `chain` / `counts`); `prd.yaml` / `epics.yaml` / `stories.yaml` / `architecture.yaml` only to resolve the context behind a specific impact (by ID — never a full re-read).
-**Write (output):** `impacts` in the record; the working notes behind them.
+**Read (input):** `collect` 回执（`docs` / `diyc.check.violations` / `chain` / `counts`）；`prd.yaml` / `epics.yaml` / `stories.yaml` / `architecture.yaml` 只在解析某条具体影响背后的语境时按 ID 查（绝不整篇重读）。
+**Write (output):** 记录里的 `impacts`；支撑它们的走查笔记。
 
-## The receipt is the mechanical half (diy 改造点)
+## 回执就是机械面
 
-The source workflow walked its checklist by hand over whole documents. Here the mechanical facts already arrived:
+逐份通读整套文档、手工走查清单那一步不必再做——机械事实已随回执到达：
 
-- `docs` — the ID-level inventory of all six artifacts (features/FR, epics, stories+ACs, decisions, operations, pages). Take every candidate target ID from here, never from a fresh manual scan.
-- `diyc.check.violations` — the cross-document mechanical verdict from diyc (`type` = which artifact). A pre-existing violation inside the change's blast radius is impact evidence: it names an ID chain that is already broken where the change lands.
-- `chain` — the upstream/downstream reference points of `--target <ID>`. Every point on the chain is a place the change may ripple into; the two-hop expansion (FR → AC → TC → sprint task) is the construction blast radius.
+- `docs` —— 六个产物的 ID 级清单（features/FR、epics、stories+AC、decisions、operations、pages）。候选目标 ID 一律取自这里，绝不另做一轮手工扫描。
+- `diyc.check.violations` —— diyc 给出的跨文档机械判定（`type` = 哪个产物）。落在本次变更爆炸半径内的既有违规就是影响证据：它点名了变更落点上已经断掉的 ID 链。
+- `chain` —— `--target <ID>` 的上游 / 下游引用点。链上每一点都是变更可能波及之处；二跳展开（FR → AC → TC → sprint 任务）即施工爆炸半径。
 
-If On Activation ran without `--target`, rerun it now with the confirmed target (`FR-x.y` / `F-x` / `S-x` / `AC-x.y` / `D-x` / ...) — the analysis needs the chain. If the running session cannot re-invoke `collect` mid-step, the conversation's own knowledge of the ID chain may stand in, but say so and keep this skill's reference-never-copy rule.
+激活时未带 `--target` → 在此带确认后的目标（`FR-x.y` / `F-x` / `S-x` / `AC-x.y` / `D-x` / …）补跑一次 `collect`：分析需要那条链，而链只能来自回执——绝不拿会话记忆里的 ID 链顶替。
 
-## The perspective list is the judgment half (source checklist §1–§4)
+## 视角清单就是判断面
 
-Walk these sections with the human; each produces `impacts` entries — `{artifact, target, kind, why}` with `target` a product ID that exists in the receipt, or `path:<relative>` for an infra file:
+与人一起逐节走查；每节产出 `impacts` 条目——`{artifact, target, kind, why}`，`target` 是回执里存在的产品 ID，基础设施文件用 `path:<relative>`：
 
-**A. Trigger and context (source §1).** Why did this surface now? Classify the issue: technical limitation found during implementation / new requirement from stakeholders / a misunderstanding of the original requirement / strategic pivot / a failed approach needing a different solution. The classification steers the path evaluation in D.
+**A. 触发与语境。** 为什么现在冒出来？给问题分类：实施中发现技术限制 / 干系人提出新要求 / 误读了原要求 / 战略转向 / 原方案失败需换解法。分类结果喂给 D 的路径评估。
 
-**B. Epic impact (source §2).** Can the epic holding the trigger story still be completed as planned? Which epic-level change is needed — modify scope or acceptance criteria, add an epic, remove or defer one, redefine it? Do later epics depend on it (check `epics[].feature_refs` and story `epic` links in the receipt)? Does the epic order or priority need resequencing?
+**B. 史诗影响。** 承载触发故事的那个 epic 还能按原计划完成吗？需要哪种 epic 级改动——改范围或验收标准、加一个、删或推迟一个、重新定义？后续 epic 是否依赖它（对回执里的 `epics[].feature_refs` 与故事的 `epic` 链接）？epic 的次序或优先级要不要重排？
 
-**C. Artifact conflicts (source §3).** Per artifact in the receipt:
-- `prd` — do goals, requirements, or the MVP boundary conflict with the change? Which `F-*` / `FR-*` / `NFR-*` are affected, and is the MVP still achievable?
-- `architecture` — which `D-*` decisions (components, patterns, stack, data model, API design, integration points) does it touch?
-- `design` — which `P-*` pages' flows, states, or accessibility are impacted?
-- `openapi` — which `operationId`s lose or need a contract change?
-- `test-plan` — which `TC-*` cases bind the affected ACs, and do the `static_checks` gates still match? (source §3.4 "Testing strategies")
-- `infra` — deployment scripts, CI/CD pipeline configs, IaC, monitoring: anything the change forces to add or edit. Target is the file (`path:<relative>`), never a product ID. (source §3.4 "other artifacts")
+**C. 产物冲突。** 按回执里的每个产物过：
+- `prd` —— 目标、需求或 MVP 边界与本次变更冲突吗？哪些 `F-*` / `FR-*` / `NFR-*` 受影响，MVP 还成立吗？
+- `architecture` —— 触及哪些 `D-*` 决策（组件、模式、技术栈、数据模型、API 设计、集成点）？
+- `design` —— 哪些 `P-*` 页面的流程、状态或无障碍受影响？
+- `openapi` —— 哪些 `operationId` 会失效或需要改契约？
+- `test-plan` —— 哪些 `TC-*` 绑在受影响的 AC 上？`static_checks` 门是否还成立（测试策略面）？
+- `infra` —— 部署脚本、CI/CD 配置、IaC、监控：本次变更迫使新增或改动的一切（其他工件面）。目标写文件（`path:<relative>`），绝不写产品 ID。
 
-**D. Path forward (source §4).** Evaluate the three source options against the evidence:
-- **`直接调整`** — modify or add within the existing plan; effort / risk / timeline?
-- **`回滚`（潜在）** — would reverting completed work simplify the fix, and is that justified?
-- **`MVP 复审`** — is the MVP still achievable, or must scope shrink or goals move?
+**D. 前路。** 拿证据评估三条路：
+- **`直接调整`** —— 在既有计划内改或加；工作量 / 风险 / 工期影响如何？
+- **`回滚`（潜在）** —— 回退已完成的工作会不会让修法更简单，值不值？
+- **`MVP 复审`** —— MVP 还成立吗，还是范围必须缩、目标必须挪？
 
-Name the recommendation with its rationale here; `approach` is settled in step 4 and the reasoning carries there.
+在这里点名推荐路径与理由；`approach` 在第 4 步定夺，理由随之带过去。
 
-## Produce impacts
+## 产出 impacts
 
-One entry per affected target — `kind` is `修改` / `新增` / `删除`. `why` states what the change does to it in one line (impact, not the edit itself — edits are step 3). Anything the perspective list raises that cannot be tied to an existing target becomes an `open_questions` entry instead — never a fabricated ID. Infra files keep the source §3.4 "other artifacts" sweep alive: a deployment script, a CI config, an IaC file is `{artifact: infra, target: path:<relative>}`, not an open question. An inference you cannot confirm with the human yet carries the `[假设]` prefix in the value while drafting; the final gate requires zero, so every one of them is resolved or landed as an `open_questions` entry before step 6.
+每个受影响目标一条——`kind` 取 `修改` / `新增` / `删除`。`why` 一行说清变更对它做了什么（是影响，不是改动本身——改动在第 3 步）。视角清单提出、却绑不到任何既有目标的东西，落成一条 `open_questions`——绝不编造 ID。基础设施文件让「其他工件」的面保持敞开：部署脚本、CI 配置、IaC 文件写成 `{artifact: infra, target: path:<relative>}`，不是开放式问题。还不能与人确认的推断，起草期在值上带 `[假设]` 前缀；终门要求清零，故每一条都要在第 6 步前落定或落成 `open_questions`。
 
-## Report progress
+## 报进度
 
-After each major section (B, C, D) present the running impact list in one message; the source workflow reported progress per checklist section, and the human steers here.
+每走完一节（B、C、D）就用一条消息呈现当前的影响清单——逐节报进度，由人来纠偏。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./03-edits.md`.
+读 `./03-edits.md` 并照做。

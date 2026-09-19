@@ -1,30 +1,34 @@
-# Step 3 — Generate API（接口层用例生成）
+# Step 3 — 接口层用例生成
 
-Progress: `Detect → Targets → [Generate API] → Generate E2E → Record`
+Progress: `探测 → 目标 → [生成 API] → 生成 E2E → 记录`
 
-**Read (input):** the target list from step 2; the confirmed framework + existing patterns from step 1; the API implementation (routes, handlers, schemas).
-**Write (output):** API test files in the project's test directory — never in `{output_dir}`, never a new artifact.
+**Read (input):** 第 2 步的目标清单；第 1 步确认的框架 + 既有模式；API 实现（路由、处理器、schema）。
+**Write (output):** 项目测试目录里的 API 测试文件——绝不写进 `{output_dir}`，绝不新建产物。
 
-## What an API case must contain
+## 层轴与字段脱钩
 
-For each API target (BMAD step-2):
+本步产出的 API 合同用例与第 4 步的 E2E 用例同属**生成层轴**（`api | e2e`）——它只决定走哪一步与收尾摘要的分层计数，**不写进 `test-plan.yaml` 的 `type` 字段**（`type` 恒为 `端到端`）；层信息落用例 `title`。
 
-- **Status codes** — the declared success code, plus the plausible failure codes for that endpoint (e.g. 200 happy path; 400 malformed input; 404 unknown resource; 500 only when a real fault path exists — never assert a 500 you cannot trigger deterministically).
-- **Response structure** — assert the shape the contract promises (required fields present, types as declared), not the entire payload verbatim.
-- **Happy path first**, then 1–2 critical error cases. Two error cases that exercise the same guard are one case written twice — pick the ones that fail differently.
-- **Existing patterns** — the runner, assertion style, fixture conventions and file naming come from `existing_patterns`. Imitating the project beats importing a habit from another stack.
+## API 用例必须包含什么
 
-## Discipline
+对每个 API 目标（BMAD step-2）：
 
-- One behavior per case, named so a failure reads as a sentence (`rejects a missing auth header with 401`).
-- No sleeps, no ordering dependence between cases: each case sets up what it needs and asserts a visible result.
-- A case that cannot state its expected outcome is not a case — drop it and say why; a vague oracle is worse than a missing case.
-- Follow the project's existing API-test conventions when they conflict with generic advice above — readability of the suite wins over doctrine.
+- **状态码** —— 声明的成功码，加上该端点可能的失败码（如 200 happy path；400 输入畸形；404 资源不存在；500 只在真有故障路径时才断言——绝不断言一条你无法确定性触发的 500）。
+- **响应结构** —— 断言契约承诺的形状（必填字段在场、类型如声明），不是整份载荷逐字比对。
+- **happy path 优先**，随后 1–2 条关键错误用例。两条错误用例若压同一个守卫，就是一条用例写了两遍——挑那些失败方式不同的。
+- **既有模式** —— runner、断言风格、夹具惯例与文件命名都取自 `existing_patterns`。模仿项目胜过从别的技术栈搬习惯。
 
-## Keep the target list honest
+## 纪律
 
-If generating an API case exposes that the endpoint's contract is unclear (no schema, no documented error codes), report it and skip that target rather than guessing the oracle. Note the gap for the closing summary — that is a finding about the implementation surface, not a test to fake.
+- 一条用例一个行为，命名要让失败读起来像一句话（`rejects a missing auth header with 401`）。
+- 不写 sleep，用例之间不依赖顺序：每条用例自备前提，断言可见结果。
+- 说不出预期结果的用例不是用例——丢掉并说明原因；含糊的 oracle 比缺一条用例更糟。
+- 项目既有的 API 测试惯例与上述通则冲突时，从惯例——套件的可读性高于教条。
 
-## Next
+## 对目标清单保持诚实
 
-Read fully and follow `./04-generate-e2e.md`.
+生成 API 用例时若发现该端点的契约不清（无 schema、无成文错误码），报出来并跳过该目标，别去猜 oracle。把缺口记进收尾摘要——那是关于实现面的发现，不是一条可以伪造的测试。
+
+## 播报与下一步
+
+读全 `./04-generate-e2e.md` 并照做。

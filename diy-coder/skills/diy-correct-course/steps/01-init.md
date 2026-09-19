@@ -1,49 +1,51 @@
-# Step 1 — Initialize Change Navigation（触发确认与立案）
+# Step 1 — 触发确认与立案
 
-Progress: `[Initialize] → Analysis → Edits → Proposal → Route → Finish`
+Progress: `[立案] → 分析 → 改动 → 提案 → 路由 → 收尾`
 
-**Read (input):** the `collect` receipt from On Activation; the user's description of the issue.
-**Write (output):** the draft record in `{output_dir}/change-proposal.yaml` (`id` / `date` / `status` / `trigger` / `mode` / `scope` / empty lists).
+**Read (input):** 激活段 `collect` 回执；用户对问题的描述；来自 diy-retrospective 时读 `{output_dir}/retrospective.yaml` 的 `significant_changes[]`。
+**Write (output):** `{output_dir}/change-proposal.yaml` 的草稿记录（`id` / `date` / `status` / `trigger` / `mode` / `scope` / 空列表）。
 
-## Gate first (zero-output refusal)
+## 先看门（零产出拒绝）
 
-`collect` already ran the gate. On exit 1 the run is over before it starts: relay the receipt's one-line reasons and its `gate.route` (`diy-prd` / `diy-epics-stories`), then stop and write nothing. A refusal never becomes a record; a missing upstream document is never worked around by analyzing something else.
+`collect` 已经跑过门。exit 1 时本轮在开始前就结束：转述回执的一行理由与它的 `gate.route`（`diy-prd` / `diy-epics-stories`），停下，什么都不写。拒绝永不变成记录；上游文档缺席，绝不靠「改去分析别的」绕开。
 
-## Confirm the trigger (source step-1)
+## 确认触发
 
-Ask what needs navigating, then listen — the user's own words are the record's `trigger`:
+问要导航什么，然后听——用户原话就是记录的 `trigger`：
 
-- **What specific issue or change has been identified?** One sentence, their phrasing first.
-- **What showed it?** An error message, a stakeholder signal, a technical constraint discovered mid-implementation — this becomes the evidence anchoring the analysis (source checklist §1.3).
-- **Which story surfaced it?** The story ID (if one exists) goes into the analysis in step 2.
+- **要改的是什么？** 一句话，先按用户的说法记。
+- **什么显示出来的？** 报错、干系人的信号、实施中发现的硬约束——它成为锚定分析的证据。
+- **哪条故事暴露的？** 故事 ID（存在时）带进第 2 步。
 
-**HALT if the trigger is unclear** (source step-1 and checklist §1 halt-condition): "Cannot navigate change without a clear understanding of the triggering issue." Do not proceed on a vague issue, and never fill the gap with assumptions of your own — a proposal built on a guessed trigger misroutes real work.
+来自 diy-retrospective 的交接，**具名来源**是 `{output_dir}/retrospective.yaml` 的 `significant_changes[]`：每条 `{change, impact, recommended_action}`，diy-retrospective 记录级 `id` 形如 `RT-yy`。整批**只开一条 proposal**——N 条变化进同一条记录的 `impacts`（必要时加 `edits`），绝不拆成 N 条记录；`trigger` 写「来自 <RT-id> 的 significant_changes：<各条 change 的摘句>」，并把 `recommended_action` 与 `impact` 带进 `why` / `rationale` 的取材面。diy-retrospective 那批条目本身就是证据，不再要求用户重述一遍。
 
-## Settle the mode (source step-1)
+**触发不清就 HALT**：要用户给出「要改什么、为什么改」的具体细节，加至少一条具体证据（报错 / 信号 / 约束）。没有具体证据的触发不开工，也绝不拿自己的假设填空——建立在猜测触发上的提案，会把真实工作路由到错处。
 
-- **`增量`** (recommended) — each edit proposal is presented and refined one at a time before the next.
-- **`批量`** — every edit proposal is collected and presented together at the end of step 3.
+## 定 mode
 
-Record it in `mode`; it changes how step 3 presents, nothing else.
+- **`增量`**（推荐）——每处改动提案单独呈现、单独打磨，再做下一处。
+- **`批量`**——全部改动提案收齐，第 3 步末尾一次性呈现。
 
-## Draft the record
+记进 `mode`；它只改第 3 步的呈现方式，别的都不动。
 
-Append one record to `{output_dir}/change-proposal.yaml` (create the file when absent: `project: {name, created, updated}` — `name` from `diy-coder.yaml` `project.name` — plus an empty `proposals` list and `revisions: []`):
+## 立案
+
+往 `{output_dir}/change-proposal.yaml` 追加一条记录（文件缺席时先建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——加空的 `proposals` 列表与 `revisions: []`）：
 
 ```yaml
-  - id: CP-001                  # next = highest existing + 1, 3 digits; never renumber, never reuse
-    date: YYYY-MM-DD            # today
+  - id: CP-001                  # 下一条 = 现有最大值 + 1，三位零填充；永不重编号、永不复用
+    date: YYYY-MM-DD            # 本条动作的日子（今天）
     status: 草稿
-    trigger: <the user's own words>
-    mode: 增量           # or 批量
-    scope: 轻微                # provisional; step 5 settles it and the final gate enforces the pairing
+    trigger: <用户原话；来自 diy-retrospective 时写 RT-id + change 摘句>
+    mode: 增量                  # 或 批量
+    scope: 轻微                 # 暂定；第 5 步定夺，终门强制它与 handoff.route 配对
     impacts: []
     edits: []
     open_questions: []
 ```
 
-The provisional `scope` keeps the record loadable through the drafting steps; step 5 corrects it before the gate.
+暂定的 `scope` 只为让记录在起草各步里保持可加载；第 5 步在终门前改正它。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./02-analysis.md`.
+读 `./02-analysis.md` 并照做。
