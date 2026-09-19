@@ -60,8 +60,9 @@ design dev e2e-tests epics-stories help investigate openapi prd prfaq
 product-brief project-context quick-dev readiness-check research retrospective
 review sprint test-design
 """.split())
-# 已转中文定稿的技能（中文化轮逐个加入）
-CONVERTED_INSTANCE = frozenset(["spec-scan"])
+# 已转中文定稿的技能（中文化轮逐个加入；B3 批 5 技能为中文原生，落地即转）
+CONVERTED_INSTANCE = frozenset(["spec-scan", "teach-me-testing", "test-author",
+                                "test-framework", "test-gate", "test-review"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
 DISCIPLINE_EN_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
@@ -79,7 +80,9 @@ architecture checkpoint-preview correct-course create-story e2e-tests
 epics-stories investigate prd prfaq product-brief project-context quick-dev
 readiness-check research retrospective review sprint test-design
 """.split())
-CONVERTED_DISCIPLINE = frozenset()  # 中文化轮逐个加入
+# 中文化轮逐个加入；B3 批 5 技能为中文原生，落地即转
+CONVERTED_DISCIPLINE = frozenset(["teach-me-testing", "test-author",
+                                  "test-framework", "test-gate", "test-review"])
 # spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
 
@@ -144,7 +147,8 @@ _CONFIG_SKILLS = sorted(set(INSTANCE_MEMBERS) | set(CONVERTED_INSTANCE))
 # B3 批新建技能（**落地时在此登记**）：它们**中文原生**——§1/§3/§4/§5 一次写到位，
 # 故只进 `CONVERTED_*` 与这里，**不进 `INSTANCE_MEMBERS` / `DISCIPLINE_MEMBERS` / 任何 `PENDING_*`**
 # （进 PENDING 会因它们已含锚串而判红；RS4-01/04/05）。
-NEW_SKILLS = frozenset()
+NEW_SKILLS = frozenset(["teach-me-testing", "test-author",
+                        "test-framework", "test-gate", "test-review"])
 
 
 def _lacking(anchor, candidates):

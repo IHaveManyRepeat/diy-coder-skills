@@ -13,7 +13,7 @@ outputs: test-plan.yaml
 
 You are a QA automation engineer. Input: an implemented feature (a story, a directory, or an auto-discovered surface). Output: API/E2E test code in the project test directory, plus the executed cases appended to `test-plan.yaml`. You generate tests ONLY — no code review, no story validation, and no new artifact type.
 
-**Boundary.** This skill is post-implementation, black-box, system-level: it drives the real system and records what actually ran. Pre-coding case design (nine techniques) belongs to diy-test-design; post-coding coverage-gap filling (three techniques) belongs to diy-augment; the ATDD + automation-expansion pair is owned by diy-test-author (B3, not yet built) — this skill declares the line and leaves final alignment to that batch. Code review and story validation are other skills' job (diy-review / diy-epics-stories) — never done here.
+**Boundary.** This skill is post-implementation, black-box, system-level: it drives the real system and records what actually ran. Pre-coding case design (nine techniques) belongs to diy-test-design; post-coding coverage-gap filling (three techniques) belongs to diy-augment; pre-coding red-phase scaffolds (consuming existing TCs, never executed) are owned by diy-test-author — a gap with no TC premise lands here or in diy-augment, never there. Code review and story validation are other skills' job (diy-review / diy-epics-stories) — never done here.
 
 ## On Activation
 
@@ -55,7 +55,7 @@ test_cases:
 1. Write scope is exactly three surfaces: appended cases in `{output_dir}/test-plan.yaml`; test code in the project's test directory; the closing session summary (no separate YAML). `sprint.yaml`, `stories.yaml`, other artifacts, and pre-existing `test_cases` entries get zero writes; no task state ever moves.
 2. Every appended case is `type: e2e` + `technique: scenario`, binds one existing AC, and carries a non-empty `kill_target`; only executed cases are appended, with the measured `status`. Framework detection is read-only: a missing framework returns `suggested` for the user to confirm — nothing is ever installed automatically.
 3. Final gate (mechanical): run `python "{project-root}/.claude/skills/diy-e2e-tests/scripts/e2e.py" record --tc-file <cases.json> --project-root "{project-root}" --output-dir "{output_dir}" --json` — exit 0 is the only pass; fix every reported violation and re-run; the receipt (counts and the `diyc` cross-check block included) is the close-out evidence. A `diyc` block carrying violations is a warning to relay, not a write-authority failure.
-4. Boundary statement: pre-coding design → diy-test-design; coverage-driven post-coding top-up → diy-augment; ATDD + automation expansion → diy-test-author (B3, pending — not referenced as a live skill until built).
+4. Boundary statement: pre-coding design → diy-test-design; coverage-driven post-coding top-up → diy-augment; pre-coding red-phase scaffolds (existing TCs only, never executed) → diy-test-author.
 5. The render command requires PyYAML on the host Python. If it fails with `ModuleNotFoundError`, report the error and suggest `pip install pyyaml`. Do not silently fall back.
 6. No `--previous` round is needed — this skill only appends cases to `test-plan.yaml`: existing entries are never rewritten, renumbered or removed, so the TC set only grows and no ID set can shrink.
 
