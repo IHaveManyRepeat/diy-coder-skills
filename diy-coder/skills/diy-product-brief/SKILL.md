@@ -53,6 +53,9 @@ brief:
   open_questions: [string]                 # unknowns, kept next to the knowns
   assumptions: [string]                    # [ASSUMPTION]-prefixed while drafting; empty at final
   extra_sections: [{name, content}]        # shape follows the product — sections the default structure does not cover
+distillate: {problem, target_users, value_props: [<string>], constraints: [<string>], open_questions: [<string>]}
+                                           # 交出面：交给 diy-prd 的下游契约（字段级映射定义在 diy-prd 侧，本技能只声明交什么）；
+                                           # constraints = 硬限制与被排除项（能写成「Not <X>: because <Y>」的照此写），供 PRD 落 out_of_scope
 decisions:                                 # canonical memory: every decision, change and override, as it happens
   - {id: BD-001, date: YYYY-MM-DD, decision, rationale, status: active|reversed}   # BD-### — sequential, stable, never renumbered or reused
 addendum:                                  # depth that belongs downstream or does not fit the brief; captured live

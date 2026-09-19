@@ -25,7 +25,7 @@ description: Create or update the product PRD as a single-source prd.yaml with s
 顺序：**口述背景 → 利害档位 → 工作模式**。2–3 轮进入工作，不是十轮。
 
 - **口述背景**。永远的第一步：请用户给口头背景，以及任何既有输入——粘贴或给路径均可，长文无妨。
-- **利害档位**。一问定档：`hobby` / `internal` / `public`——决定深度（`hobby` ≈ 一页精华，`public` = 全量严谨）。该值同时写进产物的 `project.strictness`（同一枚举）。
+- **利害档位**。一问定档：`hobby` / `internal` / `investor` / `public`——决定深度（`hobby` ≈ 一页精华，`public` = 全量严谨）。该值同时写进产物的 `project.strictness`（同一枚举）。
 - **工作模式**。二选一：
   - **快速路径**——把剩余空档合并成 1–2 个问题，然后直接起草完整 prd.yaml，推断处带 `[ASSUMPTION]` 前缀；用户审阅后迭代。
   - **陪跑路径**——逐节一起走，一次一节，用户作答、你成文。
@@ -66,7 +66,7 @@ description: Create or update the product PRD as a single-source prd.yaml with s
 project:
   name: string
   status: draft | final          # 用户确认全部假设后才写 final
-  strictness: hobby | internal | public   # 深度档位，与 brief 的 stakes 同一枚举；推断值带 [ASSUMPTION] 前缀写在值上
+  strictness: hobby | internal | investor | public   # 深度档位，与 brief 的 stakes 同一枚举；推断值带 [ASSUMPTION] 前缀写在值上
   created: YYYY-MM-DD
   updated: YYYY-MM-DD
 purpose: one-sentence product purpose

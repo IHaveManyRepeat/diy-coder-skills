@@ -50,6 +50,9 @@ researches:
     findings:                   # flat list; every claim carries its sources
       - {area: <dimension sub-area, e.g. customer-behavior/regulatory>, claim, sources: [{title, url, accessed}], confidence: high|medium|low}
     synthesis: {executive_summary, key_points: [<string>], open_questions: [<string>]}
+distillate: {problem, target_users, value_props: [<string>], constraints: [<string>], open_questions: [<string>]}
+                                # 交出面：跨全部 researches[] 记录的汇总裁面（字段级映射定义在 diy-prd 侧）；
+                                # problem = 研究问题；value_props = 已验证的机会点；constraints = 证据支持的边界与限制
 revisions: []                   # {date, change, reason} — appended when an existing record changes
 ```
 
