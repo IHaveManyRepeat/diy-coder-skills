@@ -1,57 +1,58 @@
-# Step 5 (market) — Competitive Landscape（竞争格局，market 维度收尾）
+# Step 5 — 竞争格局（market 维度收尾）
 
 Progress: `Scope → 02 Behavior → 03 Pain Points → 04 Decisions → [05 Competitive] → Synthesis`
 
-**Read (input):** the record in `{output_dir}/research.yaml`; the previous three steps' findings.
-**Write (output):** the competitive findings into that record; the step message.
+**Read (input):** `{output_dir}/research.yaml` 里本记录；前三个步骤的 findings。
+**Write (output):** 竞争 findings 写进该记录；本步播报。
 
-## Focus
+## 关注面
 
-- Key players and market share
-- Competitive positioning strategies
-- Strengths and weaknesses
-- Market differentiation opportunities
-- Competitive threats and challenges
+- 主要玩家与市场份额
+- 竞争定位策略
+- 优势与劣势
+- 市场差异化机会
+- 竞争威胁与挑战
 
-## Searches (run in parallel)
+## 检索（并行跑）
 
 - `"{topic} key market players market share"`
 - `"{topic} competitive positioning strategies"`
 - `"{topic} competitor strengths weaknesses"`
 - `"{topic} market differentiation opportunities"`
 
-## Findings to write
+## 要写的 findings
 
-One `findings[]` entry per area, written as each search lands:
+每个 `area` 一条 `findings[]` 条目，随该次检索落地即写：
 
-| `area` | what the claim asserts |
+| `area` | 该断言说什么 |
 | --- | --- |
-| `key-players` | who competes, market leaders and challengers |
-| `market-share` | share distribution and its source |
-| `positioning` | how each player positions; value propositions in play |
-| `strengths-weaknesses` | per-player strengths and weaknesses |
-| `differentiation` | unserved positions and differentiation openings |
-| `threats` | competitive threats and pressures |
-| `opportunities` | opportunities the competitive picture leaves open |
+| `key-players` | 谁在竞争、领先者与挑战者 |
+| `market-share` | 份额分布及其出处 |
+| `positioning` | 各玩家的定位方式、在用的价值主张 |
+| `strengths-weaknesses` | 逐玩家的优势与劣势 |
+| `differentiation` | 无人占的位与差异化开口 |
+| `threats` | 竞争威胁与压力 |
+| `opportunities` | 竞争图景留下的机会 |
 
-## Method
+## 方法
 
-- Web search required — industry reports, competitor sites and annual reports, competitive-intelligence analyses.
-- Company self-description is a source, not a fact: corroborate market-share and strength claims independently.
-- Two independent sources for each critical claim; conflicts presented, both sides cited.
-- `confidence` per finding: `高` / `中` / `低`.
+- 必须联网检索——行业报告、竞品官网与年报、竞争情报分析。
+- 公司自述是来源、不是事实：份额与优势类断言独立佐证。
+- 每条 `critical claim` 两个独立来源；冲突两边都摆、都引。
+- 每条 finding 的 `confidence`：`高` / `中` / `低`。
 
-## Present and continue
+## 小结与门禁
 
-Summarize the competitive picture and the openings it leaves, then halt:
+总结竞争图景与它留下的开口，然后停下：
 
 ```
-All four market analysis steps are complete.
-[C] Continue - Proceed to synthesis
+market 维度四个分析步已全部完成。
+
+[C] Continue —— 确认并进入综合成文
 ```
 
-HALT — wait for the user. On 'C', read fully and follow the next file.
+HALT——等用户。收到 `C` 答复后读全并照做下一个文件；非 `C` 答复按 SKILL.md 的 `[Modify]` 惯例处理（收齐意见、更新记录、重新展示同一门禁）。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `steps/06-synthesis.md`.
+读全 `steps/06-synthesis.md` 并照做。

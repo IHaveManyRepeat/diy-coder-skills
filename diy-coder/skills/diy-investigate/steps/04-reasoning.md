@@ -1,34 +1,34 @@
-# Step 4 — Reasoning（因果推理与假设生命周期）
+# Step 4 — 因果推理与假设生命周期
 
-Progress: `Acknowledge → Stronghold → Perimeter → [Reasoning] → Source Trace → Report`
+Progress: `确认输入 → 据点 → 边界 → [推理] → 源码追踪 → 结案`
 
-**Read (input):** the record's `stronghold` / `evidence` / `missing_evidence`.
-**Write (output):** the record's `timeline` / `hypotheses` / `evidence` / `backlog`.
+**Read (input):** 记录的 `stronghold` / `evidence` / `missing_evidence`。
+**Write (output):** 记录的 `timeline` / `hypotheses` / `evidence` / `backlog`。
 
-## Trace causality
+## 追因果
 
-- **症状驱动 mode** — trace backward from the symptom to its producing conditions and the state that emerged.
-- **探索 mode** — trace backward from outputs (returns, side effects, messages sent) to their producing conditions.
+- **`症状驱动` 模式** —— 从症状往回追到产生它的条件与浮现出的状态。
+- **`探索` 模式** —— 从输出（返回值、副作用、发出的消息）往回追到产生它们的条件。
 
-Same technique, different anchor.
+同一套手法，锚点不同。
 
-## Reconstruct the timeline
+## 重建时间线
 
-Cross-reference logs, system events, version control, and user observations into `timeline` rows (`at` / `event` / `ref`). Every row cites its source; conflicting rows both stay — a contradiction is evidence too.
+把日志、系统事件、版本控制、用户观察交叉比对成 `timeline` 行（`at` / `event` / `ref`）。每行都引来源；互相矛盾的行都留着——矛盾也是证据。
 
-## Hypothesis lifecycle (the discipline that matters)
+## 假设生命周期（真正要紧的纪律）
 
-For every hypothesis: state it → write `test` (what would confirm and what would refute it) → search → grade `status` (`已确证` / `已推翻` / `待验证`) → when the status leaves `待验证`, write the `resolution` (which evidence settled it). The final gate refuses a hypothesis that is not 待验证 without a `resolution`.
+每条假设：立起来 → 写 `test`（什么能证实、什么能推翻）→ 去找 → 定 `status`（`已确证` / `已推翻` / `待验证`）→ 状态一旦离开 `待验证`，写下 `resolution`（哪条证据结的案）。`status` 不是 `待验证` 却没有 `resolution` 的假设，终门拒绝放行。
 
-- **Never delete a hypothesis.** Wrong turns are part of the deliverable.
-- **Refutation pass:** each time a hypothesis moves toward `已确证`, actively look for disconfirming evidence *first*; record the attempt in `resolution` even when it finds nothing.
-- **Verify the user's premise:** if the evidence contradicts the user's description, say so explicitly — in the conversation and in the record.
-- Newly discovered paths go to `backlog`; stay on the current thread.
+- **假设永不删除。** 走错的路也是交付物的一部分。
+- **证伪轮：** 每当一条假设要向 `已确证` 移动，先主动找反证；即使一无所获，也把这次尝试记进 `resolution`。
+- **核实用户的前提：** 证据与用户的描述矛盾时，明说——在对话里，也在记录里：校正落 `conclusion.text`（`problem_statement` 永保用户原话，不覆盖）；矛盾针对的是用户的假设时，同时按上方更新该 `H-###` 的 `status` + `resolution`。
+- 新发现的路径进 `backlog`；留在当前线上。
 
-Grading rule: `已确证` = directly observed with a citation (`path:line` / timestamp / commit); `已推断` = logically follows from 「已确证」 evidence **and the chain is shown**; `假设中` = plausible, unconfirmed, with a stated `test`. Grades are never inflated — the honest grade is the deliverable.
+评级规则：`已确证` = 直接观察到且有引用（`path:line` / 时间戳 / commit）；`已推断` = 由「已确证」证据逻辑推出**且链路已写出**；`假设中` = 说得通但未证实，且写明 `test`。级永不注水——诚实的级就是交付物。
 
-Present the current causal chain and hypothesis states; pause for the human before continuing.
+向用户呈报当前因果链与各假设状态；停下等他确认再继续。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./05-source-trace.md`.
+完整读 `./05-source-trace.md` 并照做。

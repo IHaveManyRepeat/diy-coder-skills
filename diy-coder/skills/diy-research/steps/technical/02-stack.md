@@ -1,58 +1,59 @@
-# Step 2 (technical) — Technology Stack（技术栈）
+# Step 2 — 技术栈（technical 维度）
 
 Progress: `Scope → [02 Stack] → 03 Integration → 04 Architecture → 05 Implementation → Synthesis`
 
-**Read (input):** the record in `{output_dir}/research.yaml` (`topic` / `goals` / `scope`).
-**Write (output):** the stack findings into that record; the step message.
+**Read (input):** `{output_dir}/research.yaml` 里本记录（`topic` / `goals` / `scope`）。
+**Write (output):** 技术栈 findings 写进该记录；本步播报。
 
-## Focus
+## 关注面
 
-- Programming languages and their evolution
-- Development frameworks and libraries
-- Database and storage technologies
-- Development tools and platforms
-- Cloud infrastructure and deployment platforms
+- 编程语言及其演进
+- 开发框架与库
+- 数据库与存储技术
+- 开发工具与平台
+- 云基础设施与部署平台
 
-## Searches (run in parallel)
+## 检索（并行跑）
 
-Independent areas — use parallel searches or research subagents when available:
+彼此独立的关注面——可用并行检索或调研子代理（可用时）：
 
 - `"{topic} programming languages frameworks"`
 - `"{topic} development tools platforms"`
 - `"{topic} database storage technologies"`
 - `"{topic} cloud infrastructure platforms"`
 
-## Findings to write
+## 要写的 findings
 
-One `findings[]` entry per area, written as each search lands:
+每个 `area` 一条 `findings[]` 条目，随该次检索落地即写：
 
-| `area` | what the claim asserts |
+| `area` | 该断言说什么 |
 | --- | --- |
-| `languages` | popular and emerging languages, evolution, performance characteristics |
-| `frameworks` | dominant frameworks and use cases, micro-frameworks, ecosystem maturity |
-| `databases` | relational, NoSQL, in-memory, warehousing options |
-| `dev-tools` | editors/IDEs, version control, build systems, testing tooling |
-| `cloud-infra` | cloud providers, containers, serverless, CDN/edge |
-| `adoption-trends` | migration patterns, emerging vs legacy technology, community trends |
+| `languages` | 主流与新兴语言、演进、性能特征 |
+| `frameworks` | 主导框架与用例、微框架、生态成熟度 |
+| `databases` | 关系型、NoSQL、内存、数仓方案 |
+| `dev-tools` | 编辑器/IDE、版本控制、构建系统、测试工具链 |
+| `cloud-infra` | 云厂商、容器、serverless、CDN/边缘 |
+| `adoption-trends` | 迁移模式、新兴与遗留技术、社区趋势 |
 
-## Method
+## 方法
 
-- Web search required — trend reports, developer surveys, official documentation, open-source projects and their tech choices.
-- Two independent sources for each critical claim; when sources disagree (benchmarks especially), present both.
-- `confidence` per finding: `高` / `中` / `低`.
-- Prefer current release and adoption facts; version-sensitive claims must carry their date.
+- 必须联网检索——趋势报告、开发者调查、官方文档、开源项目及其技术选型。
+- 每条 `critical claim` 两个独立来源；来源打架时（基准测试尤其）两边都摆出来。
+- 每条 finding 的 `confidence`：`高` / `中` / `低`。
+- 优先取当前版本与采用事实；版本敏感的断言必须带日期。
 
-## Present and continue
+## 小结与门禁
 
-Summarize the stack picture and where adoption is moving, then halt:
+总结技术栈图景与采用趋势往哪走，然后停下：
 
 ```
-Ready to proceed to integration patterns analysis?
-[C] Continue - Proceed to integration patterns
+进入集成模式分析吗？
+
+[C] Continue —— 确认并进入集成模式分析
 ```
 
-HALT — wait for the user. On 'C', read fully and follow the next file.
+HALT——等用户。收到 `C` 答复后读全并照做下一个文件；非 `C` 答复按 SKILL.md 的 `[Modify]` 惯例处理（收齐意见、更新记录、重新展示同一门禁）。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `steps/technical/03-integration.md`.
+读全 `steps/technical/03-integration.md` 并照做。

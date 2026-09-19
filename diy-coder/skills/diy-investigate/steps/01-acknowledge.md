@@ -1,39 +1,51 @@
-# Step 1 — Acknowledge（输入确认与路由）
+# Step 1 — 输入确认与路由
 
-Progress: `[Acknowledge] → Stronghold → Perimeter → Reasoning → Source Trace → Report`
+Progress: `[确认输入] → 据点 → 边界 → 推理 → 源码追踪 → 结案`
 
-**Read (input):** the input itself — ticket ID, archive path, log / stack trace, free-text description, code area, commit range, or a path to an existing case; the `collect` receipt from On Activation.
-**Write (output):** nothing yet — the record is drafted in step 2. This step produces the route decision and the acknowledged input set.
+**Read (input):** 输入本身——工单 ID、归档路径、日志 / 栈、自由描述、代码区、提交区间，或一条既有案件的路径；激活段的 `collect` 回执。
+**Write (output):** 暂无——记录在第 2 步起草。本步的产出是路由决定与已确认的输入集。
 
-## Acknowledge each input shape (reference only — bulk reads wait for step 3)
+## 逐形态确认输入（只按引用登记——大批量读取等第 3 步）
 
-| Input shape | What to record now |
-| --- | --- |
-| Issue tracker ticket | Fetch full details via the available MCP tools; record the ID. |
-| Diagnostic archive | Record path, file count, time window. |
-| Log file or stack trace | Record path and time window; only the stack frame already in the user's message is in scope here. |
-| Free-text description | Capture verbatim; treat it as a hypothesis. |
-| Code area (no symptom) | Record the entry point; set `mode: 探索`. |
-| Recent commit range | Record the commit range; re-run `collect --since <commit>` when the range needs refreshing. |
+| 输入形态 | 现在记什么 | `collect` 旗标 |
+| --- | --- | --- |
+| 工单 | 用可用的 MCP 工具取全文；记工单 ID。 | 不给（只采 VCS 情报） |
+| 诊断归档 | 记路径、文件数、时间窗。 | `--area <归档所在目录>` |
+| 日志或栈 | 记路径与时间窗；用户消息里已有的那个栈帧才在本次范围内。 | `--area <其所在目录>` |
+| 自由描述 | 逐字留存；当作假设。 | 不给（只采 VCS 情报） |
+| 代码区（无症状） | 记入口路径；置 `mode: 探索`。 | `--area <入口路径>` |
+| 近期提交区间 | 记提交区间；范围需刷新时重跑 `collect --since <commit>`。 | `--since <commit>` |
 
-Symptom-driven input (`mode: 症状驱动`) chases a defect; an area input (`mode: 探索`) builds a mental model — the same discipline applies on both ends.
+症状驱动的输入（`mode: 症状驱动`）追一个缺陷；区域输入（`mode: 探索`）建心智模型——两端同一套纪律。
 
-## Route: resume or new case
+## 路由：续案还是新案
 
-Test the slug first: the ticket ID when one was given, otherwise a short descriptive name agreed with the human (lowercase alphanumeric with hyphens).
+先试 slug：给了工单 ID 就用它，否则与人对一个简短描述名（小写字母数字加连字符）。
 
-- **Slug hit in an existing case** → resume. Surface, in this order: open hypotheses (`status: 待验证`) with their `test` criteria; open backlog (`status != 已完成`); `missing_evidence` rows; the last `conclusion` with its `confidence`. Ask which thread to pull, then continue at the step that thread needs (typically `./03-perimeter.md` or `./04-reasoning.md`) and finish through `./06-report.md`; append one `follow_ups` entry at the close.
-- **Collision but a separate case is wanted** → rename the new slug to `slug-YYYY-MM-DD`.
-- **No hit** → new case: settle the scope below, then read `./02-stronghold.md`.
+- **既有案件命中 slug** → 续案。按此顺序摊开：未结假设（`status: 待验证`）及其 `test` 判据；`backlog` 待探项（`status != 已完成`）；`missing_evidence` 各行；最近一次 `conclusion` 及其 `confidence`。
+  续案当下先把该 case 的 `status` 置回 `调查中`（原值 + 缘由追加进 `revisions`）——「已结的案子又活了」必须在记录里可见。
+  问用户要拉哪条线，再按「线 → 步骤」对照表进入；一律经 `./06-report.md` 收口，收口时追加一条 `follow_ups`，到第 6 步按完成判据重新定稿。
 
-## Settle the scope (new case only)
+  | 续案播报的线 | 去的步骤 |
+  | --- | --- |
+  | 未结假设（`status: 待验证`）及其 `test` 判据 | `./04-reasoning.md` |
+  | `backlog` 待探项（`status != 已完成`） | `./03-perimeter.md` |
+  | `missing_evidence` 各行 | `./03-perimeter.md` |
+  | 最近一次 `conclusion` 与 `confidence` 复核 | `./06-report.md` |
 
-State three things and confirm them with the human: scope (which system / area / subsystem), time window (when the symptom or change occurred), and what "done" means for this case (root cause / sufficient mental model).
+- **slug 冲突但要另立新案** → 新 slug 改成 `slug-YYYY-MM-DD`。
+- **未命中** → 新案：定下方的 scope，然后读 `./02-stronghold.md`。
 
-**The user's hypothesis is never the starting point.** Register it as `H-001` (`status: 待验证`, `test` = what would confirm or refute it); the stronghold in step 2 is found independently, and it is one of the things that validates or refutes H-001.
+## 定 scope（仅新案）
 
-Pause here for the human before continuing — a scope they did not confirm is a case nobody asked for.
+说清三件事并与用户确认：scope（哪个系统 / 区域 / 子系统）、时间窗（症状或变更何时发生）、本案的「done」是什么（根因 / 够用的心智模型）。
 
-## Next
+**用户的假设永远不是起点。** 登记为 `H-001`（`status: 待验证`，`test` = 什么能证实或推翻它）；第 2 步的据点独立寻找，它正是校验或推翻 H-001 的东西之一。
 
-Read fully and follow `./02-stronghold.md` (on a resume, go to the step the pulled thread needs instead, and finish through `./06-report.md`).
+scope 确认后，若与激活时的 `--area` / `--since` 不一致（用户收窄或改写）→ 立刻用确认后的范围重跑一次 `collect`，回执换新；之后的机器锚点仍从**新回执**取，绝不凭记忆重打。
+
+到这里停下等用户，再继续——一个他没确认过的 scope，是没人要的案件。
+
+## 播报与下一步
+
+完整读 `./02-stronghold.md` 并照做（续案时改走被拉起的线需要的步骤，并经 `./06-report.md` 收口）。

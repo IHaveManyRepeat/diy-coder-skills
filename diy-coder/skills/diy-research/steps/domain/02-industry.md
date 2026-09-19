@@ -1,57 +1,58 @@
-# Step 2 (domain) — Industry Analysis（行业分析）
+# Step 2 — 行业分析（domain 维度）
 
 Progress: `Scope → [02 Industry] → 03 Competitive Landscape → 04 Regulatory → 05 Trends → Synthesis`
 
-**Read (input):** the record in `{output_dir}/research.yaml` (`topic` / `goals` / `scope`).
-**Write (output):** the industry findings into that record; the step message.
+**Read (input):** `{output_dir}/research.yaml` 里本记录（`topic` / `goals` / `scope`）。
+**Write (output):** 行业 findings 写进该记录；本步播报。
 
-## Focus
+## 关注面
 
-- Market size and valuation metrics
-- Growth rates and market dynamics
-- Market segmentation and structure
-- Industry trends and evolution patterns
-- Economic impact and value creation
+- 市场规模与估值指标
+- 增速与市场动态
+- 市场分层与结构
+- 行业趋势与演进路径
+- 经济影响与价值创造
 
-## Searches (run in parallel)
+## 检索（并行跑）
 
-Independent areas — use parallel searches or research subagents when available:
+彼此独立的关注面——可用并行检索或调研子代理（可用时）：
 
 - `"{topic} market size value"`
 - `"{topic} market growth rate dynamics"`
 - `"{topic} market segmentation structure"`
 - `"{topic} industry trends evolution"`
 
-## Findings to write
+## 要写的 findings
 
-One `findings[]` entry per area, written as each search lands:
+每个 `area` 一条 `findings[]` 条目，随该次检索落地即写：
 
-| `area` | what the claim asserts |
+| `area` | 该断言说什么 |
 | --- | --- |
-| `market-size` | current valuation, growth rate (CAGR), economic contribution |
-| `dynamics-growth` | growth drivers, barriers, cyclical patterns, maturity stage |
-| `structure-segmentation` | primary and sub-segments, geographic distribution, value chain |
-| `trends-evolution` | emerging trends, recent evolution, technology's effect on the industry |
-| `competitive-dynamics` | concentration, intensity, entry barriers, innovation pressure |
+| `market-size` | 当前规模、增速（CAGR）、经济贡献 |
+| `dynamics-growth` | 增长动因、壁垒、周期特征、成熟阶段 |
+| `structure-segmentation` | 主细分与子细分、地域分布、价值链 |
+| `trends-evolution` | 新兴趋势、近期演进、技术对行业的影响 |
+| `competitive-dynamics` | 集中度、竞争烈度、进入壁垒、创新压力 |
 
-## Method
+## 方法
 
-- Web search required — market research reports and industry analyses from named firms or associations.
-- Market-size and growth figures must carry their source and year; figures that disagree are both presented.
-- Two independent sources for each critical claim; extrapolations are labelled as such.
-- `confidence` per finding: `高` / `中` / `低`.
+- 必须联网检索——具名研究机构或行业协会的市场报告与行业分析。
+- 规模与增速数字必须带来源与年份；数字打架的两边都摆。
+- 每条 `critical claim` 两个独立来源；外推要明确标注为外推。
+- 每条 finding 的 `confidence`：`高` / `中` / `低`。
 
-## Present and continue
+## 小结与门禁
 
-Summarize the industry picture — size, direction, structure — then halt:
+总结行业图景——规模、方向、结构——然后停下：
 
 ```
-Ready to proceed to competitive landscape analysis?
-[C] Continue - Proceed to competitive landscape
+进入竞争格局分析吗？
+
+[C] Continue —— 确认并进入竞争格局分析
 ```
 
-HALT — wait for the user. On 'C', read fully and follow the next file.
+HALT——等用户。收到 `C` 答复后读全并照做下一个文件；非 `C` 答复按 SKILL.md 的 `[Modify]` 惯例处理（收齐意见、更新记录、重新展示同一门禁）。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `steps/domain/03-competitive-landscape.md`.
+读全 `steps/domain/03-competitive-landscape.md` 并照做。

@@ -1,27 +1,27 @@
-# Step 6 — Readiness（就绪度五维深挖）
+# Step 6 — 就绪度五维深挖
 
-Progress: `Epic Discovery → Deep Analysis → Continuity → Review → Actions → [Readiness] → Finish`
+Progress: `epic 发现 → 深度分析 → 连续性 → 回顾讨论 → 行动 → [就绪度] → 收尾`
 
-**Read (input):** the receipt (`coverage` / `metrics` / `bugs`), the record's `critical_path`, and the user — this step is an interrogation, not a form fill.
-**Write (output):** `readiness` in the record; blockers promoted into `critical_path`.
+**Read (input):** 回执（`coverage` / `metrics` / `bugs`）、记录的 `critical_path` 与用户——本步是盘问，不是填表。
+**Write (output):** 记录里的 `readiness`；被升进 `critical_path` 的阻塞项。
 
-## The five dimensions (source step-9)
+## 五个维度（源技能 step-9）
 
-The source's closing question is the one to hold: *the epic is marked complete — is it really done?* Five dimensions, each answered in one plain sentence (the engine rejects empty values at the final gate):
+源技能的收尾一问要一直握着：*epic 已标记完成——它真的做完了吗？* 五个维度，各用一句大白话回答（终门拒绝空值）：
 
-- **`testing`** — what verification actually ran? Anchor it in `coverage` and TC status. An uncovered 必须 AC is named here, not hidden. Gaps that remain open become critical-path items if the next epic depends on that behaviour.
-- **`deployment`** — live, scheduled, or still local? If not deployed, the deployment milestone belongs on the critical path.
-- **`acceptance`** — has the user / stakeholder accepted the deliverables, or is feedback still pending? Pending acceptance is a rework risk for the next epic; say so.
-- **`tech_health`** — how does the codebase feel after this epic: stable and maintainable, or fragile? Anchor the answer in evidence: deferred findings still open, defect clusters from `bugs`, round counts that spiked.
-- **`blockers`** — any unresolved blocker, defect or debt carried forward. Each one is asked: what does it break in the next epic, and who owns the fix?
+- **`testing`** ——实际跑过什么验证？锚在 `coverage` 与 TC 状态上。未覆盖的必须 AC 在这里点名，不许藏。仍开着的缺口若被下一 epic 依赖，就成为关键路径项。
+- **`deployment`** ——已上线、已排期，还是仍在本地？未部署的话，部署里程碑进关键路径。
+- **`acceptance`** ——用户 / 干系人验收了交付物，还是反馈仍悬着？验收未竟就是下一 epic 的返工风险；说出来。
+- **`tech_health`** ——这个 epic 之后代码库的手感：稳定可维护，还是脆弱？答案要锚在证据上：仍开着的延后 findings、`bugs` 里的缺陷聚类、飙升的轮数。
+- **`blockers`** ——任何结转的未解阻塞、缺陷或债务。每一条都要问：它会在下一 epic 里坏掉什么，由谁来修？
 
-## Rules
+## 规则
 
-- **Ask, do not assume.** Each dimension gets its direct question to the user, and the answer is what gets recorded. A dimension where the evidence and the user disagree keeps both readings in the sentence.
-- **No optimistic defaults.** "Deployed" without a fact is "not deployed". "Stakeholder happy" without a word from them is "acceptance pending". The source's rule holds: better to catch it now than three stories into the next epic.
-- **A concern becomes work.** Anything that fails this check either lands in `critical_path` (blocking) or as an `action_items` entry (non-blocking). A concern with neither is not a concern.
-- **All clear is a valid outcome.** Say it explicitly — "fully complete, clear to proceed" — rather than manufacturing a worry to look thorough.
+- **问，不假设。** 每个维度都向用户直接发问，记录的就是回答。证据与用户意见不一致的维度，两种读法都留在句子里。
+- **不许乐观缺省。** 没有事实的「已部署」就是「未部署」。没听到干系人表态的「干系人满意」就是「验收未竟」。源技能的规则成立：现在逮住，好过下一 epic 跑到第三个故事。
+- **担忧要变成工作。** 任何没通过检查的事，要么落 `critical_path`（阻塞），要么落一条 `action_items`（非阻塞）。两头都不落的担忧不算担忧。
+- **一切正常是有效结论。** 明说——「全部完成，可以推进」——而不是为了显得周全硬造一个隐忧。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./07-finish.md`.
+读 `./07-finish.md` 并照做。

@@ -10,15 +10,15 @@
 - 用例 4：check 合法记录 --final exit 0 唯一放行；--output-dir 必填（用法错误 exit 2）
 - 用例 5：check 违规路径（action item 缺 owner / evidence 悬空 UNKNOWN_ID / epic 悬空 /
           metrics 与集合真值不符 SET_MISMATCH / 枚举越界 / 零假设 / readiness 五键）
-- 用例 6：SKILL.md 契约冒烟（冻结实例句 md5 + 写作纪律块 md5 + 终门句指向本技能引擎）
+- 用例 6：SKILL.md 契约冒烟（母本 §1 / §2 / §6 中文定稿逐字 + 四段中文标题 + 薄主文件 ≤93 行
+          + 终门句指向本技能引擎 + B-20 落点：交互点列举式、`user-read`、correct-course 出入契约、
+          一条 proposal 承载整批、A-5 读取纪律）
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_retrospective.py" -v
 """
-import hashlib
 import io
 import json
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -30,9 +30,23 @@ ENGINE = os.path.join(SKILL_DIR, "scripts", "retrospective.py")
 SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
 NL = chr(10)
 
-# 冻结文本校验值（batch4/frozen-texts.md §1/§2：逐字复制，md5 口径 = 文本 + 行尾 LF）
-INSTANCE_MD5 = "5445f98bc4d4821e6888b89406a97eac"
-DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
+# 母本中文定稿（suite-texts.md §1 / §2 / §6；中文化轮 2026-09-19，逐字一致）
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
+                 "机器语法（命令/旗标/路径）进括号；机器锚点逐字保留"
+                 "（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 "
+                 "`diy-design` 的 detect 启发式。schema 若定义 `plain`："
+                 "一行写清该条目为什么存在，绝不写是什么（转述会漂移）；"
+                 "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
+PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
+              "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
+READ_DISCIPLINE_ZH = ("读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件"
+                      "——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，"
+                      "**主文件不列举封闭清单**。")
+STEPS_DIR = os.path.join(SKILL_DIR, "steps")
 
 EPICS_YAML = NL.join([
     "project:",
@@ -579,7 +593,7 @@ class CheckValidationTests(EngineCase):
 
 
 class SkillContractTests(unittest.TestCase):
-    """用例 6：SKILL.md 契约冒烟（冻结文本逐字 + 终门句指向本技能引擎）。"""
+    """用例 6：SKILL.md / steps 契约冒烟（母本中文定稿逐字 + 终门句指向本技能引擎 + B-20 落点）。"""
 
     def read_skill(self):
         if not os.path.isfile(SKILL_MD):
@@ -587,25 +601,38 @@ class SkillContractTests(unittest.TestCase):
         with io.open(SKILL_MD, encoding="utf-8") as f:
             return f.read()
 
-    # trace: 任务书 §2.1（冻结实例句逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_instance_sentence_is_frozen_verbatim(self):
-        raw = self.read_skill()
-        m = re.search(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*", raw)
-        self.assertTrue(m, "SKILL.md 缺实例解析样板句")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 233, "实例句字符数偏离冻结文本（233）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), INSTANCE_MD5,
-                         "实例句与冻结文本不一致：%s" % frag)
+    def read_steps(self):
+        names = sorted(n for n in os.listdir(STEPS_DIR) if n.endswith(".md"))
+        self.assertTrue(names, "steps/ 无步骤文件")
+        out = {}
+        for name in names:
+            with io.open(os.path.join(STEPS_DIR, name), encoding="utf-8") as f:
+                out[name] = f.read()
+        return out
 
-    # trace: 任务书 §2.1（写作纪律块逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_writing_discipline_block_is_frozen_verbatim(self):
+    # trace: 母本 §1（实例解析句中文定稿逐字；中文化轮 2026-09-19）
+    def test_instance_sentence_is_chinese_definitive(self):
         raw = self.read_skill()
-        m = re.search(r"^- \*\*Writing discipline\.[^\r\n]*", raw, re.M)
-        self.assertTrue(m, "SKILL.md 缺写作纪律块")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 497, "纪律块字符数偏离冻结文本（497）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), DISCIPLINE_MD5,
-                         "纪律块与冻结文本不一致：%s" % frag)
+        self.assertIn(INSTANCE_ZH, raw, "SKILL.md 缺母本 §1 中文定稿")
+        self.assertNotIn("Instance resolution (FR-4.5/D-9)", raw,
+                         "已转中文定稿，仍残留 §1 英文原形")
+
+    # trace: 母本 §2 / §6（写作纪律块 + 精准简练中文定稿逐字；§6 在 §2 之前）
+    def test_discipline_and_precise_blocks_are_chinese_definitive(self):
+        raw = self.read_skill()
+        self.assertIn(DISCIPLINE_ZH, raw, "SKILL.md 缺母本 §2 中文定稿")
+        self.assertNotIn("Writing discipline", raw, "已转中文定稿，仍残留 §2 英文原形")
+        self.assertIn(PRECISE_ZH, raw, "SKILL.md 缺母本 §6 精准简练")
+        self.assertLess(raw.index(PRECISE_ZH), raw.index(DISCIPLINE_ZH),
+                        "Rules 末尾顺序应为：§6 精准简练 → §2 写作纪律")
+
+    # trace: 2026-09-19 中文化政策（薄主文件 ≤93 行 + 四段中文标题 + description 中文注释）
+    def test_thin_main_file_shape(self):
+        raw = self.read_skill()
+        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        for header in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
+            self.assertIn(header, raw, "缺四段中文标题 %s" % header)
+        self.assertIn("# ↑ 中文：", raw, "description 下方缺中文注释")
 
     # trace: 任务书 §2.1/#11/#12（终门句指向 retrospective.py；渲染静默；读一条加载一条）
     def test_final_gate_points_to_engine(self):
@@ -614,10 +641,85 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("check --final", skill, "终门句缺 check --final")
         self.assertIn("--json", skill, "终门句缺 --json 回执")
         self.assertIn("collect --epic", skill, "激活段未接线 collect")
-        self.assertIn("never batch-load", skill, "缺读取成本纪律")
+        self.assertIn("绝不批量预载", skill, "缺读取成本纪律")
         self.assertIn("viewer.py", skill, "缺渲染静默命令")
         self.assertNotIn("bmad-help", skill, "不得引用不存在的技能")
         self.assertNotIn("party-mode", skill, "不得引用不存在的技能")
+
+    # trace: A-5（C1 组，母本 §4 读取纪律 + 主文件不列举封闭清单）
+    def test_read_discipline_is_landed(self):
+        self.assertIn(READ_DISCIPLINE_ZH, self.read_skill(), "SKILL.md 缺母本 §4 读取纪律")
+
+    # trace: B-20 / SS-023-02（交互点列举式，替换单数指代）
+    def test_interaction_points_are_enumerated(self):
+        skill = self.read_skill()
+        self.assertIn("例外＝各 step 点名的交互点", skill, "缺交互点列举式")
+        for point in ("第 1 步", "第 4 步", "第 6 步"):
+            self.assertIn(point, skill.split("例外＝各 step 点名的交互点")[1][:120],
+                          "交互点清单缺 %s" % point)
+
+    # trace: B-20 / SS-023-03（一律路由 correct-course，owning skill 名落 recommended_action）
+    def test_significant_changes_route_to_correct_course(self):
+        skill = self.read_skill()
+        self.assertIn("owning skill 名写进该条目的 `recommended_action`", skill,
+                      "SKILL.md 缺 correct-course 出入契约（owning skill 落 recommended_action）")
+        finish = self.read_steps()["07-finish.md"]
+        self.assertIn("一律路由 diy-correct-course", finish, "收尾路由缺「一律 correct-course」")
+        self.assertIn("owning skill 名写进该条目的 `recommended_action`", finish,
+                      "收尾路由缺 owning skill 落点")
+
+    # trace: B-20 / SS-023-11（一条 proposal 承载 N 条 change 条目，mode: 批量）
+    def test_one_proposal_carries_the_batch(self):
+        finish = self.read_steps()["07-finish.md"]
+        self.assertIn("一条 proposal 承载整批条目", finish, "缺「一条 proposal 承载整批」交接形态")
+        self.assertIn("mode: 批量", finish, "缺 `mode: 批量`")
+        self.assertIn("绝不拆成 N 份提案", finish, "缺「不拆成 N 份提案」")
+
+    # trace: B-20 / SS-023-09（`user-read` 标记 + 锚点词表并一处）
+    def test_anchor_word_list_and_user_read_mark(self):
+        skill = self.read_skill()
+        self.assertIn("`user-read`", skill, "SKILL.md 缺 `user-read` 写作标记")
+        self.assertIn("recovered blocker", skill, "SKILL.md 缺现象形锚点词表（并入一处）")
+        review = self.read_steps()["04-review.md"]
+        self.assertIn("user-read", review, "第 4 步缺 `user-read` 标记")
+        self.assertIn("见 `SKILL.md`", review, "第 4 步的锚点词表应上收为引用，不另写一套")
+
+    # trace: B-20 / SS-023-06 三处（镜片读数 referent 同批统一）
+    def test_lens_referent_is_unified(self):
+        steps = self.read_steps()
+        self.assertEqual(steps["02-deep-analysis.md"].count("本步的输出消息"), 2,
+                         "第 2 步的两处 referent 应为「本步的输出消息」")
+        self.assertIn("收尾摘要", steps["05-actions.md"], "第 5 步零命中应落「收尾摘要」")
+        self.assertIn("重大变更检测的结论", steps["07-finish.md"],
+                      "收尾摘要未承载重大变更检测结论（第 5 步的 referent 落空）")
+
+    # trace: B-20 / SS-023-04 + SS-023-05（空集零写入 + 同 epic 单记录原地更新）
+    def test_empty_set_and_single_record_per_epic(self):
+        discovery = self.read_steps()["01-discovery.md"]
+        self.assertIn("零写入停止", discovery, "空集处置缺「零写入停止」")
+        self.assertIn("gate.route", discovery, "空集处置缺 `gate.route` 口径")
+        self.assertIn("原地更新", discovery, "同 epic 补做缺「原地更新」")
+        self.assertIn("不新铸记录", discovery, "同 epic 补做缺「不新铸记录」")
+        self.assertIn("revisions", discovery, "原地更新缺 `revisions` 追加")
+
+    # trace: B-20 / SS-023-12（两条带判据的路由：缺用例 / 账本不对）
+    def test_two_criteria_routes(self):
+        finish = self.read_steps()["07-finish.md"]
+        self.assertIn("缺用例", finish, "缺「缺用例」路由")
+        self.assertIn("diy-test-design", finish, "缺用例路由缺 diy-test-design")
+        self.assertIn("diy-augment", finish, "缺用例路由缺 diy-augment")
+        self.assertIn("账本不对", finish, "缺「账本不对」路由")
+        self.assertIn("--type review", finish, "账本路由缺机械定位器")
+        self.assertIn("--falsify", finish, "账本路由缺 `--falsify`（已完成任务的唯一入口）")
+
+    # trace: B-20 / SS-023-07 / SS-023-08 / SS-023-10（归并键 / prev_actions 字段 / next_epic.stories）
+    def test_receipt_fields_and_merge_key(self):
+        steps = self.read_steps()
+        self.assertIn("先按 `route` 分桶", steps["02-deep-analysis.md"], "缺归并键（route 分桶）")
+        self.assertIn("{retro, id, action, owner, done_when, category}",
+                      steps["03-continuity.md"], "缺 `prev_actions` 回执字段写出")
+        self.assertIn("next_epic.stories", steps["05-actions.md"],
+                      "第 5 步 Read (input) 缺 `next_epic.stories`")
 
 
 if __name__ == "__main__":

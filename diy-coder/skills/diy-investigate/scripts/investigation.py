@@ -13,7 +13,8 @@ collect（只读，绝不写文件、绝不下结论）：
   回执 {ok, vcs, files, candidates, warnings, counts}；超扫描上限 → SCAN_TRUNCATED warning。
 
 check（IV-### 集合，形状对齐 bug-log.yaml）：schema / 枚举（record status / mode / grade /
-availability / hypothesis status / confidence / backlog status / input kind）/ IV+EV+H ID 格式
+availability / hypothesis status / confidence / backlog priority / backlog status / input
+kind）/ IV+EV+H ID 格式
 与记录内唯一 / evidence 三态齐全（grade + availability）/ hypotheses 生命周期完整性（status
 非「待验证」⇒ resolution 非空——「假设永不删除，只更新状态 + 追加 Resolution」的机械化）/
 stronghold 在场（evidence_light=false 时；源纪律「据点先行」）/ evidence_light=true ⇒
@@ -52,6 +53,7 @@ GRADES = ("已确证", "已推断", "假设中")
 AVAILABILITIES = ("可得", "部分可得", "缺失")
 HYPOTHESIS_STATUSES = ("待验证", "已确证", "已推翻")
 CONFIDENCES = ("高", "中", "低")
+BACKLOG_PRIORITIES = ("高", "中", "低")           # SS-022-12：数据采集项的自然刻度
 BACKLOG_STATUSES = ("待办", "已完成", "无法获取")
 INPUT_KINDS = ("工单", "归档", "日志", "描述", "范围", "提交")
 
@@ -522,7 +524,8 @@ def check_backlog(record, where):
             violations.append(v("EMPTY_FIELD", bw, "backlog 项不是映射"))
             continue
         violations += missing_field(entry, "item", bw)
-        violations += missing_field(entry, "priority", bw)
+        violations += check_enum(entry.get("priority"), BACKLOG_PRIORITIES,
+                                 bw + ".priority", "priority")
         violations += check_enum(entry.get("status"), BACKLOG_STATUSES, bw + ".status", "status")
     return violations
 

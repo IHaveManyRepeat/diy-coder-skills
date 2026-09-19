@@ -1,6 +1,7 @@
 ---
 name: diy-retrospective
 description: 'Post-epic review to extract lessons and assess success. Use when the user says "run a retrospective" or "lets retro the epic [epic]". Produces one record per epic in retrospective.yaml.'
+# ↑ 中文：epic 收尾回顾——提炼教训、评估成败。输入一个已交付 epic 的证据链（由引擎机械采集），产出一条 `{output_dir}/retrospective.yaml` 记录。用户说 "run a retrospective" / "lets retro the epic [epic]" 时触发。
 phase: 4-implementation
 precededBy: [diy-review]
 followedBy: []
@@ -11,76 +12,82 @@ outputs: retrospective.yaml
 
 # diy-retrospective — epic 收尾回顾（YAML 单一源）
 
-You are a retrospective facilitator. Input: one finished epic's evidence trail — `sprint.yaml` task blocks (`note` / `evidence` / `loop` / `review.findings`), `bug-log.yaml`, `test-plan.yaml` coverage, `stories.yaml` — collected mechanically by the engine. Output: one record in `{output_dir}/retrospective.yaml`. You extract patterns, wins, challenges and owned commitments. **Boundary with diy-review**: diy-review judges one task's implementation, this skill judges the epic as a delivered whole — it never patches an upstream artifact and never assigns blame.
+你是**回顾主持人**。输入：一个已完成 epic 的证据链——`sprint.yaml` 任务块（`note` / `evidence` / `loop` / `review.findings`）、`bug-log.yaml`、`test-plan.yaml` 的覆盖、`stories.yaml`——由引擎机械采集。产出：`{output_dir}/retrospective.yaml` 里的一条记录。你提炼模式、亮点、挑战与有人认领的承诺。**与 diy-review 的边界**：diy-review 判一个任务的实现，本技能判 epic 作为已交付整体的成败——绝不改上游产物、绝不追责个人。
 
-## On Activation
+## 激活时
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (themes, wins, actions, readiness) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root.
-2. Run the deterministic opener — gate + mechanical metrics + continuity inputs:
+1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
+   全程用 `communication_language` 对话；产物里的叙述文字（主题、亮点、行动、就绪度）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+2. 跑确定性开场——门 + 机械指标 + 接续输入：
    `python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py" collect --epic <E-x> --project-root "{project-root}" --output-dir "{output_dir}" --json`
-   Exit 1 is a refusal with zero output: relay its one-line reasons and `gate.route`, then stop — a refusal never becomes a record. A `PENDING_DECISION` warning means the epic is unfinished; step 1 owns the partial branch.
-3. Read budget: the config file, the `collect` receipt, and exactly one file under `steps/` at a time — never batch-load the seven step files. `{output_dir}/retrospective.yaml` is opened only to mint the next `RT-###` or to amend one record by its `id:` line; metrics and counts are copied from the receipt, never re-derived from `sprint.yaml`. This schema defines no `detail` fields — nothing to skip.
-4. Read `steps/01-discovery.md` fully and follow it (bare `steps/*.md` paths resolve from this skill's installed directory). Each step ends by naming the one file to read next.
+   exit 1 是零产出的拒绝：转述它的一行理由与 `gate.route`，然后停下——拒绝永不变成记录。`PENDING_DECISION` warning ＝ epic 未收尾；partial 分支归第 1 步。
+3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/retrospective.yaml` 只在铸造下一个 `RT-###`、或按某条记录的 `id:` 行改它时才打开；指标与计数取回执，绝不从 `sprint.yaml` 重推。本 schema 不定义 `detail` 字段——没有可跳过的内容。
+4. 读 `steps/01-discovery.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
-## Workflow
+## 工作流
 
-Global step rules: load exactly one `steps/` file at a time — never preload or batch-load the seven step files; front-load — present a whole step's output in one message, no mid-step questions beyond the named interaction point; every claim carries an evidence anchor (a story, task, bug or AC ID); write artifact prose in `document_output_language` while speaking `communication_language`.
+全局步骤纪律：一次只加载一个 `steps/` 文件——绝不预载或批量预载七个步骤文件；Front-load：一步的输出整块给出，步中不追问；**例外＝各 step 点名的交互点**——第 1 步的 epic 选择与未收尾三选项（含 `partial: true` 的用户裁定）、第 4 步的两问、第 6 步的五维就绪度盘问。每个断言可溯源：证据锚点（story / task / bug / AC ID，或 pattern / recovered blocker / defect class / clean augment round），**或**标注来源 `user-read`（用户口述、证据不支持）并说明锚点缺失。产物叙述文字用 `document_output_language` 写，对话用 `communication_language`。
 
-1. `steps/01-discovery.md` — pick the epic (three-level logic), run `collect`, take the unfinished-epic branch, draft the record.
-2. `steps/02-deep-analysis.md` — mine the structured evidence (task `note` / `evidence` / `loop` / `review.findings`, `bug-log`, `test-plan`), read it through four lenses, keep only patterns spanning ≥2 stories.
-3. `steps/03-continuity.md` — judge the previous retro's commitments against this epic's evidence; preview the next epic's dependencies.
-4. `steps/04-review.md` — facilitation rules plus the user interaction point; fill `wins` / `challenges` / `insights`.
-5. `steps/05-actions.md` — SMART action items with owners and observable completion tests (never time estimates), prep items, critical path, significant-change detection.
-6. `steps/06-readiness.md` — interrogate the five readiness dimensions (testing / deployment / acceptance / tech_health / blockers); promote blockers into the critical path.
-7. `steps/07-finish.md` — final gate, save, route (significant changes → diy-correct-course).
+1. `steps/01-discovery.md` — 选 epic（三级逻辑）、跑 `collect`、走未收尾分支、起草记录。
+2. `steps/02-deep-analysis.md` — 挖结构化证据（任务 `note` / `evidence` / `loop` / `review.findings`、`bug-log`、`test-plan`），过四副镜片，只留跨 ≥2 个故事的 pattern。
+3. `steps/03-continuity.md` — 以上一个 retro 的承诺对照本 epic 的证据；预览下一 epic 的依赖。
+4. `steps/04-review.md` — 主持纪律与用户交互点；填 `wins` / `challenges` / `insights`。
+5. `steps/05-actions.md` — SMART 行动项（带责任人、可观测的完成判据，绝不写工期估计）、准备项、关键路径、重大变更检测。
+6. `steps/06-readiness.md` — 盘问就绪度五维（testing / deployment / acceptance / tech_health / blockers）；把阻塞项升进关键路径。
+7. `steps/07-finish.md` — 终门、保存、路由（重大变更 → diy-correct-course）。
 
-Record writes: create the record as `草稿` at the end of step 1, fill each section as its step completes, settle it in step 7. Rendering is a silent side step — command only, no browser interaction point, no path-waiting, no blocking: `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"` (append `--instance <name>` when one was resolved).
+记录写入：第 1 步末尾按 `草稿` 建记录，各节随对应步骤填，第 7 步定稿。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
-## Schema
+## 结构
 
-`{output_dir}/retrospective.yaml` — single source, collection form (top-level shape follows `bug-log.yaml`):
+`{output_dir}/retrospective.yaml` —— 唯一源头，集合形态（顶层形状对齐 `bug-log.yaml`）：
 
 ```yaml
-project: {name, created, updated}
+project: {name, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天
 retros:
-  - id: RT-001                  # RT-### — sequential, stable, never renumbered or reused
-    epic: E-x                   # resolves in epics.yaml
+  - id: RT-001                  # RT-###——顺序递增、稳定，永不重编号、永不复用
+    epic: E-x                   # 须在 epics.yaml 可解析
     status: 草稿|已定稿
-    date: YYYY-MM-DD
-    partial: false              # true only on a user-confirmed partial retrospective
-    metrics:                    # copied from the collect receipt (structured-artifact truth)
+    date: YYYY-MM-DD            # 本条动作的日子，不随 updated 变
+    partial: false              # 仅用户确认的部分回顾写 true
+    metrics:                    # 照抄 collect 回执（结构化产物的真值）
       stories_total: 0
       stories_done: 0
-      rounds_total: 0           # sprint loop.rounds summed over this epic's tasks
+      rounds_total: 0           # 本 epic 各任务 loop.rounds 之和
       blocked_count: 0
       augment_fail: 0
       bugs: {功能型: 0, 非功能型: 0}
     patterns:
-      - {theme: <one line>, evidence: [S-x | BUG-0xx], count: N}   # ≥2 stories or it is an anecdote
-    wins: [<one line, anchor cited>]
-    challenges: [<one line, systems-framed>]
-    insights: [<one line>]
-    prev_followup:              # omit on a first retro
+      - {theme: <一行>, evidence: [S-x | BUG-0xx], count: N}   # ≥2 个故事，否则只是轶事
+    wins: [<一行；带锚点，或标 user-read>]
+    challenges: [<一行；系统视角>]
+    insights: [<一行>]
+    prev_followup:              # 首份 retro 省略
       - {retro: RT-yy, action, status: 已完成|部分完成|未完成, evidence}
     action_items:
       - {id: AI-001, action, owner, done_when, category: 流程|技术|文档|团队}
     prep_items: [{item, class: 关键|可并行|锦上添花, owner, effort}]
     critical_path: [{item, why, owner}]
     readiness: {testing, deployment, acceptance, tech_health, blockers}
-    significant_changes:        # optional; non-empty routes to diy-correct-course
-      - {change, impact, recommended_action}
+    significant_changes:        # 可选；非空一律路由 diy-correct-course
+      - {change, impact, recommended_action}   # owning skill 名写这里
     next_epic: {id: E-y|null, exists: true|false, dependencies: [<string>]}
-revisions: []                   # {date, change, reason} — appended when an existing record changes
+revisions: []                   # {date, change, reason}——改既有记录时追加
 ```
 
-## Rules
+## 规则
 
-1. Write scope: `{output_dir}/retrospective.yaml` only — records and their `revisions`. Never edit `sprint.yaml`, `stories.yaml`, `test-plan.yaml`, `bug-log.yaml`, `epics.yaml` or source code: a conclusion that requires changing them is a `significant_changes` entry routed to the owning skill.
-2. Facts come from the `collect` receipt: `metrics` and `stories` are copied, never re-derived by hand. Cross-document mechanics belong to diyc — never re-check ID chains by eye.
-3. No blame: every challenge is phrased as a system, process or tooling fact. No time estimates anywhere (hours, days, sprints) — rounds, counts and `effort` words only.
-4. Records are appended, never renumbered or reused; amending an existing record appends to `revisions` (date / change / reason). No `--previous` round is needed — a retro is appended per epic and updated in place, never shrunk.
-5. Rendering follows the silent-side-step line in Workflow — command only; no browser interaction point, no path report that blocks, no waiting.
-6. Final gate (mechanical): write `status: 已定稿` first — `已定稿` is what the gate inspects, not a product of it — then run `python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py" check --final --json`, passing the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. Rendering and close-out wait for exit 0.
-7. Upstream stays untouched and unreplaced: a finding that needs a spec fix names the owning skill (diy-epics-stories / diy-prd / diy-architecture); a plan invalidated by the epic routes to diy-correct-course. The next epic starts only after the critical path is clear.
+1. 写范围：只写 `{output_dir}/retrospective.yaml`——记录与其 `revisions`。绝不改 `sprint.yaml` / `stories.yaml` / `test-plan.yaml` / `bug-log.yaml` / `epics.yaml` 或源码：需要改它们才能落地的结论**一律**写成 `significant_changes` 条目、**一律**路由 `diy-correct-course`，owning skill 名写进该条目的 `recommended_action`（schema 既有键，不新增字段）。
+2. 事实取自 `collect` 回执：`metrics` 与 `stories` 照抄，绝不手工重推。跨文档机械核对归 diyc——绝不拿眼睛复核 ID 链。
+3. 不追责：每条 challenge 都写成系统 / 流程 / 工具的事实。全文不出现工期估计（小时、天、sprint）——只写轮次、计数与 `effort` 词。
+4. 一个 epic 只有一条记录：`RT-###` 顺序铸造，永不重编号、永不复用；改既有记录就往 `revisions` 追加（date / change / reason）。不需要 `--previous` 轮——retro 原地更新（partial 补做也回到原记录），从不缩水。
+5. 渲染守工作流里的静默旁路一句——只写命令；不新增浏览器交互点、不报路径阻塞等待、不等待。
+6. 终门（机械）：先写 `status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾都等 exit 0。
+7. 上游不动、不代写：需要改规格的发现点名 owning skill（diy-epics-stories / diy-prd / diy-architecture），该名字落 `recommended_action`；被 epic 证伪的计划按规则 1 路由 diy-correct-course，且一条 proposal 承载整批条目（交接形态见 `steps/07-finish.md`）。关键路径清了，下一 epic 才开。
 
-- **Writing discipline.** Main field = plain-language main clause; numbers/enums inline; machine syntax (commands/flags/paths) in parentheses; keep machine anchors verbatim (file names, token names, CLI flags) — Chinese rewrites of anchors break the diy-design detect heuristic. If the schema defines `plain`: one line of WHY the entry exists, never WHAT (restatements drift); write it only for hard-to-grasp entries. If it defines `detail`: process narrative — conclusions stay in the main field.
+- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
+
+- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；机器语法（命令/旗标/路径）进括号；机器锚点逐字保留（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 `diy-design` 的 detect 启发式。schema 若定义 `plain`：一行写清该条目为什么存在，绝不写是什么（转述会漂移）；只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。

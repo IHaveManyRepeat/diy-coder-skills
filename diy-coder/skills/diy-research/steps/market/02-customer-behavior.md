@@ -1,59 +1,60 @@
-# Step 2 (market) — Customer Behavior and Segments（客户行为与分层）
+# Step 2 — 客户行为与分层（market 维度）
 
 Progress: `Scope → [02 Behavior] → 03 Pain Points → 04 Decisions → 05 Competitive → Synthesis`
 
-**Read (input):** the record in `{output_dir}/research.yaml` (`topic` / `goals` / `scope`).
-**Write (output):** the customer-behavior findings into that record; the step message.
+**Read (input):** `{output_dir}/research.yaml` 里本记录（`topic` / `goals` / `scope`）。
+**Write (output):** 客户行为 findings 写进该记录；本步播报。
 
-## Focus
+## 关注面
 
-- Customer behavior patterns and preferences
-- Demographic profiles and segmentation
-- Psychographic characteristics and values
-- Behavior drivers and influences
-- Customer interaction patterns and engagement
+- 客户行为模式与偏好
+- 人口统计画像与分层
+- 心理特征与价值观
+- 行为动因与影响因素
+- 客户互动模式与参与度
 
-## Searches (run in parallel)
+## 检索（并行跑）
 
-Independent areas — use parallel searches or research subagents when available:
+彼此独立的关注面——可用并行检索或调研子代理（可用时）：
 
 - `"{topic} customer behavior patterns"`
 - `"{topic} customer demographics"`
 - `"{topic} psychographic profiles"`
 - `"{topic} customer behavior drivers"`
 
-## Findings to write
+## 要写的 findings
 
-One `findings[]` entry per area, written to the record as each search lands — never batched to the end. `area` values are the stable handles:
+每个 `area` 一条 `findings[]` 条目，随该次检索落地即写——绝不攒到末尾批量写。`area` 值是稳定句柄：
 
-| `area` | what the claim asserts |
+| `area` | 该断言说什么 |
 | --- | --- |
-| `customer-behavior` | behavior patterns, preferences, decision habits |
-| `demographics` | age / income / geography / education segmentation |
-| `psychographics` | values and beliefs, lifestyle, attitudes, personality traits |
-| `segments` | named segment profiles (demographics + psychographics + behavior) |
-| `behavior-drivers` | emotional, rational, social, economic influences |
-| `interaction-patterns` | research and discovery, purchase process, post-purchase, loyalty |
+| `customer-behavior` | 行为模式、偏好、决策习惯 |
+| `demographics` | 年龄 / 收入 / 地域 / 教育分层 |
+| `psychographics` | 价值观与信念、生活方式、态度、人格特质 |
+| `segments` | 具名细分画像（人口统计 + 心理特征 + 行为） |
+| `behavior-drivers` | 情感、理性、社会、经济层面的影响 |
+| `interaction-patterns` | 调研与发现、购买过程、购后、忠诚 |
 
-## Method
+## 方法
 
-- Web search required for every claim — training data alone is a failure mode, not a shortcut.
-- Two independent sources for each critical claim; when sources disagree, present both rather than averaging them.
-- `confidence` per finding: `高` (multiple authoritative sources agree) / `中` (one credible source or partial coverage) / `低` (uncertain or dated).
-- Note data currency and its limitations inside the claim.
-- Focus on actionable customer insights; authoritative research sources over aggregator noise.
+- 每条断言都必须联网检索——只靠训练数据是失败模式，不是捷径。
+- 每条 `critical claim` 两个独立来源；来源不一致时两边都摆，不许平均掉。
+- 每条 finding 的 `confidence`：`高`（多个权威来源一致）/ `中`（一个可信来源或局部覆盖）/ `低`（不确定或过时）。
+- 在断言里注明数据时效及其局限。
+- 聚焦可行动的客户洞察；权威研究来源优先于聚合站的噪音。
 
-## Present and continue
+## 小结与门禁
 
-Summarize the key findings — what was verified, what stayed thin — then halt:
+总结关键发现——验实了什么、哪块仍然单薄——然后停下：
 
 ```
-Ready to proceed to customer pain points?
-[C] Continue - Proceed to pain points analysis
+进入客户痛点分析吗？
+
+[C] Continue —— 确认并进入痛点分析
 ```
 
-HALT — wait for the user. On 'C', read fully and follow the next file.
+HALT——等用户。收到 `C` 答复后读全并照做下一个文件；非 `C` 答复按 SKILL.md 的 `[Modify]` 惯例处理（收齐意见、更新记录、重新展示同一门禁）。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `steps/market/03-pain-points.md`.
+读全 `steps/market/03-pain-points.md` 并照做。

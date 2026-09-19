@@ -1,37 +1,37 @@
-# Step 4 — Epic Review（回顾讨论）
+# Step 4 — 回顾讨论与三份清单
 
-Progress: `Epic Discovery → Deep Analysis → Continuity → [Review] → Actions → Readiness → Finish`
+Progress: `epic 发现 → 深度分析 → 连续性 → [回顾讨论] → 行动 → 就绪度 → 收尾`
 
-**Read (input):** the patterns and lens readings from step 2; the follow-through table from step 3.
-**Write (output):** `wins` / `challenges` / `insights` in the record.
+**Read (input):** 第 2 步的 patterns 与镜片读数；第 3 步的承诺跟踪表。
+**Write (output):** 记录里的 `wins` / `challenges` / `insights`。
 
-## Facilitation rules (source facilitation guidelines, dialogue stripped)
+## 主持纪律（源技能的主持准则，去掉对白外壳）
 
-The source ran this discussion as a scripted five-role dialogue. The roles are gone; the rules that made the discussion useful are not:
+源技能把这场讨论写成五角色脚本对白。角色没了，让讨论有用的规则还在：
 
-- **Psychological safety first.** No blame, no judgment, no names attached to failures. Every challenge is phrased as a system, process or tooling fact — "the schema changed mid-story", never "X changed it".
-- **Specific examples beat generalisations.** Every win and every challenge cites its anchor (a story ID, a bug ID, an AC that stayed uncovered, a task that burned rounds).
-- **Present the analysis, then open the floor.** Lead with what the evidence showed (patterns, rounds, defects), then explicitly ask for the user's read.
-- **Balance.** Celebrate real wins — the retro that only lists problems trains people to hide problems. Then state the challenges honestly.
-- **Forward-looking.** Every challenge is worth stating only if it points at a change; if nothing can be done about it, say so rather than parking it as an action item.
+- **心理安全第一。** 不追责、不评判、失败不挂人名。每条 challenge 都写成系统、流程或工具的事实——「schema 中途变了」，绝不是「X 改的」。
+- **具体例子胜过笼统概括。** 每条 win 与 challenge 都引自己的锚点（一个故事 ID、一个 bug ID、一条始终没覆盖的 AC、一个烧了轮次的任务）。
+- **先呈现分析，再开放发言。** 先讲证据显示了什么（patterns、轮次、缺陷），然后明确请用户讲他的读法。
+- **平衡。** 真亮点要庆祝——只列问题的 retro 会把人训练成藏问题。然后如实陈述挑战。
+- **向前看。** 一条 challenge 只有指向某个改变时值得说；如果什么都做不了，直说，不要把它当行动项搁置。
 
-## The interaction point (source step-6 WAIT)
+## 交互点（源技能 step-6 的 WAIT）
 
-Two questions to the user, in this order — and wait for the answers:
+按序问用户两个问题，并等回答：
 
-1. *What stood out to you as going well in this epic?* — their answer frequently names a win the evidence cannot see (process, communication, product feedback). It belongs in `wins`.
-2. *Where did we struggle?* — then route the answer back to the evidence: does an artifact corroborate it? If yes, cite the anchor. If no, record it as the user's read without an `[假设]` prefix — the user's word is a source, not an inference — and say the anchor is missing.
+1. *这个 epic 里，你觉得什么做得好？*——答案常常点出证据看不到的亮点（过程、沟通、产品反馈）。进 `wins`。
+2. *我们在哪里吃力了？*——把答案回投给证据：有产物佐证吗？有，就引锚点。没有，就记成用户口述——标 `user-read`（写作约定的字面标记，引擎不校验锚点），**不加** `[假设]` 前缀（用户的话是来源，不是推断），并说明锚点缺失。
 
-Disagreement between the user's read and the evidence is itself a finding worth one line in `challenges` — do not smooth it over, and do not let it become a blame statement.
+用户的读法与证据不一致，本身就是值得写进 `challenges` 一行的发现——不要抹平，也不要让它变成追责语句。
 
-## Filling the three lists
+## 填三份清单
 
-- **`wins`** — what worked and should be repeated; each cites an anchor (a pattern, a recovered blocker, a defect class extinguished, a clean augment round).
-- **`challenges`** — what slowed the epic down or threatens the next one; systems-framed, anchor-cited, one line each. Deferred findings that will bite the next epic belong here even if they were deliberately deferred.
-- **`insights`** — what was learned that changes future behaviour; the source's "key takeaways". Three good ones beat ten restatements of the challenges.
+- **`wins`** ——做对了、应当重复的；每条带锚点（词表见 `SKILL.md` 工作流的全局步骤纪律——ID 形与现象形都可用）。
+- **`challenges`** ——拖慢本 epic 或威胁下一个 epic 的；系统视角、带锚点、一条一行。被有意延后、但会咬到下一个 epic 的 findings 也该在这里。
+- **`insights`** ——学到并会改变今后行为的；源技能说的「key takeaways」。三条好的胜过十条复述 challenges。
 
-Keep the main clause plain — the narrative of who said what stays out of the record. The discussion is communication; the three lists are the artifact.
+主句写大白话——谁说了什么的过程叙事不进记录。讨论是沟通；三份清单才是产物。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./05-actions.md`.
+读 `./05-actions.md` 并照做。

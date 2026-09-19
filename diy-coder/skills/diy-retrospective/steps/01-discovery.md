@@ -1,50 +1,52 @@
-# Step 1 — Epic Discovery（epic 发现与收尾校验）
+# Step 1 — epic 发现与收尾校验
 
-Progress: `[Epic Discovery] → Deep Analysis → Continuity → Review → Actions → Readiness → Finish`
+Progress: `[epic 发现] → 深度分析 → 连续性 → 回顾讨论 → 行动 → 就绪度 → 收尾`
 
-**Read (input):** `{output_dir}/epics.yaml` and `{output_dir}/stories.yaml` for the epic inventory; the `collect` receipt after it runs.
-**Write (output):** the draft record in `{output_dir}/retrospective.yaml` (`id` / `epic` / `status` / `date` / `partial` / empty sections).
+**Read (input):** `{output_dir}/epics.yaml` 与 `{output_dir}/stories.yaml`（epic 清单）；其后跑出的 `collect` 回执。
+**Write (output):** `{output_dir}/retrospective.yaml` 里的草稿记录（`id` / `epic` / `status` / `date` / `partial` / 各空节）。
 
-## Pick the epic — three levels, in order (source step-1 priority logic)
+## 选 epic——三级，按序（源自源技能的 step-1 选取逻辑）
 
-1. **Engine-side suggestion.** Scan `stories.yaml` for the highest-numbered epic that has at least one story with `status: 已完成` — that is the epic just finished; present it as the suggestion.
-2. **The user's word is final.** The user names another epic → that is the epic under review, no debate.
-3. **Nothing detectable.** List the epics that have any `已完成` story with their `done/total` counts as numbered options and ask. Never guess an epic into existence.
+1. **引擎侧建议。** 扫 `stories.yaml`，取编号最大、且至少有一条 `status: 已完成` 故事的 epic——那就是刚做完的 epic；作为建议呈现。
+2. **用户说了算。** 用户点名另一个 epic → 就是它，不再争论。
+3. **什么都扫不到。** 列出任何有 `已完成` 故事的 epic，附 `done/total` 计数作为编号选项并问。绝不凭空猜一个 epic。
 
-## Run the deterministic opener
+第 3 级若**列表为空**（全库没有任何 `已完成` 故事）→ 一行说明 + **零写入停止**，按引擎 `gate.route` 的口径点名 diy-epics-stories / 先把故事做完（diy-dev）——不要凭名字造一个 epic 去撞门。
+
+## 跑确定性开场
 
 ```
 python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py" collect --epic <E-x> --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-The engine owns the gate and the numbers:
+引擎管门与数字：
 
-- **Gate (exit 1, zero output):** `stories.yaml` + `epics.yaml` present and `project.status: 已定稿`; the epic resolves in `epics.yaml`; at least one `已完成` story in it. On refusal relay the receipt's one-line reasons and `gate.route` (diy-epics-stories), then stop — a refusal never becomes a record.
-- **Everything else comes from the receipt, never by re-reading the artifacts by hand:** `stories` (total / done / pending), `metrics`, `bugs`, `coverage`, `prev_actions`, `first_retro`, `next_epic`. These are the diy transformation of the source's "read every story file and count" step — structured artifacts plus one mechanical pass, not a hand tally.
+- **门（exit 1，零产出）：** `{output_dir}/stories.yaml` 与 `{output_dir}/epics.yaml` 在场且各自 `project.status: 已定稿`；epic 在 `epics.yaml` 可解析；其下至少一条 `已完成` 故事。被拒时转述回执的一行理由与 `gate.route`（diy-epics-stories），然后停下——拒绝永不变成记录。
+- **其余一切取回执，绝不手工重读产物：** `stories`（total / done / pending）、`metrics`、`bugs`、`coverage`、`prev_actions`、`first_retro`、`next_epic`。这就是源技能「读遍每个故事文件再数」那一步的 diy 化——结构化产物加一趟机械跑批，不是手工点数。
 
-## Completion check and the partial branch (source step-1, three options)
+## 收尾校验与 partial 分支（源技能 step-1，三选项）
 
-Read `stories[].pending` from the receipt:
+读回执的 `stories[].pending`：
 
-- **Empty** → the epic is closed; say so and continue.
-- **Non-empty** → the epic is unfinished. The engine already emitted a `PENDING_DECISION` warning. Common the choice to the user:
-  1. **Finish the remaining stories first** (recommended) → stop here, write nothing, name the pending story IDs and route to diy-dev / diy-build-loop.
-  2. **Partial retrospective** → only with the user's explicit confirmation; draft the record with `partial: true` and note the pending IDs in `challenges`.
-  3. **Refresh the sprint queue instead** → route to diy-sprint when the tracking no longer matches reality.
+- **空** → epic 已收尾；说明后继续。
+- **非空** → epic 未完成。引擎已发出 `PENDING_DECISION` warning。把选择交给用户：
+  1. **先把剩余故事做完**（推荐）→ 停在此处，什么都不写，点名 pending 的故事 ID 并路由 diy-dev / diy-build-loop。
+  2. **部分回顾** → 仅在用户明确确认后；草稿写 `partial: true`，pending 的 ID 记进 `challenges`。
+  3. **改刷新 sprint 队列** → 跟踪已不符现实时路由 diy-sprint。
 
-`partial: true` is a user call, never a facilitator convenience. A partial retro that later gets a follow-up keeps its own record — records are appended, never rewritten.
+`partial: true` 是用户的裁定，绝不是主持人的便利。同 epic **只有一条** `RT-###`：partial 之后补做完整 retro 时，在**原记录**上原地更新（`partial` 改 `false`、`metrics` 用新一次 `collect` 回执重取、`revisions` 追加 `{date, change: partial → full, reason}`），不新铸记录。
 
-## Draft the record
+## 起草记录
 
-Append one record to `{output_dir}/retrospective.yaml` (create the file when absent: `project: {name, created, updated}` — `name` from `diy-coder.yaml` `project.name` — plus an empty `retros` list and `revisions: []`):
+往 `{output_dir}/retrospective.yaml` 追加一条记录（文件缺席时先建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——加空的 `retros` 列表与 `revisions: []`）：
 
 ```yaml
-  - id: RT-001                    # next = highest existing + 1, 3 digits; never renumber, never reuse
-    epic: E-x                     # copied from the receipt
+  - id: RT-001                    # 下一条 = 现有最大值 + 1，三位零填充；永不重编号、永不复用
+    epic: E-x                     # 照抄回执
     status: 草稿
-    date: YYYY-MM-DD              # today
-    partial: false                # true only on a user-confirmed partial retrospective
-    metrics:                      # copied from the receipt verbatim, never retyped from memory
+    date: YYYY-MM-DD              # 本条动作的日子（今天）
+    partial: false                # 仅用户确认的部分回顾写 true
+    metrics:                      # 照抄回执，绝不凭记忆重打
       stories_total: 0
       stories_done: 0
       rounds_total: 0
@@ -59,22 +61,22 @@ Append one record to `{output_dir}/retrospective.yaml` (create the file when abs
     prep_items: []
     critical_path: []
     readiness: {testing: '', deployment: '', acceptance: '', tech_health: '', blockers: ''}
-    next_epic: {}                 # filled in step 3
+    next_epic: {}                 # 第 3 步填
 ```
 
-Machine anchors (IDs, counts, file names) are copied from the receipt — never recomputed by eye. `partial: true` implies the epic is unfinished; an unfinished epic without `partial: true` is a drafting error.
+机器锚点（ID、计数、文件名）一律照抄回执——绝不凭眼睛重算。`partial: true` 蕴含 epic 未完成；未完成却没有 `partial: true` 是起草错误。
 
-## Stage the epic (source step-5 metrics block)
+## 铺陈 epic（源技能 step-5 的指标块）
 
-Before any discussion, present the epic in one message — all of it from the receipt, nothing retyped:
+任何讨论之前，用一条消息把 epic 摆出来——全部取自回执，绝不重打：
 
-- completion: `stories_done / stories_total` (and `partial` when set), pending IDs when any;
-- delivery shape: `rounds_total`, `blocked_count`, `augment_fail`, defects by class (`bugs`);
-- quality shape: AC coverage (`coverage`) and the epic's defect list by ID;
-- what comes next: the `next_epic` line (id / title / story count) — the preview is analysed in step 3.
+- 完成度：`stories_done / stories_total`（设了 `partial` 时一并给出），pending 的 ID；
+- 交付形态：`rounds_total`、`blocked_count`、`augment_fail`、按类别分的缺陷（`bugs`）；
+- 质量形态：AC 覆盖（`coverage`）与 epic 的缺陷清单（按 ID）；
+- 接下来是什么：`next_epic` 一行（id / title / stories 数）——预览在第 3 步分析。
 
-Framing rule: numbers tell a story only with their context ("5 rounds across 6 tasks", not "5"). Do not editorialise the metrics before step 2 has read them through the four lenses.
+叙述纪律：数字配上下文才成叙述（「6 个任务烧了 5 轮」，不是「5」）。第 2 步用四副镜片读完之前，不要对指标先行评论。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./02-deep-analysis.md`.
+读 `./02-deep-analysis.md` 并照做。

@@ -1,43 +1,48 @@
-# Step 6 — Report（结案与交接）
+# Step 6 — 结案与交接
 
-Progress: `Acknowledge → Stronghold → Perimeter → Reasoning → Source Trace → [Report]`
+Progress: `确认输入 → 据点 → 边界 → 推理 → 源码追踪 → [结案]`
 
-**Read (input):** the record as filled by steps 2–5; the human's confirmations along the way.
-**Write (output):** the settled record (`handoff_brief` / `conclusion` / `status`) in `{output_dir}/investigation.yaml`; the rendered view; the hand-off menu.
+**Read (input):** 第 2–5 步填出来的记录；一路上用户的确认。
+**Write (output):** 定稿的记录（`handoff_brief` / `conclusion` / `status`）落在 `{output_dir}/investigation.yaml`；渲染视图；交接菜单。
 
-## Finalize the record
+## 定稿记录
 
-- **`handoff_brief`** — rewrite to final form: 3 sentences, a 15-second read (what happened / where the case stands / what's needed next).
-- **`conclusion.text`** with **`conclusion.confidence`**: `高` (已确证 root cause, deterministic reproduction) / `中` (已推断; minor uncertainty) / `低` (假设中; clear data gap).
-- **`conclusion.fix_direction`** when applicable (categorize by mechanism when several combine); **`conclusion.diagnostic_steps`** if uncertainty remains; **`conclusion.reproduction`** when applicable — for exploration cases, a verification plan instead.
-- **`side_findings`** — tangential observations surfaced along the way (evidence-graded, `ref` optional): observed, **not followed up**. They belong here — not in `backlog` (that is the to-explore queue) and not in `evidence` (that is this thread's proof). Optional; omit when there are none.
-- **record `status`**: `调查中` / `已结论` / `待证据阻塞`.
+- **`handoff_brief`** —— 改写成终形：3 句、15 秒读完（出了什么事 / 案子现在到哪 / 下一步需要什么）。
+- **`conclusion.text`** 配 **`conclusion.confidence`**：`高`（根因「已确证」、复现确定）/ `中`（已推断；小不确定）/ `低`（假设中；数据缺口明确）。
+- **`conclusion.fix_direction`** 适用时写（多种机制并存时按机制分类）；**`conclusion.diagnostic_steps`** 不确定性仍在时写；**`conclusion.reproduction`** 适用时写——探索型案件改写验证计划。
+- **`side_findings`** —— 一路浮出的切向观察（证据分级，`ref` 可选）：看到了，**没追**。它们归这里——不归 `backlog`（那是待探队列）、不归 `evidence`（那是本线的证明）。可选；没有就省略。
+- **记录 `status`** —— 按完成判据映射定：
+  - `已结论` ← 判据 ① 根因「已确证」/ ③ 探索型心智模型已够用 / ⑤ 用户显式结案；
+  - `待证据阻塞` ← 判据 ② 根因停在 `假设中` 且缺口本次取不到，或 ④ `backlog` 只剩需要不可得证据的项——「等证据」永远不用 `已结论` 遮掩；
+  - `调查中` ← 五条判据都不成立（还有可取证据，继续追）。
+  - 「本次取不到」的判据 = `missing_evidence[].how` 需要本次范围外的动作（外部系统 / 权限 / 时间）。
 
-## Completion check
+## 完成判据
 
-The case is complete when one holds: the root cause is `已确证`; the root cause is `假设中` with an explicit data gap; the mental model suffices for the user's stated goal (exploration); the `backlog` holds only items needing unavailable evidence; the user explicitly concludes.
+案子完成当下面任一条成立：根因「已确证」；根因停在「假设中」且数据缺口已显式登记；心智模型足以支撑用户说定的目标（探索型）；`backlog` 只剩需要不可得证据的项；用户显式结案。
 
-## Final gate (mechanical)
+## 终门（机械）
 
-1. Write `project.status: 已定稿` first — `已定稿` is what the gate inspects, not a product of it.
-2. Run `python "{project-root}/.claude/skills/diy-investigate/scripts/investigation.py" check --final --json` with the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run. The JSON receipt (counts included) is the close-out evidence.
-3. Render via diy-viewer — the silent side-step command from SKILL.md — only after exit 0; no browser interaction point, no path report that blocks.
+1. 先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物。
+2. 跑 `python "{project-root}/.claude/skills/diy-investigate/scripts/investigation.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两实参同激活（`--output-dir` 必填、绝不缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑。JSON 回执（含计数）即收口证据。
+3. 渲染——按 SKILL.md 的静默旁路命令——只在 exit 0 之后；不新增浏览器交互点、不报阻塞路径。
 
-## Re-entry (resume)
+## 续案（resume）
 
-Append one `follow_ups` entry (`date` / `note`) — same-day re-entries are fine. Earlier history is never rewritten; a changed hypothesis is updated in place (status + resolution), never deleted.
+追加一条 `follow_ups` 条目（`date` / `note`）——同日再入也照记。早先的历史永不改写；变了的假设就地更新（status + resolution），永不删除。
 
-## Route menu (recommend the highest-value action, one line each)
+## 路由菜单（点名最高价值的那一个动作，一行一条）
 
-| Finding | Route |
+| 发现 | 路由 |
 | --- | --- |
-| Trivial fix (one-liner) | `diy-quick-dev` |
-| Scope / plan needs to change | `diy-correct-course` |
-| Worth tracking as a story | `diy-create-story` |
-| The fix needs a fresh review | `diy-review` |
+| 查实的缺陷 → 入库 | `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" bug-add --entry '<json>' --json`（`source: 用户`；`story` 取波及的 `S-x`，确无归属写 `n/a`）——由用户确认后就地执行；本技能零写 `bug-log.yaml` |
+| 一行可修的小缺陷 | `diy-quick-dev` |
+| 范围 / 计划要变 | `diy-correct-course` |
+| 值得立成故事 | `diy-create-story` |
+| 修复要重新审查 | `diy-review` |
 
-Mitigations and workarounds are generated only on explicit request — investigation stops at the diagnosis. Close with the route plus the counts from the receipt (`counts` included).
+缓解措施与绕过方案只在显式请求时生成——调查止于诊断。收尾给出路由，外加回执里的计数（含 `counts`）。
 
-## Exit
+## 播报与下一步
 
-This is the last step file — the run ends here once the final gate exits 0. `handoff_brief` + `conclusion` carry the outcome, the record's `status` closes the case; no further `steps/` file is read.
+这是最后一个步骤文件——终门 exit 0 之后本轮即结束。`handoff_brief` + `conclusion` 承载结果，记录的 `status` 结案；不再读任何 `steps/` 文件。
