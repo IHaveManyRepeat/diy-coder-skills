@@ -6,17 +6,17 @@
 - 用例 2：target 门禁拒绝（空项目 / 非 git / 显式 ref 不可解析）→ exit 1 + 结构化拒绝 + 零产出
 - 用例 3：check --final 合法记录 exit 0；非法（decision 缺失 / 枚举外 label / 悬空 story）
           exit 1 且带对应 violation code
-- 用例 4：SKILL.md 契约冒烟（冻结实例句逐字 md5 + 终门句指向 checkpoint.py check --final）
+- 用例 4：SKILL.md 契约冒烟（母本 §1 中文定稿逐字 + 四段中文标题 + mode 枚举与引擎同源
+          + 终门句指向 checkpoint.py check --final）
 - 附加：自建临时 git 仓库的显式指定 / Git 提交层；空仓库无提交不崩溃；check 缺文件 MISSING_FILE
 
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；git 用例自建仓库，不依赖本机 git 状态。
 运行：cd diy-coder && python -m unittest discover -s tests -v
 """
-import hashlib
+import importlib.util
 import io
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -29,9 +29,21 @@ ENGINE = os.path.join(HERE, "..", "skills", "diy-checkpoint-preview",
 SKILL_MD = os.path.join(HERE, "..", "skills", "diy-checkpoint-preview", "SKILL.md")
 NL = chr(10)
 
-# 冻结文本校验值（batch4/frozen-texts.md §1：整句 233 字符，逐字复制）
-INSTANCE_MD5 = "5445f98bc4d4821e6888b89406a97eac"
-INSTANCE_ANCHOR = "Instance resolution (FR-4.5/D-9)"
+# 套件级句式母本（suite-texts.md §1 中文定稿，逐字）——2026-09-19 中文化轮：
+# 英文原形（233 字符，md5 5445f98b…）随本技能转中文退役，改断中文定稿。
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+INSTANCE_EN_MARK = "Instance resolution (FR-4.5/D-9)"
+
+
+def engine_modes():
+    """引擎 MODES（契约：SKILL.md 的 mode 枚举与引擎同源，A-10 决策 2）。"""
+    spec = importlib.util.spec_from_file_location("ckpt_engine_modes", ENGINE)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return tuple(mod.MODES)
 
 SPRINT_YAML = NL.join([
     "project:",
@@ -425,17 +437,25 @@ class SkillContractTests(unittest.TestCase):
         with io.open(SKILL_MD, encoding="utf-8") as f:
             return f.read()
 
-    # trace: 任务书 §2.4（冻结实例句逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_instance_sentence_is_frozen_verbatim(self):
+    # trace: 任务书 §2.4 / 母本 §1（实例解析句中文定稿逐字；英文原形已随中文化退役）
+    def test_instance_sentence_is_mother_copy_verbatim(self):
         raw = self.read_skill()
-        m = re.search(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*", raw)
-        self.assertTrue(m, "SKILL.md 缺实例解析样板句")
-        frag = m.group(0)
-        # 口径同 frozen-texts §3：grep -o "Instance resolution (FR-4.5/D-9).*" | md5sum
-        # （= 整句 233 字符 + 行尾 LF；与文件 LF/CRLF 无关）
-        self.assertEqual(len(frag), 233, "实例句字符数偏离冻结文本（233）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), INSTANCE_MD5,
-                         "实例句与冻结文本不一致：%s" % frag)
+        self.assertIn(INSTANCE_ZH, raw, "SKILL.md 缺母本 §1 中文定稿（逐字）")
+        self.assertNotIn(INSTANCE_EN_MARK, raw, "已转中文定稿，仍残留英文原形")
+
+    # trace: 中文化轮（薄主文件四段标题中文化；2026-09-19 政策）
+    def test_four_sections_are_chinese(self):
+        raw = self.read_skill()
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
+            self.assertIn(section, raw, "缺段 %s" % section)
+
+    # trace: A-10 决策 2（`全程轨迹` 在本生态不可达：引擎 MODES 保留三值，
+    #         技能侧枚举标「本生态不适用」；键路径以 schema/引擎为准）
+    def test_mode_enum_matches_engine_and_marks_unreachable(self):
+        raw = self.read_skill()
+        for value in engine_modes():
+            self.assertIn(value, raw, "SKILL.md 的 mode 枚举缺引擎值 %s" % value)
+        self.assertIn("本生态不适用", raw, "`全程轨迹` 须标「本生态不适用」")
 
     # trace: 任务书 §2.4（终门句指向 checkpoint.py check --final）
     def test_final_gate_points_to_engine(self):

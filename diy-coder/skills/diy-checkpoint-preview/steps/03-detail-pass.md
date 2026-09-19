@@ -1,101 +1,101 @@
-# Step 3 — Detail Pass（风险详查）
+# Step 3 — 风险详查
 
-Progress: `Orientation → Walkthrough → [Detail Pass] → Testing → Wrap-Up`
+Progress: `定向 → 带看 → [风险详查] → 亲手验证 → 拍板`
 
-**Read (input):** the diff; the spec (its `## Spec Change Log` when present); the concerns written in step 2.
-**Write (output):** the risk-spot message; the `risks[]` section of the draft record.
+**Read (input):** diff；规格（`stories.yaml` 里本 story 的条目）；`sprint.yaml` 里本任务的 `review.findings[]`（存在时）；第 2 步写下的关注点。
+**Write (output):** 风险点消息；草稿记录的 `risks[]` 节。
 
-## Rules for this step
+## 本步规则
 
-- Surface what the human should **think about**, not what the code got wrong. Machine hardening already handled correctness.
-- You detect the risk category by pattern; the human judges significance. Do not assign severity scores or numeric rankings — ordering by blast radius below is sequencing for readability, not a severity judgment.
-- If no high-risk spot exists, say so explicitly. Do not invent findings.
+- 点出人该**想什么**，不是代码哪里写错了。机器加固已把正确性管掉了。
+- 你按模式识别风险类别；由人判断轻重。不给严重度评分、不做数值排序——下面按爆炸半径排序是为了可读，不是严重度判断。
+- 没有高风险点就明说。绝不编造发现。
 
-## Identify risk spots
+## 找风险点
 
-Scan the diff for risk-sensitive patterns; pick 2–5 spots where a mistake would have the highest blast radius — not the most complex code, but the code where being wrong costs the most.
+扫 diff 里的风险敏感模式，挑 2–5 个「错了代价最大」的点——不是最复杂的代码，是错了最贵的代码。
 
-- `[auth]` — authentication, authorization, session, token, permission, access control
-- `[public API]` — new/changed endpoints, exports, public methods, interface contracts
-- `[schema]` — database migrations, schema changes, data model modifications, serialization
-- `[billing]` — payment, pricing, subscription, metering, usage tracking
-- `[infra]` — deployment, CI/CD, environment variables, config files, infrastructure
-- `[security]` — input validation, sanitization, crypto, secrets, CORS, CSP
-- `[config]` — feature flags, environment-dependent behavior, defaults
-- `[other]` — anything risk-sensitive outside the above (concurrency, data privacy, backwards compatibility); use a descriptive tag
+- `[auth]` —— 认证、授权、会话、token、权限、访问控制
+- `[public API]` —— 新增 / 变更的端点、export、公开方法、接口契约
+- `[schema]` —— 数据库迁移、schema 变更、数据模型改动、序列化
+- `[billing]` —— 支付、定价、订阅、计量、用量结算
+- `[infra]` —— 部署、CI/CD、环境变量、配置文件、基础设施
+- `[security]` —— 输入校验、净化、加密、密钥、CORS、CSP
+- `[config]` —— 特性开关、随环境变化的行为、缺省值
+- `[other]` —— 以上之外的风险敏感面（并发、数据隐私、向后兼容）；用描述性标签
 
-Sequence the spots highest blast radius first (how much breaks if this is wrong), not by diff order or file order. More than 5 qualifying spots → show the top 5 and note "N additional spots omitted — ask if you want the full list".
+风险点按爆炸半径从大到小排（错了会坏多少），不按 diff 顺序或文件顺序。合格的风险点超过 5 个 → 只显示前 5 个并注明「另有 N 个点未列——想看全就说一声」。
 
-When no spot matches these patterns, state: "No high-risk spots found in this change — the diff speaks for itself." Do not force findings.
+没有点命中这些模式时，明说：「本次变更没找到高风险点——diff 本身说明问题。」不要硬凑发现。
 
-## Surface machine hardening findings
+## 呈现机器加固发现
 
-Check whether the spec has a `## Spec Change Log` section with entries (populated by adversarial review loops).
+看 `sprint.yaml` 里本任务的 `review.findings[]`（由 diy-review 的对抗式审查层写下）。
 
-- **Entries exist:** read them and surface what is instructive for the human — not bugs already fixed, but decisions the review loop flagged that the human should know about. Format: a brief summary of what was flagged and what was decided.
-- **No entries, or no spec:** skip this section entirely — do not mention it.
+- **有条目：** 读它们，挑出对人**有教益**的部分——不是已修掉的缺陷，是审查层标记过、人该知道的决策。格式：一句话说清标记了什么、最后怎么定的。
+- **无条目，或无 `review` 块：** 整节跳过——不要提。
 
-## Present
+## 呈现
 
-One message:
-
-```
-Orientation → Walkthrough → [Detail Pass] → Testing → Wrap-Up
-
-### Risk Spots
-
-- `path:line` — [tag] reason-phrase
-```
-
-Example:
+整块消息：
 
 ```
-- `src/auth/middleware.ts:42` — [auth] New token validation bypasses rate limiter
-- `migrations/003_add_index.sql:7` — [schema] Index on high-write table, check lock behavior
-- `api/routes/billing.ts:118` — [billing] Metering calculation changed, verify idempotency
+定向 → 带看 → [风险详查] → 亲手验证 → 拍板
+
+### 风险点
+
+- `path:line` — [标签] 理由短语
 ```
 
-Only when hardening findings exist, add:
+示例：
 
 ```
-### Machine Hardening
-
-- Finding summary — what was flagged, what was decided
+- `src/auth/middleware.ts:42` — [auth] 新 token 校验绕过了限流器
+- `migrations/003_add_index.sql:7` — [schema] 高写入表的索引，核对锁行为
+- `api/routes/billing.ts:118` — [billing] 计量算法变了，核对幂等性
 ```
 
-End with:
+只在有加固发现时才加：
+
+```
+### 机器加固
+
+- 发现摘要 —— 标记了什么、怎么定的
+```
+
+以此收尾：
 
 ```
 ---
 
-You've seen the design and the risk landscape. From here:
-- **"dig into [area]"** — I'll deep-dive that specific area with correctness focus
-- **"next"** — I'll suggest how to observe the behavior
+设计面与风险面都过了。接下来：
+- **「深挖 [区域]」** —— 我带正确性视角深钻那个区域
+- **「next」** —— 我给出亲手验证的建议
 ```
 
-## Write the record
+## 写记录
 
-Append to this run's record, in blast-radius order:
+按爆炸半径顺序追加到本轮记录：
 
 ```yaml
     risks:
-      - {label: auth|public API|schema|billing|infra|security|config|other, where: path:line, why: reason-phrase}
+      - {label: auth|public API|schema|billing|infra|security|config|other, where: path:line, why: 理由短语}
 ```
 
-## Targeted re-review (repeatable)
+## 定向复看（可重复）
 
-When the human says "dig into [area]" (e.g. "dig into the auth changes", "dig into the schema migration"):
+人说「深挖 [区域]」时（如「深挖认证那块」「深挖 schema 迁移」）：
 
-1. If the area maps to no code in the diff, say so — "I don't see [area] in this change — did you mean something else?" — and return to the closing menu.
-2. Identify every location in the diff relevant to the area.
-3. Read each location in full context — surrounding code, not just the hunk.
-4. Shift to **correctness mode**: trace edge cases, check boundary conditions, verify error handling, look for off-by-one errors, races, resource leaks.
-5. Present findings compactly — each is `path:line` + what you found + why it matters.
-6. Nothing concerning → say so: "Looked closely at [area] — nothing concerning. The implementation is solid."
-7. After presenting, show only the closing menu (not the risk-spot list again).
+1. 该区域在 diff 里对不上任何代码 → 直说——「这次变更里我没看到 [区域]——你指的是别的吗？」——然后回到收尾菜单。
+2. 找出 diff 里与该区域相关的每一个位置。
+3. 每个位置读全上下文——不只看 hunk。
+4. 切到**正确性模式**：追边界情形、验边界条件、查错误处理，找 off-by-one、竞态、资源泄漏。
+5. 紧凑呈现发现——每条 = `path:line` + 发现了什么 + 为什么要紧。
+6. 没有可担心的 → 直说：「仔细看过 [区域]——没有可疑处，实现是扎实的。」
+7. 呈现完只再给收尾菜单（不重复整个风险点清单）。
 
-Multiple re-reviews are allowed; each round presents new findings and the closing menu only.
+复看可多轮；每轮只给新发现与收尾菜单。
 
-## Next
+## 播报与下一步
 
-Default: read fully and follow `./04-testing.md`. Early exit: when the human signals a decision about this {change_type}, confirm their intent and go to `./05-wrapup.md`; if you misread them, acknowledge and continue here.
+默认：读 `./04-testing.md` 并照做。提前退出：人若对这个 {change_type} 给出结论信号，先确认意图，再改走 `./05-wrapup.md`；理解错了就承认并留在本步。

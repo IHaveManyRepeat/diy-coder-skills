@@ -1,67 +1,90 @@
 ---
 name: diy-epics-stories
 description: Derive epics.yaml and stories.yaml from prd.yaml features. Acceptance criteria use given/when/then and reference stable FR IDs. Use when the user wants to create epics, break down stories, or plan work breakdown from the PRD.
+# ↑ 中文：从 prd.yaml 的 feature 派生 epics.yaml 与 stories.yaml——验收标准一律 given/when/then 并引用稳定的 FR ID。用户想创建史诗、拆解故事，或从 PRD 做工作分解时触发。
 ---
 
 # diy-epics-stories — 史诗与故事派生（YAML 单一源）
 
-You are a delivery planner. Input: `prd.yaml`. Output: `epics.yaml` + `stories.yaml`. You derive — never invent: every story traces to FR IDs, every AC is testable, content is referenced, never copied.
+你是交付规划者。输入 `prd.yaml`，产出 `epics.yaml` + `stories.yaml`。**你只派生、绝不发明**：每个 story 都追溯到 FR ID，每条 AC 都可测，内容一律引用、绝不复制。上游 `prd.yaml` 是 feature 与 FR/NFR 的唯一源；下游 `diy-test-design` 按 AC 设计用例；`design_ref` 只引用 `design.yaml` 的页，不改设计。
 
-## On Activation
+## 激活时
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root.
-2. Load `{output_dir}/prd.yaml`. Hard gate: `status` must be `已定稿`; if not, stop and send the user back to diy-prd.
-3. Targets: `{output_dir}/epics.yaml`, `{output_dir}/stories.yaml`. Intent: Create (both absent) or Update (reconcile with change signal; IDs stable). Before rewriting existing docs: `cp {output_dir}/epics.yaml {output_dir}/epics.yaml.prev` and `cp {output_dir}/stories.yaml {output_dir}/stories.yaml.prev`; after drafting the new versions run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --previous {output_dir}/epics.yaml.prev --json` and `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --previous {output_dir}/stories.yaml.prev --json` (exit 0 = IDs stable); then delete both `.prev` files.
+1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
+   全程用 `communication_language` 对话；产物里的叙述文字（`title`、`goal`、`narrative`、`notes`、`given/when/then`）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+2. 硬门：加载 `{output_dir}/prd.yaml`；`project.status` 必须是 `已定稿`。不满足 → 一行拒绝（点名缺什么）+ 零产出 + 路由 `diy-prd`。
+3. 目标文件：`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml`。判意图：
+   - **Create** —— 两份都不在场 → 全量派生。
+   - **Update** —— 任一份在场 → 先 `cp {output_dir}/epics.yaml {output_dir}/epics.yaml.prev` 与 `cp {output_dir}/stories.yaml {output_dir}/stories.yaml.prev`，载入既有稿、对账变更信号，**所有 ID 保持稳定**；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --previous {output_dir}/epics.yaml.prev --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --previous {output_dir}/stories.yaml.prev --json`（exit 0 = ID 稳定）；然后删掉两份 `.prev` 文件。
 
-## Derivation Discipline
+## 工作流
 
-- **Epics follow feature groups.** By default one `E-*` per `F-*` in prd.yaml, `feature_refs` citing the source. Merge or split only with a stated reason.
-- **Stories are independently deliverable units** sized for one unattended build-loop task: a story that needs human mid-flight decisions is too big or wrongly cut.
-- **AC is given/when/then** — observable at the outermost surface (behavior, not internals). Each AC `refs` existing FR/NFR IDs from prd.yaml; never copy requirement text.
-- **Coverage is complete**: every 必须级 FR is referenced by at least one AC. 应该级 FRs get coverage or an explicit skip note in conversation.
-- **Design binding (FR-2.4)**: a story whose ACs implement frontend-facing FRs gets a `design_ref: P-x` on each such AC, citing a page id in `design.yaml` pages — the page is the implementation baseline, not decoration. Only bind when `{output_dir}/design.yaml` exists and is `已定稿` (diy-design skip projects carry no binding); every `design_ref` must resolve (viewer marks dangling ones red; the stories final gate re-checks resolution mechanically).
-- **Story status reflects reality.** Work already delivered may be backfilled as `已完成` — mark such backfill `[假设]` in a top-level `notes:` line until the user confirms.
-- Any inferred sizing, ordering, or split carries the `[假设]` prefix in the YAML value. Open items live in the file, never only in conversation.
+全局步骤纪律：每步输出整块给出，不在一步中间零散追问；要停下的点明写等什么。
 
-- **Writing discipline.** Main field = plain-language main clause; numbers/enums inline; machine syntax (commands/flags/paths) in parentheses; keep machine anchors verbatim (file names, token names, CLI flags) — Chinese rewrites of anchors break the diy-design detect heuristic. If the schema defines `plain`: one line of WHY the entry exists, never WHAT (restatements drift); write it only for hard-to-grasp entries. If it defines `detail`: process narrative — conclusions stay in the main field.
+### 派生纪律
 
-## Schema
+- **Epic 跟随 feature 分组。** 缺省 `prd.yaml` 的每个 `F-*` 对应一个 `E-*`，`feature_refs` 引用来源；合并或拆分必须写明理由。
+- **Story 是独立可交付单元**，颗粒度按「一个无人值守的 build-loop 任务」定——需要人在中途拍板的 story 是切大了或切错了。
+- **AC 一律 given/when/then**，在**最外层可观测面**断言（行为，不是内部实现）。每条 AC 的 `refs` 引用 `prd.yaml` 里既有的 FR/NFR ID，**绝不复制需求原文**。
+- **覆盖率必须完整**：每条必须级 FR 至少被一条 AC 引用；应该级 FR 要么被覆盖，要么在 `stories.yaml` 顶层 `notes:` 里逐行写 skip line（`<FR-x.y>: <为什么故意不覆盖>`）——**绝不只在对话里带过**。
+- **设计绑定（FR-2.4）**：AC 实现前端面 FR 的 story，其每条这类 AC 带 `design_ref: P-x`，引用 `design.yaml` 的 `pages` 里的页 ID——该页是实现基线，不是装饰。仅在 `{output_dir}/design.yaml` 在场且其 `project.status: 已定稿` 时才绑（diy-design 被跳过的项目没有绑定）；每条 `design_ref` 都必须可解析（viewer 把悬空的标红，stories 终门机械复核解析）。design 若**晚于本技能**产出，重跑本技能 Update 路径回填 `design_ref`——写范围仍只在 `stories.yaml` 的 AC 绑定上；主线顺序 design 在本技能之前，按主线走不会落空。
+- **Story 状态照实写。** 已经交付的工作可以回填 `已完成`——回填先在顶层 `notes:` 里带 `[假设]` 前缀，等用户确认后再去掉。
+- 任何推断的颗粒度、次序或拆分，都在 YAML **值**上带 `[假设]` 前缀；未决项一律落在文件里，绝不只在对话里。
 
-`epics.yaml`:
+### 落盘与收尾
+
+1. 两份文件都以 `project.status: 草稿` 写出，story 状态照实；把路径告诉用户。
+2. 立即渲染两稿供审阅。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+3. 按用户反馈迭代；ID 始终保持稳定；任何改动后重新核一遍覆盖率。
+4. 终门（机械判定）：先写两份文件的 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --final --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `project.status` 回退 `草稿`**，修完重走本步——离开本次运行前，文档不得停在未过门的 `已定稿`。大白话的门槛：零未确认假设、每条 AC 的 ref 都能在 `prd.yaml` 里解析、每条必须级 FR 都被至少一条 AC 覆盖、每条在场的 `design_ref` 都能在 `design.yaml` 里解析。
+5. 过门之后才收口：重渲染一次，用 JSON 回执里的计数做收尾一行摘要。
+
+## 结构
+
+`epics.yaml`：
 ```yaml
-project: {name, status: 草稿|已定稿, created, updated}
-notes: string                # optional, e.g. '[假设] ...' marks
+project: {name, status: 草稿|已定稿, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天（均 YYYY-MM-DD）
+notes: string                # 可选；逐行记录——'[假设] …' 回填标记、应该级 FR 的 skip line
 epics:
-  - id: E-1                 # stable
+  - id: E-1                 # 稳定：顺序递增，永不重编号、永不复用
     title: string
     goal: string
-    feature_refs: [F-x]     # existing prd feature IDs
+    feature_refs: [F-x]     # 引用 prd.yaml 里既有的 feature ID
     status: 待办|进行中|已完成
 ```
 
-`stories.yaml`:
+`stories.yaml`：
 ```yaml
 project: {name, status: 草稿|已定稿, created, updated}
-notes: string                # optional, e.g. '[假设] ...' marks
+notes: string                # 可选；逐行——skip line '<FR-x.y>: <为什么>'、'[假设] …' 标记、headless 未决项
 stories:
-  - id: S-1                 # stable
+  - id: S-1                 # 稳定
     epic: E-x
     title: string
     narrative: 作为…我希望…以便…
     acceptance_criteria:
-      - id: AC-1.1          # stable, numbered within story
+      - id: AC-1.1          # 稳定，story 内顺序编号
         given: string
         when: string
         then: string
-        refs: [FR-x.y | NFR-x]
-        design_ref: P-x       # optional, must resolve in design.yaml pages
+        refs: [FR-x.y | NFR-x]   # 引用 prd.yaml 既有 ID，必须可解析
+        design_ref: P-x       # 可选；必须在 design.yaml 的 pages 里解析
     status: 待办|进行中|待审查|已完成|已阻塞
 ```
 
-## Workflow
+## 规则
 
-1. Write both files with `status: 草稿`; story statuses per reality. Tell the user the paths.
-2. Immediately render via diy-viewer (same activation command — append `--instance <name>` when one was resolved); review happens in HTML.
-3. Iterate on user feedback; keep IDs stable; re-derive coverage after any change.
-4. Final gate (mechanical): run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --final --json` and `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --final --json` — exit 0 is the only pass; fix every reported violation and re-run (entries in `known[]` are user-ratified baselines, not violations to fix); the JSON receipt (counts included) is the close-out evidence. In plain terms the bar is: no unconfirmed assumptions, every AC ref resolving in prd.yaml, every 必须级 FR covered by an AC, and every `design_ref` (when present) resolving in design.yaml.
-5. Only then set both `status: 已定稿`, re-render, close with the counts from the JSON receipt.
+1. **写范围恰好两份产物**：`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml`（加各自的 `.prev` 临时件）。`prd.yaml` / `design.yaml` / `sprint.yaml` / 源码 / CI 一律不碰；`design_ref` 的绑定与回填只落在 `stories.yaml` 的 AC 字段上。
+2. **ID 链是硬契约。** `E-*` / `S-*` / `AC-*` 一经铸造永不重编号、永不复用；重写既有稿必须走 `.prev` → `check --previous`（exit 0 = ID 稳定）→ 删 `.prev`，见激活时第 3 条。
+3. **未决信息必须落文件（三条约定）**：
+   - `[假设]` 前缀只写在**值**上，不新增独立键；值以 `[` 开头时整值加引号（`title: '[假设] …'`，裸 `[` 会破坏 YAML）。
+   - `final` 前必须清零：交互态 = 用户确认后去掉前缀；headless 态 = 一律转为显式未决行落 `stories.yaml` 顶层 `notes:`（值带 `[假设]` 前缀，逐行点名 ID 与缺什么）——**不删、不猜**，文档停在 `草稿`。
+   - 终门扫的字段集 = 两份文件里**全部字符串值**（引擎递归全扫、不设白名单）；零 `[假设]` 才放行。
+4. **路由。** 下游是 `diy-test-design`（按 `stories.yaml` 的 AC 集设计用例）；主线顺序 = `prd → architecture → openapi(可选) → design(可选) → epics+stories → test-plan → sprint → build-loop`。
+
+- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
+
+- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；机器语法（命令/旗标/路径）进括号；机器锚点逐字保留（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 `diy-design` 的 detect 启发式。schema 若定义 `plain`：一行写清该条目为什么存在，绝不写是什么（转述会漂移）；只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。

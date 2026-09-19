@@ -2,29 +2,29 @@
 
 Progress: `Discovery → Draft → Finalize`（校验从本步进入；结论回对话，不写产物）
 
-**Read (input):** `{output_dir}/brief.yaml` — brief, `decisions`, `addendum`; the original inputs the user supplied.
-**Write (output):** nothing on disk. The critique returns inline in the conversation, `communication_language` — no separate file unless the user asks for one.
+**Read (input):** `{output_dir}/brief.yaml` 全文——brief、`decisions`、`addendum`；用户给的原始输入。
+**Write (output):** 盘上零写入。点评在对话里内联返回，用 `communication_language`——除非用户要一份文件，否则不另起文件。
 
-## Ground the critique
+## 让点评站得住
 
-Judge the brief against its own purpose, not a generic template: as a **个人兴趣** brief, as an **内部** pitch, as **投资人** input, as a **公开** launch. A validation that ignores prior decisions, reversed ideas, or the context the user supplied is shallow — read `decisions` and `addendum` first, then hold the brief to what it set out to do at its own `stakes`.
+拿简报自己的目的去判它，不是拿通用模板：作为 **个人兴趣** 简报、作为 **内部** 提案、作为 **投资人** 输入、作为 **公开** 发布。无视既有决策、被推翻的想法或用户给的上下文的校验是浅的——先读 `decisions` 与 `addendum`，再拿它自己 `stakes` 上立的目标去要求它。
 
-## What to examine
+## 看什么
 
-- **Problem → solution fit:** does `solution` actually answer the `problem` as stated, at the stated stakes?
-- **Evidence:** do the `value[].point` claims carry `evidence`, or are they assertions? A fabricated moat is the exact failure this brief exists to prevent — name it if you see it.
-- **Users:** are `users` specific enough to design for, or a demographic?
-- **Unknowns:** are the real unknowns in `open_questions`, or are unexamined assumptions hiding as prose? Thin answers get pushback here exactly as in drafting.
-- **Coherence:** does the whole read as one product's story within 1-2 pages, with overflow living in `addendum`?
+- **问题 → 方案是否咬合：**`solution` 是否真的回答了 `problem` 所述，且在所述档位上？
+- **证据：**`value[].point` 的主张带 `evidence` 吗，还是只是断言？编造护城河正是这份简报存在的意义所在要防的失败——看见就点名。
+- **用户：**`users` 具体到能照着设计吗，还是一个人口统计标签？
+- **未知项：**真正的未知在 `open_questions` 里吗，还是未经检验的假设伪装成叙述文字躲着？单薄的回答在这里照样顶回去，与起草期同规。
+- **连贯：**整份读起来是不是一个产品的故事、在 1-2 页内，溢出部分住在 `addendum`？
 
-## Cite specific lines
+## 引具体句子
 
-Quote the sentence being judged — from `problem`, `pitch`, a `value` entry, a decision `rationale` — and say what it does and does not establish. Caveat what cannot be evaluated from the file alone (market facts, internal constraints, the user's unstated intent). Confirm what is strong as plainly as what is weak: a validation that only faults is not honest either.
+引用被评判的那句话——出自 `problem`、`pitch`、某条 `value`、某条决策 `rationale`——说清它立住了什么、没立住什么。无法只凭文件评判的（市场事实、内部约束、用户未言明的意图）注明存疑。强的地方要说得和弱的地方一样直白：只挑错的点评同样不诚实。
 
-## Return inline and offer the route
+## 内联返回并给路由
 
-Deliver the critique in the conversation, ordered by what matters most. Always close by offering to roll the findings into an update — never end without that offer; in headless mode set `"offer_to_update": true` in the JSON status block.
+点评在对话里交付，按重要程度排序。收尾**始终**提供把发现并入一次更新——绝不在没有这个提议的情况下结束；headless 模式下在 JSON 状态块里置 `"offer_to_update": true`。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./04-update.md` when the user takes the offer. Otherwise the run ends here — the critique stays in the conversation and nothing is written.
+用户接受提议时，读全 `./04-update.md` 并照做。否则本次运行到此结束——点评留在对话里，盘上什么都不写。

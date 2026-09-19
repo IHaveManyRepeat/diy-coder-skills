@@ -10,7 +10,9 @@
                sprint.yaml / test-plan.yaml / architecture.yaml 缺席不拒（源输入表 fallback
                语义：上游未生成则引用面为空，降级为 warning）。
              2 AC 清点：目标 story 的全部 acceptance_criteria（id/given/when/then/refs +
-               可选 design_ref）——替换源 step-2「人工通读 epics 分片提取故事基础」。
+               可选 design_ref）+ epic（该 story 的 epic——回执字段，供记录的 epic 字段
+               直接取用，会话不必手工回读 stories.yaml）——替换源 step-2「人工通读 epics
+               分片提取故事基础」。
              3 TC 清点：test-plan.yaml 中 ac 属该 story AC 集的用例（id/ac/title/type/
                priority/technique/status）——源需人工核对，此处机械匹配。
              4 前序情报：stories.yaml 中编号最高且小于当前者（S-y, y < x）的 story 及其
@@ -314,6 +316,7 @@ def cmd_collect(args):
     docs = load_docs(out)
     payload = base_payload("collect", args, out)
     payload["story"] = args.story
+    payload["epic"] = None
     payload["acs"] = []
     payload["tcs"] = []
     payload["prior"] = None
@@ -356,6 +359,7 @@ def cmd_collect(args):
         tcs = []
 
     payload["ok"] = True
+    payload["epic"] = story_entry.get("epic")
     payload["acs"] = acs
     payload["tcs"] = tcs
     payload["prior"] = prior

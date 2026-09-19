@@ -1,56 +1,56 @@
-# Step 4 — Internal FAQ（内部拷问）
+# Step 4 — 内部拷问（Internal FAQ）
 
 Progress: `Ignition → Press Release → Customer FAQ → [Internal FAQ] → Verdict`
 
-**Read (input):** the press release and customer FAQ written so far; `prfaq.concept_type`; the merged subagent findings (market risks, competitive threats).
-**Write (output):** the internal question landscape message; `prfaq.internal_faq` entries plus `prfaq.stage: 4` and `updated` in one write; `distillate` updates.
+**Read (input):** 已写出的新闻稿与客户 FAQ；`prfaq.concept_type`；合并后的子代理发现（市场风险、竞争威胁）。
+**Write (output):** 内部问题全景消息；`prfaq.internal_faq` 条目加 `prfaq.stage: 4` 与 `updated`，同一次写入；`distillate` 更新。
 
-## Goal
+## 目标
 
-Stress-test the concept from the builder's side. The customer FAQ asked "should I use this?" The internal FAQ asks "can we actually pull this off — and should we?"
+从构建者这一侧压力测试概念。客户 FAQ 问的是"我该用吗"；内部 FAQ 问的是"我们真能做出来吗——以及该做吗"。
 
-## The skeptical stakeholder
+## 怀疑派利益相关方
 
-You are now the internal stakeholder panel — engineering lead, finance, legal, operations, the CEO who has seen a hundred pitches. The press release was inspiring. Now prove it's real.
+你现在是内部利益相关方面板——工程负责人、财务、法务、运营，以及看过一百个提案的 CEO。新闻稿很鼓舞人。现在证明它是真的。
 
-**Generate 6-10 internal FAQ questions** covering these angles:
+**生成 6-10 个内部 FAQ 问题**，覆盖这些角度：
 
-- **Feasibility:** "What's the hardest technical problem here?" / "What do we not know how to build yet?" / "What are the key dependencies and risks?"
-- **Business viability:** "What do the unit economics look like?" / "How do we acquire the first 100 customers?" / "What's the competitive moat — and how durable is it?"
-- **Resource reality:** "What does the team need to look like?" / "What's the realistic timeline to a usable product?" / "What do we have to say no to in order to do this?"
-- **Risk:** "What kills this?" / "What's the worst-case scenario if we ship and it doesn't work?" / "What regulatory or legal exposure exists?"
-- **Strategic fit:** "Why us? Why now?" / "What does this cannibalize?" / "If this succeeds, what does the company look like in 3 years?"
-- **The question the founder avoids:** the internal counterpart to the hard customer question — the thing that keeps them up at night but hasn't been said out loud.
+- **可行性：** "这里最难的技术问题是什么？" / "有什么我们还不知道怎么做？" / "关键依赖与风险是什么？"
+- **商业可行性：** "单位经济长什么样？" / "前 100 个客户怎么获取？" / "竞争护城河是什么——它有多耐久？"
+- **资源现实：** "团队需要长成什么样？" / "到能用的产品，现实的时间线是什么？" / "为了做这个，我们必须对什么说不？"
+- **风险：** "什么会杀死这个项目？" / "如果上线了却不成，最坏情形是什么？" / "有什么监管或法律敞口？"
+- **战略契合：** "为什么是我们？为什么是现在？" / "这会吃掉谁的市场？" / "如果成了，三年后公司是什么样？"
+- **创始人回避的那个：** 客户硬问题的内部对应物——让他夜里睡不着、却还没说出口的那件事。
 
-**Calibrate to context.** A solo founder building an MVP needs different internal questions than a team inside a large organization: don't ask about "board alignment" for a weekend project, don't ask about "weekend viability" for an enterprise product. For non-commercial concepts (`内部` / `开源` / `社区`), replace "unit economics" with "maintenance burden", "customer acquisition" with "adoption strategy", and "competitive moat" with "sustainability and contributor / stakeholder engagement".
+**按处境校准。** 单人创始人做 MVP，需要与大型组织里的团队不同的内部问题：别对周末项目问"董事会共识"，也别对企业级产品问"周末能不能做出来"。非商业概念（`内部` / `开源` / `社区`）把"单位经济"换成"维护负担"，"客户获取"换成"采纳策略"，"竞争护城河"换成"可持续性与贡献者 / 利益相关方参与"。
 
-## Coaching the answers
+## 教练答案
 
-Same approach as the customer FAQ — draft, challenge, refine:
+与客户 FAQ 同一套方法——起草、挑战、打磨：
 
-1. **Present all questions at once.**
-2. **Work through the answers.** Demand specificity. "We'll figure it out" is not an answer; neither is "we'll hire for that". What's the actual plan?
-3. **Honest unknowns are fine — unexamined unknowns are not.** If the answer is "we don't know yet", the follow-up is: "What would it take to find out, and when do you need to know by?"
-4. **Watch for hand-waving on resources and timeline** — the most commonly over-optimistic answers. Push for concrete scoping.
+1. **一次性摆出全部问题。**
+2. **一起过答案。** 要求具体。"我们会想办法"不是答案；"我们会招人做这个"也不是。实际计划是什么？
+3. **诚实的未知可以——未经审视的未知不行。** 如果答案是"还不知道"，追问是："要弄清它需要什么，你什么时候必须知道？"
+4. **提防资源与时间线上的挥手**——最容易过度乐观的两处。逼出具体范围。
 
-## Headless mode
+## Headless 模式
 
-Generate questions calibrated to context plus best-effort answers, and flag high-risk areas and unknowns prominently (low-confidence answers carry the `[假设]` prefix, quoted when it leads the scalar).
+按处境生成校准过的问题与尽力而为的答案，并把高风险区与未知项显著标出（低置信答案带 `[假设]` 前缀，作标量打头时加引号）。
 
-## Write the section
+## 写这一节
 
-Append to `prfaq.internal_faq` as `{id: PQ-###, q, a}` — IDs continue the same document-wide sequence, so the first internal question follows the last customer question. The hardest internal question goes first. Update `prfaq.stage: 4` and `project.updated` in the same write.
+以 `{id: PQ-###, q, a}` 追加到 `prfaq.internal_faq`——ID 续同一条文档级序列，所以第一个内部问题接在最后一个客户问题之后。最狠的内部问题放最前。同一次写入里更新 `prfaq.stage: 4` 与 `project.updated`。
 
-## Coaching notes capture → `notes` + distillate
+## 教练笔记捕获 → `notes` + distillate
 
-Append one `notes` entry (`{stage: 4, content}`) with the process narrative: how the panel's questions were worked through and the coaching behind the strategic positioning calls.
+向 `notes` 追加一条（`{stage: 4, content}`），写过程叙事：面板的问题是怎么过下来的，战略定位判定背后的教练过程。
 
-Then update `distillate` with the downstream facts: resource and timeline estimates, technical dependencies, and any rejected option (as `Not <X>: because <Y>`) go to `distillate.constraints`; unresolved risks, and each unknown with its "what would it take to find out" answer, go to `distillate.open_questions`.
+然后更新 `distillate` 的下游事实：资源与时间线估计、技术依赖，以及任何被否选项（写成 `Not <X>: because <Y>`）进 `distillate.constraints`；未解风险，以及每个未知项连同它的"要弄清它需要什么"，进 `distillate.open_questions`。
 
-## Stage complete
+## 本阶段完成
 
-Complete when the internal questions have honest, specific answers — and the user has a clear-eyed view of what it actually takes to execute this concept. Optimism is fine. Delusion is not.
+当内部问题都有了诚实、具体的答案，用户对执行这个概念的真正代价有了清醒认识，本阶段即完成。乐观可以，幻觉不行。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./05-verdict.md`.
+完整读 `./05-verdict.md` 并照做。

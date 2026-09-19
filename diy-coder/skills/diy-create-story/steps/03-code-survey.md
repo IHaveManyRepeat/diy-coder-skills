@@ -2,40 +2,40 @@
 
 Progress: `Target → Artifacts → [Code Survey] → Compose → Finish`
 
-**Read (input):** every file this story will touch — each `更新` target in full.
-**Write (output):** `files[]` in the record (`path` / `action` / `why` / `current_state` / `preserve`).
+**Read (input):** 本故事将触碰的每个文件——每个 `更新` 目标完整读。
+**Write (output):** 记录里的 `files[]`（`path` / `action` / `why` / `current_state` / `preserve`）。
 
-## Non-negotiable: read what you will modify
+## 不可让渡：读你要改的东西
 
-The source workflow marks this critical, and it is the rule this skill keeps at full strength:
+源工作流把这一条标为关键，本技能也让它保持满格：
 
-> A story implementation must leave the system working end-to-end — not just satisfy its stated ACs. If a behavior is required for the feature to work correctly in the existing system, it is a requirement whether or not it is explicitly written in the story.
+> 故事实现必须让系统端到端可用——不只是满足它写明的 AC。若某项行为是特性在既有系统里正常工作的必要条件，那么无论故事里有没有写，它都是需求。
 
-That is why `更新` entries carry `current_state` and `preserve`: the dev agent cannot honor a behavior nobody wrote down. Skipping the read is the primary cause of implementation failures and review cycles.
+所以 `更新` 条目带 `current_state` 与 `preserve`：没人写下来的行为，dev agent 无从遵守。跳过这次读，是实现失败与返工的首因。
 
-## Enumerate the files
+## 列文件
 
-Build the list from what the story actually demands — the ACs' semantics, the `design_ref` page when present, the code the git intel points at, and the project's directory layout. For each candidate decide `action: 新建|更新` and write `why` in one line: which AC needs it, or what it changes.
+清单从故事真正要求什么来建——AC 的语义（逐条读 `given` / `when` / `then`，以及 `refs` 指向的 FR/NFR）、在场的 `design_ref` 页面、git 情报指向的代码、项目的目录布局。每个候选定 `action: 新建|更新`，并用一行写 `why`：哪条 AC 需要它，或它改了什么。
 
-**Before marking anything `新建`, search for an existing implementation** of the same thing (a helper, a client, a model, a page). Reinventing a wheel is the first mistake the context pack exists to prevent — an equivalent that already exists becomes an `更新` entry, not a parallel file.
+**标 `新建` 之前，先搜同类既有实现**（helper、client、model、页面）。重造轮子是上下文包存在的第一号要防的错误——等价物已在场，它就该变成一条 `更新` 条目，不是并列的新文件。
 
-## Survey each 更新 target
+## 勘察每个 更新 目标
 
-Read the file completely. A search hit, a symbol name, or someone's summary is not a read. Then record:
+把文件完整读完。一次搜索命中、一个符号名、别人的一句摘要都不算读。然后记：
 
-- `current_state` — what the file does today: its state machine, API calls, data shapes, existing behaviors, in one line.
-- `preserve` — the existing interactions and behaviors this story must not break: the contract other code depends on, the shape a caller passes, the behavior a test asserts.
+- `current_state` — 该文件今天做什么：状态机、API 调用、数据形状、既有行为，一行。
+- `preserve` — 本故事不得破坏的既有交互与行为：别的代码依赖的契约、调用方传入的形状、测试断言的行为。
 
-Both are one-liners, not essays: the dev agent opens the file for detail, the pack tells it what to look for.
+两条都是一行，不是文章：细节由 dev agent 打开文件去读，上下文包只告诉它去找什么。
 
-## Place each new file
+## 给每个新文件落位
 
-Path by the existing structure, never by convenience: naming conventions, package layout, where tests live, where fixtures live. A new file in the wrong directory is the "wrong file locations" disaster, and it is invisible to every downstream gate. `why` names the AC that requires it.
+按既有结构定路径，绝不按方便：命名惯例、包布局、测试放哪、夹具放哪。新文件放错目录就是「文件放错位置」那场灾难，而且对每一道下游门都不可见。`why` 点名要求它的那条 AC。
 
-## Bound the blast radius
+## 圈定爆炸半径
 
-Every plausible failure you can already see goes to `risks` in step 4 — not here. Here you decide the file set; anything you are not sure belongs in it goes to `open_questions` rather than being silently included or silently dropped.
+你已经能看到的每个像样的失败都进第 4 步的 `risks`——不在此处。此处只定文件集；你不能确定是否属于它的东西进 `open_questions`，而不是静默收下或静默丢掉。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./04-compose.md`.
+读 `./04-compose.md` 并照做。

@@ -1,74 +1,76 @@
-# Step 4 — Testing（亲手验证）
+# Step 4 — 亲手验证
 
-Progress: `Orientation → Walkthrough → Detail Pass → [Testing] → Wrap-Up`
+Progress: `定向 → 带看 → 风险详查 → [亲手验证] → 拍板`
 
-**Read (input):** the diff and the spec; the concerns and risk spots already presented in steps 2–3.
-**Write (output):** the observation suggestions message; the `observations[]` section of the draft record.
+**Read (input):** diff 与规格；第 2–3 步已呈现的关注点与风险点。
+**Write (output):** 观察建议消息；草稿记录的 `observations[]` 节。
 
-## Rules for this step
+## 本步规则
 
-- This is **experiential**, not analytical. The detail pass asked "did you think about X?" — this says "you could see X with your own eyes."
-- Do not prescribe. The human decides whether observing a behavior is worth their time: frame suggestions as options, not obligations.
-- Do not duplicate CI, test suites or automated checks — assume they exist and work. This is about manual observation, the kind of confidence no automated test provides.
-- If the change has no user-visible behavior, say so explicitly. Do not invent observations.
+- 这一步是**体验式**的，不是分析式的。风险详查问的是「你想过 X 了吗」——这里说的是「X 你可以亲眼看到」。
+- 不硬性要求。看不看由人自己定值不值：建议写成选项，不是义务。
+- 绝不复述 CI、测试套件或自动检查——假定它们在、且在工作。这里说的是手动观察，那种只有人眼能给的确信。
+- 变更没有用户可见行为就明说。绝不编造观察点。
 
-## Identify observable behavior
+## 找可观测行为
 
-Scan the diff and the spec for changes that produce behavior a human could directly observe:
+扫 diff 与规格，找能产生人可直接观察的行为的改动：
 
-- **UI changes** — new screens, modified layouts, changed interactions, error states
-- **CLI/terminal output** — new commands, changed output, new flags or options
-- **API responses** — new endpoints, changed payloads, different status codes
-- **State changes** — database records, file system artifacts, config effects
-- **Error paths** — bad input, missing dependencies, edge conditions
+- **UI 变化** —— 新页面、改版布局、交互变化、错误态
+- **CLI / 终端输出** —— 新命令、输出变化、新旗标或选项
+- **API 响应** —— 新端点、载荷变化、状态码不同
+- **状态变化** —— 数据库记录、文件系统产物、配置生效
+- **错误路径** —— 坏输入、缺依赖、边界情形
 
-For each observable behavior, determine:
+每个可观测行为，定清三件：
 
-1. **What to do** — the specific action (command to run, button to click, request to send)
-2. **What to expect** — the observable result that confirms the change works
-3. **Why bother** — one phrase connecting this observation to the change's intent (omit when obvious from context)
+1. **做什么** —— 具体动作（跑什么命令、点哪个按钮、发什么请求）
+2. **看什么** —— 确认变更生效的可观测结果
+3. **为什么值得** —— 一句话把这次观察与变更意图连上（上下文里已显然的省略）
 
-Target 2–5 suggestions for a typical change. More than 5 qualifying → prioritize by how much confidence the observation buys relative to effort. Zero observable behavior is fine — do not pad with trivia.
+典型变更目标 2–5 条建议。合格项超过 5 条 → 按「这次观察能换回多少确信 ÷ 花的力气」排优先级。零可观测行为也行——不要拿琐事凑数。
 
-## Present
+## 呈现
 
-One message:
-
-```
-Orientation → Walkthrough → Detail Pass → [Testing] → Wrap-Up
-
-### How to See It Working
-
-**{Brief description}**
-Do: {specific action}
-Expect: {observable result}
-```
-
-Use code blocks for commands or requests. When there is no observable behavior, replace the suggestions with:
+整块消息：
 
 ```
-### How to See It Working
+定向 → 带看 → 风险详查 → [亲手验证] → 拍板
 
-This change is internal — no user-visible behavior to observe. The diff and tests tell the full story.
+### 怎么看它动起来
+
+**{一句话描述}**
+做：{具体动作}
+看：{可观测结果}
 ```
 
-End with:
+命令或请求用代码块。没有可观测行为时，把那组建议换成：
+
+```
+### 怎么看它动起来
+
+这次是内部改动——没有用户可见行为可观察。diff 与测试已说明全部。
+```
+
+以此收尾：
 
 ```
 ---
 
-You've seen the change and how to verify it. When you're ready to make a call, just say so.
+变更本身与验证方法都过了。想好了就出声，我记结论。
 ```
 
-## Write the record
+## 写记录
 
-Append to this run's record (empty list is a valid outcome — say so in the message):
+追加到本轮记录（空列表也是合法结果——在消息里说明）：
 
 ```yaml
     observations:
-      - {do: specific action, watch: observable result, why: one phrase}
+      - {do: 具体动作, watch: 可观测结果, why: 一句话理由}
 ```
 
-## Next
+`do` / `watch` 是落盘键名（终门按它们校验），展示文案里的「做」/「看」就是这两个键；`why` 可省。
 
-When the human signals they are ready to decide about this {change_type}, read fully and follow `./05-wrapup.md`.
+## 播报与下一步
+
+人表示准备好对这个 {change_type} 拍板时，读 `./05-wrapup.md` 并照做。

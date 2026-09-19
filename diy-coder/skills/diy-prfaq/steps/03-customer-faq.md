@@ -1,58 +1,58 @@
-# Step 3 — Customer FAQ（客户拷问）
+# Step 3 — 客户拷问（Customer FAQ）
 
 Progress: `Ignition → Press Release → [Customer FAQ] → Internal FAQ → Verdict`
 
-**Read (input):** the press release written in Step 2; `prfaq.concept_type`; what the user shared in Steps 1-2.
-**Write (output):** the question landscape message; `prfaq.customer_faq` entries plus `prfaq.stage: 3` and `updated` in one write; `distillate` updates.
+**Read (input):** 第 2 步写出的新闻稿；`prfaq.concept_type`；用户在 1-2 步里分享的内容。
+**Write (output):** 问题全景消息；`prfaq.customer_faq` 条目加 `prfaq.stage: 3` 与 `updated`，同一次写入；`distillate` 更新。
 
-## Goal
+## 目标
 
-Validate the value proposition by asking the hardest questions a real user would ask — and crafting answers that hold up under scrutiny.
+用真实用户会问的最狠的问题检验价值主张——并给出经得起审视的答案。
 
-## The devil's advocate
+## 魔鬼代言人
 
-You are now the customer: not a friendly early adopter, but a busy, skeptical person who has been burned by promises before. You've read the press release. Now you have questions.
+你现在是客户本人：不是友好的早期尝鲜者，而是忙、怀疑、被承诺坑过的人。你已经读完了新闻稿。现在你有问题。
 
-**Generate 6-10 customer FAQ questions** covering these angles:
+**生成 6-10 个客户 FAQ 问题**，覆盖这些角度：
 
-- **Skepticism:** "How is this different from [existing solution]?" / "Why should I switch from what I use today?"
-- **Trust:** "What happens to my data?" / "What if this shuts down?" / "Who's behind this?"
-- **Practical concerns:** "How much does it cost?" / "How long does it take to get started?" / "Does it work with [thing I already use]?"
-- **Edge cases:** "What if I need to [uncommon but real scenario]?" / "Does it work for [adjacent use case]?"
-- **The hard question they're afraid of:** every product has one question the team hopes nobody asks. Find it and ask it.
+- **怀疑：** "这跟 [现有解法] 有什么不同？" / "我为什么要从今天在用的东西换过来？"
+- **信任：** "我的数据会怎样？" / "这东西要是关停了怎么办？" / "背后是谁？"
+- **实务顾虑：** "多少钱？" / "上手要多久？" / "跟我已经在用的 [某物] 能配合吗？"
+- **边界场景：** "如果我需要 [不常见但真实的情形] 呢？" / "[相邻用例] 也能用吗？"
+- **他们最怕被问的那个：** 每个产品都有一个团队盼着没人问的问题。把它找出来，问出来。
 
-**Don't generate softball questions.** "How do I sign up?" is not a FAQ — it's a CTA. Real customer FAQs are the objections standing between interest and adoption.
+**不要生成放水问题。** "怎么注册？"不是 FAQ，是 CTA。真实的客户 FAQ 是横在兴趣与采纳之间的那些异议。
 
-**Calibrate to `prfaq.concept_type`.** For non-commercial concepts (internal tools, open-source, community projects) adapt the framing: replace "cost" with "effort to adopt", "competitor switching" with "why change from the current workflow", "trust / company viability" with "maintenance and sustainability".
+**按 `prfaq.concept_type` 校准。** 非商业概念（内部工具、开源、社区项目）适配框法：把"成本"换成"采纳成本"，把"竞品迁移"换成"为什么要离开现有工作流"，把"信任 / 公司存续"换成"维护与可持续性"。
 
-## Coaching the answers
+## 教练答案
 
-1. **Present all questions at once** — let the user see the full landscape of customer concern.
-2. **Work through the answers together.** The user drafts (or you draft and they react). For each answer:
-   - *Is it honest?* If the answer is "we don't do that yet", say so — and explain the roadmap or the alternative.
-   - *Is it specific?* "We have enterprise-grade security" is not an answer. What certifications? What encryption? What SLA?
-   - *Would a customer believe it?* Marketing language in FAQ answers destroys credibility.
-3. **An answer reveals a real gap →** name it directly and force a decision: is this a launch blocker, a fast-follow, or an accepted trade-off?
-4. **The user can add their own questions too** — often they know the scary ones better than anyone.
+1. **一次性摆出全部问题**——让用户看到客户顾虑的完整地貌。
+2. **一起过答案。** 用户起草（或你起草他反应）。每个答案问：
+   - *诚实吗？* 如果答案是"我们还没做"，就说没做——并说明路线图或替代方案。
+   - *具体吗？* "企业级安全"不是答案。什么认证？什么加密？什么 SLA？
+   - *客户会信吗？* FAQ 答案里的营销话术会摧毁可信度。
+3. **答案暴露真实缺口 →** 直接点名并逼出决定：这是发布阻断、快速跟进，还是接受的取舍？
+4. **用户也可以自己加问题**——通常他比谁都清楚那些吓人的问题。
 
-## Headless mode
+## Headless 模式
 
-Generate the questions and best-effort answers from the available context. Mark every low-confidence answer with the `[假设]` prefix (`a: '[假设] ...'` — quoted, since an unquoted leading `[` breaks YAML) so a human can review it; the final gate requires zero.
+用可得上下文生成问题与尽力而为的答案。每条低置信答案带 `[假设]` 前缀（`a: '[假设] ...'`——加引号，未加引号的 `[` 会破坏 YAML），供人事后复核；终门要求零前缀。
 
-## Write the section
+## 写这一节
 
-Append to `prfaq.customer_faq` as `{id: PQ-###, q, a}` — IDs continue the one document-wide sequence shared with `internal_faq` (Step 1 has zero questions, so this stage normally opens with `PQ-001`). The hardest question goes first. Update `prfaq.stage: 3` and `project.updated` in the same write.
+以 `{id: PQ-###, q, a}` 追加到 `prfaq.customer_faq`——ID 续那条与 `internal_faq` 共用的文档级序列（第 1 步零问题，所以本阶段通常从 `PQ-001` 起）。最狠的问题放最前。同一次写入里更新 `prfaq.stage: 3` 与 `project.updated`。
 
-## Coaching notes capture → `notes` + distillate
+## 教练笔记捕获 → `notes` + distillate
 
-Append one `notes` entry (`{stage: 3, content}`) with the process narrative: how the customer questions were worked through and how the trade-off calls felt in the room.
+向 `notes` 追加一条（`{stage: 3, content}`），写过程叙事：客户问题是怎么逐个过下来的，取舍判定在当时感觉如何。
 
-Then update `distillate` with the downstream facts: trade-off decisions (launch blocker / fast-follow / accepted) and scope signals go to `distillate.constraints` — a rejection as `Not <X>: because <Y>`; competitive intelligence that affects adoption goes to `distillate.constraints` when settled, to `distillate.open_questions` when still open.
+然后更新 `distillate` 的下游事实：取舍决定（发布阻断 / 快速跟进 / 接受）与范围信号进 `distillate.constraints`——否决写成 `Not <X>: because <Y>`；影响采纳的竞争情报，已定的进 `distillate.constraints`、仍开放的进 `distillate.open_questions`。
 
-## Stage complete
+## 本阶段完成
 
-Complete when every question has an honest, specific answer — and the user has confronted the hardest customer objections their concept faces. No softballs survived.
+当每个问题都有诚实、具体的答案，用户已正面面对自己的概念所遇到的最狠客户异议，本阶段即完成。放水问题一个不留。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./04-internal-faq.md`.
+完整读 `./04-internal-faq.md` 并照做。

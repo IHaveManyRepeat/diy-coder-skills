@@ -62,7 +62,9 @@ review sprint test-design
 """.split())
 # 已转中文定稿的技能（中文化轮逐个加入；B3 批 5 技能为中文原生，落地即转）
 CONVERTED_INSTANCE = frozenset(["spec-scan", "prd", "teach-me-testing", "test-author",
-                                "test-framework", "test-gate", "test-review"])
+                                "test-framework", "test-gate", "test-review",
+                                "product-brief", "prfaq", "openapi", "epics-stories",
+                                "create-story", "checkpoint-preview"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
 DISCIPLINE_EN_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
@@ -82,7 +84,9 @@ readiness-check research retrospective review sprint test-design
 """.split())
 # 中文化轮逐个加入；B3 批 5 技能为中文原生，落地即转
 CONVERTED_DISCIPLINE = frozenset(["prd", "teach-me-testing", "test-author",
-                                  "test-framework", "test-gate", "test-review"])
+                                  "test-framework", "test-gate", "test-review",
+                                  "product-brief", "prfaq", "epics-stories",
+                                  "create-story", "checkpoint-preview"])
 # spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
 
@@ -145,14 +149,21 @@ ANCHOR_RENDER_SILENT = "渲染是静默旁路——只写调用命令"
 _CONFIG_SKILLS = sorted(set(INSTANCE_MEMBERS) | set(CONVERTED_INSTANCE))
 
 # 已落 §3 锚串的技能（中文化轮逐个加入；落地即从 PENDING_RESOLVE_KEYS 移除）
-LANDED_RESOLVE_KEYS = frozenset(["prd"])
+LANDED_RESOLVE_KEYS = frozenset(["prd", "product-brief", "prfaq", "openapi",
+                                 "epics-stories", "create-story", "checkpoint-preview"])
+
+# 已落 §4 读取纪律的技能（仅对有 `steps/` 的适用面生效；落地即从 PENDING_READ_DISCIPLINE 移除）
+LANDED_READ_DISCIPLINE = frozenset(["product-brief", "prfaq",
+                                    "create-story", "checkpoint-preview"])
 
 ANCHOR_PRECISE = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
                   "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
 
 # 已落 §6 条款的技能（中文化轮逐个加入；落地即从 PENDING_PRECISE 移除）
 LANDED_PRECISE = frozenset(["prd", "teach-me-testing", "test-author",
-                            "test-framework", "test-gate", "test-review"])
+                            "test-framework", "test-gate", "test-review",
+                            "product-brief", "prfaq", "openapi", "epics-stories",
+                            "create-story", "checkpoint-preview"])
 
 
 def _steppers():
@@ -182,13 +193,12 @@ class PendingLandingTests(unittest.TestCase):
     """母本 §3 / §4 / §5：断言「缺锚串的技能集 == 台账」；漏删即红。"""
 
     PENDING_RESOLVE_KEYS = frozenset(set(_CONFIG_SKILLS) - NEW_SKILLS - LANDED_RESOLVE_KEYS)
-    PENDING_READ_DISCIPLINE = frozenset(set(_steppers()) - NEW_SKILLS)
+    PENDING_READ_DISCIPLINE = frozenset(set(_steppers()) - NEW_SKILLS - LANDED_READ_DISCIPLINE)
     # §6 适用面 = 全部技能（母本明示「不设非成员」）
     PENDING_PRECISE = frozenset(set(skills()) - NEW_SKILLS - LANDED_PRECISE)
     PENDING_RENDER_SILENT = frozenset("""
-augment checkpoint-preview correct-course create-story e2e-tests investigate
-prfaq product-brief project-context quick-dev readiness-check research
-retrospective spec-scan viewer
+augment correct-course e2e-tests investigate project-context quick-dev
+readiness-check research retrospective spec-scan viewer
 """.split())
 
     def _check(self, anchor, candidates, pending):

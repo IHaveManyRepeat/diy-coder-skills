@@ -1,78 +1,78 @@
-# Step 2 — Walkthrough（按关注点带看）
+# Step 2 — 按关注点带看
 
-Progress: `Orientation → [Walkthrough] → Detail Pass → Testing → Wrap-Up`
+Progress: `定向 → [带看] → 风险详查 → 亲手验证 → 拍板`
 
-**Read (input):** the `mode` and trail from step 1 (the spec's Suggested Review Order, or the trail generated in step 1's fallback); the diff; changed files in full where a hunk is not enough.
-**Write (output):** the walkthrough message; the `concerns[]` section of the draft record.
+**Read (input):** 第 1 步给出的 `mode` 与轨迹（story 条目的 `suggested_review_order`，或第 1 步兜底生成的轨迹）；diff；hunk 不够用时通读变更文件。
+**Write (output):** 带看消息；草稿记录的 `concerns[]` 节。
 
-## Rules for this step
+## 本步规则
 
-- Organize by **concern**, not by file. A concern is a cohesive design intent — e.g. "input validation", "state management", "API contract". One file may appear under several concerns; one concern may span several files.
-- The walkthrough activates **design judgment**, not correctness checking. Frame each concern as "here's what this change does and why" — the human judges whether it is the right approach for the system. Correctness hunting is step 3's re-review mode and diy-review's job.
+- 按**关注点**组织，不按文件。关注点是一份连贯的设计意图——比如「输入校验」「状态管理」「接口契约」。一个文件可以出现在多个关注点下；一个关注点可以横跨多个文件。
+- 带看激活的是**设计判断**，不是正确性检查。每个关注点都框成「这次变更做了什么、为什么这么做」——由人判断这对系统是不是对的路子。找茬是第 3 步复看模式与 diy-review 的活儿。
 
-## Build the walkthrough
+## 建带看
 
-**With a trail** (`mode: 全程轨迹` — the normal path, including a trail generated in step 1):
+**有轨迹时**（`mode: 仅规格` 且轨迹来自 story 条目的 `suggested_review_order`，或 `mode: 裸提交` 但第 1 步已生成轨迹——正常路径）：
 
-1. Read the trail's stops from the spec (or from the conversation when step 1 generated it).
-2. Resolve each stop to a location in the current repo and output it as `path:line`.
-3. Read the diff to understand what each stop actually does.
-4. Group stops by concern — stops sharing a design intent belong together even in different files. A stop may appear under more than one concern when it serves more than one purpose.
+1. 从规格读轨迹的停靠点（第 1 步生成时，从对话里读）。
+2. 把每个停靠点落到当前仓库的实际位置，输出成 `path:line`。
+3. 读 diff，弄清每个停靠点实际在做什么。
+4. 按关注点归组停靠点——共享同一设计意图的停靠点归在一起，即便分布在不同文件。一个停靠点服务多个目的时，可以出现在多个关注点下。
 
-**Without a trail** (fallback when trail generation failed, e.g. git unavailable):
+**无轨迹时**（降级形态：diff 在场但没有可用轨迹；diff 根本取不到的情形已在第 1 步零写入退出，不会走到这里）：
 
-1. Get the diff against the baseline established in step 1.
-2. Identify concerns by reading the diff for cohesive design intents: functional groupings (what user-facing behavior does each cluster support?), architectural layers (does the change cross API → service → data?), design decisions (where did the author choose between alternatives?).
-3. For each concern, pick the key locations as `path:line` stops.
+1. 取第 1 步定下的基线之上的 diff。
+2. 读 diff 认关注点：功能分组（每簇支撑什么用户可见行为？）、架构层次（改动是否穿过 API → 服务 → 数据？）、设计决策（作者在哪几个方案之间做了取舍？）。
+3. 每个关注点挑关键位置作 `path:line` 停靠点。
 
-## Order for comprehension
+## 按理解顺序排
 
-Sequence concerns top-down: the highest-level intent (the "what and why") first, then drill into supporting implementation. Within a concern, order stops so each builds on the previous — the reader should never meet a reference to something they have not seen yet. When the change has a natural entry point (a new public API, a config change, a UI entry point), lead with it.
+关注点自上而下排：最高层的意图（「做了什么、为什么」）在前，再钻到支撑实现。关注点内部按「每条建立在前一条之上」排——读者不该撞见一个还没见过的引用。变更天然有入口时（新公开 API、配置改动、UI 入口），入口打头。
 
-## Write each concern
+## 每个关注点怎么写
 
-1. **Heading** — a short phrase naming the design intent (not a file name, not a module name).
-2. **Why** — 1–2 sentences: what problem this concern addresses, why this approach over the alternatives. When the spec documents rejected alternatives, reference them here.
-3. **Stops** — one per line: `path:line` followed by a brief phrase (not a sentence) describing what this location does for the concern; keep framing under 15 words per stop.
+1. **标题** —— 点名设计意图的短语（不是文件名，也不是模块名）。
+2. **为什么** —— 1–2 句：这个关注点解决什么问题、为什么选这条路而不是别的。规格里记了被否掉的方案时，在此引用。
+3. **停靠点** —— 一行一个：`path:line` 后跟简短短语（不是句子），说明该位置对这个关注点做了什么；每条框定在 15 词内。
 
-Target 2–5 concerns for a typical change. A single-concern change is fine — do not invent groupings. More than 7 concerns is a signal that scope may be too large, but present it anyway.
+典型变更目标 2–5 个关注点。单一关注点也行——不要硬凑分组。超过 7 个关注点是「范围可能过大」的信号，但仍照常呈现。
 
-## Present
+## 呈现
 
-One message with the progress strip, then each concern group:
+整块消息：进度条 + 每个关注点一组：
 
 ```
-Orientation → [Walkthrough] → Detail Pass → Testing → Wrap-Up
+定向 → [带看] → 风险详查 → 亲手验证 → 拍板
 
-### {Concern Heading}
+### {关注点标题}
 
-{Why — 1–2 sentences}
+{为什么 —— 1–2 句}
 
-- `path:line` — {brief framing}
-- `path:line` — {brief framing}
+- `path:line` — {简短框定}
+- `path:line` — {简短框定}
 ```
 
-End the message with:
+消息以此收尾：
 
 ```
 ---
 
-Take your time — click through the stops, read the diff, trace the logic. While you are reviewing you can ask for anything, e.g. a deeper pass on one area.
+慢慢来——点开停靠点、读 diff、顺逻辑。带看期间你可以随时提要求，比如某个区域再深一层。
 
-When you're ready, say **next** and I'll surface the highest-risk spots.
+准备好了就说 **next**，我接着点出风险最高的地方。
 ```
 
-## Write the record
+## 写记录
 
-Append the concerns to this run's record (keep the human's wording where they corrected you):
+把关注点追加到本轮的记录（人纠正过的地方用人家的措辞）：
 
 ```yaml
     concerns:
-      - name: {design intent, short phrase}
-        why: {1–2 sentences in document_output_language}
+      - name: {设计意图，短语}
+        why: {1–2 句，用 document_output_language}
         sites: [path:line, path:line]
 ```
 
-## Next
+## 播报与下一步
 
-Default: read fully and follow `./03-detail-pass.md`. Early exit: when the human signals a decision about this {change_type} ("let's ship it", "this needs a rethink", "I'm done reviewing"), confirm their intent and go to `./05-wrapup.md`; if you misread them, acknowledge and continue here.
+默认：读 `./03-detail-pass.md` 并照做。提前退出：人若对这个 {change_type} 给出结论信号（「就这样发吧」「这得重想」「我看完了」），先确认意图，再改走 `./05-wrapup.md`；理解错了就承认并留在本步。

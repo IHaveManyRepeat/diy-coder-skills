@@ -2,33 +2,33 @@
 
 Progress: `Target → Artifacts → Code Survey → Compose → [Finish]`
 
-**Read (input):** the settled record; the `collect` receipt.
-**Write (output):** `status: 已定稿` on the record; the delivery message.
+**Read (input):** 已定稿的记录；`collect` 回执。
+**Write (output):** 记录上的 `status: 已定稿`；交付消息。
 
-## Final gate (mechanical)
+## 终门（机械判定）
 
-Write `status: 已定稿` first — `已定稿` is what the gate inspects, not a product of it — then run:
+先写 `status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑：
 
 ```
 python "{project-root}/.claude/skills/diy-create-story/scripts/story_context.py" check --final --json --project-root "{project-root}" --output-dir "{output_dir}"
 ```
 
-Exit 0 is the only pass. Fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. In plain terms the bar is: every `story` / `ac_refs` / `tc_refs` / `decisions` reference resolves, every `更新` file exists and carries its `current_state` and `preserve`, `files` and `verify` are non-empty, there is no `[假设]` left, and no open question is dangling. A `status` that moved on hopium is what `STATUS_MISMATCH` names.
+exit 0 是唯一放行。修完每条报告的违规再重跑；JSON 回执（含计数）即收口证据；**门非 0 → 先把 `status` 回退 `草稿`**（Rules 8），修完重走本步——离开本次运行前文档不得停在未过门的 `已定稿`。说人话，这条杠是：每个 `story` / `ac_refs` / `tc_refs` / `decisions` 引用都解析得到，每个 `更新` 文件都存在且带 `current_state` 与 `preserve`，`files` 与 `verify` 非空，零 `[假设]` 残留，未决问题没有悬空的。靠盼望挪动的 `status` 就是 `STATUS_MISMATCH` 点名的东西。
 
-Then re-render with the activation command and close with the counts from the receipt.
+然后用激活时那条命令重新渲染，并用回执里的计数收尾。
 
-## Deliver
+## 交付
 
-One message: the record id and its path, the story and epic it covers, `files` count and which of them are `更新`, the TC refs, the applicable decisions, the open questions and how each was closed. Name what the pack deliberately does not contain — copies of AC text, restated decisions, commit messages — so nobody looks for a copy that is not there and nobody treats the pack as a replacement for the upstreams.
+一条消息：记录 ID 与其路径、它覆盖的故事与 epic、`files` 计数及其中哪些是 `更新`、TC 引用、适用的决策、未决问题及各自如何关上。点名整包刻意**不**含什么——AC 正文的副本、转述的决策、提交信息——这样没人会去找一份不存在的副本，也没人把上下文包当成上游的替代品。
 
-## Route
+## 路由
 
-- **Mainline next: diy-dev.** It reads the story's ACs, the TC steps and the source; the pack tells it where to look, what not to break, and how completion will be verified.
-- **`tc_refs` empty** → say it plainly: the sprint TDD gate will hold this task back until diy-test-design covers the ACs. The route is diy-test-design, then re-run this skill to pick the new cases up.
-- **A story with no upstream** (unknown ID, stories.yaml not 已定稿) never reaches this step — the gate refused in step 1 and wrote nothing.
+- **主线下一步：diy-dev。** 它读故事的 AC、TC 步骤与源码；上下文包告诉它去哪看、什么不能碰坏、完成将怎么被验证。交付面：`{output_dir}/story-context.yaml` 的 `contexts[]` 里 `story: S-x` 那一条，取值键 `ac_refs` / `tc_refs` / `decisions` / `files` / `verify` / `risks` / `prior_story`。
+- **`tc_refs` 为空** → 直说：sprint 的 TDD 门会扣住该任务，直到 diy-test-design 覆盖这些 AC。路由是 diy-test-design，覆盖后再重跑本技能把这些新用例接进来。
+- **无上游的故事**（未知 ID、stories.yaml 未 `已定稿`）到不了这一步——门在第 1 步就拒绝了，什么都没写。
 
-## Write scope (last word)
+## 写范围（最后一句）
 
-This skill has written exactly one file: `{output_dir}/story-context.yaml`. No upstream document was touched, no task state moved, no source file edited. Re-running for the same story updates that record in place and appends to `revisions` — it never mints a second `SC-###` for the same story.
+本技能恰好写了一个文件：`{output_dir}/story-context.yaml`。没有上游文档被碰，没有任务状态被移动，没有源码文件被编辑。为同一故事重跑会原位更新那条记录并追加 `revisions`——绝不为同一故事铸第二个 `SC-###`。
 
-**This is the last step — no further file to read.** The next mainline skill is diy-dev.
+**这是最后一步——没有下一个要读的文件。** 主线下一技能是 diy-dev。

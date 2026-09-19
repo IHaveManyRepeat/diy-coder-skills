@@ -8,13 +8,12 @@
 - 用例 4：check 违规码（stakes 越界 ENUM_INVALID / BD 重复 DUPLICATE_ID / 缺文件 MISSING_FILE /
           损坏 UNPARSABLE_YAML / --final 义务 EMPTY_FIELD、ASSUMPTION_PRESENT、STATUS_MISMATCH）
 - 用例 5：--previous 丢决策 → ID_UNSTABLE（更新模式防丢决策）
-- 用例 6：SKILL.md 契约冒烟（冻结实例句 md5 + 写作纪律块 md5 + 终门句指向 brief.py check --final
-          + 薄主文件行数上限 + steps/ 逐个点名下一文件 + 技能面零 bmad- 悬空引用）
+- 用例 6：SKILL.md 契约冒烟（母本 §1 / §2 / §3 / §4 中文定稿逐字 + 四段中文标题 + 薄主文件 ≤93 行
+          + 终门句指向 brief.py check --final + steps/ 逐个点名下一文件 + 技能面零 bmad- 悬空引用）
 
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；不依赖本机 git 状态。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_brief.py" -v
 """
-import hashlib
 import io
 import json
 import os
@@ -31,9 +30,22 @@ SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
 STEPS_DIR = os.path.join(SKILL_DIR, "steps")
 NL = chr(10)
 
-# 冻结文本校验值（batch4/frozen-texts.md：§1 实例句 233 字符 / §2 写作纪律块 497 字符）
-INSTANCE_MD5 = "5445f98bc4d4821e6888b89406a97eac"
-DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
+# 套件级句式母本（suite-texts.md §1 / §2 / §3 / §4 中文定稿，逐字）
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+RESOLVE_KEYS_ZH = ("解析 `project.communication_language` / "
+                   "`project.document_output_language` / `paths.output_dir`")
+READ_DISCIPLINE_ZH = ("读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件"
+                      "——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，"
+                      "**主文件不列举封闭清单**。")
+DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
+                 "机器语法（命令/旗标/路径）进括号；机器锚点逐字保留"
+                 "（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 "
+                 "`diy-design` 的 detect 启发式。schema 若定义 `plain`："
+                 "一行写清该条目为什么存在，绝不写是什么（转述会漂移）；"
+                 "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
 
 BRIEF_YAML = NL.join([
     "project:",
@@ -309,27 +321,24 @@ class SkillContractTests(unittest.TestCase):
         with io.open(path, encoding="utf-8") as f:
             return f.read()
 
-    # trace: 任务书 §2.1（冻结实例句逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_instance_sentence_is_frozen_verbatim(self):
-        raw = self.read(SKILL_MD)
-        m = re.search(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*", raw)
-        self.assertTrue(m, "SKILL.md 缺实例解析样板句")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 233, "实例句字符数偏离冻结文本（233）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), INSTANCE_MD5,
-                         "实例句与冻结文本不一致：%s" % frag)
+    # trace: 任务书 §2.1 / 母本 §1（实例解析句中文定稿逐字；2026-09-19 中文化轮）
+    def test_instance_resolution_sentence_verbatim(self):
+        self.assertIn(INSTANCE_ZH, self.read(SKILL_MD), "SKILL.md 缺母本 §1 中文定稿（逐字）")
 
-    # trace: 任务书 §2.1（写作纪律块逐字，置 Rules 段末尾）
-    def test_writing_discipline_block_is_frozen_verbatim(self):
+    # trace: 任务书 §2.1 / 母本 §3（配置键全路径带 project. 前缀）
+    def test_resolve_keys_anchor(self):
+        self.assertIn(RESOLVE_KEYS_ZH, self.read(SKILL_MD), "SKILL.md 缺母本 §3 键路径锚串")
+
+    # trace: 任务书 §2.1 / 母本 §4（读取纪律逐字；C1 拆法）
+    def test_read_discipline_verbatim(self):
+        self.assertIn(READ_DISCIPLINE_ZH, self.read(SKILL_MD), "SKILL.md 缺母本 §4 定稿（逐字）")
+
+    # trace: 任务书 §2.1 / 母本 §2（写作纪律块逐字，置 Rules 段末尾）
+    def test_writing_discipline_block_at_rules_end(self):
         raw = self.read(SKILL_MD)
-        m = re.search(r"^- \*\*Writing discipline\..*$", raw, re.MULTILINE)
-        self.assertTrue(m, "SKILL.md 缺写作纪律块")
-        block = m.group(0)
-        self.assertEqual(len(block), 497, "纪律块字符数偏离冻结文本（497）")
-        self.assertEqual(hashlib.md5((block + NL).encode("utf-8")).hexdigest(), DISCIPLINE_MD5,
-                         "纪律块与冻结文本不一致")
-        self.assertEqual(raw.rindex("- **Writing discipline."), len(raw) - len(block) - 1,
-                         "纪律块须置 Rules 段末尾（文件收尾行）")
+        self.assertIn(DISCIPLINE_ZH, raw, "SKILL.md 缺母本 §2 中文定稿")
+        self.assertEqual(DISCIPLINE_ZH, raw.rstrip(NL).splitlines()[-1],
+                         "写作纪律块须置 Rules 段末尾（文件收尾行）")
 
     # trace: 任务书 §2.2/§4（终门句指向本技能领域引擎 check --final；--output-dir 必填有记载）
     def test_final_gate_points_to_engine(self):
@@ -340,13 +349,16 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("--output-dir", skill, "激活句/终门句须声明 --output-dir 必填")
         self.assertIn("diyc.py", skill, "激活句须委托 diyc.py resolve 做实例解析")
 
-    # trace: 任务书 §2.1（薄主文件 ≤ 90 行）+ 读取纪律（never batch-load）
-    def test_thin_main_file_and_read_discipline(self):
-        skill = self.read(SKILL_MD)
-        self.assertLessEqual(len(skill.split(NL)), 90, "主文件超 90 行上限")
-        self.assertIn("never batch-load", skill, "缺读取成本纪律句")
-        for section in ("## On Activation", "## Workflow", "## Schema", "## Rules"):
-            self.assertIn(section, skill, "缺四段结构：%s" % section)
+    # trace: 任务书 §2.1 / 2026-09-19 中文化政策（薄主文件 ≤93 行 + 四段中文标题 + 工作流点名）
+    def test_thin_main_file_four_chinese_sections(self):
+        raw = self.read(SKILL_MD)
+        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        self.assertIn("diy-product-brief", raw.splitlines()[0] + raw[:400], "标题未含技能名")
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
+            self.assertIn(section, raw, "缺四段结构：%s" % section)
+        for name in ("01-discovery.md", "02-draft.md", "03-finalize.md",
+                     "04-update.md", "05-validate.md"):
+            self.assertIn(name, raw, "工作流未点名 %s" % name)
 
     # trace: 任务书 §2.1（steps/ 读一条加载一条，每步结尾点名下一个文件）
     def test_steps_chain_names_next_file(self):
@@ -354,7 +366,7 @@ class SkillContractTests(unittest.TestCase):
                  ("03-finalize.md", "04-update.md"), ("04-update.md", "05-validate.md")]
         for name, nxt in chain:
             text = self.read(os.path.join(STEPS_DIR, name))
-            self.assertIn("## Next", text, "%s 缺 Next 段" % name)
+            self.assertIn("## 播报与下一步", text, "%s 缺「播报与下一步」段" % name)
             self.assertIn(nxt, text, "%s 未点名下一个文件 %s" % (name, nxt))
         last = self.read(os.path.join(STEPS_DIR, "05-validate.md"))
         self.assertIn("04-update.md", last, "validate 须提供转 update 的回接")

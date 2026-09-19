@@ -1,71 +1,71 @@
-# Step 2 — The Press Release（新闻稿锻造）
+# Step 2 — 新闻稿锻造（The Press Release）
 
 Progress: `Ignition → [Press Release] → Customer FAQ → Internal FAQ → Verdict`
 
-**Read (input):** `prfaq.essentials` and `prfaq.concept_type` from `{output_dir}/prfaq.yaml`; the concept as developed in Step 1; the merged subagent findings.
-**Write (output):** the press release message; `prfaq.press_release` (the nine keys) plus `prfaq.stage: 2` and `updated` in one write; `distillate` updates.
+**Read (input):** `{output_dir}/prfaq.yaml` 的 `prfaq.essentials` 与 `prfaq.concept_type`；第 1 步里成形的概念；合并后的子代理发现。
+**Write (output):** 新闻稿消息；`prfaq.press_release`（九键）加 `prfaq.stage: 2` 与 `updated`，同一次写入；`distillate` 更新。
 
-## Goal
+## 目标
 
-Produce a press release that would make a real customer stop scrolling and pay attention. Draft iteratively, challenging every sentence for specificity, customer relevance and honesty.
+产出一份能让真实客户停下滚动、认真看的新闻稿。迭代起草，逐句挑战它够不够具体、与客户相不相关、诚不诚实。
 
-## Concept type adaptation
+## 概念类型适配
 
-Check `prfaq.concept_type`. For non-commercial concepts (internal tool, open-source, community/nonprofit), adapt the framing: "announce the initiative" not "announce the product"; "How to Participate" not "Getting Started"; "Community Member quote" not "Customer quote". The structure stays — the language shifts to match the audience.
+看 `prfaq.concept_type`。非商业概念（内部工具、开源、社区 / 非营利）要适配框法："宣布这项计划"而不是"宣布产品"；"如何参与"而不是"如何开始"；"社区成员引语"而不是"客户引语"。结构不变——语言随受众换。
 
-## The Forge — what each section forces
+## 锻造炉——每一节逼出什么
 
-| Section | What It Forces |
+| 小节 | 它逼出什么 |
 | --- | --- |
-| **Headline** | Can you say what this is in one sentence a customer would understand? |
-| **Subheadline** | Who benefits and what changes for them? |
-| **Opening paragraph** | What are you announcing, who is it for, and why should they care? |
-| **Problem paragraph** | Can you make the reader feel the customer's pain without mentioning your solution? |
-| **Solution paragraph** | What changes for the customer? (Not: what did you build.) |
-| **Leader quote** | What's the vision beyond the feature list? |
-| **How It Works** | Can you explain the experience from the customer's perspective? |
-| **Customer quote** | Would a real person say this? Does it sound human? |
-| **Getting Started** | Is the path to value clear and concrete? |
+| **标题** | 你能用一句客户听得懂的话说清这是什么吗？ |
+| **副标题** | 谁受益，他们身上什么变了？ |
+| **开篇段** | 你在宣布什么、给谁、他们为什么该在意？ |
+| **问题段** | 你能让读者感到客户的痛，却不提你的解法吗？ |
+| **解法段** | 客户身上什么变了？（而不是：你造了什么。） |
+| **负责人引语** | 功能清单之外，愿景是什么？ |
+| **如何运作** | 你能从客户的视角讲清这段体验吗？ |
+| **客户引语** | 真人会说这话吗？听起来像人话吗？ |
+| **如何开始** | 通向价值的路径清晰、具体吗？ |
 
-## Coaching approach
+## 教练方式
 
-Draft each section yourself first, then model critical thinking by challenging your own draft out loud before inviting the user to sharpen it. That is the cycle: **draft → self-challenge → invite → deepen**. Push one level deeper on every response — a generality earns a demand for the specific. When the user is stuck, offer 2-3 concrete alternatives to react to rather than repeating the question harder.
+每一节你先自己起草，然后当众挑战自己的草稿，以此示范批判性思考，再请用户来打磨。这就是那个循环：**起草 → 自挑战 → 邀请 → 深挖**。对每个回应都再往下推一层——空泛换来的是对具体的要求。用户卡住时，给 2-3 个具体的备选让他反应，而不是把同一个问题问得更凶。
 
-## Quality bars
+## 质量杠
 
-Hold the press release to these. Don't enumerate them to the user — embody them in your challenges:
+用这些要求新闻稿。不要向用户列举它们——把它们体现在你的挑战里：
 
-- **No jargon** — if a customer wouldn't use the word, neither should the press release.
-- **No weasel words** — "significantly", "revolutionary", "best-in-class" are banned; replace them with specifics.
-- **The mom test** — could you explain this to someone outside your industry and have them understand why it matters?
-- **The "so what?" test** — every sentence should survive "so what?"; if it can't, cut it or sharpen it.
-- **Honest framing** — compelling without being dishonest; if you're overselling, the customer FAQ will expose it.
+- **不用行话** —— 客户不会用的词，新闻稿也不该用。
+- **不用含糊词** —— "显著"、"革命性"、"业界领先"禁用；换成具体说法。
+- **妈妈测试** —— 你能向行业外的人解释清楚，并让他明白这为什么重要吗？
+- **"那又怎样"测试** —— 每句话都该扛得住"那又怎样？"；扛不住就删掉或磨利。
+- **诚实框定** —— 有说服力但不撒谎；你在过度推销的话，客户 FAQ 会把它揭出来。
 
-## Headless mode
+## Headless 模式
 
-Draft the complete press release from the available inputs without interaction. Apply the quality bars internally — challenge yourself, produce the strongest version you can — and write directly to the document.
+用可得输入无交互起草完整新闻稿。质量杠在内部自行执行——挑战自己、拿出最强版本——直接写进文档。
 
-## Write the section
+## 写这一节
 
-Write the nine keys under `prfaq.press_release`:
+把九个键写进 `prfaq.press_release`：
 
 ```yaml
   press_release: {headline, subheadline, opening, problem, solution, leader_quote,
                   how_it_works, customer_quote, getting_started}
 ```
 
-Update `prfaq.stage: 2` and `project.updated` in the same write. Partial drafting is fine — the engine only rejects a key that is present but empty; the nine-key obligation is enforced at `--final`.
+同一次写入里更新 `prfaq.stage: 2` 与 `project.updated`。可以部分起草——引擎只拒「键在场但为空」；九键义务在 `--final` 时才强制。
 
-## Coaching notes capture → `notes` + distillate
+## 教练笔记捕获 → `notes` + distillate
 
-Append one `notes` entry (`{stage: 2, content}`) with the process narrative: which headline framings were tried and how the drafting round went.
+向 `notes` 追加一条（`{stage: 2, content}`），写过程叙事：试过哪几种标题框法、这一轮起草怎么走的。
 
-Then update `distillate` with the downstream facts: positioning that survived goes to `distillate.value_props`; rejected framings, differentiators explored but not used, and the out-of-scope details the user mentioned (technical constraints, timeline, team context) go to `distillate.constraints` — each rejection written as `Not <X>: because <Y>` so the PRD cannot re-propose it.
+然后更新 `distillate` 的下游事实：站住的定位进 `distillate.value_props`；被否掉的框法、探索过但没用上的差异点，以及用户提到的范围外细节（技术约束、时间线、团队上下文）进 `distillate.constraints`——每条否决写成 `Not <X>: because <Y>`，使 PRD 不能再提议它。
 
-## Stage complete
+## 本阶段完成
 
-Complete when the full press release reads as a coherent, compelling announcement a real customer would find relevant — the user should feel proud of what they've written, and confident every sentence earned its place.
+当整份新闻稿读起来是一份连贯、有说服力的公告，真实客户会觉得与自己相关，本阶段即完成——用户该为自己写出的东西感到自豪，并确信每句话都挣到了自己的位置。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./03-customer-faq.md`.
+完整读 `./03-customer-faq.md` 并照做。

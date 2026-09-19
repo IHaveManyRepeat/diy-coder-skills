@@ -2,38 +2,40 @@
 
 Progress: `Discovery → [Draft] → Finalize`
 
-**Read (input):** the dump and the extracts in the conversation; the skeleton in `{output_dir}/brief.yaml`.
-**Write (output):** the drafted sections; live `decisions` and `addendum` entries; `[假设]` tags.
+**Read (input):** 对话里的倾倒与摘录；`{output_dir}/brief.yaml` 的骨架。
+**Write (output):** 起草好的各节；实时的 `decisions` 与 `addendum` 条目；`[假设]` 前缀。
 
-## Shape follows the product
+## 形状随产品
 
-The default structure is a starting point, not a contract: drop sections that do not earn their place, add what the product needs, reorder freely. The brief serves the product's story, not the template's shape. Where the default sections land in the schema:
+默认结构是起点，不是契约：不配占位的章节删掉，产品需要的加进来，顺序随意调。简报服务产品的故事，不服务模板的形状。默认章节在 schema 里的落点：
 
-| Default section | Schema home |
+| 默认章节 | schema 落点 |
 | --- | --- |
-| Executive Summary | `pitch` — 2-3 paragraphs: what this is, what problem it solves, why it matters, why now; must stand alone |
-| The Problem | `problem` — the pain, who feels it, how they cope today, the cost of the status quo; real scenarios |
-| The Solution | `solution` — the experience and the outcome, not the implementation |
-| What Makes This Different | `value[].point` — honest: if the moat is execution speed, say so; never fabricate a technical moat |
-| Who This Serves | `users` — vivid but brief: who they are, what they need |
-| Success Criteria | `value[].evidence` — how we know it is working; user signals and business objectives, measurable |
-| Scope | `extra_sections` — what is in for the first version, what is explicitly out; a boundary, not a feature list |
-| Vision | `extra_sections` — where this goes if it succeeds; inspiring but grounded |
-| Anything the product needs beyond the above | `extra_sections` — specialized domains, compliance, hardware or platform constraints |
+| 执行摘要 | `pitch` —— 2-3 段：这是什么、解决什么问题、为什么重要、为什么是现在；必须独立成篇 |
+| 问题 | `problem` —— 痛点、谁有感、今天怎么应付、现状的代价；用真实场景 |
+| 方案 | `solution` —— 体验与结果，不是实现 |
+| 差异点 | `value[].point` —— 诚实：护城河就是执行速度就直说；绝不编造技术护城河 |
+| 服务对象 | `users` —— 鲜活但简短：是谁、要什么 |
+| 成功准则 | `value[].evidence` —— 挂在它所度量的那条 `point` 上：怎么知道在奏效；用户信号与业务目标，可度量 |
+| 范围 | `extra_sections` —— 第一版做什么、明确不做什么；是边界，不是功能清单 |
+| 愿景 | `extra_sections` —— 成了之后往哪走；鼓舞人心但不失分寸 |
+| 以上装不下的产品所需 | `extra_sections` —— 专门领域、合规、硬件或平台约束 |
 
-## Drafting rules
+不属于任何差异点的成功准则（营收目标之类）**不塞进 `value`**——那会把非差异点伪装成差异点：单起 `extra_sections` 一条，`{name: 成功准则, content: <逐条准则 + 度量口径>}`。
 
-- **Coaching path:** one section at a time — ask, listen, structure what was said. Push back when an answer is thin; never do the thinking for the user; unknowns are surfaced, not smoothed over.
-- **Fast path:** batch the gaps into one or two consolidated questions, then draft every section with `[假设]` tags in place of the inferences the user must correct in review.
-- **Tags:** every inference waiting on the user is tagged `[假设]` in place and echoed as one line in `brief.assumptions`. Unknowns that are nobody's inference — facts not yet known — go to `open_questions` instead.
-- **Decisions are canonical memory, written live.** Each decision, change, or override gets a `BD-###` entry with its `rationale` at the moment it is made: id = highest existing + 1, three digits, never renumbered or reused. A decision that supersedes an earlier one flips the old `status` to `已反转` and adds a new entry — the earlier history is never rewritten.
-- **Addendum is written live, never deferred to finalize.** User-contributed depth that belongs in a downstream document (PRD, architecture, solution design) or earned a place but does not fit the brief — rejected-alternative rationale, options-considered matrices, parked-roadmap context, technical constraints, in-depth personas, sizing data. `why_separate` says which of the two it is. Audit and override information never goes in the addendum.
-- **Right-size as you go:** `stakes` sets how much rigor each section carries — a `个人兴趣` brief is short, a `投资人` brief is dense.
+## 起草纪律
 
-## Present
+- **陪跑路径：**一次一节——问、听、把说过的话理成结构。回答单薄就顶回去；绝不替用户思考；未知项是端出来，不是抹平。
+- **快速路径：**把空档并成一两个问题，然后逐节起草，推断处就地带 `[假设]`，等用户在审阅时纠正。
+- **前缀：**每个等用户确认的推断就地带 `[假设]` 前缀，并回声成 `brief.assumptions` 里的一行。不是任何人推断的未知项（还没人知道的事实）走 `open_questions`。
+- **决策是规范记忆，实时写。**每个决策、变更或推翻，发生即得一条带 `rationale` 的 `BD-###`：id = 现有最大值 + 1、三位零填充、永不重编号或重用。推翻先前决策时，把旧条 `status` 翻成 `已反转` 并追加一条新条目——旧史永不改写。
+- **附录实时写，绝不拖到收尾。**用户贡献的纵深，凡属于下游文档（PRD、architecture、solution design）或够格进简报却塞不下的——被拒方案的取舍理由、备选矩阵、停摆的路线图背景、技术约束、深度人物画像、规模测算数据。`why_separate` 写明它属哪一种。审计与推翻信息绝不进附录。
+- **边写边定分量：**`stakes` 决定各节多重——`个人兴趣` 的简报短，`投资人` 的简报密。
 
-One message per section on the coaching path, one full draft on the fast path — in `document_output_language`, whole section at a time, no drip-feeding. End each message with what is still open (`open_questions` plus the live `[假设]` tags).
+## 呈现
 
-## Next
+陪跑路径一节一条消息，快速路径一次给全稿——用 `document_output_language`，整节整节给，不挤牙膏。每条消息以仍未决的事项收尾（`open_questions` 加上在挂的 `[假设]`）。
 
-Read fully and follow `./03-finalize.md` when the sections are filled and the user signals the draft is done. A change signal on an existing brief → `./04-update.md`; a request to read the draft back critically → `./05-validate.md`.
+## 播报与下一步
+
+各节填齐、用户示意草稿已完稿后，读全 `./03-finalize.md` 并照做。既有简报上的变更信号 → `./04-update.md`；要求把草稿批判性地读一遍 → `./05-validate.md`。

@@ -1,53 +1,67 @@
-# Step 5 — The Verdict（判定与交付）
+# Step 5 — 判定与交付（The Verdict）
 
 Progress: `Ignition → Press Release → Customer FAQ → Internal FAQ → [Verdict]`
 
-**Read (input):** all three prior sections in `{output_dir}/prfaq.yaml`; the accumulating `distillate`; what remains in session memory.
-**Write (output):** the verdict message; `prfaq.verdict`, `prfaq.stage: 5`, `project.status: 已定稿` and `updated` in one write; the finished `distillate`; the rendered view; the closing summary.
+**Read (input):** `{output_dir}/prfaq.yaml` 里前三节的全部内容；累积中的 `distillate`；会话记忆里剩下的东西。
+**Write (output):** 判定消息；`prfaq.verdict`、`prfaq.stage: 5`、`project.status: 已定稿` 与 `updated`，同一次写入；完成的 `distillate`；渲染视图；收尾摘要。
 
-## The assessment
+## 评估
 
-Review the entire PRFAQ — press release, customer FAQ, internal FAQ — and deliver a candid verdict.
+通读整份 PRFAQ——新闻稿、客户 FAQ、内部 FAQ——给出坦率的判定。
 
-**Concept strength** is a narrative assessment, not a score: where is the thinking sharp and where is it still soft? What survived the gauntlet and what barely held together?
+**概念强度**是叙事式评估，不是分数：思考在哪里锋利、在哪里还软？什么挺过了拷问，什么只是勉强没散？
 
-**Three categories of findings** — one of them becomes `prfaq.verdict.strength`:
+**三类发现**——其中一档成为 `prfaq.verdict.strength`：
 
-- **`已锤炼`（forged in steel）** — aspects that are clear, compelling and defensible: the press release sections that would actually make a customer stop, the FAQ answers that are honest and convincing.
-- **`欠火候`（needs more heat）** — promising but underdeveloped: a direction without enough depth yet; these need work before they are ready for a PRD.
-- **`地基裂缝`（foundation-cracks）** — genuine risks, unresolved contradictions or gaps that could undermine the whole concept; not necessarily deal-breakers, but they must be addressed deliberately.
+- **`已锤炼`** —— 清晰、有说服力、站得住的部分：真能让客户停下滚动的那些发布稿小节，诚实且有说服力的那些 FAQ 答案。
+- **`欠火候`** —— 有苗头但没长成：方向有了、深度还不够；这些在进 PRD 之前还得再练。
+- **`地基裂缝`** —— 真实风险、未解矛盾或可能掀翻整个概念的缺口；不一定是致命伤，但必须被有意识地处置。
 
-**Present the verdict directly.** Don't soften it — the whole point of this process is to surface truth before committing resources. But frame every finding constructively: for every crack, say what it would take to address it.
+**整体取档（最重一档）：** 逐条发现归入三类；只要有实质 `地基裂缝` → 整体取 `地基裂缝`；否则有 `欠火候` → `欠火候`；否则 `已锤炼`。`地基裂缝` / `欠火候` 条目按下文第 3 点落成 `distillate.open_questions`。
 
-## Finalize the document
+**直接给出判定。** 别软化——这个过程的全部意义就是在投入资源之前把真相摆出来。但每条发现都要建设性地框住：每道裂缝，都说清要补上它得做什么。
 
-1. **Polish** — the press release reads as a cohesive narrative, the FAQs flow logically, formatting is consistent.
-2. **Write the verdict** — `prfaq.verdict: {strength: <one of the three>, narrative: <the assessment>}`, `prfaq.stage: 5`, and `project.status: 已定稿`, all in the same write.
-3. **Complete the distillate** — always, in the same file. The four earlier stages already landed their downstream-relevant items; sweep session memory for anything still missing — requirements signals, technical constraints and platform preferences, scope signals, resource and timeline estimates, open questions. Dense bullets, each standing alone with enough context for a downstream LLM; keep the five buckets from Step 1 (`problem`, `target_users`, `value_props`, `constraints`, `open_questions`), with the verdict's `欠火候` and `地基裂缝` findings as actionable `open_questions` entries.
-4. **Close the notes** — anything left that is process narrative rather than a downstream fact (why the verdict landed where it did, how the gauntlet went) becomes the stage-5 entry in `notes`: `{stage: 5, content}`. Sweep once more for downstream leftovers before closing: alternative positioning and rejected framings go to `distillate.constraints` as `Not <X>: because <Y>`, and competitive intelligence that affects adoption goes to `distillate.constraints` (settled) or `distillate.open_questions` (still open). `distillate` stays the clean machine contract; `notes` carries the story.
+## 定稿文档
 
-## Final gate (mechanical)
+1. **润色** —— 新闻稿读起来是一篇连贯叙事，FAQ 逻辑顺畅，格式一致。
+2. **写判定** —— `prfaq.verdict: {strength: <三档之一>, narrative: <这次评估>}`、`prfaq.stage: 5`、`project.status: 已定稿`，全在同一次写入里。
+3. **补完 distillate** —— 总要做，就在同一份文件里。前四个阶段已经交出了各自的下游相关条目；再扫一遍会话记忆，把还缺的捞出来——需求信号、技术约束与平台偏好、范围信号、资源与时间线估计、未决问题。bullet 要密，每条自带足够上下文、能独立给下游 LLM 读；保持第 1 步的五个桶（`problem`、`target_users`、`value_props`、`constraints`、`open_questions`），判定里的 `欠火候` 与 `地基裂缝` 落成可执行的 `open_questions` 条目。
+4. **收束 notes** —— 剩下的、属于过程叙事而非下游事实的东西（判定为何落在这档、拷问是怎么走的），成为 `notes` 里的 stage-5 条目：`{stage: 5, content}`。收束前再扫一遍下游残留：另类定位与被否的框法进 `distillate.constraints`，写成 `Not <X>: because <Y>`；影响采纳的竞争情报进 `distillate.constraints`（已定）或 `distillate.open_questions`（仍开放）。`distillate` 保持干净的机器契约；`notes` 承载故事。
 
-Run `python "{project-root}/.claude/skills/diy-prfaq/scripts/prfaq.py" check --final --json` with the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation — `--output-dir` is mandatory and never defaulted. `已定稿` and `stage: 5` are written before the gate runs: they are what it inspects, not products of it. Exit 0 is the only pass; fix every reported violation and re-run. The JSON receipt (counts included) is the close-out evidence; rendering and close-out wait for exit 0.
+## 终门（机械）
 
-## Present completion
+跑 `python "{project-root}/.claude/skills/diy-prfaq/scripts/prfaq.py" check --final --json`，实参与激活时同一份：`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"`——`--output-dir` 必填、从不取缺省。`已定稿` 与 `stage: 5` 在门跑之前就写好：它们是门检查的对象，不是门的产物。exit 0 是唯一放行；逐条修完上报的违规再重跑。JSON 回执（含计数）即收口证据；渲染与收尾都等 exit 0。
 
-"Your PRFAQ for {project_name} has survived the gauntlet." Then name the two things it produced: the single source `{output_dir}/prfaq.yaml` (with the distillate section) and the rendered view.
+## 呈现完成
 
-**Recommended next step:** carry the PRFAQ and its distillate into PRD creation — run `diy-prd` and point it at `{output_dir}/prfaq.yaml`. The PRFAQ replaces the product brief in the planning pipeline.
+"你为 {project_name} 写的 PRFAQ 走完了拷问。" 然后点名它产出的两样东西：单一源 `{output_dir}/prfaq.yaml`（含 distillate 段）与渲染视图。
 
-## Headless mode output
+**建议下一步：** 把这份 PRFAQ 与它的 distillate 带进 PRD 创作——跑 `diy-prd`，把 `{output_dir}/prfaq.yaml` 指给它。在规划流水线里，PRFAQ 取代 product brief。
 
-Emit this JSON as the run's close-out (the source emitted a separate detail-pack path; diy is a single source, so the distillate lives inside the document):
+## Headless 模式输出
+
+把这段 JSON 作为本次运行的收尾（源工作流另发一份 detail-pack 路径；diy 是单一源，所以 distillate 就活在文档里）：
 
 ```json
 {"status": "complete",
  "prfaq": "{output_dir}/prfaq.yaml",
  "verdict": "已锤炼|欠火候|地基裂缝",
- "key_risks": ["top unresolved items"],
- "open_questions": ["unresolved items from the FAQs"]}
+ "key_risks": ["最要紧的未决项"],
+ "open_questions": ["FAQ 里未决的条目"]}
 ```
 
-## Exit
+失败 / 拒绝形状（键名与 `diy-product-brief` 统一）：
 
-This is the terminal stage. If the user wants to revise, loop back to the relevant stage (`prfaq.stage` moves back with it) — otherwise the workflow is done. This is the last step file; the record's `distillate` and the rendered view carry the outcome, and no further `steps/` file is read.
+```json
+{"status": "blocked",
+ "prfaq": "{output_dir}/prfaq.yaml",
+ "reason": "<一句话：什么推不出来 / 卡在哪>",
+ "route": "<接手技能名 | null>",
+ "open_questions": ["..."]}
+```
+
+`reason` / `route` **仅在 `blocked` 时出现**，`complete` 时省略。激活期的拒绝（`prfaq.py headless` exit 1 的 `gaps` + 指引）仍走引擎回执，不在这里重复。
+
+## 播报与下一步
+
+本阶段是终局阶段。用户要修订 → 退回对应阶段（`prfaq.stage` 随之后移）；否则流程到此结束。这是最后一个步骤文件——记录的 `distillate` 与渲染视图承载结果，不再读任何 `steps/` 文件。

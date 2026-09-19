@@ -2,39 +2,39 @@
 
 Progress: `Target → Artifacts → Code Survey → [Compose] → Finish`
 
-**Read (input):** the draft record and the `collect` receipt.
-**Write (output):** `risks` / `verify` / `open_questions` in the record.
+**Read (input):** 草稿记录、`collect` 回执，以及 `{output_dir}/test-plan.yaml` 的 `static_checks` 段（判据的取材面；test-plan 其余部分不读）。
+**Write (output):** 记录里的 `risks` / `verify` / `open_questions`。
 
-## Risks
+## 风险
 
-What can go wrong in implementation, from the survey, the decisions and the prior carry-over: an unratified decision still `待定`, a file whose behavior is easy to break, a TC still `待办` for a story about to start, a carry-over that historically cost a review round. Each line is actionable — what to watch and why — never a restatement of an AC and never a severity score. No risk found: leave the list empty and say so in the delivery message; never invent one to fill the field.
+实现里可能出什么错，取自现场勘察、决策与前序遗留：一条仍未批准的 `待定` 决策、一个行为容易被弄坏的文件、一条本故事即将开工却仍 `待办` 的 TC、一段历史上耗掉过一轮评审的遗留。每行都要可行动——盯什么、为什么——绝不复述 AC，绝不写严重度打分。没找到风险：列表留空，并在交付消息里说明；绝不为了填字段而编一条。
 
-## Verify
+## 判据
 
-Command-level completion criteria: the commands diy-dev will actually run, derived from the TC refs' execution style and the project's `static_checks` chain. Each entry is a command or a command plus its expected result (`python -m unittest discover -s tests -v` — green), never "works correctly". A criterion nobody can run is not a criterion.
+命令级完成判据：diy-dev 实际会跑的命令，从 TC refs 的既有字段（`type`（`单元|集成|端到端`）/ `steps` / `technique`）与 `{output_dir}/test-plan.yaml` 的 `static_checks` 链推导（链的语义由 diy-test-design 定义，此处只引用、不重定义）。每条是一个命令，或命令加它的预期结果（`python -m unittest discover -s tests -v` — 全绿），绝不写「工作正常」。没人能跑的判据不是判据。
 
-## Open questions
+## 未决问题
 
-Everything unresolved at the moment of drafting: an empty `tcs` (route diy-test-design), a story whose AC cannot be verified as written, a file boundary still under judgment. These are closed with the human **before** final — either resolved (drop the line) or closed with the call taken, prefixed `[CLOSED]` and carrying what was decided. Never leave a dangling question, and never keep one only in conversation: open items live in the file.
+起草当刻一切未决的事：空的 `tcs`（路由 diy-test-design）、一条按写法无法验证的 AC、一条仍在判断中的文件边界。它们在 final **之前**与用户关上——要么解决（删行），要么带 `[CLOSED]` 与当时所采取的决定记下处置。绝不留下悬空的问题，绝不把问题只留在对话里：未决项住在文件里。
 
-## Optional: external research
+## 可选：外部检索
 
-The source workflow's step 4 (web research for the latest library specifics) is trimmed here. The project's stack truth lives in `architecture.yaml` and `project-context.yaml`, and unsourced "latest version" claims rot fast. If a story genuinely depends on a library behavior neither document fixes, put it in `open_questions` and check the library's own docs at the moment diy-dev needs it — never invent a version, an endpoint, or an API shape and never write one into the pack as if it were settled.
+源工作流的第 4 步（为最新库细节做联网检索）在此收敛。项目的技术栈事实住在 `architecture.yaml` 与 `project-context.yaml`，而无出处的「最新版本」说法烂得很快。若某条故事确实依赖这两份文档都没钉住的库行为，把它放进 `open_questions`，等 diy-dev 真正需要时去查该库自己的文档——绝不发明版本号、端点或 API 形状，绝不把发明的东西当既定事实写进上下文包。
 
-## Human confirmation
+## 人工确认
 
-Present the pack as one message: story + epic, the AC and TC refs, the decisions, the files with their `why`, the risks, the verify commands, the open questions. State plainly what the pack does **not** contain — the AC text, the decision text, the story narrative — because those live one reference away, and a reader who expects a copy here will look for it in the wrong place.
+把整包作为一条消息铺开：故事与 epic、AC 与 TC 的引用、决策、各文件及其 `why`、风险、判据命令、未决问题。明说整包**不**包含什么——AC 正文、决策正文、故事叙述——因为那些离这里只有一个引用的距离，期待此处有副本的读者会去错地方找。
 
-Ask for corrections on the file list first (it is the highest-leverage field and the one the survey can get wrong), then the risks. The human's answer is the evidence for any change; a correction that changes the file set sends you back to step 3, not into a silent edit.
+先请用户改文件清单（它是杠杆最大、也最容易勘察错的一项），再请改风险。用户的答复是任何改动的证据；改了文件集的修正会把你送回第 3 步重走，而不是静默就地改。
 
-Then render (silent side step — command only, no browser interaction point, no path-waiting, no blocking):
+然后渲染（静默旁路——只写命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点）：
 
 ```
 python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"
 ```
 
-(append `--instance <name>` when one was resolved).
+（解析出实例时附 `--instance <name>`）。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./05-finish.md`.
+读 `./05-finish.md` 并照做。

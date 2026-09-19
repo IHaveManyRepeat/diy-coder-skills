@@ -2,43 +2,43 @@
 
 Progress: `[Target] → Artifacts → Code Survey → Compose → Finish`
 
-**Read (input):** the `collect` receipt from On Activation; the story it resolved.
-**Write (output):** the draft record in `{output_dir}/story-context.yaml` (`id` / `story` / `status` / `date` / `epic` / `ac_refs` / `tc_refs` / `decisions` / `files: []`).
+**Read (input):** 激活时那次 `collect` 的回执；它落定的那条故事。
+**Write (output):** `{output_dir}/story-context.yaml` 里的草稿记录（`id` / `story` / `status` / `date` / `epic` / `ac_refs` / `tc_refs` / `decisions` / `files: []`）。
 
-## Settle the story
+## 落定故事
 
-Cascade in order — stop at the first hit:
+按序级联——命中即停：
 
-1. **The user named one** (`create story S-3`, `3-2`, a story title) → take its ID.
-2. **Nobody named one** → read `{output_dir}/sprint.yaml` `tasks[]` and take the first task whose `status` is not `已完成`, in file order, skipping `已阻塞`. Read only `story` and `status` from each task — nothing else from that file.
-3. **Neither works** (no sprint.yaml, all tasks 已完成 or 已阻塞) → ask the human, offering the story IDs not yet `已完成`.
+1. **用户点名了**（`create story S-3`、`3-2`、一个故事标题）→ 取其 ID。
+2. **没人点名** → 读 `{output_dir}/sprint.yaml` 的 `tasks[]`，取文件序里第一条 `status` 非 `已完成` 的任务，跳过 `已阻塞`。每个任务只读 `story` 与 `status`——该文件其余一概不读。
+3. **两条都不成立**（无 sprint.yaml，任务全 `已完成` 或 `已阻塞`）→ 问用户，给出尚未 `已完成` 的故事 ID。
 
-A story ID that resolves to nothing returns exit 1 from `collect` with a `suggestions` list — **that list is a menu, not a decision**: confirm the pick with the human, then re-run. Never invent a story, never silently switch targets.
+解析不到的故事 ID 会让 `collect` 以 exit 1 返回，并附 `suggestions` 列表——**那是菜单，不是决定**：与用户确认后再重跑。绝不发明故事，绝不静默换目标。
 
-## Gate first (zero-output refusal)
+## 门禁优先（零产出拒绝）
 
-`collect` runs the gate. On exit 1 the run is over before it starts: relay the receipt's one-line reasons and its `gate.route` (diy-epics-stories) or its `suggestions` list, then stop and write nothing. A refusal never becomes a record, and a missing upstream is never worked around by packing a different story.
+`collect` 跑门禁。exit 1 时本次运行在开始前就结束：转述回执的一行理由与其 `gate.route`（diy-epics-stories）或 `suggestions` 列表，然后停下、什么都不写。拒绝永不变成记录；上游缺席，绝不靠「换一条故事来打包」绕过。
 
-## Run the opener
+## 跑开场
 
 ```
 python "{project-root}/.claude/skills/diy-create-story/scripts/story_context.py" collect --story <S-x> --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-The receipt is this session's evidence base: `acs` (the story's ACs), `tcs` (cases binding them), `prior` (the previous story's sprint task), `decisions` (architecture decisions, summary level), `git` (last 5 commits), `warnings`. Machine anchors are copied from it — never retyped from memory.
+回执是本次会话的证据基座：`acs`（该故事的 AC——**完整 AC 对象**，子字段 `id` / `given` / `when` / `then` / `refs` / `design_ref`）、`epic`（该故事的 epic）、`tcs`（绑定这些 AC 的用例）、`prior`（前序故事的 sprint 任务）、`decisions`（架构决策，摘要级）、`git`（最近 5 次提交）、`warnings`。机器锚点一律从回执复制——绝不凭记忆重打。
 
-## Draft the record
+## 起草记录
 
-Append one record to `{output_dir}/story-context.yaml` (create the file when absent: `project: {name, created, updated}` — `name` from `diy-coder.yaml` `project.name` — plus an empty `contexts` list and `revisions: []`):
+往 `{output_dir}/story-context.yaml` 追加一条记录（文件缺席时创建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——加空 `contexts` 列表与 `revisions: []`）：
 
 ```yaml
-  - id: SC-001                  # next = highest existing + 1, 3 digits; never renumber, never reuse
-    story: S-3                  # the resolved story
+  - id: SC-001                  # 下一个 = 既有最大 + 1，三位零填充；永不重编号，永不复用
+    story: S-3                  # 落定的故事
     status: 草稿
-    date: YYYY-MM-DD            # today
-    epic: E-1                   # from the resolved story entry
-    ac_refs: [AC-3.1]           # the story's AC ids, copied from the receipt
-    tc_refs: [TC-3.1.1]         # the receipt's tcs ids
+    date: YYYY-MM-DD            # 本条动作的日子
+    epic: E-1                   # 取自回执
+    ac_refs: [AC-3.1]           # 该故事的 AC ID，从回执复制
+    tc_refs: [TC-3.1.1]         # 回执 tcs 的 ID
     decisions: []
     files: []
     risks: []
@@ -46,10 +46,10 @@ Append one record to `{output_dir}/story-context.yaml` (create the file when abs
     open_questions: []
 ```
 
-`ac_refs` / `tc_refs` come from the receipt; `design_ref` is added in step 2 when the ACs carry one.
+`ac_refs` / `tc_refs` 取自回执；`design_ref` 在第 2 步、当 AC 带它时补上。
 
-An empty block is a signal, not a blank to paper over: `tcs: []` means no test binds this story's ACs — the sprint TDD gate will hold the task back until diy-test-design covers them. That fact is named in step 4 (`open_questions` / `risks`), never dropped.
+空块是信号，不是待糊上的空白：`tcs: []` 意味着没有测试绑定本故事的 AC——sprint 的 TDD 门会扣住该任务，直到 diy-test-design 覆盖它们。这一事实在第 4 步点名（`open_questions` / `risks`），绝不丢掉。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./02-artifacts.md`.
+读 `./02-artifacts.md` 并照做。

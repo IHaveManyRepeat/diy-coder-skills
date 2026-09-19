@@ -7,17 +7,15 @@
 - 用例 3：check 违规各带 violation code（ENUM_INVALID / STATUS_MISMATCH / EMPTY_FIELD /
           DUPLICATE_ID / ASSUMPTION_PRESENT / MISSING_FILE / UNPARSABLE_YAML）
 - 用例 4：--previous 稳定 ID 比对（旧有新无 → ID_UNSTABLE；旧稿缺席 → MISSING_FILE）
-- 用例 5：SKILL.md 契约冒烟（两段冻结文本逐字 md5 + 终门句指向 prfaq.py check --final）
+- 用例 5：SKILL.md 契约冒烟（母本 §1 / §2 中文定稿逐字 + 终门句指向 prfaq.py check --final）
 - 附加：--output-dir 必填（argparse 用法错误 exit 2）
 
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_prfaq.py" -v
 """
-import hashlib
 import io
 import json
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -29,11 +27,15 @@ SKILL_MD = os.path.join(HERE, "..", "skills", "diy-prfaq", "SKILL.md")
 STEP_01_MD = os.path.join(HERE, "..", "skills", "diy-prfaq", "steps", "01-ignition.md")
 NL = chr(10)
 
-# 冻结文本校验值（batch4/frozen-texts.md §1 §2：逐字复制，禁改写）
-INSTANCE_MD5 = "5445f98bc4d4821e6888b89406a97eac"
-DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
-INSTANCE_ANCHOR = "Instance resolution (FR-4.5/D-9)"
-DISCIPLINE_ANCHOR = "- **Writing discipline."
+# 母本 §1 / §2 中文定稿（中文化轮；与 tests/test_suite_texts.py 的 INSTANCE_ZH /
+# DISCIPLINE_ZH 同文——那边是套件级强制，这里是本技能的局部冒烟）
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+INSTANCE_EN_MARK = "Instance resolution (FR-4.5/D-9)"
+DISCIPLINE_ZH_ANCHOR = "- **写作纪律。"
+DISCIPLINE_EN_MARK = "- **Writing discipline."
 
 # 合法草稿：stage 2，press_release 部分填写（起草期宽松），一条客户 FAQ
 PRFAQ_DRAFT = NL.join([
@@ -389,26 +391,20 @@ class SkillContractTests(unittest.TestCase):
         with io.open(SKILL_MD, encoding="utf-8") as f:
             return f.read()
 
-    # trace: B1 diy-prfaq §2.1（实例解析句逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_instance_sentence_is_frozen_verbatim(self):
+    # trace: 中文化轮（母本 §1 中文定稿逐字；原 batch4 英文冻结句 md5 断言随中文化退役）
+    def test_instance_sentence_is_verbatim_mother_text(self):
         raw = self.read_skill()
-        m = re.search(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*", raw)
-        self.assertTrue(m, "SKILL.md 缺实例解析样板句")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 233, "实例句字符数偏离冻结文本（233）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(),
-                         INSTANCE_MD5, "实例句与冻结文本不一致：%s" % frag)
+        self.assertIn(INSTANCE_ZH, raw, "SKILL.md 缺母本 §1 中文定稿实例解析句")
+        self.assertNotIn(INSTANCE_EN_MARK, raw, "已转中文定稿，仍残留 §1 英文原形")
 
-    # trace: B1 diy-prfaq §2.1（写作纪律块逐字，置 Rules 段末尾）
-    def test_writing_discipline_block_is_frozen_verbatim(self):
+    # trace: 中文化轮（母本 §2 中文定稿逐字，置规则段末尾）
+    def test_writing_discipline_block_is_verbatim_mother_text(self):
         raw = self.read_skill().replace(chr(13), "")
-        lines = [line for line in raw.split(NL) if line.startswith(DISCIPLINE_ANCHOR)]
+        lines = [line for line in raw.split(NL) if line.startswith(DISCIPLINE_ZH_ANCHOR)]
         self.assertEqual(len(lines), 1, "SKILL.md 写作纪律块数量异常：%d" % len(lines))
-        self.assertEqual(len(lines[0]), 497, "纪律块字符数偏离冻结文本（497）")
-        self.assertEqual(hashlib.md5((lines[0] + NL).encode("utf-8")).hexdigest(),
-                         DISCIPLINE_MD5, "纪律块与冻结文本不一致")
-        rules_at = raw.index("## Rules")
-        self.assertGreater(raw.index(lines[0]), rules_at, "纪律块未落在 Rules 段内")
+        self.assertNotIn(DISCIPLINE_EN_MARK, raw, "已转中文定稿，仍残留 §2 英文原形")
+        rules_at = raw.index("## 规则")
+        self.assertGreater(raw.index(lines[0]), rules_at, "纪律块未落在规则段内")
 
     # trace: B1 diy-prfaq §2.1（终门句指向 prfaq.py check --final）
     def test_final_gate_points_to_engine(self):

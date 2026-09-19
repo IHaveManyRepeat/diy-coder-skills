@@ -2,37 +2,37 @@
 
 Progress: `Target → [Artifacts] → Code Survey → Compose → Finish`
 
-**Read (input):** the receipt blocks `acs` / `tcs` / `decisions` / `prior` / `git`.
-**Write (output):** `ac_refs` / `tc_refs` / `design_ref` / `decisions` / `prior_story` in the record.
+**Read (input):** 回执的 `acs` / `tcs` / `decisions` / `prior` / `git` 块。
+**Write (output):** 记录里的 `ac_refs` / `tc_refs` / `design_ref` / `decisions` / `prior_story`。
 
-## The transformation (read this before the blocks)
+## 这次转换（先读它，再看各块）
 
-The source workflow loads the planning markdown (epics / PRD / architecture / UX) and copies the story-relevant context into the story file — a second-hand copy that drifts the moment the upstream changes. diy does not copy: the upstreams are structured single sources, so the pack **references** them by ID and proves the story knows its obligations.
+源工作流加载规划 markdown（epics / PRD / architecture / UX），把与故事相关的上下文抄进故事文件——一份上游一改就漂的二手副本。diy 不抄：上游是结构化的单一源，所以上下文包按 ID **引用**它们，并证明这条故事知道自己的义务。
 
-Your job is not to restate an acceptance criterion. It is to make four things explicit: which ACs this story must satisfy, which tests verify them, which decisions constrain it, and what the previous story learned.
+你的任务不是复述一条验收标准，而是把四件事说清：本故事必须满足哪些 AC、哪些测试验证它们、哪些决策约束它、前一条故事留下了什么。
 
-Never paste an AC's `given/when/then` into the record, never restate a decision's text, never quote a story narrative. `AC-3.1` inside `ac_refs` **is** the acceptance criterion — diy-dev reads it in `stories.yaml`.
+绝不把 AC 的 `given/when/then` 粘进记录，绝不转述决策正文，绝不抄故事叙述。`ac_refs` 里的 `AC-3.1` **就是**那条验收标准——diy-dev 去 `stories.yaml` 读它。
 
-## AC refs
+## AC 引用
 
-The story's ACs, ids only, all of them (the receipt's `acs` block is exactly that list). When an AC carries a `design_ref`, the record's `design_ref` names the page serving this story's primary surface — the most-bound page when several ACs bind different ones. The full binding set stays on the ACs in `stories.yaml`; do not duplicate it here.
+本故事的 AC，只取 ID，全部取（回执的 `acs` 块就是这份清单）。当某条 AC 带 `design_ref` 时，记录的 `design_ref` 指向服务本故事主界面的那个页面——多条 AC 绑了不同页面时取绑定最密的那一个。完整绑定集留在 `stories.yaml` 的 AC 上；此处不复制。
 
-## TC refs
+## TC 引用
 
-`tc_refs` = the receipt's `tcs` ids: every case whose `ac` belongs to this story. `status: 待办` is normal before diy-dev runs — it is not a problem to report. An empty `tcs` **is**: no test verifies this story's ACs, so the sprint TDD gate will block the task. Record it as an open question and route the human to diy-test-design.
+`tc_refs` = 回执 `tcs` 的 ID：`ac` 属于本故事 AC 集的每个用例。diy-dev 跑之前 `status: 待办` 是正常的——不是要上报的问题。`tcs` 为空**才是**：没有测试验证本故事的 AC，sprint 的 TDD 门会扣住该任务。记进 `open_questions`（**不是** `risks`）——它必须在 final 前关上：解决后删行，或带 `[CLOSED]` 与所采取的决定；并把用户路由去 diy-test-design。
 
-## Decisions
+## 决策
 
-`decisions` = the applicable `D-x` from the receipt — applicability is the decision's `affects` intersecting the FR/NFR ids the story's ACs `refs` (both visible in the receipt). Not every decision belongs here; an unrelated one is noise the dev agent reads anyway. A decision still `status: 待定` is not ratified: it goes to `risks` (step 4), never into the guardrails as if it were settled.
+`decisions` = 回执里适用的 `D-x`——适用性的判据是决策的 `affects` 与本故事 AC 的 `refs` 所指向的 FR/NFR 相交（两者都在回执里可见）。不是每条决策都归此处；不相干的决策是噪音，dev agent 反正会读到它。仍 `status: 待定` 的决策未经批准：它进 `risks`（第 4 步），绝不混进护栏里装作已定。
 
-## Prior story
+## 前序故事
 
-The receipt's `prior.ref` is the highest story number below the target. Its `carryover` lines are distilled from that story's sprint task — `note`, `evidence` (red/green records), `loop` (rounds, outcome), `blocked_reason`. Each line names its source field, e.g. `sprint S-2 note: 既有实现复用 src/app.py`, so the dev agent can go read the evidence instead of trusting a summary. Nothing worth carrying → omit `prior_story`; never write an empty shell.
+回执的 `prior.ref` 是编号小于目标故事的里最高的那条。它的 `carryover` 行从回执里**在场且有值**的字段各起一行（`prior.task` 的既有键 `status` / `note` / `evidence`（红绿记录）/ `loop`（轮次与结果）/ `blocked_reason`；缺席或空值的字段跳过该行，`prior.task` 本身可能为 `null`）。每行点名其来源字段，例如 `sprint S-2 note：既有实现复用 src/app.py`，让 dev agent 去读证据而不是信一句摘要。没有值得带走的 → 省 `prior_story`；绝不写空壳。
 
-## Git intelligence
+## git 情报
 
-`git.commits` (last 5: subject + files) is pattern evidence, not narrative: which files recent work touched, which conventions were used, what a change like this normally drags along (tests, fixtures, docs). Fold what matters into `risks` / `verify` in step 4. Never paste commit messages into the record, and never treat a commit message as a requirement.
+`git.commits`（最近 5 次：subject + 文件）是模式证据，不是叙述：近期工作碰了哪些文件、用了哪些惯例、这类改动通常还会带上什么（测试、夹具、文档）。要紧的折进第 4 步的 `risks` / `verify`。绝不把提交信息粘进记录，绝不把提交信息当需求。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./03-code-survey.md`.
+读 `./03-code-survey.md` 并照做。

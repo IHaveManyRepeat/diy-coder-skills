@@ -2,54 +2,55 @@
 
 Progress: `[Discovery] → Draft → Finalize`（新建路径；更新从 step 4 进入，校验从 step 5 进入）
 
-**Read (input):** the activation receipt (`intent` / `route` / `counts`); any source material the user points to; `{output_dir}/project-context.yaml` when it exists.
-**Write (output):** the discovery message; `{output_dir}/brief.yaml` created with `project` (`status: 草稿`) and the skeleton the dump has already filled.
+**Read (input):** 激活回执（`intent` / `route` / `counts`）；用户点名的任何源材料；`{output_dir}/project-context.yaml`（存在时）。
+**Write (output):** discovery 消息；建 `{output_dir}/brief.yaml`，含 `project`（`status: 草稿`）与倾倒已填好的骨架。
 
-## Open the room
+## 开场
 
-The opening move is space for the full picture, not a questionnaire.
+开场是给全貌留出空间，不是发问卷。
 
-1. Invite a brain dump, and ask up front for source material the user already has — memo, deck, transcript, prior brief, chat thread. Paths or paste; big inputs are fine.
-2. Read what exists first; ask only what is missing. After the dump, "anything else?" often surfaces what they almost forgot.
-3. Drill into specifics only once the broad shape is on the table — premature granular questions interrupt the dump and miss the room.
-4. Echo back the domain and the form factor (mobile / web / desktop / multi-surface / hardware / API — what *is* this thing) and how each shapes the approach.
+1. 请用户脑爆倾倒，一上来就问有没有现成材料——备忘、演示稿、转录稿、旧简报、聊天记录。给路径或直接粘贴都行，长文无妨。
+2. 先读已有的，只问缺的。倾倒之后再问一句「还有别的吗？」——常能捞出差点被忘掉的东西。
+3. 全貌上了桌再钻细节——过早问细颗粒的问题会打断倾倒，也会看漏整个房间。
+4. 回声确认领域与形态（mobile / web / desktop / multi-surface / hardware / API——这东西**到底是**什么），以及各自如何影响打法。
 
-## Ground the picture
+## 给画面打底
 
-- Web-research subagents during the dump: landscape, comparables, current state — AI especially, where training data ages by the week. The subagent searches and the parent gets a digest; extract, don't ingest.
-- Persisted project context (optional): when `{output_dir}/project-context.yaml` exists, read its `rules` as background awareness — tech, domain, constraints — so the user is not asked what is already written down.
-- Deep work (full market sizing, exhaustive teardowns) → suggest `diy-research`; it is the research skill of this suite, do not attempt it inline here.
+- 倾倒期间用 web-research 子代理：竞品面貌、可比对象、现状——AI 尤其，训练数据一周就过时。子代理检索，母代理拿摘要；抽取，不吞入。
+  子代理不可用 → 父代理内联跑同一批定向检索（竞品面貌 / 可比对象 / 现状），绝不阻塞流程；连内联检索也未跑时，在本步的 discovery 消息里**显式写明「本次未做外部核对」**，不静默。更新路径按第 4 步的 Discovery 姿态同理。
+- 已落盘的项目上下文（可选）：`{output_dir}/project-context.yaml` 在场时读它的 `rules` 作背景意识——技术、领域、约束——不再问用户已经写下来的事。
+- 深活（完整市场规模测算、穷尽式拆解）→ 建议走 `diy-research`；它是本套件的研究技能，不要在本步内联硬做。
 
-## Read the stakes
+## 读利害档位
 
-Early, and in the user's own terms: passion project (**个人兴趣**), internal pitch (**内部**), investor input (**投资人**), public launch (**公开**). This is `stakes` in brief.yaml and it calibrates how hard you push for the rest of the run.
+趁早，用用户自己的话问：个人兴趣的项目（**个人兴趣**）、内部提案（**内部**）、投资人输入（**投资人**）、公开发布（**公开**）。这就是 brief.yaml 的 `stakes`，它校准余下全程顶得多狠。
 
-## Offer the working mode
+## 给工作模式
 
-Once the dump is captured and the stakes are read, in the user's language:
+倾倒记下、档位读出后，用用户的语言给两条路：
 
-- **Fast path** — batch the remaining gaps into one or two consolidated questions, then draft the full brief with `[假设]` tags where you inferred. The user reviews and we iterate. Best for "I'm pitching tomorrow."
-- **Coaching path** — walk through together: pull the picture out, push back where assumptions are thin, draft section by section. Best for "I want a brief I'm proud of and time isn't the constraint."
+- **快速路径**——把剩余空档并成一两个问题，然后直接起草完整简报，推断处带 `[假设]`；用户审阅、再迭代。适合「我明天就要路演」。
+- **陪跑路径**——一起走：把画面拉出来、假设单薄处顶回去、逐节成文。适合「我想要一份拿得出手的简报，时间不是约束」。
 
-The coaching posture below shapes the coaching path; the fast path swaps pushback for `[假设]` tags the user can correct in review. The workspace persists — stop and resume freely.
+下面的陪跑姿态管陪跑路径；快速路径把顶回去换成 `[假设]` 前缀，让用户在审阅时纠正。工作区持久——随时停下、随时续上。
 
-## Put the workspace on disk
+## 工作区落盘
 
-Create `{output_dir}/brief.yaml` (create intent only) and tell the user the path:
+建 `{output_dir}/brief.yaml`（仅新建意图）并告知用户路径：
 
 ```yaml
 project: {name: <diy-coder.yaml project.name>, status: 草稿, created: <today>, updated: <today>}
-brief: {title: '', stakes: <as read>, problem: '', solution: '', pitch: '',
+brief: {title: '', stakes: <已读出的档位>, problem: '', solution: '', pitch: '',
         users: [], value: [], open_questions: [], assumptions: [], extra_sections: []}
 decisions: []
 addendum: []
 revisions: []
 ```
 
-From here persistence is real-time: a decision goes into `decisions` with its `rationale` the moment it is made; volunteered depth goes into `addendum` with its `why_separate`; an inference awaiting confirmation is tagged `[假设]` in place and echoed in `brief.assumptions`.
+从这一刻起持久化是实时的：决策做出即带 `rationale` 进 `decisions`；用户主动多说的纵深带 `why_separate` 进 `addendum`；等确认的推断就地标 `[假设]`，并回声到 `brief.assumptions`。
 
-If `brief.yaml` already existed — the `intent` receipt said so, and it warned on 新建 — never silently overwrite: offer to resume the in-progress draft or to run a deliberate update; any rewrite goes through step 4's snapshot discipline.
+若 `brief.yaml` 本来就在——`intent` 回执会说明，且对 `新建` 给过 warning——绝不静默覆盖：给两个去处，续上在写的草稿，或走一次刻意更新；任何重写都过第 4 步的快照纪律。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./02-draft.md`. If the ask turns out to be a change to an existing complete brief, go to `./04-update.md` instead.
+读全 `./02-draft.md` 并照做。若请求其实是对一份已完成的简报做变更，改走 `./04-update.md`。
