@@ -1,9 +1,9 @@
-# Step 4 — NFR（四域证据审计 + ADR 清单）
+# Step 4 — 非功能审计（NFR：四域证据 + ADR 清单）
 
 Progress: `Preflight → Oracle → Matrix & Gaps → [NFR] → Gate → Finish`
 
-**Read (input)：** `collect` 回执的 `nfr_inputs`（四域 / 阈值载体实测 / `prd.yaml` 的 NFR 条目 / `architecture.yaml` 的 affects 面 / 合规五标准清单 `compliance_standards` / 跨域合成规则 `cross_domain_rules`）；`adr-checklist.yaml`（技能内静态资产，29 行）。
-**Write (output)：** 草稿记录的 `nfr`（`domains`——含合规行与跨域行的 `findings` / `overall_risk` / `adr` / `gaps`）。
+**Read (input):** `collect` 回执的 `nfr_inputs`（四域 / 阈值载体实测 / `prd.yaml` 的 NFR 条目 / `architecture.yaml` 的 affects 面 / 合规五标准清单 `compliance_standards` / 跨域合成规则 `cross_domain_rules`）；`adr-checklist.yaml`（技能内静态资产，29 行）。
+**Write (output):** 草稿记录的 `nfr`（`domains`——含合规行与跨域行的 `findings` / `overall_risk` / `adr` / `gaps`）。
 
 ## 域与状态
 

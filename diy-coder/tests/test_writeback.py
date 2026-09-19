@@ -42,7 +42,7 @@ class WritebackTermsTests(unittest.TestCase):
         self.assertIn("status: 已完成", loop, "缺故事终态回填")
         self.assertIn("test-plan.yaml", loop)
         self.assertIn("status: 通过", loop, "缺绿 TC 回填")
-        self.assertIn("never writes `stories.yaml`", loop, "缺 已阻塞 不回写真源的边界")
+        self.assertIn("不写 `stories.yaml`", loop, "缺 已阻塞 不回写真源的边界")
 
     # trace: F-enhancement-2（独立 review 路径 待审查→已完成 不回写真源）
     def test_review_contract_backfills_terminal_sources(self):

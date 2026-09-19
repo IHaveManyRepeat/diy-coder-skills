@@ -1,4 +1,4 @@
-# Step 1 — Preflight（探测与门禁）
+# Step 1 — 前置校验（Preflight：探测与门禁）
 
 Progress: `[Preflight] → Scope → Generate → Audit → Confirm → Finish`
 

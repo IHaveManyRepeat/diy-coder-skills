@@ -1,4 +1,4 @@
-# Step 5 — Confirm（静态确认与交接）
+# Step 5 — 静态确认（Confirm：与交接）
 
 Progress: `Preflight → Scope → Generate → Audit → [Confirm] → Finish`
 

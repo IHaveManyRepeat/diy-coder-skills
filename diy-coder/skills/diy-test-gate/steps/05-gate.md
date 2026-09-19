@@ -1,9 +1,9 @@
-# Step 5 — Gate（单一门决策：规则树 + overlay + 豁免）
+# Step 5 — 门决策（Gate：规则树 + overlay + 豁免）
 
 Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 
-**Read (input)：** 草稿记录已填的 `coverage` / `nfr` / `blockers`；`collect` 回执的 `soft_metrics` / `mutation`。
-**Write (output)：** 草稿记录的 `gate`（`decision` / `hard_criteria` / `soft_criteria` / `blockers` / `waivers` / `basis` / `recommendations`）。
+**Read (input):** 草稿记录已填的 `coverage` / `nfr` / `blockers`；`collect` 回执的 `soft_metrics` / `mutation`。
+**Write (output):** 草稿记录的 `gate`（`decision` / `hard_criteria` / `soft_criteria` / `blockers` / `waivers` / `basis` / `recommendations`）。
 
 ## 两组判据（名字与 target 固定，不自造）
 

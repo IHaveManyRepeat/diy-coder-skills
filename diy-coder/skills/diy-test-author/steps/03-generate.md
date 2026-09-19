@@ -1,4 +1,4 @@
-# Step 3 — Generate（按 TC 生成测试代码）
+# Step 3 — 生成测试代码（Generate：按 TC）
 
 Progress: `Preflight → Scope → [Generate] → Audit → Confirm → Finish`
 

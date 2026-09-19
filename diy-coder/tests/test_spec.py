@@ -7,16 +7,15 @@
 - 用例 3：status 枚举违例 → ENUM_INVALID；重复 SP id → DUPLICATE_ID；未知 --id → UNKNOWN_ID
 - 用例 4：verification 空且 status 前进到 审查中 → EMPTY_FIELD（轻量 TDD 硬底线）
 - 用例 5：tasks 未全 done 的 --final 拒绝；frozen intent 字段完整性（problem 缺失 → EMPTY_FIELD）
-- 用例 6：SKILL.md 契约冒烟（冻结实例句 233/md5 + 写作纪律块 497/md5 + 终门句指向 spec.py
-          + 读取成本纪律 + 渲染静默 + 无编辑器/自动提交 + steps 6 文件在场）
+- 用例 6：SKILL.md 契约冒烟（母本 §1/§2/§3/§4 中文定稿逐字 + 四段中文标题 ≤93 行
+          + 终门句指向 spec.py 且三处写死实参 + 读取纪律 + 渲染静默 + 无编辑器/自动提交
+          + steps 6 文件在场且 B-15 语义条目锚串在位）
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_spec.py" -v
 """
-import hashlib
 import io
 import json
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -28,11 +27,30 @@ ENGINE = os.path.join(SKILL_DIR, "scripts", "spec.py")
 SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
 NL = chr(10)
 
-# 冻结文本校验值（batch4/frozen-texts.md §1/§2：逐字复制，md5 口径 = 文本 + 行尾 LF）
-INSTANCE_MD5 = "5445f98bc4d4821e6888b89406a97eac"
-DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
-INSTANCE_ANCHOR = "Instance resolution (FR-4.5/D-9)"
-DISCIPLINE_ANCHOR = "- **Writing discipline."
+# 套件级句式母本（suite-texts.md §1 / §2 / §3 / §4 中文定稿，逐字）——2026-09-19 中文化轮：
+# 英文原形（实例句 233 字符 / 纪律块 497 字符）随本技能转中文退役，改断中文定稿。
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+INSTANCE_EN_MARK = "Instance resolution (FR-4.5/D-9)"
+RESOLVE_KEYS_ZH = ("解析 `project.communication_language` / "
+                   "`project.document_output_language` / `paths.output_dir`")
+READ_DISCIPLINE_ZH = ("读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件"
+                      "——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，"
+                      "**主文件不列举封闭清单**。")
+DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
+                 "机器语法（命令/旗标/路径）进括号；机器锚点逐字保留"
+                 "（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 "
+                 "`diy-design` 的 detect 启发式。schema 若定义 `plain`："
+                 "一行写清该条目为什么存在，绝不写是什么（转述会漂移）；"
+                 "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
+PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
+              "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
+# B-15 · SS-016-02：三处终门/结构检查命令写死实参，删「same as activation」指代
+GATE_ARGS = "--project-root \"{project-root}\" --output-dir \"{output_dir}\""
+
+STEPS_DIR = os.path.join(SKILL_DIR, "steps")
 
 # 验收段（独立常量：测试用 replace 制造「verification 缺失」场景）
 VERIFY_BLOCK = NL.join([
@@ -275,49 +293,101 @@ class CheckViolationTests(EngineCase):
 
 
 class SkillContractTests(unittest.TestCase):
-    """用例 6：SKILL.md / steps 契约冒烟（冻结文本逐字 + 终门句指向本技能引擎）。"""
+    """用例 6：SKILL.md / steps 契约冒烟（母本中文定稿逐字 + 终门句指向本技能引擎）。"""
 
-    def read_skill(self):
-        if not os.path.isfile(SKILL_MD):
-            self.skipTest("SKILL.md 尚未交付")
-        with io.open(SKILL_MD, encoding="utf-8") as f:
+    def read(self, path):
+        if not os.path.isfile(path):
+            self.skipTest("%s 尚未交付" % os.path.basename(path))
+        with io.open(path, encoding="utf-8") as f:
             return f.read()
 
-    # trace: 任务书 §2.1（冻结实例句逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_instance_sentence_is_frozen_verbatim(self):
-        raw = self.read_skill()
-        m = re.search(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*", raw)
-        self.assertTrue(m, "SKILL.md 缺实例解析样板句")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 233, "实例句字符数偏离冻结文本（233）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), INSTANCE_MD5,
-                         "实例句与冻结文本不一致：%s" % frag)
+    def read_skill(self):
+        return self.read(SKILL_MD)
 
-    # trace: 任务书 §2.1（写作纪律块逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_writing_discipline_block_is_frozen_verbatim(self):
+    # trace: 任务书 §2.1 / 母本 §1（实例解析句中文定稿逐字；英文原形已随中文化退役）
+    def test_instance_sentence_is_mother_copy_verbatim(self):
         raw = self.read_skill()
-        m = re.search(r"^- \*\*Writing discipline\.[^\r\n]*", raw, re.M)
-        self.assertTrue(m, "SKILL.md 缺写作纪律块")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 497, "纪律块字符数偏离冻结文本（497）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), DISCIPLINE_MD5,
-                         "纪律块与冻结文本不一致：%s" % frag)
+        self.assertIn(INSTANCE_ZH, raw, "SKILL.md 缺母本 §1 中文定稿（逐字）")
+        self.assertNotIn(INSTANCE_EN_MARK, raw, "已转中文定稿，仍残留英文原形")
 
-    # trace: 任务书 §6 steps 切分（6 文件）/§2.1（终门句/读取纪律/渲染静默/不自动 git）
+    # trace: 任务书 §2.1 / 母本 §3（配置键全路径带 project. 前缀 + 读取纪律 §4）
+    def test_resolve_keys_and_read_discipline_verbatim(self):
+        raw = self.read_skill()
+        self.assertIn(RESOLVE_KEYS_ZH, raw, "SKILL.md 缺母本 §3 键路径锚串")
+        self.assertIn(READ_DISCIPLINE_ZH, raw, "SKILL.md 缺母本 §4 定稿（逐字）")
+
+    # trace: 任务书 §2.1 / 母本 §2 + §6（两板块逐字；§6 在前、§2 收尾）
+    def test_precise_and_writing_discipline_at_rules_end(self):
+        raw = self.read_skill()
+        self.assertIn(PRECISE_ZH, raw, "SKILL.md 缺母本 §6 中文定稿")
+        self.assertIn(DISCIPLINE_ZH, raw, "SKILL.md 缺母本 §2 中文定稿")
+        self.assertLess(raw.index(PRECISE_ZH), raw.index(DISCIPLINE_ZH),
+                        "Rules 末尾顺序须为：§6 精准简练 → §2 写作纪律")
+        self.assertEqual(DISCIPLINE_ZH, raw.rstrip(NL).splitlines()[-1],
+                         "写作纪律块须置 Rules 段末尾（文件收尾行）")
+
+    # trace: 中文化轮（薄主文件 ≤93 行 + 四段中文标题 + 工作流点名六步）
+    def test_thin_main_file_four_chinese_sections(self):
+        raw = self.read_skill()
+        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
+            self.assertIn(section, raw, "缺四段结构：%s" % section)
+        for name in ("01-clarify-route.md", "02-plan.md", "03-implement.md",
+                     "04-review.md", "05-present.md", "06-oneshot.md"):
+            self.assertIn(name, raw, "工作流未点名 %s" % name)
+
+    # trace: 任务书 §6 steps 切分（6 文件）/§2.1（终门句/渲染静默/不自动 git）
     def test_final_gate_and_disciplines(self):
         skill = self.read_skill()
         self.assertIn("spec.py", skill, "终门句未指向领域引擎")
         self.assertIn("check --final", skill, "终门句缺 check --final")
         self.assertIn("--json", skill, "终门句缺 --json 回执")
-        self.assertIn("never batch-load", skill, "缺读取成本纪律")
+        self.assertIn("绝不批量预载", skill, "缺读取成本纪律")
         self.assertIn("viewer.py", skill, "缺渲染静默命令")
         self.assertNotIn("code -r", skill, "不得打开编辑器（源 step-05/oneshot 的 code -r 应裁剪）")
         self.assertNotIn("bmad-", skill, "不得引用不存在的技能")
         steps = ["01-clarify-route.md", "02-plan.md", "03-implement.md",
                  "04-review.md", "05-present.md", "06-oneshot.md"]
         for name in steps:
-            path = os.path.join(SKILL_DIR, "steps", name)
+            path = os.path.join(STEPS_DIR, name)
             self.assertTrue(os.path.isfile(path), "缺步骤文件 %s" % name)
+
+    # trace: B-15 · SS-016-02（三处写死 `--project-root` / `--output-dir` 实参，
+    #         删「同 activation」指代：SKILL.md Rule 8 + steps/05 + steps/06）
+    def test_gate_commands_spell_out_arguments(self):
+        for path in (SKILL_MD,
+                     os.path.join(STEPS_DIR, "05-present.md"),
+                     os.path.join(STEPS_DIR, "06-oneshot.md")):
+            text = self.read(path)
+            self.assertIn(GATE_ARGS, text, "%s 终门命令未写死实参" % os.path.basename(path))
+            self.assertNotIn("as activation", text, "%s 仍留「同 activation」指代"
+                             % os.path.basename(path))
+
+    # trace: B-15 · SS-016-05/08（水位线语义 + L4 边界等价命令全路径）
+    def test_waterline_and_l4_boundary(self):
+        raw = self.read_skill()
+        self.assertIn("文件水位线", raw, "缺 SS-016-05 水位线语义")
+        self.assertIn("L4 边界", raw, "缺 SS-016-08 L4 边界声明")
+        self.assertIn('skills/diy-design/scripts/design.py" audit --design', raw,
+                      "L4 等价检查须写 design.py 全路径（A-11）")
+        self.assertIn('skills/diy-design/scripts/design.py" check --design', raw,
+                      "L4 等价检查须写 design.py 全路径（A-11）")
+
+    # trace: B-15 · SS-016-03/04/07 · SS-016-06（steps 侧口径与断点恢复补句）
+    def test_b15_step_level_anchors(self):
+        checks = [
+            ("02-plan.md", "字符数 ÷ 2", "SS-016-07 spec body 计数口径未钉死"),
+            ("02-plan.md", "不构成阻断", "SS-016-07 须声明计数误差不构成阻断"),
+            ("06-oneshot.md", "L3 由上面的「验证」段承担", "SS-016-04 缺 L3 归属声明"),
+            ("06-oneshot.md", "覆盖审计", "SS-016-04 覆盖类问题的 layer 取值未点名"),
+            ("06-oneshot.md", "code_map` ＝ 改动文件一行一条", "SS-016-03 缺 code_map 口径"),
+            ("06-oneshot.md", "`tasks` ≥1 条", "SS-016-03 缺 tasks 非空口径"),
+            ("01-clarify-route.md", "先建草稿记录", "SS-016-06 缺「先建 draft 记录」"),
+            ("01-clarify-route.md", "尚未定 `route`", "SS-016-06 缺断点恢复补句"),
+        ]
+        for name, anchor, msg in checks:
+            self.assertIn(anchor, self.read(os.path.join(STEPS_DIR, name)),
+                          "%s：%s" % (name, msg))
 
 
 if __name__ == "__main__":

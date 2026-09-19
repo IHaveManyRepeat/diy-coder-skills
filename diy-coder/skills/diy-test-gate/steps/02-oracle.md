@@ -1,9 +1,9 @@
-# Step 2 — Oracle（覆盖基准解析）
+# Step 2 — 覆盖基准解析（Oracle）
 
 Progress: `Preflight → [Oracle] → Matrix & Gaps → NFR → Gate → Finish`
 
-**Read (input)：** `collect` 回执的 `items[]`（AC 行，已按 story 过滤）；`{output_dir}/stories.yaml` 的该 story 条目（**只读该 story**，按 ID 定位，不整份通读）。
-**Write (output)：** 草稿记录的 `oracle` 与 `coverage.items` 骨架（判定值留在 step 3 复核后回填）。
+**Read (input):** `collect` 回执的 `items[]`（AC 行，已按 story 过滤）；`{output_dir}/stories.yaml` 的该 story 条目（**只读该 story**，按 ID 定位，不整份通读）。
+**Write (output):** 草稿记录的 `oracle` 与 `coverage.items` 骨架（判定值留在 step 3 复核后回填）。
 
 ## oracle 主源：stories.yaml 的 AC
 

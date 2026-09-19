@@ -1,4 +1,4 @@
-# Step 4 — Audit（纪律审计，不过即修）
+# Step 4 — 纪律审计（Audit：不过即修）
 
 Progress: `Preflight → Scope → Generate → [Audit] → Confirm → Finish`
 

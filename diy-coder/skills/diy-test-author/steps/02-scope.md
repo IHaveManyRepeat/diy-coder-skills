@@ -1,4 +1,4 @@
-# Step 2 — Scope（范围选择）
+# Step 2 — 范围选择（Scope）
 
 Progress: `Preflight → [Scope] → Generate → Audit → Confirm → Finish`
 

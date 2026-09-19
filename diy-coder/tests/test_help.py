@@ -3,6 +3,8 @@
 
 夹具策略：临时目录写最小 YAML（仅 status 字段）——引擎按设计只读产物
 存在性与 status，夹具聚焦该契约本身。不触碰真实 diy-output。
+另：SKILL.md 契约冒烟（中文化轮 2026-09-19——母本 §1/§3/§6 逐字 +
+四段中文标题 + B-25 语义条目）。
 """
 import json
 import os
@@ -13,6 +15,18 @@ import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HELP_PY = os.path.join(HERE, "..", "skills", "diy-help", "scripts", "help.py")
+HELP_SKILL_MD = os.path.join(HERE, "..", "skills", "diy-help", "SKILL.md")
+
+# 母本 §1 中文定稿（中文化轮；与 tests/test_suite_texts.py 的 INSTANCE_ZH 同文——
+# 那边是套件级强制，这里是本技能的局部冒烟）
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+INSTANCE_EN_MARK = "Instance resolution (FR-4.5/D-9)"
+RESOLVE_KEYS_ANCHOR = ("解析 `project.communication_language` / "
+                       "`project.document_output_language` / `paths.output_dir`")
+PRECISE_ANCHOR = "- **精准简练。**"
 
 
 def run_help(root, *extra):
@@ -359,6 +373,38 @@ class HelpStateMachineTests(unittest.TestCase):
         self.assertIsNone(data["next_skill"])
         self.assertEqual(data["blocked"]["file"], "sprint.yaml")
         self.assertIn("空", data["blocked"]["action"])
+
+
+class HelpSkillContractTests(unittest.TestCase):
+    """SKILL.md 契约冒烟（中文化轮 2026-09-19）。"""
+
+    def read_skill(self):
+        with open(HELP_SKILL_MD, encoding="utf-8") as f:
+            return f.read()
+
+    # trace: 中文化轮（母本 §1 中文定稿 / §3 配置解析键含 project. 前缀 / §6 精准简练逐字）
+    def test_mother_texts_verbatim(self):
+        raw = self.read_skill()
+        self.assertIn(INSTANCE_ZH, raw, "缺母本 §1 中文定稿实例解析句")
+        self.assertNotIn(INSTANCE_EN_MARK, raw, "已转中文定稿，仍残留 §1 英文原形")
+        self.assertIn(RESOLVE_KEYS_ANCHOR, raw, "缺母本 §3 配置解析键（A-3：project. 前缀）")
+        self.assertIn(PRECISE_ANCHOR, raw, "缺母本 §6 精准简练条款")
+
+    # trace: 2026-09-19 中文化政策（四段中文标题 + description 中文注释 + ≤93 行预算）
+    def test_four_chinese_sections_and_budget(self):
+        raw = self.read_skill()
+        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
+            self.assertIn(section, raw, "缺四段结构：%s" % section)
+        self.assertIn("# ↑ 中文：", raw, "description 缺中文注释")
+
+    # trace: B-25 SS-025-01/02/03（分支判定读 --json 键；只跑一次的例外；blocked 逐字不受行数限制）
+    def test_branch_by_json_and_verbatim_blocked(self):
+        raw = self.read_skill()
+        self.assertIn("分支判定读 `--json` 回执的键", raw, "未写明分支判定读 --json 键")
+        self.assertIn("唯一例外", raw, "未写明用户存疑重跑是「只跑一次」的唯一例外")
+        self.assertIn("逐字转述", raw, "blocked 逐字转述纪律缺失")
+        self.assertIn("10 行上限只约束我自己的附加说明", raw, "10 行上限未收窄为只约束附加说明")
 
 
 if __name__ == "__main__":

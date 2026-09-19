@@ -10,12 +10,12 @@
 - 用例 4：collect 在 diyc 缺席时降级（TOOL_MISSING warning + 不崩 + 仍 exit 0）
 - 用例 5：check 合法记录 --final exit 0 唯一放行；违规码（verdict 一致性 / severity 枚举 /
           evidence 缺失 / 零假设 / counts 与集合一致）
-- 用例 6：SKILL.md 契约冒烟（冻结实例句 md5 + 写作纪律块 md5 + 终门句指向 readiness.py）
+- 用例 6：SKILL.md 契约冒烟（母本 §1 / §2 / §3 / §4 / §5 / §6 中文定稿逐字 + 四段中文标题
+          + 薄主文件 ≤93 行 + 终门句指向 readiness.py + steps/ 逐个点名下一文件）
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_readiness.py" -v
 """
 import contextlib
-import hashlib
 import io
 import json
 import os
@@ -28,12 +28,29 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.join(HERE, "..", "skills", "diy-readiness-check")
 ENGINE = os.path.join(SKILL_DIR, "scripts", "readiness.py")
 SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
+STEPS_DIR = os.path.join(SKILL_DIR, "steps")
 NL = chr(10)
 
-# 冻结文本校验值（batch4/frozen-texts.md §1/§2：逐字复制，md5 口径 = 文本 + 行尾 LF）
-INSTANCE_MD5 = "5445f98bc4d4821e6888b89406a97eac"
-DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
-DISCIPLINE_ANCHOR = "- **Writing discipline."
+# 套件级句式母本（suite-texts.md §1 / §2 / §3 / §4 / §5 / §6 中文定稿，逐字）
+# 2026-09-19 中文化轮：英文原形（§1 md5 5445f98b… / §2 md5 f1b3b6fb…）随本技能转中文退役。
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+RESOLVE_KEYS_ZH = ("解析 `project.communication_language` / "
+                   "`project.document_output_language` / `paths.output_dir`")
+READ_DISCIPLINE_ZH = ("读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件"
+                      "——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，"
+                      "**主文件不列举封闭清单**。")
+RENDER_SILENT_ZH = "渲染是静默旁路——只写调用命令"
+PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
+              "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
+DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
+                 "机器语法（命令/旗标/路径）进括号；机器锚点逐字保留"
+                 "（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 "
+                 "`diy-design` 的 detect 启发式。schema 若定义 `plain`："
+                 "一行写清该条目为什么存在，绝不写是什么（转述会漂移）；"
+                 "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
 
 PRD_YAML = NL.join([
     "project:",
@@ -365,44 +382,90 @@ class CheckValidationTests(EngineCase):
 
 
 class SkillContractTests(unittest.TestCase):
-    """用例 6：SKILL.md 契约冒烟（冻结文本逐字 + 终门句指向本技能引擎）。"""
+    """用例 6：SKILL.md / steps 契约冒烟（母本中文定稿逐字 + 结构与路由纪律）。"""
 
-    def read_skill(self):
-        if not os.path.isfile(SKILL_MD):
-            self.skipTest("SKILL.md 尚未交付")
-        with io.open(SKILL_MD, encoding="utf-8") as f:
+    def read(self, path):
+        if not os.path.isfile(path):
+            self.skipTest("%s 尚未交付——契约用例待补" % os.path.basename(path))
+        with io.open(path, encoding="utf-8") as f:
             return f.read()
 
-    # trace: 任务书 §2.1（冻结实例句逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_instance_sentence_is_frozen_verbatim(self):
-        raw = self.read_skill()
-        m = re.search(r"Instance resolution \(FR-4\.5/D-9\)[^\r\n]*", raw)
-        self.assertTrue(m, "SKILL.md 缺实例解析样板句")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 233, "实例句字符数偏离冻结文本（233）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), INSTANCE_MD5,
-                         "实例句与冻结文本不一致：%s" % frag)
+    # trace: 任务书 §2.1 / 母本 §1（实例解析句中文定稿逐字；2026-09-19 中文化轮）
+    def test_instance_resolution_sentence_verbatim(self):
+        raw = self.read(SKILL_MD)
+        self.assertIn(INSTANCE_ZH, raw, "SKILL.md 缺母本 §1 中文定稿（逐字）")
+        self.assertNotIn("Instance resolution (FR-4.5/D-9)", raw, "已转中文定稿，仍残留英文原形")
 
-    # trace: 任务书 §2.1（写作纪律块逐字；md5 口径同 frozen-texts §3 复现命令）
-    def test_writing_discipline_block_is_frozen_verbatim(self):
-        raw = self.read_skill()
-        m = re.search(r"^- \*\*Writing discipline\.[^\r\n]*", raw, re.M)
-        self.assertTrue(m, "SKILL.md 缺写作纪律块")
-        frag = m.group(0)
-        self.assertEqual(len(frag), 497, "纪律块字符数偏离冻结文本（497）")
-        self.assertEqual(hashlib.md5((frag + NL).encode("utf-8")).hexdigest(), DISCIPLINE_MD5,
-                         "纪律块与冻结文本不一致：%s" % frag)
+    # trace: 任务书 §2.1 / 母本 §3（配置键全路径带 project. 前缀）
+    def test_resolve_keys_anchor(self):
+        self.assertIn(RESOLVE_KEYS_ZH, self.read(SKILL_MD), "SKILL.md 缺母本 §3 键路径锚串")
+
+    # trace: 任务书 §2.1 / 母本 §4（读取纪律逐字；C1 拆法）
+    def test_read_discipline_verbatim(self):
+        self.assertIn(READ_DISCIPLINE_ZH, self.read(SKILL_MD), "SKILL.md 缺母本 §4 定稿（逐字）")
+
+    # trace: 任务书 §2.1 / 母本 §5（渲染静默整句，A-12 命令全文形态）
+    def test_render_silent_line(self):
+        raw = self.read(SKILL_MD)
+        self.assertIn(RENDER_SILENT_ZH, raw, "SKILL.md 缺母本 §5 渲染静默句")
+        self.assertIn("diy-viewer/scripts/viewer.py", raw, "渲染句缺 viewer 命令全文")
+
+    # trace: 任务书 §2.1 / 母本 §6 + §2（Rules 段末尾顺序：§6 在前、§2 收尾）
+    def test_precise_and_writing_discipline_at_rules_end(self):
+        raw = self.read(SKILL_MD)
+        self.assertIn(PRECISE_ZH, raw, "SKILL.md 缺母本 §6 精准简练条款")
+        self.assertIn(DISCIPLINE_ZH, raw, "SKILL.md 缺母本 §2 中文定稿")
+        self.assertEqual(DISCIPLINE_ZH, raw.rstrip(NL).splitlines()[-1],
+                         "写作纪律块须置 Rules 段末尾（文件收尾行）")
+        self.assertLess(raw.index(PRECISE_ZH), raw.index(DISCIPLINE_ZH),
+                        "Rules 末尾顺序应为 §6 精准简练 → §2 写作纪律块")
 
     # trace: 任务书 §2.1/#11/#12（终门句指向 readiness.py check --final；渲染静默；读一条加载一条）
     def test_final_gate_points_to_engine(self):
-        skill = self.read_skill()
+        skill = self.read(SKILL_MD)
         self.assertIn("readiness.py", skill, "终门句未指向领域引擎")
         self.assertIn("check --final", skill, "终门句缺 check --final")
         self.assertIn("--json", skill, "终门句缺 --json 回执")
+        self.assertIn("--output-dir", skill, "激活句/终门句须声明 --output-dir 必填")
         self.assertIn("collect", skill, "激活段未接线 collect")
-        self.assertIn("never batch-load", skill, "缺读取成本纪律")
+        self.assertIn("diyc.py", skill, "激活句须委托 diyc.py resolve 做实例解析")
         self.assertIn("viewer.py", skill, "缺渲染静默命令")
         self.assertNotIn("bmad-help", skill, "不得引用不存在的技能")
+
+    # trace: 任务书 §2.1 / 2026-09-19 中文化政策（薄主文件 ≤93 行 + 四段中文标题 + 工作流点名）
+    def test_thin_main_file_four_chinese_sections(self):
+        raw = self.read(SKILL_MD)
+        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        self.assertIn("diy-readiness-check", raw.splitlines()[0] + raw[:400], "标题未含技能名")
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
+            self.assertIn(section, raw, "缺四段结构：%s" % section)
+        for name in ("01-document-discovery.md", "02-requirement-inventory.md",
+                     "03-coverage-validation.md", "04-ux-alignment.md",
+                     "05-epic-quality-review.md", "06-final-assessment.md"):
+            self.assertIn(name, raw, "工作流未点名 %s" % name)
+
+    # trace: 任务书 §2.1（steps/ 读一条加载一条，每步结尾点名下一个文件）
+    def test_steps_chain_names_next_file(self):
+        steps = ("01-document-discovery.md", "02-requirement-inventory.md",
+                 "03-coverage-validation.md", "04-ux-alignment.md",
+                 "05-epic-quality-review.md", "06-final-assessment.md")
+        for name, nxt in zip(steps, steps[1:]):
+            text = self.read(os.path.join(STEPS_DIR, name))
+            self.assertIn("## 播报与下一步", text, "%s 缺「播报与下一步」段" % name)
+            self.assertIn(nxt, text, "%s 未点名下一个文件 %s" % (name, nxt))
+        last = self.read(os.path.join(STEPS_DIR, steps[-1]))
+        self.assertIn("最后一个步骤文件", last, "末步须声明本步是终局")
+
+    # trace: 任务书 §0.3（未建技能引用一律裁剪——技能面不得留悬空 bmad- 引用）
+    def test_no_dangling_bmad_references(self):
+        targets = [SKILL_MD]
+        if os.path.isdir(STEPS_DIR):
+            targets += [os.path.join(STEPS_DIR, n)
+                        for n in sorted(os.listdir(STEPS_DIR)) if n.endswith(".md")]
+        for path in targets:
+            text = self.read(path)
+            hits = re.findall(r"bmad-[a-z0-9-]+", text)
+            self.assertEqual(hits, [], "%s 含悬空 bmad- 引用：%s" % (path, hits))
 
 
 if __name__ == "__main__":

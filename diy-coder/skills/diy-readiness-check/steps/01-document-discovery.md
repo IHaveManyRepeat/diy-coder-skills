@@ -1,49 +1,49 @@
-# Step 1 — Document Discovery（文档发现）
+# Step 1 — 文档发现
 
-Progress: `[Document Discovery] → Requirement Inventory → Coverage Validation → UX Alignment → Epic Quality Review → Final Assessment`
+Progress: `[文档发现] → 需求清点 → 覆盖校验 → UX 对齐 → 史诗质量评审 → 总评与定稿`
 
-**Read (input):** the `collect` receipt from On Activation; the documents it inventoried.
-**Write (output):** the draft record in `{output_dir}/readiness.yaml` (`id` / `date` / `scope` / `status` / `findings` / `coverage` / `counts`).
+**Read (input):** 激活段那次 `collect` 的回执；回执清点到的文档。
+**Write (output):** `{output_dir}/readiness.yaml` 里的草稿记录（`id` / `date` / `scope` / `status` / `findings` / `coverage` / `counts`）。
 
-## Gate first (zero-output refusal)
+## 先过门（拒绝即零产出）
 
-`collect` already ran the gate. On exit 1 the run is over before it starts: relay the receipt's one-line reasons and its `gate.route` (diy-prd / diy-epics-stories), then stop and write nothing. A refusal never becomes a record, and a missing upstream document is never worked around by assessing something else instead.
+`collect` 已经跑过门。exit 1 时本轮在开始前就结束：转述回执的一行理由与它的 `gate.route`（diy-prd / diy-epics-stories），然后停下、什么都不写。拒绝永不成为记录；上游文档缺席，也绝不靠改评别的文档绕过去。
 
-## Inventory the real document set
+## 清点真实文档集
 
-Take the list from the receipt's `docs` block — do not re-scan the directories by hand:
+文档清单取自回执的 `docs` 块——不要手工重扫目录：
 
-- `prd`, `epics`, `stories` — present, and for epics/stories `project.status: 已定稿` (the gate's requirement).
-- `architecture` — optional: absent arrives as a warning in the receipt; carry it into the final assessment, it does not block.
-- `design` — optional: absent is a legitimate state; step 4 decides whether UX was implied and warns.
+- `prd`、`epics`、`stories` —— 必须在场，且 epics/stories 的 `project.status: 已定稿`（门的要求）。
+- `architecture` —— 可选：缺席以 warning 进回执；带进总评，不阻断。
+- `design` —— 可选：缺席是合法状态；第 4 步判定 UX 是否被隐含并要求告警。
 
-`scope` in the record = the documents actually inventoried, a subset of `[prd, architecture, epics, stories, design]`.
+记录里的 `scope` = 实际清点到的文档，取 `[prd, architecture, epics, stories, design]` 的子集。
 
-## Duplicate or stray versions (human judgment)
+## 重复或游离版本（人的判断）
 
-The engine knows only the canonical filenames; everything else is a conversational read:
+引擎只认规范文件名；其余都是对话式判读：
 
-- leftover drafts (`*.prev`, `*.bak`, dated copies of the same artifact), legacy markdown twins (`prd.md` beside `prd.yaml`), another instance's directory bleeding into this one;
-- sharded legacy documents (a `prd/` folder beside `prd.yaml`) — the diy single source is the YAML file.
+- 残留草稿（`*.prev`、`*.bak`、同名产物的带日期副本）、遗留 markdown 孪生（`prd.yaml` 旁边的 `prd.md`）、别的实例目录漏进本目录；
+- 分片遗留文档（`prd.yaml` 旁边的 `prd/` 文件夹）——diy 的单一源是那个 YAML 文件。
 
-Name what is there and settle which version is authoritative before assessing anything. Proceeding with an unresolved duplicate is a system failure (source step-1 rule); a duplicate the human cannot settle becomes a finding with a route, never a silent choice.
+把在场的东西点明，并先落定哪个版本权威，再开始评估。带着未落定的重复版本往前走是系统性失败（源 step-1 规则）；人定不了的重复版本落成一条带 `route` 的 finding，绝不静默选一个。
 
-## Draft the record
+## 起草记录
 
-Append one record to `{output_dir}/readiness.yaml` (create the file when absent: `project: {name, created, updated}` — `name` from `diy-coder.yaml` `project.name` — plus an empty `checks` list and `revisions: []`):
+向 `{output_dir}/readiness.yaml` 追加一条记录（文件缺席时新建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——外加空的 `checks` 列表与 `revisions: []`）：
 
 ```yaml
-  - id: IR-001                    # next = highest existing + 1, 3 digits; never renumber, never reuse
-    date: YYYY-MM-DD              # today
+  - id: IR-001                    # 下一个 = 既有最大值 + 1，三位零填充；永不重编号、永不复用
+    date: YYYY-MM-DD              # 今天（本条动作的日子）
     status: 草稿
-    scope: [prd, epics, stories]  # documents actually inventoried
+    scope: [prd, epics, stories]  # 实际清点到的文档
     findings: []
-    coverage: {must_frs: 0, covered: 0, gaps: []}   # copied from the receipt
+    coverage: {must_frs: 0, covered: 0, gaps: []}   # 照抄回执
     counts: {frs: 0, nfrs: 0, epics: 0, stories: 0, acs: 0, findings_by_severity: {}}
 ```
 
-Counts and coverage are copied from the receipt verbatim — machine anchors are never retyped from memory.
+计数与覆盖照抄回执逐字——机器锚点绝不凭记忆重打。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./02-requirement-inventory.md`.
+读全 `./02-requirement-inventory.md` 并照做。

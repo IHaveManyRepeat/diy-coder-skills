@@ -1,42 +1,42 @@
-# Step 6 — One-Shot（零爆炸半径快通道）
+# Step 6 — 一次成型（零爆炸半径快通道）
 
-Progress: `[Clarify & Route] → One-Shot` (reached by early exit from step 1; steps 2–5 are never read)
+Progress: `[Clarify & Route] → One-Shot`（由 step 1 的早期出口抵达；steps 2–5 永远不读）
 
-**Read (input):** the draft record with `route: 一次成型`; the intent it carries.
-**Write (output):** the code; the record's `baseline`, `status`, `tasks[].done`, `verification[].result`, `review`, `deferred`, `review_order`.
+**Read (input):** `route: 一次成型` 的草稿记录；它承载的意图。
+**Write (output):** 代码；记录的 `baseline`、`status`、`tasks[].done`、`verification[].result`、`review`、`deferred`、`review_order`。
 
-Reached only for zero blast radius: no plausible path by which this change causes unintended consequences elsewhere, clear intent, no architectural decisions. If that stopped being true — the change turns out to touch shared state, an interface, or a decision — stop and route to `./02-plan.md` instead; a mis-routed one-shot is how "small" changes break things.
+只有零爆炸半径才走这里：没有任何可信路径会让这次改动在别处造成非预期后果，意图清楚，无架构决策。这一条一旦不再成立——改动原来会触及共享状态、某个接口或某个决策——停下并改走 `./02-plan.md`；一次错路由的快通道，正是「小改动」搞坏东西的方式。
 
-## Implement
+## 实现
 
-Record `baseline` (HEAD or `NO_VCS`) and set the record's `status: 进行中` first, then implement the clarified intent directly — least code, project conventions, inside `code_map`, respecting `boundaries` (`先问` still HALTs for the human).
+先记 `baseline`（HEAD 或 `NO_VCS`）并把记录置 `status: 进行中`，然后直接实现澄清后的意图——最少代码、项目约定、留在 `code_map` 内、守 `boundaries`（`先问` 仍然 HALT 交人）。
 
-## Verify
+## 验证
 
-Run every `verification` command and write its real `result`. The engine refuses a record reaching `审查中` / `已完成` with empty commands (`EMPTY_FIELD`) — in this channel there is no red/green ledger, but there is no unverified claim either.
+跑每一条 `verification` 命令并写下真实 `result`。`status` 前进到 `审查中` / `已完成` 而命令为空，引擎一律拒绝（`EMPTY_FIELD`）——本通道没有红/绿台账，但也没有未经验证的主张。
 
-## Review (one adversarial pass)
+## 审查（一遍对抗）
 
-Run a single pass that assumes the change IS broken: attack it with diy-review's lenses — L1 正确性 against the acceptance criteria, L2 the boundary cases the criteria imply. Use a sub-agent with no conversation context when one is available. Three dispositions only:
+跑一遍假定改动**就是**坏的审查：用 diy-review 的镜头攻它——L1 正确性对验收判据，L2 判据隐含的边界情况。**L1 / L2 由本节显式跑；L3 由上面的「验证」段承担**——每条 acceptance 的命令级 `verification` 加实测 `result`，本就是引擎硬底；出现覆盖类问题时用 `layer: 覆盖审计` 落进 `review.findings`，使同一 `review` 块在两条路线上语义等价。子代理可用时用它，且不许带对话上下文。只三种处置：
 
-- **小修** — trivially fixable. Fix it now.
-- **后置** — real but pre-existing. Append `{finding, why, date}` to `deferred`.
-- Anything else — dropped silently.
-- A finding caused by this change but too big for a trivial patch → **HALT** and present it to the human for a decision before proceeding; do not quietly grow the change.
+- **小修** —— 顺手能修。现在就修。
+- **后置** —— 真但既有。把 `{finding, why, date}` 追加进 `deferred`。
+- 其他一切——静默丢弃。
+- 本次改动造成、又大到不是顺手一修的 finding → **HALT**，先呈给人决定再往下走；绝不悄悄把改动做大。
 
-Write the `review` block (`rounds: 1`, `findings` may be empty) and mark every `tasks[]` entry done.
+写 `review` 块（`rounds: 1`，`findings` 可为空）并把每条 `tasks[]` 都置 done。
 
-## Build the trace
+## 建轨迹
 
-Fill the record so it stands on its own as the change's lightweight trace: `title` from the clarified intent, `type`, `route: 一次成型`, `date`, and `review_order` built exactly as `./05-present.md` describes (concerns, not files; entry point first; peripherals last; `{path, line, why}` per stop). This is richer than the source's one-shot trace (frontmatter + intent + review order only): the diy record must pass the same mechanical gate as the full route, so acceptance, verification and review live here too.
+把记录填到能独立充当这次改动的轻量轨迹：`title` 取自澄清后的意图，`type`、`route: 一次成型`、`date`，以及完全照 `./05-present.md` 所述构建的 `review_order`（按关注点不按文件；入口点领读；外围收尾；每看点 `{path, line, why}`）。其中 `code_map` ＝ 改动文件一行一条（`path` / `role`）；`tasks` ≥1 条——能过终门的最小集：`--final` 要求 tasks 非空且全 `done: true`，改动即任务、写完置 done。这比源技能的一次成型轨迹更厚（源只有 frontmatter + intent + 带看顺序）：diy 的记录要过与全路线同一道机械门，故 acceptance、verification 与 review 也住在这里。
 
-## Settle and close
+## 落定与收尾
 
-1. Set `project.status: 已定稿` and the record's `status: 已完成`.
-2. Run the final gate: `python "{project-root}/.claude/skills/diy-quick-dev/scripts/spec.py" check --final --id SP-xxx --json` — exit 0 is the only pass; fix and re-run otherwise.
-3. Render via diy-viewer (silent side step, command only) and display the summary: files changed with one-line descriptions (CWD-relative `path:line`), findings — patches applied, items deferred, items dropped (say so if all were dropped) — and the spec path carrying its `review_order`.
-4. **No commit, no push, no editor.** Close with one suggested conventional commit message the human can run themselves, and an offer to draft a PR description. Then HALT and wait for the human.
+1. 写 `{output_dir}/spec.yaml` 的 `project.status: 已定稿` 与记录的 `status: 已完成`。
+2. 跑终门：`python "{project-root}/.claude/skills/diy-quick-dev/scripts/spec.py" check --final --id SP-xxx --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--output-dir` 必填、无缺省）——exit 0 是唯一放行；否则修完重跑。
+3. 用 diy-viewer 渲染（静默旁路，只写命令）并展示摘要：改动文件各配一行说明（CWD 相对 `path:line`）、findings——已打的补丁、已延后项、已丢弃项（全被丢弃就直说）——以及承载其 `review_order` 的 spec 路径。
+4. **不 commit、不 push、不开编辑器。** 收尾给一条人自己能跑的 conventional 提交信息，外加一句「要不要我起草 PR 描述」。然后 HALT 等人。
 
-## Exit
+## 播报与下一步
 
-This is the last step of the 一次成型 route — the run ends here once the final gate exits 0.
+这是 一次成型 路线的最后一步——终门 exit 0 后本次运行到此结束；不再读任何 `steps/` 文件。

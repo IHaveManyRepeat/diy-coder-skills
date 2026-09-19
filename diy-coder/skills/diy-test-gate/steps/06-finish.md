@@ -1,9 +1,9 @@
-# Step 6 — Finish（定稿 + 终门 + 渲染 + 摘要）
+# Step 6 — 定稿收尾（Finish：终门 + 渲染 + 摘要）
 
 Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 
-**Read (input)：** 已填完的草稿记录；`check` 的 JSON 回执。
-**Write (output)：** `{output_dir}/test-gate.yaml` 的定稿记录（`status: 已定稿` + 各段收口）；给用户的收尾摘要。
+**Read (input):** 已填完的草稿记录；`check` 的 JSON 回执。
+**Write (output):** `{output_dir}/test-gate.yaml` 的定稿记录（`status: 已定稿` + 各段收口）；给用户的收尾摘要。
 
 ## 收口记录
 

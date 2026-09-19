@@ -32,6 +32,15 @@ Exit codes: `0` ok / `1` violations or refusal (illegal transition, unknown stor
 | `reconcile [--apply]` | Diff sprint tasks against stories/test-plan (dry-run by default; `--apply` writes). |
 | `baseline-add --code C --where W --reason R` | Append one known-legacy entry to `{output_dir}/diyc-baseline.yaml` (stamps `on`: today, `by`: user). Duplicate `(code, where)` → `BASELINE_DUPLICATE`, corrupt ledger → `BASELINE_INVALID`; both refuse with zero writes. Only after explicit user ratification (rule 4). |
 
+## Standalone scripts
+
+Two repo-root scripts ship alongside `diyc.py` (installed under `scripts/`; **run manually by a human** — never auto-invoked by a host skill):
+
+| Script | Purpose |
+| --- | --- |
+| `runner.py` | Headless loop orchestrator: drives sprint tasks one at a time to terminal state (`已完成`/`已阻塞`). Resumable from the HALT-written `sprint.yaml` state; retries bounded per task. |
+| `exp-sync.py` | Experience-library sync: pushes project `bug-log.yaml` entries into the shared repo at `paths.experience_repo` (buckets by subclass; `taxonomy.yaml` auto-extends). |
+
 ## Receipt
 
 With `--json` every command prints one JSON line: `{ok, command, project_root, output_dir, instance, violations[], warnings[], counts{}, ...}`. Violations are `{code, where, msg}` with forward-slash `where` relative to project-root. Without `--json`: one line per violation (`CODE where: msg`), then a summary line.

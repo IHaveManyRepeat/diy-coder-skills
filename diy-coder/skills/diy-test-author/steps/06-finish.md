@@ -1,4 +1,4 @@
-# Step 6 — Finish（终门、摘要与路由）
+# Step 6 — 终门与路由（Finish）
 
 Progress: `Preflight → Scope → Generate → Audit → Confirm → [Finish]`
 

@@ -1,9 +1,9 @@
-# Step 3 — Matrix & Gaps（矩阵复核 + 缺口 + 盲区走查）
+# Step 3 — 矩阵与缺口（Matrix & Gaps：缺口 + 盲区走查）
 
 Progress: `Preflight → Oracle → [Matrix & Gaps] → NFR → Gate → Finish`
 
-**Read (input)：** `collect` 回执的 `items[]` / `coverage` / `gaps` / `soft_metrics` / `warnings`；`{output_dir}/test-plan.yaml` 中**该 story 的 TC**（按 `ac` 与 `id` 定位，不整份通读）。
-**Write (output)：** 草稿记录的 `coverage`（`items` / `totals` / `by_level` / `heuristics`）与 `gate.blockers` 的 `kind: 覆盖` / `kind: 启发式` 部分。
+**Read (input):** `collect` 回执的 `items[]` / `coverage` / `gaps` / `soft_metrics` / `warnings`；`{output_dir}/test-plan.yaml` 中**该 story 的 TC**（按 `ac` 与 `id` 定位，不整份通读）。
+**Write (output):** 草稿记录的 `coverage`（`items` / `totals` / `by_level` / `heuristics`）与 `gate.blockers` 的 `kind: 覆盖` / `kind: 启发式` 部分。
 
 ## 覆盖判定表（口径，供你复核，不是让你手算）
 

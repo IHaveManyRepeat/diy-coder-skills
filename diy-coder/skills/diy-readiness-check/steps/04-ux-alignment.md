@@ -1,31 +1,35 @@
-# Step 4 — UX Alignment（UX 对齐）
+# Step 4 — UX 对齐
 
-Progress: `Document Discovery → Requirement Inventory → Coverage Validation → [UX Alignment] → Epic Quality Review → Final Assessment`
+Progress: `文档发现 → 需求清点 → 覆盖校验 → [UX 对齐] → 史诗质量评审 → 总评与定稿`
 
-**Read (input):** the receipt's `docs.design` / `docs.architecture`; `design.yaml` and `architecture.yaml` when present.
-**Write (output):** UX findings (`area: ux`) — alignment gaps, or the implied-but-missing warning.
+**Read (input):** 回执的 `docs.design` / `docs.architecture`；在场时的 `design.yaml` 与 `architecture.yaml`；缺 `design.yaml` 时的 `design.py detect` 回执。
+**Write (output):** UX 类 finding（`area: ux`）——对齐缺口，或「被隐含却缺席」的告警。
 
-## Document status
+## 文档状态
 
-In diy the design/UX single source is `design.yaml` (pages `P-x`, design tokens). The receipt says whether it exists; the source workflow's `*ux*.md` search maps onto it one-to-one — do not go looking for markdown UX files.
+diy 里设计/UX 的单一源是 `design.yaml`（页面 `P-x`、design tokens）。回执说明它在不在场；源工作流那次 `*ux*.md` 检索与它一一对应——别去找 markdown 版 UX 文件。
 
-## When design.yaml exists — validate alignment
+## design.yaml 在场 —— 校验对齐
 
-**UX ↔ PRD.** Every user journey the design shows must trace to PRD requirements (`FR-x.y`) or be flagged: a page carrying features no requirement backs is scope the PRD never approved (`route: diy-prd`); a requirement with a user-visible surface the design never covers is a gap (`route: diy-design`).
+**UX ↔ PRD。** 设计展示的每条用户旅程都必须追溯到 PRD 需求（`FR-x.y`），否则记一条：页面承载了没有需求背书的功能 = PRD 从未批准的范围（`route: diy-prd`）；某条 frontend-facing 需求设计从未覆盖 = 缺口（`route: diy-design`）。
 
-**UX ↔ Architecture.** Check that architecture decisions (`architecture.yaml` `D-x`) support what the design needs — responsiveness and load-time targets where the design implies them, client-side state, any UI component whose backing service no decision covers. Name the decision, or its absence, with an evidence anchor.
+**UX ↔ 架构。** 检查架构决策（`architecture.yaml` 的 `D-x`）支撑得住设计所需——设计隐含的响应式与加载时长目标、客户端状态、任何其后台服务无决策覆盖的 UI 组件。点名该决策、或点明它的缺席，都要带证据锚点。
 
-Findings here are `area: ux`; severity by consequence — `高` when a requirement cannot be built as designed, `中` for alignment debt, `低` for polish.
+这里的 finding 是 `area: ux`；severity 按后果定——需求无法照设计实现是 `高`，对齐欠债是 `中`，打磨项是 `低`。
 
-## When design.yaml is absent — is UX implied?
+## design.yaml 缺席 —— UX 是否被隐含？
 
-Absence is legitimate (a CLI, a library, a backend service) — but never assume it (source step-4 rule "Don't assume UX is not needed"). Judge from the PRD:
+缺席是合法的（CLI、库、后端服务）——但绝不假设它（源 step-4 规则「Don't assume UX is not needed」）。判据与本套件同一口径：取 `diy-design` 探测器（`design.py detect`）的 `has_frontend`，不要自拟一套「用户可见」的读法：
 
-- does it name user interfaces, screens, or web/mobile surfaces (`prd.yaml` features / users)?
-- is this a user-facing application, or does an epic deliver something a person operates?
+```bash
+python "{project-root}/.claude/skills/diy-design/scripts/design.py" detect --project-root "{project-root}"
+```
 
-Implied but missing → a finding (`area: ux`, `severity: 中`, `route: diy-design`) with the implying FR IDs as evidence — the source workflow's warning, kept. Not implied → say so explicitly and record nothing; step 6 reports it as a clean area.
+（resolved 实例时附 `--instance <name>`；脚本化时加 `--json`。）
 
-## Next
+- `has_frontend: true`（PRD 检出 frontend-facing 需求）而 `design.yaml` 缺席 → 一条 finding：`area: ux`、`severity: 中`、`route: diy-design`，`evidence` 取探测器命中的 FR ID——源工作流那条告警，保留。
+- `has_frontend: false` → 没有隐含 frontend-facing 需求，明说一句、什么都不记；第 6 步按干净面汇报。diy-design 用同一探测器且会声明 SKIP——两处结论一致，不会对打。
 
-Read fully and follow `./05-epic-quality-review.md`.
+## 播报与下一步
+
+读全 `./05-epic-quality-review.md` 并照做。

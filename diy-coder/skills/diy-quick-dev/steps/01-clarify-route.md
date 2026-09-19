@@ -1,61 +1,61 @@
-# Step 1 — Clarify & Route（澄清与路由）
+# Step 1 — 澄清与路由
 
-Progress: `[Clarify & Route] → Plan → Implement → Review → Present` (一次成型: `[Clarify & Route] → One-Shot`)
+Progress: `[Clarify & Route] → Plan → Implement → Review → Present`（一次成型：`[Clarify & Route] → One-Shot`）
 
-**Read (input):** the conversation that triggered this run; `{output_dir}/spec.yaml` when it exists; the artifact listing.
-**Write (output):** the draft record in `{output_dir}/spec.yaml` (`id` / `date` / `title` / `type` / `route` / `status: 草稿` / `intent` / `boundaries`).
+**Read (input):** 触发本次运行的对话；存在时的 `{output_dir}/spec.yaml`；产物清单。
+**Write (output):** `{output_dir}/spec.yaml` 里的草稿记录（`id` / `date` / `title` / `type` / `route` / `status: 草稿` / `intent` / `boundaries`）。
 
-## Intent check (do this first)
+## 意图核对（先做这一步）
 
-The prompt that triggered this run IS the intent — not a hint. Check in this order and stop at the first clear answer:
+触发本次运行的提示词**就是**意图——不是线索。按此顺序核对，命中即停：
 
-1. **Explicit pointer** — a spec file or an `SP-xxx` this message names. Read its record and route by `status`: `草稿` → `./02-plan.md`; `就绪` / `进行中` → `./03-implement.md`; `审查中` → `./04-review.md`; `已完成` → read-only: summarize it and stop, do not resume; `已阻塞` → name the blocker and stop (unblock is a human call). Anything else (an intent file, an external doc, a plan, a description) → ingest as starting intent and continue below; never infer a workflow state from it.
-2. **Recent conversation** — the last few messages clearly show the work. Same routing.
-3. **Scan and ask** — list the active records (`草稿` / `就绪` / `进行中` / `审查中`) from `{output_dir}/spec.yaml` and HALT: resume one, or `[N]` for new work.
+1. **显式指针** —— 本条消息点名的 spec 文件或 `SP-xxx`。读它的记录并按 `status` 路由：`草稿` → `./02-plan.md`；`就绪` / `进行中` → `./03-implement.md`；`审查中` → `./04-review.md`；`已完成` → 只读：摘要呈现后停，不续跑；`已阻塞` → 点名阻塞项后停（解阻塞是人的决定）。**`草稿` 而尚未定 `route`（多目标分支可能已提前建记录）→ 先回到「多目标检查」与「路由」两节判定，不直接进 `./02-plan.md`。** 其他任何东西（一个意图文件、外部文档、计划、描述）→ 作为起始意图摄入并继续往下；绝不从它推断工作流状态。
+2. **近期对话** —— 最近几条消息清楚显示在做什么。同样路由。
+3. **扫描并问** —— 列出 `{output_dir}/spec.yaml` 里的活跃记录（`草稿` / `就绪` / `进行中` / `审查中`）并 HALT：续跑一条，或 `[N]` 开新工作。
 
-Never ask extra questions once the intent is clear.
+意图一旦清楚，绝不追加提问。
 
-## Load context (reference, never copy)
+## 载入上下文（引用，绝不复制）
 
-- Read the structured artifacts the intent needs — `stories.yaml` / `architecture.yaml` / `epics.yaml` / `design.yaml` when present — and cite them by ID (`S-x`, `D-x`, `AC-x.y`). Do not paste document bodies into the record: the diy single source is the artifact, the record carries references.
-- When the intent is a story inside an epic and a fuller implementation context is wanted, the diy context pack is diy-create-story's `story-context.yaml` — suggest it, never inline its content here. (The source cached this as a per-epic markdown file; diy reads structured artifacts, so no cache is compiled.)
-- Change the state of nothing: this skill never writes `sprint.yaml`. When the change touches a story that is already in the loop, cross-document truth is diyc's (`diyc.py check --type sprint --json`) and sprint state stays diyc-owned. (The source synced a `sprint-status.yaml`; diy has no such file.)
+- 读意图所需的结构化产物——`stories.yaml` / `architecture.yaml` / `epics.yaml` / `design.yaml`（在场时）——并按 ID 引用（`S-x`、`D-x`、`AC-x.y`）。绝不把文档正文贴进记录：diy 的单一源是产物，记录只携带引用。
+- 当意图是 epic 里的一个 story、且想要更完整的实现上下文时，diy 的上下文包是 diy-create-story 的 `story-context.yaml`——建议它，绝不在此内联其内容。（源技能把它缓存为每 epic 一个 markdown 文件；diy 读结构化产物，故不编译缓存。）
+- 不改任何状态：本技能绝不写 `sprint.yaml`。当改动触及已在环内的故事，跨文档真相归 diyc（`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type sprint --json`），sprint 状态始终由 diyc 拥有。（源技能同步一个 `sprint-status.yaml`；diy 没有这个文件。）
 
-## Clarify
+## 澄清
 
-Do not fantasize and do not leave open questions. Ask as a numbered list; when the human replies, verify **every** numbered question was answered — if any were ignored, HALT and re-ask only the missing ones before proceeding. Keep looping until the intent is implementable.
+不幻想，也不留未决问题。以编号列表提问；人回复后逐条核验**每一个**编号问题都答了——有被忽略的，HALT 并只重问缺的那些再继续。一直循环到意图可落地。
 
-## Version control sanity check
+## 版本控制体检
 
-Read-only: is the working tree clean, and does the current branch make sense for this intent? A dirty tree or an obviously mismatched branch → surface it and ask before proceeding. Version control unavailable → skip.
+只读：工作区是否干净，当前分支是否符合本意图？工作区脏或分支明显不匹配 → 摊开并先问再继续。版本控制不可用 → 跳过。
 
-## Multi-goal check (SCOPE STANDARD)
+## 多目标检查（SCOPE STANDARD）
 
-The spec targets **one user-facing goal** within **900–1600 tokens**. Multi-goal means ≥2 top-level independent shippable deliverables — each could be reviewed, tested and shipped separately without breaking the others. Never count surface verbs, "and" conjunctions, or noun phrases; never split cross-layer details inside one goal.
+spec 面向**一个用户可感知的目标**，规模 **900–1600 tokens**。多目标 = ≥2 个顶层独立可交付物——每一个都能单独评审、测试、发布而不破坏其余。绝不把表面动词、「和」字连接、名词短语算作目标；也绝不在同一目标内拆跨层细节。
 
-- Split: "add a dark-mode toggle AND refactor auth to JWT AND build an admin dashboard".
-- Don't split: "add validation and display errors" / "support drag-and-drop AND paste AND retry".
+- 该拆：「加一个暗色模式开关 **和** 把认证重构成 JWT **和** 建一个管理后台」。
+- 不该拆：「加校验并显示错误」/「支持拖拽 **和** 粘贴 **和** 重试」。
 
-The token range is **a proposal, not a gate** — the human overrides it. When the intent fails the single-goal test, present the distinct goals as a bullet list, explain in 2–4 sentences why each is independently shippable, name any coupling risk, recommend which to take first, then HALT: `[S] Split — take the first goal, defer the rest` | `[K] Keep all — accept the risks`. On **S**: append the deferred goals to the record's `deferred` (finding / why / date) and narrow scope to the first goal. On **K**: continue as-is.
+token 区间是**建议、不是门**——由人否决。意图过不了单目标测试时，把各目标排成要点列表，用 2–4 句说明为什么每个都能独立发布，点名耦合风险，建议先取哪个，然后 HALT：`[S] 拆分——先做第一个目标，其余延后` | `[K] 全留——接受风险`。选 **S**：把延后的目标追加进记录的 `deferred`（finding / why / date）——**记录尚不存在时先建草稿记录（骨架见 `## 路由`），再写 `deferred`**——并把范围收窄到第一个目标。选 **K**：照原样继续。
 
-## Route (exactly one)
+## 路由（恰好一条）
 
-Create the record first: append to `{output_dir}/spec.yaml` (create the file when absent: `project: {name, status: 草稿, created, updated}` — `name` from `diy-coder.yaml` `project.name` — plus an empty `specs` list and `revisions: []`).
+**记录缺席时才建**（多目标分支可能已建）：追加到 `{output_dir}/spec.yaml`（文件缺席时创建：`project: {name, status: 草稿, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——加空 `specs` 列表与 `revisions: []`）。
 
 ```yaml
-  - id: SP-001                  # next = highest existing + 1, 3 digits; never renumber, never reuse
-    title: <one line, from the clarified intent>
+  - id: SP-001                  # 下一个 = 既有最大 + 1，三位零填充；永不重编号，永不复用
+    title: <一行，来自澄清后的意图>
     type: 新功能|缺陷修复|重构|杂务
-    route: <decided below>
+    route: <下面定>
     status: 草稿
-    date: YYYY-MM-DD            # today
-    intent: {problem: <what is broken or missing and why it matters>, approach: <the what, not the how>}
-    boundaries: {总是: [<invariant rules>], 先问: [<human-gated decisions>], 从不: [<non-goals and forbidden approaches>]}
+    date: YYYY-MM-DD            # 今天，本条动作的日子
+    intent: {problem: <坏了或缺了什么、为什么重要>, approach: <做什么，不是怎么做>}
+    boundaries: {总是: [<不变量>], 先问: [<须人拍板的决定>], 从不: [<非目标与禁行做法>]}
 ```
 
-- **一次成型** — zero blast radius: no plausible path by which this change causes unintended consequences elsewhere, clear intent, no architectural decisions. → **EARLY EXIT**: read fully and follow `./06-oneshot.md`.
-- **计划-编码-审查** — everything else. When unsure whether the blast radius is truly zero, choose this.
+- **一次成型** —— 零爆炸半径：没有任何可信路径会让这次改动在别处造成非预期后果，意图清楚，无架构决策。→ **早期出口**：读全并照做 `./06-oneshot.md`。
+- **计划-编码-审查** —— 其余一切。拿不准爆炸半径是否真为零时，选这条。
 
-## Next
+## 播报与下一步
 
-Read fully and follow `./02-plan.md`. (On the 一次成型 route that file is never read — the early exit above replaces it.)
+读全并照做 `./02-plan.md`。（一次成型路线上这个文件永远不读——上面的早期出口取代它。）

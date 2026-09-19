@@ -1,39 +1,47 @@
-# Step 2 — Requirement Inventory（需求清点）
+# Step 2 — 需求清点
 
-Progress: `Document Discovery → [Requirement Inventory] → Coverage Validation → UX Alignment → Epic Quality Review → Final Assessment`
+Progress: `文档发现 → [需求清点] → 覆盖校验 → UX 对齐 → 史诗质量评审 → 总评与定稿`
 
-**Read (input):** the `collect` receipt (`requirements`, `counts`, `diyc.check`); `prd.yaml` only when a human question needs one requirement's exact wording.
-**Write (output):** the `counts` block of the record (confirmed); findings for anything the inventory exposed.
+**Read (input):** `collect` 回执（`requirements`、`counts`、`diyc.check`）；只有当人问起某条需求的原文措辞时才读 `prd.yaml` 那一条。
+**Write (output):** 记录的 `counts` 块（落定）；清点暴露出的问题落成 finding。
 
-## What changed from the source workflow (read this first)
+## 与源工作流的差别（先读这段）
 
-The source step-2 read the whole PRD (whole or sharded markdown) and hand-extracted every FR and NFR into prose sections of a report. That extraction was itself a failure surface: hand-counting drifts, and a requirement missed once silently vanishes from the coverage matrix that follows.
+源 step-2 通读整份 PRD（整篇或分片的 markdown），手工把每条 FR、NFR 抽进报告的散文小节。那次抽取本身就是失败面：手工计数会漂移，而漏掉一次的需求会从其后那张覆盖矩阵里静默消失。
 
-In diy the PRD is structured (`prd.yaml`), so the inventory is machine-derived. The `collect` receipt's `requirements.frs` lists every FR with its `priority` and owning `feature`, `requirements.nfrs` every NFR, and `counts` the tallies. Do not re-extract, do not re-summarize — present the receipt.
+diy 里 PRD 是结构化的（`prd.yaml`），所以清点由机器推导。`collect` 回执的 `requirements.frs` 列全部 FR 及其 `priority` 与所属 `feature`，`requirements.nfrs` 列全部 NFR，`counts` 给计数。不要重抽、不要重述——把回执呈上。
 
-- An FR the human expects but the receipt lacks is not an extraction miss: it is absent from `prd.yaml`. Record it as a finding with `route: diy-prd`, or say so and let the human decide.
-- Statement text is referenced, never copied into the record — point at the ID (`prd.yaml features[F-1].requirements[FR-1.1]`).
+- 人预期有、回执却没有的 FR，不是抽取漏项：是 `prd.yaml` 里本来就没有。把它落成 finding 带 `route: diy-prd`，或者说明白并交人决定。
+- 需求原文只引用、绝不抄进记录——指向 ID（`prd.yaml features[F-1].requirements[FR-1.1]`）。
 
-## Present the inventory
+## 呈上清点结果
 
-One message, front-loaded:
+一条消息，前置给全：
 
-- FR count with its 必须/应该/可选 split; NFR count; the FR list as `FR-x.y (必须) — feature F-x`;
-- epics / stories / AC counts from the receipt;
-- open questions the PRD still carries — the `diyc.check` receipt reports unclosed `open_questions` as `PENDING_DECISION`; a PRD with open questions is not settled input.
+- FR 总数及其 必须/应该/可选 分布；NFR 总数；FR 列表写成 `FR-x.y (必须) — feature F-x`；
+- 回执里的 epics / stories / AC 计数；
+- PRD 还挂着的未决问题——`diyc.check` 回执把未关闭的 `open_questions` 报成 `PENDING_DECISION`；带着未决问题的 PRD 不算定稿输入。
 
-Halt for the human to scan the list: this is the last chance to catch a missing requirement before coverage is judged.
+HALT —— 停下让人扫这份清单：这是判断覆盖之前，最后一次逮住漏项的机会。
 
-**Completeness read** (source step-2 §6, "PRD Completeness Assessment"). Say plainly whether the PRD reads complete and unambiguous for the build: the receipt covers the mechanics (enums, unclosed questions, duplicate IDs), your read covers clarity — a requirement whose statement cannot be turned into an AC without guessing is a finding (`area: prd`, `route: diy-prd`), with the FR ID as evidence.
+**完整性判读**（源 step-2 §6「PRD Completeness Assessment」）。直说 PRD 对这次建设读起来是否完整、无歧义：机械面（枚举、未决问题、重复 ID）由回执覆盖，清晰度由你读——某条需求的 statement 不靠猜就转不成 AC，就是一条 finding（`area: prd`、`route: diy-prd`），`evidence` 取该 FR ID。
 
-## Additional requirements (never labeled FR/NFR)
+## 附加需求（从不贴 FR/NFR 标签）
 
-The source workflow also looked for constraints, assumptions and technical requirements that no label captured. In the diy shape they live in `prd.yaml` `out_of_scope` / `open_questions` / `nfrs` and in `architecture.yaml` decisions. If the human knows a constraint that lives in none of them, that is a finding (`area: prd`, `route: diy-prd`) — never something carried silently.
+源工作流还会找没被任何标签接住的约束、假设与技术需求。在 diy 形态里，它们住在 `prd.yaml` 的 `out_of_scope` / `open_questions` / `nfrs` 与 `architecture.yaml` 的 decisions 里。人知道的某条约束哪一处都不在，就是一条 finding（`area: prd`、`route: diy-prd`）——绝不静默带着走。
 
-## Evidence from diyc
+## 来自 diyc 的证据（每条机械违规都落 finding）
 
-The `diyc.check` receipt for `prd` carries the mechanical side (enums, ID uniqueness, unclosed questions, zero `[假设]`). Relay each violation as an inventory gap with its `where`; do not re-check it by eye.
+`collect` 委派 diyc 跑的是 `prd` / `epics` / `stories` 三型检查，回执的 `diyc.check.violations` 三型合在一处（每条带 `where` 与 `type`）。三条硬规则：
 
-## Next
+1. **每条违规落一条 finding**，`evidence` 取该违规的 `where`；
+2. **`area` 按 `where` 的文件名映射**（`prd.yaml`→`prd`、`epics.yaml`→`epics`、`stories.yaml`→`stories`；回执同一行带的 `type` 就是这根轴）；
+3. **`route` 取引擎同表**（`prd.yaml`→`diy-prd`，`epics.yaml` / `stories.yaml`→`diy-epics-stories`）。
 
-Read fully and follow `./03-coverage-validation.md`.
+`severity` 分档：`PENDING_DECISION` / `DUPLICATE_ID` / `UNKNOWN_ID` / `SET_MISMATCH` → `高`（决策未落或 ID 链断，下游照着做就会错）；`ENUM_INVALID` / `EMPTY_FIELD` 及其余 → `中`。
+
+机械判定不重复核查（原样带 `where`），记完重算 `counts.findings_by_severity`。
+
+## 播报与下一步
+
+读全 `./03-coverage-validation.md` 并照做。

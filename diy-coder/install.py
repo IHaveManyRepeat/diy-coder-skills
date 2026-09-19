@@ -30,8 +30,15 @@ def main() -> int:
         dst = os.path.join(skill_dst, name)
         if os.path.isdir(dst):
             shutil.rmtree(dst)
-        shutil.copytree(os.path.join(src, "skills", name), dst)
+        shutil.copytree(os.path.join(src, "skills", name), dst,
+                        ignore=shutil.ignore_patterns("__pycache__"))
         count += 1
+
+    # A-9（决策 1）：仓库根的 runner / exp-sync 分发进 diy-tools/scripts/——
+    # 引用处按此安装形态路径写，均由人手动执行
+    tools_scripts = os.path.join(skill_dst, "diy-tools", "scripts")
+    for tool in ("runner.py", "exp-sync.py"):
+        shutil.copyfile(os.path.join(src, tool), os.path.join(tools_scripts, tool))
 
     # diy-coder.yaml 是项目级配置（experience_repo 等各项目不同）：仅首次安装创建，之后不覆盖
     cfg = os.path.join(dst_root, "diy-coder.yaml")

@@ -1,9 +1,9 @@
-# Step 1 — Preflight（产物在场 + story 定位 + 采集）
+# Step 1 — 前置校验（Preflight：产物在场 + story 定位 + 采集）
 
 Progress: `[Preflight] → Oracle → Matrix & Gaps → NFR → Gate → Finish`
 
-**Read (input)：** `collect` 的回执（On Activation 已跑）；`{output_dir}/test-gate.yaml` 的既有记录（只用于铸造下一个 `TG-###`）。
-**Write (output)：** `{output_dir}/test-gate.yaml` 的草稿记录（`id` / `date` / `status: 草稿` / `scope` / `story` / `oracle` / `coverage`）。
+**Read (input):** `collect` 的回执（On Activation 已跑）；`{output_dir}/test-gate.yaml` 的既有记录（只用于铸造下一个 `TG-###`）。
+**Write (output):** `{output_dir}/test-gate.yaml` 的草稿记录（`id` / `date` / `status: 草稿` / `scope` / `story` / `oracle` / `coverage`）。
 
 ## 拒绝路径先落地
 
