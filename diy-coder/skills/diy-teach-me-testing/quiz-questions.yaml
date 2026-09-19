@@ -1,0 +1,200 @@
+# diy-teach-me-testing 静态题库 —— 定义态（随技能目录分发）
+#
+# 纪律（B3 任务书 §7 裁定 1 / 门禁）：
+#   · 题面/选项/答案/解析**静态固化，禁运行时生成**——分数须可复现、可校验。
+#   · 每节 3 题；session 7 无题（探索型课次，无 quiz → 运行态 score 恒 null，不参与平均分）。
+#   · 判线口径：通过 = score >= 70，而 score = round(答对数 × 100 / 3) —— **2/3 = 67 未达线**，
+#     即 3 题须全对（源文自述 "2 of 3 correct" 通过与其算式 points/3*100 自相矛盾，diy 侧以算式为准）。
+#   · 未达线时停下让用户选：R 复习本节 / C 带分继续（分数照记），不自动通过。
+#   · 题干问的是 diy 测试链（diy 技能与产物），不问源平台。
+
+sessions:
+  1:                                                # 快速上手
+    passing_score: 70
+    questions:
+      - id: q1-single-source
+        question: diy 体系里测试用例（TC）的单一源是哪份产物？
+        options:
+          A: stories.yaml
+          B: test-plan.yaml
+          C: sprint.yaml
+          D: bug-log.yaml
+        correct: B
+        explanation: 用例只写在 test-plan.yaml 里（由 diy-test-design 产出）；其余产物与技能一律用 TC ID 引用它，不复制内容。
+      - id: q2-tc-binding
+        question: 每条 TC 必须绑定什么？
+        options:
+          A: 一个验收标准 ID（AC-x.y）
+          B: 一个源码文件路径
+          C: 一次提交哈希
+          D: 一个缺陷 ID
+        correct: A
+        explanation: 用例从 AC 推导：绑定一个 AC、声明要杀的故障假设（kill_target）。绑定不了 AC 的用例就是虚构覆盖。
+      - id: q3-author-skill
+        question: 编码前把已设计的 TC 变成红相脚手架，归哪个技能？
+        options:
+          A: diy-test-design
+          B: diy-e2e-tests
+          C: diy-test-author
+          D: diy-augment
+        correct: C
+        explanation: diy-test-author 消费既有 TC，产出全部 skip 的红相脚手架（不执行）；用例归 design，编码后补测归 e2e-tests 与 augment，激活实现归 diy-dev 的 TDD 循环。
+
+  2:                                                # 核心概念
+    passing_score: 70
+    questions:
+      - id: q1-risk-formula
+        question: 风险怎么算？
+        options:
+          A: 概率 + 影响
+          B: 概率 × 影响
+          C: 概率 − 影响
+          D: 影响 ÷ 概率
+        correct: B
+        explanation: 风险 = 概率 × 影响；据此把覆盖优先级排成 P0（关键）/P1 / P2，先测会出大事的地方。
+      - id: q2-kill-target
+        question: 用例里的 kill_target 是什么？
+        options:
+          A: 这条用例要暴露的故障假设
+          B: 用例期望的返回值
+          C: 用例覆盖的文件
+          D: 用例的优先级
+        correct: A
+        explanation: 写用例前先列「代码可能怎么错」，每条用例声明它要杀哪条假设。失败也区分不出故障的用例是装饰品。
+      - id: q3-determinism
+        question: 下面哪一项直接违反测试的确定性纪律？
+        options:
+          A: 用等待条件等状态变化
+          B: 用固定 sleep(5000) 等页面就绪
+          C: 每个用例自建夹具
+          D: 用例清理自己创建的数据
+        correct: B
+        explanation: 固定 sleep 是在猜时间、不响应状态变化，慢且不稳；确定性等待（等条件成立）才是正解。
+
+  3:                                                # 架构与模式
+    passing_score: 70
+    questions:
+      - id: q1-integration-layer
+        question: 验证「跨产物一致性、不依赖 agent 也能脚本化跑」的属于哪一层？
+        options:
+          A: unit
+          B: integration
+          C: e2e
+          D: 手工测试
+        correct: B
+        explanation: unit 是单组件代码检查；integration 是跨产物、可纯脚本化的检查；e2e 要由 agent 或操作者驱动完整流程。
+      - id: q2-data-factory
+        question: 数据工厂（夹具）的首要目的是什么？
+        options:
+          A: 让用例跑得更快
+          B: 数据定义一次、处处复用，避免硬编码
+          C: 让测试报告更好看
+          D: 减少用例数量
+        correct: B
+        explanation: 夹具/工厂解决的是「每处都手搓数据」的重复与漂移；硬编码测试数据会随实现变化而碎掉。
+      - id: q3-selector
+        question: 为什么优先用语义定位器（角色/标签/文本），而不是 CSS/XPath？
+        options:
+          A: 写起来更短
+          B: 执行更快
+          C: 不绑实现细节，页面或结构改版时不易碎
+          D: 支持并行执行
+        correct: C
+        explanation: 语义定位锚在用户可感知的界面上；CSS/XPath 锚在 DOM 细节上，重构一次就大面积红。
+
+  4:                                                # 测试设计
+    passing_score: 70
+    questions:
+      - id: q1-fault-first
+        question: 编码前设计用例，第一步做什么？
+        options:
+          A: 先写实现代码
+          B: 先穷举故障假设，再按假设挑技法
+          C: 先跑一遍覆盖率
+          D: 先搭测试框架
+        correct: B
+        explanation: 技法按故障假设挑、不按习惯挑；不先列假设，用例就是照着 AC 抄一遍，杀不掉任何具体错误。
+      - id: q2-boundary
+        question: 边界值技法取哪些点？
+        options:
+          A: 任意随机值
+          B: min−1 / min / min+1 / max−1 / max
+          C: 只取中位数
+          D: 只取最大值
+        correct: B
+        explanation: 边界上下各取一点专杀 off-by-one 一类假设；随机值不保证打到边界。
+      - id: q3-no-oracle
+        question: 某条 AC 太含糊、推不出预期结果时该怎么办？
+        options:
+          A: 随便写个能过的断言
+          B: 静默跳过这条 AC
+          C: 记进 coverage_gaps，reason 标 [SPEC-GAP]，交用户裁定
+          D: 删掉这条 AC
+        correct: C
+        explanation: 推不出 oracle 就不伪造。缺口是决策不是遗漏：显式在案、路由回 PRD/故事修订。
+
+  5:                                                # 自动化与红绿循环
+    passing_score: 70
+    questions:
+      - id: q1-red-scaffold
+        question: 编码前的红相脚手架应该是什么形态？
+        options:
+          A: 已实现并通过的测试
+          B: 可运行但全部 skip 的脚手架，断言期望行为、禁占位断言
+          C: 一份手工测试清单
+          D: 一份覆盖率报告
+        correct: B
+        explanation: 红相脚手架先立骨架（全 skip）且断言写成期望行为；激活（去掉 skip）归 diy-dev，跑红才有意义。
+      - id: q2-truth-backfill
+        question: 绿灯之后 TC 的 status 由谁写回哪个文件？
+        options:
+          A: 人工手改 test-plan.yaml
+          B: 由 diy-dev / diy-build-loop 经 diyc 命令原子写回 test-plan.yaml
+          C: 不需要写回
+          D: 写到 sprint.yaml 的 tasks
+        correct: B
+        explanation: 真源回填是机制不是纪律：绿行出现的同时把 TC 置 pass（同一原子批），手工改会漂移。
+      - id: q3-augment-owner
+        question: 编码后按覆盖率报告补测试用例归哪个技能？
+        options:
+          A: diy-augment
+          B: diy-test-design
+          C: diy-test-review
+          D: diy-teach-me-testing
+        correct: A
+        explanation: 编码前九技法归 diy-test-design；编码后覆盖率驱动补测归 diy-augment（追加 TC，不写代码）。
+
+  6:                                                # 质量门与追溯
+    passing_score: 70
+    questions:
+      - id: q1-review-product
+        question: diy-test-review 产出什么？
+        options:
+          A: 覆盖率报告
+          B: 测试代码质量的 0-100 评分账本与可执行 findings
+          C: 新生成的测试代码
+          D: 需求文档
+        correct: B
+        explanation: 评的是测试代码本身的质量（确定性/隔离/断言/结构/性能等），分数由扣分账本算出，不是加权平均的观感分。
+      - id: q2-trace-value
+        question: 需求追溯矩阵解决什么问题？
+        options:
+          A: 让测试跑得更快
+          B: 回答每条需求/AC 有没有用例覆盖、缺口在哪
+          C: 自动修复缺陷
+          D: 生成用户文档
+        correct: B
+        explanation: 追溯把「测了吗」变成可查的映射；悬空引用（指向不存在的 FR/AC/TC）就是断路，必须显式暴露。
+      - id: q3-gate-output
+        question: 质量门的输出形态是什么？
+        options:
+          A: 一句口头建议
+          B: 单一门决策（放行 / 阻断 + 理由），落 test-gate.yaml
+          C: 一个覆盖率百分比
+          D: 一份 checklist
+        correct: B
+        explanation: 门只出一个决策，且要带理由（为什么放/为什么拦）；覆盖率只是一个输入，不是门的输出。
+
+  7:                                                # 进阶主题（探索型：无题）
+    passing_score: null
+    questions: []

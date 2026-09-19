@@ -1,0 +1,202 @@
+# diy-teach-me-testing 课程结构 —— 定义态唯一源（静态资产，随技能目录分发）
+#
+# 定位：本文件是「课程长什么样」的唯一源；学员进度（谁学到哪）落
+# `{output_dir}/learning-progress.yaml`，两者用整数 session id（1-7）对齐，禁混为一文件。
+# 引擎 `scripts/progress.py` 读本文件做四件事：init 建 7 节骨架、校验运行态的 session id 集合
+# 与每节 name/duration_min 的对齐、取 learning_paths 键作 experience 枚举、取 session 7 的
+# `min_topics` 作完成判据。教学内容正文（散文）不在这里——它落
+# `{output_dir}/notes/session-<NN>.md`（模板 `templates/session-notes.md`）。
+#
+# 来源：源技能 `bmad-teach-me-testing` 的 7 节课骨架（源 `data/curriculum.yaml` + `data/role-paths.yaml`
+# + `data/session-content-map.yaml` 的 key_concepts 合并而来）。源 `session-0N-<slug>` 字符串 id
+# 不迁（改整数 1-7）；源 59 knowledge fragment 索引与全部源文档路径/URL 裁剪（教学资源引用
+# 对象改为 diy 技能与产物）；课次 `name` 值按 diy 中文正典改写（源英文名以注释留档）。
+
+sessions:
+  - id: 1
+    name: 快速上手                                  # 源: Quick Start
+    duration_min: 30
+    difficulty: beginner
+    objective: 一次最小闭环里看见 diy 测试链怎么跑：从故事 AC 到可运行的红相测试，再到质量门
+    outline:
+      - diy 测试链全景：diy-test-design → diy-test-framework → diy-test-author → diy-test-review → diy-test-gate
+      - 用例单一源 `test-plan.yaml`：TC 绑 AC、声明 kill_target，其余技能只引用 ID
+      - 一次走通的顺序：AC → 用例 → 红相脚手架 → 绿灯 → 覆盖证据 → 门
+      - 什么时候用哪个技能：diy-e2e-tests（无 TC 的探索式生成）/ diy-augment（覆盖率缺口补测）
+      - 五种投入档位（从小到大）：单点（一条最小闭环，如 diy-test-author 把已设计的 TC 变成红相脚手架）→ 按需（缺哪环调哪个技能）→ 全链（design → framework → author → review → gate）→ 全链 + CI/NFR（diy-test-framework 生成 CI、diy-test-gate 审 NFR 证据）→ 存量接入（既有测试套件先 diy-test-review 定基线，再决定补哪一环）
+      - 本课程怎么用：7 节 Hub-and-spoke、随时暂停、进度落 learning-progress.yaml
+    prerequisites: []
+    recommended_for: [beginner, intermediate, experienced]
+
+  - id: 2
+    name: 核心概念                                  # 源: Core Concepts
+    duration_min: 45
+    difficulty: beginner
+    objective: 弄懂「为什么这么测」——风险驱动、故障假设先行、证据链思维
+    outline:
+      - 风险 = 概率 × 影响：P0-P3 优先级怎么定，为什么先测登录而不是 tooltip
+      - 故障假设先行：写用例前先列「代码可能怎么错」，每条用例声明它要杀哪条（kill_target）
+      - 测试即工程：确定性（不用固定 sleep）、隔离（可并行）、自清理（用例删掉自己造的数据）
+      - 完成定义：红有红的证据、绿有绿的证据；测试代码也是代码，同样受质量标准约束
+      - 完成定义的第 6、7 条：**测试就近源码**（`x.ts` ↔ `x.spec.ts` 同目录，改代码时顺手改测试）；**低维护**（不绑脆弱选择器、用 API 造状态而不是点 UI、不复刻 UI 动作）
+      - 覆盖率是指标不是目标：P0/P1 覆盖比总行数覆盖更有意义
+    prerequisites: []
+    recommended_for: [beginner, intermediate]
+
+  - id: 3
+    name: 架构与模式                                # 源: Architecture & Patterns
+    duration_min: 60
+    difficulty: intermediate
+    objective: 让测试代码可维护——分层、夹具、确定性等待、健壮定位
+    outline:
+      - 测试分层：unit（单组件）/ integration（跨产物，可脚本化）/ e2e（完整技能或系统级旅程）
+      - 夹具与数据工厂：数据定义一次处处复用，禁硬编码；夹具组合优于复制粘贴
+      - 网络先行：拦截声明先于触发动作，消除竞态；确定性等待替掉固定 sleep
+      - 健壮定位器：按语义定位（角色/标签/文本），不绑 CSS/XPath 与实现细节
+      - 单用例原子：一条用例一个断言目标；文件与函数保持可读长度
+      - 微文件架构（step-file architecture）：一个步骤一个文件、一次只载当前那一个、JIT 载入不预载；步骤按序走，断点存产物（YAML / 回执）而不存内存——diy 技能自己就是这么写的，本节走的 `steps/` 就是它
+    prerequisites: [2]
+    recommended_for: [intermediate, experienced]
+
+  - id: 4
+    name: 测试设计                                  # 源: Test Design
+    duration_min: 60
+    difficulty: intermediate
+    objective: 写代码之前把用例想清楚：从 AC 推导、按技法选型、缺口显式在案
+    outline:
+      - 从验收标准推导：每条 AC 至少一条用例，绝不虚构覆盖
+      - 九种编码前技法：equivalence / boundary / decision-table / state-transition / pairwise / error-guessing / metamorphic / property / scenario——按故障假设挑，不按习惯挑
+      - 覆盖规划：按故障假设选测试层级（`test-plan.yaml` 的 `type`）——层级是设计决策，**不按优先级分档**、也不按习惯挑
+      - 覆盖目标一律 100%：门机械强判 `p0_coverage` / `overall_coverage` / `p1_coverage` 三线全 100%（见 `test-gate.yaml`）——**无中间档、不按优先级递减**，任一档不达标即 FAIL
+      - 静态检查链 `static_checks`：按滤网关系排序（硬依赖在前、给下层降噪），blocking 失败即停链
+      - oracle 纪律：推不出预期结果就不伪造断言，记 `coverage_gaps` 标 [SPEC-GAP]
+      - 缺口是决策：pending / waived / accept-gap 三态，由用户裁定
+    prerequisites: [2]
+    recommended_for: [intermediate, experienced]
+
+  - id: 5
+    name: 自动化与红绿循环                          # 源: ATDD & Automate
+    duration_min: 60
+    difficulty: intermediate
+    objective: 把用例变成会跑的代码：红相脚手架、绿灯激活、真源回填
+    outline:
+      - ATDD 红相：真实可运行的脚手架，全部 skip，断言期望行为，禁占位断言
+      - 激活与绿灯：diy-dev 先去掉 skip 再跑红；绿了写回 TC status（经 diyc 原子回填，人不手改）
+      - 组件级红绿重构循环：红（先写失败测试）→ 绿（最小实现让它过）→ 重构（测试保持绿）→ 下一个需求；粒度是单个组件或函数，不是整条旅程——循环归 diy-dev，diy-test-author 只负责把红相摆好
+      - 单模式边界：只做编码前的红相脚手架（消费 TC，不新建第二份用例台账）；激活实现与红-绿循环归 diy-dev
+      - 编码后补测的两条路：diy-augment（覆盖率报告驱动）/ diy-e2e-tests（无 TC 的探索式）
+      - API 测试不拉浏览器：更快、更贴近业务逻辑；e2e 只覆盖旅程主干
+    prerequisites: [2]
+    recommended_for: [intermediate, experienced]
+
+  - id: 6
+    name: 质量门与追溯                              # 源: Quality & Trace
+    duration_min: 45
+    difficulty: intermediate
+    objective: 用证据回答「能不能发」——测试代码质量、需求追溯、NFR 证据、单一门决策
+    outline:
+      - 测试代码质量审计：0-100 评分账本（扣分 × severity + 有限加分），四维度分只作展示
+      - 需求追溯矩阵：每条需求/AC 有没有用例、缺口在哪，悬空引用即断路
+      - NFR 证据审计：性能/安全/可靠性等非功能项要有可复现的证据，不是口号
+      - 单一门决策：放行 / 阻断 + 理由，落 test-gate.yaml；门只认证据不认态度
+      - 质量改进闭环：findings 路由回 diy-dev / diy-test-author 修复，再重跑门
+      - 该看的指标 vs 虚荣指标：看 P0 / P1 覆盖（门强判）、flaky 率、测试执行时长、确定性得分（`test-review.yaml` 的 `dimensions.determinism`）；不看总行覆盖率、用例条数、测试文件数
+    prerequisites: [2]
+    recommended_for: [intermediate, experienced]
+
+  - id: 7
+    name: 进阶主题                                  # 源: Advanced Patterns（ongoing）
+    duration_min: null                              # 持续型：源记 ongoing，非分钟数
+    difficulty: advanced
+    min_topics: 3                                   # 完成判据：探索主题数 >= 本值（防零内容完成）
+    objective: 按需深挖：从主题菜单里挑感兴趣的方向，每挖完一个主题留下可复用的做法
+    outline:
+      - 主题菜单（每次挑一个，探索数计入 topics_explored）
+      - 变异测试：变异体存活说明断言没咬住，等价变异体走人工裁定
+      - flaky 治理：定位不稳定来源（时序、共享状态、外部依赖），逐类消除
+      - CI 流水线：静态检查链、分层执行、失败即停的位置选择
+      - 测试数据策略：种子数据、隔离命名空间、清理时机
+      - 契约测试与回归防护：跨服务接口的兼容性证据
+      - 本课无 quiz：完成 = 探索主题数达标（计进 session 记录的 topics_explored）
+    prerequisites: []
+    recommended_for: [experienced]
+
+# 学习路径：键即 experience 枚举（引擎据此校验 update --learner --experience）
+learning_paths:
+  beginner:
+    recommended_sequence: [1, 2, 3, 4, 5, 6, 7]
+    skip_optional: []
+  intermediate:
+    recommended_sequence: [1, 2, 3, 4, 5, 6, 7]
+    skip_optional: [1]                              # 已熟悉可跳
+    summary_eligible_if_skipped: false
+  experienced:
+    recommended_sequence: [2, 3, 4, 5, 6, 7, 1]
+    skip_optional: [1]
+    summary_eligible_if_skipped: false
+
+# 结业要求（门由引擎 progress.py 落实：completion = 7/7；摘要门见 check --final）
+completion:
+  minimum_sessions: 7                               # 跳节即失去结业摘要资格
+  passing_score: 70                                 # 单节 quiz 通过线：score >= 70（3 题须全对）
+  average_score_threshold: 70                       # 结业摘要的平均分参考线
+  summary_note: 结业摘要要求 7 节全部 completed（含 session 7 的探索主题数达标）；跳过的节不产生摘要，补齐后可随时续上。
+
+# 角色适配：键与运行态 learner.role 枚举同值（QA|Dev|Lead|VP）；example_contexts 裁剪
+roles:
+  QA:
+    display_name: QA 工程师 / 测试工程师 / SDET
+    focus_areas:
+      - 用例设计技法与覆盖规划
+      - 测试框架与 CI 集成
+      - 测试代码质量与稳定性治理
+    teaching_adaptations:
+      1: 视角放「怎么快速扩覆盖」：从 AC 到用例到脚手架一条线
+      2: 强调 P0-P3 如何用来为覆盖决策辩护
+      3: 夹具与分层是维护成本的杠杆
+      4: 用例设计是日常主力，技法按故障假设挑
+      5: 红相脚手架与激活流程是每日工作流
+      6: 质量门与追溯面向「怎么向团队证明质量」
+      7: 深挖 flaky 治理、测试数据策略、契约测试
+  Dev:
+    display_name: 软件开发者
+    focus_areas:
+      - TDD 与红绿循环
+      - 单元与集成测试
+      - 把测试接进开发流程
+    teaching_adaptations:
+      1: 视角放「测试怎么驱动实现」
+      2: 完成定义对齐代码质量标准（可测性也是设计约束）
+      3: 夹具像依赖注入：组合、可替换、显式
+      4: 编码前想清风险，比事后补测便宜
+      5: 红-绿-重构是主线索：先写失败测试，再写实现
+      6: 测试代码质量与代码质量同一套标准
+      7: 深挖变异测试、API 测试、组件级 TDD
+  Lead:
+    display_name: 技术负责人 / 工程经理
+    focus_areas:
+      - 测试架构决策
+      - 团队测试规范
+      - 框架与工具选型
+    teaching_adaptations:
+      1: 视角放「怎么让团队统一做法」
+      2: 完成定义就是 code review 清单
+      3: 架构模式服务团队一致性
+      4: 测试设计是开发流程里的规划阶段
+      5: 红绿流程是先对齐再开工的抓手
+      6: 质量门是团队标准的执行点，不是个人品味
+      7: 深挖 CI 流水线、选型边界、回归防护
+  VP:
+    display_name: 研发负责人 / 总监
+    focus_areas:
+      - 测试策略与投入产出
+      - 真正有用的质量指标
+      - 规模化与风险管理
+    teaching_adaptations:
+      1: 视角放「测试怎么扩规模而不扩编制」
+      2: 风险驱动让工程语言对齐业务影响
+      3: 架构选择直接决定长期维护成本
+      4: 测试设计把风险变成看得见的东西
+      5: 前置质量减少返工与线上事故
+      6: 看 P0/P1 覆盖与门决策，不看虚荣指标
+      7: 深挖治理模式、NFR 证据审计、CI 编排

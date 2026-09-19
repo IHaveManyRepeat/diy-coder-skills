@@ -1,0 +1,375 @@
+# diy-test-review 规则注册表 —— 逐行留档自源技能
+# 源：.claude/skills/bmad-testarch-test-review/steps-c/criteria-registry.md（35 行）
+# 迁移裁定（任务书 §6）：
+#   · 私有库绑定行 M9 / M10 / L9 → disabled: true 留档（纯裁剪，diy 不绑 @seontechnologies/*）
+#   · 有效规则集 = 32 行（disabled 行不得出现在产物 findings 中）
+#   · detect 是机械/语义分界的唯一权威：mechanical 行由 test_review.py `scan` 直接产出，
+#     semantic 行由 LLM 判定（severity 仍由引擎按本表复算，LLM 不填）
+#   · basis 三类门：absolute（每文件必查）/ applicability（文件确实做该行为才查）/
+#     convention（仓库既有惯例才查，按 class 降档：emerging → 降一档 floor LOW；
+#     absent / unknown → 该行不成立、不得成条目）
+#   · dimensions 照源四个 worker 表的行归属（源表未归属行：H9 / M8 / L2 / L8 → 空映射）
+#   · bonus_guard = bonus 六类与该表规则行的矛盾复核映射（score 用）
+# 字段：
+#   row            规则 ID（C1-C7 / H1-H9 / M1-M10 / L1-L9）
+#   criterion      规则名（源文逐字）
+#   severity       源表钉死的档位（引擎复算的唯一来源）
+#   basis          absolute | applicability | convention
+#   gate           门的判据（源文 Gate 列；convention 行写惯例键名）
+#   convention_key convention 行的惯例键（对应 scan baseline 的 key；其余行 null）
+#   detect         mechanical | semantic
+#   dimensions     该行命中的展示维度（可多值，照源 worker 表）
+#   bonus_guard    该行命中导致哪些 bonus 类不得给分
+#   disabled       true = 裁剪留档，不入有效集
+source: bmad-testarch-test-review/steps-c/criteria-registry.md
+rules:
+  - row: C1
+    criterion: Disabled test
+    severity: CRITICAL
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: mechanical
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: C2
+    criterion: Focused test
+    severity: CRITICAL
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: mechanical
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: C3
+    criterion: Tautological assertion
+    severity: CRITICAL
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: mechanical
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: C4
+    criterion: No assertion
+    severity: CRITICAL
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: C5
+    criterion: Mock asserted against itself
+    severity: CRITICAL
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [isolation]
+    bonus_guard: []
+    disabled: false
+  - row: C6
+    criterion: Assertion unreachable
+    severity: CRITICAL
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: C7
+    criterion: Flow outcome cannot fail
+    severity: CRITICAL
+    basis: applicability
+    gate: 'Applicability: the reviewed file is a Maestro flow'
+    convention_key: null
+    detect: semantic
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: H1
+    criterion: Hard wait
+    severity: HIGH
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: mechanical
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: H2
+    criterion: Wall-clock fixture
+    severity: HIGH
+    basis: applicability
+    gate: 'Applicability: the file builds or asserts a time-bounded value'
+    convention_key: null
+    detect: semantic
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: H3
+    criterion: Conditional assertion
+    severity: HIGH
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: H4
+    criterion: Unreset shared state
+    severity: HIGH
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [isolation]
+    bonus_guard: [perfectIsolation]
+    disabled: false
+  - row: H5
+    criterion: Oversize test file
+    severity: HIGH
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: mechanical
+    dimensions: [maintainability, performance]
+    bonus_guard: []
+    disabled: false
+  - row: H6
+    criterion: Pact worker parallelism
+    severity: HIGH
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: mechanical
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: H7
+    criterion: Pact pool isolation
+    severity: HIGH
+    basis: applicability
+    gate: 'Applicability: >= 2 .pacttest.ts for the pair'
+    convention_key: null
+    detect: mechanical
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: H8
+    criterion: Pact serialization defeated
+    severity: HIGH
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: mechanical
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: H9
+    criterion: Secret inlined in a flow
+    severity: HIGH
+    basis: applicability
+    gate: 'Applicability: the reviewed file is a Maestro flow'
+    convention_key: null
+    detect: mechanical
+    dimensions: []
+    bonus_guard: []
+    disabled: false
+  - row: M1
+    criterion: Network-first violated
+    severity: MEDIUM
+    basis: applicability
+    gate: 'Applicability: the file navigates and then reads data-dependent content'
+    convention_key: null
+    detect: semantic
+    dimensions: [performance]
+    bonus_guard: [networkFirst]
+    disabled: false
+  - row: M2
+    criterion: Repeated literal payload
+    severity: MEDIUM
+    basis: applicability
+    gate: 'Applicability: the file constructs domain payloads'
+    convention_key: null
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: [comprehensiveFixtures, dataFactories]
+    disabled: false
+  - row: M3
+    criterion: Multi-concern test
+    severity: MEDIUM
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: []
+    disabled: false
+  - row: M4
+    criterion: Ungrouped suite
+    severity: MEDIUM
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [isolation, maintainability]
+    bonus_guard: []
+    disabled: false
+  - row: M5
+    criterion: Low-level event dispatch
+    severity: MEDIUM
+    basis: applicability
+    gate: 'Applicability: a user-level interaction API is a project dependency'
+    convention_key: null
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: []
+    disabled: false
+  - row: M6
+    criterion: Unawaited async
+    severity: MEDIUM
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [performance]
+    bonus_guard: []
+    disabled: false
+  - row: M7
+    criterion: Excessive nesting
+    severity: MEDIUM
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: []
+    disabled: false
+  - row: M8
+    criterion: Positional flow selector
+    severity: MEDIUM
+    basis: applicability
+    gate: 'Applicability: the reviewed file is a Maestro flow'
+    convention_key: null
+    detect: semantic
+    dimensions: []
+    bonus_guard: []
+    disabled: false
+  - row: M9
+    criterion: Configured utility bypassed
+    severity: MEDIUM
+    basis: convention
+    gate: 'Convention: playwrightUtils (precondition playwrightUtilsActive)'
+    convention_key: playwright_utils
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: []
+    disabled: true
+  - row: M10
+    criterion: Configured contract utility bypassed
+    severity: MEDIUM
+    basis: applicability
+    gate: 'Applicability: the reviewed file is a JS/TS Pact artifact (precondition pactjsUtilsActive)'
+    convention_key: null
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: []
+    disabled: true
+  - row: L1
+    criterion: Fragile selector
+    severity: LOW
+    basis: applicability
+    gate: 'Applicability: the file locates DOM elements'
+    convention_key: null
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: [allTestIds]
+    disabled: false
+  - row: L2
+    criterion: Missing priority marker
+    severity: LOW
+    basis: convention
+    gate: 'Convention: priorityMarkers'
+    convention_key: priority_markers
+    detect: semantic
+    dimensions: []
+    bonus_guard: []
+    disabled: false
+  - row: L3
+    criterion: Missing stable test id
+    severity: LOW
+    basis: convention
+    gate: 'Convention: testIds'
+    convention_key: test_ids
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: [allTestIds]
+    disabled: false
+  - row: L4
+    criterion: Pact single-file pool advisory
+    severity: LOW
+    basis: applicability
+    gate: 'Applicability: exactly 1 .pacttest.ts for the pair'
+    convention_key: null
+    detect: mechanical
+    dimensions: [determinism]
+    bonus_guard: []
+    disabled: false
+  - row: L5
+    criterion: Implementation-shaped name
+    severity: LOW
+    basis: convention
+    gate: 'Convention: bddNaming'
+    convention_key: bdd_naming
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: [excellentBdd]
+    disabled: false
+  - row: L6
+    criterion: Magic value
+    severity: LOW
+    basis: absolute
+    gate: Absolute
+    convention_key: null
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: []
+    disabled: false
+  - row: L7
+    criterion: Inconsistent assertion style
+    severity: LOW
+    basis: convention
+    gate: 'Convention: assertionStyle'
+    convention_key: assertion_style
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: []
+    disabled: false
+  - row: L8
+    criterion: Unscoped flow text match
+    severity: LOW
+    basis: applicability
+    gate: 'Applicability: the reviewed file is a Maestro flow'
+    convention_key: null
+    detect: semantic
+    dimensions: []
+    bonus_guard: []
+    disabled: false
+  - row: L9
+    criterion: Spec bypasses merged fixtures
+    severity: LOW
+    basis: convention
+    gate: 'Convention: playwrightUtils (precondition playwrightUtilsActive)'
+    convention_key: playwright_utils
+    detect: semantic
+    dimensions: [maintainability]
+    bonus_guard: []
+    disabled: true

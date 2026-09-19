@@ -1,0 +1,2 @@
+# placeholders: PYTHON_VERSION
+{{PYTHON_VERSION}}
