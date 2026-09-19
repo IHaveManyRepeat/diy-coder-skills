@@ -13,6 +13,7 @@ import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DESIGN_PY = os.path.join(HERE, "..", "skills", "diy-design", "scripts", "design.py")
+SKILL_MD = os.path.join(HERE, "..", "skills", "diy-design", "SKILL.md")
 REAL_PRD = os.path.join(HERE, "..", "..", "diy-output", "prd.yaml")
 NL = chr(10)
 
@@ -252,6 +253,94 @@ class DesignEngineTests(unittest.TestCase):
         self.assertNotIn("Traceback", c2.stderr)
         self.assertEqual(c2.returncode, 1, c2.stdout + c2.stderr)
         self.assertFalse(json.loads(c2.stdout)["pass"])
+
+
+# ----------------------------------------------- SKILL.md 契约冒烟（母本 + B-6）
+
+INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
+               "`python \"{project-root}/.claude/skills/diy-tools/scripts/diyc.py\" "
+               "resolve [--instance <name>] --json`，把回执里的 `output_dir` "
+               "当作本次运行唯一的读写根目录。")
+INSTANCE_EN_MARK = "Instance resolution (FR-4.5/D-9)"
+RESOLVE_KEYS = ("解析 `project.communication_language` / "
+                "`project.document_output_language` / `paths.output_dir`")
+RENDER_SILENT = "渲染是静默旁路——只写调用命令"
+PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
+              "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
+DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
+                 "机器语法（命令/旗标/路径）进括号；机器锚点逐字保留"
+                 "（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 "
+                 "`diy-design` 的 detect 启发式。schema 若定义 `plain`："
+                 "一行写清该条目为什么存在，绝不写是什么（转述会漂移）；"
+                 "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
+
+
+class SkillContractTests(unittest.TestCase):
+    """SKILL.md 契约冒烟：母本逐字 + 中文化政策 + B-6 七条落点。"""
+
+    def setUp(self):
+        with open(SKILL_MD, encoding="utf-8") as fh:
+            self.raw = fh.read()
+
+    # trace: 中文化轮（母本 §1 / §2 / §3 / §5 / §6 中文定稿逐字；§4 无 steps 不适用）
+    def test_mother_texts_verbatim(self):
+        self.assertIn(INSTANCE_ZH, self.raw, "缺母本 §1 中文定稿实例解析句")
+        self.assertNotIn(INSTANCE_EN_MARK, self.raw, "已转中文定稿，仍残留 §1 英文原形")
+        self.assertIn(RESOLVE_KEYS, self.raw, "缺母本 §3 配置解析键（A-3：project. 前缀）")
+        self.assertIn(RENDER_SILENT, self.raw, "缺母本 §5 渲染静默锚串")
+        self.assertIn("viewer.py\" --project-root", self.raw, "缺 viewer 命令全文（A-12）")
+        self.assertIn(PRECISE_ZH, self.raw, "缺母本 §6 精准简练条款")
+        self.assertIn(DISCIPLINE_ZH, self.raw, "缺母本 §2 写作纪律块")
+
+    # trace: 2026-09-19 中文化政策（四段中文标题 + description 中文注释 + ≤93 行预算）
+    def test_four_chinese_sections_and_budget(self):
+        self.assertLessEqual(len(self.raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
+            self.assertIn(section, self.raw, "缺四段结构：%s" % section)
+        self.assertIn("# ↑ 中文：", self.raw, "description 缺中文注释")
+
+    # trace: B-6 SS-017-05（description 对齐引擎真子命令；a11y 取自 check）
+    def test_description_matches_engine_subcommands(self):
+        self.assertNotIn("a11y-check", self.raw, "description 仍写引擎没有的 a11y-check")
+        self.assertIn("detect / validate / check / audit", self.raw,
+                      "description 未列引擎真子命令")
+        self.assertIn("来自 `check` 回执", self.raw, "未注明 a11y 判定取自 check")
+
+    # trace: B-6 SS-017-02（配对集合指引擎回执，不自拟子集）
+    def test_contrast_pairs_point_to_engine_receipt(self):
+        self.assertIn("checked.contrast_pairs", self.raw, "配对集合未指向引擎回执")
+        self.assertIn("不自拟子集", self.raw, "未禁自拟配对子集")
+
+    # trace: B-6 SS-017-06（direction 钉死字符串形状，结构与创作纪律同款）
+    def test_direction_pinned_to_string(self):
+        self.assertIn("direction: <string>", self.raw, "结构未钉死 direction 为字符串")
+        self.assertIn("不是列表/映射", self.raw, "结构缺形状禁令")
+        self.assertIn("**字符串**", self.raw, "创作纪律缺同款括注")
+
+    # trace: B-6 SS-017-03（终门 = validate + check + audit + 假设清零点名字段集）
+    def test_final_gate_expands_three_commands(self):
+        for cmd in ("validate --design", "check --design", "audit --design"):
+            self.assertIn(cmd, self.raw, "终门缺命令：%s" % cmd)
+        self.assertIn("[假设]` 清零", self.raw, "终门缺假设清零")
+        for field in ("direction", "pages[].name", "states[].signals"):
+            self.assertIn(field, self.raw, "假设清零未点名字段：%s" % field)
+
+    # trace: B-6 SS-017-07（四态不许省 + 最小真实信号 + 收尾点名占位）
+    def test_four_states_never_omitted(self):
+        self.assertIn("四态不许省", self.raw, "缺四态不许省条款")
+        self.assertIn("最小真实信号", self.raw, "缺不适用态的最小真实信号写法")
+        self.assertIn("哪些态是占位", self.raw, "收尾未点名占位态")
+
+    # trace: B-6 SS-017-04（删/改页面 id 前置扫 design_ref + 路由；只读扩展）
+    def test_page_removal_scans_design_ref(self):
+        self.assertIn("AC[].design_ref", self.raw, "缺前置扫 AC[].design_ref")
+        self.assertIn("diy-epics-stories", self.raw, "悬空 design_ref 未路由回写权技能")
+        self.assertIn("只读", self.raw, "未声明只读边界")
+
+    # trace: B-9（消费口径：从 stack[].choice 取值 + 找不到时的明确处置）
+    def test_b9_frontend_framework_value_path(self):
+        self.assertIn("stack[].choice", self.raw, "缺 B9 取值路径")
+        self.assertIn("停下问用户一次", self.raw, "缺找不到时的明确处置")
 
 
 if __name__ == "__main__":

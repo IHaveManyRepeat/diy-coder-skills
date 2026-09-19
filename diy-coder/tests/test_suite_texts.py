@@ -68,7 +68,8 @@ CONVERTED_INSTANCE = frozenset(["spec-scan", "prd", "teach-me-testing", "test-au
                                 "build-loop", "readiness-check", "test-design",
                                 "quick-dev", "help", "augment", "e2e-tests",
                                 "correct-course", "project-context",
-                                "investigate", "research", "retrospective"])
+                                "investigate", "research", "retrospective",
+                                "architecture", "design", "dev", "review"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
 DISCIPLINE_EN_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
@@ -94,7 +95,7 @@ CONVERTED_DISCIPLINE = frozenset(["prd", "teach-me-testing", "test-author",
                                   "readiness-check", "test-design", "quick-dev",
                                   "augment", "e2e-tests", "correct-course",
                                   "project-context", "investigate", "research",
-                                  "retrospective"])
+                                  "retrospective", "architecture", "review"])
 # spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
 
@@ -162,7 +163,8 @@ LANDED_RESOLVE_KEYS = frozenset(["prd", "product-brief", "prfaq", "openapi",
                                  "sprint", "build-loop", "readiness-check", "test-design",
                                  "quick-dev", "help", "augment", "e2e-tests",
                                  "correct-course", "spec-scan", "project-context",
-                                 "investigate", "research", "retrospective"])
+                                 "investigate", "research", "retrospective",
+                                 "architecture", "design", "dev", "review"])
 
 # 已落 §4 读取纪律的技能（仅对有 `steps/` 的适用面生效；落地即从 PENDING_READ_DISCIPLINE 移除）
 LANDED_READ_DISCIPLINE = frozenset(["product-brief", "prfaq",
@@ -183,7 +185,9 @@ LANDED_PRECISE = frozenset(["prd", "teach-me-testing", "test-author",
                             "build-loop", "readiness-check", "test-design",
                             "quick-dev", "help", "augment", "e2e-tests",
                             "correct-course", "spec-scan", "project-context",
-                            "investigate", "research", "retrospective"])
+                            "investigate", "research", "retrospective",
+                            "architecture", "design", "dev", "review",
+                            "tools", "viewer"])
 
 
 def _steppers():

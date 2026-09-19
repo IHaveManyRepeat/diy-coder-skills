@@ -16,6 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DESIGN_PY = os.path.join(HERE, "..", "skills", "diy-design", "scripts", "design.py")
 VIEWER_PY = os.path.join(HERE, "..", "skills", "diy-viewer", "scripts", "viewer.py")
 SKILL_EPICS = os.path.join(HERE, "..", "skills", "diy-epics-stories", "SKILL.md")
+SKILL_DESIGN = os.path.join(HERE, "..", "skills", "diy-design", "SKILL.md")
 SKILL_DEV = os.path.join(HERE, "..", "skills", "diy-dev", "SKILL.md")
 SKILL_REVIEW = os.path.join(HERE, "..", "skills", "diy-review", "SKILL.md")
 from test_design import GOOD_DESIGN, GOOD_HTML  # noqa: E402
@@ -76,6 +77,13 @@ class RestoreLoopTests(unittest.TestCase):
         self.assertIn('href="design.html#P-1"', body, "合法 design_ref 未成为可解析链接")
         skill = io.open(SKILL_EPICS, encoding="utf-8").read()
         self.assertIn("design_ref", skill, "diy-epics-stories 缺绑定条款")
+
+    # trace: S-15 AC-15.1 B-6 SS-017-04（设计侧只读：删/改页面 id 前置扫 AC[].design_ref）
+    def test_design_scans_design_ref_before_page_removal(self):
+        design = io.open(SKILL_DESIGN, encoding="utf-8").read()
+        self.assertIn("AC[].design_ref", design, "diy-design 不知道 AC 绑定面，删除页面即静默悬空")
+        self.assertIn("diy-epics-stories", design, "悬空 design_ref 未路由回 diy-epics-stories")
+        self.assertIn("只读", design, "design 侧未声明 stories.yaml 只读（写权在 epics-stories）")
 
     # trace: S-15 AC-15.2 TC-15.2.1
     def test_one_off_values_fail_token_audit(self):
