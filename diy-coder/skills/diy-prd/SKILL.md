@@ -1,43 +1,72 @@
 ---
 name: diy-prd
 description: Create or update the product PRD as a single-source prd.yaml with stable requirement IDs. Use when the user wants to create a PRD, write product requirements, or update an existing prd.yaml.
+# ↑ 中文：创建或更新产品 PRD——单一源 prd.yaml、需求 ID 稳定。用户想创建 PRD、写产品需求，或更新既有 prd.yaml 时触发。
 ---
 
 # diy-prd — 产品需求文档（YAML 单一源）
 
-You are a master facilitator coaching the user to a high-quality PRD. Elicit; do not author for them unless they choose the fast path. The output is **one YAML file** — never a markdown copy, never duplicated content.
+你是陪用户把 PRD 做到高质量的引导者。以引出为主，不代笔——除非用户选择快速路径。产物是**一个 YAML 文件**：绝不产 markdown 副本、绝不复制内容。
 
-## On Activation
+## 激活时
 
-1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `document_output_language`, `paths.output_dir`. Missing keys → sensible defaults; never block. Speak `communication_language` for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root.
-2. Target file: `{output_dir}/prd.yaml`.
-3. Detect intent: **Create** (file absent) or **Update** (file exists). If ambiguous, ask.
+1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
+   全程用 `communication_language` 对话；产物里的叙述文字（narrative、notes、plain、描述）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+2. 目标文件：`{output_dir}/prd.yaml`。
+3. 判定意图：**Create**（文件不存在）或 **Update**（文件已存在）。含糊时直接问。
 
-## Discovery (Create)
+## 工作流
 
-Order: **brain dump → stakes → working mode**. Get to work in 2-3 turns, not ten.
+### Create 阶段的探索
 
-- **Brain dump.** First move, always: ask for verbal context plus any existing inputs (brief, research, transcripts, prior PRD). Paths or paste; big inputs are fine.
-- **Stakes.** One probe: hobby / internal / launch — calibrates depth (hobby ≈ 1 page of essence, launch = full rigor).
-- **Working mode.** Offer:
-  - **Fast path** — batch remaining gaps into 1-2 consolidated questions, then draft full prd.yaml with `[ASSUMPTION]`-prefixed values where inferred. User reviews and iterates.
-  - **Coaching path** — walk sections together, one at a time, user answers, you structure.
+顺序：**口述背景 → 利害档位 → 工作模式**。2–3 轮进入工作，不是十轮。
 
-## PRD Discipline
+- **口述背景**。永远的第一步：请用户给口头背景，以及任何既有输入——粘贴或给路径均可，长文无妨。
+- **利害档位**。一问定档：`hobby` / `internal` / `public`——决定深度（`hobby` ≈ 一页精华，`public` = 全量严谨）。该值同时写进产物的 `project.strictness`（同一枚举）。
+- **工作模式**。二选一：
+  - **快速路径**——把剩余空档合并成 1–2 个问题，然后直接起草完整 prd.yaml，推断处带 `[ASSUMPTION]` 前缀；用户审阅后迭代。
+  - **陪跑路径**——逐节一起走，一次一节，用户作答、你成文。
 
-- **ID chain is sacred.** `F-*`, `FR-*`, `NFR-*` IDs are assigned once and never renumbered. Downstream artifacts (architecture, epics/stories, test-plan) reference these IDs — content is referenced, never copied.
-- Capabilities, not implementation. Tech choices belong to the later architecture step.
-- Length scales with stakes. Cut sections the product genuinely does not need; when dropping one, have a reason the user would accept.
-- **Every pending decision lives in the file.** Any inference awaiting user confirmation — including metadata-level ones such as `strictness` — must be written into prd.yaml with the `[ASSUMPTION]` prefix. Never list confirmation items only in conversation: the user reviews in HTML, so the set of open items must equal the set of yellow highlights on the page. Only after the user approves may the prefix be removed.
+### 输入清单与摄取规则（单一定义在本技能）
 
-- **Writing discipline.** Main field = plain-language main clause; numbers/enums inline; machine syntax (commands/flags/paths) in parentheses; keep machine anchors verbatim (file names, token names, CLI flags) — Chinese rewrites of anchors break the diy-design detect heuristic. If the schema defines `plain`: one line of WHY the entry exists, never WHAT (restatements drift); write it only for hard-to-grasp entries. If it defines `detail`: process narrative — conclusions stay in the main field.
+| 来源 | 路径 | 摄取 |
+|---|---|---|
+| product-brief | `{output_dir}/brief.yaml` 的 `distillate` 段 | 按下表字段级映射 |
+| prfaq | `{output_dir}/prfaq.yaml` 的 `distillate` 段 | 同上 |
+| research | `{output_dir}/research.yaml` 的 `distillate` 段 | 同上 |
+| 既有 PRD | `{output_dir}/prd.yaml` | Update 模式的对账基线 |
+| 其他材料 | 用户粘贴或给出的路径 | 自由输入 |
 
-## prd.yaml Schema (author exactly this shape; omit empty top-level keys)
+三源的 `distillate` 同一形状，字段级映射（**摄取规则唯一出处就是本表**；上游技能只负责交出自己的字段）：
+
+| `distillate` 字段 | 落到 prd.yaml |
+|---|---|
+| `problem` | `purpose`（一句话产品定位） |
+| `target_users` | `users[]` |
+| `value_props` | `features[]` 的能力候选 |
+| `constraints` | `out_of_scope`——含 prfaq 的拒绝项形态「Not \<X\>: because \<Y\>」，**PRD 不得把它们重新提议** |
+| `open_questions` | `open_questions[]`（追加，不覆盖既有条目） |
+
+上游产物缺席即跳过该源，不因此阻塞；用户点名要读哪个源就去读哪个源。
+
+### 落盘与收尾
+
+1. Create 模式：写 `{output_dir}/prd.yaml`（`status: draft`）并告知路径。Update 模式：先 `cp {output_dir}/prd.yaml {output_dir}/prd.yaml.prev`，载入既有文件与用户的变更信号对账——刷新 `updated`、所有 ID 保持稳定——再写；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --previous {output_dir}/prd.yaml.prev --json`（exit 0 = ID 稳定）；然后删掉 `.prev` 文件。
+2. 立即渲染草稿供审阅。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+3. 摊开每个 `[ASSUMPTION]` 与未决问题；迭代到用户确认。
+4. 终门（机械）：先写 `project.status: final`——`final` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `status` 回退 `draft`**，修完重走本步。
+5. 收尾一行摘要：路径、状态、JSON 回执里的计数。
+
+## 结构
 
 ```yaml
 project:
   name: string
-  status: draft | final          # final only after user confirms all assumptions
+  status: draft | final          # 用户确认全部假设后才写 final
+  strictness: hobby | internal | public   # 深度档位，与 brief 的 stakes 同一枚举；推断值带 [ASSUMPTION] 前缀写在值上
   created: YYYY-MM-DD
   updated: YYYY-MM-DD
 purpose: one-sentence product purpose
@@ -68,10 +97,15 @@ open_questions:                   # resolved answers stay for audit; new ones ap
     answer: string | null
 ```
 
-## Workflow
+照此形状写；空顶层键省略。
 
-1. Create mode: write `{output_dir}/prd.yaml` with `status: draft`; tell the user the path. Update mode: first `cp {output_dir}/prd.yaml {output_dir}/prd.yaml.prev`, then load the existing file and reconcile with the user's change signal — bump `updated`, keep all IDs stable — before writing; after drafting the new version run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --previous {output_dir}/prd.yaml.prev --json` (exit 0 = IDs stable); then delete the `.prev` file.
-2. Immediately render the draft for review: run diy-viewer (same activation command — append `--instance <name>` when one was resolved) so the user reviews in HTML, not raw YAML.
-3. Surface every `[ASSUMPTION]` and open question; iterate until the user confirms.
-4. Final gate (mechanical): run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --final --json` — exit 0 is the only pass; fix every reported violation and re-run (entries in `known[]` are user-ratified baselines, not violations to fix); the JSON receipt (counts included) is the close-out evidence. Only then set `status: final` and re-render via diy-viewer (same activation command — append `--instance <name>` when one was resolved).
-5. Close with a one-line summary: path, status, and the counts from the JSON receipt.
+## 规则
+
+- **ID 链是硬契约。** `F-*` / `FR-*` / `NFR-*` 一经铸造，永不重编号——下游产物（architecture、epics/stories、test-plan）按 ID 引用它们，绝不复制内容。
+- 写能力，不写实现。技术选型归后续 architecture 步。
+- 篇幅随利害定。砍掉产品确实不需要的章节；砍时要给得出用户会接受的理由。
+- **每个未决决定都留在文件里。** 任何等用户确认的推断——包括 `strictness` 这类元数据级——都要带 `[ASSUMPTION]` 前缀写进 prd.yaml（前缀只写在**值**上，不新增独立键：`strictness: "[ASSUMPTION] public"`）。绝不只在对话里列确认项：用户在 HTML 里审阅，未决集合必须等于页面上黄底高亮的集合。用户批准后才可去掉前缀。
+
+- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
+
+- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；机器语法（命令/旗标/路径）进括号；机器锚点逐字保留（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 `diy-design` 的 detect 启发式。schema 若定义 `plain`：一行写清该条目为什么存在，绝不写是什么（转述会漂移）；只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。

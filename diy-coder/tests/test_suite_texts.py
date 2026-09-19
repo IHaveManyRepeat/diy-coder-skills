@@ -56,12 +56,12 @@ INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
 
 INSTANCE_MEMBERS = frozenset("""
 architecture augment build-loop checkpoint-preview correct-course create-story
-design dev e2e-tests epics-stories help investigate openapi prd prfaq
+design dev e2e-tests epics-stories help investigate openapi prfaq
 product-brief project-context quick-dev readiness-check research retrospective
 review sprint test-design
 """.split())
 # 已转中文定稿的技能（中文化轮逐个加入；B3 批 5 技能为中文原生，落地即转）
-CONVERTED_INSTANCE = frozenset(["spec-scan", "teach-me-testing", "test-author",
+CONVERTED_INSTANCE = frozenset(["spec-scan", "prd", "teach-me-testing", "test-author",
                                 "test-framework", "test-gate", "test-review"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
@@ -77,11 +77,11 @@ DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚
 
 DISCIPLINE_MEMBERS = frozenset("""
 architecture checkpoint-preview correct-course create-story e2e-tests
-epics-stories investigate prd prfaq product-brief project-context quick-dev
+epics-stories investigate prfaq product-brief project-context quick-dev
 readiness-check research retrospective review sprint test-design
 """.split())
 # 中文化轮逐个加入；B3 批 5 技能为中文原生，落地即转
-CONVERTED_DISCIPLINE = frozenset(["teach-me-testing", "test-author",
+CONVERTED_DISCIPLINE = frozenset(["prd", "teach-me-testing", "test-author",
                                   "test-framework", "test-gate", "test-review"])
 # spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
@@ -144,6 +144,22 @@ ANCHOR_RENDER_SILENT = "渲染是静默旁路——只写调用命令"
 
 _CONFIG_SKILLS = sorted(set(INSTANCE_MEMBERS) | set(CONVERTED_INSTANCE))
 
+# 已落 §3 锚串的技能（中文化轮逐个加入；落地即从 PENDING_RESOLVE_KEYS 移除）
+LANDED_RESOLVE_KEYS = frozenset(["prd"])
+
+
+def _steppers():
+    """§4 读取纪律的适用面 = 有 `steps/` 的技能。
+
+    2026-09-19 用户裁定：12 个单文件技能（architecture / augment / build-loop /
+    design / dev / epics-stories / help / openapi / prd / review / sprint /
+    test-design）**不拆 steps**，§4 对它永久不适用——§4 的两个成分（「读 `steps/` 下
+    当前那一个文件」「以各 step 的 `Read (input)` 为准」）都预设 steps 存在，硬落即写入
+    假事实。将来某技能若拆出 `steps/`，自动进入本适用面（缺锚串且未登记即判红）。
+    """
+    return [s for s in skills()
+            if os.path.isdir(os.path.join(SKILLS_DIR, "diy-" + s, "steps"))]
+
 # B3 批新建技能（**落地时在此登记**）：它们**中文原生**——§1/§3/§4/§5 一次写到位，
 # 故只进 `CONVERTED_*` 与这里，**不进 `INSTANCE_MEMBERS` / `DISCIPLINE_MEMBERS` / 任何 `PENDING_*`**
 # （进 PENDING 会因它们已含锚串而判红；RS4-01/04/05）。
@@ -158,8 +174,8 @@ def _lacking(anchor, candidates):
 class PendingLandingTests(unittest.TestCase):
     """母本 §3 / §4 / §5：断言「缺锚串的技能集 == 台账」；漏删即红。"""
 
-    PENDING_RESOLVE_KEYS = frozenset(set(_CONFIG_SKILLS) - NEW_SKILLS)
-    PENDING_READ_DISCIPLINE = frozenset(set(_CONFIG_SKILLS) - NEW_SKILLS)
+    PENDING_RESOLVE_KEYS = frozenset(set(_CONFIG_SKILLS) - NEW_SKILLS - LANDED_RESOLVE_KEYS)
+    PENDING_READ_DISCIPLINE = frozenset(set(_steppers()) - NEW_SKILLS)
     PENDING_RENDER_SILENT = frozenset("""
 augment checkpoint-preview correct-course create-story e2e-tests investigate
 prfaq product-brief project-context quick-dev readiness-check research
@@ -184,9 +200,9 @@ retrospective spec-scan viewer
     def test_pending_resolve_keys(self):
         self._check(ANCHOR_RESOLVE_KEYS, _CONFIG_SKILLS, self.PENDING_RESOLVE_KEYS)
 
-    # trace: 母本 §4（读取纪律）
+    # trace: 母本 §4（读取纪律）——适用面 = 有 `steps/` 的技能（见 `_steppers`）
     def test_pending_read_discipline(self):
-        self._check(ANCHOR_READ_DISCIPLINE, _CONFIG_SKILLS, self.PENDING_READ_DISCIPLINE)
+        self._check(ANCHOR_READ_DISCIPLINE, _steppers(), self.PENDING_READ_DISCIPLINE)
 
     # trace: 母本 §5（渲染静默）
     def test_pending_render_silent(self):
