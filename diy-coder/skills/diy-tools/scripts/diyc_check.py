@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """diyc check 入口与流程级规则（契约 §2/§4.2）。
 
-- run(args) -> dict：文件定位 + 缺席语义 + 类型分派 + --final 的 [ASSUMPTION] 扫描
+- run(args) -> dict：文件定位 + 缺席语义 + 类型分派 + --final 的 [假设] 扫描
   + --previous 稳定 ID 集合比对；文档级规则在 diyc_check_docs，sprint/review
   （任务级）与跨文件真值在本文件。
 - PENDING_UNCOVERED 只经 Docs.story_covered()（与 W3 reconcile 共用唯一定义源；
   契约 §4.2，禁止二份实现）；缺覆盖语义 = 无 TC 绑定 且（无 gap 条目 或
-  decision == 'pending'），waived 与 accept-gap 均豁免（team-lead 2026-09-13 裁定）。
-- 跨文件真值（always-on，BUG-012 机制化）：done 任务 → stories.yaml 的 story 必须
-  done、test-plan.yaml 的 TC 必须 pass；review/done 任务台账 → evidence 齐备且
+  decision == '待办'），已豁免 与 接受缺口 均豁免（team-lead 2026-09-13 裁定）。
+- 跨文件真值（always-on，BUG-012 机制化）：已完成任务 → stories.yaml 的 story 必须
+  已完成、test-plan.yaml 的 TC 必须通过；待审查/已完成 任务台账 → evidence 齐备且
   red/green 非空、green 与 TC status 一致（diy-review L3）。
 """
 # trace: 2026-09-13 批次 3（统一脚本化）——check 入口/流程级规则，契约 §4.2
@@ -33,10 +33,10 @@ TYPE_FILES = {
     "review": "sprint.yaml",   # 契约 §4.2：review 为任务级，落在 sprint.yaml
 }
 
-VERDICT_ROUTES = ("intent_gap", "bad_spec", "patch", "defer")   # rule: diy-review/SKILL.md:Routing
-FINDING_LAYERS = ("correctness", "boundary", "coverage", "design")  # rule: diy-review/SKILL.md:Schema review.findings.layer
+VERDICT_ROUTES = ("意图缺口", "规格缺陷", "小修", "后置")   # rule: diy-review/SKILL.md:Routing
+FINDING_LAYERS = ("正确性", "边界", "覆盖审计", "设计采用")  # rule: diy-review/SKILL.md:Schema review.findings.layer
 TASK_STATUSES = d.STORY_STATUSES  # rule: diy-sprint/SKILL.md:Schema tasks.status（五态与 story 同集）
-AUGMENT_VERDICTS = ("pass", "fail", "skip")  # rule: diy-sprint/SKILL.md:Schema tasks.augment
+AUGMENT_VERDICTS = ("通过", "失败", "已跳过")  # rule: diy-sprint/SKILL.md:Schema tasks.augment
 
 
 def rel_path(root, path) -> str:
@@ -120,16 +120,16 @@ def _check_previous(typ, doc, previous, rel, root, report):
 def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
     """sprint.yaml：状态机枚举 + 门 + ID 链 + 跨文件真值；--final 加集合相等/空 refs 门。"""
     # rule: diy-sprint/SKILL.md:Design Discipline（one story one task, exact set equality；
-    #       TDD gate：缺覆盖 → blocked + blocked_reason；done stories land as done）
-    # rule: diy-sprint/SKILL.md:Final requires（zero [ASSUMPTION]；task story 集 == story 集；
-    #       blocked 必有 blocked_reason；pending 任务 test_refs 非空且可解析）
+    #       TDD gate：缺覆盖 → 已阻塞 + blocked_reason；done stories land as done）
+    # rule: diy-sprint/SKILL.md:Final requires（zero [假设]；task story 集 == story 集；
+    #       已阻塞 必有 blocked_reason；待办 任务 test_refs 非空且可解析）
     counts = {"tasks_by_status": {}, "blocked": 0, "gated": 0}
     project = doc.get("project")
     if not isinstance(project, dict):
         report.add("EMPTY_FIELD", rel + " project", "project 块缺失或形状异常")
     else:
         d.enum(report, rel + " project.status", project.get("status"),
-               ("draft", "final"), "project.status")
+               ("草稿", "已定稿"), "project.status")
     all_tasks = d.items(doc, "tasks")
     if not all_tasks:
         report.add("EMPTY_FIELD", rel + " tasks", "tasks 缺失或为空")
@@ -164,14 +164,14 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
         status = t.get("status")
         if d.enum(report, w + ".status", status, TASK_STATUSES, "status"):
             counts["tasks_by_status"][status] = counts["tasks_by_status"].get(status, 0) + 1
-            if status in ("pending", "in-progress"):
+            if status in ("待办", "进行中"):
                 counts["gated"] += 1
-        if status == "blocked":
+        if status == "已阻塞":
             counts["blocked"] += 1
-            # rule: diy-sprint/SKILL.md:Schema（blocked_reason required iff status: blocked）
+            # rule: diy-sprint/SKILL.md:Schema（blocked_reason required iff status: 已阻塞）
             if not d.nonempty(t.get("blocked_reason")):
                 report.add("BLOCKED_NO_REASON", w + ".blocked_reason",
-                           "blocked 任务必须写 blocked_reason（缺覆盖示例：「AC-x.y 无用例（decision: pending）」）")
+                           "已阻塞任务必须写 blocked_reason（缺覆盖示例：「AC-x.y 无用例（decision: 待办）」）")
         if t.get("augment") is not None:
             d.enum(report, w + ".augment", t.get("augment"), AUGMENT_VERDICTS, "augment")
         if t.get("test_refs") is not None and not isinstance(t.get("test_refs"), list):
@@ -202,28 +202,28 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
             report.add("UNKNOWN_ID", w + ".story", "%s 在 stories.yaml 中不存在" % story)
 
         status = t.get("status")
-        if status in ("pending", "in-progress") and stories_available and story in story_ids:
-            # rule: diy-sprint/SKILL.md:Design Discipline（TDD gate 默认姿态：缺覆盖 → blocked）
-            # 唯一定义源：Docs.story_covered()（契约 §4.2；waived/accept-gap 豁免由该函数承载）
+        if status in ("待办", "进行中") and stories_available and story in story_ids:
+            # rule: diy-sprint/SKILL.md:Design Discipline（TDD gate 默认姿态：缺覆盖 → 已阻塞）
+            # 唯一定义源：Docs.story_covered()（契约 §4.2；已豁免/接受缺口 豁免由该函数承载）
             covered, missing = docs.story_covered(story)
             if not covered:
                 report.add("PENDING_UNCOVERED", w,
-                           "缺覆盖 AC：%s —— 该任务须置 blocked 并写 blocked_reason（如「%s 无用例"
-                           "（decision: pending）」），或补用例 / 裁 waived / accept-gap"
+                           "缺覆盖 AC：%s —— 该任务须置已阻塞并写 blocked_reason（如「%s 无用例"
+                           "（decision: 待办）」），或补用例 / 裁已豁免 / 接受缺口"
                            % ("、".join(missing), missing[0]))
-        if status == "done":
-            # 跨文件真值（always-on，BUG-012 机制化）：done 任务的两个真源必须同步
+        if status == "已完成":
+            # 跨文件真值（always-on，BUG-012 机制化）：已完成任务的两个真源必须同步
             # rule: diy-dev/SKILL.md:Design Discipline（Backfill the source of truth——绿线同刻
-            #       回填 test-plan TC status: pass 与 stories 状态；本检查即该机制的机器审计面）
-            if stories_available and story in story_ids and story_status.get(story) != "done":
+            #       回填 test-plan TC status: 通过 与 stories 状态；本检查即该机制的机器审计面）
+            if stories_available and story in story_ids and story_status.get(story) != "已完成":
                 report.add("STATUS_MISMATCH", w,
-                           "任务 done 但 stories.yaml 中 %s status=%r（终态必须回填真源）"
+                           "任务已完成但 stories.yaml 中 %s status=%r（终态必须回填真源）"
                            % (story, story_status.get(story)))
             if tp_available:
                 for j, ref in enumerate(refs):
-                    if d.is_str(ref) and ref in tc_status and tc_status.get(ref) != "pass":
+                    if d.is_str(ref) and ref in tc_status and tc_status.get(ref) != "通过":
                         report.add("STATUS_MISMATCH", "%s.test_refs[%d]" % (w, j),
-                                   "任务 done 但 %s 在 test-plan.yaml 中 status=%r（必须 pass）"
+                                   "任务已完成但 %s 在 test-plan.yaml 中 status=%r（必须通过）"
                                    % (ref, tc_status.get(ref)))
 
     if final and stories_available:
@@ -234,7 +234,7 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
             report.add("SET_MISMATCH", rel + " tasks",
                        "story %s 无对应任务（一故事一任务，集合精确相等）" % sid)
         for t in all_tasks:
-            if t.get("status") != "pending":
+            if t.get("status") != "待办":
                 continue
             refs = t.get("test_refs") if isinstance(t.get("test_refs"), list) else []
             if refs:
@@ -242,7 +242,7 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
             story = t.get("story")
             if d.is_str(story) and docs.tcs_for_story(story):
                 report.add("SET_MISMATCH", "%s tasks[%s].test_refs" % (rel, story),
-                           "pending 任务 test_refs 为空，但该 story 在 test-plan.yaml 中已有用例"
+                           "待办任务 test_refs 为空，但该 story 在 test-plan.yaml 中已有用例"
                            "（引用集合未同步）")
     return counts
 
@@ -268,14 +268,14 @@ def _task_chain(t, w, docs, tp_available, tc_ids, report):
 def _review_block(review, w, report) -> tuple:
     """review 块校验；返回 (layers, routes)（仅枚举合法项，供 counts 聚合）。"""
     # rule: diy-review/SKILL.md:Schema（review.verdict + findings[].layer/route）
-    # rule: diy-review/SKILL.md:Verdict Rules（fail if any finding routes intent_gap/patch/bad_spec；
-    #       pass if findings empty or all defer）
+    # rule: diy-review/SKILL.md:Verdict Rules（fail if any finding routes 意图缺口/小修/规格缺陷；
+    #       pass if findings empty or all 后置）
     rw = w + ".review"
     if not isinstance(review, dict):
         report.add("EMPTY_FIELD", rw, "review 块形状异常（应为映射）")
         return [], []
     verdict_ok = d.enum(report, rw + ".verdict", review.get("verdict"),
-                        ("pass", "fail"), "verdict")
+                        ("通过", "失败"), "verdict")
     findings = review.get("findings")
     if findings is None:
         findings = []
@@ -293,16 +293,16 @@ def _review_block(review, w, report) -> tuple:
         if d.enum(report, fw + ".route", f.get("route"), VERDICT_ROUTES, "route",
                   code="ROUTE_INVALID"):
             routes.append(f["route"])
-    if verdict_ok and review.get("verdict") == "pass":
-        bad = [r for r in routes if r != "defer"]
+    if verdict_ok and review.get("verdict") == "通过":
+        bad = [r for r in routes if r != "后置"]
         if bad:
             report.add("ROUTE_INVALID", rw,
-                       "verdict: pass 但 findings 含非 defer 路由（%s）——pass 仅当 findings 为空或全部 defer"
+                       "verdict: 通过 但 findings 含非后置路由（%s）——通过 仅当 findings 为空或全部后置"
                        % "、".join(bad))
-    if verdict_ok and review.get("verdict") == "fail":
-        if not any(r != "defer" for r in routes):
+    if verdict_ok and review.get("verdict") == "失败":
+        if not any(r != "后置" for r in routes):
             report.add("ROUTE_INVALID", rw,
-                       "verdict: fail 但无任何非 defer 发现（intent_gap / bad_spec / patch）")
+                       "verdict: 失败 但无任何非后置发现（意图缺口 / 规格缺陷 / 小修）")
     return layers, routes
 
 
@@ -331,7 +331,7 @@ def _ledger(t, w, docs, tp_available, tc_status, report):
                        "red/green 记录不完整（red 先于 green，两条均须非空；同条目两键存在即序证据）")
         tc_entry = tcs.get(ref)
         if tp_available and tc_entry is not None:
-            if d.nonempty(green) and tc_entry.get("status") != "pass":
+            if d.nonempty(green) and tc_entry.get("status") != "通过":
                 report.add("STATUS_MISMATCH", "%s.evidence[tc=%s]" % (w, ref),
                            "evidence 有 green 记录但 test-plan.yaml 中 %s status=%r（真源未回填，BUG-012）"
                            % (ref, tc_entry.get("status")))
@@ -339,7 +339,7 @@ def _ledger(t, w, docs, tp_available, tc_status, report):
 
 
 def check_review(doc, rel, docs, story_filter, report) -> dict:
-    """review：review 块裁决校验 + review/done 任务台账（契约 §4.2）。"""
+    """review：review 块裁决校验 + 待审查/已完成 任务台账（契约 §4.2）。"""
     counts = {"findings_by_layer": {}, "findings_by_route": {}}
     all_tasks = d.items(doc, "tasks")
     if story_filter:
@@ -348,7 +348,7 @@ def check_review(doc, rel, docs, story_filter, report) -> dict:
             report.add("UNKNOWN_ID", rel + " tasks",
                        "sprint.yaml 中不存在 story %s 的任务" % story_filter)
     else:
-        scan = [t for t in all_tasks if t.get("status") in ("review", "done")]
+        scan = [t for t in all_tasks if t.get("status") in ("待审查", "已完成")]
     tp_available = docs.doc("test-plan") is not None
     if not tp_available:
         report.warn("test-plan.yaml 缺失/损坏：review 台账的用例解析与真值核对跳过")
@@ -413,10 +413,10 @@ def run(args) -> dict:
 
     if final:
         # rule: diy-prd/architecture/openapi/epics-stories/test-plan/sprint SKILL.md:
-        #       Final requires（zero [ASSUMPTION]）——全类型统一深度扫描
+        #       Final requires（zero [假设]）——全类型统一深度扫描
         for loc in d.scan_assumptions(doc, rel):
             report.add("ASSUMPTION_PRESENT", "%s %s" % (rel, loc),
-                       "[ASSUMPTION] 未清除（定稿前须用户确认并去除前缀）")
+                       "[假设] 未清除（定稿前须用户确认并去除前缀）")
 
     previous = getattr(args, "previous", None)
     if previous:

@@ -35,8 +35,8 @@ class ReviewL4WiringTests(unittest.TestCase):
 
     # trace: F-architecture-2（layer 枚举缺 design）
     def test_schema_layer_enum_has_design(self):
-        self.assertIn("correctness|boundary|coverage|design", read(SKILL_REVIEW),
-                      "schema layer 枚举缺 design（L4 命中无法记录）")
+        self.assertIn("正确性|边界|覆盖审计|设计采用", read(SKILL_REVIEW),
+                      "schema layer 枚举缺 设计采用（L4 命中无法记录）")
 
     # trace: F-enhancement-1（description 仍称三层）
     def test_description_covers_l4(self):
@@ -62,7 +62,7 @@ class StaleNamingTests(unittest.TestCase):
         viewer = read(VIEWER)
         self.assertNotIn("三层审查（正确性/边界/覆盖审计）", viewer, "审查记录术语未更新")
         self.assertNotIn("等待三层审查", viewer, "待审查术语未更新")
-        self.assertIn('"design": "设计采用"', viewer, "viewer 缺 design 层展示映射（英文值直出）")
+        self.assertIn('"设计采用": "设计采用"', viewer, "viewer 缺 设计采用 层展示映射（英文值直出）")
 
 
 class FalsificationEntryTests(unittest.TestCase):
@@ -74,7 +74,7 @@ class FalsificationEntryTests(unittest.TestCase):
 
     # trace: F-architecture-3（状态写入权「Nothing else」与证伪回退冲突）
     def test_falsification_reopen_is_authorized(self):
-        self.assertIn("done → in-progress", read(SKILL_REVIEW), "缺证伪回退的授权条款")
+        self.assertIn("已完成 → 进行中", read(SKILL_REVIEW), "缺证伪回退的授权条款")
 
     # trace: F-enhancement-3（help 收尾提示未给命令入口）
     def test_help_points_to_falsify(self):
@@ -86,8 +86,8 @@ class VerdictRoutingTests(unittest.TestCase):
     # trace: F-architecture-4（bad_spec 原分流到 in-progress，与 Routing 表 / loop 冲突）
     def test_bad_spec_disposition_is_blocked(self):
         verdict = read(SKILL_REVIEW).split("## Verdict Rules", 1)[1].split("## Schema", 1)[0]
-        self.assertIn("bad_spec", verdict)
-        self.assertIn("blocked", verdict, "bad_spec 未分流到 blocked")
+        self.assertIn("规格缺陷", verdict)
+        self.assertIn("已阻塞", verdict, "规格缺陷 未分流到 已阻塞")
 
 
 if __name__ == "__main__":

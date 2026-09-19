@@ -3,11 +3,11 @@
 Progress: `Clarify & Route → [Plan] → Implement → Review → Present`
 
 **Read (input):** this run's draft record; the artifacts and code the intent touches.
-**Write (output):** the filled record in `{output_dir}/spec.yaml` — investigation results, `code_map` / `tasks` / `acceptance` / `verification` / `io_matrix` / `design_notes`, then `status: ready`.
+**Write (output):** the filled record in `{output_dir}/spec.yaml` — investigation results, `code_map` / `tasks` / `acceptance` / `verification` / `io_matrix` / `design_notes`, then `status: 就绪`.
 
 ## Draft resume check
 
-If the record is being resumed from `draft`, read it and keep its `intent` and `boundaries` verbatim — the frozen core is preserved, never re-typed.
+If the record is being resumed from `草稿`, read it and keep its `intent` and `boundaries` verbatim — the frozen core is preserved, never re-typed.
 
 ## Investigate
 
@@ -38,7 +38,7 @@ Present the summary, then HALT: `[A] Approve` | `[E] Edit`. Show the spec path C
 - **A** — re-read the record from disk.
   - **Missing:** HALT. Tell the human the record is gone and STOP — write nothing, set no status, do not proceed. Nothing below runs.
   - **Changed since it was written:** acknowledge the external edits, show a brief summary of what changed, proceed with the updated version.
-  - Then set the record's `status: ready`. The `intent` section is now locked — from here on only the human renegotiates it. → Step 3.
+  - Then set the record's `status: 就绪`. The `intent` section is now locked — from here on only the human renegotiates it. → Step 3.
 - **E** — apply the requested changes, then return to CHECKPOINT 1.
 
 ## Next

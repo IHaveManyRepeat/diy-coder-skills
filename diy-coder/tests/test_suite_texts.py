@@ -9,7 +9,7 @@
       · 已转中文定稿的技能（`CONVERTED_*` 台账）-> 断言含中文定稿、且不再含英文原形；
       · 未转的技能 -> 断言英文原形逐字同 md5。
     每转一个技能就在台账里加一个；**漏登即红**（英文断言会失败）。
-  B **待落地组**（母本 §3 / §4 / §5）—— 母本已定、技能未改；断言「缺锚串的技能集 == 台账」。
+  B **待落地组**（母本 §3 / §4 / §5 / §6）—— 母本已定、技能未改；断言「缺锚串的技能集 == 台账」。
     每落地一个就从台账删一个；**漏删即红**。台账清空后转为「全部适用技能必须含锚串」。
   C **非成员组** —— 工具类技能不得出现 §1 / §2 的任一形态。
 
@@ -147,6 +147,13 @@ _CONFIG_SKILLS = sorted(set(INSTANCE_MEMBERS) | set(CONVERTED_INSTANCE))
 # 已落 §3 锚串的技能（中文化轮逐个加入；落地即从 PENDING_RESOLVE_KEYS 移除）
 LANDED_RESOLVE_KEYS = frozenset(["prd"])
 
+ANCHOR_PRECISE = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
+                  "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
+
+# 已落 §6 条款的技能（中文化轮逐个加入；落地即从 PENDING_PRECISE 移除）
+LANDED_PRECISE = frozenset(["prd", "teach-me-testing", "test-author",
+                            "test-framework", "test-gate", "test-review"])
+
 
 def _steppers():
     """§4 读取纪律的适用面 = 有 `steps/` 的技能。
@@ -176,6 +183,8 @@ class PendingLandingTests(unittest.TestCase):
 
     PENDING_RESOLVE_KEYS = frozenset(set(_CONFIG_SKILLS) - NEW_SKILLS - LANDED_RESOLVE_KEYS)
     PENDING_READ_DISCIPLINE = frozenset(set(_steppers()) - NEW_SKILLS)
+    # §6 适用面 = 全部技能（母本明示「不设非成员」）
+    PENDING_PRECISE = frozenset(set(skills()) - NEW_SKILLS - LANDED_PRECISE)
     PENDING_RENDER_SILENT = frozenset("""
 augment checkpoint-preview correct-course create-story e2e-tests investigate
 prfaq product-brief project-context quick-dev readiness-check research
@@ -209,6 +218,10 @@ retrospective spec-scan viewer
         renderers = [s for s in skills()
                      if (read(s) or "").find("diy-viewer/scripts/viewer.py") >= 0]
         self._check(ANCHOR_RENDER_SILENT, renderers, self.PENDING_RENDER_SILENT)
+
+    # trace: 母本 §6（精准简练）——2026-09-19 用户立为母本；适用面 = 全部技能，不设非成员
+    def test_pending_precise_brief(self):
+        self._check(ANCHOR_PRECISE, skills(), self.PENDING_PRECISE)
 
 
 if __name__ == "__main__":

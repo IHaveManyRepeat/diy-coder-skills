@@ -15,12 +15,12 @@ collect（只读，绝不写文件、绝不下结论）：
 check（IV-### 集合，形状对齐 bug-log.yaml）：schema / 枚举（record status / mode / grade /
 availability / hypothesis status / confidence / backlog status / input kind）/ IV+EV+H ID 格式
 与记录内唯一 / evidence 三态齐全（grade + availability）/ hypotheses 生命周期完整性（status
-非 open ⇒ resolution 非空——「假设永不删除，只更新状态 + 追加 Resolution」的机械化）/
+非「待验证」⇒ resolution 非空——「假设永不删除，只更新状态 + 追加 Resolution」的机械化）/
 stronghold 在场（evidence_light=false 时；源纪律「据点先行」）/ evidence_light=true ⇒
 missing_evidence 非空（源纪律「缺失证据也是发现」）/ follow_ups 与 side_findings 追加块
 （note 必填；side_findings 承接源 Side Findings——切向观察，非当前线程，与 evidence/backlog
-语义区分；字段可选）。--final 附加：project.status final、conclusion 文本 + confidence、
-handoff_brief 非空、timeline 非空、零 [ASSUMPTION]。exit 0 唯一放行。
+语义区分；字段可选）。--final 附加：project.status 已定稿、conclusion 文本 + confidence、
+handoff_brief 非空、timeline 非空、零 [假设]。exit 0 唯一放行。
 
 分工裁定（任务书 §2.2/§7）：investigation 属新产物类型，不进 diyc.py check 硬编码类型集；
 契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}] + counts；where
@@ -45,15 +45,15 @@ import yaml
 
 INVESTIGATION_FILE = "investigation.yaml"
 
-DOC_STATUSES = ("draft", "final")
-RECORD_STATUSES = ("active", "concluded", "blocked-on-evidence")
-MODES = ("symptom", "exploration")
-GRADES = ("confirmed", "deduced", "hypothesized")
-AVAILABILITIES = ("available", "partial", "missing")
-HYPOTHESIS_STATUSES = ("open", "confirmed", "refuted")
-CONFIDENCES = ("high", "medium", "low")
-BACKLOG_STATUSES = ("open", "done", "unobtainable")
-INPUT_KINDS = ("ticket", "archive", "log", "description", "area", "commit")
+DOC_STATUSES = ("草稿", "已定稿")
+RECORD_STATUSES = ("调查中", "已结论", "待证据阻塞")
+MODES = ("症状驱动", "探索")
+GRADES = ("已确证", "已推断", "假设中")
+AVAILABILITIES = ("可得", "部分可得", "缺失")
+HYPOTHESIS_STATUSES = ("待验证", "已确证", "已推翻")
+CONFIDENCES = ("高", "中", "低")
+BACKLOG_STATUSES = ("待办", "已完成", "无法获取")
+INPUT_KINDS = ("工单", "归档", "日志", "描述", "范围", "提交")
 
 IV_RE = re.compile(r"IV-\d{3}")
 EV_RE = re.compile(r"EV-\d{3}")
@@ -116,7 +116,7 @@ def display_path(path, project_root):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -154,7 +154,7 @@ def count_items(records, key):
 
 
 def count_open_hypotheses(records):
-    return len([h for h in iter_entries(records, "hypotheses") if h.get("status") == "open"])
+    return len([h for h in iter_entries(records, "hypotheses") if h.get("status") == "待验证"])
 
 
 def count_by_grade(records):
@@ -443,7 +443,7 @@ def check_hypotheses(record, where):
         violations += missing_field(hyp, "statement", hw)
         status = hyp.get("status")
         violations += check_enum(status, HYPOTHESIS_STATUSES, hw + ".status", "status")
-        if nonempty(status) and str(status) != "open":
+        if nonempty(status) and str(status) != "待验证":
             violations += missing_field(hyp, "resolution", hw, "resolution（何时/何证据结案）")
     return violations
 
@@ -455,7 +455,7 @@ def check_stronghold(record, where):
         if record.get("evidence_light") is True:
             return []
         return [v("EMPTY_FIELD", where + ".stronghold",
-                  "据点缺失（先锚一条 confirmed 证据再外扩；无据案件须标记 evidence_light: true）")]
+                  "据点缺失（先锚一条「已确证」证据再外扩；无据案件须标记 evidence_light: true）")]
     if not isinstance(stronghold, dict):
         return [v("EMPTY_FIELD", where + ".stronghold", "stronghold 不是映射")]
     violations = missing_field(stronghold, "ref", where + ".stronghold",
@@ -474,7 +474,7 @@ def check_case_info(record, where):
     inputs = info.get("inputs")
     if not isinstance(inputs, list) or not inputs:
         violations.append(v("EMPTY_FIELD", where + ".case_info.inputs",
-                            "inputs 须为非空列表（输入形：ticket/archive/log/description/area/commit）"))
+                            "inputs 须为非空列表（输入形：工单/归档/日志/描述/范围/提交）"))
     else:
         for i, entry in enumerate(inputs):
             iw = "%s.case_info.inputs[%d]" % (where, i)
@@ -589,7 +589,7 @@ def check_conclusion(record, where, final):
     if not nonempty(confidence):
         if final:
             violations.append(v("PENDING_DECISION", where + ".conclusion.confidence",
-                                "--final 要求 confidence 已定（high|medium|low）"))
+                                "--final 要求 confidence 已定（高|中|低）"))
     elif str(confidence) not in CONFIDENCES:
         violations.append(v("ENUM_INVALID", where + ".conclusion.confidence",
                             "confidence 越界：%s（合法集 %s）"
@@ -602,9 +602,9 @@ def check_final_duties(record, where):
     if not nonempty(record.get("handoff_brief")):
         violations.append(v("EMPTY_FIELD", where + ".handoff_brief",
                             "--final 要求 handoff_brief 非空（3 句、15 秒读完）"))
-    if any("[ASSUMPTION]" in s for s in collect_strings(record)):
+    if any("[假设]" in s for s in collect_strings(record)):
         violations.append(v("ASSUMPTION_PRESENT", where,
-                            "--final 要求零 [ASSUMPTION]；未决推断须先落定"))
+                            "--final 要求零 [假设]；未决推断须先落定"))
     return violations
 
 
@@ -674,9 +674,9 @@ def cmd_check(args):
             violations.append(v("ENUM_INVALID", show + " project.status",
                                 "status 越界：%s（合法集 %s）"
                                 % (status, "|".join(DOC_STATUSES))))
-        if args.final and str(status) != "final":
+        if args.final and str(status) != "已定稿":
             violations.append(v("STATUS_MISMATCH", show + " project.status",
-                                "--final 要求 project.status 已落 final（实为 %s）"
+                                "--final 要求 project.status 为「已定稿」（实为 %s）"
                                 % (status if nonempty(status) else "未声明")))
         revisions = data.get("revisions")
         if revisions is not None and not isinstance(revisions, list):
@@ -775,7 +775,7 @@ def build_parser():
     k.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     k.add_argument("--final", action="store_true",
-                   help="定稿校验：project.status final + conclusion/handoff_brief/timeline + 零假设")
+                   help="定稿校验：project.status 已定稿 + conclusion/handoff_brief/timeline + 零假设")
     k.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     k.set_defaults(func=cmd_check)
     return ap

@@ -2,16 +2,16 @@
 """diy-create-story 确定性引擎测试（任务书 §2.5 / §3）。
 
 覆盖：
-- 用例 1：门禁拒绝——stories.yaml 缺席 / 非 final → collect exit 1 + 零产出 + gate.route
+- 用例 1：门禁拒绝——stories.yaml 缺席 / 非 已定稿 → collect exit 1 + 零产出 + gate.route
 - 用例 2：collect 目标 story 悬空 → UNKNOWN_ID + suggestions（story 选择降级为人工）
 - 用例 3：collect 回执键与取值完整性（acs/tcs/prior/decisions/git/counts/gate）
 - 用例 4：前序 story 取「编号最高且小于当前者」；首故事 prior 为 null
 - 用例 5：VCS 不可用 → NO_VCS warning 降级，collect 仍 exit 0
 - 用例 6：check --final 合法记录 exit 0
-- 用例 7：update 型 current_state 缺失 → EMPTY_FIELD
-- 用例 8：update 型 path 不存在 → MISSING_FILE
+- 用例 7：更新 型 current_state 缺失 → EMPTY_FIELD
+- 用例 8：更新 型 path 不存在 → MISSING_FILE
 - 用例 9：story 引用悬空 → UNKNOWN_ID
-- 用例 10：--final 义务（status / verify / [ASSUMPTION] / open_questions 闭合）
+- 用例 10：--final 义务（status / verify / [假设] / open_questions 闭合）
 - 用例 11：同一 story 两条记录 → DUPLICATE_ID
 - 用例 12：SKILL.md 契约冒烟（两段冻结文本逐字 md5 + 终门句指向本技能引擎）
 
@@ -44,7 +44,7 @@ WRITING_ANCHOR = "- **Writing discipline."
 STORIES_YAML = """\
 project:
   name: mini
-  status: final
+  status: 已定稿
   created: '2026-01-01'
   updated: '2026-09-14'
 stories:
@@ -58,7 +58,7 @@ stories:
     when: 夹具
     then: 夹具
     refs: [FR-1.1]
-  status: done
+  status: 已完成
 - id: S-2
   epic: E-1
   title: 二
@@ -69,7 +69,7 @@ stories:
     when: 夹具
     then: 夹具
     refs: [FR-1.1]
-  status: review
+  status: 待审查
 - id: S-3
   epic: E-1
   title: 三
@@ -81,62 +81,62 @@ stories:
     then: 夹具
     refs: [FR-1.1]
     design_ref: P-1
-  status: pending
+  status: 待办
 """
 
-STORIES_DRAFT_YAML = STORIES_YAML.replace("status: final", "status: draft", 1)
+STORIES_DRAFT_YAML = STORIES_YAML.replace("status: 已定稿", "status: 草稿", 1)
 
 TEST_PLAN_YAML = """\
 project:
   name: mini
-  status: final
+  status: 已定稿
   created: '2026-01-01'
   updated: '2026-09-14'
 test_cases:
 - id: TC-2.1.1
   title: 二用例
   ac: AC-2.1
-  type: unit
+  type: 单元
   priority: P0
-  technique: boundary
+  technique: 边界
   kill_target: 夹具
-  status: pending
+  status: 待办
   steps: [一]
 - id: TC-3.1.1
   title: 三用例
   ac: AC-3.1
-  type: unit
+  type: 单元
   priority: P0
-  technique: equivalence
+  technique: 等价类
   kill_target: 夹具
-  status: pending
+  status: 待办
   steps: [一]
 """
 
 SPRINT_YAML = """\
 project:
   name: mini
-  status: final
+  status: 已定稿
   created: '2026-01-01'
   updated: '2026-09-14'
 tasks:
 - story: S-1
-  status: done
+  status: 已完成
   test_refs: []
   note: 回填：首故事完成
 - story: S-2
-  status: review
+  status: 待审查
   test_refs: [TC-2.1.1]
   note: 待评审；既有实现复用 src/app.py
 - story: S-3
-  status: pending
+  status: 待办
   test_refs: [TC-3.1.1]
 """
 
 ARCH_YAML = """\
 project:
   name: mini
-  status: final
+  status: 已定稿
   created: '2026-01-01'
   updated: '2026-09-14'
 decisions:
@@ -147,7 +147,7 @@ decisions:
   alternatives:
   - {option: 甲, why_not: 乙}
   affects: [FR-1.1]
-  status: accepted
+  status: 已采纳
 - id: D-2
   title: 状态机
   decision: 夹具
@@ -155,7 +155,7 @@ decisions:
   alternatives:
   - {option: 甲, why_not: 乙}
   affects: [FR-1.2]
-  status: accepted
+  status: 已采纳
 """
 
 CONTEXT_YAML = """\
@@ -166,7 +166,7 @@ project:
 contexts:
 - id: SC-001
   story: S-3
-  status: final
+  status: 已定稿
   date: '2026-09-14'
   epic: E-1
   ac_refs: [AC-3.1]
@@ -175,12 +175,12 @@ contexts:
   decisions: [D-1]
   files:
   - path: src/app.py
-    action: update
+    action: 更新
     why: 接线新行为
     current_state: 当前只打印一行
     preserve: 既有输出格式不得改变
   - path: src/new_mod.py
-    action: new
+    action: 新建
     why: AC-3.1 需要的新模块
   prior_story:
     ref: S-2
@@ -278,7 +278,7 @@ class GateTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
         data = json.loads(r.stdout)
         self.assertEqual([v["code"] for v in data["violations"]], ["UNKNOWN_ID"])
-        self.assertIn("S-3", data["suggestions"], "候选应为未 done 的 story")
+        self.assertIn("S-3", data["suggestions"], "候选应为未完成（status 非 已完成）的 story")
         self.assertFalse(os.path.exists(os.path.join(self.out, "story-context.yaml")))
 
 
@@ -300,7 +300,7 @@ class CollectTests(EngineCase):
         self.assertEqual([t["id"] for t in data["tcs"]], ["TC-3.1.1"])
         self.assertEqual([d["id"] for d in data["decisions"]], ["D-1", "D-2"])
         self.assertEqual(data["prior"]["ref"], "S-2")
-        self.assertEqual(data["prior"]["story_status"], "review")
+        self.assertEqual(data["prior"]["story_status"], "待审查")
         self.assertIn("既有实现复用", data["prior"]["task"]["note"])
         self.assertTrue(data["gate"]["passed"])
         self.assertEqual(data["counts"]["acs"], 1)
@@ -358,7 +358,7 @@ class CheckTests(EngineCase):
         self.assertEqual(data["counts"]["contexts"], 1)
         self.assertEqual(data["violations"], [])
 
-    # trace: 任务书 §3 check（update 型 current_state 必填）
+    # trace: 任务书 §3 check（更新 型 current_state 必填）
     def test_update_entry_missing_current_state(self):
         self.write_context(CONTEXT_YAML.replace("    current_state: 当前只打印一行" + NL, ""))
         r = self.check()
@@ -367,7 +367,7 @@ class CheckTests(EngineCase):
         self.assertEqual([v["code"] for v in data["violations"]], ["EMPTY_FIELD"])
         self.assertIn("current_state", data["violations"][0]["where"])
 
-    # trace: 任务书 §3 check（update 型 path 须存在）
+    # trace: 任务书 §3 check（更新 型 path 须存在）
     def test_update_entry_path_must_exist(self):
         self.write_context(CONTEXT_YAML.replace("path: src/app.py", "path: src/absent.py"))
         r = self.check()
@@ -399,11 +399,11 @@ class CheckTests(EngineCase):
     # trace: 任务书 §3 check（--final 附加义务）
     def test_final_duties(self):
         text = (CONTEXT_YAML
-                .replace("  status: final", "  status: draft")
+                .replace("  status: 已定稿", "  status: 草稿")
                 .replace("  verify:" + NL + "  - python -m unittest discover -s tests -v",
                          "  verify: []")
                 .replace("  risks:" + NL,
-                         "  risks:" + NL + "  - '[ASSUMPTION] 待确认的回归面'" + NL)
+                         "  risks:" + NL + "  - '[假设] 待确认的回归面'" + NL)
                 .replace("  open_questions: []",
                          "  open_questions:" + NL + "  - 是否需要兼容旧入口"))
         self.write_context(text)

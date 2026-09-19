@@ -7,9 +7,9 @@ Progress: `[Epic Discovery] → Deep Analysis → Continuity → Review → Acti
 
 ## Pick the epic — three levels, in order (source step-1 priority logic)
 
-1. **Engine-side suggestion.** Scan `stories.yaml` for the highest-numbered epic that has at least one story with `status: done` — that is the epic just finished; present it as the suggestion.
+1. **Engine-side suggestion.** Scan `stories.yaml` for the highest-numbered epic that has at least one story with `status: 已完成` — that is the epic just finished; present it as the suggestion.
 2. **The user's word is final.** The user names another epic → that is the epic under review, no debate.
-3. **Nothing detectable.** List the epics that have any `done` story with their `done/total` counts as numbered options and ask. Never guess an epic into existence.
+3. **Nothing detectable.** List the epics that have any `已完成` story with their `done/total` counts as numbered options and ask. Never guess an epic into existence.
 
 ## Run the deterministic opener
 
@@ -19,7 +19,7 @@ python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py
 
 The engine owns the gate and the numbers:
 
-- **Gate (exit 1, zero output):** `stories.yaml` + `epics.yaml` present and `project.status: final`; the epic resolves in `epics.yaml`; at least one `done` story in it. On refusal relay the receipt's one-line reasons and `gate.route` (diy-epics-stories), then stop — a refusal never becomes a record.
+- **Gate (exit 1, zero output):** `stories.yaml` + `epics.yaml` present and `project.status: 已定稿`; the epic resolves in `epics.yaml`; at least one `已完成` story in it. On refusal relay the receipt's one-line reasons and `gate.route` (diy-epics-stories), then stop — a refusal never becomes a record.
 - **Everything else comes from the receipt, never by re-reading the artifacts by hand:** `stories` (total / done / pending), `metrics`, `bugs`, `coverage`, `prev_actions`, `first_retro`, `next_epic`. These are the diy transformation of the source's "read every story file and count" step — structured artifacts plus one mechanical pass, not a hand tally.
 
 ## Completion check and the partial branch (source step-1, three options)
@@ -41,7 +41,7 @@ Append one record to `{output_dir}/retrospective.yaml` (create the file when abs
 ```yaml
   - id: RT-001                    # next = highest existing + 1, 3 digits; never renumber, never reuse
     epic: E-x                     # copied from the receipt
-    status: draft
+    status: 草稿
     date: YYYY-MM-DD              # today
     partial: false                # true only on a user-confirmed partial retrospective
     metrics:                      # copied from the receipt verbatim, never retyped from memory
@@ -50,7 +50,7 @@ Append one record to `{output_dir}/retrospective.yaml` (create the file when abs
       rounds_total: 0
       blocked_count: 0
       augment_fail: 0
-      bugs: {functional: 0, non-functional: 0}
+      bugs: {功能型: 0, 非功能型: 0}
     patterns: []
     wins: []
     challenges: []

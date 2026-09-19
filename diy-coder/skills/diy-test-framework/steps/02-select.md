@@ -1,13 +1,13 @@
 # Step 2 — 选型与 substitutions 取值表
 
-**Read (input):** step 1 的 `detect` 回执；`{output_dir}/test-plan.yaml` 的 `static_checks[]`（**按 `order` 定位**取 blocking 层 `tool`，不整份读）。
+**Read (input):** step 1 的 `detect` 回执；`{output_dir}/test-plan.yaml` 的 `static_checks[]`（**按 `order` 定位**取 阻断 层 `tool`，不整份读）。
 **Write (output):** 会话内的选型结论 + substitutions 取值表（两张 plan 共用；step 3/4 落进 plan）。
 
 ## 1. 框架选型（源 step-02 规则）
 
-- `frontend` / `fullstack` → 默认 **Playwright**（大仓库 / 多浏览器 / API+UI / CI 并行要快）；小团队 DX 或组件测试重心 → **Cypress**（profile `browser-cypress`）。
-- `backend` → 按语言：node `vitest`、python `pytest`、java `JUnit 5`、go `go test`、dotnet `xUnit`、ruby `RSpec`、rust `cargo test`、php `PHPUnit`。
-- `mobile` → 模板面不支持（step 1 已 HALT）：Maestro + 单元层的选型只作为报告结论，不生成文件。
+- `前端` / `全栈` → 默认 **Playwright**（大仓库 / 多浏览器 / API+UI / CI 并行要快）；小团队 DX 或组件测试重心 → **Cypress**（profile `browser-cypress`）。
+- `后端` → 按语言：node `vitest`、python `pytest`、java `JUnit 5`、go `go test`、dotnet `xUnit`、ruby `RSpec`、rust `cargo test`、php `PHPUnit`。
+- `移动端` → 模板面不支持（step 1 已 HALT）：Maestro + 单元层的选型只作为报告结论，不生成文件。
 - `existing.framework` 与建议不同 → 先问用户（替换属内容决策；无头不替用户默认）。
 
 ## 2. 平台选型
@@ -17,7 +17,7 @@
 
 - `RUNTIME_SETUP_CMD`：运行时准备**单行**命令（如 `nvm install 22 && nvm use 22`、`python -m pip install --upgrade pip`）。
 - `INSTALL_CMD` / `LINT_CMD` / `TEST_CMD` / `BROWSER_INSTALL`：与项目包管理器一致的命令。
-- **blocking 层命令是硬约束**：`static_checks[]` 中 `gate: blocking` 的 `tool` 整串 → 逐字进 `LINT_CMD`（check 按「空白归一化 + 独立命令形态」在 CI 文件里找它；写成 `lint:fix` 一类会判 `CI_MISALIGNED`）。多条 blocking 条目按 `order` 升序用 `&&` 串成一条命令（`&` 属匹配边界，故逐条仍可独立命中）。**按 `order` 引用，禁把命令内容抄进台账**。
+- **阻断 层命令是硬约束**：`static_checks[]` 中 `gate: 阻断` 的 `tool` 整串 → 逐字进 `LINT_CMD`（check 按「空白归一化 + 独立命令形态」在 CI 文件里找它；写成 `lint:fix` 一类会判 `CI_MISALIGNED`）。多条 阻断 条目按 `order` 升序用 `&&` 串成一条命令（`&` 属匹配边界，故逐条仍可独立命中）。**按 `order` 引用，禁把命令内容抄进台账**。
 - `P0_GATE` / `P1_GATE`：固定 `100%`（质量门口径拉满；源 P1≥95% 已作废）。
 - 版本与文档类：`NODE_VERSION` / `PYTHON_VERSION` / `JAVA_VERSION` / `RUBY_VERSION` / `DOTNET_SDK_VERSION` / `FRAMEWORK_NAME` / `TEST_DIR` / `BASE_URL` / `API_URL`。
 - 语言特定：`TEST_PACKAGE`（java）/ `PACKAGE_NAME`（go）/ `CRATE_NAME`（rust）/ `TEST_PROJECT_NAME`（dotnet）。
@@ -43,6 +43,6 @@
 ## 4. 报给用户
 一行选型：框架 + 平台 + profile + 理由；用户确认后才进 step 3。
 
-## Next
+## 播报与下一步
 
 读 `./03-scaffold.md` 并照做。

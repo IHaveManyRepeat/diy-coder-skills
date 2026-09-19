@@ -39,7 +39,7 @@ One `findings[]` entry per area, written as each search lands:
 
 - Web search required — decision research studies, journey-mapping methodologies, buying-criteria analyses.
 - Two independent sources for each critical claim; conflicts are presented, not resolved silently.
-- `confidence` per finding: `high` / `medium` / `low`.
+- `confidence` per finding: `高` / `中` / `低`.
 - Keep journey claims anchored to the researched topic, not to a generic funnel template.
 
 ## Present and continue

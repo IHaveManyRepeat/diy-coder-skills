@@ -18,17 +18,17 @@ import diyc_lib
 
 # 枚举（逐条对照各 SKILL.md Schema 节的机器锚）
 # rule: diy-test-design/SKILL.md:Schema technique 13 值（前 9 设计期 + 后 4 补测）
-TECHNIQUES = ("equivalence", "boundary", "decision-table", "state-transition",
-              "pairwise", "error-guessing", "metamorphic", "property", "scenario",
-              "coverage-branch", "coverage-mc-dc", "whitebox-path", "mutation-kill")
-CASE_TYPES = ("unit", "integration", "e2e")          # rule: diy-test-design/SKILL.md:Design Discipline（Type maps to layer）
+TECHNIQUES = ("等价类", "边界", "决策表", "状态迁移",
+              "成对组合", "错误猜测", "蜕变测试", "属性测试", "场景",
+              "覆盖分支", "MC-DC 覆盖", "白盒路径", "变异杀伤")
+CASE_TYPES = ("单元", "集成", "端到端")              # rule: diy-test-design/SKILL.md:Design Discipline（Type maps to layer）
 PRIORITIES = ("P0", "P1", "P2")                      # rule: diy-test-design/SKILL.md:Design Discipline（Priority maps to risk）
-TC_STATUSES = ("pending", "pass", "fail")            # rule: diy-test-design/SKILL.md:Schema status
-GAP_DECISIONS = ("pending", "waived", "accept-gap")  # rule: diy-test-design/SKILL.md:Schema coverage_gaps.decision
-FR_PRIORITIES = ("must", "should", "could")          # rule: diy-prd/SKILL.md:Schema requirements.priority
-DEC_STATUSES = ("proposed", "accepted")              # rule: diy-architecture/SKILL.md:Schema decisions.status
-EPIC_STATUSES = ("pending", "in-progress", "done")   # rule: diy-epics-stories/SKILL.md:Schema epics.status
-STORY_STATUSES = ("pending", "in-progress", "review", "done", "blocked")  # rule: diy-epics-stories/SKILL.md:Schema stories.status
+TC_STATUSES = ("待办", "通过", "失败")               # rule: diy-test-design/SKILL.md:Schema status
+GAP_DECISIONS = ("待办", "已豁免", "接受缺口")       # rule: diy-test-design/SKILL.md:Schema coverage_gaps.decision
+FR_PRIORITIES = ("必须", "应该", "可选")             # rule: diy-prd/SKILL.md:Schema requirements.priority
+DEC_STATUSES = ("待定", "已采纳")                    # rule: diy-architecture/SKILL.md:Schema decisions.status
+EPIC_STATUSES = ("待办", "进行中", "已完成")         # rule: diy-epics-stories/SKILL.md:Schema epics.status
+STORY_STATUSES = ("待办", "进行中", "待审查", "已完成", "已阻塞")  # rule: diy-epics-stories/SKILL.md:Schema stories.status
 HTTP_METHODS = ("get", "put", "post", "delete", "options", "head", "patch", "trace")
 PATH_ITEM_KEYS = ("parameters", "summary", "description", "servers", "$ref")
 
@@ -100,10 +100,10 @@ def dup(report, pairs, label):
 
 
 def scan_assumptions(doc, rel) -> list:
-    """深度扫描 [ASSUMPTION] 前缀（契约 §4.2：--final 义务 = zero [ASSUMPTION]）。
+    """深度扫描 [假设] 前缀（契约 §4.2：--final 义务 = zero [假设]）。
 
-    判定与 viewer.py render 同源（值以 `[ASSUMPTION]` 开头即标记）；正文里
-    提到该词（如 AC 文本「全部 [ASSUMPTION] 已清除」）不算标记，避免误报。
+    判定与 viewer.py render 同源（值以 `[假设]` 开头即标记）；正文里
+    提到该词（如 AC 文本「全部 [假设] 已清除」）不算标记，避免误报。
     """
     hits = []
 
@@ -114,7 +114,7 @@ def scan_assumptions(doc, rel) -> list:
         elif isinstance(node, list):
             for i, value in enumerate(node):
                 walk(value, "%s[%d]" % (path, i))
-        elif isinstance(node, str) and node.startswith("[ASSUMPTION]"):
+        elif isinstance(node, str) and node.startswith("[假设]"):
             hits.append(path)
 
     walk(doc, "")
@@ -134,7 +134,7 @@ def tc_declarations(entry, where, report):
 # ---------------------------------------------------------------- prd
 
 def check_prd(doc, rel, docs, final, report) -> dict:
-    """prd.yaml：结构形状 + 枚举 + 重复 ID；--final 由 run() 统一加 [ASSUMPTION] 扫描。"""
+    """prd.yaml：结构形状 + 枚举 + 重复 ID；--final 由 run() 统一加 [假设] 扫描。"""
     # rule: diy-prd/SKILL.md:Schema（author exactly this shape）
     # rule: diy-prd/SKILL.md:PRD Discipline（ID chain is sacred / 编号分配后永不重编号）
     counts = {"goals": 0, "users": 0, "features": 0, "frs": 0, "nfrs": 0}
@@ -144,7 +144,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
     else:
         req(report, rel + " project.name", project.get("name"), "project.name")
         enum(report, rel + " project.status", project.get("status"),
-             ("draft", "final"), "project.status")
+             ("草稿", "已定稿"), "project.status")
     req(report, rel + " purpose", doc.get("purpose"), "purpose（一句话产品目的）")
 
     goals = items(doc, "goals")
@@ -201,7 +201,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
         "NFR id")
 
     # rule: diy-prd/SKILL.md:PRD Discipline（Every pending decision lives in the file；
-    #       用户确认后 [ASSUMPTION] 才可去除）→ --final 时未答问题 = 未决
+    #       用户确认后 [假设] 才可去除）→ --final 时未答问题 = 未决
     for q in items(doc, "open_questions"):
         w = "%s open_questions[%s]" % (rel, q.get("id") or "?")
         req(report, w + ".id", q.get("id"), "question id")
@@ -215,18 +215,18 @@ def check_prd(doc, rel, docs, final, report) -> dict:
 # ---------------------------------------------------------------- architecture
 
 def check_architecture(doc, rel, docs, final, report) -> dict:
-    """architecture.yaml：决策形状 + affects 引用解析；--final 禁 proposed 决策。"""
+    """architecture.yaml：决策形状 + affects 引用解析；--final 禁 待定 决策。"""
     # rule: diy-architecture/SKILL.md:Decision Discipline（every affects entry must be an
     #       existing FR/NFR ID from prd.yaml；every decision records at least one rejected alternative）
-    # rule: diy-architecture/SKILL.md:Final requires（zero [ASSUMPTION]，zero proposed decisions，
+    # rule: diy-architecture/SKILL.md:Final requires（zero [假设]，zero proposed decisions，
     #       every affects ID resolving in prd.yaml）
-    counts = {"decisions": 0, "accepted": 0, "proposed": 0}
+    counts = {"decisions": 0, "已采纳": 0, "待定": 0}
     project = doc.get("project")
     if not isinstance(project, dict):
         report.add("EMPTY_FIELD", rel + " project", "project 块缺失或形状异常")
     else:
         enum(report, rel + " project.status", project.get("status"),
-             ("draft", "final"), "project.status")
+             ("草稿", "已定稿"), "project.status")
     for i, s in enumerate(items(doc, "stack")):
         w = "%s stack[%d]" % (rel, i)
         req(report, w + ".choice", s.get("choice"), "stack.choice")
@@ -252,9 +252,9 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
         status = d.get("status")
         if enum(report, w + ".status", status, DEC_STATUSES, "status"):
             counts[status] += 1
-            if final and status == "proposed":
+            if final and status == "待定":
                 report.add("PENDING_DECISION", w + ".status",
-                           "定稿前决策须被用户接受（status: proposed → accepted）")
+                           "定稿前决策须被用户接受（status: 待定 → 已采纳）")
         alternatives = items(d, "alternatives")
         if not alternatives:
             report.add("EMPTY_FIELD", w + ".alternatives",
@@ -294,7 +294,7 @@ def check_openapi(doc, rel, docs, final, report) -> dict:
     """openapi.yaml：轻量 3.1 结构自检（契约 §4.2 硬点）+ x-fr 引用解析。"""
     # rule: diy-openapi/SKILL.md:Contract Discipline（Valid OpenAPI 3.1 above all；
     #       each operation carries x-fr referencing existing FR IDs from prd.yaml）
-    # rule: diy-openapi/SKILL.md:Final requires（openapi field is 3.1.x，zero [ASSUMPTION]，
+    # rule: diy-openapi/SKILL.md:Final requires（openapi field is 3.1.x，zero [假设]，
     #       every x-fr ID resolving in prd.yaml）
     counts = {"paths": 0, "operations": 0}
     version = doc.get("openapi")
@@ -313,7 +313,7 @@ def check_openapi(doc, rel, docs, final, report) -> dict:
             report.add("EMPTY_FIELD", rel + " x-project", "x-project 形状异常（应为映射）")
         else:
             enum(report, rel + " x-project.status", xp.get("status"),
-                 ("draft", "final"), "x-project.status")
+                 ("草稿", "已定稿"), "x-project.status")
 
     paths = doc.get("paths")
     if not isinstance(paths, dict) or not paths:
@@ -378,7 +378,7 @@ def check_epics(doc, rel, docs, final, report) -> dict:
         report.add("EMPTY_FIELD", rel + " project", "project 块缺失或形状异常")
     else:
         enum(report, rel + " project.status", project.get("status"),
-             ("draft", "final"), "project.status")
+             ("草稿", "已定稿"), "project.status")
     epics = items(doc, "epics")
     counts["epics"] = len(epics)
     if not epics:
@@ -407,11 +407,11 @@ def _design_pages(docs):
 
 
 def check_stories(doc, rel, docs, final, report) -> dict:
-    """stories.yaml：AC 形状 + refs 引用解析 + design_ref 解析；--final 加 must-FR 覆盖。"""
+    """stories.yaml：AC 形状 + refs 引用解析 + design_ref 解析；--final 加必须级 FR 覆盖。"""
     # rule: diy-epics-stories/SKILL.md:Derivation Discipline（AC refs existing FR/NFR IDs，
     #       never copy requirement text；design_ref must resolve；Coverage is complete：
     #       every must-priority FR is referenced by at least one AC）
-    # rule: diy-epics-stories/SKILL.md:Final requires（zero [ASSUMPTION]；every AC ref
+    # rule: diy-epics-stories/SKILL.md:Final requires（zero [假设]；every AC ref
     #       resolving in prd.yaml；every must-FR covered）
     counts = {"stories": 0, "acs": 0, "must_frs": 0}
     project = doc.get("project")
@@ -419,7 +419,7 @@ def check_stories(doc, rel, docs, final, report) -> dict:
         report.add("EMPTY_FIELD", rel + " project", "project 块缺失或形状异常")
     else:
         enum(report, rel + " project.status", project.get("status"),
-             ("draft", "final"), "project.status")
+             ("草稿", "已定稿"), "project.status")
     stories = items(doc, "stories")
     counts["stories"] = len(stories)
     if not stories:
@@ -479,14 +479,14 @@ def check_stories(doc, rel, docs, final, report) -> dict:
                     report.add("UNKNOWN_ID", aw + ".design_ref",
                                "%s 在 design.yaml pages 中不存在" % design_ref)
     dup(report, ac_pairs, "AC id")
-    must_frs = {fid for fid, r in docs.frs().items() if r.get("priority") == "must"}
+    must_frs = {fid for fid, r in docs.frs().items() if r.get("priority") == "必须"}
     counts["must_frs"] = len(must_frs)
     if final:
         # rule: diy-epics-stories/SKILL.md:Derivation Discipline（Coverage is complete）
         missing = diyc_lib.id_sort(must_frs - referenced)
         if missing:
             report.add("SET_MISMATCH", rel + " acceptance_criteria",
-                       "must 级 FR 未被任何 AC 引用：%s（每个 must FR 至少被一条 AC 的 refs 覆盖）"
+                       "必须级 FR 未被任何 AC 引用：%s（每个必须 FR 至少被一条 AC 的 refs 覆盖）"
                        % "、".join(missing))
     return counts
 
@@ -494,11 +494,11 @@ def check_stories(doc, rel, docs, final, report) -> dict:
 # ---------------------------------------------------------------- test-plan
 
 def check_test_plan(doc, rel, docs, final, report) -> dict:
-    """test-plan.yaml：用例声明形状 + AC 解析 + 缺口形状；--final 禁 decision: pending。"""
+    """test-plan.yaml：用例声明形状 + AC 解析 + 缺口形状；--final 禁 decision: 待办。"""
     # rule: diy-test-design/SKILL.md:Schema（test_cases / static_checks / coverage_gaps）
     # rule: diy-test-design/SKILL.md:Design Discipline（Gaps are decisions, not omissions；
     #       waived must cite prior user confirmation）
-    # rule: diy-test-design/SKILL.md:Final requires（zero [ASSUMPTION]，zero decision: pending
+    # rule: diy-test-design/SKILL.md:Final requires（zero [假设]，zero decision: 待办
     #       gaps，every ac resolving in stories.yaml，schema-enum technique，non-empty kill_target）
     counts = {"cases": 0, "by_type": {}, "by_priority": {}, "acs_covered": 0,
               "gaps_by_decision": {}}
@@ -507,7 +507,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
         report.add("EMPTY_FIELD", rel + " project", "project 块缺失或形状异常")
     else:
         enum(report, rel + " project.status", project.get("status"),
-             ("draft", "final"), "project.status")
+             ("草稿", "已定稿"), "project.status")
 
     stories_available = docs.doc("stories") is not None
     known_acs = set(docs.acs()) if stories_available else set()
@@ -568,7 +568,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                 req(report, w + ".tool", c.get("tool"), "tool（具体命令或工具名）")
                 req(report, w + ".kills", c.get("kills"),
                     "kills（本层杀掉而上层杀不掉的问题类）")
-                enum(report, w + ".gate", c.get("gate"), ("blocking", "advisory"), "gate")
+                enum(report, w + ".gate", c.get("gate"), ("阻断", "记录不阻断"), "gate")
             dup(report, order_pairs, "static_checks order")
 
     gaps = doc.get("coverage_gaps")
@@ -597,16 +597,16 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                 if enum(report, w + ".decision", decision, GAP_DECISIONS, "decision"):
                     counts["gaps_by_decision"][decision] = \
                         counts["gaps_by_decision"].get(decision, 0) + 1
-                    if decision == "pending":
+                    if decision == "待办":
                         pending_acs.append(str(ac))
-                    if decision == "waived" and not nonempty(g.get("note")):
+                    if decision == "已豁免" and not nonempty(g.get("note")):
                         report.add("EMPTY_FIELD", w + ".note",
-                                   "waived 须注明先前用户确认（日期 + 确认了什么）")
+                                   "已豁免须注明先前用户确认（日期 + 确认了什么）")
             dup(report, gap_pairs, "coverage_gaps ac")
             if final and pending_acs:
-                # rule: diy-test-design/SKILL.md:Final requires（zero decision: pending gaps）
+                # rule: diy-test-design/SKILL.md:Final requires（zero decision: 待办 gaps）
                 report.add("PENDING_DECISION", rel + " coverage_gaps",
-                           "定稿前缺口须由用户裁决（decision: pending → waived / accept-gap / 补用例）：%s"
+                           "定稿前缺口须由用户裁决（decision: 待办 → 已豁免 / 接受缺口 / 补用例）：%s"
                            % "、".join(pending_acs))
     return counts
 

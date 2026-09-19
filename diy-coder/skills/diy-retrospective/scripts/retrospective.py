@@ -4,21 +4,21 @@
 子命令：
   collect  --epic <E-x|N>  epic 收尾回顾的确定性部分（只读，绝不写文件）：
              1 门禁（源技能 step-1「Epic Discovery」的门禁化）：stories.yaml / epics.yaml
-               在场且 project.status 为 final；目标 epic 在 epics.yaml 中可解析；该 epic
-               至少 1 个 done story。不满足 → 零产出 exit 1 + 结构化拒绝回执
-               （violations 带码 + gate.route 给路由）。epic 未收尾（有 story 非 done）
+               在场且 project.status 为 已定稿；目标 epic 在 epics.yaml 中可解析；该 epic
+               至少 1 个 已完成 story。不满足 → 零产出 exit 1 + 结构化拒绝回执
+               （violations 带码 + gate.route 给路由）。epic 未收尾（有 story 非 已完成）
                不是拒绝：出 PENDING_DECISION 警告，partial 分流交会话（源 step-1 三分支：
                完成后再来 / partial 回顾 / 刷新 sprint）。
              2 指标机械采集（替换源技能 step-2「人工通读 story md 数数」的确定性下沉）：
-               stories 完成度、sprint loop.rounds 合计、blocked / augment: fail 明细、
+               stories 完成度、sprint loop.rounds 合计、已阻塞 / augment: 失败 明细、
                bug-log 按 story→epic 归属的三分类计数、test-plan 对该 epic AC 的覆盖统计。
              3 前一份 retro 的 action_items 回带（源 step-3 的承诺跟踪输入，供 prev_followup）；
                下一 epic 存在性与共享 FR（源 step-4 预览的机械钩子）。
   check    [--final] [--id RT-xxx]  校验 {output_dir}/retrospective.yaml（RT-### 集合，形状对齐
            bug-log.yaml）：schema / 枚举 / epic 与 patterns evidence 的引用解析（S-x / BUG-0xx）/
            action item 完整性（action+owner+done_when）/ prev_followup 指向同文件既往记录 /
-           next_epic.exists=true 时 id 解析 / ID 唯一；--final 附加：status 已落 final、
-           零 [ASSUMPTION]、metrics 与集合真值一致（SET_MISMATCH，与 collect 同一函数互证）、
+           next_epic.exists=true 时 id 解析 / ID 唯一；--final 附加：status 已落 已定稿、
+           零 [假设]、metrics 与集合真值一致（SET_MISMATCH，与 collect 同一函数互证）、
            readiness 五键非空、action_items 非空。exit 0 唯一放行。
 
 分工裁定（任务书 §2.2/§2.3/§4）：retrospective 属新产物类型，不进 diyc.py check 的硬编码类型集；
@@ -47,18 +47,18 @@ SPRINT_FILE = "sprint.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
 BUG_LOG_FILE = "bug-log.yaml"
 
-# 门禁件（文件名 → 是否要求 project.status: final）
+# 门禁件（文件名 → 是否要求 project.status: 已定稿）
 GATE_FILES = ((STORIES_FILE, True), (EPICS_FILE, True))
 ROUTE_BY_FILE = {STORIES_FILE: "diy-epics-stories", EPICS_FILE: "diy-epics-stories"}
 
-RECORD_STATUSES = ("draft", "final")
-ACTION_CATEGORIES = ("process", "technical", "docs", "team")
-PREP_CLASSES = ("critical", "parallel", "nice")
-FOLLOWUP_STATUSES = ("done", "partial", "missed")
+RECORD_STATUSES = ("草稿", "已定稿")
+ACTION_CATEGORIES = ("流程", "技术", "文档", "团队")
+PREP_CLASSES = ("关键", "可并行", "锦上添花")
+FOLLOWUP_STATUSES = ("已完成", "部分完成", "未完成")
 READINESS_KEYS = ("testing", "deployment", "acceptance", "tech_health", "blockers")
 METRIC_INT_KEYS = ("stories_total", "stories_done", "rounds_total", "blocked_count",
                    "augment_fail")
-BUG_CLASSES = ("functional", "non-functional")
+BUG_CLASSES = ("功能型", "非功能型")
 TEXT_LIST_KEYS = ("wins", "challenges", "insights")
 
 EPIC_RE = re.compile(r"E-\d+")
@@ -112,7 +112,7 @@ def display_path(path, project_root):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -227,8 +227,8 @@ def epic_stories_block(epic, docs):
     """该 epic 的 story 完成度块（源 step-1 完成度校验的机械面）。"""
     status = story_status_map(docs)
     ids = story_ids_of_epic(epic, docs)
-    done = [i for i in ids if status.get(i) == "done"]
-    pending = [{"id": i, "status": status.get(i)} for i in ids if status.get(i) != "done"]
+    done = [i for i in ids if status.get(i) == "已完成"]
+    pending = [{"id": i, "status": status.get(i)} for i in ids if status.get(i) != "已完成"]
     return {"total": len(ids), "done": len(done), "ids": ids, "done_ids": done,
             "pending": pending}
 
@@ -298,8 +298,8 @@ def collect_metrics(epic, docs):
         "stories_total": block["total"],
         "stories_done": block["done"],
         "rounds_total": sum_rounds(tasks),
-        "blocked_count": len([t for t in tasks if t.get("status") == "blocked"]),
-        "augment_fail": len([t for t in tasks if t.get("augment") == "fail"]),
+        "blocked_count": len([t for t in tasks if t.get("status") == "已阻塞"]),
+        "augment_fail": len([t for t in tasks if t.get("augment") == "失败"]),
         "bugs": bug_counts(bugs),
     }
 
@@ -356,7 +356,7 @@ def next_epic_info(epic, docs):
 # ---------------------------------------------------------------- 门禁
 
 def gate_check(epic, docs, out_dir, project_root):
-    """门禁：上游两件套在场且定稿 + epic 可解析 + 至少 1 个 done story。
+    """门禁：上游两件套在场且定稿 + epic 可解析 + 至少 1 个 已完成 story。
     返回 (passed, violations, route)。"""
     violations = []
     skills = []
@@ -376,9 +376,9 @@ def gate_check(epic, docs, out_dir, project_root):
         data = entry["data"]
         project = data.get("project") if isinstance(data, dict) else None
         status = project.get("status") if isinstance(project, dict) else None
-        if must_final and status != "final":
+        if must_final and status != "已定稿":
             violations.append(v("STATUS_MISMATCH", show + " project.status",
-                                "%s 的 project.status 须为 final（实为 %s）；先跑 %s 定稿"
+                                "%s 的 project.status 须为 已定稿（实为 %s）；先跑 %s 定稿"
                                 % (filename, status if nonempty(status) else "未声明",
                                    ROUTE_BY_FILE[filename])))
             skills.append(ROUTE_BY_FILE[filename])
@@ -409,7 +409,7 @@ def gate_check(epic, docs, out_dir, project_root):
             violations.append(v("EMPTY_FIELD",
                                 display_path(os.path.join(out_dir, STORIES_FILE),
                                              project_root) + " stories[epic=%s].status" % epic,
-                                "该 epic 没有 done story（回顾针对已交付工作）"))
+                                "该 epic 没有 已完成 story（回顾针对已交付工作）"))
             skills.append("diy-epics-stories")
 
     route = None
@@ -468,7 +468,7 @@ def collect_warnings(epic, docs, out_dir, project_root):
         warnings.append(v("PENDING_DECISION",
                           display_path(os.path.join(out_dir, STORIES_FILE), project_root)
                           + " stories[epic=%s].status" % epic,
-                          "epic 未收尾（%d/%d done，未完成 %s）；partial 回顾需用户确认后"
+                          "epic 未收尾（%d/%d 已完成，待完成 %s）；partial 回顾需用户确认后"
                           "写 partial: true，否则先完成剩余 story 或刷新 sprint"
                           % (block["done"], block["total"],
                              "、".join(p["id"] for p in block["pending"]))))
@@ -536,10 +536,10 @@ def human_collect(payload):
     metrics = payload["metrics"]
     print("门禁通过：epic %s（stories %d，done %d）。"
           % (payload["epic"], payload["stories"]["total"], payload["stories"]["done"]))
-    print("指标：rounds %d · blocked %d · augment fail %d · 缺陷 functional %d / "
-          "non-functional %d"
+    print("指标：rounds %d · blocked %d · augment fail %d · 缺陷 功能型 %d / "
+          "非功能型 %d"
           % (metrics["rounds_total"], metrics["blocked_count"], metrics["augment_fail"],
-             metrics["bugs"]["functional"], metrics["bugs"]["non-functional"]))
+             metrics["bugs"]["功能型"], metrics["bugs"]["非功能型"]))
     coverage = payload["coverage"]
     print("覆盖：AC %d 中 %d 有用例，缺口 %d %s"
           % (coverage["acs"], coverage["covered"], len(coverage["gaps"]),
@@ -610,7 +610,7 @@ def check_metrics(record, where, final, docs, epic):
     bugs = metrics.get("bugs")
     if not isinstance(bugs, dict):
         violations.append(v("EMPTY_FIELD", where + ".metrics.bugs",
-                            "metrics.bugs 缺失（须含 functional / non-functional）"))
+                            "metrics.bugs 缺失（须含 功能型 / 非功能型）"))
     else:
         for name in BUG_CLASSES:
             value = bugs.get(name)
@@ -890,12 +890,12 @@ def check_next_epic(record, where, refs):
 def check_final_duties(record, where, status):
     """--final 附加：status 已落 final、零假设（metrics 互证在 check_metrics 内完成）。"""
     violations = []
-    if str(status) != "final":
+    if str(status) != "已定稿":
         violations.append(v("STATUS_MISMATCH", where + ".status",
                             "--final 要求 status 已落 final（实为 %s）" % status))
-    if any("[ASSUMPTION]" in s for s in collect_strings(record)):
+    if any("[假设]" in s for s in collect_strings(record)):
         violations.append(v("ASSUMPTION_PRESENT", where,
-                            "--final 要求零 [ASSUMPTION]；未决推断须先落定"))
+                            "--final 要求零 [假设]；未决推断须先落定"))
     return violations
 
 

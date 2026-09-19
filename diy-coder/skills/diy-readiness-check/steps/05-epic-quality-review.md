@@ -17,30 +17,30 @@ Red flags → findings (source step-5 §2.A):
 - "API Development" / "Infrastructure Setup" — a technical milestone;
 - "Authentication System" — borderline: judge whether it delivers user-visible value (login / logout / account) or only plumbing.
 
-A technical epic is an **error**, not a style note: `severity: critical`. The source rule is literal — find them.
+A technical epic is an **error**, not a style note: `severity: 严重`. The source rule is literal — find them.
 
 ## B. Epic independence
 
 - Epic 1 stands alone; Epic 2 may use only Epic 1's output; Epic N never requires Epic N+1.
 - Catch: "Epic 2 requires Epic 3 features", stories in one epic referencing components of a later epic, circular dependencies between epics.
-- Forward dependencies that break independence → `critical`.
+- Forward dependencies that break independence → `严重`.
 
 ## C. Story quality
 
-**Sizing.** Clear user value; completable without a future story. "Setup all models" is not a user story; "Create login UI (depends on Story 1.3)" is a forward dependency — `critical` when it breaks independence, `high` when it is sizing.
+**Sizing.** Clear user value; completable without a future story. "Setup all models" is not a user story; "Create login UI (depends on Story 1.3)" is a forward dependency — `严重` when it breaks independence, `高` when it is sizing.
 
-**Acceptance criteria.** Given/When/Then structure; each AC independently testable; error conditions covered; outcomes specific. Vague criteria ("user can login"), missing error paths, an incomplete happy path, non-measurable outcomes → `high` (source "major"); pure formatting noise → `medium` / `low`.
+**Acceptance criteria.** Given/When/Then structure; each AC independently testable; error conditions covered; outcomes specific. Vague criteria ("user can login"), missing error paths, an incomplete happy path, non-measurable outcomes → `高` (source "major"); pure formatting noise → `中` / `低`.
 
 ## D. Dependencies
 
 - Within an epic: Story 1.1 completable alone; 1.2 may use 1.1's output; nothing waits on a later story.
-- Database/entity timing: each story creates what it needs; "create all tables in Story 1.1" → `high`.
-- Cross-epic: a story depending on another epic's unimplemented feature → `high`, or `critical` when it inverts the epic order.
+- Database/entity timing: each story creates what it needs; "create all tables in Story 1.1" → `高`.
+- Cross-epic: a story depending on another epic's unimplemented feature → `高`, or `严重` when it inverts the epic order.
 
 ## E. Special implementation checks
 
-- **Starter template** (source step-5 §5.A): when `architecture.yaml` specifies a starter template, Epic 1 Story 1 must be the initial project setup from it (clone, dependencies, initial configuration). Missing → `high`.
-- **Greenfield vs brownfield** (source step-5 §5.B): greenfield expects an initial setup story, development-environment configuration and CI/CD early; brownfield expects integration points with existing systems and migration/compatibility stories. Missing where implied → `medium`, naming what is missing.
+- **Starter template** (source step-5 §5.A): when `architecture.yaml` specifies a starter template, Epic 1 Story 1 must be the initial project setup from it (clone, dependencies, initial configuration). Missing → `高`.
+- **Greenfield vs brownfield** (source step-5 §5.B): greenfield expects an initial setup story, development-environment configuration and CI/CD early; brownfield expects integration points with existing systems and migration/compatibility stories. Missing where implied → `中`, naming what is missing.
 
 ## F. Compliance checklist (per epic)
 
@@ -58,9 +58,9 @@ Every unchecked box becomes a finding with a specific example and one remediatio
 
 | Source | diy `severity` |
 | --- | --- |
-| critical violations — technical epics, forward dependencies, epic-sized stories | `critical` |
-| major issues — vague acceptance criteria, future-story dependencies, database timing | `high` |
-| minor concerns — formatting, structure deviations, documentation gaps | `medium` / `low` |
+| critical violations — technical epics, forward dependencies, epic-sized stories | `严重` |
+| major issues — vague acceptance criteria, future-story dependencies, database timing | `高` |
+| minor concerns — formatting, structure deviations, documentation gaps | `中` / `低` |
 
 ## Next
 

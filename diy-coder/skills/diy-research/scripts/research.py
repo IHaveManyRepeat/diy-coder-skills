@@ -7,8 +7,8 @@
           唯一性 / 每条 finding 的 sources 非空且 url 为 http(s)、accessed 为 YYYY-MM-DD。
           --id RS-xxx 只校验指定记录（未命中 → UNKNOWN_ID）；--previous PATH 比对旧稿
           RS-### 集合，旧有新无 → ID_UNSTABLE（Update 防丢记录，任务书 B1 §2.2）。
-          --final 附加定稿义务：zero [ASSUMPTION]、synthesis 三键非空、findings 非空、
-          status 已落 final（定稿门须咬住记录状态，同 P1 样板 check_final_duties 语义）。
+          --final 附加定稿义务：零 [假设]、synthesis 三键非空、findings 非空、
+          status 已落「已定稿」（定稿门须咬住记录状态，同 P1 样板 check_final_duties 语义）。
           exit 0 唯一放行。
 
 分工裁定（任务书 B1 §2.2）：research 属新产物类型，不进 diyc.py check 的硬编码类型集；
@@ -38,9 +38,9 @@ import yaml
 
 RESEARCH_FILE = "research.yaml"
 
-DIMENSIONS = ("market", "technical", "domain")
-STATUSES = ("draft", "final")
-CONFIDENCES = ("high", "medium", "low")
+DIMENSIONS = ("市场", "技术", "领域")
+STATUSES = ("草稿", "已定稿")
+CONFIDENCES = ("高", "中", "低")
 SYNTHESIS_KEYS = ("executive_summary", "key_points", "open_questions")
 
 RS_RE = re.compile(r"RS-\d{3}")
@@ -81,7 +81,7 @@ def display_path(path, project_root):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -238,12 +238,12 @@ def check_record(index, record, final, where_base):
     violations += check_synthesis(record.get("synthesis"), where + ".synthesis", final)
 
     if final:
-        if nonempty(status) and str(status) != "final":
+        if nonempty(status) and str(status) != "已定稿":
             violations.append(v("STATUS_MISMATCH", where + ".status",
-                                "记录未定稿（status: %s）；--final 要求 status: final" % status))
-        if any("[ASSUMPTION]" in s for s in collect_strings(record)):
+                                "记录未定稿（status: %s）；--final 要求 status: 已定稿" % status))
+        if any("[假设]" in s for s in collect_strings(record)):
             violations.append(v("ASSUMPTION_PRESENT", where,
-                                "--final 要求零 [ASSUMPTION]；未决假设须落为 open_questions 后再定稿"))
+                                "--final 要求零 [假设]；未决假设须落为 open_questions 后再定稿"))
     return violations
 
 
@@ -416,7 +416,7 @@ def main():
     c.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--final", action="store_true",
-                   help="定稿校验：status 已落 final + findings/synthesis 非空 + 零假设")
+                   help="定稿校验：status 已落「已定稿」+ findings/synthesis 非空 + 零假设")
     c.add_argument("--id", default=None, help="只校验指定记录（RS-0nn；未命中 → UNKNOWN_ID）")
     c.add_argument("--previous", default=None,
                    help="旧稿路径：比对 RS ID 集合，旧有新无 → ID_UNSTABLE（Update 防丢记录）")

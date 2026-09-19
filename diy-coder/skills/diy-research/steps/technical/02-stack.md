@@ -39,7 +39,7 @@ One `findings[]` entry per area, written as each search lands:
 
 - Web search required — trend reports, developer surveys, official documentation, open-source projects and their tech choices.
 - Two independent sources for each critical claim; when sources disagree (benchmarks especially), present both.
-- `confidence` per finding: `high` / `medium` / `low`.
+- `confidence` per finding: `高` / `中` / `低`.
 - Prefer current release and adoption facts; version-sensitive claims must carry their date.
 
 ## Present and continue

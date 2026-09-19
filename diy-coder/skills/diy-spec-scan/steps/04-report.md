@@ -3,13 +3,13 @@
 Progress: `Collect → Dry Run → Cross Check → [Report]`
 
 **读入：** 定稿的 findings；引擎 `check` 回执。
-**写出：** `{output_dir}/spec-scan.yaml` 定稿（`status: final`）；渲染；交付摘要。
+**写出：** `{output_dir}/spec-scan.yaml` 定稿（`status: 已定稿`）；渲染；交付摘要。
 
 ## 定稿
 
 1. `open_questions` 收尾：无法定级的、需要用户拍板方向的，写进这里（≤5 条）。
-2. 记录改 `status: final`，`project.updated` 改今天。
-3. 全文档搜一遍 `[ASSUMPTION]`——本产物禁止该字面量（存疑走 `open_questions`，不用假设标记）。
+2. 记录改 `status: 已定稿`，`project.updated` 改今天。
+3. 全文档搜一遍 `[假设]`——本产物禁止该字面量（存疑走 `open_questions`，不用假设标记）。
 
 ## 终门
 
@@ -34,17 +34,17 @@ python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-ro
 ```
 扫描完成：<目标名>
 - 单元 N 个全部扫完（M 行）
-- findings 共 K 条：blocker X / major Y / minor Z
+- findings 共 K 条：阻断 X / 建议 Y / 观察 Z
 
 Blocker（必须裁定）：
 1. SS-001-03 <类型> <path:line> — <一句话：卡在哪 / 会猜成什么>
 
 其余按类型分布：<类型> ×N ……
 
-建议：blocker 裁定后改规格；major/minor 可批量过一遍。
+建议：`阻断` 裁定后改规格；`建议` / `观察` 可批量过一遍。
 ```
 
-每条 blocker 必须带"会猜成什么"——用户靠这一句就能拍板，不必回去读原文。
+每条 `阻断` 必须带"会猜成什么"——用户靠这一句就能拍板，不必回去读原文。
 
 ## 路由
 

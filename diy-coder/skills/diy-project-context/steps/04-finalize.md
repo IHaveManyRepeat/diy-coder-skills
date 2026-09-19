@@ -9,7 +9,7 @@ Progress: `Scan → Context → Rules → [Finalize]`
 
 Read the file as its consumer does — an agent that will act on it tomorrow with no memory of this conversation.
 
-- **Completeness.** Every part in `scan.parts` has a `stack` row and an `architecture` entry; every rule has `rule` / `why` / `where`; every part the human named in step 1 appears. A section that should exist and does not is a gap to close now — the source workflow's `_(To be generated)_` marker has no counterpart here: gaps are fixed, not marked. `[ASSUMPTION]` values are resolved with the human and the prefix removed.
+- **Completeness.** Every part in `scan.parts` has a `stack` row and an `architecture` entry; every rule has `rule` / `why` / `where`; every part the human named in step 1 appears. A section that should exist and does not is a gap to close now — the source workflow's `_(To be generated)_` marker has no counterpart here: gaps are fixed, not marked. `[假设]` values are resolved with the human and the prefix removed.
 - **Efficiency.** Cut restatements, obvious advice and duplicated rules; merge rules that share a witness; keep commands and paths verbatim while the prose around them shrinks. Density is the feature.
 - **Accuracy.** Every claim traces to a file, a command, or the human's own words. A stale rule (a directory that moved, a command that changed) is corrected, not kept.
 
@@ -17,7 +17,7 @@ Present the review with the counts, then halt before the gate if anything still 
 
 ## Rewrite check
 
-Rescan and deep-dive — the two modes that reshape a file which already exists — and only when step 1 made a `.prev` copy:
+**重扫** / **深挖** — the two modes that reshape a file which already exists — and only when step 1 made a `.prev` copy:
 
 ```
 python "{project-root}/.claude/skills/diy-project-context/scripts/context.py" check --previous {output_dir}/project-context.yaml.prev --json
@@ -33,7 +33,7 @@ Run, with the same arguments as activation:
 python "{project-root}/.claude/skills/diy-project-context/scripts/context.py" check --final --json
 ```
 
-Exit 0 is the only pass — fix every reported violation and re-run. The receipt's `violations` / `warnings` / `counts` are the close-out evidence: no `[ASSUMPTION]` left, rules non-empty with `rule` / `why` / `where` filled, `stack` non-empty, `scan.parts` non-empty. Only after exit 0: render the file and finish the run.
+Exit 0 is the only pass — fix every reported violation and re-run. The receipt's `violations` / `warnings` / `counts` are the close-out evidence: no `[假设]` left, rules non-empty with `rule` / `why` / `where` filled, `stack` non-empty, `scan.parts` non-empty. Only after exit 0: render the file and finish the run.
 
 ## Deliver and route
 

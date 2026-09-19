@@ -6,11 +6,11 @@
 detect   语言无关的栈探测（只读）。清单表（`LANG_MANIFESTS`）判语言与包管理器；移动指示器
          （`.maestro/` / `maestro/` / `app.json` / `Podfile` / `android/app/build.gradle` /
          `*.xcodeproj` / `*.xcworkspace` / `pubspec.yaml` / package.json 的 react-native|expo 依赖）
-         **优先判定** mobile（否则 RN/Expo 工程会被误判为 frontend）；前后端并存 → fullstack；
+         **优先判定** 移动端（否则 RN/Expo 工程会被误判为前端）；前后端并存 → 全栈；
          既有框架配置 → `existing.framework`；CI 平台（.github/workflows/*.yml / .gitlab-ci.yml /
          Jenkinsfile / azure-pipelines.yml / .harness/pipeline.yaml / .circleci/config.yml）→
          `existing.ci`；`suggested` = 选型建议（框架 / 平台 / 脚手架 profile）；`templates` 给出
-         模板覆盖面（mobile 面**无模板覆盖**，据任务书 §5 裁定 5 与 §12.11：HALT + 登记）；
+         模板覆盖面（移动端面**无模板覆盖**，据任务书 §5 裁定 5 与 §12.11：HALT + 登记）；
          `git` = 仓库事实（`.git` 在场 / origin 远端名；源 ci/step-01 §1「Git repository required」）；
          `context` = 架构文档与 auth 线索（源 fw/step-01 §2「Check for architecture docs /
          Note auth requirements」）——只报事实，不做推断。
@@ -32,14 +32,14 @@ scaffold --plan <plan.json>  按 plan 渲染技能内模板写入项目——**�
          该行渲染时剥除；正文出现的 `{{NAME}}` 集须与该声明相等，取值来自 plan `substitutions`；
          渲染 = 逐字节复制 + 占位符替换，不注入时间戳/随机/环境值（同模板同 plan → 同字节）。
 check [--final]  台账 schema / 枚举 / files[].path 形态 / 生成文件存在性 / `ci_alignment`（**重扫
-         不采信台账**：现场从 test-plan.yaml + CI 文件重算 blocking 命令覆盖与阈值注入，与台账
-         `static_check_alignment` 比对，漏 blocking 条目或 `in_ci` 不符 → `CI_MISALIGNED`；
+         不采信台账**：现场从 test-plan.yaml + CI 文件重算 阻断 命令覆盖与阈值注入，与台账
+         `static_check_alignment` 比对，漏 阻断 条目或 `in_ci` 不符 → `CI_MISALIGNED`；
          台账 order 不在 static_checks → `UNKNOWN_ID`；test-plan 缺席 / static_checks 字段缺席 /
-         列表为空 → 同一处置：跳过对齐判定 + warning，不阻塞；mode=framework 或 platform=none →
+         列表为空 → 同一处置：跳过对齐判定 + warning，不阻塞；mode=框架 或 platform=none →
          不适用，后者记 warning）/ **生成物脚本块注入扫描**（现场扫 CI 文件的 `run:` / `script:` /
          `command:` / `sh` 块，块内出现不可信上下文直接插值 → `UNSAFE_INJECTION`；注释行不参与，
-         comment 内的示例不算违规）/ `checks` 中 fail 条目 note 非空。
-         `--final` 附加：zero `[ASSUMPTION]`、framework 非空、mode=both|ci 时 ci 段完整
+         comment 内的示例不算违规）/ `checks` 中 失败 条目 note 非空。
+         `--final` 附加：zero `[假设]`、framework 非空、mode=两者|CI 时 ci 段完整
          （platform ∈ 五平台、file 在场、stages / gates / static_check_alignment 齐）、
          `ci.gates` 拉满 P0/P1 双 `100%`（2026-09-15 用户裁定，源为 P1≥95%）。
 
@@ -49,15 +49,15 @@ check [--final]  台账 schema / 枚举 / files[].path 形态 / 生成文件存�
 `ENUM_INVALID` `EMPTY_FIELD` `ENTRY_INVALID` `ASSUMPTION_PRESENT`。
 新增（本引擎专用，已在回报中登记）：
   - `FILE_CONFLICT`   scaffold 目标已存在且内容不同（不覆盖既有文件）→ 回滚 + 整条拒绝。
-  - `CI_MISALIGNED`   CI 三方对齐失败：blocking 工具命令未出现在 CI 文件、台账 `in_ci` 与现场
-                      重算不符、台账漏 blocking 条目、或 CI 文件缺台账 `ci.gates` 阈值字面量。
+  - `CI_MISALIGNED`   CI 三方对齐失败：阻断 工具命令未出现在 CI 文件、台账 `in_ci` 与现场
+                      重算不符、台账漏 阻断 条目、或 CI 文件缺台账 `ci.gates` 阈值字面量。
   - `UNSAFE_INJECTION` 生成物脚本块内直接插值不可信上下文（`${{ inputs.* }}` /
                       `${{ github.event.* }}` / `${{ github.head_ref }}` / `${{ parameters.* }}` /
                       Harness `<+input>` / `<+trigger.*>` / `<+pipeline.variables.*>`）——源
                       steps-v/step-01 §2a 的 FAIL 项；inputs 只能是 DATA 不能是 COMMAND。
 沿用先例扩展码：`MANIFEST_UNPARSABLE`（detect 专用降级，B2 diy-e2e-tests 首创同码）。
 warning 专用扩展码：`TEMPLATE_UNSUPPORTED`（detect 专用：栈已识别但 `templates/` 未覆盖，
-面 = mobile；告警随门禁 HALT 一起给出，不单列违规）。
+面 = 移动端；告警随门禁 HALT 一起给出，不单列违规）。
 
 分工裁定（任务书 §2.3 / §5）：test-framework.yaml 是新产物类型，不进 diyc.py check 的硬编码
 类型集；本引擎沿用领域引擎形态（同 checkpoint.py / e2e.py）。实例解析委托 SKILL.md 侧的
@@ -99,7 +99,7 @@ LANG_MANIFESTS = (
 )
 KNOWN_MANIFESTS = tuple(name for _, names in LANG_MANIFESTS for name in names)
 
-# 移动指示器（判定优先于 frontend，源 step-01 §1）
+# 移动指示器（判定优先于前端，源 step-01 §1）
 MOBILE_DIRS = (".maestro", "maestro")
 MOBILE_FILES = ("app.json", "app.config.js", "app.config.ts", "Podfile", "pubspec.yaml",
                 "*.xcodeproj", "*.xcworkspace")
@@ -135,7 +135,7 @@ CI_CONFIGS = (
     ("harness", (".harness/pipeline.yaml", ".harness/pipeline.yml")),
     ("circle-ci", (".circleci/config.yml",)),
 )
-# 平台 → 模板（**五平台有模板；circle-ci 与 mobile 无模板覆盖**，见 detect 回执 templates 面）
+# 平台 → 模板（**五平台有模板；circle-ci 与移动端无模板覆盖**，见 detect 回执 templates 面）
 CI_TEMPLATES = {
     "github-actions": "ci/github-actions/%s.yml.tpl",
     "gitlab-ci": "ci/gitlab-ci/%s.yml.tpl",
@@ -162,12 +162,12 @@ CONTEXT_DOC_GLOBS = ("architecture.md", "tech-spec*.md", "adr-*.md", "*.adr.md")
 # auth 线索关键词（命中即提示 step 1 去读该文档；只报事实，不做判定）
 AUTH_HINTS = ("auth", "oauth", "jwt", "login", "session", "token")
 
-MODES = ("framework", "ci", "both")
-STACK_TYPES = ("frontend", "backend", "fullstack", "mobile")
-FILE_KINDS = ("scaffold", "config", "ci", "hook", "script", "doc")
-ACTIONS = ("new", "update")
-CHECK_RESULTS = ("pass", "fail")
-STAGE_NAMES = ("lint", "test", "contract", "burn-in", "report")
+MODES = ("框架", "CI", "两者")
+STACK_TYPES = ("前端", "后端", "全栈", "移动端")
+FILE_KINDS = ("脚手架", "配置", "CI", "钩子", "脚本", "文档")
+ACTIONS = ("新建", "更新")
+CHECK_RESULTS = ("通过", "失败")
+STAGE_NAMES = ("静态检查", "测试", "契约", "预热", "报告")
 SETUP_RE = re.compile(r"TF-\d{3}")
 DA_RE = re.compile(r"DA-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -279,7 +279,7 @@ def command_in_text(tool, text):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -400,7 +400,7 @@ def read_node_deps(root, warnings):
 
 
 def detect_stack(root, warnings):
-    """清单表 → 语言集合 + 栈类型（mobile 优先；前后端并存 → fullstack）。"""
+    """清单表 → 语言集合 + 栈类型（移动端优先；前后端并存 → 全栈）。"""
     manifests = find_files(root, KNOWN_MANIFESTS)
     languages = []
     for lang, names in LANG_MANIFESTS:
@@ -418,13 +418,13 @@ def detect_stack(root, warnings):
         frontend = True  # 纯 node 工程默认按浏览器面处理（对齐源 backward compatibility）
 
     if mobile_hits:
-        stack_type = "mobile"
+        stack_type = "移动端"
     elif frontend and backend:
-        stack_type = "fullstack"
+        stack_type = "全栈"
     elif frontend:
-        stack_type = "frontend"
+        stack_type = "前端"
     else:
-        stack_type = "backend"
+        stack_type = "后端"
 
     package_manager = None
     primary = languages[0] if languages else None
@@ -506,11 +506,11 @@ def detect_context(root):
 
 
 def suggest_for(stack, existing):
-    """选型建议（源 step-02 规则）：浏览器 → Playwright（默认）/ Cypress；后端按语言；mobile → Maestro。"""
-    if stack["type"] == "mobile":
+    """选型建议（源 step-02 规则）：浏览器 → Playwright（默认）/ Cypress；后端按语言；移动端 → Maestro。"""
+    if stack["type"] == "移动端":
         return {"framework": "maestro", "runner": "maestro test", "platform": existing.get("ci"),
                 "profile": None, "unit_layer": "按 app 语言选（Jest/Vitest、XCTest、JUnit、flutter test）"}
-    if stack["type"] in ("frontend", "fullstack"):
+    if stack["type"] in ("前端", "全栈"):
         profile = "browser-playwright"
         if existing.get("framework") == "cypress":
             profile = "browser-cypress"
@@ -528,9 +528,9 @@ def suggest_for(stack, existing):
 
 
 def template_coverage(suggested, stack):
-    """模板覆盖面：profile 与 CI 类别是否有模板（mobile 无模板覆盖 → HALT 登记）。"""
+    """模板覆盖面：profile 与 CI 类别是否有模板（移动端无模板覆盖 → HALT 登记）。"""
     profile = suggested.get("profile")
-    browser = stack["type"] in ("frontend", "fullstack") and (profile or "").startswith("browser")
+    browser = stack["type"] in ("前端", "全栈") and (profile or "").startswith("browser")
     framework_supported = bool(profile) and os.path.isdir(
         os.path.join(TEMPLATES_DIR, "framework", profile or ""))
     ci_class = "browser" if browser else "backend"
@@ -539,9 +539,9 @@ def template_coverage(suggested, stack):
         for platform in CI_PLATFORMS)
     reason = None
     if not framework_supported or not ci_supported:
-        reason = ("mobile 面（Maestro 设备流 / 设备实验场 runner）无模板覆盖——"
+        reason = ("移动端面（Maestro 设备流 / 设备实验场 runner）无模板覆盖——"
                   "按任务书 §5 裁定 5 + §12.11：HALT + 一行报告 + 登记，不降级 LLM 手写。"
-                  if stack["type"] == "mobile" else "profile 无模板目录")
+                  if stack["type"] == "移动端" else "profile 无模板目录")
     return {"profiles": sorted(BROWSER_PROFILES + tuple("backend-%s" % p for p in BACKEND_PROFILES)),
             "ci_platforms": list(CI_PLATFORMS), "ci_classes": ["browser", "backend"],
             "framework_supported": framework_supported, "ci_supported": ci_supported,
@@ -629,8 +629,8 @@ def prepare_plan(root, plan_path):
     if not nonempty(setup) or not SETUP_RE.fullmatch(str(setup)):
         violations.append(v("ENUM_INVALID", "plan.setup", "setup 须为 TF-###（三位零填充）"))
     part = data.get("part")
-    if part not in ("framework", "ci"):
-        violations.append(v("ENUM_INVALID", "plan.part", "part 须为 framework|ci"))
+    if part not in ("框架", "CI"):
+        violations.append(v("ENUM_INVALID", "plan.part", "part 须为 框架|CI"))
     subs = data.get("substitutions")
     if not isinstance(subs, dict):
         violations.append(v("ENTRY_INVALID", "plan.substitutions", "substitutions 须为映射"))
@@ -897,7 +897,7 @@ def check_ci_alignment(project_root, output_dir, record, where, violations, warn
                 return
     if text is not None:
         check_ci_injection(text, str(rel_file), violations)
-    if mode == "framework":
+    if mode == "框架":
         return
     if platform == "none":
         warnings.append(v("EMPTY_FIELD", where + ".ci.platform",
@@ -935,9 +935,9 @@ def check_ci_alignment(project_root, output_dir, record, where, violations, warn
             if not isinstance(order, int) or not nonempty(entry["tool"]):
                 continue
             in_ci = command_in_text(entry["tool"], text)
-            if gate == "blocking" and order not in ledger_map:
+            if gate == "阻断" and order not in ledger_map:
                 violations.append(v("CI_MISALIGNED", "%s.ci.static_check_alignment" % where,
-                                    "漏 blocking 条目 order=%s（tool: %s）——blocking 层必录"
+                                    "漏 阻断 条目 order=%s（tool: %s）——阻断 层必录"
                                     % (order, entry["tool"])))
             if order in ledger_map and ledger_map[order] != in_ci:
                 violations.append(v("CI_MISALIGNED", "%s.ci.static_check_alignment" % where,
@@ -969,8 +969,8 @@ def check_record(project_root, output_dir, index, record, final, show, warnings)
     if not nonempty(date) or not DATE_RE.fullmatch(str(date)):
         violations.append(v("EMPTY_FIELD", where + ".date", "date 须为 YYYY-MM-DD"))
     status = record.get("status")
-    if status not in ("draft", "final"):
-        violations.append(v("ENUM_INVALID", where + ".status", "status 越界：%s（合法集 draft|final）" % status))
+    if status not in ("草稿", "已定稿"):
+        violations.append(v("ENUM_INVALID", where + ".status", "status 越界：%s（合法集 草稿|已定稿）" % status))
     mode = record.get("mode")
     if mode not in MODES:
         violations.append(v("ENUM_INVALID", where + ".mode", "mode 越界：%s（合法集 %s）"
@@ -1000,7 +1000,7 @@ def check_record(project_root, output_dir, index, record, final, show, warnings)
     elif final:
         violations.append(v("EMPTY_FIELD", where + ".framework", "--final 要求 framework 非空"))
 
-    if stack_type in ("mobile", "fullstack"):
+    if stack_type in ("移动端", "全栈"):
         unit = record.get("unit_layer")
         if not isinstance(unit, dict) or not nonempty(unit.get("name")):
             violations.append(v("EMPTY_FIELD", where + ".unit_layer",
@@ -1026,7 +1026,7 @@ def check_record(project_root, output_dir, index, record, final, show, warnings)
                                     "kind 越界：%s" % item.get("kind")))
             if item.get("action") not in ACTIONS:
                 violations.append(v("ENUM_INVALID", item_where + ".action",
-                                    "action 越界：%s（合法集 new|update）" % item.get("action")))
+                                    "action 越界：%s（合法集 新建|更新）" % item.get("action")))
             if not os.path.isfile(os.path.join(project_root, *str(rel).split("/"))):
                 violations.append(v("MISSING_FILE", rel,
                                     "台账声明的生成文件不在场（action=%s）" % item.get("action")))
@@ -1046,15 +1046,15 @@ def check_record(project_root, output_dir, index, record, final, show, warnings)
             result = item.get("result")
             if result not in CHECK_RESULTS:
                 violations.append(v("ENUM_INVALID", item_where + ".result",
-                                    "result 越界：%s（合法集 pass|fail）" % result))
-            if result == "fail":
+                                    "result 越界：%s（合法集 通过|失败）" % result))
+            if result == "失败":
                 failed += 1
                 if not nonempty(item.get("note")):
                     violations.append(v("EMPTY_FIELD", item_where + ".note",
-                                        "result=fail 时 note 必填（失败不得静默）"))
+                                        "result=失败 时 note 必填（失败不得静默）"))
         if failed:
             warnings.append(v("EMPTY_FIELD", where + ".checks",
-                              "checks 中 result: fail 共 %d 条（环境面/人工处置项，已记 note）："
+                              "checks 中 result: 失败 共 %d 条（环境面/人工处置项，已记 note）："
                               "--final 只记 warning、不拒绝；产物面失败须修后重跑，"
                               "修不了即停下报用户" % failed))
 
@@ -1123,9 +1123,9 @@ def check_record(project_root, output_dir, index, record, final, show, warnings)
         violations.append(v("EMPTY_FIELD", where + ".open_questions", "open_questions 须为列表"))
 
     if final:
-        if any("[ASSUMPTION]" in s for s in collect_strings(record)):
-            violations.append(v("ASSUMPTION_PRESENT", where, "--final 要求零 [ASSUMPTION]"))
-        if mode in ("ci", "both"):
+        if any("[假设]" in s for s in collect_strings(record)):
+            violations.append(v("ASSUMPTION_PRESENT", where, "--final 要求零 [假设]"))
+        if mode in ("CI", "两者"):
             if not isinstance(ci, dict):
                 violations.append(v("EMPTY_FIELD", where + ".ci", "mode=%s 时 ci 段必填" % mode))
             else:
@@ -1257,7 +1257,7 @@ def main():
     c.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--final", action="store_true",
-                   help="定稿校验：zero [ASSUMPTION] + framework 非空 + ci 段完整 + 阈值拉满 100%")
+                   help="定稿校验：zero [假设] + framework 非空 + ci 段完整 + 阈值拉满 100%")
     c.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     c.set_defaults(func=cmd_check)
 

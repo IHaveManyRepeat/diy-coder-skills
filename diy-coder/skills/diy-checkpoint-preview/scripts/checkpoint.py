@@ -4,17 +4,17 @@
 子命令：
   target  4 层级联定位被审变更，确定性部分不留给 LLM：
             1 显式 --ref（commit / range / 分支；PR 引用须先解析为本地 ref）
-            2 {output_dir}/sprint.yaml 中 status: review 的任务
+            2 {output_dir}/sprint.yaml 中 status: 待审查 的任务
             3 git 工作区改动 → HEAD 提交
             4 四者皆无 → 零产出 exit 1 + 结构化拒绝回执（含路由）
           只读检测，绝不写文件。环境健壮性：目录非 git 仓库 / 无提交 / 无 diff
           一律返回空候选 + 结构化原因，不崩溃。
-          bare-commit 候选附意图判定（BMAD step-01:54）：提交信息 subject < 10 词 →
+          裸提交候选附意图判定（BMAD step-01:54）：提交信息 subject < 10 词 →
           inferred: true + 原因；工作区改动 / range 无单一提交信息 → null + 原因。
   check   校验 {output_dir}/checkpoint.yaml（顶层 project + checkpoints 集合，形状对齐
           bug-log.yaml）：schema / 枚举 / story 引用可解析 / change_type 出现时非空；
-          --final 附加定稿义务（checkpoints 非空、concern 非空、decision 已定且非 discuss、
-          status 已落 final、next 非空、零 [ASSUMPTION]）。exit 0 唯一放行。
+          --final 附加定稿义务（checkpoints 非空、concern 非空、decision 已定且非 讨论、
+          status 已落 已定稿、next 非空、零 [假设]）。exit 0 唯一放行。
 
 分工裁定（任务书 §2.3）：checkpoint 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态（同 design.py 分工），契约同构：exit 0 唯一放行 / --json 单行回执 /
@@ -40,10 +40,10 @@ CK_FILE = "checkpoint.yaml"
 SPRINT_FILE = "sprint.yaml"
 STORIES_FILE = "stories.yaml"
 
-TARGET_SOURCES = ("explicit", "sprint", "git")
-MODES = ("full-trail", "spec-only", "bare-commit")
-DECISIONS = ("approve", "rework", "discuss")
-RECORD_STATUSES = ("draft", "final")
+TARGET_SOURCES = ("显式指定", "冲刺任务", "Git 提交")
+MODES = ("全程轨迹", "仅规格", "裸提交")
+DECISIONS = ("批准", "返工", "讨论")
+RECORD_STATUSES = ("草稿", "已定稿")
 RISK_LABELS = ("auth", "public API", "schema", "billing", "infra", "security",
                "config", "other")
 WORKTREE_REF = "WORKTREE"
@@ -144,7 +144,7 @@ def intent_flag(root, commit_ref):
     return False, None
 
 
-def candidate(ref, source, story=None, spec=None, mode="bare-commit", diff_stat=None,
+def candidate(ref, source, story=None, spec=None, mode="裸提交", diff_stat=None,
               inferred=None, inferred_reason=None):
     return {"ref": ref, "source": source, "story": story, "spec": spec,
             "mode": mode, "diff_stat": diff_stat,
@@ -164,7 +164,7 @@ def explicit_candidate(root, ref):
         if rc != 0 or not out.strip():
             return None, "--ref %s 无法解析为 git range" % ref
         files, ins, dele = numstat_totals(root, "diff", "--numstat", ref)
-        return candidate(ref, "explicit", diff_stat=stat_dict(files, ins, dele),
+        return candidate(ref, "显式指定", diff_stat=stat_dict(files, ins, dele),
                          inferred=None,
                          inferred_reason="range 无单一提交信息，意图从 diff 推断，请人工核对"), None
     rc, out, _ = git(root, "rev-parse", "--verify", "--quiet", ref + "^{commit}")
@@ -172,7 +172,7 @@ def explicit_candidate(root, ref):
         return None, ("--ref %s 无法解析（PR 引用请先用 gh 解析为本地 commit/分支）" % ref)
     files, ins, dele = numstat_totals(root, "show", "--numstat", "--format=", ref)
     inferred, reason = intent_flag(root, ref)
-    return candidate(ref, "explicit", diff_stat=stat_dict(files, ins, dele),
+    return candidate(ref, "显式指定", diff_stat=stat_dict(files, ins, dele),
                      inferred=inferred, inferred_reason=reason), None
 
 
@@ -201,7 +201,7 @@ def load_story_index(output_dir):
 
 
 def sprint_candidates(output_dir, project_root):
-    """层 2：sprint.yaml 中 status: review 的任务（取其 story 与 spec 锚点）。"""
+    """层 2：sprint.yaml 中 status: 待审查 的任务（取其 story 与 spec 锚点）。"""
     path = os.path.join(output_dir, SPRINT_FILE)
     data, err = load_yaml_safe(path)
     if data is None and err is None:
@@ -211,9 +211,9 @@ def sprint_candidates(output_dir, project_root):
     tasks = data.get("tasks") if isinstance(data, dict) else None
     if not isinstance(tasks, list):
         return [], [], "%s 无 tasks 列表" % display_path(path, project_root)
-    reviews = [t for t in tasks if isinstance(t, dict) and t.get("status") == "review"]
+    reviews = [t for t in tasks if isinstance(t, dict) and t.get("status") == "待审查"]
     if not reviews:
-        return [], [], "%s 中无 status: review 的任务" % display_path(path, project_root)
+        return [], [], "%s 中无 status: 待审查 的任务" % display_path(path, project_root)
     index, warnings = load_story_index(output_dir)
     stories_path = os.path.join(output_dir, STORIES_FILE)
     cands = []
@@ -222,14 +222,14 @@ def sprint_candidates(output_dir, project_root):
         entry = index.get(str(sid)) if nonempty(sid) else None
         if entry is not None:
             spec = display_path(stories_path, project_root)
-            # full-trail 仅在 spec 携带审查顺序（suggested_review_order 非空）时成立
-            mode = "full-trail" if entry.get("suggested_review_order") else "spec-only"
+            # 全程轨迹仅在 spec 携带审查顺序（suggested_review_order 非空）时成立
+            mode = "全程轨迹" if entry.get("suggested_review_order") else "仅规格"
         else:
-            spec, mode = None, "bare-commit"
-        # sprint 候选的意图锚点是 story/spec，不走提交信息判定（[inferred] 属 bare-commit 路径）
-        cands.append(candidate(None, "sprint", story=str(sid) if nonempty(sid) else None,
+            spec, mode = None, "裸提交"
+        # 冲刺任务候选的意图锚点是 story/spec，不走提交信息判定（[inferred] 属裸提交路径）
+        cands.append(candidate(None, "冲刺任务", story=str(sid) if nonempty(sid) else None,
                                spec=spec, mode=mode))
-    return cands, warnings, "命中 %d 个 status: review 的任务" % len(cands)
+    return cands, warnings, "命中 %d 个 status: 待审查 的任务" % len(cands)
 
 
 def git_candidates(root):
@@ -244,7 +244,7 @@ def git_candidates(root):
         head_ok = git(root, "rev-parse", "--verify", "--quiet", "HEAD")[0] == 0
         args = ["diff", "--numstat", "HEAD"] if head_ok else ["diff", "--numstat"]
         _, ins, dele = numstat_totals(root, *args)
-        return [candidate(WORKTREE_REF, "git",
+        return [candidate(WORKTREE_REF, "Git 提交",
                           diff_stat=stat_dict(len(changed), ins, dele),
                           inferred=None,
                           inferred_reason="工作区未提交改动无提交信息，意图从 diff 推断，请人工核对"
@@ -254,7 +254,7 @@ def git_candidates(root):
         sha = out.strip()
         files, ins, dele = numstat_totals(root, "show", "--numstat", "--format=", "HEAD")
         inferred, reason = intent_flag(root, "HEAD")
-        return [candidate(sha, "git", diff_stat=stat_dict(files, ins, dele),
+        return [candidate(sha, "Git 提交", diff_stat=stat_dict(files, ins, dele),
                           inferred=inferred, inferred_reason=reason)], None
     return [], "git 仓库无提交且工作区干净（无 diff）"
 
@@ -270,21 +270,21 @@ def cmd_target(args):
 
     if nonempty(args.ref):
         cand, why = explicit_candidate(root, args.ref)
-        checked.append({"source": "explicit", "hit": cand is not None, "reason": why})
+        checked.append({"source": "显式指定", "hit": cand is not None, "reason": why})
         if cand is not None:
             candidates.append(cand)
     else:
-        checked.append({"source": "explicit", "hit": False, "reason": "未提供 --ref"})
+        checked.append({"source": "显式指定", "hit": False, "reason": "未提供 --ref"})
 
     if not candidates:
         cands, warns, why = sprint_candidates(out, root)
         warnings += warns
-        checked.append({"source": "sprint", "hit": bool(cands), "reason": why})
+        checked.append({"source": "冲刺任务", "hit": bool(cands), "reason": why})
         candidates += cands
 
     if not candidates:
         cands, why = git_candidates(root)
-        checked.append({"source": "git", "hit": bool(cands), "reason": why})
+        checked.append({"source": "Git 提交", "hit": bool(cands), "reason": why})
         candidates += cands
 
     ok = bool(candidates)
@@ -293,7 +293,7 @@ def cmd_target(args):
     violations = []
     if not ok:
         reason = ("未定位到被审变更：%s。请显式传 --ref（commit / range / 分支），"
-                  "或先跑 diy-dev / diy-review 使任务进入 review 后重试。"
+                  "或先跑 diy-dev / diy-review 使任务进入 待审查 后重试。"
                   % "；".join(c["reason"] for c in checked))
         violations = [v("NO_TARGET", display_path(os.path.join(out, CK_FILE), root), reason)]
     payload = {
@@ -335,7 +335,7 @@ def cmd_target(args):
 # ---- check ----
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -456,12 +456,12 @@ def check_record(index, record, final, story_ids, where_base):
             violations.append(v("ENUM_INVALID", where + ".target.source",
                                 "source 越界：%s（合法集 %s）"
                                 % (source, "|".join(TARGET_SOURCES))))
-        elif str(source) == "explicit" and not nonempty(target.get("ref")):
+        elif str(source) == "显式指定" and not nonempty(target.get("ref")):
             violations.append(v("EMPTY_FIELD", where + ".target.ref",
-                                "source=explicit 时 ref 必填"))
-        elif str(source) == "sprint" and not nonempty(target.get("story")):
+                                "source=显式指定 时 ref 必填"))
+        elif str(source) == "冲刺任务" and not nonempty(target.get("story")):
             violations.append(v("EMPTY_FIELD", where + ".target.story",
-                                "source=sprint 时 story 必填"))
+                                "source=冲刺任务 时 story 必填"))
         story = target.get("story")
         if nonempty(story) and str(story) not in story_ids:
             violations.append(v("UNKNOWN_ID", where + ".target.story",
@@ -502,30 +502,30 @@ def check_record(index, record, final, story_ids, where_base):
 
 
 def check_final_duties(record, where, decision, status):
-    """--final 附加义务：decision 已定（非 discuss）、status 已落 final、next 非空、零假设。"""
+    """--final 附加义务：decision 已定（非 讨论）、status 已落 已定稿、next 非空、零假设。"""
     violations = []
     if not nonempty(decision):
         violations.append(v("PENDING_DECISION", where + ".decision",
-                            "--final 要求 decision 已定（approve|rework）；discuss 讨论后回到决策"))
-    elif str(decision) == "discuss":
-        if str(status) == "final":
+                            "--final 要求 decision 已定（批准|返工）；讨论后回到决策"))
+    elif str(decision) == "讨论":
+        if str(status) == "已定稿":
             violations.append(v("STATUS_MISMATCH", where + ".status",
-                                "discuss 决策不得落 status: final"))
+                                "讨论决策不得落 status: 已定稿"))
         else:
             violations.append(v("PENDING_DECISION", where + ".decision",
-                                "discuss 未收敛：讨论后须回到 approve|rework 再定稿"))
-    elif str(status) != "final":
+                                "讨论未收敛：讨论后须回到 批准|返工 再定稿"))
+    elif str(status) != "已定稿":
         violations.append(v("STATUS_MISMATCH", where + ".status",
-                            "decision 已定（%s），须落 status: final" % decision))
+                            "decision 已定（%s），须落 status: 已定稿" % decision))
     if not nonempty(record.get("next")):
         violations.append(v("EMPTY_FIELD", where + ".next", "--final 要求 next 路由行非空"))
     concerns = record.get("concerns")
     if isinstance(concerns, list) and not concerns:
         violations.append(v("EMPTY_FIELD", where + ".concerns",
                             "--final 要求至少 1 个 concern"))
-    if any("[ASSUMPTION]" in s for s in collect_strings(record)):
+    if any("[假设]" in s for s in collect_strings(record)):
         violations.append(v("ASSUMPTION_PRESENT", where,
-                            "--final 要求零 [ASSUMPTION]；未决假设须先落定"))
+                            "--final 要求零 [假设]；未决假设须先落定"))
     return violations
 
 
@@ -641,7 +641,7 @@ def main():
         description="diy-checkpoint-preview 确定性引擎：变更候选定位（门禁）+ checkpoint.yaml 校验")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    t = sub.add_parser("target", help="4 层级联定位被审变更（显式 ref → sprint review 任务 → git）")
+    t = sub.add_parser("target", help="4 层级联定位被审变更（显式 ref → 冲刺任务待审查态 → Git 提交）")
     t.add_argument("--project-root", default=".", help="项目根（默认 .）")
     t.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
@@ -653,7 +653,7 @@ def main():
     c.add_argument("--project-root", default=".", help="项目根（默认 .）")
     c.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
-    c.add_argument("--final", action="store_true", help="定稿校验：decision 已定 + status 已落 final + 零假设")
+    c.add_argument("--final", action="store_true", help="定稿校验：decision 已定 + status 已落 已定稿 + 零假设")
     c.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     c.set_defaults(func=cmd_check)
 

@@ -2,14 +2,14 @@
 """diy-teach-me-testing 进度引擎测试（7 节课程 + 跨会话进度跟踪）。
 
 覆盖（清单来源 = B3 任务书 §7「测试」）：
- 1  init 建 7 节全 not-started + 建 `notes/` 目录（定义态/运行态分离，session id 与
+ 1  init 建 7 节全未开始 + 建 `notes/` 目录（定义态/运行态分离，session id 与
     curriculum.yaml 对齐）
  2  init 无 `--role` 合法（`learner.role` 与 `learner.assessed` 均为 null，SS-001-70）
  3  init 已存在 → 拒绝（零覆盖，指引 resume）
  4  update 幂等：同节二次完成不重复计数（派生三式仍 1/14/2，追加一条重做修订）
  5  派生字段与真值一致（基准 = 裁定 2 三式）+ 手改派生字段 → check / status 报
     SET_MISMATCH
- 6  check 检出 completed 无 notes / notes 越界 / notes 文件不在场
+ 6  check 检出 已完成 无 notes / notes 越界 / notes 文件不在场
  7  check 检出 session 7 无 topics_explored（完成判据 = topics_explored >= min_topics）
  8  `update --learner` 置 assessed 后 check 通过；缺 experience 的画像被写通道拒绝；
     experience 越界 → ENUM_INVALID
@@ -65,7 +65,7 @@ READ_ANCHOR = ("读取纪律：预载预算 = 本文件、上述配置与回执�
 RENDER_ANCHOR = "渲染是静默旁路——只写调用命令"
 
 SESSION_IDS = list(range(1, 8))
-STATUSES = ("not-started", "in-progress", "completed")
+STATUSES = ("未开始", "进行中", "已完成")
 
 
 def run_engine(args, cwd=None):
@@ -152,7 +152,7 @@ class EngineCase(unittest.TestCase):
     def complete(self, session_id, score=100, topics=None):
         """完成一节：先落 notes md（写通道要求文件在场），再 update --session。"""
         self.write_notes(session_id)
-        extra = ["--session", str(session_id), "--status", "completed",
+        extra = ["--session", str(session_id), "--status", "已完成",
                  "--notes", self.notes_rel(session_id)]
         if score is not None:
             extra += ["--score", str(score)]
@@ -171,7 +171,7 @@ class EngineCase(unittest.TestCase):
 
 class InitTests(EngineCase):
 
-    # trace: §7 测试 1（init 建 7 节全 not-started + 建 notes/ 目录）
+    # trace: §7 测试 1（init 建 7 节全未开始 + 建 notes/ 目录）
     def test_init_creates_seven_sessions_and_notes_dir(self):
         r = self.init()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -185,7 +185,7 @@ class InitTests(EngineCase):
         self.assertEqual(sorted(doc["project"].keys()), ["created", "name", "updated"])
         self.assertEqual([s["id"] for s in doc["sessions"]], SESSION_IDS)
         for session in doc["sessions"]:
-            self.assertEqual(session["status"], "not-started")
+            self.assertEqual(session["status"], "未开始")
             self.assertIsNone(session["started_date"])
             self.assertIsNone(session["completed_date"])
             self.assertIsNone(session["score"])
@@ -260,7 +260,7 @@ class UpdateSessionTests(EngineCase):
         self.assertEqual(receipt["updated"], self.today)
         self.assertEqual(receipt["change"],
                          {"kind": "session", "session": 1,
-                          "from": "not-started", "to": "completed", "redo": False})
+                          "from": "未开始", "to": "已完成", "redo": False})
 
         r2 = self.complete(1, score=67)
         self.assertEqual(r2.returncode, 0, r2.stdout + r2.stderr)
@@ -340,57 +340,57 @@ class UpdateSessionTests(EngineCase):
 
     # trace: §7 测试 8（update --learner 写通道）
     def test_update_learner_channel(self):
-        r0 = self.update("--learner", "--role", "Lead")
+        r0 = self.update("--learner", "--role", "组长")
         self.assertEqual(r0.returncode, 1, r0.stdout)
         self.assertIn("EMPTY_FIELD", self.codes(r0),
                       "assessed 非空 → role 与 experience 不得为空")
         self.assertIsNone(self.read_progress()["learner"]["assessed"],
                           "画像未采集完 → 写通道拒绝，零写入")
 
-        r = self.update("--learner", "--role", "Dev", "--experience", "beginner",
+        r = self.update("--learner", "--role", "开发", "--experience", "入门",
                         "--goals", "把测试接进开发流程")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertEqual(json.loads(r.stdout)["change"], {"kind": "learner"})
         learner = self.read_progress()["learner"]
-        self.assertEqual(learner["role"], "Dev")
-        self.assertEqual(learner["experience"], "beginner")
+        self.assertEqual(learner["role"], "开发")
+        self.assertEqual(learner["experience"], "入门")
         self.assertEqual(learner["goals"], ["把测试接进开发流程"])
         self.assertEqual(learner["assessed"], self.today)
         self.assertEqual(self.check().returncode, 0)
 
-        r2 = self.update("--learner", "--role", "Lead")
+        r2 = self.update("--learner", "--role", "组长")
         self.assertEqual(r2.returncode, 0, r2.stdout + r2.stderr)
-        self.assertEqual(self.read_progress()["learner"]["role"], "Lead",
+        self.assertEqual(self.read_progress()["learner"]["role"], "组长",
                          "补采单项时其余字段保持既有值")
 
         r3 = self.update("--learner", "--experience", "expert")
         self.assertEqual(r3.returncode, 1, r3.stdout)
         self.assertIn("ENUM_INVALID", self.codes(r3))
-        self.assertEqual(self.read_progress()["learner"]["experience"], "beginner")
+        self.assertEqual(self.read_progress()["learner"]["experience"], "入门")
 
-    # trace: §7 门禁（quiz 未达线不自动通过；score 仅在 completed 时接受且 0-100）
+    # trace: §7 门禁（quiz 未达线不自动通过；score 仅在 已完成 时接受且 0-100）
     def test_update_session_score_rules(self):
-        r = self.update("--session", "1", "--status", "in-progress")
+        r = self.update("--session", "1", "--status", "进行中")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         doc = self.read_progress()
-        self.assertEqual(doc["sessions"][0]["status"], "in-progress")
+        self.assertEqual(doc["sessions"][0]["status"], "进行中")
         self.assertEqual(doc["sessions"][0]["started_date"], self.today)
 
         self.write_notes(1)
-        r2 = self.update("--session", "1", "--status", "in-progress",
+        r2 = self.update("--session", "1", "--status", "进行中",
                          "--score", "67", "--notes", self.notes_rel(1))
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("STATUS_MISMATCH", self.codes(r2),
-                      "score 仅在 --status completed 时接受")
+                      "score 仅在 --status 已完成 时接受")
         self.assertEqual(self.read_progress()["sessions"][0]["score"], None,
                          "拒绝路径零写入")
 
-        r3 = self.update("--session", "1", "--status", "completed",
+        r3 = self.update("--session", "1", "--status", "已完成",
                          "--notes", self.notes_rel(1), "--score", "101")
         self.assertEqual(r3.returncode, 1, r3.stdout)
         self.assertIn("ENUM_INVALID", self.codes(r3))
 
-        r4 = self.update("--session", "9", "--status", "completed")
+        r4 = self.update("--session", "9", "--status", "已完成")
         self.assertEqual(r4.returncode, 1, r4.stdout)
         self.assertIn("UNKNOWN_ID", self.codes(r4))
 
@@ -398,10 +398,10 @@ class UpdateSessionTests(EngineCase):
         self.assertEqual(r5.returncode, 1, r5.stdout)
         self.assertIn("ENUM_INVALID", self.codes(r5))
 
-    # trace: §7 测试 6（completed 无 notes / notes 越界 / 文件不在场）
+    # trace: §7 测试 6（已完成 无 notes / notes 越界 / 文件不在场）
     def test_check_flags_notes_problems(self):
         self.write_notes(1)
-        self.assertEqual(self.update("--session", "1", "--status", "completed",
+        self.assertEqual(self.update("--session", "1", "--status", "已完成",
                                      "--notes", self.notes_rel(1)).returncode, 0)
         doc = self.read_progress()
         doc["sessions"][0]["notes"] = None
@@ -422,7 +422,7 @@ class UpdateSessionTests(EngineCase):
         self.write_progress(doc)
         self.assertIn("MISSING_FILE", self.codes(self.check()))
 
-        r = self.update("--session", "2", "--status", "completed",
+        r = self.update("--session", "2", "--status", "已完成",
                         "--notes", self.notes_rel(2))
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("MISSING_FILE", self.codes(r), "写通道须校验 notes 文件在场")
@@ -437,7 +437,7 @@ class Session7Tests(EngineCase):
     # trace: §7 测试 7（session 7 完成判据 = topics_explored >= min_topics）
     def test_check_flags_session7_completion_criteria(self):
         self.write_notes(7)
-        self.assertEqual(self.update("--session", "7", "--status", "completed",
+        self.assertEqual(self.update("--session", "7", "--status", "已完成",
                                      "--notes", self.notes_rel(7),
                                      "--topics", str(min_topics())).returncode, 0)
         self.assertEqual(self.check().returncode, 0, self.check().stdout)
@@ -474,7 +474,7 @@ class Session7Tests(EngineCase):
     # trace: §7 终态定义（session 7 的 score 恒 null，不参与平均）
     def test_update_session7_score_refused(self):
         self.write_notes(7)
-        r = self.update("--session", "7", "--status", "completed",
+        r = self.update("--session", "7", "--status", "已完成",
                         "--notes", self.notes_rel(7), "--score", "100")
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("STATUS_MISMATCH", self.codes(r))
@@ -495,7 +495,7 @@ class StatusTests(EngineCase):
                          "steps/02-assess.md")
 
         self.assertEqual(self.update("--learner", "--role", "QA",
-                                     "--experience", "experienced").returncode, 0)
+                                     "--experience", "资深").returncode, 0)
         data = json.loads(self.status().stdout)
         self.assertEqual(data["entry_step"], "steps/03-hub.md")
         self.assertEqual(data["dashboard"]["sessions_completed"], 0)
@@ -506,7 +506,7 @@ class StatusTests(EngineCase):
     def test_status_routes_to_completion_and_hub(self):
         self.assertEqual(self.init().returncode, 0)
         self.assertEqual(self.update("--learner", "--role", "QA",
-                                     "--experience", "experienced").returncode, 0)
+                                     "--experience", "资深").returncode, 0)
         self.complete_all()
         self.assertEqual(json.loads(self.status().stdout)["entry_step"],
                          "steps/05-completion.md")
@@ -573,7 +573,7 @@ class RecoveryTests(EngineCase):
         self.assertEqual(self.read_text(backup), original, "备份 = 原文件逐字节副本")
         doc = self.read_progress()
         self.assertEqual([s["status"] for s in doc["sessions"]],
-                         ["not-started"] * 7, "恢复 = 重建 7 节骨架")
+                         ["未开始"] * 7, "恢复 = 重建 7 节骨架")
         self.assertEqual(self.check().returncode, 0, "重建后 check 干净")
         self.assertTrue(os.path.isfile(os.path.join(self.out, "notes",
                                                     "session-01.md")),
@@ -625,7 +625,7 @@ class ContractTests(EngineCase):
         self.assertEqual(data["updated"], self.today, "写命令回执含 updated")
 
         self.write_notes(1)
-        r2 = self.update("--session", "1", "--status", "completed",
+        r2 = self.update("--session", "1", "--status", "已完成",
                          "--notes", self.notes_rel(1))
         data2 = json.loads(r2.stdout)
         self.assertTrue(common <= set(data2))
@@ -690,11 +690,12 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("check --final", skill, "终门句缺 check --final")
         self.assertIn("--json", skill, "终门句缺 --json 回执")
 
-    # trace: 验收 #1 / #8（薄主文件 ≤90 行 + 四段 + frontmatter 登记元数据）
+    # trace: 验收 #1 / #8（薄主文件 ≤93 行 + 四段 + frontmatter 登记元数据；
+    #         2026-09-19 中文化：母本 §6 条款与 description 注释为强制内容，预算自 90 调至 93）
     def test_thin_main_file_shape(self):
         skill = self.read_skill()
-        self.assertLessEqual(len(skill.splitlines()), 90, "SKILL.md 超过 90 行")
-        for section in ("## On Activation", "## Workflow", "## Schema", "## Rules"):
+        self.assertLessEqual(len(skill.splitlines()), 93, "SKILL.md 超过 93 行")
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, skill, "SKILL.md 缺四段：%s" % section)
         self.assertIn("name: diy-teach-me-testing", skill)
         self.assertIn("phase: 0-learning", skill)

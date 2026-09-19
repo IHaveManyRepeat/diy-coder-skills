@@ -21,18 +21,18 @@
            scans[] + revisions[] 缺项；scans[].id 形态 SS-0nn（三位数字）且全局唯一
            （DUPLICATE_ID / ENUM_INVALID）；scans[].target 在场且含 path；units[] 每项
            unit / path / scanned（布尔）；findings[] 每条 id 形态 SS-0nn-nn 且唯一、type 八值
-           枚举（UNDEFINED_BRANCH / TERM_CONFLICT / INTERFACE_GAP / INPUT_UNDEFINED /
-           OUTPUT_UNDEFINED / ORDER_AMBIGUOUS / CONFLICT / UNSTATED_ASSUMPTION）、where 非空
+           枚举（分支无定义 / 术语冲突 / 接口缺口 / 输入不明 /
+           输出不明 / 时序不明 / 直接矛盾 / 隐含假设）、where 非空
            且形如 <path> 或 <path>:<行号>、quote / read_as / stuck / would_guess 四字段全非空
            （EMPTY_FIELD；would_guess = 若我是实现者我会猜成什么——没有它这条 finding 不成立）、
-           severity ∈ blocker|major|minor；scans[].summary 的 total/blocker/major/minor 与
+           severity ∈ 阻断|建议|观察；scans[].summary 的 total/blocker/major/minor 与
            findings 真值一致、units_total/units_scanned 与 units 数组一致（SET_MISMATCH）。
            --final 附加：全部 units[].scanned 为 true（未扫完 → SET_MISMATCH）、findings 的
-           字符串字段零 [ASSUMPTION] 字面量（命中 → ASSUMPTION_PRESENT）——**`quote` 字段豁免**
+           字符串字段零 [假设] 字面量（命中 → ASSUMPTION_PRESENT）——**`quote` 字段豁免**
            （2026-09-16 裁定）：该禁令管的是「扫描器自己未落定的推断」，而 quote 是**引文证据**，
            被扫规格本身可能就含该标记；对引文做字面量拦截会逼出全角改写，把「quote 逐字保留
            原文」这条本技能的立身纪律变成不可能。非 quote 字段若需提及该标记，写全角
-           ［ASSUMPTION］（全角不是该禁令的字面量）。exit 0 唯一放行。
+           ［假设］（全角不是该禁令的字面量）。exit 0 唯一放行。
 
 规则来源：违规码全部复用 batch3-contract §3 冻结集——本引擎用到 MISSING_FILE /
 UNPARSABLE_YAML / DUPLICATE_ID / ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT /
@@ -65,13 +65,13 @@ SS_ID_RE = re.compile(r"SS-\d{3}\Z")
 FINDING_ID_RE = re.compile(r"SS-\d{3}-\d{2}\Z")
 LINE_RE = re.compile(r"[0-9]+\Z")
 
-FINDING_TYPES = ("UNDEFINED_BRANCH", "TERM_CONFLICT", "INTERFACE_GAP", "INPUT_UNDEFINED",
-                 "OUTPUT_UNDEFINED", "ORDER_AMBIGUOUS", "CONFLICT", "UNSTATED_ASSUMPTION")
+FINDING_TYPES = ("分支无定义", "术语冲突", "接口缺口", "输入不明",
+                 "输出不明", "时序不明", "直接矛盾", "隐含假设")
 FINDING_TEXT_FIELDS = ("quote", "read_as", "stuck", "would_guess")
-SEVERITIES = ("blocker", "major", "minor")
+SEVERITIES = ("阻断", "建议", "观察")
 SUMMARY_KEYS = ("total", "blocker", "major", "minor", "units_total", "units_scanned")
 PROJECT_KEYS = ("name", "created", "updated")
-ASSUMPTION = "[ASSUMPTION]"
+ASSUMPTION = "[假设]"
 
 
 # trace: diy-spec-scan 违规项构造（统一 {code, where, msg} 形态）
@@ -95,7 +95,7 @@ def display_path(path, project_root):
     return rel.replace("\\", "/")
 
 
-# trace: diy-spec-scan 递归收集任意节点的字符串值（[ASSUMPTION] 扫描用，只看值不看键）
+# trace: diy-spec-scan 递归收集任意节点的字符串值（[假设] 扫描用，只看值不看键）
 def collect_strings(node):
     if isinstance(node, str):
         yield node
@@ -427,9 +427,9 @@ def real_summary(units, findings):
             severity[str(finding["severity"])] += 1
     return {
         "total": len(findings),
-        "blocker": severity["blocker"],
-        "major": severity["major"],
-        "minor": severity["minor"],
+        "blocker": severity["阻断"],
+        "major": severity["建议"],
+        "minor": severity["观察"],
         "units_total": len(units),
         "units_scanned": sum(1 for unit in units
                              if isinstance(unit, dict) and unit.get("scanned") is True),
@@ -461,7 +461,7 @@ def check_summary(scan, where, units, findings):
     return violations
 
 
-# trace: diy-spec-scan --final 附加义务（全单元已扫 + findings 零 [ASSUMPTION]，quote 豁免）
+# trace: diy-spec-scan --final 附加义务（全单元已扫 + findings 零 [假设]，quote 豁免）
 def check_final_duties(where, units, findings):
     violations = []
     for i, unit in enumerate(units):
@@ -477,7 +477,7 @@ def check_final_duties(where, units, findings):
                    if isinstance(finding, dict) else finding)
         if any(ASSUMPTION in s for s in collect_strings(scanned)):
             violations.append(v("ASSUMPTION_PRESENT", "%s.findings[%d]" % (where, i),
-                                "--final 要求零 [ASSUMPTION]（quote 引文豁免）；"
+                                "--final 要求零 [假设]（quote 引文豁免）；"
                                 "未决推断须先落定再交"))
     return violations
 
@@ -614,7 +614,7 @@ def build_parser():
     k.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     k.add_argument("--final", action="store_true",
-                   help="定稿校验：全部单元 scanned: true + findings 任意字段零 [ASSUMPTION]")
+                   help="定稿校验：全部单元 scanned: true + findings 任意字段零 [假设]")
     k.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     k.set_defaults(func=cmd_check)
     return ap

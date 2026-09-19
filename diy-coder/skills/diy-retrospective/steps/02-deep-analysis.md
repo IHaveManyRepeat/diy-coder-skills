@@ -14,7 +14,7 @@ The source skill reads each story's markdown and mines "Dev Notes", "Review", "L
 | Dev Notes and Struggles | task `note` + `loop.rounds` / `loop.outcome` + `blocked_reason` in `sprint.yaml` |
 | Review Feedback Patterns | task `review.findings[]` (`layer` / `route` / `note`) in `sprint.yaml` |
 | Lessons Learned | `note` fields + `bug-log.yaml` `prevention` / `pattern` columns |
-| Technical Debt Incurred | `blocked_reason`, `route: defer` findings, bug `root_cause` |
+| Technical Debt Incurred | `blocked_reason`, `route: 后置` findings, bug `root_cause` |
 | Testing and Quality Insights | `test-plan.yaml` TC `status` + `coverage_gaps` + the task `evidence` ledger |
 | Velocity Patterns | `loop.rounds` aggregate = the receipt's `metrics.rounds_total` |
 
@@ -24,8 +24,8 @@ Two consequences: never re-derive a count the receipt already carries, and never
 
 The source ran its analysis through five speaking roles. The roles as dialogue are not carried over; what they were for — different readings of the same evidence — is. Apply all four to the evidence above:
 
-- **Developer lens** — where did the implementation fight back? Read `loop.rounds` outliers (rounds ≫ the epic median), `blocked_reason`, re-opened tasks, `augment: fail`. A high round count is the diy signal for "the source's underestimated complexity".
-- **Product lens** — did the epic deliver what the stories promised? Read `stories.pending` (what never landed), deferred findings, and ACs left in `coverage_gaps` with `decision: pending`.
+- **Developer lens** — where did the implementation fight back? Read `loop.rounds` outliers (rounds ≫ the epic median), `blocked_reason`, re-opened tasks, `augment: 失败`. A high round count is the diy signal for "the source's underestimated complexity".
+- **Product lens** — did the epic deliver what the stories promised? Read `stories.pending` (what never landed), deferred findings, and ACs left in `coverage_gaps` with `decision: 待办`.
 - **QA lens** — where would defects slip through? Read `coverage` (ACs with no case), `bug-log` `subclass` clustering, and `evidence` ledgers that were written after the fact.
 - **Architect lens** — which decisions aged badly? Read `bug-log` `root_cause`/`pattern` for repeated classes, deferred findings that name structure, and any `blocked_reason` citing an upstream spec.
 

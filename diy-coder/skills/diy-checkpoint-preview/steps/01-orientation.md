@@ -17,9 +17,9 @@ python "{project-root}/.claude/skills/diy-checkpoint-preview/scripts/checkpoint.
 
 **The engine's layer — 3 mechanical levels plus the refusal:**
 
-1. explicit `--ref` → `source: explicit`
-2. a `sprint.yaml` task with `status: review` → `source: sprint` (its `story` and `spec` when resolvable). Branch on the candidate count: exactly one → suggest it and confirm with the human; several → present them as numbered options; none → fall through to git.
-3. git worktree / HEAD diff → `source: git`
+1. explicit `--ref` → `source: 显式指定`
+2. a `sprint.yaml` task with `status: 待审查` → `source: 冲刺任务` (its `story` and `spec` when resolvable). Branch on the candidate count: exactly one → suggest it and confirm with the human; several → present them as numbered options; none → fall through to git.
+3. git worktree / HEAD diff → `source: Git 提交`
 4. none of the three → exit 1 + a refusal line
 
 Take `candidates`, `source`, `story`, `spec`, `mode`, `diff_stat` from the receipt. Do not ask questions beyond this cascade.
@@ -38,9 +38,9 @@ The engine pairs them mechanically: a spec whose `baseline_commit` is an ancesto
 
 `mode` comes from the receipt; confirm it here and let it drive steps 2–4:
 
-1. **`full-trail`** — a spec exists with a `## Suggested Review Order` section. Intent source: the spec's Intent section.
-2. **`spec-only`** — a spec exists, no Suggested Review Order. Intent source: the spec's Intent section.
-3. **`bare-commit`** — no spec. Intent source: the commit message. If the message is terse (under 10 words), scan the diff for the primary change pattern and draft a one-sentence intent. The receipt reports which case you are in: `target.inferred: true` — the intent was inferred from the diff; `false` — the message itself carries the intent (≥10 words, or an explicit commit ref), nothing to infer; `null` — undeterminable (a WORKTREE or range target, say), paired with an `inferred_reason` string. Flag an inferred intent `[inferred]` in the output so the human can correct it; in the `null` case relay the `inferred_reason` in plain words — the intent came from the diff and needs a human check.
+1. **`全程轨迹`** — a spec exists with a `## Suggested Review Order` section. Intent source: the spec's Intent section.
+2. **`仅规格`** — a spec exists, no Suggested Review Order. Intent source: the spec's Intent section.
+3. **`裸提交`** — no spec. Intent source: the commit message. If the message is terse (under 10 words), scan the diff for the primary change pattern and draft a one-sentence intent. The receipt reports which case you are in: `target.inferred: true` — the intent was inferred from the diff; `false` — the message itself carries the intent (≥10 words, or an explicit commit ref), nothing to infer; `null` — undeterminable (a WORKTREE or range target, say), paired with an `inferred_reason` string. Flag an inferred intent `[inferred]` in the output so the human can correct it; in the `null` case relay the `inferred_reason` in plain words — the intent came from the diff and needs a human check.
 
 Set `change_type` — the record field that carries how the human names the change: `PR`, `commit`, `branch`, or their own words (e.g. `auth refactor`); default to `change` when ambiguous. Steps 2–5 close their prompts with "this {change_type}", reading it from the record so the phrase survives the whole run.
 
@@ -68,7 +68,7 @@ Present as one message:
 N files changed · M modules touched · ~L lines of logic · B boundary crossings · P new public interfaces
 ```
 
-## Fallback trail generation (only when mode is not `full-trail`)
+## Fallback trail generation (only when mode is not `全程轨迹`)
 
 A generated trail is lower quality than an author-produced one, but far better than none. Build it from the diff:
 
@@ -86,7 +86,7 @@ A generated trail is lower quality than an author-produced one, but far better t
 
 With only one concern, omit the bold label and list the stops directly.
 
-Announce it — "I built a review trail for this {change_type} (no author-produced trail was found):" — then present the trail. It now serves as the Suggested Review Order: downstream steps treat `mode` as `full-trail`. If the diff cannot be retrieved, say "Could not generate trail — git unavailable." and keep the original mode — step 2 carries the non-trail path.
+Announce it — "I built a review trail for this {change_type} (no author-produced trail was found):" — then present the trail. It now serves as the Suggested Review Order: downstream steps treat `mode` as `全程轨迹`. If the diff cannot be retrieved, say "Could not generate trail — git unavailable." and keep the original mode — step 2 carries the non-trail path.
 
 ## Write the draft record
 
@@ -97,14 +97,14 @@ Append one record to `{output_dir}/checkpoint.yaml` (create the file when absent
     date: YYYY-MM-DD           # today
     change_type: {how the human names it, e.g. commit|branch|PR|auth refactor}
     target: {ref, source, story?, spec?, inferred?}   # copied from the receipt, never retyped from memory
-    mode: full-trail|spec-only|bare-commit
+    mode: 全程轨迹|仅规格|裸提交
     concerns: []
     risks: []
     observations: []
     decision: ''               # undecided while drafting
     reason: ''
     next: ''
-    status: draft
+    status: 草稿
 ```
 
 `inferred` mirrors the receipt's three values: `true` → write `inferred: true`; `false` → omit the key (a marker is only ever written for `true` — absence is the default, never mint one); `null` (undeterminable — a WORKTREE or range target, say) → omit the key too, and relay the receipt's `inferred_reason` in plain words when one is present — the intent was inferred from the diff and needs a human check.

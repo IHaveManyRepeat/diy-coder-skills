@@ -11,15 +11,15 @@
      （文件级行 FILE_LEVEL_ROWS 以 `file` 取代行号）、算分并校验 LLM 声明不参与计分。
   2. **convention 分类归属**（裁定 3）：`scan` 是机械可计数键的判定权威——5 个机械键
      （priority_markers / test_ids / network_first / data_factories / fixtures）直接产出
-     {adopted, status}，阈值照源三行（sampled<4 → unknown；adopted==0 → absent；
-     adopted/sampled ≥ 0.5 → established，否则 emerging）；`bdd_naming` / `assertion_style`
+     {adopted, status}，阈值照源三行（sampled<4 → 未知；adopted==0 → 缺失；
+     adopted/sampled ≥ 0.5 → 已确立，否则 新现）；`bdd_naming` / `assertion_style`
      在源文明确无机械信号 → 回执只标 `judged_by: llm`，由 LLM 读采样文件判读。
-     降档由 `score` 应用（emerging → 降一档 floor LOW；absent / unknown → 该行不成立）。
+     降档由 `score` 应用（新现 → 降一档 floor LOW；缺失 / 未知 → 该行不成立）。
   3. **维度分复算**（裁定 4）：与账本同一次调用；每维 = max(0, 100 − Σ去重后该维命中
      severity 权重 {CRITICAL:20, HIGH:10, MEDIUM:5, LOW:2})；行↔维度映射承载于
      criteria.yaml 的 `dimensions` 字段；仅展示，不进账本、不进 recommendation。
   4. **三向走查层**（裁定 5）：`walkthrough` 执行 AC ↔ 源码 ↔ 测试三向对账，四类缺口
-     （no_impl / no_test / orphan_tc / never_run）。**跨文档核对一律委派 diyc**：
+     （无实现 / 无测试 / 孤儿用例 / 从未运行）。**跨文档核对一律委派 diyc**：
      源码面委派 `diyc.py trace`、orphan_tc 面委派 `diyc.py check --type test-plan`；
      子进程 rc∈{0,1} 均为正常回执（1 = 上游有违规，其 violations 计入判定、不吞掉），
      rc=2 / 不可解析 / 缺席 → TOOL_MISSING / TOOL_ERROR warning 降级，不崩溃。
@@ -57,12 +57,12 @@ V 能力补项（2026-09-18，源 test-review 对账 `v-capability-inventory.md`
               账本计算（纯函数，不写文件）：severity 复算 → convention 降档 → 去重 →
               deductions / bonus → score / grade / recommendation → 维度分。
   walkthrough [--project-root R] [--output-dir D] [--json]
-              三向对账（只读；跨文档核对委派 diyc）。四类缺口 + 就绪态 full|partial|skipped。
+              三向对账（只读；跨文档核对委派 diyc）。四类缺口 + 就绪态 全覆盖|部分覆盖|已跳过。
   check       [--final] [--project-root R] [--output-dir D] [--json]
               校验 {output_dir}/test-review.yaml：schema / 枚举 / 账本自洽 / row ∈ 有效 32 行 /
               coverage_gaps 形态 / walkthrough 自洽 / **convention 引用复核（R-2）** /
               **recommendations 上限（R-1）** / **空文件不得计入评审集（R-3）**；
-              --final 附加：零 [ASSUMPTION]、excluded 理由三值、scope 非空、记录已落 final。
+              --final 附加：零 [假设]、excluded 理由三值、scope 非空、记录已定稿。
 
 引擎契约（任务书 §2.2）：exit 0 唯一放行；1 = 违规/被拒绝；2 = 用法错误（argparse）；
 --json → 单行 JSON 回执（ensure_ascii=False），无 --json → 中文人读行。回执共同键
@@ -107,10 +107,10 @@ BONUS_POINTS = 5
 BONUS_MAX = 30
 DIMENSIONS = ("determinism", "isolation", "maintainability", "performance")
 GRADES = ("A", "B", "C", "D", "F")
-RECOMMENDATIONS = ("Block", "Request-Changes", "Approve-with-Comments", "Approve")
-RECORD_STATUSES = ("draft", "final")
-CONVENTION_STATUSES = ("established", "emerging", "absent", "unknown")
-CONVENTION_ENTRY_STATUSES = ("established", "emerging")  # absent / unknown → 该行不成立
+RECOMMENDATIONS = ("打回", "要求修改", "有保留批准", "批准")
+RECORD_STATUSES = ("草稿", "已定稿")
+CONVENTION_STATUSES = ("已确立", "新现", "缺失", "未知")
+CONVENTION_ENTRY_STATUSES = ("已确立", "新现")  # 缺失 / 未知 → 该行不成立
 CONVENTION_KEYS = ("priority_markers", "test_ids", "bdd_naming", "network_first",
                    "data_factories", "fixtures", "assertion_style")
 MECHANICAL_KEYS = ("priority_markers", "test_ids", "network_first",
@@ -121,19 +121,19 @@ LLM_JUDGED_KEYS = ("bdd_naming", "assertion_style")
 SAMPLE_CAP = 40
 BASELINE_MIN_CORPUS = 4  # sampled < 4 → unknown（源三行第一行）
 ESTABLISHED_RATIO = 0.5  # adopted/sampled ≥ 0.5 → established
-EXCLUDED_REASONS = ("unsupported-format", "generated", "out-of-scope")
-WALKTHROUGH_STATUSES = ("full", "partial", "skipped")
-GAP_KINDS = ("no_impl", "no_test", "orphan_tc", "never_run")
-GAP_REF_KINDS = {"no_impl": "ac", "no_test": "ac", "orphan_tc": "tc", "never_run": "tc"}
-GAP_ROUTES = {"no_impl": ("diy-dev",),
-              "no_test": ("diy-test-design", "diy-test-author"),
-              "orphan_tc": ("user",),
-              "never_run": ("diy-test-author",)}
+EXCLUDED_REASONS = ("格式不支持", "自动生成", "超出范围")
+WALKTHROUGH_STATUSES = ("全覆盖", "部分覆盖", "已跳过")
+GAP_KINDS = ("无实现", "无测试", "孤儿用例", "从未运行")
+GAP_REF_KINDS = {"无实现": "ac", "无测试": "ac", "孤儿用例": "tc", "从未运行": "tc"}
+GAP_ROUTES = {"无实现": ("diy-dev",),
+              "无测试": ("diy-test-design", "diy-test-author"),
+              "孤儿用例": ("user",),
+              "从未运行": ("diy-test-author",)}
 AC_RE = re.compile(r"AC-\d+(?:\.\d+)*")
 TC_RE = re.compile(r"TC-\d+(?:\.\d+)*")
 RV_RE = re.compile(r"RV-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-ASSUMPTION = "[ASSUMPTION]"
+ASSUMPTION = "[假设]"
 
 # ---------------------------------------------------------------- 扫描面常量
 
@@ -256,7 +256,7 @@ def display_path(path, project_root):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -303,8 +303,8 @@ def bonus_guard_map(table):
 
 
 def downgrade_severity(severity, klass):
-    """convention 降档（源表逐字）：emerging → 降一档 floor LOW；established 原档。"""
-    if klass == "emerging":
+    """convention 降档（源表逐字）：新现 → 降一档 floor LOW；已确立 原档。"""
+    if klass == "新现":
         return SEVERITY_STEPS.get(severity, severity)
     return severity
 
@@ -328,23 +328,23 @@ def grade_of(score):
 def recommend_of(counts, score):
     """recommendation 由计算得出（源文逐条：数值口径不得漂移；此处只换连字符形态）。"""
     if counts["CRITICAL"] > 0:
-        return "Block"
+        return "打回"
     if counts["HIGH"] > 0:
-        return "Request-Changes"
+        return "要求修改"
     if score < 70:
-        return "Request-Changes"
+        return "要求修改"
     if counts["MEDIUM"] + counts["LOW"] > 0:
-        return "Approve-with-Comments"
-    return "Approve"
+        return "有保留批准"
+    return "批准"
 
 
 def convention_status(adopted, sampled):
     """源 step-02 三行判据（逐字）：deterministic on purpose。"""
     if sampled < BASELINE_MIN_CORPUS:
-        return "unknown"
+        return "未知"
     if adopted == 0:
-        return "absent"
-    return "established" if adopted / float(sampled) >= ESTABLISHED_RATIO else "emerging"
+        return "缺失"
+    return "已确立" if adopted / float(sampled) >= ESTABLISHED_RATIO else "新现"
 
 
 # ---------------------------------------------------------------- 文件发现
@@ -448,16 +448,16 @@ def discover_scope(args, root, out):
             if rel not in {p for p in pacts}:
                 pacts.append(rel)
         elif kind in ("unsupported", "generated"):
-            excluded.append({"path": rel, "reason": kind if kind != "unsupported"
-                             else "unsupported-format"})
+            excluded.append({"path": rel, "reason": "格式不支持" if kind == "unsupported"
+                             else "自动生成"})
         elif kind == "empty":
             # R-3：空测试文件匹配不到任何规则 ⇒ excluded 不评分（源 "No tests found"）
             if not any(e["path"] == rel for e in excluded):
-                excluded.append({"path": rel, "reason": "out-of-scope"})
+                excluded.append({"path": rel, "reason": "超出范围"})
                 warnings.append(v("EMPTY_FIELD", rel,
                                   "No tests found：空测试文件（无可审内容）→ 不评分"))
         elif kind == "other":
-            excluded.append({"path": rel, "reason": "out-of-scope"})
+            excluded.append({"path": rel, "reason": "超出范围"})
 
     if args.paths:
         for raw in args.paths:
@@ -465,7 +465,7 @@ def discover_scope(args, root, out):
             path = os.path.abspath(path)
             if not os.path.exists(path):
                 rel = os.path.relpath(path, root).replace("\\", "/")
-                excluded.append({"path": rel, "reason": "out-of-scope"})
+                excluded.append({"path": rel, "reason": "超出范围"})
                 warnings.append(v("MISSING_FILE", rel, "路径不存在：既不评审也不计入语料"))
                 continue
             if os.path.isdir(path):
@@ -769,7 +769,7 @@ def cmd_scan(args):
     baseline = build_baseline(corpus, sampled, root)
     if baseline["baseline_unavailable"]:
         warnings.append(v("EMPTY_FIELD", "convention_baseline",
-                          "评审集之外无语料：7 个惯例键全部 unknown，Convention 行一律 "
+                          "评审集之外无语料：7 个惯例键全部未知，Convention 行一律 "
                           "PASS (n/a)（不得从评审文件自身推断惯例）"))
     # 机械集完整性（裁定 6：可扩不可缩）：criteria 声明的 mechanical 行必须都有引擎实现
     declared = {r for r, spec in criteria.items() if spec.get("detect") == "mechanical"}
@@ -862,11 +862,11 @@ def _finding_violations(raw, table):
         if spec.get("basis") == "convention":
             if not nonempty(klass):
                 violations.append(v("EMPTY_FIELD", where + ".class",
-                                    "convention 行须带 class（established|emerging）"))
+                                    "convention 行须带 class（已确立|新现）"))
                 continue
             if str(klass) not in CONVENTION_ENTRY_STATUSES:
                 violations.append(v("ENUM_INVALID", where + ".class",
-                                    "class=%s 时该行不成立、不得成条目（absent / unknown 系 "
+                                    "class=%s 时该行不成立、不得成条目（缺失 / 未知 系 "
                                     "scan 内部判定值）" % klass))
                 continue
         elif nonempty(klass):
@@ -1054,7 +1054,7 @@ def load_final_doc(out_dir, filename):
         return False, None, v("UNPARSABLE_YAML", filename, "%s 解析失败：%s" % (filename, err))
     project = data.get("project") if isinstance(data, dict) else None
     status = project.get("status") if isinstance(project, dict) else None
-    if status != "final":
+    if status != "已定稿":
         return False, None, v("STATUS_MISMATCH", filename + " project.status",
                               "%s 未定稿（实为 %s）" % (filename,
                                                     status if nonempty(status) else "未声明"))
@@ -1122,10 +1122,10 @@ def cmd_walkthrough(args):
     if stories_ok and trace_payload is not None:
         files_with_trace = (trace_payload.get("counts") or {}).get("files_with_trace", 0)
         if not files_with_trace:
-            skipped.append("no_impl")
+            skipped.append("无实现")
             warnings.append(v("EMPTY_FIELD", "diyc trace",
                               "项目全量零 trace 标记（files_with_trace==0）：实现面不可判，"
-                              "no_impl 类整体跳过"))
+                              "无实现类整体跳过"))
         else:
             referenced = set()
             for ref in trace_payload.get("references") or []:
@@ -1135,17 +1135,17 @@ def cmd_walkthrough(args):
                             referenced.add(str(id_))
             for ac in _ac_ids(stories_doc):
                 if ac not in referenced:
-                    gaps["no_impl"].append({
-                        "kind": "no_impl", "ref": ac, "route": "diy-dev",
+                    gaps["无实现"].append({
+                        "kind": "无实现", "ref": ac, "route": "diy-dev",
                         "note": "AC 从未出现在 # trace: 引用的 AC ID 中（实现面无可判证据）"})
-            evaluated.add("no_impl")
+            evaluated.add("无实现")
             unresolved = trace_payload.get("unresolved") or []
             if unresolved:
                 warnings.append(v("TRACE_UNRESOLVED", "diyc trace",
                                   "trace 引用了 %d 处不可解析 ID（不属四类缺口，须人工复核）"
                                   % len(unresolved)))
     else:
-        skipped.append("no_impl")
+        skipped.append("无实现")
 
     # ② no_test：AC 无 TC 绑定，或绑定的 TC 全为 pending
     if stories_ok and tp_ok:
@@ -1153,19 +1153,19 @@ def cmd_walkthrough(args):
         for ac in _ac_ids(stories_doc):
             bound = [tc for tc in tcs if str(tc["ac"]) == ac]
             if not bound:
-                gaps["no_test"].append({
-                    "kind": "no_test", "ref": ac, "route": "diy-test-design",
+                gaps["无测试"].append({
+                    "kind": "无测试", "ref": ac, "route": "diy-test-design",
                     "note": "AC 无任何 TC 绑定"})
-            elif all(str(tc["status"]) == "pending" for tc in bound):
-                gaps["no_test"].append({
-                    "kind": "no_test", "ref": ac, "route": "diy-test-author",
-                    "note": "AC 的 TC 全部 pending（有 TC 未落地）：%s"
+            elif all(str(tc["status"]) == "待办" for tc in bound):
+                gaps["无测试"].append({
+                    "kind": "无测试", "ref": ac, "route": "diy-test-author",
+                    "note": "AC 的 TC 全部待办（有 TC 未落地）：%s"
                             % "、".join(tc["id"] for tc in bound)})
-        evaluated.add("no_test")
+        evaluated.add("无测试")
     else:
-        skipped.append("no_test")
+        skipped.append("无测试")
 
-    # ③ orphan_tc：TC 的 ac 不可解析（委派 diyc check --type test-plan 的 ac-UNKNOWN_ID 转记）
+    # ③ 孤儿用例：TC 的 ac 不可解析（委派 diyc check --type test-plan 的 ac-UNKNOWN_ID 转记）
     if tp_ok and stories_ok and check_payload is not None:
         others = 0
         for item in check_payload.get("violations") or []:
@@ -1174,8 +1174,8 @@ def cmd_walkthrough(args):
             where = str(item.get("where") or "")
             match = re.search(r"test_cases\[([^\]]+)\]\.ac(?:\[\d+\])?$", where)
             if item.get("code") == "UNKNOWN_ID" and match:
-                gaps["orphan_tc"].append({
-                    "kind": "orphan_tc", "ref": match.group(1), "route": "user",
+                gaps["孤儿用例"].append({
+                    "kind": "孤儿用例", "ref": match.group(1), "route": "user",
                     "note": "TC 的 ac 不可解析：%s（%s）"
                             % (item.get("msg"), display_path(
                                 os.path.join(out, TEST_PLAN_FILE), root))})
@@ -1184,27 +1184,27 @@ def cmd_walkthrough(args):
         if others:
             warnings.append(v("ENUM_INVALID", "diyc check --type test-plan",
                               "另报 %d 条非 ac 违规（不属本技能走查面，未吞掉）" % others))
-        evaluated.add("orphan_tc")
+        evaluated.add("孤儿用例")
     else:
-        skipped.append("orphan_tc")
+        skipped.append("孤儿用例")
 
-    # ④ never_run：TC status: pending
+    # ④ 从未运行：TC status: 待办
     if tp_ok:
         for tc in _tc_entries(tp_doc):
-            if str(tc["status"]) == "pending":
-                gaps["never_run"].append({
-                    "kind": "never_run", "ref": tc["id"], "route": "diy-test-author",
-                    "note": "TC 尚未激活/复跑（status: pending）"})
-        evaluated.add("never_run")
+            if str(tc["status"]) == "待办":
+                gaps["从未运行"].append({
+                    "kind": "从未运行", "ref": tc["id"], "route": "diy-test-author",
+                    "note": "TC 尚未激活/复跑（status: 待办）"})
+        evaluated.add("从未运行")
     else:
-        skipped.append("never_run")
+        skipped.append("从未运行")
 
     if not evaluated:
-        status = "skipped"
+        status = "已跳过"
     elif skipped:
-        status = "partial"
+        status = "部分覆盖"
     else:
-        status = "full"
+        status = "全覆盖"
     if skipped:
         warnings.append(v("PENDING_DECISION", "walkthrough",
                           "跳过类：%s（就绪态 %s，原因见上方 warning）"
@@ -1318,7 +1318,7 @@ def _check_findings(record, where, table):
         if spec.get("basis") == "convention":
             if str(klass) not in CONVENTION_ENTRY_STATUSES:
                 violations.append(v("ENUM_INVALID", fw + ".class",
-                                    "convention 行的 class 须为 established|emerging（实为 %s）"
+                                    "convention 行的 class 须为 已确立|新现（实为 %s）"
                                     % klass))
                 continue
         elif nonempty(klass):
@@ -1471,10 +1471,10 @@ def _check_walkthrough(record, where, gaps):
                             "status 越界：%s（合法集 %s）"
                             % (status, "|".join(WALKTHROUGH_STATUSES))))
         return violations
-    if str(status) == "skipped" and gaps:
+    if str(status) == "已跳过" and gaps:
         violations.append(v("SET_MISMATCH", where + ".walkthrough",
-                            "status=skipped 但 coverage_gaps 非空（%d 条）" % len(gaps)))
-    if str(status) in ("skipped", "partial") and not nonempty(note):
+                            "status=已跳过 但 coverage_gaps 非空（%d 条）" % len(gaps)))
+    if str(status) in ("已跳过", "部分覆盖") and not nonempty(note):
         violations.append(v("EMPTY_FIELD", where + ".walkthrough.note",
                             "status=%s 时 note 须记缺源与跳过类" % status))
     return violations
@@ -1589,9 +1589,9 @@ def check_record(index, record, table, final, show, root="."):
         violations.append(v("ENUM_INVALID", where + ".status",
                             "status 越界：%s（合法集 %s）"
                             % (status, "|".join(RECORD_STATUSES))))
-    elif final and str(status) != "final":
+    elif final and str(status) != "已定稿":
         violations.append(v("STATUS_MISMATCH", where + ".status",
-                            "--final 要求 status 已落 final（实为 %s）" % status))
+                            "--final 要求 status 已定稿（实为 %s）" % status))
 
     violations += _check_scope(record, where, final)
     violations += _check_empty_scope_paths(record, where, root)
@@ -1639,7 +1639,7 @@ def check_record(index, record, table, final, show, root="."):
                                             "--final 要求机械键带 adopted 计数（scan 判定）"))
     if final and any(ASSUMPTION in s for s in collect_strings(record)):
         violations.append(v("ASSUMPTION_PRESENT", where,
-                            "--final 要求零 [ASSUMPTION]；未决推断须落 open_questions"))
+                            "--final 要求零 [假设]；未决推断须落 open_questions"))
     return violations, deduped
 
 
@@ -1759,7 +1759,7 @@ def build_parser():
 
     k = sub.add_parser("check", help="校验 test-review.yaml（schema/账本自洽/走查自洽）")
     k.add_argument("--final", action="store_true",
-                   help="定稿校验：status 已落 final + zero [ASSUMPTION] + excluded 理由 + scope 非空")
+                   help="定稿校验：status 已定稿 + zero [假设] + excluded 理由 + scope 非空")
     k.add_argument("--project-root", default=".", help="项目根（默认 .）")
     k.add_argument("--output-dir", required=True, help="产物目录（必填）")
     k.add_argument("--json", action="store_true", help="输出单行 JSON 回执")

@@ -43,9 +43,9 @@ def chk(root, *extra):
 def review_sprint():
     """恰好 1 条 ROUTE_INVALID 的最小 sprint 夹具（实测 shape）。"""
     return fx.doc_sprint([
-        fx.task("S-1", status="review", test_refs=[],
-                review={"verdict": "pass", "findings": [
-                    {"layer": "correctness", "route": "patch", "detail": "夹具"}]}),
+        fx.task("S-1", status="待审查", test_refs=[],
+                review={"verdict": "通过", "findings": [
+                    {"layer": "正确性", "route": "小修", "detail": "夹具"}]}),
     ])
 
 
@@ -188,11 +188,11 @@ class BaselineTests(unittest.TestCase):
 
     def test_writeback_commands_do_not_consume_baseline(self):
         # 审计面限定：写回命令的拒绝不因 baseline 条目而静默放行
-        fx.write_doc(self.root, "sprint", fx.doc_sprint([fx.task("S-1", status="pending")]))
+        fx.write_doc(self.root, "sprint", fx.doc_sprint([fx.task("S-1", status="待办")]))
         self.write_baseline([baseline_entry(
             code="ILLEGAL_TRANSITION",
             where="diy-output/sprint.yaml tasks[S-1].status")])
-        p = run_diyc(self.root, "transition", "--story", "S-1", "--to", "done", "--json")
+        p = run_diyc(self.root, "transition", "--story", "S-1", "--to", "已完成", "--json")
         self.assertEqual(p.returncode, 1)
         r = jload(p)
         self.assertFalse(r["ok"])

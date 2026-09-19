@@ -12,7 +12,7 @@ Progress: `Orientation → [Walkthrough] → Detail Pass → Testing → Wrap-Up
 
 ## Build the walkthrough
 
-**With a trail** (`mode: full-trail` — the normal path, including a trail generated in step 1):
+**With a trail** (`mode: 全程轨迹` — the normal path, including a trail generated in step 1):
 
 1. Read the trail's stops from the spec (or from the conversation when step 1 generated it).
 2. Resolve each stop to a location in the current repo and output it as `path:line`.

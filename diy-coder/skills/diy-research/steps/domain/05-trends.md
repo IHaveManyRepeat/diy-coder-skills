@@ -38,9 +38,9 @@ One `findings[]` entry per area, written as each search lands:
 ## Method
 
 - Web search required — cutting-edge technology reporting, innovation case studies, adoption-timeline research.
-- Separate documented adoption from speculation: forward-looking claims name their horizon and stay at `low`/`medium` confidence unless multiple sources project the same thing.
+- Separate documented adoption from speculation: forward-looking claims name their horizon and stay at `低`/`中` confidence unless multiple sources project the same thing.
 - Two independent sources for each critical claim; conflicts presented, both cited.
-- `confidence` per finding: `high` / `medium` / `low`.
+- `confidence` per finding: `高` / `中` / `低`.
 
 ## Present and continue
 

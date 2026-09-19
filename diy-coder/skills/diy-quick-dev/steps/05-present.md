@@ -2,8 +2,8 @@
 
 Progress: `Clarify & Route → Plan → Implement → Review → [Present]`
 
-**Read (input):** the record at `status: in-review` with its `review` block; the diff since `baseline`.
-**Write (output):** the record's `review_order` and `status: done`; `project.status: final`; the closing summary.
+**Read (input):** the record at `status: 审查中` with its `review` block; the diff since `baseline`.
+**Write (output):** the record's `review_order` and `status: 已完成`; `project.status: 已定稿`; the closing summary.
 
 ## Build the review order
 
@@ -17,7 +17,7 @@ Construct the diff since `baseline`, then append `review_order` — an ordered t
 
 ## Settle the record
 
-1. Set `project.status: final` and the record's `status: done`.
+1. Set `project.status: 已定稿` and the record's `status: 已完成`.
 2. **Final gate (mechanical):** run `python "{project-root}/.claude/skills/diy-quick-dev/scripts/spec.py" check --final --id SP-xxx --json` with the same `--project-root` / `--output-dir` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. `check --final` requires a done record with every task done, non-empty acceptance, and a real `result` on each verification command.
 
 ## Close
@@ -34,4 +34,4 @@ Then display the summary:
 
 ## Exit
 
-This is the last step of the plan-code-review route — the run ends here once the final gate exits 0. The one-shot route ends in `./06-oneshot.md`; no further `steps/` file is read.
+This is the last step of the 计划-编码-审查 route — the run ends here once the final gate exits 0. The 一次成型 route ends in `./06-oneshot.md`; no further `steps/` file is read.

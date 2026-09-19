@@ -2,10 +2,10 @@
 """diy-readiness-check 确定性引擎 e2e 测试（B1 批 W4，任务书 §2.5/§6）。
 
 覆盖：
-- 用例 1：门禁拒绝（缺 stories.yaml / epics project.status 非 final）→ exit 1 + 结构化拒绝
+- 用例 1：门禁拒绝（缺 stories.yaml / epics project.status 非已定稿）→ exit 1 + 结构化拒绝
           + 路由 + 零产出
 - 用例 2：collect 需求清点（FR/NFR 全量 + 优先级 + 归属 feature；epic/story/AC 计数）
-- 用例 3：collect 委派 diyc（真跑子进程；must-FR 缺口同时出现在 diyc.check.violations
+- 用例 3：collect 委派 diyc（真跑子进程；必须 FR 缺口同时出现在 diyc.check.violations
           与本引擎 coverage.gaps —— 委派不重实现规则）
 - 用例 4：collect 在 diyc 缺席时降级（TOOL_MISSING warning + 不崩 + 仍 exit 0）
 - 用例 5：check 合法记录 --final exit 0 唯一放行；违规码（verdict 一致性 / severity 枚举 /
@@ -38,7 +38,7 @@ DISCIPLINE_ANCHOR = "- **Writing discipline."
 PRD_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "purpose: 夹具用途",
@@ -57,10 +57,10 @@ PRD_YAML = NL.join([
     "  requirements:",
     "  - id: FR-1.1",
     "    statement: 必须能力一",
-    "    priority: must",
+    "    priority: 必须",
     "  - id: FR-1.2",
     "    statement: 应当能力二",
-    "    priority: should",
+    "    priority: 应该",
     "nfrs:",
     "- id: NFR-1",
     "  statement: 性能要求",
@@ -69,7 +69,7 @@ PRD_YAML = NL.join([
 EPICS_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "epics:",
@@ -77,13 +77,13 @@ EPICS_YAML = NL.join([
     "  title: 史诗一",
     "  goal: 用户能完成一件事",
     "  feature_refs: [F-1]",
-    "  status: in-progress",
+    "  status: 进行中",
 ]) + NL
 
 STORIES_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "stories:",
@@ -98,7 +98,7 @@ STORIES_YAML = NL.join([
     "    then: 结果",
     "    refs:",
     "    - FR-1.1",
-    "  status: pending",
+    "  status: 待办",
 ]) + NL
 
 READINESS_YAML = NL.join([
@@ -109,17 +109,17 @@ READINESS_YAML = NL.join([
     "checks:",
     "- id: IR-001",
     "  date: '2026-09-14'",
-    "  status: final",
+    "  status: 已定稿",
     "  scope: [prd, epics, stories]",
-    "  verdict: ready-with-risks",
+    "  verdict: 有风险就绪",
     "  findings:",
     "  - area: epics",
-    "    severity: medium",
+    "    severity: 中",
     "    message: 史诗目标描述偏技术",
     "    evidence: epics.yaml epics[E-1].goal",
     "  coverage: {must_frs: 1, covered: 1, gaps: []}",
     "  counts: {frs: 2, nfrs: 1, epics: 1, stories: 1, acs: 1,"
-    " findings_by_severity: {medium: 1}}",
+    " findings_by_severity: {中: 1}}",
     "revisions: []",
 ]) + NL
 
@@ -189,9 +189,9 @@ class GateTests(EngineCase):
         self.assertNotIn("readiness.yaml", self.out_files(), "拒绝路径不得产出 readiness.yaml")
         self.assertEqual(self.out_files(), ["epics.yaml", "prd.yaml"])
 
-    # trace: 任务书 §6 门禁（epics/stories 须 project.status: final）
+    # trace: 任务书 §6 门禁（epics/stories 须 project.status: 已定稿）
     def test_gate_refuses_non_final_epics(self):
-        self.write_trio(epics=EPICS_YAML.replace("status: final", "status: draft", 1))
+        self.write_trio(epics=EPICS_YAML.replace("status: 已定稿", "status: 草稿", 1))
         r = self.collect()
         self.assertEqual(r.returncode, 1, r.stdout)
         data = json.loads(r.stdout)
@@ -221,7 +221,7 @@ class CollectTests(EngineCase):
         self.assertTrue(data["gate"]["passed"])
         frs = data["requirements"]["frs"]
         self.assertEqual([(f["id"], f["priority"], f["feature"]) for f in frs],
-                         [("FR-1.1", "must", "F-1"), ("FR-1.2", "should", "F-1")])
+                         [("FR-1.1", "必须", "F-1"), ("FR-1.2", "应该", "F-1")])
         self.assertEqual(data["requirements"]["nfrs"], ["NFR-1"])
         self.assertEqual(data["requirements"]["must_frs"], ["FR-1.1"])
         self.assertEqual(data["coverage"], {"must_frs": 1, "covered": 1, "gaps": []})
@@ -288,20 +288,20 @@ class CheckValidationTests(EngineCase):
         self.assertTrue(data["ok"])
         self.assertEqual(data["violations"], [])
         self.assertEqual(data["counts"]["checks"], 1)
-        self.assertEqual(data["counts"]["by_verdict"], {"ready-with-risks": 1})
+        self.assertEqual(data["counts"]["by_verdict"], {"有风险就绪": 1})
 
     # trace: 任务书 §6 check（verdict 与 findings 一致性）
     def test_check_verdict_findings_consistency(self):
         ready = (READINESS_YAML
-                 .replace("verdict: ready-with-risks", "verdict: ready")
-                 .replace("severity: medium", "severity: high"))
+                 .replace("verdict: 有风险就绪", "verdict: 就绪")
+                 .replace("severity: 中", "severity: 高"))
         self.write("diy-output/readiness.yaml", ready)
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("SET_MISMATCH",
                       {x["code"] for x in json.loads(r.stdout)["violations"]})
-        # ready-with-risks 不要求阻塞项；not-ready 则必须有
-        risky = READINESS_YAML.replace("verdict: ready-with-risks", "verdict: not-ready")
+        # 有风险就绪 不要求阻塞项；未就绪 则必须有
+        risky = READINESS_YAML.replace("verdict: 有风险就绪", "verdict: 未就绪")
         self.write("diy-output/readiness.yaml", risky)
         r2 = self.check()
         self.assertEqual(r2.returncode, 1, r2.stdout)
@@ -311,7 +311,7 @@ class CheckValidationTests(EngineCase):
     # trace: 任务书 §6 check（schema/枚举/severity 枚举 + 重复 ID）
     def test_check_reports_schema_violations(self):
         cases = [
-            ("ENUM_INVALID", "severity: medium", "severity: blocker"),
+            ("ENUM_INVALID", "severity: 中", "severity: blocker"),
             ("ENUM_INVALID", "id: IR-001", "id: IR-1"),
             ("ENUM_INVALID", "area: epics", "area: sprint"),
             ("UNPARSABLE_YAML", None, None),
@@ -339,15 +339,15 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("EVIDENCE_MISSING",
                       {x["code"] for x in json.loads(r.stdout)["violations"]})
-        bad_counts = READINESS_YAML.replace("findings_by_severity: {medium: 1}",
-                                            "findings_by_severity: {medium: 2}")
+        bad_counts = READINESS_YAML.replace("findings_by_severity: {中: 1}",
+                                            "findings_by_severity: {中: 2}")
         self.write("diy-output/readiness.yaml", bad_counts)
         r2 = self.check("--final")
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("SET_MISMATCH",
                       {x["code"] for x in json.loads(r2.stdout)["violations"]})
         assumption = READINESS_YAML.replace("message: 史诗目标描述偏技术",
-                                            "message: '[ASSUMPTION] 史诗目标偏技术'")
+                                            "message: '[假设] 史诗目标偏技术'")
         self.write("diy-output/readiness.yaml", assumption)
         r3 = self.check("--final")
         self.assertEqual(r3.returncode, 1, r3.stdout)

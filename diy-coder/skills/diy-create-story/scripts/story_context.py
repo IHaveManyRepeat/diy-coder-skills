@@ -4,7 +4,7 @@
 子命令：
   collect  目标 story 的确定性采集（只读，绝不写文件）：
              1 门禁（源技能 step-1「确定目标故事」的门禁化）：stories.yaml 在场、可解析、
-               project.status == final，且 --story 指向的 story 存在；不满足 → 零产出 exit 1
+               project.status == 已定稿，且 --story 指向的 story 存在；不满足 → 零产出 exit 1
                + 结构化拒绝回执（violations 带码 + gate.route 给路由）。story 悬空时回执附
                suggestions（候选 story ID，供会话降级为用户选择）。
                sprint.yaml / test-plan.yaml / architecture.yaml 缺席不拒（源输入表 fallback
@@ -23,10 +23,10 @@
   check    校验 {output_dir}/story-context.yaml（SC-### 集合，形状对齐 bug-log.yaml）：
            schema / id 格式与唯一 / story 解析（stories.yaml）/ epic 与 story 一致 /
            ac_refs ⊆ 该 story 的 AC / tc_refs 解析（test-plan.yaml）且归属该 story /
-           decisions 解析（architecture.yaml）/ files[].path 相对 project-root 且 update 型
+           decisions 解析（architecture.yaml）/ files[].path 相对 project-root 且 更新 型
            存在 + current_state 非空 / 同一 story 仅一条记录（按 story 键原位重写）。
-           --final 附加：status=final、zero [ASSUMPTION]、files 非空、verify 非空、
-           update 型 preserve 非空、open_questions 空或逐条 [CLOSED] 显式闭合。
+           --final 附加：status=已定稿、zero [假设]、files 非空、verify 非空、
+           更新 型 preserve 非空、open_questions 空或逐条 [CLOSED] 显式闭合。
            上游缺席（stories 拒跑；test-plan/architecture 出 warning）时相关解析降级。
 
 分工裁定（任务书 §2.2/§2.3/§3）：story-context 属新产物类型，不进 diyc.py check 的硬编码
@@ -59,8 +59,8 @@ SC_RE = re.compile(r"SC-\d{3}")
 STORY_RE = re.compile(r"S-(\d+)")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
-RECORD_STATUSES = ("draft", "final")
-FILE_ACTIONS = ("new", "update")
+RECORD_STATUSES = ("草稿", "已定稿")
+FILE_ACTIONS = ("新建", "更新")
 CLOSED_PREFIX = "[CLOSED]"
 GIT_COMMITS = 5
 GIT_FILES_PER_COMMIT = 20
@@ -121,7 +121,7 @@ def is_safe_rel(rel_path):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -201,15 +201,15 @@ def gate_check(docs, out_dir, project_root, story):
     data = entry["data"]
     project = data.get("project") if isinstance(data, dict) else None
     status = project.get("status") if isinstance(project, dict) else None
-    if status != "final":
+    if status != "已定稿":
         return (False, [v("STATUS_MISMATCH", show + " project.status",
-                          "stories.yaml 的 project.status 须为 final（实为 %s）；先跑 %s 定稿"
+                          "stories.yaml 的 project.status 须为 已定稿（实为 %s）；先跑 %s 定稿"
                           % (status if nonempty(status) else "未声明", DIYC_ROUTE))],
                 "先跑 %s 定稿 stories.yaml，再重跑本技能" % DIYC_ROUTE, None, [])
     stories = story_map(data)
     story_entry = stories.get(str(story))
     if story_entry is None:
-        todo = [sid for sid, e in stories.items() if e.get("status") != "done"]
+        todo = [sid for sid, e in stories.items() if e.get("status") != "已完成"]
         return (False, [v("UNKNOWN_ID", show + " stories",
                           "目标 story %s 在 stories.yaml 中不存在" % story)],
                 "确认 story ID；若故事尚未定义，先跑 %s 补建" % DIYC_ROUTE, None, id_sort(todo))
@@ -527,7 +527,7 @@ def check_decisions(record, where, ctx):
 
 
 def check_files(record, where, ctx, final):
-    """files[] 现场勘察义务：update 型必须存在且带 current_state；--final 另需 preserve。"""
+    """files[] 现场勘察义务：更新 型必须存在且带 current_state；--final 另需 preserve。"""
     violations = []
     files = record.get("files")
     if files is None:
@@ -551,24 +551,24 @@ def check_files(record, where, ctx, final):
             violations.append(v("ENUM_INVALID", fw + ".path",
                                 "path 须为相对 project-root 的正斜杠路径，实为 %s" % path))
         if not nonempty(action):
-            violations.append(v("EMPTY_FIELD", fw + ".action", "action 缺失（new|update）"))
+            violations.append(v("EMPTY_FIELD", fw + ".action", "action 缺失（新建|更新）"))
         elif str(action) not in FILE_ACTIONS:
             violations.append(v("ENUM_INVALID", fw + ".action",
                                 "action 越界：%s（合法集 %s）"
                                 % (action, "|".join(FILE_ACTIONS))))
         if not nonempty(item.get("why")):
             violations.append(v("EMPTY_FIELD", fw + ".why", "why 缺失（一行说明该文件为何被触碰）"))
-        if str(action) != "update" or not nonempty(path) or not is_safe_rel(path):
+        if str(action) != "更新" or not nonempty(path) or not is_safe_rel(path):
             continue
         if not os.path.isfile(rel_to_root(ctx["root"], path)):
             violations.append(v("MISSING_FILE", fw + ".path",
-                                "update 目标不存在：%s（new 型才会被创建）" % path))
+                                "更新 目标不存在：%s（新建 型才会被创建）" % path))
         if not nonempty(item.get("current_state")):
             violations.append(v("EMPTY_FIELD", fw + ".current_state",
-                                "update 型必填：先读该文件，写它今天的行为"))
+                                "更新 型必填：先读该文件，写它今天的行为"))
         elif final and not nonempty(item.get("preserve")):
             violations.append(v("EMPTY_FIELD", fw + ".preserve",
-                                "--final 要求 update 型写明须保持的既有行为"))
+                                "--final 要求 更新 型写明须保持的既有行为"))
     return violations
 
 
@@ -588,11 +588,11 @@ def text_list(record, key, where):
 
 
 def check_final_duties(record, where, status):
-    """--final 附加义务：status 已落 final、verify 非空、open_questions 闭合、零假设。"""
+    """--final 附加义务：status 已落 已定稿、verify 非空、open_questions 闭合、零假设。"""
     violations = []
-    if str(status) != "final":
+    if str(status) != "已定稿":
         violations.append(v("STATUS_MISMATCH", where + ".status",
-                            "--final 要求 status 已落 final（实为 %s）" % status))
+                            "--final 要求 status 已落 已定稿（实为 %s）" % status))
     if not items(record, "verify"):
         violations.append(v("EMPTY_FIELD", where + ".verify",
                             "--final 要求 verify 非空（命令级完成判据）"))
@@ -600,9 +600,9 @@ def check_final_duties(record, where, status):
         if not str(question).startswith(CLOSED_PREFIX):
             violations.append(v("PENDING_DECISION", "%s.open_questions[%d]" % (where, i),
                                 "open_questions 须清零或逐条以 %s 标注处置" % CLOSED_PREFIX))
-    if any("[ASSUMPTION]" in s for s in collect_strings(record)):
+    if any("[假设]" in s for s in collect_strings(record)):
         violations.append(v("ASSUMPTION_PRESENT", where,
-                            "--final 要求零 [ASSUMPTION]；未决推断须先落定"))
+                            "--final 要求零 [假设]；未决推断须先落定"))
     return violations
 
 

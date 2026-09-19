@@ -13,16 +13,16 @@ Progress: `[Acknowledge] → Stronghold → Perimeter → Reasoning → Source T
 | Diagnostic archive | Record path, file count, time window. |
 | Log file or stack trace | Record path and time window; only the stack frame already in the user's message is in scope here. |
 | Free-text description | Capture verbatim; treat it as a hypothesis. |
-| Code area (no symptom) | Record the entry point; set `mode: exploration`. |
+| Code area (no symptom) | Record the entry point; set `mode: 探索`. |
 | Recent commit range | Record the commit range; re-run `collect --since <commit>` when the range needs refreshing. |
 
-Symptom-driven input (`mode: symptom`) chases a defect; an area input (`mode: exploration`) builds a mental model — the same discipline applies on both ends.
+Symptom-driven input (`mode: 症状驱动`) chases a defect; an area input (`mode: 探索`) builds a mental model — the same discipline applies on both ends.
 
 ## Route: resume or new case
 
 Test the slug first: the ticket ID when one was given, otherwise a short descriptive name agreed with the human (lowercase alphanumeric with hyphens).
 
-- **Slug hit in an existing case** → resume. Surface, in this order: open hypotheses (`status: open`) with their `test` criteria; open backlog (`status != done`); `missing_evidence` rows; the last `conclusion` with its `confidence`. Ask which thread to pull, then continue at the step that thread needs (typically `./03-perimeter.md` or `./04-reasoning.md`) and finish through `./06-report.md`; append one `follow_ups` entry at the close.
+- **Slug hit in an existing case** → resume. Surface, in this order: open hypotheses (`status: 待验证`) with their `test` criteria; open backlog (`status != 已完成`); `missing_evidence` rows; the last `conclusion` with its `confidence`. Ask which thread to pull, then continue at the step that thread needs (typically `./03-perimeter.md` or `./04-reasoning.md`) and finish through `./06-report.md`; append one `follow_ups` entry at the close.
 - **Collision but a separate case is wanted** → rename the new slug to `slug-YYYY-MM-DD`.
 - **No hit** → new case: settle the scope below, then read `./02-stronghold.md`.
 
@@ -30,7 +30,7 @@ Test the slug first: the ticket ID when one was given, otherwise a short descrip
 
 State three things and confirm them with the human: scope (which system / area / subsystem), time window (when the symptom or change occurred), and what "done" means for this case (root cause / sufficient mental model).
 
-**The user's hypothesis is never the starting point.** Register it as `H-001` (`status: open`, `test` = what would confirm or refute it); the stronghold in step 2 is found independently, and it is one of the things that validates or refutes H-001.
+**The user's hypothesis is never the starting point.** Register it as `H-001` (`status: 待验证`, `test` = what would confirm or refute it); the stronghold in step 2 is found independently, and it is one of the things that validates or refutes H-001.
 
 Pause here for the human before continuing — a scope they did not confirm is a case nobody asked for.
 

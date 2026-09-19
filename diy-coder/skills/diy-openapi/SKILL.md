@@ -10,7 +10,7 @@ You are an API contract designer. The output is **one valid OpenAPI 3.1 YAML fil
 ## On Activation
 
 1. Read `{project-root}/diy-coder.yaml`; resolve `project.communication_language`, `document_output_language`, `paths.output_dir`. Speak `communication_language` for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root.
-2. Load `{output_dir}/prd.yaml` and `{output_dir}/architecture.yaml`. If architecture.yaml is missing or `status` is not `final`, warn the user and ask whether to proceed anyway.
+2. Load `{output_dir}/prd.yaml` and `{output_dir}/architecture.yaml`. If architecture.yaml is missing or `status` is not `已定稿`, warn the user and ask whether to proceed anyway.
 3. Determine the interface surface from architecture components/decisions plus the FR set. If the project has no interface surface (pure CLI, library, skill set), say so and stop — an openapi.yaml without an interface is fiction.
 4. Target file: `{output_dir}/openapi.yaml`. Intent: **Create** (absent) or **Update** (exists).
 
@@ -20,7 +20,7 @@ You are an API contract designer. The output is **one valid OpenAPI 3.1 YAML fil
 - **ID chain is sacred.** Each operation carries `x-fr: [FR-x.y]` referencing existing FR IDs from prd.yaml — referenced, never copied.
 - **DRY.** Repeated shapes go to `components/schemas` and are referenced via `$ref`; no duplicated inline bodies.
 - **Scope = FR set.** Model exactly the endpoints the requirements demand — no speculative CRUD, no versioning machinery nobody asked for.
-- Any inference awaiting user confirmation — field names, status codes, error shapes — carries the `[ASSUMPTION]` prefix in the YAML value. Open items live in the file, never only in conversation.
+- Any inference awaiting user confirmation — field names, status codes, error shapes — carries the `[假设]` prefix in the YAML value. Open items live in the file, never only in conversation.
 
 ## openapi.yaml Shape (conventions on top of standard OpenAPI 3.1)
 
@@ -28,7 +28,7 @@ You are an API contract designer. The output is **one valid OpenAPI 3.1 YAML fil
 openapi: 3.1.0
 x-project:                       # diy-coder meta extension (viewer renders it)
   name: string
-  status: draft | final
+  status: 草稿 | 已定稿
   created: YYYY-MM-DD
   updated: YYYY-MM-DD
 info:
@@ -50,9 +50,9 @@ components:
 
 ## Workflow
 
-1. Derive endpoints resource by resource; walk them with the user in small batches; deferred details become `[ASSUMPTION]`s.
-2. Write `{output_dir}/openapi.yaml` with `x-project.status: draft`. Tell the user the path.
+1. Derive endpoints resource by resource; walk them with the user in small batches; deferred details become `[假设]`s.
+2. Write `{output_dir}/openapi.yaml` with `x-project.status: 草稿`. Tell the user the path.
 3. Immediately render via diy-viewer (same activation command — append `--instance <name>` when one was resolved) — review happens on the 接口总览 table and HTML, not raw YAML.
 4. Update mode: before rewriting, `cp {output_dir}/openapi.yaml {output_dir}/openapi.yaml.prev`; apply the change signal to the named operations, bump `updated`, keep `operationId`s stable; after drafting the new version run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type openapi --previous {output_dir}/openapi.yaml.prev --json` (exit 0 = IDs stable); then delete the `.prev` file; re-run diy-viewer (same activation command — append `--instance <name>` when one was resolved) to refresh the HTML.
 5. Final gate (mechanical): run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type openapi --final --json` — exit 0 is the only pass; fix every reported violation and re-run (entries in `known[]` are user-ratified baselines, not violations to fix); the JSON receipt (counts included) is the close-out evidence. In plain terms the bar is: valid OpenAPI 3.1 structure, no unconfirmed assumptions, every `x-fr` ID resolving in prd.yaml, every operation user-reviewed.
-6. Only then set `x-project.status: final`, re-run diy-viewer (same activation command — append `--instance <name>` when one was resolved), close with one line: path and the counts from the JSON receipt.
+6. Only then set `x-project.status: 已定稿`, re-run diy-viewer (same activation command — append `--instance <name>` when one was resolved), close with one line: path and the counts from the JSON receipt.

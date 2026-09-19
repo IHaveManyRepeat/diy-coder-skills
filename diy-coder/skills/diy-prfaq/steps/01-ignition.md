@@ -27,10 +27,10 @@ Early in the conversation, identify which of these this is and store it as `prfa
 
 | The user is building | `concept_type` | Stage 3-4 framing |
 | --- | --- | --- |
-| a commercial product | `commercial` | default commercial framing |
-| an internal tool | `internal` | stakeholder value, adoption path, maintenance |
-| an open-source project | `open-source` | adoption strategy, contributors, sustainability |
-| a community / nonprofit initiative | `community` | stakeholder value, participation, sustainability |
+| a commercial product | `商业` | default commercial framing |
+| an internal tool | `内部` | stakeholder value, adoption path, maintenance |
+| an open-source project | `开源` | adoption strategy, contributors, sustainability |
+| a community / nonprofit initiative | `社区` | stakeholder value, participation, sustainability |
 
 Non-commercial concepts don't have "unit economics" or "first 100 customers" — Stages 3 and 4 adapt the framing to stakeholder value, adoption paths and sustainability instead.
 
@@ -82,7 +82,7 @@ Specificity is your judgment; presence and non-emptiness are the engine's (`head
 Write `{output_dir}/prfaq.yaml` — the single source every later stage updates:
 
 ```yaml
-project: {name: <diy-coder.yaml project.name>, status: draft, created: <today>, updated: <today>}
+project: {name: <diy-coder.yaml project.name>, status: 草稿, created: <today>, updated: <today>}
 prfaq:
   stage: 1
   concept_type: <detected>
@@ -124,7 +124,7 @@ The gate already passed at activation. Run this step non-interactively: skip the
 
 Record the source documents actually used (the artifact analyzer's `documents_found`) as one `distillate.constraints` bullet — diy has no frontmatter `inputs` field, and the trail must survive so downstream can trace where a claim came from.
 
-Then route straight to Stage 2 and run Stages 2-5 without interaction; there, mark every low-confidence answer with the `[ASSUMPTION]` prefix so a human can review it later.
+Then route straight to Stage 2 and run Stages 2-5 without interaction; there, mark every low-confidence answer with the `[假设]` prefix so a human can review it later.
 
 ## Next
 

@@ -39,7 +39,7 @@ One `findings[]` entry per area, written to the record as each search lands — 
 
 - Web search required for every claim — training data alone is a failure mode, not a shortcut.
 - Two independent sources for each critical claim; when sources disagree, present both rather than averaging them.
-- `confidence` per finding: `high` (multiple authoritative sources agree) / `medium` (one credible source or partial coverage) / `low` (uncertain or dated).
+- `confidence` per finding: `高` (multiple authoritative sources agree) / `中` (one credible source or partial coverage) / `低` (uncertain or dated).
 - Note data currency and its limitations inside the claim.
 - Focus on actionable customer insights; authoritative research sources over aggregator noise.
 

@@ -37,7 +37,7 @@ MACHINE_VETO_RE = re.compile(
     r"(?<![a-z0-9])(?:yaml|html|tokens?|skills?|viewers?)(?![a-z0-9])|diy-[a-z0-9]",
     re.IGNORECASE)
 
-REQUIRED_STATES = ("hover", "empty", "loading", "error")
+REQUIRED_STATES = ("悬停", "空态", "加载中", "错误")
 CONTRAST_PAIRS = (
     ("text", "bg"), ("text", "surface"), ("text_muted", "bg"),
     ("text_muted", "surface"), ("accent_text", "accent"),
@@ -220,11 +220,11 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 三项自检：f
                         fg, tokens[fg], bg, tokens[bg], ratio, TEXT_CONTRAST_MIN)})
     for page in design.get("pages", []) or []:
         for st in page.get("states", []) or []:
-            signals = [s for s in (st.get("signals") or []) if s != "color"]
+            signals = [s for s in (st.get("signals") or []) if s != "色彩"]
             if not signals:
                 violations.append({
                     "kind": "color-only-signal",
-                    "detail": "%s 状态 %s 仅有色彩信号，需补 icon/text/shape/motion 等非色彩信号" % (
+                    "detail": "%s 状态 %s 仅有色彩信号，需补图标/文字/形状/动效等非色彩信号" % (
                         page.get("id"), st.get("name"))})
         proto = page.get("prototype")
         if not proto:

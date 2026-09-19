@@ -15,7 +15,7 @@ TOOL_ERROR（B1 diy-readiness-check 先例）。本技能新增码（本批申�
   DECISION_INCONSISTENT  门决策与两组判据 / NFR 域状态 / overlay 不自洽
   CRITERION_STALE        判据 actual/result 与从同记录机械重算的值不一致
   WAIVER_INCOMPLETE      waiver 缺 8 键契约中的键（或值为空）
-  WAIVER_INAPPLICABLE    waiver ref 指向 security 域（不可豁免）或不可解析的域名
+  WAIVER_INAPPLICABLE    waiver ref 指向 安全域（不可豁免）或不可解析的域名
   THRESHOLD_UNSOURCED    阈值 source 非「用户会话 <date>」形态（阈值不得猜测）
   UNKNOWN_THRESHOLD_PASS 域含 UNKNOWN 阈值却记 PASS（nfr-status-definitions 硬规则）
 能力补齐轮新增 4 码（源 trace / nfr checklist 条目，2026-09-18 返工）：
@@ -52,23 +52,23 @@ GATE_ROUTE = {STORIES_FILE: "diy-epics-stories",
               PLAN_FILE: "diy-test-design",
               PRD_FILE: "diy-prd"}
 
-FR_PRIORITY = {"must": "P0", "should": "P1", "could": "P2"}
+FR_PRIORITY = {"必须": "P0", "应该": "P1", "可选": "P2"}
 PRIORITIES = ("P0", "P1", "P2")
 COVERAGE_VALUES = ("FULL", "PARTIAL", "NONE", "UNIT-ONLY", "INTEGRATION-ONLY")
 COVERED_VALUES = ("FULL", "UNIT-ONLY", "INTEGRATION-ONLY")
-# 判定表 ②（有台账）与 ③（无台账 + warning）均计「已验证」；fail / pending 不计
+# 判定表 ②（有台账）与 ③（无台账 + warning）均计「已验证」；失败 / 待办 不计
 COVERED_VERDICTS = ("verified", "missing_evidence")
-TC_TYPES = ("unit", "integration", "e2e")
-DOMAINS = ("security", "performance", "reliability", "maintainability")
+TC_TYPES = ("单元", "集成", "端到端")
+DOMAINS = ("安全", "性能", "可靠性", "可维护性")
 DOMAIN_STATUSES = ("PASS", "CONCERNS", "FAIL", "N/A")
 RISK_VALUES = ("HIGH", "MEDIUM", "NONE")
 RISK_OF_STATUS = {"FAIL": "HIGH", "CONCERNS": "MEDIUM", "PASS": "NONE"}
 DECISIONS = ("PASS", "CONCERNS", "FAIL")
-ORACLE_SOURCES = ("stories", "synthetic")
-ORACLE_CONFIDENCES = ("high", "medium", "low")
-RECORD_STATUSES = ("draft", "final")
-BLOCKER_KINDS = ("coverage", "nfr", "heuristic")
-CRITERION_RESULTS = ("pass", "fail", "n/a")
+ORACLE_SOURCES = ("stories", "合成")
+ORACLE_CONFIDENCES = ("高", "中", "低")
+RECORD_STATUSES = ("草稿", "已定稿")
+BLOCKER_KINDS = ("覆盖", "非功能需求", "启发式")
+CRITERION_RESULTS = ("通过", "失败", "n/a")
 HARD_CRITERIA = (("p0_coverage", "100%"), ("overall_coverage", "100%"),
                  ("p1_coverage", "100%"), ("mutation_score", ">=90%"),
                  ("nfr_critical", 0), ("p0_uncovered", 0))
@@ -80,9 +80,9 @@ SOFT_CRITERIA = (("business_rule_coverage", "100%"),
                  ("id_chain_resolvable", "100%"))
 WAIVER_KEYS = ("ref", "approved_by", "date", "reason", "expires", "monitoring",
                "fix_owner", "fix_target")
-BUSINESS_TECHNIQUES = ("decision-table", "state-transition")
-BOUNDARY_TECHNIQUES = ("boundary",)
-NEGATIVE_TECHNIQUES = ("error-guessing",)
+BUSINESS_TECHNIQUES = ("决策表", "状态迁移")
+BOUNDARY_TECHNIQUES = ("边界",)
+NEGATIVE_TECHNIQUES = ("错误猜测",)
 
 AUTH_HINTS = ("登录", "认证", "鉴权", "权限", "授权", "会话", "登出",
               "login", "auth", "token", "session", "logout")
@@ -106,20 +106,20 @@ COMPLIANCE_STATUSES = ("PASS", "PARTIAL", "FAIL", "N/A")
 COMPLIANCE_ORDER = ("FAIL", "PARTIAL", "PASS", "N/A")   # 聚合 = FAIL > PARTIAL > PASS
 COMPLIANCE_RE = re.compile(
     r"^(SOC2|GDPR|HIPAA|PCI-DSS|ISO27001)"
-    r"(?:@(security|performance|reliability|maintainability))?"
+    r"(?:@(安全|性能|可靠性|可维护性))?"
     r"\s*[:：]\s*(PASS|PARTIAL|FAIL|N/A)(?![A-Za-z])")
 COMPLIANCE_HEAD_RE = re.compile(r"^(SOC2|GDPR|HIPAA|PCI-DSS|ISO27001)(?![A-Za-z-])")
 
 # G-4 跨域风险合成（源 nfr step-04e「Identify Cross-Domain Risks」两条规则）
 CROSS_DOMAIN_MARK = "×"
 CROSS_DOMAIN_RULES = (
-    {"pair": ("reliability", "maintainability"), "impact": "HIGH",
-     "trigger": {"reliability": ("CONCERNS", "FAIL"),
-                 "maintainability": ("CONCERNS", "FAIL")},
-     "why": "低覆盖 / 缺观测可能掩盖可靠性回归（源 reliability×maintainability 合成）"},
-    {"pair": ("security", "reliability"), "impact": "HIGH",
-     "trigger": {"security": ("FAIL",), "reliability": ("CONCERNS", "FAIL")},
-     "why": "安全缺陷可能演变为可靠性事故（源 security×reliability 合成；源 impact "
+    {"pair": ("可靠性", "可维护性"), "impact": "HIGH",
+     "trigger": {"可靠性": ("CONCERNS", "FAIL"),
+                 "可维护性": ("CONCERNS", "FAIL")},
+     "why": "低覆盖 / 缺观测可能掩盖可靠性回归（源 可靠性×可维护性 合成）"},
+    {"pair": ("安全", "可靠性"), "impact": "HIGH",
+     "trigger": {"安全": ("FAIL",), "可靠性": ("CONCERNS", "FAIL")},
+     "why": "安全缺陷可能演变为可靠性事故（源 安全×可靠性 合成；源 impact "
             "CRITICAL 在 diy 三值尺度 HIGH|MEDIUM|NONE 压缩为 HIGH）"},
 )
 
@@ -174,7 +174,7 @@ def load_yaml_safe(path):
 
 
 def all_strings(node):
-    """深度收集全部字符串（[ASSUMPTION] 扫描用）。"""
+    """深度收集全部字符串（[假设] 扫描用）。"""
     found = []
     stack = [node]
     while stack:
@@ -294,11 +294,11 @@ def evidence_index(sprint):
 def judge_tc(tc, evidence):
     """覆盖判定表逐 TC（任务书 §4）→ 五值之一。"""
     status = str(tc.get("status") or "").strip().lower()
-    if status == "fail":
+    if status == "失败":
         return "blocked"
-    if status == "pending":
+    if status == "待办":
         return "pending"
-    if status != "pass":
+    if status != "通过":
         return "unverified"
     entry = evidence.get(str(tc.get("id") or ""))
     if isinstance(entry, dict) and nonempty(entry.get("red")) \
@@ -318,9 +318,9 @@ def judge_coverage(verdicts, types):
         return "NONE"
     if verified_count < len(verdicts):
         return "PARTIAL"
-    if verified_types == {"unit"}:
+    if verified_types == {"单元"}:
         return "UNIT-ONLY"
-    if verified_types == {"integration"}:
+    if verified_types == {"集成"}:
         return "INTEGRATION-ONLY"
     return "FULL"
 
@@ -358,16 +358,16 @@ def heuristic_candidates(ref, story, ac, tcs):
                       "AC 涉认证 / 权限，但无负面路径用例（源 5 类之一）"))
     if hits_ui and not verified:
         found.append(("ui-journey-without-e2e",
-                      "AC 涉 UI 旅程，但无已验证用例（E2E 缺位）"))
-    elif hits_ui and "e2e" not in types:
+                      "AC 涉 UI 旅程，但无已验证用例（端到端缺位）"))
+    elif hits_ui and "端到端" not in types:
         found.append(("ui-journey-without-e2e",
-                      "AC 涉 UI 旅程，但已验证用例无 e2e 层"))
-    if hits_ui and verified and types == {"e2e"} and not negative:
+                      "AC 涉 UI 旅程，但已验证用例无端到端层"))
+    if hits_ui and verified and types == {"端到端"} and not negative:
         found.append(("ui-state-unasserted",
-                      "UI 旅程仅有 e2e 正常路径，未见状态断言用例"))
-    if any(hint in text for hint in API_HINTS) and "integration" not in types:
+                      "UI 旅程仅有端到端正常路径，未见状态断言用例"))
+    if any(hint in text for hint in API_HINTS) and "集成" not in types:
         found.append(("endpoint-without-test",
-                      "AC 涉接口 / 端点，但无已验证的 integration 用例"))
+                      "AC 涉接口 / 端点，但无已验证的集成用例"))
     return [{"ref": ref, "story": story, "kind": "heuristic",
              "name": name, "why": why} for name, why in found]
 

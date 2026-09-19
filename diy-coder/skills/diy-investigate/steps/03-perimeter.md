@@ -17,15 +17,15 @@ Inventory evidence across six independent categories — issue these as parallel
 
 Each source gets an `availability` value:
 
-- `available` — fully readable now;
-- `partial` — readable but incomplete (truncated logs, one of several shards);
-- `missing` — not obtainable now.
+- `可得` — fully readable now;
+- `部分可得` — readable but incomplete (truncated logs, one of several shards);
+- `缺失` — not obtainable now.
 
-**Missing is itself a finding**: every gap becomes a `missing_evidence` row (`what` / `would_resolve` / `how`) — what the gap would resolve and how to obtain it. Never silently drop a category.
+**`缺失` is itself a finding**: every gap becomes a `missing_evidence` row (`what` / `would_resolve` / `how`) — what the gap would resolve and how to obtain it. Never silently drop a category.
 
-Add discovered paths to `backlog` (`item` / `priority` / `status: open`); stay on the current thread — do not chase everything surfaced here.
+Add discovered paths to `backlog` (`item` / `priority` / `status: 待办`); stay on the current thread — do not chase everything surfaced here.
 
-Present the perimeter (available / partial / missing + the missing-evidence rows); pause for the human before continuing.
+Present the perimeter (可得 / 部分可得 / 缺失 + the missing-evidence rows); pause for the human before continuing.
 
 ## Next
 

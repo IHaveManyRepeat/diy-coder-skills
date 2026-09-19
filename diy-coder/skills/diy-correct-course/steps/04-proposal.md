@@ -21,9 +21,9 @@ The source compiled a five-part document; here each part is a field (no markdown
 
 `approach.path` is one of three, chosen from the step-2 evaluation:
 
-- **direct-adjustment** — modify or add within the existing plan;
-- **rollback** — revert completed work to simplify the fix;
-- **mvp-review** — reduce scope or move goals.
+- **`直接调整`** — modify or add within the existing plan;
+- **`回滚`** — revert completed work to simplify the fix;
+- **`MVP 复审`** — reduce scope or move goals.
 
 `approach.why` carries the rationale, including the alternatives you rejected and why (source: trade-offs considered). The final gate refuses a record whose path is still undecided — this is the source's "select recommended path" made mechanical.
 
@@ -39,7 +39,7 @@ The source compiled a five-part document; here each part is a field (no markdown
 
 Render via diy-viewer — the silent side-step command from SKILL.md — then present the record in one message: trigger, impacts, edits, path and why, ripple, effort, open questions. Ask the source's question: **Continue [c] or Edit [e]?** Edits go back to `./03-edits.md`; structural changes (impact set, path) are handled here.
 
-The record stays `status: draft` until step 5's approval.
+The record stays `status: 草稿` until step 5's approval.
 
 ## Next
 

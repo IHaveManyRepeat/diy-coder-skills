@@ -19,17 +19,17 @@ One JSON file under a scratch path (never in `{output_dir}`):
     "id": "TC-5.1.2",
     "title": "登录流程端到端",
     "ac": "AC-5.1",
-    "type": "e2e",
+    "type": "端到端",
     "priority": "P0",
-    "technique": "scenario",
+    "technique": "场景",
     "kill_target": "用户旅程在中途静默中断（页面已跳转但状态未持久化）",
-    "status": "pass",
+    "status": "通过",
     "steps": ["打开 /login", "填写表单并提交", "断言跳转且会话可复用"]
   }
 ]
 ```
 
-A top-level object with a `test_cases` key is equally accepted. `type` is `e2e` and `technique` is `scenario` for every case this skill appends; `status` is the measured result, not an expectation.
+A top-level object with a `test_cases` key is equally accepted. `type` is `端到端` and `technique` is `场景` for every case this skill appends; `status` is the measured result, not an expectation.
 
 ## Append — the mechanical gate
 
@@ -37,7 +37,7 @@ A top-level object with a `test_cases` key is equally accepted. `type` is `e2e` 
 python "{project-root}/.claude/skills/diy-e2e-tests/scripts/e2e.py" record --tc-file <cases.json> --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-Exit 0 is the only pass. The engine validates the id rule and continuation, the AC resolution in `stories.yaml`, the `e2e`/`scenario`/`kill_target`/`title`/`steps` requirements and the measured `status` — and writes only when every case passes; any violation → exit 1, zero writes, the existing plan untouched. Fix the reported violations and re-run.
+Exit 0 is the only pass. The engine validates the id rule and continuation, the AC resolution in `stories.yaml`, the `端到端`/`场景`/`kill_target`/`title`/`steps` requirements and the measured `status` — and writes only when every case passes; any violation → exit 1, zero writes, the existing plan untouched. Fix the reported violations and re-run.
 
 On success the receipt carries `appended`, `counts.cases_total`, and a `diyc` block: the engine re-checks the whole `test-plan.yaml` chain through `diyc.py check --type test-plan`. Violations there are **warnings to relay** (they may pre-date this run) — they do not invalidate the append, but they must appear in the closing summary, never be swallowed.
 
@@ -50,7 +50,7 @@ Summary (in-conversation — this skill writes no separate summary artifact; BMA
 - Cases appended by id, with the files they landed in (project test directory).
 - Execution result: cases run / passed / failed, with the fix applied or the observed-vs-expected evidence for each remaining failure.
 - Coverage: features covered of the confirmed target list, API vs E2E.
-- Gaps and assumptions: targets skipped with their reason, `[ASSUMPTION]` bindings and the user's adjudication, `diyc` warnings.
+- Gaps and assumptions: targets skipped with their reason, `[假设]` bindings and the user's adjudication, `diyc` warnings.
 - Next step for the user: run the suite in CI, and route remaining red cases to diy-review as findings.
 
 ## Next

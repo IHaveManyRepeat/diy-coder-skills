@@ -3,9 +3,9 @@
 
 覆盖：
 - 8 类型各自至少一红一绿（prd/architecture/openapi/epics/stories/test-plan/sprint/review）
-- PENDING_UNCOVERED 三态（无条目→违规；decision: pending→违规；waived / accept-gap→豁免）
-- 跨文件真值：done 任务 vs stories/test-plan 不一致 → STATUS_MISMATCH；
-  review 任务 evidence 缺失 → EVIDENCE_MISSING
+- PENDING_UNCOVERED 三态（无条目→违规；decision: 待办→违规；已豁免 / 接受缺口→豁免）
+- 跨文件真值：已完成任务 vs stories/test-plan 不一致 → STATUS_MISMATCH；
+  待审查任务 evidence 缺失 → EVIDENCE_MISSING
 - --previous 稳定 ID 集合（ID_UNSTABLE）
 - openapi 缺席 = ok + warning；openapi 3.1 轻量结构自检
 - review verdict / route / kill_target 校验；UNPARSABLE_YAML
@@ -64,7 +64,7 @@ def prd_doc(frs=None, nfrs=None, **over):
         "users": [{"id": "U-1", "name": "用户", "need": "需求"}],
         "features": [{"id": "F-1", "name": "组", "description": "说明",
                       "requirements": list(frs or [
-                          {"id": "FR-1.1", "statement": "应当便于夹具", "priority": "must"}])}],
+                          {"id": "FR-1.1", "statement": "应当便于夹具", "priority": "必须"}])}],
         "nfrs": list(nfrs or [{"id": "NFR-1", "statement": "非功能"}]),
     }
     doc.update(over)
@@ -77,7 +77,7 @@ def arch_doc(decisions=None, **over):
         "decisions": list(decisions or [{
             "id": "D-1", "title": "决策", "decision": "选了 A", "rationale": "理由",
             "alternatives": [{"option": "B", "why_not": "更差"}],
-            "affects": ["FR-1.1"], "status": "accepted"}]),
+            "affects": ["FR-1.1"], "status": "已采纳"}]),
     }
     doc.update(over)
     return doc
@@ -101,7 +101,7 @@ def stories_doc(items, **over):
     return fx.doc_stories(items, **over)
 
 
-def simple_story(sid="S-1", acs=None, status="pending"):
+def simple_story(sid="S-1", acs=None, status="待办"):
     return fx.story(sid, acs=acs if acs is not None else [
         fx.ac("AC-1.1", refs=["FR-1.1"])], status=status)
 
@@ -127,9 +127,9 @@ class PrdCheckTest(CheckBase):
 
     def test_shape_violations(self):
         doc = prd_doc(frs=[
-            {"id": "FR-1.1", "statement": "甲", "priority": "must"},
+            {"id": "FR-1.1", "statement": "甲", "priority": "必须"},
             {"id": "FR-1.1", "statement": "重复 ID", "priority": "high"},
-            {"id": "FR-1.2", "statement": "", "priority": "must"},
+            {"id": "FR-1.2", "statement": "", "priority": "必须"},
         ])
         fx.write_doc(self.root, "prd", doc)
         r = check(self.root, "prd")
@@ -140,11 +140,11 @@ class PrdCheckTest(CheckBase):
 
     def test_final_requires_zero_assumption_and_answered_questions(self):
         doc = prd_doc()
-        doc["goals"][0]["goal"] = "[ASSUMPTION] 猜测的目标"
-        doc["goals"][0]["metric"] = "正文提到 [ASSUMPTION] 一词不算标记"
+        doc["goals"][0]["goal"] = "[假设] 猜测的目标"
+        doc["goals"][0]["metric"] = "正文提到 [假设] 一词不算标记"
         doc["open_questions"] = [{"id": "Q-1", "question": "待定问题", "answer": None}]
         fx.write_doc(self.root, "prd", doc)
-        self.assertTrue(check(self.root, "prd")["ok"], "draft 级不应拦 [ASSUMPTION]")
+        self.assertTrue(check(self.root, "prd")["ok"], "草稿级不应拦 [假设]")
         r = check(self.root, "prd", final=True)
         self.assertIn("ASSUMPTION_PRESENT", codes(r))
         self.assertIn("PENDING_DECISION", codes(r))
@@ -159,8 +159,8 @@ class PrdCheckTest(CheckBase):
         self.assertEqual(codes(r), {"MISSING_FILE"})
 
     def test_previous_id_unstable_and_stable(self):
-        old = prd_doc(frs=[{"id": "FR-1.1", "statement": "甲", "priority": "must"},
-                           {"id": "FR-1.9", "statement": "旧需求", "priority": "must"}])
+        old = prd_doc(frs=[{"id": "FR-1.1", "statement": "甲", "priority": "必须"},
+                           {"id": "FR-1.9", "statement": "旧需求", "priority": "必须"}])
         prev = self.root / "prd.prev.yaml"
         fx.write_text(prev, yaml.safe_dump(old, allow_unicode=True, sort_keys=False))
         fx.write_doc(self.root, "prd", prd_doc())
@@ -175,8 +175,8 @@ class PrdCheckTest(CheckBase):
         # V 验证 B1：相对 --previous 按 project-root 解析（与 trace --src 同语义），不随 cwd
         fx.write_doc(self.root, "prd", prd_doc())
         prev_file = self.root / "prd.prev.yaml"
-        old = prd_doc(frs=[{"id": "FR-1.1", "statement": "甲", "priority": "must"},
-                           {"id": "FR-1.9", "statement": "旧需求", "priority": "must"}])
+        old = prd_doc(frs=[{"id": "FR-1.1", "statement": "甲", "priority": "必须"},
+                           {"id": "FR-1.9", "statement": "旧需求", "priority": "必须"}])
         fx.write_text(prev_file, yaml.safe_dump(old, allow_unicode=True, sort_keys=False))
         elsewhere = fx.make_root()
         cwd = os.getcwd()
@@ -224,14 +224,14 @@ class ArchitectureCheckTest(CheckBase):
         fx.write_doc(self.root, "architecture", arch_doc())
         r = check(self.root, "architecture")
         self.assertTrue(r["ok"], msgs(r))
-        self.assertEqual(r["counts"], {"decisions": 1, "accepted": 1, "proposed": 0})
+        self.assertEqual(r["counts"], {"decisions": 1, "已采纳": 1, "待定": 0})
 
     def test_affects_dangling_unknown_id(self):
         fx.write_doc(self.root, "prd", prd_doc())
         fx.write_doc(self.root, "architecture", arch_doc(decisions=[{
             "id": "D-1", "title": "决策", "decision": "A", "rationale": "r",
             "alternatives": [{"option": "B", "why_not": "w"}],
-            "affects": ["FR-9.9"], "status": "accepted"}]))
+            "affects": ["FR-9.9"], "status": "已采纳"}]))
         r = check(self.root, "architecture")
         self.assertIn("UNKNOWN_ID", codes(r))
         self.assertIn("FR-9.9", msgs(r))
@@ -240,7 +240,7 @@ class ArchitectureCheckTest(CheckBase):
         fx.write_doc(self.root, "prd", prd_doc())
         fx.write_doc(self.root, "architecture", arch_doc(decisions=[{
             "id": "D-1", "title": "决策", "decision": "A", "rationale": "r",
-            "alternatives": [], "affects": ["FR-1.1"], "status": "proposed"}]))
+            "alternatives": [], "affects": ["FR-1.1"], "status": "待定"}]))
         r = check(self.root, "architecture", final=True)
         self.assertIn("EMPTY_FIELD", codes(r))
         self.assertIn("PENDING_DECISION", codes(r))
@@ -295,7 +295,7 @@ class EpicsCheckTest(CheckBase):
     def _doc(self, **over):
         doc = {"project": fx.project_meta(), "epics": [
             {"id": "E-1", "title": "史诗", "goal": "目标",
-             "feature_refs": ["F-1"], "status": "pending"}]}
+             "feature_refs": ["F-1"], "status": "待办"}]}
         doc.update(over)
         return doc
 
@@ -308,7 +308,7 @@ class EpicsCheckTest(CheckBase):
     def test_duplicate_and_enum(self):
         fx.write_doc(self.root, "epics", self._doc(epics=[
             {"id": "E-1", "title": "甲", "goal": "g", "feature_refs": ["F-1"],
-             "status": "pending"},
+             "status": "待办"},
             {"id": "E-1", "title": "乙", "goal": "g", "feature_refs": ["F-2"],
              "status": "finished"}]))
         r = check(self.root, "epics")
@@ -343,14 +343,14 @@ class StoriesCheckTest(CheckBase):
 
     def test_final_requires_must_fr_coverage(self):
         fx.write_doc(self.root, "prd", prd_doc(frs=[
-            {"id": "FR-1.1", "statement": "甲", "priority": "must"},
-            {"id": "FR-1.2", "statement": "乙", "priority": "must"},
-            {"id": "FR-1.3", "statement": "丙", "priority": "should"}]))
+            {"id": "FR-1.1", "statement": "甲", "priority": "必须"},
+            {"id": "FR-1.2", "statement": "乙", "priority": "必须"},
+            {"id": "FR-1.3", "statement": "丙", "priority": "应该"}]))
         fx.write_doc(self.root, "stories", stories_doc([simple_story()]))
         r = check(self.root, "stories", final=True)
         self.assertIn("SET_MISMATCH", codes(r))
         self.assertIn("FR-1.2", msgs(r))
-        self.assertNotIn("FR-1.3", msgs(r), "should 级 FR 不在 must 覆盖范围")
+        self.assertNotIn("FR-1.3", msgs(r), "应该级 FR 不在必须覆盖范围")
 
     def test_design_ref_must_resolve(self):
         fx.write_doc(self.root, "prd", prd_doc())
@@ -369,7 +369,7 @@ class TestPlanCheckTest(CheckBase):
         fx.write_doc(self.root, "stories", stories_doc([simple_story()]))
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
             cases if cases is not None else [
-                fx.tc("TC-1.1.1", "AC-1.1", technique="boundary")],
+                fx.tc("TC-1.1.1", "AC-1.1", technique="边界")],
             gaps=gaps))
 
     def test_clean_test_plan_passes_with_counts(self):
@@ -377,7 +377,7 @@ class TestPlanCheckTest(CheckBase):
         r = check(self.root, "test-plan")
         self.assertTrue(r["ok"], msgs(r))
         self.assertEqual(r["counts"]["cases"], 1)
-        self.assertEqual(r["counts"]["by_type"], {"unit": 1})
+        self.assertEqual(r["counts"]["by_type"], {"单元": 1})
         self.assertEqual(r["counts"]["by_priority"], {"P0": 1})
         self.assertEqual(r["counts"]["acs_covered"], 1)
 
@@ -391,25 +391,25 @@ class TestPlanCheckTest(CheckBase):
         self.assertIn("UNKNOWN_ID", got, "ac 悬空未拦")
 
     def test_final_forbids_pending_gap(self):
-        self._env(cases=[fx.tc("TC-1.1.1", "AC-1.1", technique="boundary")],
-                  gaps=[fx.gap("AC-1.2", "S-1", decision="pending")])
+        self._env(cases=[fx.tc("TC-1.1.1", "AC-1.1", technique="边界")],
+                  gaps=[fx.gap("AC-1.2", "S-1", decision="待办")])
         # 补齐 AC-1.2（缺口绑定的 AC 须存在于 stories）
         fx.write_doc(self.root, "stories", stories_doc([simple_story(acs=[
             fx.ac("AC-1.1", refs=["FR-1.1"]), fx.ac("AC-1.2", refs=["FR-1.1"])])]))
         draft = check(self.root, "test-plan")
-        self.assertTrue(draft["ok"], "draft 级不应拦 decision: pending 缺口：%s" % msgs(draft))
+        self.assertTrue(draft["ok"], "草稿级不应拦 decision: 待办 缺口：%s" % msgs(draft))
         r = check(self.root, "test-plan", final=True)
         self.assertIn("PENDING_DECISION", codes(r))
-        # waived 缺口不拦定稿
-        self._env(cases=[fx.tc("TC-1.1.1", "AC-1.1", technique="boundary")],
-                  gaps=[fx.gap("AC-1.2", "S-1", decision="waived", note="2026-01-01 用户确认")])
+        # 已豁免缺口不拦定稿
+        self._env(cases=[fx.tc("TC-1.1.1", "AC-1.1", technique="边界")],
+                  gaps=[fx.gap("AC-1.2", "S-1", decision="已豁免", note="2026-01-01 用户确认")])
         fx.write_doc(self.root, "stories", stories_doc([simple_story(acs=[
             fx.ac("AC-1.1", refs=["FR-1.1"]), fx.ac("AC-1.2", refs=["FR-1.1"])])]))
         self.assertTrue(check(self.root, "test-plan", final=True)["ok"])
 
     def test_waived_gap_requires_note(self):
-        self._env(cases=[fx.tc("TC-1.1.1", "AC-1.1", technique="boundary")],
-                  gaps=[fx.gap("AC-1.2", "S-1", decision="waived")])
+        self._env(cases=[fx.tc("TC-1.1.1", "AC-1.1", technique="边界")],
+                  gaps=[fx.gap("AC-1.2", "S-1", decision="已豁免")])
         fx.write_doc(self.root, "stories", stories_doc([simple_story(acs=[
             fx.ac("AC-1.1", refs=["FR-1.1"]), fx.ac("AC-1.2", refs=["FR-1.1"])])]))
         self.assertIn("EMPTY_FIELD", codes(check(self.root, "test-plan")))
@@ -418,27 +418,27 @@ class TestPlanCheckTest(CheckBase):
 # ---------------------------------------------------------------- sprint
 
 class SprintCheckTest(CheckBase):
-    def _env(self, tasks, story_status="pending", tc_status="pending",
+    def _env(self, tasks, story_status="待办", tc_status="待办",
              acs=None, gaps=None, tc_kw=None):
         fx.write_doc(self.root, "prd", prd_doc())
         fx.write_doc(self.root, "stories", stories_doc(
             [simple_story(status=story_status, acs=acs)]))
-        kwargs = {"technique": "boundary"}
+        kwargs = {"technique": "边界"}
         kwargs.update(tc_kw or {})
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
             [fx.tc("TC-1.1.1", "AC-1.1", status=tc_status, **kwargs)], gaps=gaps))
         fx.write_doc(self.root, "sprint", fx.doc_sprint(tasks))
 
     def test_clean_sprint_passes_with_counts(self):
-        self._env([fx.task("S-1", status="pending", test_refs=["TC-1.1.1"])])
+        self._env([fx.task("S-1", status="待办", test_refs=["TC-1.1.1"])])
         r = check(self.root, "sprint")
         self.assertTrue(r["ok"], msgs(r))
-        self.assertEqual(r["counts"]["tasks_by_status"], {"pending": 1})
+        self.assertEqual(r["counts"]["tasks_by_status"], {"待办": 1})
         self.assertEqual(r["counts"]["blocked"], 0)
         self.assertEqual(r["counts"]["gated"], 1)
 
     def test_blocked_without_reason_and_dangling_refs(self):
-        self._env([fx.task("S-1", status="blocked", test_refs=["TC-9.9.9"])])
+        self._env([fx.task("S-1", status="已阻塞", test_refs=["TC-9.9.9"])])
         r = check(self.root, "sprint")
         got = codes(r)
         self.assertIn("BLOCKED_NO_REASON", got)
@@ -447,43 +447,43 @@ class SprintCheckTest(CheckBase):
         self._env([fx.task("S-1"), fx.task("S-1")])
         self.assertIn("DUPLICATE_ID", codes(check(self.root, "sprint")))
         # evidence 条目形状异常（非映射）
-        self._env([fx.task("S-1", status="review", evidence=["裸字符串"])])
+        self._env([fx.task("S-1", status="待审查", evidence=["裸字符串"])])
         self.assertIn("EMPTY_FIELD", codes(check(self.root, "sprint")))
 
     def test_pending_uncovered_three_states(self):
         # 夹具 story 的 AC-1.2 无任何 TC 绑定（TC-1.1.1 绑的是 AC-1.1）
         uncovered_acs = [fx.ac("AC-1.2", refs=["FR-1.1"])]
         # 1) 无 TC 且无 gap 条目 → 违规
-        self._env([fx.task("S-1", status="pending")], acs=uncovered_acs)
+        self._env([fx.task("S-1", status="待办")], acs=uncovered_acs)
         r = check(self.root, "sprint")
         self.assertIn("PENDING_UNCOVERED", codes(r))
         self.assertIn("AC-1.2", msgs(r))
-        # 2) gap decision: pending → 违规
-        self._env([fx.task("S-1", status="pending")], acs=uncovered_acs,
-                  gaps=[fx.gap("AC-1.2", "S-1", decision="pending")])
+        # 2) gap decision: 待办 → 违规
+        self._env([fx.task("S-1", status="待办")], acs=uncovered_acs,
+                  gaps=[fx.gap("AC-1.2", "S-1", decision="待办")])
         self.assertIn("PENDING_UNCOVERED", codes(check(self.root, "sprint")))
-        # 3) waived → 豁免；accept-gap → 豁免
-        for decision in ("waived", "accept-gap"):
-            self._env([fx.task("S-1", status="pending")], acs=uncovered_acs,
+        # 3) 已豁免 → 豁免；接受缺口 → 豁免
+        for decision in ("已豁免", "接受缺口"):
+            self._env([fx.task("S-1", status="待办")], acs=uncovered_acs,
                       gaps=[fx.gap("AC-1.2", "S-1", decision=decision,
                                    note="2026-01-01 用户确认")])
             r = check(self.root, "sprint")
             self.assertTrue(r["ok"], "%s 缺口应豁免：%s" % (decision, msgs(r)))
         # 4) 已绑 TC → 覆盖
-        self._env([fx.task("S-1", status="pending", test_refs=["TC-1.1.1"])])
+        self._env([fx.task("S-1", status="待办", test_refs=["TC-1.1.1"])])
         self.assertTrue(check(self.root, "sprint")["ok"])
-        # 5) done 任务不适用 TDD 门（done story 豁免）
-        self._env([fx.task("S-1", status="done")], story_status="done")
+        # 5) 已完成任务不适用 TDD 门（已完成 story 豁免）
+        self._env([fx.task("S-1", status="已完成")], story_status="已完成")
         self.assertNotIn("PENDING_UNCOVERED", codes(check(self.root, "sprint")))
 
     def test_cross_file_truth_done_task(self):
-        self._env([fx.task("S-1", status="done", test_refs=["TC-1.1.1"])])
+        self._env([fx.task("S-1", status="已完成", test_refs=["TC-1.1.1"])])
         r = check(self.root, "sprint")
         got = codes(r)
-        self.assertIn("STATUS_MISMATCH", got, "done 任务 vs 未 done story / 未 pass TC")
+        self.assertIn("STATUS_MISMATCH", got, "已完成任务 vs 未完成 story / 未通过 TC")
         # 修正两个真源 → 通过
-        self._env([fx.task("S-1", status="done", test_refs=["TC-1.1.1"])],
-                  story_status="done", tc_status="pass")
+        self._env([fx.task("S-1", status="已完成", test_refs=["TC-1.1.1"])],
+                  story_status="已完成", tc_status="通过")
         r2 = check(self.root, "sprint")
         self.assertTrue(r2["ok"], msgs(r2))
 
@@ -492,10 +492,10 @@ class SprintCheckTest(CheckBase):
         fx.write_doc(self.root, "stories", stories_doc(
             [simple_story("S-1"), simple_story("S-2", acs=[fx.ac("AC-2.1", refs=["FR-1.1"])])]))
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
-            [fx.tc("TC-1.1.1", "AC-1.1", technique="boundary"),
-             fx.tc("TC-2.1.1", "AC-2.1", technique="boundary")]))
+            [fx.tc("TC-1.1.1", "AC-1.1", technique="边界"),
+             fx.tc("TC-2.1.1", "AC-2.1", technique="边界")]))
         fx.write_doc(self.root, "sprint", fx.doc_sprint(
-            [fx.task("S-1", status="blocked", blocked_reason="[ASSUMPTION] 待确认")]))
+            [fx.task("S-1", status="已阻塞", blocked_reason="[假设] 待确认")]))
         r = check(self.root, "sprint", final=True)
         got = codes(r)
         self.assertIn("SET_MISMATCH", got, "任务集与 story 集不等未拦")
@@ -507,8 +507,8 @@ class SprintCheckTest(CheckBase):
             [simple_story("S-1"), simple_story("S-2", acs=[fx.ac("AC-2.1", refs=["FR-1.1"])])]))
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan([]))
         fx.write_doc(self.root, "sprint", fx.doc_sprint([
-            fx.task("S-1", status="pending", test_refs=["TC-1.1.1"]),
-            fx.task("S-2", status="pending")]))
+            fx.task("S-1", status="待办", test_refs=["TC-1.1.1"]),
+            fx.task("S-2", status="待办")]))
         r = check(self.root, "sprint", story="S-2")
         self.assertIn("PENDING_UNCOVERED", codes(r))
         self.assertNotIn("S-1", msgs(r), "--story 未收窄检查面")
@@ -519,72 +519,72 @@ class SprintCheckTest(CheckBase):
 # ---------------------------------------------------------------- review
 
 class ReviewCheckTest(CheckBase):
-    def _env(self, task, tc_status="pending", tc_kw=None):
+    def _env(self, task, tc_status="待办", tc_kw=None):
         fx.write_doc(self.root, "prd", prd_doc())
         fx.write_doc(self.root, "stories", stories_doc([simple_story()]))
-        kwargs = {"technique": "boundary"}
+        kwargs = {"technique": "边界"}
         kwargs.update(tc_kw or {})
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
             [fx.tc("TC-1.1.1", "AC-1.1", status=tc_status, **kwargs)]))
         fx.write_doc(self.root, "sprint", fx.doc_sprint([task]))
 
     def test_evidence_missing_and_status_mismatch(self):
-        # review 任务无 evidence 条目 → EVIDENCE_MISSING
-        self._env(fx.task("S-1", status="review", test_refs=["TC-1.1.1"]))
+        # 待审查任务无 evidence 条目 → EVIDENCE_MISSING
+        self._env(fx.task("S-1", status="待审查", test_refs=["TC-1.1.1"]))
         r = check(self.root, "review")
         self.assertIn("EVIDENCE_MISSING", codes(r))
-        # 有 green 记录但 test-plan status 仍 pending → STATUS_MISMATCH
-        self._env(fx.task("S-1", status="review", test_refs=["TC-1.1.1"], evidence=[
+        # 有 green 记录但 test-plan status 仍待办 → STATUS_MISMATCH
+        self._env(fx.task("S-1", status="待审查", test_refs=["TC-1.1.1"], evidence=[
             {"tc": "TC-1.1.1", "red": "2026-01-01 失败", "green": "2026-01-01 通过"}]))
         r2 = check(self.root, "review")
         self.assertEqual(codes(r2), {"STATUS_MISMATCH"}, msgs(r2))
-        # 台账完整且 TC pass → 通过
-        self._env(fx.task("S-1", status="review", test_refs=["TC-1.1.1"], evidence=[
+        # 台账完整且 TC 通过 → 通过
+        self._env(fx.task("S-1", status="待审查", test_refs=["TC-1.1.1"], evidence=[
             {"tc": "TC-1.1.1", "red": "2026-01-01 失败", "green": "2026-01-01 通过"}]),
-            tc_status="pass")
+            tc_status="通过")
         self.assertTrue(check(self.root, "review")["ok"], msgs(check(self.root, "review")))
 
     def test_verdict_and_route_rules(self):
-        base = fx.task("S-1", status="review", test_refs=["TC-1.1.1"], evidence=[
+        base = fx.task("S-1", status="待审查", test_refs=["TC-1.1.1"], evidence=[
             {"tc": "TC-1.1.1", "red": "r", "green": "g"}])
         # verdict 非法 → ENUM_INVALID
         base["review"] = {"at": "2026-01-01", "verdict": "maybe", "findings": []}
-        self._env(dict(base), tc_status="pass")
+        self._env(dict(base), tc_status="通过")
         self.assertIn("ENUM_INVALID", codes(check(self.root, "review")))
         # route 非法 → ROUTE_INVALID
-        base["review"] = {"at": "2026-01-01", "verdict": "fail", "findings": [
-            {"layer": "correctness", "route": "later", "note": "x"}]}
-        self._env(dict(base), tc_status="pass")
+        base["review"] = {"at": "2026-01-01", "verdict": "失败", "findings": [
+            {"layer": "正确性", "route": "later", "note": "x"}]}
+        self._env(dict(base), tc_status="通过")
         self.assertIn("ROUTE_INVALID", codes(check(self.root, "review")))
-        # pass 但含非 defer 发现 → ROUTE_INVALID
-        base["review"] = {"at": "2026-01-01", "verdict": "pass", "findings": [
-            {"layer": "correctness", "route": "patch", "note": "x"}]}
-        self._env(dict(base), tc_status="pass")
+        # 通过 但含非后置发现 → ROUTE_INVALID
+        base["review"] = {"at": "2026-01-01", "verdict": "通过", "findings": [
+            {"layer": "正确性", "route": "小修", "note": "x"}]}
+        self._env(dict(base), tc_status="通过")
         self.assertIn("ROUTE_INVALID", codes(check(self.root, "review")))
-        # fail 但全部 defer → ROUTE_INVALID
-        base["review"] = {"at": "2026-01-01", "verdict": "fail", "findings": [
-            {"layer": "coverage", "route": "defer", "note": "x"}]}
-        self._env(dict(base), tc_status="pass")
+        # 失败 但全部后置 → ROUTE_INVALID
+        base["review"] = {"at": "2026-01-01", "verdict": "失败", "findings": [
+            {"layer": "覆盖审计", "route": "后置", "note": "x"}]}
+        self._env(dict(base), tc_status="通过")
         self.assertIn("ROUTE_INVALID", codes(check(self.root, "review")))
-        # 干净 pass（空 findings）→ 通过；层非法 → ENUM_INVALID
-        base["review"] = {"at": "2026-01-01", "verdict": "pass", "findings": []}
-        self._env(dict(base), tc_status="pass")
+        # 干净通过（空 findings）；层非法 → ENUM_INVALID
+        base["review"] = {"at": "2026-01-01", "verdict": "通过", "findings": []}
+        self._env(dict(base), tc_status="通过")
         r = check(self.root, "review")
         self.assertTrue(r["ok"], msgs(r))
         self.assertEqual(r["counts"]["findings_by_route"], {})
         # kill_target / technique 越界（L3 纪律）
-        self._env(fx.task("S-1", status="review", test_refs=["TC-1.1.1"], evidence=[
+        self._env(fx.task("S-1", status="待审查", test_refs=["TC-1.1.1"], evidence=[
             {"tc": "TC-1.1.1", "red": "r", "green": "g"}]),
-            tc_status="pass", tc_kw={"technique": "example", "kill_target": ""})
+            tc_status="通过", tc_kw={"technique": "example", "kill_target": ""})
         got = codes(check(self.root, "review"))
         self.assertIn("ENUM_INVALID", got)
         self.assertIn("EMPTY_FIELD", got)
 
     def test_story_scope_and_counts(self):
-        self._env(fx.task("S-1", status="done", test_refs=["TC-1.1.1"], evidence=[
+        self._env(fx.task("S-1", status="已完成", test_refs=["TC-1.1.1"], evidence=[
             {"tc": "TC-1.1.1", "red": "r", "green": "g"}],
-            review={"at": "2026-01-01", "verdict": "pass", "findings": []}),
-            tc_status="pass")
+            review={"at": "2026-01-01", "verdict": "通过", "findings": []}),
+            tc_status="通过")
         r = check(self.root, "review")
         self.assertTrue(r["ok"], msgs(r))
         self.assertEqual(r["counts"]["findings_by_layer"], {})

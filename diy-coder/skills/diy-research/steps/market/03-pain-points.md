@@ -38,7 +38,7 @@ One `findings[]` entry per area, written as each search lands:
 
 - Web search required — search satisfaction surveys, reviews, complaint data, support forums.
 - Two independent sources for each critical claim; conflicting sources are both presented.
-- `confidence` per finding: `high` / `medium` / `low`, with the reason visible in the claim.
+- `confidence` per finding: `高` / `中` / `低`, with the reason visible in the claim.
 - Priority judgements must be grounded in evidence (a documented gap), never in intuition alone.
 
 ## Present and continue

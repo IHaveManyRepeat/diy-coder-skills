@@ -7,7 +7,7 @@ Progress: `Target → Artifacts → Code Survey → [Compose] → Finish`
 
 ## Risks
 
-What can go wrong in implementation, from the survey, the decisions and the prior carry-over: an unratified decision still `proposed`, a file whose behavior is easy to break, a TC still `pending` for a story about to start, a carry-over that historically cost a review round. Each line is actionable — what to watch and why — never a restatement of an AC and never a severity score. No risk found: leave the list empty and say so in the delivery message; never invent one to fill the field.
+What can go wrong in implementation, from the survey, the decisions and the prior carry-over: an unratified decision still `待定`, a file whose behavior is easy to break, a TC still `待办` for a story about to start, a carry-over that historically cost a review round. Each line is actionable — what to watch and why — never a restatement of an AC and never a severity score. No risk found: leave the list empty and say so in the delivery message; never invent one to fill the field.
 
 ## Verify
 

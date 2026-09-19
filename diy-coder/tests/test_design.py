@@ -19,7 +19,7 @@ NL = chr(10)
 GOOD_DESIGN = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "direction: 瑞士编辑风——大字阶对比、留白节奏、单强调色；禁默认卡片网格与居中英雄区",
     "frontend_framework: html",
     "tokens:",
@@ -42,14 +42,14 @@ GOOD_DESIGN = NL.join([
     "  name: 待办列表",
     "  route: /todos",
     "  states:",
-    "  - name: hover",
-    "    signals: [icon, motion]",
-    "  - name: empty",
-    "    signals: [text]",
-    "  - name: loading",
-    "    signals: [icon, motion]",
-    "  - name: error",
-    "    signals: [icon, text]",
+    "  - name: 悬停",
+    "    signals: [图标, 动效]",
+    "  - name: 空态",
+    "    signals: [文字]",
+    "  - name: 加载中",
+    "    signals: [图标, 动效]",
+    "  - name: 错误",
+    "    signals: [图标, 文字]",
     "  prototype: prototypes/P-1.html",
 ])
 
@@ -103,7 +103,7 @@ class DesignEngineTests(unittest.TestCase):
         return path
 
     def write_prd(self, fr_texts):
-        body = ["project:", "  name: mini", "  status: final", "features:",
+        body = ["project:", "  name: mini", "  status: 已定稿", "features:",
                 "- id: FG-1", "  name: mini", "  requirements:"]
         for i, txt in enumerate(fr_texts, 1):
             body += ["  - id: F-%d" % i, "    statement: %s" % txt]
@@ -144,8 +144,8 @@ class DesignEngineTests(unittest.TestCase):
     # trace: S-14 AC-14.3 TC-14.3.1
     def test_a11y_check_catches_faults(self):
         bad = GOOD_DESIGN.replace("text: '#1a1a1a'", "text: '#808080'")
-        bad = bad.replace("    signals: [icon, motion]" + NL + "  - name: empty",
-                          "    signals: [color]" + NL + "  - name: empty")
+        bad = bad.replace("    signals: [图标, 动效]" + NL + "  - name: 空态",
+                          "    signals: [色彩]" + NL + "  - name: 空态")
         dpath = self.write("diy-output/design.yaml", bad)
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
         c = run_engine(["check", "--design", dpath, "--json"])
@@ -245,8 +245,8 @@ class DesignEngineTests(unittest.TestCase):
         self.assertFalse(json.loads(c.stdout)["pass"])
         # 夹具二：pages.states 混入裸字符串（半写条目）
         bad2 = GOOD_DESIGN.replace(
-            "- name: hover" + NL + "    signals: [icon, motion]",
-            "- 半写字符串" + NL + "  - name: hover" + NL + "    signals: [icon, motion]")
+            "- name: 悬停" + NL + "    signals: [图标, 动效]",
+            "- 半写字符串" + NL + "  - name: 悬停" + NL + "    signals: [图标, 动效]")
         self.write("diy-output/design.yaml", bad2)
         c2 = run_engine(["check", "--design", dpath, "--json"])
         self.assertNotIn("Traceback", c2.stderr)

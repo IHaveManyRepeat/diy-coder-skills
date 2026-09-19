@@ -10,8 +10,8 @@
   record  把本次生成的 TC（JSON 文件，形态 [ {...} ] 或 {"test_cases": [...]}）
           追加进 {output_dir}/test-plan.yaml（diy-augment 窄写权先例：只追加，不改
           既有条目、不新增产物类型）。校验：id 规则 TC-{ac}.{seq} 且前缀与 ac 一致、
-          续号不重号、ac 解析（stories.yaml）、type == e2e、technique == scenario、
-          kill_target/title/steps 非空、status ∈ {pass, fail}、priority ∈ {P0,P1,P2}。
+          续号不重号、ac 解析（stories.yaml）、type == 端到端、technique == 场景、
+          kill_target/title/steps 非空、status ∈ {通过, 失败}、priority ∈ {P0,P1,P2}。
           全部通过才写（原子：同目录临时文件 + os.replace）。随后委派
           `diyc.py check --type test-plan --json` 交叉验证追加后的全链——其违规并入
           回执 `diyc` 键（warning 面），不阻塞本命令的写权结论。
@@ -42,9 +42,9 @@ import yaml
 PLAN_FILE = "test-plan.yaml"
 STORIES_FILE = "stories.yaml"
 
-E2E_TYPE = "e2e"
-E2E_TECHNIQUE = "scenario"          # diy-test-design Schema：九技法在册值，端到端用户旅程
-RECORD_STATUSES = ("pass", "fail")  # 实测结果：本技能只记已跑过的用例
+E2E_TYPE = "端到端"
+E2E_TECHNIQUE = "场景"              # diy-test-design Schema：九技法在册值，端到端用户旅程
+RECORD_STATUSES = ("通过", "失败")  # 实测结果：本技能只记已跑过的用例
 PRIORITIES = ("P0", "P1", "P2")
 TC_RE = re.compile(r"TC-\d+(?:\.\d+)+")
 AC_RE = re.compile(r"AC-\d+(?:\.\d+)+")

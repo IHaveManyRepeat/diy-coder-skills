@@ -2,22 +2,22 @@
 """diy-product-brief 确定性引擎：intent 门禁（前置条件 + 路由）+ brief.yaml 校验。
 
 子命令：
-  intent  解析 intent（create/update/validate）的前置条件并给路由，确定性部分不留给 LLM：
-            create   → 不要求产物在场；产物已存在 → warning（resume/update 语义，不得静默覆盖）
-            update   → {output_dir}/brief.yaml 必须存在
-            validate → 同上
-          缺席且 intent ∈ {update, validate} → 零产出 exit 1 + 一行理由 + 路由（先 create）。
+  intent  解析 intent（新建/更新/校验）的前置条件并给路由，确定性部分不留给 LLM：
+            新建 → 不要求产物在场；产物已存在 → warning（resume/更新 语义，不得静默覆盖）
+            更新 → {output_dir}/brief.yaml 必须存在
+            校验 → 同上
+          缺席且 intent ∈ {更新, 校验} → 零产出 exit 1 + 一行理由 + 路由（先新建）。
           只读检测，绝不写文件；回执给出 status 与 counts（读取成本纪律：模型读回执不读全文）。
   check   校验 {output_dir}/brief.yaml（单文档 + 附属集合，顶层 project 载文档级 status）：
             形状：project / brief 映射；decisions / addendum / revisions 列表
-            枚举：project.status(draft|final)、stakes(hobby|internal|investor|public)、
-                  decisions[].status(active|reversed)
+            枚举：project.status(草稿|已定稿)、stakes(个人兴趣|内部|投资人|公开)、
+                  decisions[].status(生效|已反转)
             ID：BD-### 三位零填充、集合内唯一（稳定不重用不重编号，铸造权在会话）
             日期：YYYY-MM-DD
             内容：decision 文本、users[].who/need、value[].point、addendum 三键（section/
                   content/why_separate）恒非空；起草期容许叙事字段半写（实时持久化的前提）
           --previous PATH：读旧稿快照，比对 BD-### 集合，旧有新无 → ID_UNSTABLE（update 模式防丢决策）
-          --final 附加定稿义务：project.status 已落 final、零 [ASSUMPTION]（含 assumptions 清空）、
+          --final 附加定稿义务：project.status 已落「已定稿」、零 [假设]（含 assumptions 清空）、
                   title/problem/solution/users 非空、每条 decision 有 rationale。exit 0 唯一放行。
 
 分工裁定（任务书 §2.2/§2.3）：brief 属新产物类型，不进 diyc.py check 的硬编码类型集；
@@ -41,15 +41,15 @@ import sys
 import yaml
 
 BRIEF_FILE = "brief.yaml"
-INTENTS = ("create", "update", "validate")
+INTENTS = ("新建", "更新", "校验")
 ROUTES = {
-    "create": "steps/01-discovery.md",
-    "update": "steps/04-update.md",
-    "validate": "steps/05-validate.md",
+    "新建": "steps/01-discovery.md",
+    "更新": "steps/04-update.md",
+    "校验": "steps/05-validate.md",
 }
-DOC_STATUSES = ("draft", "final")
-STAKES = ("hobby", "internal", "investor", "public")
-DECISION_STATUSES = ("active", "reversed")
+DOC_STATUSES = ("草稿", "已定稿")
+STAKES = ("个人兴趣", "内部", "投资人", "公开")
+DECISION_STATUSES = ("生效", "已反转")
 
 BD_RE = re.compile(r"BD-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -88,7 +88,7 @@ def display_path(path, project_root):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -126,10 +126,10 @@ def cmd_intent(args):
     counts = {}
     status = None
 
-    if intent in ("update", "validate") and not exists:
+    if intent in ("更新", "校验") and not exists:
         violations.append(v("MISSING_FILE", show,
-                            "%s 不存在：%s 需要既有产物；先跑 create（%s）"
-                            % (BRIEF_FILE, intent, ROUTES["create"])))
+                            "%s 不存在：%s 需要既有产物；先跑「新建」（%s）"
+                            % (BRIEF_FILE, intent, ROUTES["新建"])))
     if exists:
         data, err = load_yaml_safe(path)
         if err is not None:
@@ -148,10 +148,10 @@ def cmd_intent(args):
                 "addendum": list_len(data.get("addendum")),
                 "revisions": list_len(data.get("revisions")),
             }
-        if intent == "create":
+        if intent == "新建":
             warnings.append(v("STATUS_MISMATCH", show,
-                              "已存在 brief.yaml（status=%s）：create 须先与用户确认 resume"
-                              "或改走 update，禁止静默覆盖" % (status or "未知")))
+                              "已存在 brief.yaml（status=%s）：「新建」须先与用户确认 resume"
+                              "或改走「更新」，禁止静默覆盖" % (status or "未知")))
 
     ok = not violations
     reason = None
@@ -353,14 +353,14 @@ def check_project(project, where, violations, final):
         return
     status = project.get("status")
     if not nonempty(status):
-        violations.append(v("EMPTY_FIELD", where + ".status", "status 缺失（draft|final）"))
+        violations.append(v("EMPTY_FIELD", where + ".status", "status 缺失（草稿|已定稿）"))
     elif str(status) not in DOC_STATUSES:
         violations.append(v("ENUM_INVALID", where + ".status",
                             "status 越界：%s（合法集 %s）"
                             % (status, "|".join(DOC_STATUSES))))
-    elif final and str(status) != "final":
+    elif final and str(status) != "已定稿":
         violations.append(v("STATUS_MISMATCH", where + ".status",
-                            "--final 要求 project.status 已落 final（先落 final，再跑门禁）"))
+                            "--final 要求 project.status 为「已定稿」（先落定稿，再跑门禁）"))
     for key in ("created", "updated"):
         value = project.get(key)
         if nonempty(value) and not DATE_RE.fullmatch(str(value)):
@@ -374,7 +374,7 @@ def previous_ids(previous, project_root, violations):
     data, err = load_yaml_safe(previous)
     if data is None and err is None:
         violations.append(v("MISSING_FILE", show,
-                            "旧稿快照不存在（update 重写前先 cp brief.yaml brief.yaml.prev）"))
+                            "旧稿快照不存在（更新重写前先 cp brief.yaml brief.yaml.prev）"))
         return None
     if err is not None:
         violations.append(v("UNPARSABLE_YAML", show, "旧稿快照不可解析：%s" % err))
@@ -404,7 +404,7 @@ def cmd_check(args):
     data, err = load_yaml_safe(path)
     if data is None and err is None:
         violations.append(v("MISSING_FILE", show,
-                            "%s 不存在（先完成一次 create 起草）" % BRIEF_FILE))
+                            "%s 不存在（先完成一次「新建」起草）" % BRIEF_FILE))
     elif err is not None:
         violations.append(v("UNPARSABLE_YAML", show, "YAML 解析失败：%s" % err))
     elif not isinstance(data, dict):
@@ -416,9 +416,9 @@ def cmd_check(args):
                                     args.final, violations)
         addendum = check_addendum(data.get("addendum"), show + " addendum", violations)
         revisions = check_revisions(data.get("revisions"), show + " revisions", violations)
-        if args.final and any("[ASSUMPTION]" in s for s in collect_strings(data)):
+        if args.final and any("[假设]" in s for s in collect_strings(data)):
             violations.append(v("ASSUMPTION_PRESENT", show,
-                                "--final 要求零 [ASSUMPTION]；未决假设须先落定"))
+                                "--final 要求零 [假设]；未决假设须先落定"))
 
     if args.previous:
         old = previous_ids(args.previous, root, violations)
@@ -469,9 +469,9 @@ def main():
         description="diy-product-brief 确定性引擎：intent 门禁（零产出拒绝 + 路由）+ brief.yaml 校验")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    i = sub.add_parser("intent", help="解析 intent 前置条件并给路由（update/validate 无产物 → 零产出拒绝）")
+    i = sub.add_parser("intent", help="解析 intent 前置条件并给路由（更新/校验 无产物 → 零产出拒绝）")
     i.add_argument("--intent", required=True, choices=INTENTS,
-                   help="会话判定的意图：create / update / validate")
+                   help="会话判定的意图：新建 / 更新 / 校验")
     i.add_argument("--project-root", default=".", help="项目根（默认 .）")
     i.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
@@ -483,7 +483,7 @@ def main():
     c.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--final", action="store_true",
-                   help="定稿校验：status 已落 final + 零假设 + 主体非空 + 每条决策有 rationale")
+                   help="定稿校验：status 已落「已定稿」+ 零假设 + 主体非空 + 每条决策有 rationale")
     c.add_argument("--previous", default=None,
                    help="旧稿快照路径：比对 BD-### 集合，旧有新无 → ID_UNSTABLE")
     c.add_argument("--json", action="store_true", help="输出单行 JSON 回执")

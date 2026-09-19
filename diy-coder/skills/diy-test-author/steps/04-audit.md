@@ -18,7 +18,7 @@ python "{project-root}/.claude/skills/diy-test-author/scripts/author.py" audit -
 
 三项一起判，任一处 exit 1 都要修：
 
-1. **上游门禁**：`test-plan.yaml` 在场且 `final`；每个 TC 锚可解析到既有 TC；锚定 TC 的 `technique` / `kill_target` 非空、`status` 为 `pending`——上游带病时这里先拦下，不靠"上游应该没问题"。
+1. **上游门禁**：`test-plan.yaml` 在场且 `已定稿`；每个 TC 锚可解析到既有 TC；锚定 TC 的 `technique` / `kill_target` 非空、`status` 为 `待办`——上游带病时这里先拦下，不靠"上游应该没问题"。
 2. **规则集**：占位断言 / CSS 与 XPath 定位 / 硬编码业务数据 / 无断言 / 多断言 / `waitForTimeout` 与 `sleep` / `isVisible()` 条件流 / page object 类 / 文件行数超限 / 用例名（优先级标签与可读性）/ Given-When-Then / 顺序依赖与共享状态 / 用例体内的随机与时钟源 / try-catch 包测试逻辑 / 调试语句 / 夹具 teardown 清理。
 3. **红相形态**：每个 test 体含 `skip` + 每个用例带 TC 锚（本次新生成文件，无遗留豁免）。
 
@@ -34,7 +34,7 @@ python "{project-root}/.claude/skills/diy-test-author/scripts/author.py" audit -
 | `PAGE_OBJECT` | 拉平为直接用例（选择器与断言写在用例里） |
 | `SKIP_MISSING` | 给该 test 体补 `skip`（红相脚手架必须全部 skip） |
 | `ANCHOR_MISSING` / `UNKNOWN_ID` | 补/改 TC 锚；锚必须指向既有 TC |
-| `STATUS_MISMATCH` / `EMPTY_FIELD` | 上游问题：TC 不在 `pending`、或字段缺失——不在这里修上游，回 step 2 改范围或路由 diy-test-design |
+| `STATUS_MISMATCH` / `EMPTY_FIELD` | 上游问题：TC 不在 `待办`、或字段缺失——不在这里修上游，回 step 2 改范围或路由 diy-test-design |
 | `PRIORITY_TAG_MISSING` / `PRIORITY_TAG_MISMATCH` | 用例名补/改 `[P0]`–`[P3]` 标签，取值抄锚定 TC 的 `priority` |
 | `NAME_UNDESCRIPTIVE` | 用例名换成「行为 + 期望」（`[P0] 边界值被拦截`），删 `test1` / `example` 一类占位名 |
 | `GWT_MISSING` | 用例体内补 `Given` / `When` / `Then` 三行结构注释（py 用 `#`） |
@@ -47,6 +47,6 @@ python "{project-root}/.claude/skills/diy-test-author/scripts/author.py" audit -
 
 回执的 `warnings` 若有内容，逐条写进 step 6 的摘要。
 
-## Next
+## 播报与下一步
 
 Read fully and follow `./05-confirm.md`.

@@ -10,8 +10,8 @@ Progress: `[Target] → Artifacts → Code Survey → Compose → Finish`
 Cascade in order — stop at the first hit:
 
 1. **The user named one** (`create story S-3`, `3-2`, a story title) → take its ID.
-2. **Nobody named one** → read `{output_dir}/sprint.yaml` `tasks[]` and take the first task whose `status` is not `done`, in file order, skipping `blocked`. Read only `story` and `status` from each task — nothing else from that file.
-3. **Neither works** (no sprint.yaml, all tasks done or blocked) → ask the human, offering the story IDs not yet `done`.
+2. **Nobody named one** → read `{output_dir}/sprint.yaml` `tasks[]` and take the first task whose `status` is not `已完成`, in file order, skipping `已阻塞`. Read only `story` and `status` from each task — nothing else from that file.
+3. **Neither works** (no sprint.yaml, all tasks 已完成 or 已阻塞) → ask the human, offering the story IDs not yet `已完成`.
 
 A story ID that resolves to nothing returns exit 1 from `collect` with a `suggestions` list — **that list is a menu, not a decision**: confirm the pick with the human, then re-run. Never invent a story, never silently switch targets.
 
@@ -34,7 +34,7 @@ Append one record to `{output_dir}/story-context.yaml` (create the file when abs
 ```yaml
   - id: SC-001                  # next = highest existing + 1, 3 digits; never renumber, never reuse
     story: S-3                  # the resolved story
-    status: draft
+    status: 草稿
     date: YYYY-MM-DD            # today
     epic: E-1                   # from the resolved story entry
     ac_refs: [AC-3.1]           # the story's AC ids, copied from the receipt

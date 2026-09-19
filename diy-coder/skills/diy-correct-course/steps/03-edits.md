@@ -17,7 +17,7 @@ target: AC-1.1
 field: acceptance_criteria
 old: AC-1.1 当前只断言邮箱密码登录成功
 new: AC-1.1 追加 2FA 启用分支（given/when/then 三键同改）
-rationale: 安全评审将 2FA 列为 must，AC 不覆盖则测试设计无处落点
+rationale: 安全评审将 2FA 列为 必须，AC 不覆盖则测试设计无处落点
 ```
 
 For an addition there is no current value: write `old: (absent)` — the field must stay non-empty, and `old` must differ from `new` (the engine rejects a no-op edit).
@@ -26,7 +26,7 @@ For an addition there is no current value: write `old: (absent)` — the field m
 
 - **Stories** (source step-3) — name the story ID and the section touched; an AC edit changes all three of given/when/then plus its `refs` when coverage moves.
 - **PRD** — the exact FR/NFR IDs and the MVP-scope consequence (`F-*` stays stable; a new requirement gets a new `FR-x.y`, never a renumber).
-- **Architecture** — affected `D-*` decisions, components, or tech choices, plus what that ripples into downstream; a new decision is `add`, not a rewrite of an accepted one.
+- **Architecture** — affected `D-*` decisions, components, or tech choices, plus what that ripples into downstream; a new decision is `新增`, not a rewrite of an accepted one.
 - **Design / openapi** — the page `P-*` or `operationId` touched, and the user-visible or contract consequence.
 - **Test-plan** — the `TC-*` cases binding edited ACs; touch `static_checks` when the tooling or CI gates themselves move.
 - **Infra** — a deployment script / CI config / IaC file: `target: path:<relative>`, `field` naming the config path inside it (e.g. `jobs.test.steps`); `old: (absent)` for a file yet to create.

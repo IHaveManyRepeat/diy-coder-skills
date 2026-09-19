@@ -34,7 +34,7 @@ Global step rules: load exactly one `steps/` file at a time — never preload or
 6. `steps/06-readiness.md` — interrogate the five readiness dimensions (testing / deployment / acceptance / tech_health / blockers); promote blockers into the critical path.
 7. `steps/07-finish.md` — final gate, save, route (significant changes → diy-correct-course).
 
-Record writes: create the record as `draft` at the end of step 1, fill each section as its step completes, settle it in step 7. Rendering is a silent side step — command only, no browser interaction point, no path-waiting, no blocking: `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"` (append `--instance <name>` when one was resolved).
+Record writes: create the record as `草稿` at the end of step 1, fill each section as its step completes, settle it in step 7. Rendering is a silent side step — command only, no browser interaction point, no path-waiting, no blocking: `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"` (append `--instance <name>` when one was resolved).
 
 ## Schema
 
@@ -45,7 +45,7 @@ project: {name, created, updated}
 retros:
   - id: RT-001                  # RT-### — sequential, stable, never renumbered or reused
     epic: E-x                   # resolves in epics.yaml
-    status: draft|final
+    status: 草稿|已定稿
     date: YYYY-MM-DD
     partial: false              # true only on a user-confirmed partial retrospective
     metrics:                    # copied from the collect receipt (structured-artifact truth)
@@ -54,17 +54,17 @@ retros:
       rounds_total: 0           # sprint loop.rounds summed over this epic's tasks
       blocked_count: 0
       augment_fail: 0
-      bugs: {functional: 0, non-functional: 0}
+      bugs: {功能型: 0, 非功能型: 0}
     patterns:
       - {theme: <one line>, evidence: [S-x | BUG-0xx], count: N}   # ≥2 stories or it is an anecdote
     wins: [<one line, anchor cited>]
     challenges: [<one line, systems-framed>]
     insights: [<one line>]
     prev_followup:              # omit on a first retro
-      - {retro: RT-yy, action, status: done|partial|missed, evidence}
+      - {retro: RT-yy, action, status: 已完成|部分完成|未完成, evidence}
     action_items:
-      - {id: AI-001, action, owner, done_when, category: process|technical|docs|team}
-    prep_items: [{item, class: critical|parallel|nice, owner, effort}]
+      - {id: AI-001, action, owner, done_when, category: 流程|技术|文档|团队}
+    prep_items: [{item, class: 关键|可并行|锦上添花, owner, effort}]
     critical_path: [{item, why, owner}]
     readiness: {testing, deployment, acceptance, tech_health, blockers}
     significant_changes:        # optional; non-empty routes to diy-correct-course
@@ -80,7 +80,7 @@ revisions: []                   # {date, change, reason} — appended when an ex
 3. No blame: every challenge is phrased as a system, process or tooling fact. No time estimates anywhere (hours, days, sprints) — rounds, counts and `effort` words only.
 4. Records are appended, never renumbered or reused; amending an existing record appends to `revisions` (date / change / reason). No `--previous` round is needed — a retro is appended per epic and updated in place, never shrunk.
 5. Rendering follows the silent-side-step line in Workflow — command only; no browser interaction point, no path report that blocks, no waiting.
-6. Final gate (mechanical): write `status: final` first — `final` is what the gate inspects, not a product of it — then run `python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py" check --final --json`, passing the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. Rendering and close-out wait for exit 0.
+6. Final gate (mechanical): write `status: 已定稿` first — `已定稿` is what the gate inspects, not a product of it — then run `python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py" check --final --json`, passing the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. Rendering and close-out wait for exit 0.
 7. Upstream stays untouched and unreplaced: a finding that needs a spec fix names the owning skill (diy-epics-stories / diy-prd / diy-architecture); a plan invalidated by the epic routes to diy-correct-course. The next epic starts only after the critical path is clear.
 
 - **Writing discipline.** Main field = plain-language main clause; numbers/enums inline; machine syntax (commands/flags/paths) in parentheses; keep machine anchors verbatim (file names, token names, CLI flags) — Chinese rewrites of anchors break the diy-design detect heuristic. If the schema defines `plain`: one line of WHY the entry exists, never WHAT (restatements drift); write it only for hard-to-grasp entries. If it defines `detail`: process narrative — conclusions stay in the main field.

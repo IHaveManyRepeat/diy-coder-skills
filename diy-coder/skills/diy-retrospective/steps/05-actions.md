@@ -11,14 +11,14 @@ Every action item closes one gap the retro surfaced (a challenge, a missed commi
 
 ```yaml
     action_items:
-      - {id: AI-001, action: <one line, imperative>, owner: <who>, done_when: <observable completion>, category: process|technical|docs|team}
+      - {id: AI-001, action: <one line, imperative>, owner: <who>, done_when: <observable completion>, category: 流程|技术|文档|团队}
 ```
 
 - **`id`** — `AI-###`, sequential within the record, never reused.
 - **`action`** — specific and achievable; "improve testing" is not an action, "add a case for every must-FR AC before the next sprint starts" is.
 - **`owner`** — a named owner (a person or an explicit role). An action without an owner is a wish; the gate rejects the record.
 - **`done_when`** — the observable completion test, **not a date and not an estimate**: "AC-4.2 has a case with a kill_target", "the blocked_reason template is in diy-sprint". The source skill forbids all time predictions — this is where that rule bites.
-- **`category`** — `process` / `technical` / `docs` / `team`.
+- **`category`** — `流程` / `技术` / `文档` / `团队`.
 
 Zero action items on a finalised retro is a gate failure — the retro's whole point is the commitments.
 
@@ -28,11 +28,11 @@ For each preparation need: an owner, a criticality class, and a realistic effort
 
 ```yaml
     prep_items:
-      - {item: <what must exist before the next epic>, class: critical|parallel|nice, owner: <who>, effort: <small|medium|large>}
+      - {item: <what must exist before the next epic>, class: 关键|可并行|锦上添花, owner: <who>, effort: <small|medium|large>}
 ```
 
-- `critical` — must complete before the next epic starts; `parallel` — can run during its early stories; `nice` — helps, does not block.
-- The source's compromise is preserved: a `critical` item that early stories do not depend on may move to `parallel` — but only after checking the next epic's stories really do not depend on it.
+- `关键` — must complete before the next epic starts; `可并行` — can run during its early stories; `锦上添花` — helps, does not block.
+- The source's compromise is preserved: a `关键` item that early stories do not depend on may move to `可并行` — but only after checking the next epic's stories really do not depend on it.
 
 ## Critical path (blockers before the next epic)
 

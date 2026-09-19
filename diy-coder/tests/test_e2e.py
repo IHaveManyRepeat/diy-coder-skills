@@ -5,8 +5,8 @@
 - 用例 1：detect 在合成 package.json 夹具上识别框架（playwright）
 - 用例 2：detect 在 pyproject.toml 夹具上识别 pytest；损坏清单降级不崩
 - 用例 3：detect 无清单 → framework null + suggested 非空（不自动安装）
-- 用例 4：record 追加合法 TC（status: pass）→ exit 0 + diyc 交叉核对键在场
-- 用例 5：record 拒绝重号 TC（DUPLICATE_ID）、technique 非 scenario（ENUM_INVALID）、
+- 用例 4：record 追加合法 TC（status: 通过）→ exit 0 + diyc 交叉核对键在场
+- 用例 5：record 拒绝重号 TC（DUPLICATE_ID）、technique 非 场景（ENUM_INVALID）、
           悬空 ac（UNKNOWN_ID）—— 全部零写入
 - 用例 6：record 缺 test-plan.yaml（MISSING_FILE）/ --output-dir 必填（exit 2）
 - 用例 7：SKILL.md 契约冒烟（冻结实例句 + 写作纪律块逐字 md5；终门句指向 e2e.py record）
@@ -37,13 +37,13 @@ DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
 STORIES_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "stories:",
     "- id: S-1",
     "  title: 一",
-    "  status: done",
+    "  status: 已完成",
     "  acceptance_criteria:",
     "  - id: AC-1.1",
     "    given: 夹具",
@@ -55,18 +55,18 @@ STORIES_YAML = NL.join([
 TEST_PLAN_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "test_cases:",
     "- id: TC-1.1.1",
     "  title: 既有单元用例",
     "  ac: AC-1.1",
-    "  type: unit",
+    "  type: 单元",
     "  priority: P0",
-    "  technique: boundary",
+    "  technique: 边界",
     "  kill_target: 边界值未被拦截",
-    "  status: pass",
+    "  status: 通过",
     "  steps:",
     "  - 跑夹具断言",
     "coverage_gaps: []",
@@ -84,8 +84,8 @@ def run_engine(args):
                           capture_output=True, text=True, encoding="utf-8")
 
 
-def tc_json(tc_id="TC-1.1.2", technique="scenario", ac="AC-1.1", status="pass",
-            type_name="e2e"):
+def tc_json(tc_id="TC-1.1.2", technique="场景", ac="AC-1.1", status="通过",
+            type_name="端到端"):
     return json.dumps([{
         "id": tc_id,
         "title": "登录流程端到端",
@@ -206,11 +206,11 @@ class RecordTests(EngineCase):
         self.assertEqual(data["counts"]["appended"], 1)
         plan = self.read("diy-output/test-plan.yaml")
         self.assertIn("id: TC-1.1.2", plan)
-        self.assertIn("technique: scenario", plan)
-        self.assertIn("type: e2e", plan)
+        self.assertIn("technique: 场景", plan)
+        self.assertIn("type: 端到端", plan)
         # 既有条目不被触碰
         self.assertIn("id: TC-1.1.1", plan)
-        self.assertIn("technique: boundary", plan)
+        self.assertIn("technique: 边界", plan)
         # diyc 交叉核对键在场（不阻塞写权结论）
         self.assertIn("diyc", data)
         self.assertTrue(data["diyc"]["available"])
@@ -226,15 +226,15 @@ class RecordTests(EngineCase):
         self.assertIn("DUPLICATE_ID", {x["code"] for x in data["violations"]})
         self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
 
-    # trace: 任务书 §8（technique 非 scenario 拒绝：ENUM_INVALID）
+    # trace: 任务书 §8（technique 非 场景 拒绝：ENUM_INVALID）
     def test_record_rejects_non_scenario_technique(self):
-        tc = self.write("new-tc.json", tc_json(technique="boundary"))
+        tc = self.write("new-tc.json", tc_json(technique="边界"))
         r = self.record(tc)
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r.stdout)["violations"]})
         self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
-        # type 非 e2e 同样拒绝
-        tc2 = self.write("new-tc2.json", tc_json(type_name="unit"))
+        # type 非 端到端 同样拒绝
+        tc2 = self.write("new-tc2.json", tc_json(type_name="单元"))
         r2 = self.record(tc2)
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
@@ -256,7 +256,7 @@ class RecordTests(EngineCase):
 
     # trace: 任务书 §8（status 集合 / steps 非空 / kill_target 非空）
     def test_record_rejects_pending_status_and_empty_fields(self):
-        tc = self.write("new-tc.json", tc_json(status="pending"))
+        tc = self.write("new-tc.json", tc_json(status="待办"))
         r = self.record(tc)
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r.stdout)["violations"]})

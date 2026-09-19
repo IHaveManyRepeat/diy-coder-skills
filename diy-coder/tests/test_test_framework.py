@@ -4,18 +4,18 @@
 覆盖（任务书 §5「测试」清单，≥10 用例）：
 - 用例 1：无清单拒绝（detect → exit 1 + MISSING_FILE，零写入）
 - 用例 2：detect 识别合成栈（前端 / 双栈 / CI 平台 / 既有框架）
-- 用例 3：detect mobile 优先判定（RN + app.json 不被误判为 frontend）+ 无模板覆盖登记
+- 用例 3：detect 移动端优先判定（RN + app.json 不被误判为前端）+ 无模板覆盖登记
 - 用例 4：scaffold 在 tempdir 生成声明文件（逐字节 == 模板渲染结果）
 - 用例 5：scaffold 幂等重入（同 plan 二次运行全 skip、零写入）
 - 用例 6：scaffold 冲突拒绝含回滚断言（本次已写文件已删、旧文件未动）
 - 用例 7：plan 路径越界拒绝（`../` 段 → ENUM_INVALID，零写入）
 - 用例 8：plan 占位符未取值拒绝（EMPTY_FIELD，零写入）/ 模板不存在拒绝（MISSING_FILE）
 - 用例 9：check 路径形态违例（`../` 段 → ENUM_INVALID）
-- 用例 10：ci_alignment 检出 blocking 命令缺席（CI_MISALIGNED）
-- 用例 11：ci_alignment 台账与重算不一致违例（漏 blocking 条目 / in_ci 不符 / order 越界 UNKNOWN_ID）
+- 用例 10：ci_alignment 检出 阻断 命令缺席（CI_MISALIGNED）
+- 用例 11：ci_alignment 台账与重算不一致违例（漏 阻断 条目 / in_ci 不符 / order 越界 UNKNOWN_ID）
 - 用例 12：阈值注入一致性（CI 文件缺 ci.gates 字面量 → CI_MISALIGNED）
 - 用例 13：check 合法台账 --final 通过（exit 0）
-- 用例 14：checks 中 fail 条目 note 必填（EMPTY_FIELD）+ fail 条目 --final 只记 warning
+- 用例 14：checks 中 失败 条目 note 必填（EMPTY_FIELD）+ 失败 条目 --final 只记 warning
 - 用例 15：SKILL.md 契约冒烟（母本 §1/§2/§4/§5 锚串 + 终门句指向本技能引擎 + steps/ 6 文件）
 
 夹具全部落 tempfile 自建；不读写本仓库真实 diy-output、不写本仓库真实项目目录、不依赖本机 git 状态。
@@ -104,7 +104,7 @@ class EngineCase(unittest.TestCase):
 
 PLAN_CI = {
     "setup": "TF-001",
-    "part": "ci",
+    "part": "CI",
     "substitutions": {
         "RUNTIME_SETUP_CMD": "node --version",
         "INSTALL_CMD": "npm ci",
@@ -124,7 +124,7 @@ PLAN_CI = {
     },
     "files": [
         {"template": "ci/github-actions/browser.yml.tpl",
-         "path": ".github/workflows/test.yml", "kind": "ci"},
+         "path": ".github/workflows/test.yml", "kind": "CI"},
     ],
 }
 
@@ -173,7 +173,7 @@ class DetectTests(EngineCase):
         self.write(".github/workflows/test.yml", "name: t" + NL)
         proc, payload = self.engine(["detect"])
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-        self.assertEqual(payload["stack"]["type"], "frontend")
+        self.assertEqual(payload["stack"]["type"], "前端")
         self.assertEqual(payload["stack"]["language"], "node")
         self.assertEqual(payload["stack"]["package_manager"], "npm")
         self.assertEqual(payload["existing"]["framework"], "playwright")
@@ -188,11 +188,11 @@ class DetectTests(EngineCase):
         self.write("package.json", json.dumps({"name": "mini", "dependencies": {"next": "14"}}))
         self.write("pyproject.toml", "[project]" + NL + "name = 'api'" + NL)
         proc, payload = self.engine(["detect"])
-        self.assertEqual(payload["stack"]["type"], "fullstack")
+        self.assertEqual(payload["stack"]["type"], "全栈")
         self.assertEqual(sorted(payload["stack"]["languages"]), ["node", "python"])
         self.assertEqual(payload["suggested"]["profile"], "browser-playwright")
 
-        # mobile 优先：RN 工程带 package.json，但 app.json + react-native 指示 → mobile
+        # 移动端优先：RN 工程带 package.json，但 app.json + react-native 指示 → 移动端
         root2 = tempfile.mkdtemp(prefix="tfw-mob-")
         try:
             with open(os.path.join(root2, "package.json"), "w", encoding="utf-8") as fh:
@@ -202,7 +202,7 @@ class DetectTests(EngineCase):
             proc2 = run_engine(["detect", "--project-root", root2,
                                 "--output-dir", "diy-output", "--json"])
             payload2 = json.loads(proc2.stdout.strip().splitlines()[-1])
-            self.assertEqual(payload2["stack"]["type"], "mobile")
+            self.assertEqual(payload2["stack"]["type"], "移动端")
             self.assertFalse(payload2["templates"]["framework_supported"])
             self.assertFalse(payload2["templates"]["ci_supported"])
             self.assertTrue(payload2["warnings"])
@@ -245,16 +245,16 @@ class ScaffoldTests(EngineCase):
         self.write(".github/workflows/test.yml", "name: 既有流水线" + NL)  # 冲突目标
         self.plan({
             "setup": "TF-001",
-            "part": "framework",
+            "part": "框架",
             "substitutions": {"NODE_VERSION": "22",
                               "INSTALL_CMD": "npm ci", "TEST_CMD": "npx playwright test",
                               "LINT_CMD": "npm run lint", "FRAMEWORK_NAME": "Playwright",
                               "TEST_DIR": "tests", "BASE_URL": "http://localhost:3000",
                               "API_URL": "http://localhost:3000/api"},
             "files": [
-                {"template": "framework/shared/nvmrc.tpl", "path": ".nvmrc", "kind": "config"},
+                {"template": "framework/shared/nvmrc.tpl", "path": ".nvmrc", "kind": "配置"},
                 {"template": "framework/browser-playwright/playwright.config.ts.tpl",
-                 "path": "playwright.config.ts", "kind": "config"},
+                 "path": "playwright.config.ts", "kind": "配置"},
             ],
         })
         # 先制造冲突目标在场（顺序：先写 .nvmrc 成功，再撞 playwright.config.ts）
@@ -270,9 +270,9 @@ class ScaffoldTests(EngineCase):
 
     def test_scaffold_rejects_path_traversal(self):
         self.plan({
-            "setup": "TF-001", "part": "ci", "substitutions": {"NODE_VERSION": "22"},
+            "setup": "TF-001", "part": "CI", "substitutions": {"NODE_VERSION": "22"},
             "files": [{"template": "framework/shared/nvmrc.tpl",
-                       "path": "../evil.txt", "kind": "config"}],
+                       "path": "../evil.txt", "kind": "配置"}],
         })
         proc, payload = self.engine(["scaffold", "--plan", "diy-output/scaffold-plan.json"])
         self.assertEqual(proc.returncode, 1)
@@ -282,9 +282,9 @@ class ScaffoldTests(EngineCase):
 
     def test_scaffold_rejects_unsubstituted_and_unknown_template(self):
         self.plan({
-            "setup": "TF-001", "part": "ci", "substitutions": {},
+            "setup": "TF-001", "part": "CI", "substitutions": {},
             "files": [{"template": "framework/shared/nvmrc.tpl",
-                       "path": ".nvmrc", "kind": "config"}],
+                       "path": ".nvmrc", "kind": "配置"}],
         })
         proc, payload = self.engine(["scaffold", "--plan", "diy-output/scaffold-plan.json"])
         self.assertEqual(proc.returncode, 1)
@@ -292,8 +292,8 @@ class ScaffoldTests(EngineCase):
         self.assertFalse(os.path.exists(os.path.join(self.root, ".nvmrc")))
 
         self.plan({
-            "setup": "TF-001", "part": "ci", "substitutions": {"NODE_VERSION": "22"},
-            "files": [{"template": "ci/nope.yml.tpl", "path": "x.yml", "kind": "ci"}],
+            "setup": "TF-001", "part": "CI", "substitutions": {"NODE_VERSION": "22"},
+            "files": [{"template": "ci/nope.yml.tpl", "path": "x.yml", "kind": "CI"}],
         })
         proc, payload = self.engine(["scaffold", "--plan", "diy-output/scaffold-plan.json"])
         self.assertEqual(proc.returncode, 1)
@@ -303,19 +303,19 @@ class ScaffoldTests(EngineCase):
 LEDGER = {
     "project": {"name": "mini", "created": "2026-09-16", "updated": "2026-09-16"},
     "setups": [{
-        "id": "TF-001", "date": "2026-09-16", "status": "final", "mode": "both",
-        "stack": {"type": "frontend", "language": "node", "package_manager": "npm"},
+        "id": "TF-001", "date": "2026-09-16", "status": "已定稿", "mode": "两者",
+        "stack": {"type": "前端", "language": "node", "package_manager": "npm"},
         "framework": {"name": "playwright", "runner": "npx playwright test",
                       "reason": "多浏览器 + CI 并行"},
         "files": [
-            {"path": ".github/workflows/test.yml", "kind": "ci", "action": "new"},
-            {"path": "playwright.config.ts", "kind": "config", "action": "new"},
+            {"path": ".github/workflows/test.yml", "kind": "CI", "action": "新建"},
+            {"path": "playwright.config.ts", "kind": "配置", "action": "新建"},
         ],
-        "checks": [{"command": "npm ci", "result": "pass"}],
+        "checks": [{"command": "npm ci", "result": "通过"}],
         "ci": {
             "platform": "github-actions",
             "file": ".github/workflows/test.yml",
-            "stages": ["lint", "test", "burn-in", "report"],
+            "stages": ["静态检查", "测试", "预热", "报告"],
             "gates": {"p0": "100%", "p1": "100%"},
             "static_check_alignment": [{"order": 1, "in_ci": True}],
         },
@@ -334,7 +334,7 @@ TEST_PLAN = NL.join([
     "- order: 1",
     "  tool: npm run lint",
     "  kills: 语法/风格问题",
-    "  gate: blocking",
+    "  gate: 阻断",
 ]) + NL
 
 
@@ -396,7 +396,7 @@ class CheckTests(EngineCase):
         self.assertIn("CI_MISALIGNED", self.codes(payload))
         self.assertIn("UNKNOWN_ID", self.codes(payload))
 
-        # 漏 blocking 条目：CI 文件里有命令、台账不录 → CI_MISALIGNED
+        # 漏 阻断 条目：CI 文件里有命令、台账不录 → CI_MISALIGNED
         data = self._ledger()
         data["setups"][0]["ci"]["static_check_alignment"] = []
         self._write_ledger(data)
@@ -433,18 +433,18 @@ class CheckTests(EngineCase):
     def test_checks_fail_note_and_final_warning_only(self):
         self.write(".github/workflows/test.yml", self._ci_body())
         data = self._ledger()
-        data["setups"][0]["checks"] = [{"command": "npm ci", "result": "fail", "note": ""}]
+        data["setups"][0]["checks"] = [{"command": "npm ci", "result": "失败", "note": ""}]
         self._write_ledger(data)
         proc, payload = self.engine(["check"])
         self.assertEqual(proc.returncode, 1)
         self.assertEqual(self.codes(payload), ["EMPTY_FIELD"])
 
-        data["setups"][0]["checks"] = [{"command": "npm ci", "result": "fail",
+        data["setups"][0]["checks"] = [{"command": "npm ci", "result": "失败",
                                         "note": "环境面：无网络，用户自行安装"}]
         self._write_ledger(data)
         proc, payload = self.engine(["check", "--final"])
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-        self.assertTrue(any("fail" in w["msg"] for w in payload["warnings"]))
+        self.assertTrue(any("失败" in w["msg"] for w in payload["warnings"]))
 
 
 class TemplateSetTests(unittest.TestCase):
@@ -575,7 +575,7 @@ class NewTemplateCapabilityTests(EngineCase):
     """返工 F-3 / F-4 / F-5 / F-6 / F-8：助手脚本、CI 文档、语言版本文件、dotnet 示例、support 布局。"""
 
     def _scaffold(self, files, substitutions):
-        self.plan({"setup": "TF-001", "part": "framework",
+        self.plan({"setup": "TF-001", "part": "框架",
                    "substitutions": substitutions, "files": files})
         return self.engine(["scaffold", "--plan", "diy-output/scaffold-plan.json"])
 
@@ -586,7 +586,7 @@ class NewTemplateCapabilityTests(EngineCase):
                 "BASE_BRANCH": "main", "BURN_IN_ITERATIONS": "10"}
         names = ("ci-local.sh", "burn-in.sh", "test-changed.sh")
         files = [{"template": "framework/shared/scripts/%s.tpl" % name,
-                  "path": "scripts/%s" % name, "kind": "script"} for name in names]
+                  "path": "scripts/%s" % name, "kind": "脚本"} for name in names]
         proc, payload = self._scaffold(files, subs)
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertEqual(sorted(payload["written"]), sorted(item["path"] for item in files))
@@ -603,9 +603,9 @@ class NewTemplateCapabilityTests(EngineCase):
                     FRAMEWORK_NAME="Playwright", TEST_DIR="tests",
                     CI_PLATFORM_SECRETS_UI="Repository Settings → Secrets and variables → Actions",
                     BASE_URL="http://localhost:3000", API_URL="http://localhost:3000/api")
-        files = [{"template": "ci/docs/ci.md.tpl", "path": "docs/ci.md", "kind": "doc"},
+        files = [{"template": "ci/docs/ci.md.tpl", "path": "docs/ci.md", "kind": "文档"},
                  {"template": "ci/docs/ci-secrets-checklist.md.tpl",
-                  "path": "docs/ci-secrets-checklist.md", "kind": "doc"}]
+                  "path": "docs/ci-secrets-checklist.md", "kind": "文档"}]
         proc, payload = self._scaffold(files, subs)
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         ci_doc = self.read("docs/ci.md")
@@ -616,13 +616,13 @@ class NewTemplateCapabilityTests(EngineCase):
     def test_language_version_files_and_dotnet_example(self):
         """F-5 / F-6：java / dotnet / ruby 版本文件 + dotnet 示例测试（[Fact]/[Theory] + 夹具注入）。"""
         files = [{"template": "framework/backend-java/.java-version.tpl",
-                  "path": ".java-version", "kind": "config"},
+                  "path": ".java-version", "kind": "配置"},
                  {"template": "framework/backend-dotnet/global.json.tpl",
-                  "path": "global.json", "kind": "config"},
+                  "path": "global.json", "kind": "配置"},
                  {"template": "framework/backend-ruby/.ruby-version.tpl",
-                  "path": ".ruby-version", "kind": "config"},
+                  "path": ".ruby-version", "kind": "配置"},
                  {"template": "framework/backend-dotnet/ExampleTests.cs.tpl",
-                  "path": "tests/ExampleTests.cs", "kind": "scaffold"}]
+                  "path": "tests/ExampleTests.cs", "kind": "脚手架"}]
         subs = {"JAVA_VERSION": "21", "DOTNET_SDK_VERSION": "8.0.400",
                 "RUBY_VERSION": "3.3.5", "TEST_PROJECT_NAME": "Mini.Tests"}
         proc, payload = self._scaffold(files, subs)
@@ -640,11 +640,11 @@ class NewTemplateCapabilityTests(EngineCase):
         """F-8：support/ 布局文档 + 空目录占位文件通道（一个模板多次落点）。"""
         subs = {"TEST_DIR": "tests"}
         files = [{"template": "framework/shared/support-readme.md.tpl",
-                  "path": "tests/support/README.md", "kind": "doc"},
+                  "path": "tests/support/README.md", "kind": "文档"},
                  {"template": "framework/shared/gitkeep.tpl",
-                  "path": "tests/support/helpers/.gitkeep", "kind": "scaffold"},
+                  "path": "tests/support/helpers/.gitkeep", "kind": "脚手架"},
                  {"template": "framework/shared/gitkeep.tpl",
-                  "path": "tests/support/page-objects/.gitkeep", "kind": "scaffold"}]
+                  "path": "tests/support/page-objects/.gitkeep", "kind": "脚手架"}]
         proc, payload = self._scaffold(files, subs)
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn("support/page-objects", self.read("tests/support/README.md"))
@@ -738,9 +738,9 @@ class ContextAndInjectionTests(EngineCase):
         import copy
         import yaml
         data = copy.deepcopy(LEDGER)
-        data["setups"][0]["mode"] = "ci"
+        data["setups"][0]["mode"] = "CI"
         data["setups"][0]["files"] = [{"path": ".github/workflows/test.yml",
-                                       "kind": "ci", "action": "new"}]
+                                       "kind": "CI", "action": "新建"}]
         self.write(os.path.join("diy-output", "test-framework.yaml"),
                    yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
         proc, payload = self.engine(["check", "--final"])
@@ -786,7 +786,7 @@ class ContractSmokeTests(unittest.TestCase):
             with open(os.path.join(STEPS_DIR, name), encoding="utf-8") as fh:
                 body = fh.read()
             self.assertIn("**Read (input):**", body, name)
-            self.assertIn("## Next", body, name)
+            self.assertIn("## 播报与下一步", body, name)
 
 
 if __name__ == "__main__":

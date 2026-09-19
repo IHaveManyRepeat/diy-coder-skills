@@ -39,7 +39,7 @@ One `findings[]` entry per area, written as each search lands:
 - Web search required — API guides, protocol specifications, case studies.
 - Protocol and pattern claims must cite an authoritative source (spec, vendor doc, documented case), not a blog summary alone.
 - Two independent sources for each critical claim; conflicts are presented as such.
-- `confidence` per finding: `high` / `medium` / `low`.
+- `confidence` per finding: `高` / `中` / `低`.
 
 ## Present and continue
 

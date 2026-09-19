@@ -7,7 +7,7 @@ Progress: `Preflight → Oracle → Matrix & Gaps → [NFR] → Gate → Finish`
 
 ## 域与状态
 
-四个域固定、不增不减：`security` / `performance` / `reliability` / `maintainability`。每域一个 `status`：
+四个域固定、不增不减：`安全` / `性能` / `可靠性` / `可维护性`。每域一个 `status`：
 
 | status | 含义 |
 | --- | --- |
@@ -30,10 +30,10 @@ Progress: `Preflight → Oracle → Matrix & Gaps → [NFR] → Gate → Finish`
 
 ## 四域各自问什么
 
-- **security**：认证 / 授权（OAuth2 / OIDC、最小权限）、加密（静态 + 传输）、密钥存放（Vault 而非代码）、输入净化（注入面）。**任一 FAIL 不可豁免**（见 step 5）。
-- **performance**：延迟目标（P95 / P99）、吞吐、限流；测法与样本量写进 `findings`。
-- **reliability**：可用性目标、错误率、容错（熔断 / 重试 / 降级）、MTTR。
-- **maintainability**：测试覆盖与结构、重复度、依赖漏洞、结构化日志、错误追踪。
+- **安全**：认证 / 授权（OAuth2 / OIDC、最小权限）、加密（静态 + 传输）、密钥存放（Vault 而非代码）、输入净化（注入面）。**任一 FAIL 不可豁免**（见 step 5）。
+- **性能**：延迟目标（P95 / P99）、吞吐、限流；测法与样本量写进 `findings`。
+- **可靠性**：可用性目标、错误率、容错（熔断 / 重试 / 降级）、MTTR。
+- **可维护性**：测试覆盖与结构、重复度、依赖漏洞、结构化日志、错误追踪。
 
 阈值来自用户时逐条落到对应域；用户给的是「非功能要求」而非数字 → 该条进 `gaps`，域状态按上面规则压档。
 
@@ -68,8 +68,8 @@ Progress: `Preflight → Oracle → Matrix & Gaps → [NFR] → Gate → Finish`
 
 | 组合 | 触发（域状态） | 源合成结论 |
 | --- | --- | --- |
-| `reliability×maintainability` | 两域均 `CONCERNS` / `FAIL` | 低覆盖 / 缺观测可能掩盖可靠性回归 |
-| `security×reliability` | `security` = `FAIL` 且 `reliability` ≠ `PASS` | 安全缺陷可能演变为可靠性事故 |
+| `可靠性×可维护性` | 两域均 `CONCERNS` / `FAIL` | 低覆盖 / 缺观测可能掩盖可靠性回归 |
+| `安全×可靠性` | `安全` = `FAIL` 且 `可靠性` ≠ `PASS` | 安全缺陷可能演变为可靠性事故 |
 
 **命中即必须落点**：在 `gate.recommendations` 或相关域 `findings` 写一行「`<域>×<域>: <判定与理由>`」——**判定不成立也要写明为什么不成立**（`check --final` 命中而两处都无线 → `CROSS_DOMAIN_UNRECORDED`）。源 `impact` 的 `CRITICAL` 在 diy 三值尺度（`HIGH|MEDIUM|NONE`）压缩为 `HIGH`，写进那一行。
 

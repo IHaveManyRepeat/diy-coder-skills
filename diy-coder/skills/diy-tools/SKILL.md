@@ -24,11 +24,11 @@ Exit codes: `0` ok / `1` violations or refusal (illegal transition, unknown stor
 | `check --type T [--final] [--previous PA] [--story S-x] [--strict]` | Mechanical checks for T ∈ prd/architecture/openapi/epics/stories/test-plan/sprint/review. exit 0 is the only pass; `--previous` guards stable IDs; `--final` runs the final-obligation list. Consumes the baseline ledger (see Receipt). |
 | `trace [--src P]... [--strict]` | Audit `# trace:` / `// trace:` comments against stories/test-plan/architecture. Unresolved IDs → exit 1. |
 | `static [--timeout 600] [--strict]` | Run test-plan `static_checks` in order; a blocking failure stops the chain (later layers skipped). |
-| `transition --story S-x --to STATE [--reason T] [--rounds N]` | HALT state transitions. `review→done` is refused here — use `done`. |
+| `transition --story S-x --to STATE [--reason T] [--rounds N]` | HALT state transitions. `待审查→已完成` is refused here — use `done`. |
 | `green --story S-x --tc TC-a --red "..." --green "..."` | Append red/green evidence; backfill test-plan TC status. |
-| `done --story S-x [--rounds N]` | review→done terminal write, with source-of-truth backfill. |
+| `done --story S-x [--rounds N]` | 待审查→已完成 terminal write, with source-of-truth backfill. |
 | `bug-add --entry '<json>' \| --entry-file P` | Mint BUG-0xx into bug-log.yaml. |
-| `defer-add --entry '<json>' \| --entry-file P` | Queue a deferred action into `deferred-actions.yaml` (mints `DA-0xx`; `reason` ∈ `user-config`/`destructive`/`out-of-bounds`/`user-only`). For actions the side-effect discipline keeps user-confirmed: queue instead of blocking — the user confirms and runs them later. |
+| `defer-add --entry '<json>' \| --entry-file P` | Queue a deferred action into `deferred-actions.yaml` (mints `DA-0xx`; `reason` ∈ `用户配置`/`破坏性操作`/`越界改动`/`仅人工可做`). For actions the side-effect discipline keeps user-confirmed: queue instead of blocking — the user confirms and runs them later. |
 | `reconcile [--apply]` | Diff sprint tasks against stories/test-plan (dry-run by default; `--apply` writes). |
 | `baseline-add --code C --where W --reason R` | Append one known-legacy entry to `{output_dir}/diyc-baseline.yaml` (stamps `on`: today, `by`: user). Duplicate `(code, where)` → `BASELINE_DUPLICATE`, corrupt ledger → `BASELINE_INVALID`; both refuse with zero writes. Only after explicit user ratification (rule 4). |
 

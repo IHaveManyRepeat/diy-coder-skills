@@ -39,7 +39,7 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
 ```yaml
   - id: SS-001            # 下一个 = 已有序号最大值 + 1，三位零填充；不重编不重用
     date: YYYY-MM-DD
-    status: draft
+    status: 草稿
     target: {kind: <判定值>, path: <相对路径>, files: N, lines: N}
     units:
       - {unit: <单元名>, path: <相对路径>, lines: N, scanned: false}

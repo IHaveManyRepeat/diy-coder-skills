@@ -41,7 +41,7 @@ One `findings[]` entry per area, written as each search lands:
 - Web search required — implementation case studies, migration lessons learned, tooling evaluations, maturity models.
 - Prefer documented experience (post-mortems, case studies) over vendor marketing for adoption claims.
 - Two independent sources for each critical claim; conflicts presented, both cited.
-- `confidence` per finding: `high` / `medium` / `low`.
+- `confidence` per finding: `高` / `中` / `低`.
 
 ## Present and continue
 

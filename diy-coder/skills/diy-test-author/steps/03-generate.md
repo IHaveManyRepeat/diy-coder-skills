@@ -9,9 +9,9 @@ Progress: `Preflight → Scope → [Generate] → Audit → Confirm → Finish`
 
 | type | 形态 | 纪律 |
 | --- | --- | --- |
-| `unit` | 纯逻辑：函数/类的输入 → 输出断言 | 不依赖外部进程与网络；边界值取 min-1/min/min+1 |
-| `integration` | 跨模块/产物：真实依赖参与（文件、子进程、DB） | 用夹具建真实前置，不 mock 掉被测接缝 |
-| `e2e` | 端到端旅程：由 runner 或操作者驱动 | 关键快乐路径 + 1–2 条异常路径；语义定位（`getByRole` / `getByLabel` / `getByText`），禁 CSS / XPath；network-first（拦截声明写在导航之前）；禁 `waitForTimeout` / `sleep`，用事件或状态等待 |
+| `单元` | 纯逻辑：函数/类的输入 → 输出断言 | 不依赖外部进程与网络；边界值取 min-1/min/min+1 |
+| `集成` | 跨模块/产物：真实依赖参与（文件、子进程、DB） | 用夹具建真实前置，不 mock 掉被测接缝 |
+| `端到端` | 端到端旅程：由 runner 或操作者驱动 | 关键快乐路径 + 1–2 条异常路径；语义定位（`getByRole` / `getByLabel` / `getByText`），禁 CSS / XPath；network-first（拦截声明写在导航之前）；禁 `waitForTimeout` / `sleep`，用事件或状态等待 |
 
 同一行为**不跨层级重复覆盖**：TC 的 `type` 已由 diy-test-design 定好，照做——author 不重新分层。
 
@@ -40,6 +40,6 @@ test 体**全部 `skip`**（`skip` = 待实现标记，不是跳过不管）＋ 
 
 只写目标项目内的测试文件（+ 既有 `fixtures` 目录内的新工厂）；`{output_dir}` 下本步零写入。越界写盘属保留确认类（交互式问用户；无头经 `diyc.py defer-add` 入队不阻塞）。
 
-## Next
+## 播报与下一步
 
 Read fully and follow `./04-audit.md`.

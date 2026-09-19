@@ -2,12 +2,12 @@
 """diy-product-brief 确定性引擎 e2e 测试（B1 批，任务书 §2.5 / §4）。
 
 覆盖：
-- 用例 1：intent 门禁拒绝路径（update/validate 无产物 → exit 1 + MISSING_FILE + 路由 + 零产出）
-- 用例 2：intent 合法路径（create 空目录 → exit 0 + 路由 steps/01-discovery.md；产物已存在 → warning）
-- 用例 3：check 合法（draft 宽松 exit 0 + counts；--final 定稿记录 exit 0）
+- 用例 1：intent 门禁拒绝路径（更新/校验 无产物 → exit 1 + MISSING_FILE + 路由 + 零产出）
+- 用例 2：intent 合法路径（「新建」空目录 → exit 0 + 路由 steps/01-discovery.md；产物已存在 → warning）
+- 用例 3：check 合法（草稿宽松 exit 0 + counts；--final 定稿记录 exit 0）
 - 用例 4：check 违规码（stakes 越界 ENUM_INVALID / BD 重复 DUPLICATE_ID / 缺文件 MISSING_FILE /
           损坏 UNPARSABLE_YAML / --final 义务 EMPTY_FIELD、ASSUMPTION_PRESENT、STATUS_MISMATCH）
-- 用例 5：--previous 丢决策 → ID_UNSTABLE（update 模式防丢决策）
+- 用例 5：--previous 丢决策 → ID_UNSTABLE（更新模式防丢决策）
 - 用例 6：SKILL.md 契约冒烟（冻结实例句 md5 + 写作纪律块 md5 + 终门句指向 brief.py check --final
           + 薄主文件行数上限 + steps/ 逐个点名下一文件 + 技能面零 bmad- 悬空引用）
 
@@ -38,12 +38,12 @@ DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
 BRIEF_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: draft",
+    "  status: 草稿",
     "  created: '2026-09-14'",
     "  updated: '2026-09-14'",
     "brief:",
     "  title: 迷你简报",
-    "  stakes: internal",
+    "  stakes: 内部",
     "  problem: 手工迁移逐字对照成本高",
     "  solution: 薄主文件 + 步骤文件 + 领域引擎",
     "  pitch: 把 BMAD 技能改造成 diy 形态。",
@@ -64,12 +64,12 @@ BRIEF_YAML = NL.join([
     "  date: '2026-09-14'",
     "  decision: 产物落 YAML 单一源",
     "  rationale: md 追加形态无法机械校验",
-    "  status: active",
+    "  status: 生效",
     "- id: BD-002",
     "  date: '2026-09-14'",
     "  decision: 外部交接裁剪",
     "  rationale: diy 无 MCP 对应物",
-    "  status: reversed",
+    "  status: 已反转",
     "addendum:",
     "- section: 被拒方案",
     "  content: 双写 md + yaml",
@@ -77,9 +77,9 @@ BRIEF_YAML = NL.join([
     "revisions: []",
 ]) + NL
 
-# 定稿态：project.status 落 final + assumptions 清空（--final 义务的全部满足态）
+# 定稿态：project.status 落「已定稿」+ assumptions 清空（--final 义务的全部满足态）
 BRIEF_FINAL_YAML = (BRIEF_YAML
-                    .replace("  status: draft", "  status: final"))
+                    .replace("  status: 草稿", "  status: 已定稿"))
 
 
 def run_engine(args):
@@ -122,9 +122,9 @@ class EngineCase(unittest.TestCase):
 
 class IntentGateTests(EngineCase):
 
-    # trace: 任务书 §4 门禁（update/validate 无产物 → 零产出退出 + 一行理由 + 路由）
+    # trace: 任务书 §4 门禁（更新/校验 无产物 → 零产出退出 + 一行理由 + 路由）
     def test_intent_refuses_without_artifact_and_writes_nothing(self):
-        for value in ("update", "validate"):
+        for value in ("更新", "校验"):
             r = self.intent(value)
             self.assertEqual(r.returncode, 1, "%s: %s" % (value, r.stdout + r.stderr))
             self.assertNotIn("Traceback", r.stderr)
@@ -133,15 +133,15 @@ class IntentGateTests(EngineCase):
             self.assertFalse(data["exists"])
             self.assertEqual([x["code"] for x in data["violations"]], ["MISSING_FILE"])
             self.assertTrue(data["reason"], data)
-            self.assertIn("create", data["reason"], "拒绝理由须给路由（先 create）")
+            self.assertIn("新建", data["reason"], "拒绝理由须给路由（先「新建」）")
             self.assertEqual(data["violations"][0]["where"], "diy-output/brief.yaml")
         self.assertFalse(os.path.exists(self.brief_path()),
                          "门禁拒绝路径不得产出 brief.yaml")
         self.assertEqual(os.listdir(self.out), [], "拒绝路径不得写任何文件")
 
-    # trace: 任务书 §4（create 为唯一可在空目录运行的模式；路由指向 01-discovery）
+    # trace: 任务书 §4（「新建」为唯一可在空目录运行的模式；路由指向 01-discovery）
     def test_intent_create_routes_to_discovery_with_zero_writes(self):
-        r = self.intent("create")
+        r = self.intent("新建")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
         self.assertTrue(data["ok"])
@@ -149,36 +149,36 @@ class IntentGateTests(EngineCase):
         self.assertEqual(data["route"], "steps/01-discovery.md")
         self.assertEqual(os.listdir(self.out), [], "intent 只读检测，绝不写产物")
 
-    # trace: 任务书 §4（既有产物 → update/validate 模式；create 撞既有产物给 resume 语义 warning）
+    # trace: 任务书 §4（既有产物 → 更新/校验 模式；「新建」撞既有产物给 resume 语义 warning）
     def test_intent_reports_existing_artifact_state(self):
         self.write("diy-output/brief.yaml", BRIEF_FINAL_YAML)
-        r = self.intent("update")
+        r = self.intent("更新")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
         self.assertTrue(data["ok"])
         self.assertTrue(data["exists"])
-        self.assertEqual(data["status"], "final")
+        self.assertEqual(data["status"], "已定稿")
         self.assertEqual(data["route"], "steps/04-update.md")
         # 读取成本纪律：回执给出既有产物规模，模型不必读全文
         self.assertEqual(data["counts"]["decisions"], 2)
         self.assertEqual(data["counts"]["open_questions"], 1)
-        r2 = self.intent("validate")
+        r2 = self.intent("校验")
         self.assertEqual(json.loads(r2.stdout)["route"], "steps/05-validate.md")
-        r3 = self.intent("create")
+        r3 = self.intent("新建")
         self.assertEqual(r3.returncode, 0, r3.stdout)
-        self.assertTrue(json.loads(r3.stdout)["warnings"], "create 撞既有产物须告警（resume 语义）")
+        self.assertTrue(json.loads(r3.stdout)["warnings"], "「新建」撞既有产物须告警（resume 语义）")
 
     # trace: 任务书 §4（损坏既有产物：不得静默按可用处理）
     def test_intent_flags_unparsable_artifact(self):
         self.write("diy-output/brief.yaml", "brief: [" + NL)
-        r = self.intent("update")
+        r = self.intent("更新")
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertNotIn("Traceback", r.stderr)
         self.assertEqual(json.loads(r.stdout)["violations"][0]["code"], "UNPARSABLE_YAML")
 
     # trace: 任务书 §2.2（引擎不做实例解析/目录推导：--output-dir 必填，intent 值收封闭集）
     def test_usage_errors_and_mandatory_output_dir(self):
-        r = run_engine(["intent", "--intent", "create", "--project-root", self.root, "--json"])
+        r = run_engine(["intent", "--intent", "新建", "--project-root", self.root, "--json"])
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
         r2 = run_engine(["check", "--project-root", self.root, "--json"])
         self.assertEqual(r2.returncode, 2, r2.stdout + r2.stderr)
@@ -197,7 +197,7 @@ class CheckValidationTests(EngineCase):
         self.assertTrue(data["ok"])
         self.assertEqual(data["violations"], [])
         self.assertEqual(data["counts"]["decisions"], 2)
-        self.assertEqual(data["counts"]["decisions_by_status"], {"active": 1, "reversed": 1})
+        self.assertEqual(data["counts"]["decisions_by_status"], {"生效": 1, "已反转": 1})
         self.assertEqual(data["counts"]["users"], 1)
         self.assertEqual(data["counts"]["addendum"], 1)
 
@@ -211,16 +211,16 @@ class CheckValidationTests(EngineCase):
         self.assertTrue(data["final"])
         self.assertEqual(data["violations"], [])
 
-    # trace: 任务书 §4（--final 附加：status 已落 final / title-problem-solution-users 非空 /
+    # trace: 任务书 §4（--final 附加：status 已落「已定稿」/ title-problem-solution-users 非空 /
     #        assumptions 清空 / 每条 decision 有 rationale）
     def test_check_final_duties_report_codes(self):
         cases = [
-            ("STATUS_MISMATCH", BRIEF_FINAL_YAML.replace("  status: final", "  status: draft")),
+            ("STATUS_MISMATCH", BRIEF_FINAL_YAML.replace("  status: 已定稿", "  status: 草稿")),
             ("EMPTY_FIELD", BRIEF_FINAL_YAML.replace("  title: 迷你简报" + NL, "")),
             ("EMPTY_FIELD", BRIEF_FINAL_YAML.replace("  rationale: diy 无 MCP 对应物" + NL, "")),
             ("ASSUMPTION_PRESENT",
              BRIEF_FINAL_YAML.replace("  assumptions: []",
-                                      NL.join(["  assumptions:", "  - '[ASSUMPTION] 用户未定'"]))),
+                                      NL.join(["  assumptions:", "  - '[假设] 用户未定'"]))),
         ]
         for code, text in cases:
             self.write("diy-output/brief.yaml", text)
@@ -233,11 +233,11 @@ class CheckValidationTests(EngineCase):
             self.assertTrue(all(x.get("where") and x.get("msg")
                                 for x in data["violations"]), r.stdout)
 
-    # trace: 任务书 §2.4（[ASSUMPTION] 扫描覆盖全文任意字段，不止 assumptions 列表）
+    # trace: 任务书 §2.4（[假设] 扫描覆盖全文任意字段，不止 assumptions 列表）
     def test_final_scans_assumption_tag_anywhere(self):
         text = BRIEF_FINAL_YAML.replace(
             "  problem: 手工迁移逐字对照成本高",
-            "  problem: '[ASSUMPTION] 手工迁移逐字对照成本高'")
+            "  problem: '[假设] 手工迁移逐字对照成本高'")
         self.write("diy-output/brief.yaml", text)
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -246,9 +246,9 @@ class CheckValidationTests(EngineCase):
     # trace: 任务书 §4（schema / stakes 枚举 / decision id 唯一）
     def test_check_enum_id_dates_and_codes(self):
         cases = [
-            ("ENUM_INVALID", BRIEF_YAML.replace("stakes: internal", "stakes: masochistic")),
+            ("ENUM_INVALID", BRIEF_YAML.replace("stakes: 内部", "stakes: masochistic")),
             ("ENUM_INVALID", BRIEF_YAML.replace("id: BD-001", "id: BD-1")),
-            ("ENUM_INVALID", BRIEF_YAML.replace("  status: active", "  status: superseded")),
+            ("ENUM_INVALID", BRIEF_YAML.replace("  status: 生效", "  status: superseded")),
             ("EMPTY_FIELD", BRIEF_YAML.replace("  why_separate: 属于下游文档层的取舍记录，不进简报正文" + NL, "")),
             ("DUPLICATE_ID", BRIEF_YAML.replace("id: BD-002", "id: BD-001")),
         ]
@@ -286,7 +286,7 @@ class CheckValidationTests(EngineCase):
             "  date: '2026-09-14'",
             "  decision: 外部交接裁剪",
             "  rationale: diy 无 MCP 对应物",
-            "  status: reversed",
+            "  status: 已反转",
         ]) + NL, "")
         self.write("diy-output/brief.yaml", without)
         r2 = self.check("--previous", prev)

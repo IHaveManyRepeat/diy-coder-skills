@@ -19,11 +19,11 @@ The story's ACs, ids only, all of them (the receipt's `acs` block is exactly tha
 
 ## TC refs
 
-`tc_refs` = the receipt's `tcs` ids: every case whose `ac` belongs to this story. `status: pending` is normal before diy-dev runs — it is not a problem to report. An empty `tcs` **is**: no test verifies this story's ACs, so the sprint TDD gate will block the task. Record it as an open question and route the human to diy-test-design.
+`tc_refs` = the receipt's `tcs` ids: every case whose `ac` belongs to this story. `status: 待办` is normal before diy-dev runs — it is not a problem to report. An empty `tcs` **is**: no test verifies this story's ACs, so the sprint TDD gate will block the task. Record it as an open question and route the human to diy-test-design.
 
 ## Decisions
 
-`decisions` = the applicable `D-x` from the receipt — applicability is the decision's `affects` intersecting the FR/NFR ids the story's ACs `refs` (both visible in the receipt). Not every decision belongs here; an unrelated one is noise the dev agent reads anyway. A decision still `status: proposed` is not ratified: it goes to `risks` (step 4), never into the guardrails as if it were settled.
+`decisions` = the applicable `D-x` from the receipt — applicability is the decision's `affects` intersecting the FR/NFR ids the story's ACs `refs` (both visible in the receipt). Not every decision belongs here; an unrelated one is noise the dev agent reads anyway. A decision still `status: 待定` is not ratified: it goes to `risks` (step 4), never into the guardrails as if it were settled.
 
 ## Prior story
 

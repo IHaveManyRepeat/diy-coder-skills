@@ -2,9 +2,9 @@
 """diy-test-author 确定性引擎测试（B3 批 W1，任务书 §3 测试清单 / §2.5）。
 
 覆盖（任务书 §3「测试」清单 11 项 + 回执/用法边界）：
-- 用例 1：门禁——test-plan 非 final 拒绝（STATUS_MISMATCH，零产出）
+- 用例 1：门禁——test-plan 非已定稿拒绝（STATUS_MISMATCH，零产出）
 - 用例 2：门禁——TC 锚悬空拒绝（UNKNOWN_ID，零产出）
-- 用例 3：门禁——范围内 TC 已 pass 拒绝（空跑不静默；红相脚手架只覆盖 pending）
+- 用例 3：门禁——范围内 TC 已通过拒绝（空跑不静默；红相脚手架只覆盖待办）
 - 用例 4：门禁——kill_target 缺失拒绝（EMPTY_FIELD）
 - 用例 5：detect 在合成 package.json 夹具上识别框架（playwright）
 - 用例 6：audit 检出 skip 缺失（SKIP_MISSING）
@@ -63,7 +63,7 @@ DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚
                  "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
 
 
-def test_plan(status="final", tc_status="pending", kill_target="边界值未被拦截",
+def test_plan(status="已定稿", tc_status="待办", kill_target="边界值未被拦截",
               technique="boundary", tc_id="TC-1.1.1"):
     """最小 test-plan.yaml 夹具（本技能只读：门禁 + TC 自检面）。"""
     lines = [
@@ -184,10 +184,10 @@ class EngineCase(unittest.TestCase):
 class GateTests(EngineCase):
     """门禁面：不满足即拒绝（exit 1 + 对应违规码 + 零产出）。"""
 
-    # trace: 任务书 §3 门禁（test-plan 存在且 status: final）
+    # trace: 任务书 §3 门禁（test-plan 存在且 status: 已定稿）
     def test_gate_rejects_non_final_test_plan(self):
         spec = self.spec("tests/boundary.spec.ts", JS_PRECODE_OK)
-        self.write("diy-output/test-plan.yaml", test_plan(status="draft"))
+        self.write("diy-output/test-plan.yaml", test_plan(status="草稿"))
         before = self.snapshot()
         r = self.audit([spec])
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
@@ -207,10 +207,10 @@ class GateTests(EngineCase):
         self.assertIn("UNKNOWN_ID", {x["code"] for x in data["violations"]})
         self.assertEqual(self.snapshot(), before, "零产出：悬空 TC 锚不得落任何文件")
 
-    # trace: 任务书 §3 门禁（范围内无可做 TC：全 pass 不得静默空跑）
+    # trace: 任务书 §3 门禁（范围内无可做 TC：全通过不得静默空跑）
     def test_gate_rejects_pass_tc_in_scope(self):
         spec = self.spec("tests/boundary.spec.ts", JS_PRECODE_OK)
-        self.write("diy-output/test-plan.yaml", test_plan(tc_status="pass"))
+        self.write("diy-output/test-plan.yaml", test_plan(tc_status="通过"))
         self.assertEqual(run_engine(["audit"]).returncode, 2)  # 缺 --files → 用法错误
         r = self.audit([spec])
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -660,13 +660,14 @@ class SkillContractTests(unittest.TestCase):
         self.assertEqual(DISCIPLINE_ZH, raw.rstrip(NL).splitlines()[-1],
                          "写作纪律块须置 Rules 段末尾")
 
-    # trace: 验收 #1（薄主文件四段 + 标题含技能名 + ≤90 行）
+    # trace: 验收 #1（薄主文件四段 + 标题含技能名 + ≤93 行；
+    #         2026-09-19 中文化：母本 §6 条款与 description 注释为强制内容，净增 3 行）
     def test_thin_main_file_structure(self):
         raw = self.read_skill()
-        for section in ("## On Activation", "## Workflow", "## Schema", "## Rules"):
+        for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, raw, "缺段 %s" % section)
         self.assertIn("diy-test-author", raw.splitlines()[0] + raw[:400], "标题未含技能名")
-        self.assertLessEqual(len(raw.splitlines()), 90, "薄主文件超出 90 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
         for name in ("01-preflight.md", "02-scope.md", "03-generate.md",
                      "04-audit.md", "05-confirm.md", "06-finish.md"):
             self.assertIn(name, raw, "Workflow 未点名 %s" % name)

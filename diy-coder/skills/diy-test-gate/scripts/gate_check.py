@@ -5,9 +5,9 @@
 判据名与 target / waiver 键）/ 记录 ID 唯一 / 引用解析（产物自身的 AC / TC / S 存在性——
 test-gate 不在 diyc 类型集内，本模块自实现，不与 diyc 已覆盖规则重复）/ totals 与
 by_level 重算 / 门决策自洽（硬判据 actual 重算 + 两组判据与 decision 的关系 + overlay
-与 NFR 域状态）/ waiver 8 键契约（security 域 FAIL 不可豁免）/ 阈值 source 强制记出处 /
+与 NFR 域状态）/ waiver 8 键契约（安全域 FAIL 不可豁免）/ 阈值 source 强制记出处 /
 合规五标准的记账与聚合（G-3，第五个走查维度，落 `nfr.domains[].findings`）；
-`--final` 附加：status 已落 final、basis 非空、hard / soft 两组判据齐、零 [ASSUMPTION]、
+`--final` 附加：status 已落 已定稿、basis 非空、hard / soft 两组判据齐、零 [假设]、
 合规五标准逐条记账、跨域合成候选的落点（G-4）；
 `mutation-report.yaml` 缺席按过渡期口径只记 warning（C 阶段落地后翻硬门）。
 
@@ -22,7 +22,7 @@ TOOL_ERROR（B1 diy-readiness-check 先例）。本技能新增码（本批申�
   DECISION_INCONSISTENT  门决策与两组判据 / NFR 域状态 / overlay 不自洽
   CRITERION_STALE        判据 actual/result 与从同记录机械重算的值不一致
   WAIVER_INCOMPLETE      waiver 缺 8 键契约中的键（或值为空）
-  WAIVER_INAPPLICABLE    waiver ref 指向 security 域（不可豁免）或不可解析的域名
+  WAIVER_INAPPLICABLE    waiver ref 指向 安全域（不可豁免）或不可解析的域名
   THRESHOLD_UNSOURCED    阈值 source 非「用户会话 <date>」形态（阈值不得猜测）
   UNKNOWN_THRESHOLD_PASS 域含 UNKNOWN 阈值却记 PASS（nfr-status-definitions 硬规则）
 能力补齐轮新增 4 码（源 trace / nfr checklist 条目，2026-09-18 返工）：
@@ -94,7 +94,7 @@ def check_criteria(record, where, violations):
                                     % (allowed[name], entry.get("target"))))
             if str(entry.get("result")) not in CRITERION_RESULTS:
                 violations.append(v("ENUM_INVALID", spot + ".result",
-                                    "result 越界：%s（合法 pass|fail|n/a）"
+                                    "result 越界：%s（合法 通过|失败|n/a）"
                                     % entry.get("result")))
             if entry.get("estimated") is True and not nonempty(entry.get("algorithm")):
                 violations.append(v("EMPTY_FIELD", spot + ".algorithm",
@@ -285,7 +285,7 @@ def check_cross_domain(record, where, violations, domains, final):
 
 
 def check_waivers(record, where, violations):
-    """waiver 8 键契约 + security 域不可豁免；返回已豁免域名集合。"""
+    """waiver 8 键契约 + 安全域不可豁免；返回已豁免域名集合。"""
     gate = record.get("gate") if isinstance(record.get("gate"), dict) else {}
     waivers = gate.get("waivers")
     waived = set()
@@ -306,9 +306,9 @@ def check_waivers(record, where, violations):
             continue
         ref = str(waiver["ref"]).strip()
         if ref in DOMAINS:
-            if ref == "security":
+            if ref == "安全":
                 violations.append(v("WAIVER_INAPPLICABLE", spot + ".ref",
-                                    "security 域 FAIL 不可豁免（源 checklist 硬规则）"))
+                                    "安全域 FAIL 不可豁免（源 checklist 硬规则）"))
             else:
                 waived.add(ref)
         elif not (AC_RE.match(ref) or TC_RE.match(ref)):
@@ -420,7 +420,7 @@ def check_gate_decision(record, where, violations, warnings, criteria, domains,
     status = str(record.get("status") or "").strip()
     hard, soft = criteria
     if not decision:
-        if status == "final":
+        if status == "已定稿":
             violations.append(v("EMPTY_FIELD", where + ".gate.decision",
                                 "定稿记录须有 decision（PASS|CONCERNS|FAIL）"))
         else:
@@ -474,46 +474,46 @@ def check_gate_decision(record, where, violations, warnings, criteria, domains,
         if want_actual == "n/a":
             want_result = "n/a"
         elif name in ("nfr_critical", "p0_uncovered"):
-            want_result = "pass" if int(derived[name]) == 0 else "fail"
+            want_result = "通过" if int(derived[name]) == 0 else "失败"
         else:
             value = float(want_actual.rstrip("%") or 0)
-            want_result = "pass" if meets(value, entry.get("target")) else "fail"
+            want_result = "通过" if meets(value, entry.get("target")) else "失败"
         if result in CRITERION_RESULTS and result != want_result:
             violations.append(v("CRITERION_STALE",
                                 "%s.gate.hard_criteria.%s.result" % (where, name),
                                 "result 与重算不符：声明 %s，重算 %s"
                                 % (result, want_result)))
     hard_fail = [name for name, entry in hard.items()
-                 if str(entry.get("result")).strip().lower() == "fail"]
+                 if str(entry.get("result")).strip().lower() == "失败"]
     soft_fail = [name for name, entry in soft.items()
-                 if str(entry.get("result")).strip().lower() == "fail"]
+                 if str(entry.get("result")).strip().lower() == "失败"]
     concerns = [name for name in domains
                 if str(domains[name].get("status") or "").upper() == "CONCERNS"]
     oracle = record.get("oracle") if isinstance(record.get("oracle"), dict) else {}
     confidence = str(oracle.get("confidence") or "").strip().lower()
-    if confidence == "high" and not any(it["tests"] for it in coverage_items):
-        confidence = "medium"
-    overlay = (str(oracle.get("source") or "").strip() == "synthetic"
-               and confidence != "high")
+    if confidence == "高" and not any(it["tests"] for it in coverage_items):
+        confidence = "中"
+    overlay = (str(oracle.get("source") or "").strip() == "合成"
+               and confidence != "高")
     if hard_fail:
         if decision != "FAIL":
             violations.append(v("DECISION_INCONSISTENT", where + ".gate.decision",
-                                "硬判据 fail（%s）而 decision=%s：任一硬指标 fail → "
+                                "硬判据 失败（%s）而 decision=%s：任一硬指标 失败 → "
                                 "必须 FAIL" % ("、".join(hard_fail), decision)))
     elif soft_fail or concerns or overlay:
         if decision == "PASS":
             reason = []
             if soft_fail:
-                reason.append("软判据 fail（%s）" % "、".join(soft_fail))
+                reason.append("软判据 失败（%s）" % "、".join(soft_fail))
             if concerns:
                 reason.append("NFR 域 CONCERNS（%s）" % "、".join(concerns))
             if overlay:
-                reason.append("overlay 命中（synthetic oracle 且 confidence≠high）")
+                reason.append("overlay 命中（合成 oracle 且 confidence≠高）")
             violations.append(v("DECISION_INCONSISTENT", where + ".gate.decision",
                                 "%s → 门至少 CONCERNS，不得 PASS" % "；".join(reason)))
     elif decision != "PASS":
         violations.append(v("DECISION_INCONSISTENT", where + ".gate.decision",
-                            "两组判据全 pass 且无域 CONCERNS / overlay 命中："
+                            "两组判据全 通过 且无域 CONCERNS / overlay 命中："
                             "decision 须为 PASS（实为 %s）" % decision))
 
 
@@ -533,7 +533,7 @@ def check_record(index, record, final, show, ctx, violations, warnings):
     status = str(record.get("status") or "").strip()
     if status not in RECORD_STATUSES:
         violations.append(v("ENUM_INVALID", where + ".status",
-                            "status 越界：%s（合法集 draft|final）"
+                            "status 越界：%s（合法集 草稿|已定稿）"
                             % record.get("status")))
     if str(record.get("scope") or "").strip() != "story":
         violations.append(v("ENUM_INVALID", where + ".scope",
@@ -555,15 +555,15 @@ def check_record(index, record, final, show, ctx, violations, warnings):
                                 % (oracle.get("source"), "|".join(ORACLE_SOURCES))))
         if str(oracle.get("confidence") or "").strip() not in ORACLE_CONFIDENCES:
             violations.append(v("ENUM_INVALID", where + ".oracle.confidence",
-                                "oracle.confidence 越界：%s（合法集 high|medium|low）"
+                                "oracle.confidence 越界：%s（合法集 高|中|低）"
                                 % oracle.get("confidence")))
         if not is_int(oracle.get("items")):
             violations.append(v("ENUM_INVALID", where + ".oracle.items",
                                 "oracle.items 须为整数"))
-        if source == "synthetic" and not items_of(oracle, "inferred"):
+        if source == "合成" and not items_of(oracle, "inferred"):
             violations.append(v("EMPTY_FIELD", where + ".oracle.inferred",
-                                "source=synthetic 时 inferred 必填"
-                                "（synthetic 推断条目清单）"))
+                                "source=合成 时 inferred 必填"
+                                "（合成推断条目清单）"))
         if oracle.get("unresolved") is not None \
                 and not isinstance(oracle.get("unresolved"), list):
             violations.append(v("EMPTY_FIELD", where + ".oracle.unresolved",
@@ -599,16 +599,16 @@ def check_record(index, record, final, show, ctx, violations, warnings):
     check_gate_decision(record, where, violations, warnings, criteria, domains,
                         waived, items, ctx)
     if final:
-        if status != "final":
+        if status != "已定稿":
             violations.append(v("STATUS_MISMATCH", where + ".status",
-                                "--final 要求 status 已落 final（实为 %s）"
+                                "--final 要求 status 已落「已定稿」（实为 %s）"
                                 % (record.get("status") or "缺失")))
         if not nonempty(gate.get("basis")):
             violations.append(v("EMPTY_FIELD", where + ".gate.basis",
                                 "--final 要求 basis 非空（决策依据一句话）"))
-        if any("[ASSUMPTION]" in text for text in all_strings(record)):
+        if any("[假设]" in text for text in all_strings(record)):
             violations.append(v("ASSUMPTION_PRESENT", where,
-                                "--final 要求零 [ASSUMPTION]；未决推断须先落定"))
+                                "--final 要求零 [假设]；未决推断须先落定"))
 
 
 def cmd_check(args):

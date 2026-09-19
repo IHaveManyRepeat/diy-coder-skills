@@ -6,7 +6,7 @@
 - 用例 2：枚举违例（evidence grade / case mode / hypothesis status）各带对应 violation code
 - 用例 3：evidence_light=true 而 missing_evidence 为空 → EVIDENCE_MISSING
           （证据缺失也是发现——无据案件必须记账，复用冻结码不新增）
-- 用例 4：假设生命周期（status 非 open 时 resolution 必填；open 可无 resolution）
+- 用例 4：假设生命周期（status 非「待验证」时 resolution 必填；待验证可无 resolution）
 - 用例 5：collect 在无 VCS 环境下降级（NO_VCS warning + 不崩 + 仍 exit 0，回执键完整）
 - 用例 6：collect 结构情报（--area 的文件清单 + 同名族并行实现 + 测试文件候选）
 - 用例 7：check 缺文件 → MISSING_FILE 结构化违规（不 Traceback）；--output-dir 必填
@@ -40,22 +40,22 @@ DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
 INVESTIGATION_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-09-14'",
     "cases:",
     "- id: IV-001",
     "  slug: login-500",
     "  date: '2026-09-14'",
-    "  status: concluded",
-    "  mode: symptom",
+    "  status: 已结论",
+    "  mode: 症状驱动",
     "  evidence_light: false",
     "  handoff_brief: 登录并发下返回 500，根因是连接池未复用。",
     "  case_info:",
     "    inputs:",
-    "    - kind: ticket",
+    "    - kind: 工单",
     "      ref: TICKET-42",
-    "    - kind: log",
+    "    - kind: 日志",
     "      ref: var/log/app.log",
     "    scope: 登录链路",
     "    time_window: '2026-09-13 10:00 ~ 12:00'",
@@ -65,29 +65,29 @@ INVESTIGATION_YAML = NL.join([
     "    why: 错误栈首帧指向该行",
     "  evidence:",
     "  - id: EV-001",
-    "    grade: confirmed",
+    "    grade: 已确证",
     "    ref: src/auth/login.py:88",
     "    note: 错误栈首帧",
-    "    availability: available",
+    "    availability: 可得",
     "  - id: EV-002",
-    "    grade: deduced",
+    "    grade: 已推断",
     "    ref: var/log/app.log",
     "    note: 日志显示连接池耗尽",
-    "    availability: partial",
+    "    availability: 部分可得",
     "  - id: EV-003",
-    "    grade: hypothesized",
+    "    grade: 假设中",
     "    ref: commit:9f3a1c2",
     "    note: 疑似连接未释放",
-    "    availability: missing",
+    "    availability: 缺失",
     "  hypotheses:",
     "  - id: H-001",
     "    statement: 连接池未复用导致耗尽",
-    "    status: confirmed",
+    "    status: 已确证",
     "    test: 压测复现连接数增长",
     "    resolution: 压测复现，EV-002 佐证",
     "  - id: H-002",
     "    statement: 网关超时",
-    "    status: refuted",
+    "    status: 已推翻",
     "    test: 查网关日志",
     "    resolution: 网关日志显示 500 由上游抛出",
     "  timeline:",
@@ -97,14 +97,14 @@ INVESTIGATION_YAML = NL.join([
     "  backlog:",
     "  - item: 复查连接池配置",
     "    priority: high",
-    "    status: done",
+    "    status: 已完成",
     "  missing_evidence:",
     "  - what: 完整堆栈",
     "    would_resolve: 确认抛出点",
     "    how: 提高日志级别后复现",
     "  conclusion:",
     "    text: 连接池耗尽导致登录 500。",
-    "    confidence: high",
+    "    confidence: 高",
     "    fix_direction: 复用连接并在 finally 释放",
     "    diagnostic_steps: []",
     "    reproduction: 并发 50 压测",
@@ -166,7 +166,7 @@ class CheckValidationTests(EngineCase):
         self.assertTrue(data["ok"])
         self.assertEqual(data["violations"], [])
         self.assertEqual(data["counts"]["cases"], 1)
-        self.assertEqual(data["counts"]["by_status"], {"concluded": 1})
+        self.assertEqual(data["counts"]["by_status"], {"已结论": 1})
         self.assertEqual(data["counts"]["evidence"], 3)
         self.assertEqual(data["counts"]["hypotheses"], 2)
         self.assertEqual(data["counts"]["open_hypotheses"], 0)
@@ -174,10 +174,10 @@ class CheckValidationTests(EngineCase):
     # trace: 任务书 §7 check（枚举面：grade / mode / hypothesis status）
     def test_check_reports_enum_violations(self):
         cases = [
-            ("ENUM_INVALID", "    grade: confirmed", "    grade: certain"),
-            ("ENUM_INVALID", "  mode: symptom", "  mode: guesswork"),
-            ("ENUM_INVALID", "    status: refuted", "    status: maybe"),
-            ("ENUM_INVALID", "    availability: missing", "    availability: unknown"),
+            ("ENUM_INVALID", "    grade: 已确证", "    grade: certain"),
+            ("ENUM_INVALID", "  mode: 症状驱动", "  mode: guesswork"),
+            ("ENUM_INVALID", "    status: 已推翻", "    status: maybe"),
+            ("ENUM_INVALID", "    availability: 缺失", "    availability: unknown"),
         ]
         for code, old, new in cases:
             self.write("diy-output/investigation.yaml", INVESTIGATION_YAML.replace(old, new))
@@ -220,8 +220,8 @@ class CheckValidationTests(EngineCase):
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("EMPTY_FIELD", {x["code"] for x in json.loads(r.stdout)["violations"]})
-        # 对照：open 假设可以没有 resolution（尚未结案）
-        opened = INVESTIGATION_YAML.replace("    status: confirmed", "    status: open")
+        # 对照：待验证 假设可以没有 resolution（尚未结案）
+        opened = INVESTIGATION_YAML.replace("    status: 已确证", "    status: 待验证")
         self.write("diy-output/investigation.yaml", opened.replace(
             "    resolution: 压测复现，EV-002 佐证" + NL, ""))
         r2 = self.check()
@@ -235,9 +235,9 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         cases = [
             ("ASSUMPTION_PRESENT", "  problem_statement: 用户报告登录偶发 500。",
-             "  problem_statement: '[ASSUMPTION] 用户报告登录偶发 500。'"),
-            ("STATUS_MISMATCH", "  status: final" + NL, "  status: draft" + NL),
-            ("PENDING_DECISION", "    confidence: high" + NL, ""),
+             "  problem_statement: '[假设] 用户报告登录偶发 500。'"),
+            ("STATUS_MISMATCH", "  status: 已定稿" + NL, "  status: 草稿" + NL),
+            ("PENDING_DECISION", "    confidence: 高" + NL, ""),
             ("EMPTY_FIELD", "  handoff_brief: 登录并发下返回 500，根因是连接池未复用。", "  handoff_brief: ''"),
         ]
         for code, old, new in cases:
@@ -246,9 +246,9 @@ class CheckValidationTests(EngineCase):
             self.assertEqual(r.returncode, 1, "%s: %s" % (code, r.stdout))
             self.assertIn(code, {x["code"] for x in json.loads(r.stdout)["violations"]},
                           "%s 未报出：%s" % (code, r.stdout))
-        # 起草期宽松：draft + conclusion 未定合法（非 --final）
-        draft = (INVESTIGATION_YAML.replace("  status: final" + NL, "  status: draft" + NL)
-                 .replace("    confidence: high" + NL, ""))
+        # 起草期宽松：草稿 + conclusion 未定合法（非 --final）
+        draft = (INVESTIGATION_YAML.replace("  status: 已定稿" + NL, "  status: 草稿" + NL)
+                 .replace("    confidence: 高" + NL, ""))
         self.write("diy-output/investigation.yaml", draft)
         r2 = self.check()
         self.assertEqual(r2.returncode, 0, r2.stdout + r2.stderr)

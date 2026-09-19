@@ -15,6 +15,6 @@ Progress: `Preflight → Scope → Generate → Audit → [Confirm] → Finish`
 
 **这些是待激活的测试源**：diy-dev 在实现前先去掉范围内测试的 `skip`，再跑红 → 写实现 → 跑绿——红相证据由那一步产生，不由本技能产生。
 
-## Next
+## 播报与下一步
 
 Read fully and follow `./06-finish.md`.

@@ -39,7 +39,7 @@ python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" 
 python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" init --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`--role` 可省；也可以带上用户当场说出的角色（`QA|Dev|Lead|VP` 四值之一）。两条口径：
+`--role` 可省；也可以带上用户当场说出的角色（`QA|开发|组长|负责人` 四值之一）。两条口径：
 
 - 省略 `--role` → `learner.role: null`，合法——角色归 step 2 的画像采集。
 - **`learner.assessed` 恒为 null**（无论是否给 `--role`）：画像采集走 step 2 的 `update --learner`，`init` 不得置位。
@@ -50,7 +50,7 @@ python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" 
 
 一句话给用户：7 节课程已就绪、当前完成度、下一步先花两分钟做画像采集（决定后面每节按什么角色讲）。
 
-## Next
+## 播报与下一步
 
 按 `status` 回执的 `entry_step` 走：
 

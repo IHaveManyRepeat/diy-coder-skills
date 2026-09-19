@@ -17,7 +17,7 @@ VIEWER = HERE.parent / "skills" / "diy-viewer" / "scripts" / "viewer.py"
 
 MINI_DOC = """project:
   name: fixture
-  status: final
+  status: 已定稿
   created: '2026-09-09'
   updated: '2026-09-09'
 """
@@ -136,10 +136,10 @@ class ExplicitPathTests(unittest.TestCase):
         self.out = self.root / "diy-output"
         write_doc(self.out, "prd.yaml")
         (self.out / "prd.yaml").write_text(
-            "project:\n  name: MAINLINE-FIXTURE\n  status: final\n", encoding="utf-8")
+            "project:\n  name: MAINLINE-FIXTURE\n  status: 已定稿\n", encoding="utf-8")
         write_doc(self.out / "a", "prd.yaml")
         (self.out / "a" / "prd.yaml").write_text(
-            "project:\n  name: INSTANCE-FIXTURE\n  status: final\n", encoding="utf-8")
+            "project:\n  name: INSTANCE-FIXTURE\n  status: 已定稿\n", encoding="utf-8")
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -164,7 +164,7 @@ class ExplicitPathTests(unittest.TestCase):
     # trace: 对抗审查修复——显式路径非 .yaml 扩展（prd.yml）此前被 f"{stem}.yaml" 过滤静默丢弃
     def test_explicit_yml_extension_not_dropped(self):
         yml = self.out / "a" / "prd.yml"
-        yml.write_text("project:\n  name: YML-FIXTURE\n  status: final\n", encoding="utf-8")
+        yml.write_text("project:\n  name: YML-FIXTURE\n  status: 已定稿\n", encoding="utf-8")
         result = run_viewer(self.root, "--instance", "a", str(yml))
         self.assertEqual(result.returncode, 0, result.stderr)
         html = self.rendered()

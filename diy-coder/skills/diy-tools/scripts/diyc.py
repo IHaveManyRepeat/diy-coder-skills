@@ -227,7 +227,7 @@ def _tail(text, limit=20) -> list:
 
 
 def cmd_static(args) -> dict:
-    # trace: S-7 AC-7.1 static_checks 链机械执行（blocking 失败即停）
+    # trace: S-7 AC-7.1 static_checks 链机械执行（阻断失败即停）
     docs = diyc_lib.Docs(args.project_root, args.output_dir)
     doc = docs.doc("test-plan")
     if doc is None:
@@ -247,23 +247,23 @@ def cmd_static(args) -> dict:
     run_n = failed_n = skipped_n = 0
     for c in ordered:
         order, tool = c.get("order"), c.get("tool")
-        gate = c.get("gate", "blocking")
-        if gate not in ("blocking", "advisory"):
-            warnings.append("static_checks[order=%s] gate 值 %r 非法，按 blocking 处理" % (order, gate))
-            gate = "blocking"
+        gate = c.get("gate", "阻断")
+        if gate not in ("阻断", "记录不阻断"):
+            warnings.append("static_checks[order=%s] gate 值 %r 非法，按阻断处理" % (order, gate))
+            gate = "阻断"
         if not isinstance(tool, str) or not tool.strip():
-            warnings.append("static_checks[order=%s] tool 缺失/非字符串，按 skipped 处理" % order)
+            warnings.append("static_checks[order=%s] tool 缺失/非字符串，按已跳过处理" % order)
             layers.append({"order": order, "tool": tool, "gate": gate, "rc": None,
-                           "verdict": "skipped", "tail": []})
+                           "verdict": "已跳过", "tail": []})
             skipped_n += 1
             continue
         if stopped:
             layers.append({"order": order, "tool": tool, "gate": gate, "rc": None,
-                           "verdict": "skipped", "tail": []})
+                           "verdict": "已跳过", "tail": []})
             skipped_n += 1
             continue
         rc, out, timed_out = _run_tool(tool, args.project_root, args.timeout)
-        verdict = "pass" if rc == 0 else "fail"
+        verdict = "通过" if rc == 0 else "失败"
         if timed_out:
             out = ("[diyc] 超时（>%ss）被杀\n" % args.timeout) + out
             violations.append(v("STATIC_FAIL", "static_checks[order=%s]" % order,
@@ -271,15 +271,15 @@ def cmd_static(args) -> dict:
         layers.append({"order": order, "tool": tool, "gate": gate, "rc": rc,
                        "verdict": verdict, "tail": _tail(out)})
         run_n += 1
-        if verdict == "fail":
+        if verdict == "失败":
             failed_n += 1
             if not timed_out:
                 violations.append(v("STATIC_FAIL", "static_checks[order=%s]" % order,
                                     "%s 层失败（rc=%s）：%s"
                                     % (gate, rc, _short(tool, 48))))
-            if gate == "blocking":
+            if gate == "阻断":
                 stopped = True
-    ok = not any(x["verdict"] == "fail" and x["gate"] == "blocking" for x in layers)
+    ok = not any(x["verdict"] == "失败" and x["gate"] == "阻断" for x in layers)
     return receipt("static", ok, layers=layers, violations=violations,
                    warnings=warnings, counts={"run": run_n, "failed": failed_n,
                                               "skipped": skipped_n})
@@ -339,7 +339,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("transition", parents=[common], help="HALT 状态迁移（diyc_writeback）")
     p.add_argument("--story", required=True)
     p.add_argument("--to", required=True, help="目标状态")
-    p.add_argument("--reason", default=None, help="blocked 时必填")
+    p.add_argument("--reason", default=None, help="已阻塞时必填")
     p.add_argument("--rounds", type=int, default=None)
 
     p = sub.add_parser("green", parents=[common], help="TDD 绿线证据写回")
@@ -348,7 +348,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--red", action="append", default=None)
     p.add_argument("--green", action="append", default=None)
 
-    p = sub.add_parser("done", parents=[common], help="review→done 终态写（真源回填）")
+    p = sub.add_parser("done", parents=[common], help="待审查→已完成 终态写（真源回填）")
     p.add_argument("--story", required=True)
     p.add_argument("--rounds", type=int, default=None)
 

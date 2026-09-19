@@ -18,17 +18,17 @@ Progress: `Preflight → [Criteria] → Evaluate → Score → Report`
 
 `scan` 的 `baseline` 已在**评审集之外**的既有语料上采样（上限 40 文件，就近优先）。照抄进产物 `convention_baseline`，并分清两类键：
 
-- **5 个机械键**（`priority_markers` / `test_ids` / `network_first` / `data_factories` / `fixtures`）：`{adopted, status}` 由 `scan` 判定，**你不自判、不复算**。阈值固定三行：`sampled < 4 → unknown`；`adopted == 0 → absent`；`adopted/sampled ≥ 0.5 → established`，否则 `emerging`。
+- **5 个机械键**（`priority_markers` / `test_ids` / `network_first` / `data_factories` / `fixtures`）：`{adopted, status}` 由 `scan` 判定，**你不自判、不复算**。阈值固定三行：`sampled < 4 → 未知`；`adopted == 0 → 缺失`；`adopted/sampled ≥ 0.5 → 已确立`，否则 `新现`。
 - **2 个判读键**（`bdd_naming` / `assertion_style`）：源文明确无机械信号（没有单一 token 能区分命名风格或断言方言的"采用/未采用"）→ `scan` 只回 `judged_by: llm`。**你读采样文件判读**，照同一组三行阈值定 `status`，把 `{adopted, status}` 补进产物（`adopted` 要能对着采样文件数出来，不许估）。
-- `baseline_unavailable`（评审集之外无语料）→ 7 键全 `unknown`，所有 convention 行 `PASS (n/a)`；产物与摘要都写明基线不可得。**不得从评审文件自身推断惯例**（循环论证）。
+- `baseline_unavailable`（评审集之外无语料）→ 7 键全 `未知`，所有 convention 行 `PASS (n/a)`；产物与摘要都写明基线不可得。**不得从评审文件自身推断惯例**（循环论证）。
 
 ## 3. convention 行的扣分表（照抄，判据只有这一张）
 
 | status | 含义 | 对该文件的效果 |
 | --- | --- | --- |
-| `established` | ≥ 50% 且 corpus ≥ 4 | 按行值 severity 记违规，`note` 引采用计数 |
-| `emerging` | ≥ 1 且 < 50% | 降一档、floor `LOW`（引擎在 score 施加），`note` 说惯例尚未普及 |
-| `absent` | 0 个文件采用 | **不违规不扣分**，该行不成立、不得成条目 |
-| `unknown` | corpus < 4，样本不足 | **不违规不扣分**，同上 |
+| `已确立` | ≥ 50% 且 corpus ≥ 4 | 按行值 severity 记违规，`note` 引采用计数 |
+| `新现` | ≥ 1 且 < 50% | 降一档、floor `LOW`（引擎在 score 施加），`note` 说惯例尚未普及 |
+| `缺失` | 0 个文件采用 | **不违规不扣分**，该行不成立、不得成条目 |
+| `未知` | corpus < 4，样本不足 | **不违规不扣分**，同上 |
 
 **下一步：读 `steps/03-evaluate.md`。**

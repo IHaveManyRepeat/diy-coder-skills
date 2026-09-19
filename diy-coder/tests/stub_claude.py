@@ -1,14 +1,14 @@
 # trace: S-10 AC-10.1 TC-10.1.1（测试基础设施：无头 claude 任务桩，非交付逻辑）
 """无头 claude CLI 任务桩。行为路由由环境变量驱动：
 
-DIY_STUB_ROUTING  "S-1:done,S-2:fail,S-3:blocked"（未注册任务默认 fail）
+DIY_STUB_ROUTING  "S-1:已完成,S-2:失败,S-3:已阻塞"（未注册任务默认 失败）
 含 "diy-augment" 的调用视为补测会话：log 记 "<story> augment" 后按 DIY_STUB_AUGMENT
-（pass 默认 / fail / skip / none=不留痕）写 augment 字段退出 0；任务状态零写回
+（通过 默认 / 失败 / 已跳过 / none=不留痕）写 augment 字段退出 0；任务状态零写回
 DIY_STUB_AUGMENT  补测会话结论（模拟 diy-augment 窄写权留痕）
 DIY_STUB_LOG      每次调用追加一行 "<story> <action>"（调用计数）
 DIY_STUB_SPRINT   桩要写回的 sprint.yaml 路径
 DIY_STUB_SENTINEL 若 stdin 读到非空内容则写入该文件（无头断言）
-DIY_STUB_SLEEP    done 两段写回之间的停留秒数（并发扫描窗口）
+DIY_STUB_SLEEP    已完成 两段写回之间的停留秒数（并发扫描窗口）
 """
 import os
 import re
@@ -64,7 +64,7 @@ def main() -> int:
         if ":" in item
     )
     # diy-augment 补测会话：只记日志、零写回（补测不参与任务状态机）
-    action = "augment" if "diy-augment" in joined else routing.get(story, "fail")
+    action = "augment" if "diy-augment" in joined else routing.get(story, "失败")
 
     log = os.environ.get("DIY_STUB_LOG")
     if log:
@@ -72,24 +72,24 @@ def main() -> int:
             fh.write(f"{story} {action}\n")
 
     if action == "augment":
-        aug = os.environ.get("DIY_STUB_AUGMENT", "pass")
+        aug = os.environ.get("DIY_STUB_AUGMENT", "通过")
         sprint = os.environ.get("DIY_STUB_SPRINT")
         if sprint and aug != "none":
             write_augment(sprint, story, aug)
         return 0
-    if action == "fail":
+    if action == "失败":
         return 1
     sprint = os.environ.get("DIY_STUB_SPRINT")
     if not sprint:
         return 3
-    if action == "blocked":
-        write_status(sprint, story, "blocked")
+    if action == "已阻塞":
+        write_status(sprint, story, "已阻塞")
         return 0
-    write_status(sprint, story, "in-progress")
+    write_status(sprint, story, "进行中")
     sleep_for = float(os.environ.get("DIY_STUB_SLEEP", "0"))
     if sleep_for:
         time.sleep(sleep_for)
-    write_status(sprint, story, "done")
+    write_status(sprint, story, "已完成")
     return 0
 
 

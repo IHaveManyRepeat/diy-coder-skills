@@ -21,16 +21,17 @@ import yaml
 
 DEFAULT_ROOT = os.path.expanduser("~/.diy-coder/experience")
 
-# 大类→中类 固定骨架；小类(type)动态登记进 taxonomy.yaml
+# 大类→中类 固定骨架（键 = bug-log 的 class/subclass 取值，与 diyc_writeback 同源）；
+# 小类(type)动态登记进 taxonomy.yaml
 BASE_TAXONOMY = {
-    "functional": {"label": "功能型", "subcategories": {
-        "logic": {"label": "逻辑"}, "boundary": {"label": "边界"},
-        "data": {"label": "数据"}, "state": {"label": "状态"},
-        "integration": {"label": "集成"}}},
-    "non-functional": {"label": "非功能型", "subcategories": {
-        "performance": {"label": "性能"}, "UX": {"label": "用户体验"},
-        "security": {"label": "安全"}, "compatibility": {"label": "兼容性"},
-        "reliability": {"label": "可靠性"}}},
+    "功能型": {"label": "功能型", "subcategories": {
+        "逻辑": {"label": "逻辑"}, "边界": {"label": "边界"},
+        "数据": {"label": "数据"}, "状态": {"label": "状态"},
+        "集成": {"label": "集成"}}},
+    "非功能型": {"label": "非功能型", "subcategories": {
+        "性能": {"label": "性能"}, "用户体验": {"label": "用户体验"},
+        "安全": {"label": "安全"}, "兼容性": {"label": "兼容性"},
+        "可靠性": {"label": "可靠性"}}},
 }
 
 FIELDS = ("id", "date", "origin_project", "source", "class", "subclass", "type",
@@ -169,7 +170,7 @@ def render_html(repo):
                 f"<td>{html.escape(str(e.get('fix') or ''))}</td>"
                 f"<td class=pre>{html.escape(str(e.get('prevention') or ''))}</td></tr>"
                 for e in entries)
-            rows.append(f"<h3>{html.escape(str((sub or {}).get('label') or sub_key))}（{sub_key}）· {len(entries)} 条</h3>"
+            rows.append(f"<h3>{html.escape(str((sub or {}).get('label') or sub_key))} · {len(entries)} 条</h3>"
                         "<table><tr><th>编号</th><th>小类</th><th>项目</th><th>时间</th>"
                         "<th>触发方法</th><th>修复方案</th><th>根治机制</th></tr>" + cells + "</table>")
         if rows:
@@ -338,6 +339,8 @@ def read_instance(args):
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
     cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
     instance = read_instance(sys.argv[2:])
     if instance and cmd != "push":

@@ -3,9 +3,9 @@
 
 覆盖：
 - 用例 1：check 合法记录（起草态）exit 0 唯一放行 + 回执键完整（counts）
-- 用例 2：check --final 合法记录 exit 0（status: done / tasks 全 done / verification 实测留证）
+- 用例 2：check --final 合法记录 exit 0（status: 已完成 / tasks 全 done / verification 实测留证）
 - 用例 3：status 枚举违例 → ENUM_INVALID；重复 SP id → DUPLICATE_ID；未知 --id → UNKNOWN_ID
-- 用例 4：verification 空且 status 前进到 in-review → EMPTY_FIELD（轻量 TDD 硬底线）
+- 用例 4：verification 空且 status 前进到 审查中 → EMPTY_FIELD（轻量 TDD 硬底线）
 - 用例 5：tasks 未全 done 的 --final 拒绝；frozen intent 字段完整性（problem 缺失 → EMPTY_FIELD）
 - 用例 6：SKILL.md 契约冒烟（冻结实例句 233/md5 + 写作纪律块 497/md5 + 终门句指向 spec.py
           + 读取成本纪律 + 渲染静默 + 无编辑器/自动提交 + steps 6 文件在场）
@@ -54,26 +54,26 @@ ACCEPTANCE_BLOCK = NL.join([
 SPEC_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-09-14'",
     "specs:",
     "- id: SP-001",
     "  title: 登录失败重试",
-    "  type: bugfix",
-    "  route: plan-code-review",
-    "  status: done",
+    "  type: 缺陷修复",
+    "  route: 计划-编码-审查",
+    "  status: 已完成",
     "  date: '2026-09-14'",
     "  baseline: abc1234",
     "  intent:",
     "    problem: 登录失败后不重试",
     "    approach: 客户端加一次指数退避重试",
     "  boundaries:",
-    "    always:",
+    "    总是:",
     "    - 保持既有 API 形状",
-    "    ask_first:",
+    "    先问:",
     "    - 改默认超时值",
-    "    never:",
+    "    从不:",
     "    - 改后端协议",
     "  code_map:",
     "  - path: src/login_client.py",
@@ -152,11 +152,11 @@ class CheckPassTests(EngineCase):
                     "warnings", "counts"):
             self.assertIn(key, data, "回执缺共同键 %s" % key)
         self.assertEqual(data["counts"]["specs"], 1)
-        self.assertEqual(data["counts"]["by_status"], {"done": 1})
-        self.assertEqual(data["counts"]["by_route"], {"plan-code-review": 1})
+        self.assertEqual(data["counts"]["by_status"], {"已完成": 1})
+        self.assertEqual(data["counts"]["by_route"], {"计划-编码-审查": 1})
         self.assertEqual(data["counts"]["tasks"], 1)
 
-    # trace: 任务书 §6 check --final（status done / tasks 全 done / verification 实测留证）
+    # trace: 任务书 §6 check --final（status 已完成 / tasks 全 done / verification 实测留证）
     def test_check_final_legal_record_passes(self):
         self.spec()
         r = self.check("--final")
@@ -167,7 +167,7 @@ class CheckPassTests(EngineCase):
 
     # trace: 任务书 §6 check（--id 缩域：只校验该记录）
     def test_check_by_id_scopes_to_one_record(self):
-        active = SPEC_YAML.replace("  status: done", "  status: draft")
+        active = SPEC_YAML.replace("  status: 已完成", "  status: 草稿")
         self.spec(active)
         r = self.check("--id", "SP-001")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -183,9 +183,9 @@ class CheckViolationTests(EngineCase):
     # trace: 任务书 §6 check（枚举：type / route / status）
     def test_check_reports_enum_violations(self):
         cases = [
-            ("status", "  status: done", "  status: shipped"),
-            ("type", "  type: bugfix", "  type: hotfix"),
-            ("route", "  route: plan-code-review", "  route: quick"),
+            ("status", "  status: 已完成", "  status: shipped"),
+            ("type", "  type: 缺陷修复", "  type: hotfix"),
+            ("route", "  route: 计划-编码-审查", "  route: quick"),
         ]
         for name, old, new in cases:
             self.spec(SPEC_YAML.replace(old, new))
@@ -197,10 +197,10 @@ class CheckViolationTests(EngineCase):
             self.assertTrue(all(x.get("where") and x.get("msg")
                                 for x in data["violations"]), r.stdout)
 
-    # trace: 任务书 §6 门禁（verification 空 + status 前进到 in-review → EMPTY_FIELD，
+    # trace: 任务书 §6 门禁（verification 空 + status 前进到 审查中 → EMPTY_FIELD，
     #        轻量 TDD 的硬底线）
     def test_check_refuses_empty_verification_at_in_review(self):
-        text = (SPEC_YAML.replace("  status: done", "  status: in-review")
+        text = (SPEC_YAML.replace("  status: 已完成", "  status: 审查中")
                 .replace(VERIFY_BLOCK, ""))
         self.spec(text)
         r = self.check()
@@ -237,7 +237,7 @@ class CheckViolationTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("EMPTY_FIELD", {x["code"] for x in json.loads(r.stdout)["violations"]})
         assumption = SPEC_YAML.replace("  title: 登录失败重试",
-                                       "  title: '[ASSUMPTION] 登录失败重试'")
+                                       "  title: '[假设] 登录失败重试'")
         self.spec(assumption)
         r2 = self.check("--final")
         self.assertEqual(r2.returncode, 1, r2.stdout)

@@ -32,7 +32,7 @@ def write_artifact(out, name, status):
 def planning_chain_final(out):
     for name in ("prd.yaml", "architecture.yaml",
                  "epics.yaml", "stories.yaml", "test-plan.yaml"):
-        write_artifact(out, name, "final")
+        write_artifact(out, name, "已定稿")
 
 
 def write_openapi(out, status, meta_key="x-project"):
@@ -43,7 +43,7 @@ def write_openapi(out, status, meta_key="x-project"):
 
 
 def write_sprint(out, tasks):
-    lines = ["project:", "  status: final", "tasks:"]
+    lines = ["project:", "  status: 已定稿", "tasks:"]
     for sid, st in tasks:
         lines += ["- story: %s" % sid, "  status: %s" % st]
     with open(os.path.join(out, "sprint.yaml"), "w", encoding="utf-8") as f:
@@ -63,10 +63,10 @@ class HelpStateMachineTests(unittest.TestCase):
 
     # trace: S-13 AC-13.1 TC-13.1.1
     def test_full_planning_chain_recommends_sprint(self):
-        # 前置：规划链五产物 final（openapi 缺失=无 API 面，合法跳过），无 sprint.yaml
+        # 前置：规划链五产物 已定稿（openapi 缺失=无 API 面，合法跳过），无 sprint.yaml
         for name in ("prd.yaml", "architecture.yaml",
                      "epics.yaml", "stories.yaml", "test-plan.yaml"):
-            write_artifact(self.out, name, "final")
+            write_artifact(self.out, name, "已定稿")
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
@@ -75,7 +75,7 @@ class HelpStateMachineTests(unittest.TestCase):
 
     # trace: S-13 AC-13.1 TC-13.1.2
     def test_only_prd_recommends_architecture(self):
-        write_artifact(self.out, "prd.yaml", "final")
+        write_artifact(self.out, "prd.yaml", "已定稿")
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
@@ -86,15 +86,15 @@ class HelpStateMachineTests(unittest.TestCase):
     def test_draft_test_plan_reports_blocker(self):
         for name in ("prd.yaml", "architecture.yaml",
                      "epics.yaml", "stories.yaml"):
-            write_artifact(self.out, name, "final")
-        write_artifact(self.out, "test-plan.yaml", "draft")
+            write_artifact(self.out, name, "已定稿")
+        write_artifact(self.out, "test-plan.yaml", "草稿")
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
         self.assertIsNone(data["next_skill"])
         blocked = data["blocked"]
         self.assertEqual(blocked["file"], "test-plan.yaml")
-        self.assertEqual(blocked["status"], "draft")
+        self.assertEqual(blocked["status"], "草稿")
         self.assertIn("diy-test-design", blocked["action"])
         # 反静态菜单：人类输出指明文件与状态，而非罗列全部 skill
         pj = subprocess.run(
@@ -103,7 +103,7 @@ class HelpStateMachineTests(unittest.TestCase):
         )
         out = pj.stdout
         self.assertIn("test-plan.yaml", out)
-        self.assertIn("draft", out)
+        self.assertIn("草稿", out)
         # 反静态菜单：不得出现与当前阻塞状态无关的执行类 skill 罗列
         for s in ("diy-build-loop", "diy-dev", "diy-review",
                   "diy-help", "diy-viewer"):
@@ -112,7 +112,7 @@ class HelpStateMachineTests(unittest.TestCase):
     # trace: S-13 AC-13.1 TC-13.1.3
     def test_sprint_open_tasks_recommend_build_loop(self):
         planning_chain_final(self.out)
-        write_sprint(self.out, [("S-1", "done"), ("S-2", "pending")])
+        write_sprint(self.out, [("S-1", "已完成"), ("S-2", "待办")])
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
@@ -122,7 +122,7 @@ class HelpStateMachineTests(unittest.TestCase):
     # trace: S-13 AC-13.1 TC-13.1.4
     def test_sprint_all_done_workflow_complete(self):
         planning_chain_final(self.out)
-        write_sprint(self.out, [("S-1", "done"), ("S-2", "done")])
+        write_sprint(self.out, [("S-1", "已完成"), ("S-2", "已完成")])
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
@@ -133,14 +133,14 @@ class HelpStateMachineTests(unittest.TestCase):
     # trace: S-13 AC-13.1 TC-13.1.5
     def test_sprint_blocked_task_directs_human(self):
         planning_chain_final(self.out)
-        write_sprint(self.out, [("S-1", "done"), ("S-9", "blocked")])
+        write_sprint(self.out, [("S-1", "已完成"), ("S-9", "已阻塞")])
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
         self.assertIsNone(data["next_skill"])
         blocked = data["blocked"]
         self.assertEqual(blocked["file"], "sprint.yaml")
-        self.assertEqual(blocked["status"], "blocked")
+        self.assertEqual(blocked["status"], "已阻塞")
         self.assertIn("S-9", blocked["action"])
         self.assertIn("人工", blocked["action"])
 
@@ -170,7 +170,7 @@ class HelpStateMachineTests(unittest.TestCase):
         # 对抗审查 R2：链全 final 时 tasks: null 不得被 `or []` 吞成"推荐 build-loop"
         planning_chain_final(self.out)
         with open(os.path.join(self.out, "sprint.yaml"), "w", encoding="utf-8") as f:
-            f.write("project:" + chr(10) + "  status: final" + chr(10) + "tasks:" + chr(10))
+            f.write("project:" + chr(10) + "  status: 已定稿" + chr(10) + "tasks:" + chr(10))
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertNotIn("Traceback", p.stderr)
@@ -183,21 +183,21 @@ class HelpStateMachineTests(unittest.TestCase):
         # 对抗审查 R2：story 节点为映射时 ", ".join 不得裸栈
         planning_chain_final(self.out)
         with open(os.path.join(self.out, "sprint.yaml"), "w", encoding="utf-8") as f:
-            f.write("project:" + chr(10) + "  status: final" + chr(10) + "tasks:" + chr(10)
+            f.write("project:" + chr(10) + "  status: 已定稿" + chr(10) + "tasks:" + chr(10)
                     + "- story:" + chr(10) + "    id: S-1" + chr(10)
-                    + "  status: blocked" + chr(10))
+                    + "  status: 已阻塞" + chr(10))
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertNotIn("Traceback", p.stderr)
         data = json.loads(p.stdout)
-        self.assertEqual(data["blocked"]["status"], "blocked")
+        self.assertEqual(data["blocked"]["status"], "已阻塞")
         self.assertIn("S-1", data["blocked"]["action"])
 
 
     # trace: F-A1-1（openapi 定稿写在 x-project.status，链必须继续而非假阻塞）
     def test_openapi_x_project_final_advances_chain(self):
         planning_chain_final(self.out)
-        write_openapi(self.out, "final")
+        write_openapi(self.out, "已定稿")
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
@@ -208,7 +208,7 @@ class HelpStateMachineTests(unittest.TestCase):
     # trace: F-A1-1（声明路径读不到时回落 project.status，兼容两种 meta 位置）
     def test_openapi_project_status_fallback_still_reads(self):
         planning_chain_final(self.out)
-        write_openapi(self.out, "final", meta_key="project")
+        write_openapi(self.out, "已定稿", meta_key="project")
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
@@ -217,15 +217,15 @@ class HelpStateMachineTests(unittest.TestCase):
 
     # trace: F-A1-2（x-project.status: draft → 阻塞在 openapi，动作指向 diy-openapi）
     def test_openapi_x_project_draft_blocks_with_action(self):
-        write_artifact(self.out, "prd.yaml", "final")
-        write_artifact(self.out, "architecture.yaml", "final")
-        write_openapi(self.out, "draft")
+        write_artifact(self.out, "prd.yaml", "已定稿")
+        write_artifact(self.out, "architecture.yaml", "已定稿")
+        write_openapi(self.out, "草稿")
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
         self.assertIsNone(data["next_skill"])
         self.assertEqual(data["blocked"]["file"], "openapi.yaml")
-        self.assertEqual(data["blocked"]["status"], "draft")
+        self.assertEqual(data["blocked"]["status"], "草稿")
         self.assertIn("diy-openapi", data["blocked"]["action"])
 
     # trace: F-A2-1（design.yaml 缺失=optional 跳过，notes 给 diy-design 提示）
@@ -240,22 +240,22 @@ class HelpStateMachineTests(unittest.TestCase):
 
     # trace: F-A2-2（design.yaml 存在但 draft → 半成品不可静默跳过）
     def test_design_draft_blocks_at_design(self):
-        write_artifact(self.out, "prd.yaml", "final")
-        write_artifact(self.out, "architecture.yaml", "final")
-        write_artifact(self.out, "design.yaml", "draft")
+        write_artifact(self.out, "prd.yaml", "已定稿")
+        write_artifact(self.out, "architecture.yaml", "已定稿")
+        write_artifact(self.out, "design.yaml", "草稿")
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
         self.assertIsNone(data["next_skill"])
         self.assertEqual(data["blocked"]["file"], "design.yaml")
-        self.assertEqual(data["blocked"]["status"], "draft")
+        self.assertEqual(data["blocked"]["status"], "草稿")
         self.assertIn("diy-design", data["blocked"]["action"])
 
     # trace: F-A2-3（design.yaml final → 计入 completed 并推进）
     def test_design_final_advances_to_epics(self):
-        write_artifact(self.out, "prd.yaml", "final")
-        write_artifact(self.out, "architecture.yaml", "final")
-        write_artifact(self.out, "design.yaml", "final")
+        write_artifact(self.out, "prd.yaml", "已定稿")
+        write_artifact(self.out, "architecture.yaml", "已定稿")
+        write_artifact(self.out, "design.yaml", "已定稿")
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
@@ -264,7 +264,7 @@ class HelpStateMachineTests(unittest.TestCase):
 
     # trace: F-A2-4（位置分母自动含 design 节点：7 步）
     def test_step_denominator_covers_seven_nodes(self):
-        write_artifact(self.out, "prd.yaml", "final")
+        write_artifact(self.out, "prd.yaml", "已定稿")
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
@@ -272,9 +272,9 @@ class HelpStateMachineTests(unittest.TestCase):
 
     # trace: F-A3a（多文件节点只落一半 → 不得计入 completed，推荐本节点 skill）
     def test_partial_multi_file_node_not_completed(self):
-        write_artifact(self.out, "prd.yaml", "final")
-        write_artifact(self.out, "architecture.yaml", "final")
-        write_artifact(self.out, "epics.yaml", "final")  # stories.yaml 缺失=半写
+        write_artifact(self.out, "prd.yaml", "已定稿")
+        write_artifact(self.out, "architecture.yaml", "已定稿")
+        write_artifact(self.out, "epics.yaml", "已定稿")  # stories.yaml 缺失=半写
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         data = json.loads(p.stdout)
@@ -351,7 +351,7 @@ class HelpStateMachineTests(unittest.TestCase):
     def test_sprint_empty_tasks_blocks(self):
         planning_chain_final(self.out)
         with open(os.path.join(self.out, "sprint.yaml"), "w", encoding="utf-8") as f:
-            f.write("project:" + chr(10) + "  status: final" + chr(10)
+            f.write("project:" + chr(10) + "  status: 已定稿" + chr(10)
                     + "tasks: []" + chr(10))
         p = run_help(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)

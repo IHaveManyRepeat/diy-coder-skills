@@ -18,7 +18,7 @@ In diy the PRD is structured (`prd.yaml`), so the inventory is machine-derived. 
 
 One message, front-loaded:
 
-- FR count with its must/should/could split; NFR count; the FR list as `FR-x.y (must) — feature F-x`;
+- FR count with its 必须/应该/可选 split; NFR count; the FR list as `FR-x.y (必须) — feature F-x`;
 - epics / stories / AC counts from the receipt;
 - open questions the PRD still carries — the `diyc.check` receipt reports unclosed `open_questions` as `PENDING_DECISION`; a PRD with open questions is not settled input.
 
@@ -32,7 +32,7 @@ The source workflow also looked for constraints, assumptions and technical requi
 
 ## Evidence from diyc
 
-The `diyc.check` receipt for `prd` carries the mechanical side (enums, ID uniqueness, unclosed questions, zero `[ASSUMPTION]`). Relay each violation as an inventory gap with its `where`; do not re-check it by eye.
+The `diyc.check` receipt for `prd` carries the mechanical side (enums, ID uniqueness, unclosed questions, zero `[假设]`). Relay each violation as an inventory gap with its `where`; do not re-check it by eye.
 
 ## Next
 

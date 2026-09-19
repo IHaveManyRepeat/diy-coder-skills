@@ -31,9 +31,9 @@ outputs: spec-scan.yaml
 1. `steps/01-collect.md` — 目标定位与切分：跑 `collect` 建立**扫描单元清单**，落草稿记录，给用户一句进度播报。
 2. `steps/02-dry-run.md` — **预演执行**（核心）：逐单元扮演实现者，产出执行计划；每个"必须猜"的决策点记一条 finding。
 3. `steps/03-cross-check.md` — 交叉验证：换视角复扫高风险单元，补漏 + 去误报。
-4. `steps/04-report.md` — 落盘 + `check --final` 终门 + 渲染 + 摘要（计数 / blocker 清单 / 路由）。
+4. `steps/04-report.md` — 落盘 + `check --final` 终门 + 渲染 + 摘要（计数 / 阻断清单 / 路由）。
 
-写回纪律：记录在 step 1 建为 `draft`，各步填充，step 4 定稿。
+写回纪律：记录在 step 1 建为 `草稿`，各步填充，step 4 定稿。
 
 渲染静默——只给命令，不新增浏览器交互点、不等路径、不阻塞：
 `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）
@@ -47,13 +47,13 @@ project: {name, created, updated}
 scans:
   - id: SS-001
     date: YYYY-MM-DD
-    status: draft|final
+    status: 草稿|已定稿
     target: {kind: taskbook|skill|spec, path: <relative>, files: N, lines: N}
     units:                        # 扫描单元清单（覆盖凭证：证明扫了什么）
       - {unit: <单元名>, path: <relative>, lines: N, scanned: true|false}
     findings:
       - id: SS-001-01
-        type: UNDEFINED_BRANCH|TERM_CONFLICT|INTERFACE_GAP|INPUT_UNDEFINED|OUTPUT_UNDEFINED|ORDER_AMBIGUOUS|CONFLICT|UNSTATED_ASSUMPTION
+        type: 分支无定义|术语冲突|接口缺口|输入不明|输出不明|时序不明|直接矛盾|隐含假设
         where: <relative path>:<line>
         quote: <原文摘录>
         read_as: <我读到什么>
@@ -61,7 +61,7 @@ scans:
         would_guess: <如果我是实现者，我会猜成什么>
         impact: <猜错的后果>
         suggestion: <建议怎么裁定>
-        severity: blocker|major|minor
+        severity: 阻断|建议|观察
     summary: {total: N, blocker: N, major: N, minor: N, units_total: N, units_scanned: N}
     open_questions: [<string>]
 revisions: []
@@ -74,5 +74,5 @@ revisions: []
 - **`would_guess` 是命根子。** 每条 finding 必须写清"如果没人管，我会猜成什么"。没有它，隐含假设就没被显性化，这条不算 finding（引擎会把空值判为违规）。
 - **零改写。** 本技能不改任何被扫文件——只出清单。裁定归用户。
 - **不评论质量。** 不挑风格、不评好坏、不提"建议改为"。只报"照这份规格执行，会卡在哪"。
-- **不确定就标 major，别升 blocker。** blocker 只留给"两种理解会导致完全不同的实现"这一档。
+- **不确定就标 `建议`，别升 `阻断`。** `阻断` 只留给"两种理解会导致完全不同的实现"这一档。
 - **Writing discipline.** findings 散文用 `document_output_language`；`quote` 里机器锚点（ID / 枚举值 / 命令 / 路径）逐字保留原文，不翻译。

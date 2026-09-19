@@ -18,7 +18,7 @@ VIEWER = HERE.parent / "skills" / "diy-viewer" / "scripts" / "viewer.py"
 
 PRD = """project:
   name: fixture
-  status: final
+  status: 已定稿
   created: '2026-09-09'
   updated: '2026-09-09'
 features:
@@ -28,13 +28,13 @@ features:
   requirements:
   - id: FR-1.1
     statement: 被引用的需求
-    priority: must
+    priority: 必须
   - id: FR-1.2
-    statement: 无任何引用的 must 需求（孤儿）
-    priority: must
+    statement: 无任何引用的必须级需求（孤儿）
+    priority: 必须
   - id: FR-1.3
-    statement: 无引用的 should 需求（不在孤儿判定范围）
-    priority: should
+    statement: 无引用的应该级需求（不在孤儿判定范围）
+    priority: 应该
 """
 
 
@@ -63,7 +63,7 @@ class TC_12_1_1_DanglingRefMarked(unittest.TestCase):
         (self.out / "stories.yaml").write_text(
             "project:\n"
             "  name: fixture\n"
-            "  status: final\n"
+            "  status: 已定稿\n"
             "  created: '2026-09-09'\n"
             "  updated: '2026-09-09'\n"
             "stories:\n"
@@ -78,7 +78,7 @@ class TC_12_1_1_DanglingRefMarked(unittest.TestCase):
             "    refs:\n"
             "    - FR-1.1\n"
             "    - FR-99.9\n"
-            "  status: done\n", encoding="utf-8")
+            "  status: 已完成\n", encoding="utf-8")
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -110,7 +110,7 @@ class TC_12_2_1_OrphanMustFR(unittest.TestCase):
         (self.out / "stories.yaml").write_text(
             "project:\n"
             "  name: fixture\n"
-            "  status: final\n"
+            "  status: 已定稿\n"
             "  created: '2026-09-09'\n"
             "  updated: '2026-09-09'\n"
             "stories:\n"
@@ -124,7 +124,7 @@ class TC_12_2_1_OrphanMustFR(unittest.TestCase):
             "    then: t\n"
             "    refs:\n"
             "    - FR-1.1\n"
-            "  status: done\n", encoding="utf-8")
+            "  status: 已完成\n", encoding="utf-8")
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)

@@ -15,7 +15,7 @@ In diy the design/UX single source is `design.yaml` (pages `P-x`, design tokens)
 
 **UX ↔ Architecture.** Check that architecture decisions (`architecture.yaml` `D-x`) support what the design needs — responsiveness and load-time targets where the design implies them, client-side state, any UI component whose backing service no decision covers. Name the decision, or its absence, with an evidence anchor.
 
-Findings here are `area: ux`; severity by consequence — `high` when a requirement cannot be built as designed, `medium` for alignment debt, `low` for polish.
+Findings here are `area: ux`; severity by consequence — `高` when a requirement cannot be built as designed, `中` for alignment debt, `低` for polish.
 
 ## When design.yaml is absent — is UX implied?
 
@@ -24,7 +24,7 @@ Absence is legitimate (a CLI, a library, a backend service) — but never assume
 - does it name user interfaces, screens, or web/mobile surfaces (`prd.yaml` features / users)?
 - is this a user-facing application, or does an epic deliver something a person operates?
 
-Implied but missing → a finding (`area: ux`, `severity: medium`, `route: diy-design`) with the implying FR IDs as evidence — the source workflow's warning, kept. Not implied → say so explicitly and record nothing; step 6 reports it as a clean area.
+Implied but missing → a finding (`area: ux`, `severity: 中`, `route: diy-design`) with the implying FR IDs as evidence — the source workflow's warning, kept. Not implied → say so explicitly and record nothing; step 6 reports it as a clean area.
 
 ## Next
 

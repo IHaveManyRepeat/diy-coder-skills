@@ -8,12 +8,12 @@
          pubspec.yaml / composer.json / *.csproj 按存在性探测）。语言无关：先探测再解析，
          未知清单降级「存在但未解析」+ MANIFEST_UNPARSED warning，不崩、不假设特定工具链。
          另有既有文档发现（源 full-scan step-2 的 README/ARCHITECTURE/API/DEPLOYMENT/docs 模式）
-         与源码树渲染（深度/条目上限为内置常量）。scan_level 三档：quick=模式分析不读源码；
-         deep=加源文件计数；exhaustive=再加 LOC（读文件，受文件数/字节上限约束）。
+         与源码树渲染（深度/条目上限为内置常量）。scan_level 三档：快速=模式分析不读源码；
+         深入=加源文件计数；穷尽=再加 LOC（读文件，受文件数/字节上限约束）。
          部件/类型判定是启发式——LLM 在步骤 01 与用户确认（源 full-scan step-1 同样要求确认）。
   check  校验 {output_dir}/project-context.yaml：schema / 枚举 / scan.parts 非空 /
          rules 的 PC-### 唯一与类别枚举；--previous 比对旧稿 PC-### 集合（rescan 防丢规则，
-         旧有新无 → ID_UNSTABLE）；--final 附加定稿义务（zero [ASSUMPTION]、rules 非空且每条
+         旧有新无 → ID_UNSTABLE）；--final 附加定稿义务（zero [假设]、rules 非空且每条
          rule/why/where 非空、stack 非空）。exit 0 唯一放行。
 
 新码登记（batch3-contract §3 冻结集之外）：
@@ -44,16 +44,16 @@ except ImportError:  # pragma: no cover - 取决于运行时版本
 
 CTX_FILE = "project-context.yaml"
 
-SCAN_MODES = ("full", "rescan", "deep-dive")
-SCAN_LEVELS = ("quick", "deep", "exhaustive")
+SCAN_MODES = ("全量", "重扫", "深挖")
+SCAN_LEVELS = ("快速", "深入", "穷尽")
 # 规则类别 = 源 generate-project-context step-02/step-03 的七个规则域（Technology Stack &
 # Versions / Language / Framework / Testing / Quality & Style / Workflow / Critical Don't-Miss）
-RULE_CATEGORIES = ("stack", "language", "framework", "testing", "quality", "workflow",
-                   "anti-pattern")
+RULE_CATEGORIES = ("技术栈", "语言", "框架", "测试", "质量", "工作流",
+                   "反模式")
 # 部件类型 = documentation-requirements.csv 的项目类型列（11 行；源文宣称 12 类，CSV 实际 11 行）
-# + unknown（畸形/未解析清单的降级值，与 scan 回执自洽）
-PART_TYPES = ("web", "mobile", "backend", "cli", "library", "desktop", "game", "data",
-              "extension", "infra", "embedded", "unknown")
+# + 未知（畸形/未解析清单的降级值，与 scan 回执自洽）
+PART_TYPES = ("网页", "移动端", "后端", "命令行", "库", "桌面端", "游戏", "数据",
+              "扩展", "基础设施", "嵌入式", "未知")
 
 PC_RE = re.compile(r"PC-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -110,8 +110,8 @@ MARKER_LANGUAGE = {
 }
 # 非清单但决定项目类型的强标记：glob → 类型（CSV key_file_patterns 的高置信子集）
 MARKER_TYPE_GLOBS = (
-    ("*.tf", "infra"), ("*.tfvars", "infra"), ("pulumi.yaml", "infra"), ("cdk.json", "infra"),
-    ("*.ino", "embedded"), ("project.godot", "game"), ("*.unity", "game"), ("*.uproject", "game"),
+    ("*.tf", "基础设施"), ("*.tfvars", "基础设施"), ("pulumi.yaml", "基础设施"), ("cdk.json", "基础设施"),
+    ("*.ino", "嵌入式"), ("project.godot", "游戏"), ("*.unity", "游戏"), ("*.uproject", "游戏"),
 )
 # 依赖名 → 框架（有序：先具体后一般；命中即停）
 FRAMEWORK_HINTS = (
@@ -469,29 +469,29 @@ def classify_part(part_dir, manifests):
         deps.update(entry.get("deps") or ())
     _, framework = first_hit(deps, FRAMEWORK_HINTS)
     if framework in ("react-native", "expo", "flutter"):
-        return "mobile"
+        return "移动端"
     if framework in ("electron", "tauri"):
-        return "desktop"
+        return "桌面端"
     if framework in ("next", "nuxt", "react", "vue", "svelte", "angular"):
-        return "extension" if os.path.isfile(os.path.join(part_dir, "manifest.json")) else "web"
+        return "扩展" if os.path.isfile(os.path.join(part_dir, "manifest.json")) else "网页"
     if framework in ("airflow", "dbt"):
-        return "data"
+        return "数据"
     if framework in ("fastapi", "django", "flask", "nestjs", "express", "fastify",
                      "spring-boot", "laravel", "symfony", "gin", "echo", "fiber", "grpc",
                      "actix", "axum"):
-        return "backend"
+        return "后端"
     for entry in manifests:
         if entry.get("has_bin"):
-            return "cli"
+            return "命令行"
         if entry.get("csproj_desktop"):
-            return "desktop"
+            return "桌面端"
         if entry.get("has_lib"):
-            return "library"
+            return "库"
     if os.path.isfile(os.path.join(part_dir, "go.mod")):
-        return "backend"
+        return "后端"
     if os.path.isfile(os.path.join(part_dir, "pom.xml")):
-        return "backend"
-    return "unknown"
+        return "后端"
+    return "未知"
 
 
 # ---- 部件探测（多部件 / 单仓 / 单块） ----
@@ -630,7 +630,7 @@ def find_docs(root, project_root, parts, excludes=EXCLUDE_DIRS):
 
 
 def source_stats(part_dir, level, excludes=EXCLUDE_DIRS):
-    """deep/exhaustive 的文件计数与（exhaustive 的）LOC；受深度/文件数/字节上限约束。"""
+    """深入/穷尽的文件计数与（穷尽的）LOC；受深度/文件数/字节上限约束。"""
     files = 0
     loc = 0
     read_files = 0
@@ -645,7 +645,7 @@ def source_stats(part_dir, level, excludes=EXCLUDE_DIRS):
             if not name.lower().endswith(SOURCE_EXTS):
                 continue
             files += 1
-            if level != "exhaustive" or read_files >= LOC_MAX_FILES:
+            if level != "穷尽" or read_files >= LOC_MAX_FILES:
                 continue
             path = os.path.join(current, name)
             try:
@@ -694,7 +694,7 @@ def build_part(project_root, name, path, level, excludes=EXCLUDE_DIRS):
             "manifests": part_manifest_files(path, project_root)}
     stack = {"part": name, "language": language, "framework": framework, "version": version,
              "notes": "；".join(n for n in notes if n)}
-    stats = source_stats(path, level, excludes) if level in ("deep", "exhaustive") else {}
+    stats = source_stats(path, level, excludes) if level in ("深入", "穷尽") else {}
     return part, stack, stats, warnings
 
 
@@ -808,7 +808,7 @@ def emit_scan(args, repository_type, parts, stack, docs, tree, violations, warni
 # ---- check ----
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -1044,9 +1044,9 @@ def cmd_check(args):
         if revisions is not None and not isinstance(revisions, list):
             violations.append(v("EMPTY_FIELD", show + " revisions", "revisions 不是列表"))
         if args.final:
-            if any("[ASSUMPTION]" in s for s in collect_strings(data)):
+            if any("[假设]" in s for s in collect_strings(data)):
                 violations.append(v("ASSUMPTION_PRESENT", show,
-                                    "--final 要求零 [ASSUMPTION]；未决假设须先落定"))
+                                    "--final 要求零 [假设]；未决假设须先落定"))
             if isinstance(data.get("stack"), list) and not data["stack"]:
                 violations.append(v("EMPTY_FIELD", show + " stack", "--final 要求 stack 非空"))
 
@@ -1123,8 +1123,8 @@ def main():
     s.add_argument("--project-root", default=".", help="项目根（默认 .）")
     s.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
-    s.add_argument("--level", default="quick", choices=list(SCAN_LEVELS),
-                   help="扫描档位：quick=模式分析（默认）/ deep=加文件计数 / exhaustive=加 LOC")
+    s.add_argument("--level", default="快速", choices=list(SCAN_LEVELS),
+                   help="扫描档位：快速=模式分析（默认）/ 深入=加文件计数 / 穷尽=加 LOC")
     s.add_argument("--part", default=None, help="只扫指定部件（部件名以扫描回执为准）")
     s.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     s.set_defaults(func=cmd_scan)

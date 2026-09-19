@@ -11,16 +11,16 @@ Progress: `Epic Discovery → Deep Analysis → [Continuity] → Review → Acti
 
 For each carried action, judge the actual follow-through **from this epic's evidence, not from memory**:
 
-- `done` — an artifact shows it happened (cite it: an `AC-x.y` now covered, a `BUG-0xx` with the prevention in place, a `blocked_reason` that no longer recurs).
-- `partial` — visible progress, visible gap; say which part is missing.
-- `missed` — no trace in this epic's evidence; state the consequence without blame (source facilitation rule: systems, not people).
+- `已完成` — an artifact shows it happened (cite it: an `AC-x.y` now covered, a `BUG-0xx` with the prevention in place, a `blocked_reason` that no longer recurs).
+- `部分完成` — visible progress, visible gap; say which part is missing.
+- `未完成` — no trace in this epic's evidence; state the consequence without blame (source facilitation rule: systems, not people).
 
 ```yaml
     prev_followup:
-      - {retro: RT-yy, action: <the commitment, one line>, status: done|partial|missed, evidence: <anchor>}
+      - {retro: RT-yy, action: <the commitment, one line>, status: 已完成|部分完成|未完成, evidence: <anchor>}
 ```
 
-An action the evidence cannot decide is `missed` with the missing evidence named — never upgraded on optimism. Omit `prev_followup` entirely on a first retro.
+An action the evidence cannot decide is `未完成` with the missing evidence named — never upgraded on optimism. Omit `prev_followup` entirely on a first retro.
 
 ## Part 2 — Next epic preview (source step-4)
 

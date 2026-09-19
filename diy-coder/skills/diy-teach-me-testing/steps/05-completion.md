@@ -35,12 +35,12 @@ python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" 
 python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`exit 0` 是唯一放行——它同时证明三件事：7 节全 `completed`、`summary.generated` 为真、摘要文件在盘上。有违规就**修掉每条并重跑**（回执的 `counts` 就是收尾证据：完成节数 / 完成度）。渲染与收尾都等 `exit 0`。
+`exit 0` 是唯一放行——它同时证明三件事：7 节全 `已完成`、`summary.generated` 为真、摘要文件在盘上。有违规就**修掉每条并重跑**（回执的 `counts` 就是收尾证据：完成节数 / 完成度）。渲染与收尾都等 `exit 0`。
 
 ## 收尾
 
 播报结业结果（平均分 / 总历时 / 摘要路径 / 笔记目录），并说明随时可回任一节复习：重做会覆盖同名笔记、分数以最新一次为准，进度台账照常续用。
 
-## Next
+## 播报与下一步
 
 读 `./03-hub.md` 并照做（完成态 Hub：可重进任一节，或结束本次运行）。

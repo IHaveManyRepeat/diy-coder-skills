@@ -19,7 +19,7 @@ NL = chr(10)
 GOOD_PRD = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  updated: 2026-09-13",
     "features:",
     "- id: FG-1",
@@ -27,7 +27,7 @@ GOOD_PRD = NL.join([
     "  requirements:",
     "  - id: FR-1.1",
     "    statement: 迷你需求",
-    "    priority: must",
+    "    priority: 必须",
 ])
 
 
@@ -91,20 +91,20 @@ class ViewerShapeDegradeTests(unittest.TestCase):
 TEST_PLAN_DOC = NL.join([
     "project:",
     "  name: fx",
-    "  status: final",
+    "  status: 已定稿",
     "test_cases:",
     "- id: TC-1.1.1",
     "  ac: AC-1.1",
-    "  type: unit",
+    "  type: 单元",
     "  priority: P0",
-    "  status: pending",
+    "  status: 待办",
     "  steps:",
     "  - 第一步",
     "- id: TC-1.1.2",
     "  ac: AC-1.1",
     "  type:",
     "  priority: P1",
-    "  status: pending",
+    "  status: 待办",
     "  steps:",
     "  - 第二步",
 ])
@@ -112,11 +112,11 @@ TEST_PLAN_DOC = NL.join([
 BUG_LOG_DOC = NL.join([
     "project:",
     "  name: fx",
-    "  status: final",
+    "  status: 已定稿",
     "bugs:",
     "- id: BUG-1",
-    "  class: functional",
-    "  subclass: logic",
+    "  class: 功能型",
+    "  subclass: 逻辑",
     "  type: 双写状态不同步",
     "  symptom: 症状一行",
 ])
@@ -124,22 +124,22 @@ BUG_LOG_DOC = NL.join([
 ARCH_DOC = NL.join([
     "project:",
     "  name: fx",
-    "  status: draft",
+    "  status: 草稿",
     "decisions:",
     "- id: D-1",
     "  title: 载体选择",
     "  decision: 选用 React，因为团队熟悉",
-    "  status: accepted",
+    "  status: 已采纳",
     "- id: D-2",
     "  title: 备选",
     "  decision: 改用 Vue",
-    "  status: proposed",
+    "  status: 待定",
 ])
 
 DESIGN_DOC = NL.join([
     "project:",
     "  name: fx",
-    "  status: draft",
+    "  status: 草稿",
     "direction: 瑞士编辑风",
     "frontend_framework: html",
     "tokens:",
@@ -152,7 +152,7 @@ DESIGN_DOC = NL.join([
     "  name: 待办列表",
     "  route: /home",
     "  states:",
-    "  - {name: hover, signals: [icon, motion]}",
+    "  - {name: 悬停, signals: [图标, 动效]}",
     "  prototype: prototypes/P-1.html",
     "  implementation: src/pages/P-1.jsx",
 ])
@@ -215,9 +215,9 @@ class ViewerDesignFamilyTests(_Fixture):
         for label in ("方向", "前端框架", "设计令牌", "颜色", "间距", "页面",
                       "信号", "结构稿", "实现路径"):
             self.assertIn(label, body, "design 键 %s 未映射为中文" % label)
-        # trace: 对抗审查修复——states[].signals 列表标量消费值词表（icon/motion 不再英文裸奔）
-        self.assertIn("图标", body, "signals 列表 icon 未映射为中文")
-        self.assertIn("动效", body, "signals 列表 motion 未映射为中文")
+        # trace: 对抗审查修复——states[].signals 列表标量消费值词表（中文值原样渲染，不再英文裸奔）
+        self.assertIn("图标", body, "signals 列表图标值未渲染")
+        self.assertIn("动效", body, "signals 列表动效值未渲染")
         prd_html, _ = self.page_body("prd")
         self.assertIn("设计稿", prd_html.split("<main>")[0], "prd 导航未中文化 design")
         index = open(os.path.join(self.out, ".view", "index.html"),
@@ -270,7 +270,7 @@ class ViewerBadgeValueAwareTests(_Fixture):
     def test_unknown_enum_value_still_diagnosed(self):
         # 诊断的正向契约：严格枚举键（test-plan technique）上的越界值必须一行可见
         self.write("test-plan.yaml", TEST_PLAN_DOC.replace(
-            "  type: unit", "  type: unit" + NL + "  technique: 未登记技法"))
+            "  type: 单元", "  type: 单元" + NL + "  technique: 未登记技法"))
         p = run_viewer(self.root)
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertIn("unmapped enum: 未登记技法", p.stderr,

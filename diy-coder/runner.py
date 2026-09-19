@@ -14,7 +14,7 @@ from pathlib import Path
 
 import yaml
 
-TERMINAL = {"done", "blocked"}
+TERMINAL = {"已完成", "已阻塞"}
 DEFAULT_MAX_RETRIES = 2  # R-4：重试上限 2 次封顶
 # trace: FR-4.5 D-9 实例名白名单（与 viewer/help 同源）：字母数字开头和结尾，中间可含 . _ -。
 # 首字符字母数字拒绝点目录/分隔符；末字符禁点（Windows 尾点目录被静默折叠，b. ≡ b 破坏实例隔离）
@@ -22,7 +22,7 @@ INSTANCE_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?")
 
 
 def load_sprint(sprint_path: Path) -> dict:
-    # trace: S-10 AC-10.2 AC-10.1 D-4 读取 sprint.yaml；final 硬门（非 final 拒绝，路由 diy-sprint）；
+    # trace: S-10 AC-10.2 AC-10.1 D-4 读取 sprint.yaml；已定稿硬门（非 已定稿 拒绝，路由 diy-sprint）；
     # 语法损坏/形状异常一行中文报错（对抗审查 R3，BUG-011 同类：错误路径与主路径同等标准）
     try:
         doc = yaml.safe_load(sprint_path.read_text(encoding="utf-8"))
@@ -30,8 +30,8 @@ def load_sprint(sprint_path: Path) -> dict:
         raise SystemExit(f"[runner] sprint.yaml 解析失败（{e.__class__.__name__}）："
                          f"{sprint_path}——修复后重跑")
     proj = doc.get("project") if isinstance(doc, dict) else None
-    if not isinstance(proj, dict) or proj.get("status") != "final":
-        raise SystemExit(f"[runner] sprint.yaml 非 final，先运行 diy-sprint: {sprint_path}")
+    if not isinstance(proj, dict) or proj.get("status") != "已定稿":
+        raise SystemExit(f"[runner] sprint.yaml 非已定稿，先运行 diy-sprint: {sprint_path}")
     return doc
 
 
@@ -43,7 +43,7 @@ def save_sprint(sprint_path: Path, doc: dict) -> None:
 
 
 def pick_next(doc: dict):
-    # trace: S-10 AC-10.2 挑第一个非终态任务；done/blocked 跳过即断点续跑（不重复执行）
+    # trace: S-10 AC-10.2 挑第一个非终态任务；已完成/已阻塞 跳过即断点续跑（不重复执行）
     for task in doc.get("tasks", []):
         if task.get("status") not in TERMINAL:
             return task
@@ -65,7 +65,7 @@ def spawn_iteration(claude_cmd: list, project_root: Path, story_id: str,
     prompt = _instance_clause(instance) + (
         f"运行 diy-build-loop skill 处理任务 {story_id}：读取本项目 diy-coder.yaml 解析 "
         f"output_dir 下的 sprint.yaml，把任务 {story_id} 从当前状态驱动到终态"
-        f"（done 或 blocked），每次状态转移立即写回 sprint.yaml 并更新 project.updated。"
+        f"（已完成 或 已阻塞），每次状态转移立即写回 sprint.yaml 并更新 project.updated。"
         f"无人值守模式：不要提问、不要等待人工确认。"
         f"提示：本会话的命令执行工具（PowerShell）是核心工具、不进入 ToolSearch 索引，"
         f"直接调用即可；先用 ToolSearch 搜索来确认其存在会得到假阴性。"
@@ -104,15 +104,15 @@ def _spawn(claude_cmd: list, project_root: Path, prompt: str, allow: list) -> in
 
 def spawn_augment(claude_cmd: list, project_root: Path, story_id: str,
                   allow: list, instance: str = None) -> int:
-    # trace: 2026-09-13 裁定——编码后补测（diy-augment）：每任务 done 后触发，
+    # trace: 2026-09-13 裁定——编码后补测（diy-augment）：每任务已完成 后触发，
     # 覆盖率驱动追加 TC 写回 test-plan.yaml；本函数只负责 spawn，
     # 失败由调用方降级为一行提示，不阻塞串行主循环
     prompt = _instance_clause(instance) + (
         f"运行 diy-augment skill 对已完成任务 {story_id} 做编码后补测：读取本项目 diy-coder.yaml 解析 "
         f"output_dir 下的 sprint.yaml、test-plan.yaml 及该任务的实现面，先跑覆盖率工具采集缺口，"
         f"再按 coverage-branch / coverage-mc-dc / whitebox-path 三技法追加补测用例到 test-plan.yaml "
-        f"（TC ID 延续既有每-AC 序列），执行并回填 status；最后把本次结论（pass=全部通过 / "
-        f"fail=发现缺陷 / skip=缺工具未跑）写入 sprint.yaml 中任务 {story_id} 的 augment 字段"
+        f"（TC ID 延续既有每-AC 序列），执行并回填 status；最后把本次结论（通过=全部通过 / "
+        f"失败=发现缺陷 / 已跳过=缺工具未跑）写入 sprint.yaml 中任务 {story_id} 的 augment 字段"
         f"（只写 augment 字段，任务 status 零写回）。"
         f"无人值守模式：不要提问、不要等待人工确认。"
         f"提示：本会话的命令执行工具（PowerShell）是核心工具、不进入 ToolSearch 索引，"
@@ -126,30 +126,30 @@ def augment_note(sprint_path: Path, story_id: str, rc: int) -> str:
     # （AI 会话无法可靠设置退出码）；rc 仅在未留痕时作回退提示信息
     task = find_task(load_sprint(sprint_path), story_id)
     verdict = task.get("augment")
-    if verdict == "pass":
+    if verdict == "通过":
         return "补测轮通过"
-    if verdict == "fail":
+    if verdict == "失败":
         return "补测轮发现缺陷（待裁断）"
-    if verdict == "skip":
+    if verdict == "已跳过":
         return "补测轮跳过（缺工具）"
     return f"补测轮未留痕（退出码 {rc}，不阻塞）"
 
 
 def augment_summary(doc: dict) -> list:
-    # trace: 2026-09-13 裁定——补测汇总（done 任务口径）：任务状态与补测结论正交，
-    # blocked 任务不参与统计；fail 时附待裁断名单（裁断三途径提示）
+    # trace: 2026-09-13 裁定——补测汇总（已完成 任务口径）：任务状态与补测结论正交，
+    # 已阻塞 任务不参与统计；失败 时附待裁断名单（裁断三途径提示）
     pass_n = fail_n = skip_n = unrun_n = 0
     failed = []
     for task in doc.get("tasks", []):
-        if task.get("status") != "done":
+        if task.get("status") != "已完成":
             continue
         verdict = task.get("augment")
-        if verdict == "pass":
+        if verdict == "通过":
             pass_n += 1
-        elif verdict == "fail":
+        elif verdict == "失败":
             fail_n += 1
             failed.append(task["story"])
-        elif verdict == "skip":
+        elif verdict == "已跳过":
             skip_n += 1
         else:
             unrun_n += 1
@@ -163,14 +163,14 @@ def augment_summary(doc: dict) -> list:
 
 
 def reopen_augment_failed(sprint_path: Path) -> list:
-    # trace: 2026-09-13 裁定——fail 裁断处置之一（代码缺陷→重开）：done+augment:fail
-    # 批量重开（done→in-progress、清旧结论、note 记裁断动作），随后主循环修复并重新补测；
-    # fail 的另两种处置（TC 设计问题→改 test-plan、规格问题→回 story/PRD）不经此路径
+    # trace: 2026-09-13 裁定——失败 裁断处置之一（代码缺陷→重开）：已完成+augment:失败
+    # 批量重开（已完成→进行中、清旧结论、note 记裁断动作），随后主循环修复并重新补测；
+    # 失败 的另两种处置（TC 设计问题→改 test-plan、规格问题→回 story/PRD）不经此路径
     doc = load_sprint(sprint_path)
     reopened = []
     for task in doc.get("tasks", []):
-        if task.get("status") == "done" and task.get("augment") == "fail":
-            task["status"] = "in-progress"
+        if task.get("status") == "已完成" and task.get("augment") == "失败":
+            task["status"] = "进行中"
             task.pop("augment", None)
             verdict_note = "编码后验证未通过，用户裁断重开（runner --reopen-failed）"
             prior = task.get("note")
@@ -194,7 +194,7 @@ def drive_task(sprint_path: Path, claude_cmd: list, project_root: Path,
                story_id: str, max_retries: int, allow: list,
                instance: str = None) -> str:
     # trace: S-10 AC-10.3 TC-10.3.1 驱动单任务：初次 + 至多 max_retries 次重试，
-    # 重试用尽仍非终态 → blocked 写回原因，返回由调用方继续后续任务
+    # 重试用尽仍非终态 → 已阻塞 写回原因，返回由调用方继续后续任务
     for _attempt in range(1 + max_retries):
         spawn_iteration(claude_cmd, project_root, story_id, allow, instance)
         current = find_task(load_sprint(sprint_path), story_id)
@@ -203,19 +203,23 @@ def drive_task(sprint_path: Path, claude_cmd: list, project_root: Path,
     doc = load_sprint(sprint_path)
     current = find_task(doc, story_id)
     if current.get("status") not in TERMINAL:
-        current["status"] = "blocked"
+        current["status"] = "已阻塞"
         current["blocked_reason"] = (
             f"runner 重试 {max_retries} 次用尽（迭代连续未达终态），"
             f"人工检查该任务后重跑 runner.py"
         )
         doc["project"]["updated"] = date.today().isoformat()
         save_sprint(sprint_path, doc)
-    return "blocked"
+    return "已阻塞"
 
 
 def main(argv=None) -> int:
     # trace: S-10 AC-10.1 AC-10.4 TC-10.1.1 TC-10.1.2 TC-10.4.1 串行主循环：一次至多驱动一个任务
     # （不并发 spawn），直至全部任务终态
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="diy-coder 循环编排器（无人值守驱动 sprint 全部任务）")
     parser.add_argument("--project-root", default=".", help="项目根目录（默认当前目录）")
     parser.add_argument("--claude-cmd", nargs="+", default=["claude"],
@@ -230,17 +234,17 @@ def main(argv=None) -> int:
                         help="实例名（FR-4.5/D-9）：读写 <output_dir>/<实例名>/sprint.yaml；"
                              "默认 None = 主线平铺（零迁移）")
     parser.add_argument("--skip-augment", action="store_true",
-                        help="主循环 done 后不触发编码后补测（不留痕，之后可用 --augment-only 补跑）")
+                        help="主循环任务已完成 后不触发编码后补测（不留痕，之后可用 --augment-only 补跑）")
     parser.add_argument("--augment-only", action="store_true",
-                        help="只补跑 done 且无终结论（pass/skip）的任务（fail 重跑覆盖结论），"
+                        help="只补跑已完成 且无终结结论（通过/已跳过）的任务（失败 结论由重跑覆盖），"
                              "不驱动主循环")
     parser.add_argument("--reopen-failed", action="store_true",
-                        help="批量重开补测未通过（augment:fail）的任务（done→in-progress、清旧结论），"
+                        help="批量重开补测未通过（augment:失败）的任务（已完成→进行中、清旧结论），"
                              "随后主循环修复并重新补测")
     args = parser.parse_args(argv)
 
     # trace: 2026-09-13 裁定——--augment-only 与另两开关互斥（补跑不驱动主循环；
-    # 重开任务需主循环修复，skip 与补跑语义矛盾），一行报错零 spawn
+    # 重开任务需主循环修复，--skip-augment 与补跑语义矛盾），一行报错零 spawn
     if args.augment_only and (args.skip_augment or args.reopen_failed):
         print("[runner] --augment-only 与 --skip-augment/--reopen-failed 互斥"
               "（补跑不驱动主循环，重开需主循环修复），拒绝启动", file=sys.stderr)
@@ -307,7 +311,7 @@ def main(argv=None) -> int:
     load_sprint(sprint_path)
 
     # trace: 2026-09-13 裁定——--reopen-failed 先批量重开再进主循环
-    # （重开任务由主循环修复，done 后重新补测覆盖结论）
+    # （重开任务由主循环修复，已完成 后重新补测覆盖结论）
     if args.reopen_failed:
         reopened = reopen_augment_failed(sprint_path)
         if reopened:
@@ -316,13 +320,13 @@ def main(argv=None) -> int:
         else:
             print("[runner] 无补测未通过任务（--reopen-failed 零操作）", flush=True)
 
-    # trace: 2026-09-13 裁定——--augment-only：只补跑 done 且无终结论的任务，
-    # 不驱动主循环（pending/in-progress 原样不动）
+    # trace: 2026-09-13 裁定——--augment-only：只补跑已完成 且无终结结论的任务，
+    # 不驱动主循环（待办/进行中 原样不动）
     if args.augment_only:
         doc = load_sprint(sprint_path)
         targets = [t["story"] for t in doc.get("tasks", [])
-                   if t.get("status") == "done"
-                   and t.get("augment") not in ("pass", "skip")]
+                   if t.get("status") == "已完成"
+                   and t.get("augment") not in ("通过", "已跳过")]
         for story_id in targets:
             rc = spawn_augment(args.claude_cmd, root, story_id, allow, args.instance)
             print(f"[runner] {story_id} {augment_note(sprint_path, story_id, rc)}", flush=True)
@@ -340,16 +344,16 @@ def main(argv=None) -> int:
         outcome = drive_task(sprint_path, args.claude_cmd, root, story_id,
                              args.max_retries, allow, args.instance)
         print(f"[runner] {story_id} → {outcome}", flush=True)
-        if outcome == "done" and not args.skip_augment:
-            # trace: 2026-09-13 裁定——done 后编码后补测（diy-augment）；
-            # 结论以 augment 字段为准（pass/fail/skip），未留痕降级为提示行，
+        if outcome == "已完成" and not args.skip_augment:
+            # trace: 2026-09-13 裁定——已完成 后编码后补测（diy-augment）；
+            # 结论以 augment 字段为准（通过/失败/已跳过），未留痕降级为提示行，
             # 不阻塞主循环、不回退任务状态
             rc = spawn_augment(args.claude_cmd, root, story_id, allow, args.instance)
             print(f"[runner] {story_id} {augment_note(sprint_path, story_id, rc)}", flush=True)
 
     for line in augment_summary(load_sprint(sprint_path)):
         print(line, flush=True)
-    print("[runner] 全部任务已到终态（done/blocked），退出", flush=True)
+    print("[runner] 全部任务已到终态（已完成/已阻塞），退出", flush=True)
     return 0
 
 

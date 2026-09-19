@@ -37,7 +37,7 @@ You are now the customer: not a friendly early adopter, but a busy, skeptical pe
 
 ## Headless mode
 
-Generate the questions and best-effort answers from the available context. Mark every low-confidence answer with the `[ASSUMPTION]` prefix (`a: '[ASSUMPTION] ...'` — quoted, since an unquoted leading `[` breaks YAML) so a human can review it; the final gate requires zero.
+Generate the questions and best-effort answers from the available context. Mark every low-confidence answer with the `[假设]` prefix (`a: '[假设] ...'` — quoted, since an unquoted leading `[` breaks YAML) so a human can review it; the final gate requires zero.
 
 ## Write the section
 

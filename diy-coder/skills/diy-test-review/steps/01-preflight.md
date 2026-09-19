@@ -3,7 +3,7 @@
 Progress: `[Preflight] → Criteria → Evaluate → Score → Report`
 
 **Read (input):** `{project-root}/diy-coder.yaml`；本步骤文件；`scan` 回执。
-**Write (output):** `{output_dir}/test-review.yaml` 的 `RV-###` 草稿（`status: draft`）。
+**Write (output):** `{output_dir}/test-review.yaml` 的 `RV-###` 草稿（`status: 草稿`）。
 
 ## 1. 确认 scope
 
@@ -24,9 +24,9 @@ python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" sc
 
 `scan` 已按三值分类，逐条核对理由是否成立（产物里照抄，不新增理由）：
 
-- `unsupported-format` — registry 没有谓词的格式（`.feature` / `.robot` / `.http`）：**不评分**，不是"通过"。
-- `generated` — 带生成标记的文件（`@generated` / `DO NOT EDIT` 等）。
-- `out-of-scope` — 路径不存在、不是测试文件，或**空测试文件**（剥掉注释后没有任何内容，`scan` 的 warning 写 `No tests found`）。
+- `格式不支持` — registry 没有谓词的格式（`.feature` / `.robot` / `.http`）：**不评分**，不是"通过"。
+- `自动生成` — 带生成标记的文件（`@generated` / `DO NOT EDIT` 等）。
+- `超出范围` — 路径不存在、不是测试文件，或**空测试文件**（剥掉注释后没有任何内容，`scan` 的 warning 写 `No tests found`）。
 
 空文件是"匹配不到任何规则"的极端情形：它证明不了任何事，计入评审集就是让 `files_reviewed` 替它撒谎（"100 不是 100"）。**全部为空的 scope 走无测试文件的拒绝路径**（exit 1，零产出）。
 
@@ -34,6 +34,6 @@ python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" sc
 
 ## 4. 起草记录
 
-在 `{output_dir}/test-review.yaml` 追加一条 `RV-###` 记录（ID 续号，稳定不重用；文件不存在则按 Schema 建 `project` + `reviews` + `revisions`）。此步先落：`id` / `date` / `status: draft` / `scope`（`paths` / `files_reviewed` / `excluded`）。其余区块留给后续步骤填。
+在 `{output_dir}/test-review.yaml` 追加一条 `RV-###` 记录（ID 续号，稳定不重用；文件不存在则按 Schema 建 `project` + `reviews` + `revisions`）。此步先落：`id` / `date` / `status: 草稿` / `scope`（`paths` / `files_reviewed` / `excluded`）。其余区块留给后续步骤填。
 
 **下一步：读 `steps/02-criteria.md`。**

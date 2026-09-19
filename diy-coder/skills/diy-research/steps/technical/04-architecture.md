@@ -38,7 +38,7 @@ One `findings[]` entry per area, written as each search lands:
 - Web search required — architecture documentation, pattern catalogs, conference case studies, ADRs.
 - Name the trade-off, not just the pattern: a pattern claim without its cost is incomplete.
 - Two independent sources for each critical claim; conflicts presented, both cited.
-- `confidence` per finding: `high` / `medium` / `low`.
+- `confidence` per finding: `高` / `中` / `低`.
 
 ## Present and continue
 

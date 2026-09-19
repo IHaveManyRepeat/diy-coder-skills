@@ -15,13 +15,13 @@ A rule here is an **unobvious detail an AI agent would otherwise miss** — the 
 
 Work one category at a time, in this order (the seven rule domains of the source workflow):
 
-1. `stack` — version constraints and compatibility boundaries agents must respect.
-2. `language` — configuration, imports/exports, error handling, async conventions of the actual language in use.
-3. `framework` — the framework's patterns in this codebase (hooks, routing, middleware, state).
-4. `testing` — structure, mocks, boundaries, coverage expectations; the real command.
-5. `quality` — lint/format gates, file and folder conventions, naming, documentation requirements.
-6. `workflow` — branches, commits, PR/review gates, deployment procedure, and the development/operations facts: prerequisites, install / build / run / test commands, environment setup, CI. Commands and paths verbatim — never paraphrased.
-7. `anti-pattern` — what must not happen: forbidden shortcuts, the edge cases that burned this project, security and performance traps.
+1. `技术栈` — version constraints and compatibility boundaries agents must respect.
+2. `语言` — configuration, imports/exports, error handling, async conventions of the actual language in use.
+3. `框架` — the framework's patterns in this codebase (hooks, routing, middleware, state).
+4. `测试` — structure, mocks, boundaries, coverage expectations; the real command.
+5. `质量` — lint/format gates, file and folder conventions, naming, documentation requirements.
+6. `工作流` — branches, commits, PR/review gates, deployment procedure, and the development/operations facts: prerequisites, install / build / run / test commands, environment setup, CI. Commands and paths verbatim — never paraphrased.
+7. `反模式` — what must not happen: forbidden shortcuts, the edge cases that burned this project, security and performance traps.
 
 ## Per category
 
@@ -42,7 +42,7 @@ Advanced-elicitation and party-mode passes are not wired to this skill (their B4
 
 - `id` — `PC-###`, three digits: next = highest existing + 1. IDs are sequential, stable, never renumbered or reused. Read the file to find the highest — do not guess.
 - Amend an existing rule by editing its entry in place, then append `{date, change, reason}` to `revisions`. Never mint a second ID for a changed rule.
-- Drop a rule only with a `revisions` entry naming what went and why — the rescan gate in step 4 fails on a silent disappearance (`ID_UNSTABLE`).
+- Drop a rule only with a `revisions` entry naming what went and why — the **重扫** gate in step 4 fails on a silent disappearance (`ID_UNSTABLE`).
 
 ## Lean by default
 

@@ -15,7 +15,7 @@ python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" sc
 
 口径（不得漂移）：`deductions = CRITICAL*10 + HIGH*5 + MEDIUM*2 + LOW*1`；bonus 六类各 0 或 5、上限 30；`score = clamp(100 - deductions + bonus, 0, 100)`；A≥90 / B≥80 / C≥70 / D≥60 / F<60。
 
-- `exit 1` = findings 载体有问题（row 越界 / 用了 disabled 行 / convention 行缺 `class` 或用了 `absent`·`unknown` / 行号形态错 / bonus 数值域 / bonus 与命中矛盾）——**回 step 3 改判定，不改引擎**。
+- `exit 1` = findings 载体有问题（row 越界 / 用了 disabled 行 / convention 行缺 `class` 或用了 `缺失`·`未知` / 行号形态错 / bonus 数值域 / bonus 与命中矛盾）——**回 step 3 改判定，不改引擎**。
 - `ok: false` 的回执里每条 violation 都点名了 `where`，逐一处置后重跑，直到 exit 0。
 
 ## 2. 落回产物
@@ -27,6 +27,6 @@ python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" sc
 
 ## 3. 展示
 
-给用户一行硬事实，不给修饰：`score/grade/recommendation`，四档计数（CRITICAL / HIGH / MEDIUM / LOW），维度分四值。recommendation 是**算出来的**，不是判断出来的——`Block`（有用例不可能失败）不等于"再商量"，它意味着先修再谈。
+给用户一行硬事实，不给修饰：`score/grade/recommendation`，四档计数（CRITICAL / HIGH / MEDIUM / LOW），维度分四值。recommendation 是**算出来的**，不是判断出来的——`打回`（有用例不可能失败）不等于"再商量"，它意味着先修再谈。
 
 **下一步：读 `steps/05-report.md`。**

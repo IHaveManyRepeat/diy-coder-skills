@@ -3,7 +3,7 @@
 Progress: `[Scope] → <dimension> 02–05 → Synthesis`
 
 **Read (input):** the conversation before activation; any input the user names (brief, prior notes, transcripts).
-**Write (output):** the draft record in `{output_dir}/research.yaml` (`id` / `dimension` / `topic` / `goals` / `scope` / `date` / `status: draft` / `findings: []`); the scope message.
+**Write (output):** the draft record in `{output_dir}/research.yaml` (`id` / `dimension` / `topic` / `goals` / `scope` / `date` / `status: 草稿` / `findings: []`); the scope message.
 
 ## Discover the topic
 
@@ -21,9 +21,9 @@ Do not research yet. This step confirms understanding and scope only.
 
 ## Settle the dimension
 
-- **market** — customers and competition: behavior and segments, pain points, decision processes, competitive landscape.
-- **technical** — technologies and architecture: stack, integration patterns, architectural patterns, performance and scalability, implementation paths.
-- **domain** — industry and ecosystem: industry analysis (size, economics, value chain), competitive landscape, regulatory environment, technology trends.
+- **市场** — customers and competition: behavior and segments, pain points, decision processes, competitive landscape.
+- **技术** — technologies and architecture: stack, integration patterns, architectural patterns, performance and scalability, implementation paths.
+- **领域** — industry and ecosystem: industry analysis (size, economics, value chain), competitive landscape, regulatory environment, technology trends.
 
 One record = one dimension of one topic. A user who wants two dimensions gets two records (`RS-###`), each with its own goals and scope. When the choice is genuinely ambiguous, ask — never silently pick one.
 
@@ -37,12 +37,12 @@ Append one record to `{output_dir}/research.yaml` (create the file when absent: 
 
 ```yaml
   - id: RS-001                 # next = highest existing + 1, 3 digits; never renumber, never reuse
-    dimension: market          # market | technical | domain
+    dimension: 市场          # 市场 | 技术 | 领域
     topic: {the user's own words}
     goals: [{from question 2}]
     scope: {from question 3}
     date: YYYY-MM-DD
-    status: draft
+    status: 草稿
     findings: []               # the analysis steps append here, one entry at a time
 ```
 
@@ -64,4 +64,4 @@ HALT — wait for the user. On 'Modify', gather the changes, update the record, 
 
 ## Next
 
-market → `steps/market/02-customer-behavior.md`; technical → `steps/technical/02-stack.md`; domain → `steps/domain/02-industry.md`. Read only the one that matches the record's `dimension`.
+市场 → `steps/market/02-customer-behavior.md`; 技术 → `steps/technical/02-stack.md`; 领域 → `steps/domain/02-industry.md`. Read only the one that matches the record's `dimension`.

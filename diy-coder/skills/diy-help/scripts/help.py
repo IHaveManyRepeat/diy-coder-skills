@@ -5,12 +5,12 @@
   prd → architecture → openapi(可选) → design(可选) → epics+stories → test-plan → sprint → build-loop
 
 规则：
-- 第一个非 final 节点即当前位置：文件缺失=未开始（推荐该节点 skill）；
-  文件存在但 status != final = 阻塞（指明 file + status + action）。
+- 第一个非「已定稿」节点即当前位置：文件缺失=未开始（推荐该节点 skill）；
+  文件存在但 status != 已定稿 = 阻塞（指明 file + status + action）。
 - openapi（D-6，meta 在 x-project）/design on-demand 节点：文件缺失=合法跳过（notes 提示），
-  仅当存在且非 final 才阻塞；多文件节点须全部声明文件存在才算完成。
-- sprint.yaml final 后看任务状态：有 blocked 任务 → 指明人工解除；
-  其余非终态 → diy-build-loop；全 done → 工作流完成。
+  仅当存在且非「已定稿」才阻塞；多文件节点须全部声明文件存在才算完成。
+- sprint.yaml 落「已定稿」后看任务状态：有「已阻塞」任务 → 指明人工解除；
+  其余非终态 → diy-build-loop；全「已完成」→ 工作流完成。
 - 只读导航，零写回。实例解析对齐 FR-4.5/D-9。
 """
 # trace: S-13 AC-13.1 AC-13.2 TC-13.1.1 TC-13.1.2 TC-13.2.1
@@ -141,13 +141,13 @@ def scan_chain(output_dir):  # trace: S-13 AC-13.1 TC-13.1.1 TC-13.1.2 存在性
             return completed, skill, None, notes
         status_path = node.get("status_path", DEFAULT_STATUS_PATH)
         statuses = {f: read_status(os.path.join(output_dir, f), status_path) for f in exists}
-        unfinal = {f: s for f, s in statuses.items() if s != "final"}
+        unfinal = {f: s for f, s in statuses.items() if s != "已定稿"}
         if unfinal:
             f, s = sorted(unfinal.items())[0]
             if s in ("unparsable", "unknown"):  # trace: F-A3c 半写/损坏与写作中分流，动作按 status 值分支
                 action = "修复 %s 后重跑（半写或损坏，无法读出有效 status）" % f
             else:
-                action = "继续 %s 直至 %s 定稿（status: final）" % (skill, f)
+                action = "继续 %s 直至 %s 定稿（status: 已定稿）" % (skill, f)
             return completed, None, {"file": f, "status": s, "action": action}, notes
         completed.append(skill)
     return completed, None, None, notes
@@ -165,16 +165,16 @@ def scan_sprint(output_dir):  # trace: S-13 AC-13.1 TC-13.1.6 链后读 sprint �
             "action": "sprint.yaml 的 tasks 为空或损坏（半写），修复后重跑",
         }
         return None, blocked, False
-    blocked_tasks = [t for t in tasks if t.get("status") == "blocked"]
+    blocked_tasks = [t for t in tasks if t.get("status") == "已阻塞"]
     if blocked_tasks:
         names = ", ".join(str(t.get("story", "?")) for t in blocked_tasks)
         blocked = {
             "file": "sprint.yaml",
-            "status": "blocked",
+            "status": "已阻塞",
             "action": "人工解除阻塞任务（%s）的 blocked_reason 后重跑" % names,
         }
         return None, blocked, False
-    if all(t.get("status") == "done" for t in tasks):
+    if all(t.get("status") == "已完成" for t in tasks):
         return None, None, True
     return "diy-build-loop", None, False
 

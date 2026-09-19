@@ -21,8 +21,8 @@ Ask what needs navigating, then listen — the user's own words are the record's
 
 ## Settle the mode (source step-1)
 
-- **Incremental** (recommended) — each edit proposal is presented and refined one at a time before the next.
-- **Batch** — every edit proposal is collected and presented together at the end of step 3.
+- **`增量`** (recommended) — each edit proposal is presented and refined one at a time before the next.
+- **`批量`** — every edit proposal is collected and presented together at the end of step 3.
 
 Record it in `mode`; it changes how step 3 presents, nothing else.
 
@@ -33,10 +33,10 @@ Append one record to `{output_dir}/change-proposal.yaml` (create the file when a
 ```yaml
   - id: CP-001                  # next = highest existing + 1, 3 digits; never renumber, never reuse
     date: YYYY-MM-DD            # today
-    status: draft
+    status: 草稿
     trigger: <the user's own words>
-    mode: incremental           # or batch
-    scope: minor                # provisional; step 5 settles it and the final gate enforces the pairing
+    mode: 增量           # or 批量
+    scope: 轻微                # provisional; step 5 settles it and the final gate enforces the pairing
     impacts: []
     edits: []
     open_questions: []

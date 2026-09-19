@@ -7,9 +7,9 @@ Progress: `Initialize → Analysis → Edits → Proposal → Route → [Finish]
 
 ## Final gate (mechanical)
 
-1. Write the terminal status first — `final` (analysis settled, not yet approved) or `approved` (the human said yes) — `final` / `approved` is what the gate inspects, not a product of it.
+1. Write the terminal status first — `已定稿` (analysis settled, not yet approved) or `已批准` (the human said yes) — `已定稿` / `已批准` is what the gate inspects, not a product of it.
 2. Run `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" check --final --json` with the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run. The JSON receipt (counts included) is the close-out evidence.
-3. The gate enforces what routing requires: `handoff.route` present and inside its scope's allow-list, `impacts` non-empty, the path settled (`approach`), zero `[ASSUMPTION]` — an unconfirmed inference is resolved with the human or lands as an explicit `open_questions` entry before the gate.
+3. The gate enforces what routing requires: `handoff.route` present and inside its scope's allow-list, `impacts` non-empty, the path settled (`approach`), zero `[假设]` — an unconfirmed inference is resolved with the human or lands as an explicit `open_questions` entry before the gate.
 4. Render via diy-viewer — the silent side-step command from SKILL.md — only after exit 0; no browser interaction point, no path report that blocks.
 
 ## Summarize (source step-6)

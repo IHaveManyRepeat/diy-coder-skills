@@ -31,13 +31,13 @@ The **conditional scans** come from the part's `type` (the documentation-require
 
 | part type | scan | where the conclusion goes |
 | --- | --- | --- |
-| web, extension, desktop, mobile | API contracts · data models · state management · UI components | `key_points` (endpoints / tables / stores / component families) |
-| backend, data | API contracts · data models | `key_points` |
-| cli, library, infra | entry points · public surface | `key_points` |
-| embedded | hardware/pin interfaces when found | `key_points` |
-| game, desktop, mobile, web, extension | assets (formats, sizes, where they live) | `key_points` |
+| 网页, 扩展, 桌面端, 移动端 | API contracts · data models · state management · UI components | `key_points` (endpoints / tables / stores / component families) |
+| 后端, 数据 | API contracts · data models | `key_points` |
+| 命令行, 库, 基础设施 | entry points · public surface | `key_points` |
+| 嵌入式 | hardware/pin interfaces when found | `key_points` |
+| 游戏, 桌面端, 移动端, 网页, 扩展 | assets (formats, sizes, where they live) | `key_points` |
 
-Respect the level chosen in step 1: **quick** reads no source files — list the directories and patterns only, and say so; **deep** reads the critical directories of the type above; **exhaustive** reads all source files, excluding `.git`, `node_modules`, `dist`, `build`, `coverage` — one subfolder at a time, writing each conclusion down before starting the next, and never letting a reading list accumulate in context.
+Respect the level chosen in step 1: **快速** reads no source files — list the directories and patterns only, and say so; **深入** reads the critical directories of the type above; **穷尽** reads all source files, excluding `.git`, `node_modules`, `dist`, `build`, `coverage` — one subfolder at a time, writing each conclusion down before starting the next, and never letting a reading list accumulate in context.
 
 ## integration
 
@@ -45,7 +45,7 @@ Multi-part projects only — a monolith omits the key (the engine accepts its ab
 
 ## What this step does not write
 
-Development and operations facts — prerequisites, install/build/run/test commands, environment setup, deployment and CI, contribution rules — are implementation rules, not scan facts. They land in step 3 as `workflow` and `quality` rules, with commands and paths kept verbatim. The document map is:
+Development and operations facts — prerequisites, install/build/run/test commands, environment setup, deployment and CI, contribution rules — are implementation rules, not scan facts. They land in step 3 as `工作流` and `质量` rules, with commands and paths kept verbatim. The document map is:
 
 | source document (per-project-type in the CSV) | lands in |
 | --- | --- |
@@ -54,7 +54,7 @@ Development and operations facts — prerequisites, install/build/run/test comma
 | source-tree-analysis.md | `structure.tree`, `structure.key_dirs` |
 | architecture-{part}.md | `architecture[]` |
 | api-contracts-{part}.md, data-models-{part}.md, component-inventory-{part}.md | `architecture[].key_points` |
-| development-guide.md, deployment-guide.md, contribution-guide.md | `rules[]` (categories `workflow`, `quality`) |
+| development-guide.md, deployment-guide.md, contribution-guide.md | `rules[]` (categories `工作流`, `质量`) |
 | integration-architecture.md, project-parts.json | `integration[]`, `scan.parts` |
 | project-scan-report.json | the `scan` block (no state scatter file) |
 

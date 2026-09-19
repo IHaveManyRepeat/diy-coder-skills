@@ -7,7 +7,7 @@ Progress: `Scan → [Deep-Dive] → Finalize`
 
 ## The rule that governs this whole step
 
-Deep-dive mode requires **literal full-file review**. Sampling, guessing, or relying on tooling output alone is FORBIDDEN. Every file in scope is read line by line, and every claim in the entry traces to what was actually read.
+`深挖` mode requires **literal full-file review**. Sampling, guessing, or relying on tooling output alone is FORBIDDEN. Every file in scope is read line by line, and every claim in the entry traces to what was actually read.
 
 ## 5a — Choose the area
 
@@ -71,7 +71,7 @@ The file itself is the index: the new entry is its own navigation. Bump `project
 ```
 Deep dive complete: {area} — {files_scanned} files.
 
-1. Deep-dive another area
+1. **深挖** another area
 2. Finish
 ```
 

@@ -39,7 +39,7 @@ One `findings[]` entry per area, written as each search lands:
 - Web search required — market research reports and industry analyses from named firms or associations.
 - Market-size and growth figures must carry their source and year; figures that disagree are both presented.
 - Two independent sources for each critical claim; extrapolations are labelled as such.
-- `confidence` per finding: `high` / `medium` / `low`.
+- `confidence` per finding: `高` / `中` / `低`.
 
 ## Present and continue
 

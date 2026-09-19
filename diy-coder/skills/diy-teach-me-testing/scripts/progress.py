@@ -6,7 +6,7 @@
 `curriculum.yaml`；学员进度是**运行态**，落 `{output_dir}/learning-progress.yaml`。两者用整数
 session id（1-7）对齐，禁混为一文件。引擎负责全部机械判定：
 
-  init    读 curriculum.yaml 建进度（7 节全 not-started）+ 建 `{output_dir}/notes/` 目录；
+  init    读 curriculum.yaml 建进度（7 节全未开始）+ 建 `{output_dir}/notes/` 目录；
           进度文件已存在且**可用** → 拒绝（ALREADY_EXISTS）并指引 resume（不覆盖）；
           已存在但**不可用**（解析失败 / 顶层非映射 / 缺 sessions 列表）→ 不带 `--recover`
           仍拒绝（同一判据的违规码）并把 `--recover` 指成唯一出路，带 `--recover` 则先把原
@@ -25,7 +25,7 @@ session id（1-7）对齐，禁混为一文件。引擎负责全部机械判定�
   update  唯一写通道，三形态互斥（--session / --learner / --summary 三者取一）：
             --session N [--status S] [--score S] [--notes P] [--topics N]
               幂等 upsert：以 session id 为键，重复完成不重复计数（sessions_completed 由
-              status 计数得出）。重做（已 completed 再次 completed）→ score/日期以最新为准
+              status 计数得出）。重做（已完成的节再次完成）→ score/日期以最新为准
               + 追加一条 revisions（{date, change: "session N 重做", reason: "redo"}）；
               notes md 由技能侧覆盖同名文件，引擎只记路径。
             --learner [--role R] [--experience S] [--goals G] [--pain-points P]
@@ -38,13 +38,13 @@ session id（1-7）对齐，禁混为一文件。引擎负责全部机械判定�
           （写通道与门禁同源：引擎不写一份会被 check 判违规的进度）。
 
   check   schema / session id 集合与 curriculum 一致（整数 1-7）/ 派生字段与真值一致
-          （基准 = 裁定 2 三式：sessions_completed = status==completed 计数、
+          （基准 = 裁定 2 三式：sessions_completed = status==已完成 计数、
           completion_percentage = floor(completed*100/7 + 0.5)、next_recommended = 最小未完成
-          id，全完成 → null）/ score 范围与状态（0-100 整数、非 completed 恒 null、session 7
-          恒 null）/ session 7 完成判据（status==completed → topics_explored >=
+          id，全完成 → null）/ score 范围与状态（0-100 整数、非已完成恒 null、session 7
+          恒 null）/ session 7 完成判据（status==已完成 → topics_explored >=
           curriculum.sessions[7].min_topics）/ notes 路径口径（相对、正斜杠、归属 notes/、
-          命名 notes/session-<NN>.md、文件在场；completed 节必填）/ learner 自洽（assessed
-          非空 → role 与 experience 不得为空）/ summary 自洽 / --final 三条件（7 节全 completed
+          命名 notes/session-<NN>.md、文件在场；已完成节必填）/ learner 自洽（assessed
+          非空 → role 与 experience 不得为空）/ summary 自洽 / --final 三条件（7 节全已完成
           且 summary.generated 为真 且 summary.path 文件在场）。exit 0 唯一放行。
 
 派生字段（sessions_completed / completion_percentage / next_recommended）**只由本引擎写**；
@@ -99,9 +99,9 @@ CURRICULUM_FILE = "curriculum.yaml"
 NOTES_DIR = "notes"
 SUMMARY_FILE = "completion-summary.md"
 
-STATUS_ENUM = ("not-started", "in-progress", "completed")
-ROLE_ENUM = ("QA", "Dev", "Lead", "VP")
-EXPERIENCE_ENUM = ("beginner", "intermediate", "experienced")
+STATUS_ENUM = ("未开始", "进行中", "已完成")
+ROLE_ENUM = ("QA", "开发", "组长", "负责人")
+EXPERIENCE_ENUM = ("入门", "进阶", "资深")
 SESSION_FIELDS = ("id", "name", "duration_min", "status", "started_date",
                   "completed_date", "score", "topics_explored", "notes")
 LEARNER_FIELDS = ("role", "experience", "goals", "pain_points", "assessed")
@@ -286,7 +286,7 @@ def compute_derived(session_ids, sessions):
     known = set(session_ids)
     done = set()
     for row in sessions:
-        if not isinstance(row, dict) or row.get("status") != "completed":
+        if not isinstance(row, dict) or row.get("status") != "已完成":
             continue
         sid = row.get("id")
         if is_int(sid) and sid in known:
@@ -359,12 +359,12 @@ def check_session(index, session, show, index_by_id, out_dir, project_root):
                              "started_date")
     violations += check_date(session.get("completed_date"), where + ".completed_date",
                              "completed_date")
-    if status in ("in-progress", "completed") and not nonempty(session.get("started_date")):
+    if status in ("进行中", "已完成") and not nonempty(session.get("started_date")):
         violations.append(v("STATUS_MISMATCH", where + ".started_date",
                             "%s 状态须有 started_date" % status))
-    if status == "completed" and not nonempty(session.get("completed_date")):
+    if status == "已完成" and not nonempty(session.get("completed_date")):
         violations.append(v("STATUS_MISMATCH", where + ".completed_date",
-                            "completed 状态须有 completed_date（结业摘要按它统计）"))
+                            "已完成状态须有 completed_date（结业摘要按它统计）"))
 
     exploratory = definition.get("min_topics") is not None
     score = session.get("score")
@@ -376,9 +376,9 @@ def check_session(index, session, show, index_by_id, out_dir, project_root):
             violations.append(v("STATUS_MISMATCH", where + ".score",
                                 "session %d 无 quiz：score 恒 null"
                                 "（源硬编码 100 不照搬，不参与平均分）" % sid))
-        elif status != "completed":
+        elif status != "已完成":
             violations.append(v("STATUS_MISMATCH", where + ".score",
-                                "score 仅 completed 节非空（当前 status: %s）" % status))
+                                "score 仅已完成节非空（当前 status: %s）" % status))
 
     topics = session.get("topics_explored")
     if topics is not None:
@@ -389,7 +389,7 @@ def check_session(index, session, show, index_by_id, out_dir, project_root):
             violations.append(v("ENUM_INVALID", where + ".topics_explored",
                                 "topics_explored 仅探索型课次（session 7）非空"
                                 "（第 %d 节应为 null）" % sid))
-    if exploratory and status == "completed":
+    if exploratory and status == "已完成":
         minimum = definition["min_topics"]
         if topics is None:
             violations.append(v("EMPTY_FIELD", where + ".topics_explored",
@@ -403,9 +403,9 @@ def check_session(index, session, show, index_by_id, out_dir, project_root):
 
     notes = session.get("notes")
     if notes is None:
-        if status == "completed":
+        if status == "已完成":
             violations.append(v("EMPTY_FIELD", where + ".notes",
-                                "completed 节必填 notes（notes/session-%02d.md）" % sid))
+                                "已完成节必填 notes（notes/session-%02d.md）" % sid))
     elif not nonempty(notes):
         violations.append(v("EMPTY_FIELD", where + ".notes", "notes 为空字符串"))
     else:
@@ -593,7 +593,7 @@ def project_name(root):
                                                       note)
 
 
-# trace: B3 diy-teach-me-testing 空白进度骨架（7 节全 not-started；派生字段由引擎写）
+# trace: B3 diy-teach-me-testing 空白进度骨架（7 节全未开始；派生字段由引擎写）
 def blank_progress(curriculum, name, role):
     stamp = today()
     index_by_id = curriculum_index(curriculum)
@@ -604,7 +604,7 @@ def blank_progress(curriculum, name, role):
             "id": sid,
             "name": definition["name"],
             "duration_min": definition.get("duration_min"),
-            "status": "not-started",
+            "status": "未开始",
             "started_date": None,
             "completed_date": None,
             "score": None,
@@ -690,7 +690,7 @@ def cmd_init(args):
 # trace: B3 diy-teach-me-testing init 人读态（恢复路径额外播报备份路径）
 def human_init(payload):
     if payload["ok"]:
-        print("PASS：学习进度已建立 %s（%d 节全 not-started + notes/ 目录）"
+        print("PASS：学习进度已建立 %s（%d 节全未开始 + notes/ 目录）"
               % (payload["output_dir"] + "/" + PROGRESS_FILE,
                  payload["counts"]["sessions"]))
         if payload.get("recovered"):
@@ -791,8 +791,8 @@ def human_status(payload):
               % (dash["completion_percentage"], dash["sessions_completed"],
                  dash["next_recommended"]))
         for row in dash["sessions"]:
-            mark = {"completed": "[完成]", "in-progress": "[进行]"}.get(row["status"],
-                                                                       "[未开始]")
+            mark = {"已完成": "[完成]", "进行中": "[进行]"}.get(row["status"],
+                                                                   "[未开始]")
             print("- %s session %s %s（%s）"
                   % (mark, row["id"], row["name"], row["status"]))
         print("分流：%s" % payload["entry_step"])
@@ -847,9 +847,9 @@ def apply_session(args, data, index_by_id, out_dir, out_show):
         if exploratory:
             violations.append(v("STATUS_MISMATCH", "update --session %d --score" % sid,
                                 "session %d 无 quiz：score 恒 null（不参与平均分）" % sid))
-        elif status != "completed":
+        elif status != "已完成":
             violations.append(v("STATUS_MISMATCH", "update --session %d --score" % sid,
-                                "--score 仅在 --status completed 时接受（当前 %s）" % status))
+                                "--score 仅在 --status 已完成 时接受（当前 %s）" % status))
         elif not is_int(args.score) or not 0 <= args.score <= 100:
             violations.append(v("ENUM_INVALID", "update --session %d --score" % sid,
                                 "score 须为 0-100 整数，实为 %s" % args.score))
@@ -871,14 +871,14 @@ def apply_session(args, data, index_by_id, out_dir, out_show):
     stamp = today()
     updated = dict(row)
     updated["status"] = status
-    if status == "completed":
+    if status == "已完成":
         updated["started_date"] = row.get("started_date") or stamp
         updated["completed_date"] = stamp
         if args.score is not None:
             updated["score"] = args.score
         if notes is not None:
             updated["notes"] = notes
-    elif status == "in-progress":
+    elif status == "进行中":
         updated["started_date"] = row.get("started_date") or stamp
         updated["completed_date"] = None
         updated["score"] = None
@@ -893,7 +893,7 @@ def apply_session(args, data, index_by_id, out_dir, out_show):
     if exploratory and args.topics is not None:
         updated["topics_explored"] = args.topics
 
-    redo = row.get("status") == "completed" and status == "completed"
+    redo = row.get("status") == "已完成" and status == "已完成"
     sessions = [dict(item) for item in data["sessions"]]
     sessions[row_index] = updated
     new_data = dict(data)
@@ -1092,7 +1092,7 @@ def build_parser():
                     "/ 单一写通道（update）/ 门禁校验（check --final）")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    i = sub.add_parser("init", help="建 {output_dir}/learning-progress.yaml（7 节全 not-started）"
+    i = sub.add_parser("init", help="建 {output_dir}/learning-progress.yaml（7 节全未开始）"
                                     "+ notes/ 目录；已存在 → 拒绝并指引 resume"
                                     "（不可用的损坏件走 --recover：先备份再重建）")
     i.add_argument("--role", default=None,
@@ -1120,14 +1120,14 @@ def build_parser():
     form.add_argument("--learner", action="store_true", help="写 learner 区块（画像采集专线）")
     form.add_argument("--summary", action="store_true", help="置 summary.generated（结业专线）")
     u.add_argument("--status", default=None,
-                   help="session 形态：目标状态（not-started|in-progress|completed）")
+                   help="session 形态：目标状态（未开始|进行中|已完成）")
     u.add_argument("--score", type=int, default=None,
-                   help="session 形态：quiz 分 0-100（仅 --status completed；session 7 无 quiz）")
+                   help="session 形态：quiz 分 0-100（仅 --status 已完成；session 7 无 quiz）")
     u.add_argument("--notes", default=None,
                    help="session 形态：笔记路径，固定命名 notes/session-<NN>.md（文件须在场）")
     u.add_argument("--topics", type=int, default=None,
                    help="session 形态：探索主题数（仅 session 7；完成判据 >= min_topics）")
-    u.add_argument("--role", default=None, help="learner 形态：角色（QA|Dev|Lead|VP）")
+    u.add_argument("--role", default=None, help="learner 形态：角色（QA|开发|组长|负责人）")
     u.add_argument("--experience", default=None,
                    help="learner 形态：经验等级（learning_paths 的键）")
     u.add_argument("--goals", action="append", default=None,

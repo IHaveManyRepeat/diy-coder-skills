@@ -32,15 +32,15 @@ Walk these sections with the human; each produces `impacts` entries — `{artifa
 - `infra` — deployment scripts, CI/CD pipeline configs, IaC, monitoring: anything the change forces to add or edit. Target is the file (`path:<relative>`), never a product ID. (source §3.4 "other artifacts")
 
 **D. Path forward (source §4).** Evaluate the three source options against the evidence:
-- **Direct adjustment** — modify or add within the existing plan; effort / risk / timeline?
-- **Potential rollback** — would reverting completed work simplify the fix, and is that justified?
-- **MVP review** — is the MVP still achievable, or must scope shrink or goals move?
+- **`直接调整`** — modify or add within the existing plan; effort / risk / timeline?
+- **`回滚`（潜在）** — would reverting completed work simplify the fix, and is that justified?
+- **`MVP 复审`** — is the MVP still achievable, or must scope shrink or goals move?
 
 Name the recommendation with its rationale here; `approach` is settled in step 4 and the reasoning carries there.
 
 ## Produce impacts
 
-One entry per affected target — `kind` is `modify` / `add` / `remove`. `why` states what the change does to it in one line (impact, not the edit itself — edits are step 3). Anything the perspective list raises that cannot be tied to an existing target becomes an `open_questions` entry instead — never a fabricated ID. Infra files keep the source §3.4 "other artifacts" sweep alive: a deployment script, a CI config, an IaC file is `{artifact: infra, target: path:<relative>}`, not an open question. An inference you cannot confirm with the human yet carries the `[ASSUMPTION]` prefix in the value while drafting; the final gate requires zero, so every one of them is resolved or landed as an `open_questions` entry before step 6.
+One entry per affected target — `kind` is `修改` / `新增` / `删除`. `why` states what the change does to it in one line (impact, not the edit itself — edits are step 3). Anything the perspective list raises that cannot be tied to an existing target becomes an `open_questions` entry instead — never a fabricated ID. Infra files keep the source §3.4 "other artifacts" sweep alive: a deployment script, a CI config, an IaC file is `{artifact: infra, target: path:<relative>}`, not an open question. An inference you cannot confirm with the human yet carries the `[假设]` prefix in the value while drafting; the final gate requires zero, so every one of them is resolved or landed as an `open_questions` entry before step 6.
 
 ## Report progress
 

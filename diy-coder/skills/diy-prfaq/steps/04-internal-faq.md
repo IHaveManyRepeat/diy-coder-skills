@@ -22,7 +22,7 @@ You are now the internal stakeholder panel — engineering lead, finance, legal,
 - **Strategic fit:** "Why us? Why now?" / "What does this cannibalize?" / "If this succeeds, what does the company look like in 3 years?"
 - **The question the founder avoids:** the internal counterpart to the hard customer question — the thing that keeps them up at night but hasn't been said out loud.
 
-**Calibrate to context.** A solo founder building an MVP needs different internal questions than a team inside a large organization: don't ask about "board alignment" for a weekend project, don't ask about "weekend viability" for an enterprise product. For non-commercial concepts (`internal` / `open-source` / `community`), replace "unit economics" with "maintenance burden", "customer acquisition" with "adoption strategy", and "competitive moat" with "sustainability and contributor / stakeholder engagement".
+**Calibrate to context.** A solo founder building an MVP needs different internal questions than a team inside a large organization: don't ask about "board alignment" for a weekend project, don't ask about "weekend viability" for an enterprise product. For non-commercial concepts (`内部` / `开源` / `社区`), replace "unit economics" with "maintenance burden", "customer acquisition" with "adoption strategy", and "competitive moat" with "sustainability and contributor / stakeholder engagement".
 
 ## Coaching the answers
 
@@ -35,7 +35,7 @@ Same approach as the customer FAQ — draft, challenge, refine:
 
 ## Headless mode
 
-Generate questions calibrated to context plus best-effort answers, and flag high-risk areas and unknowns prominently (low-confidence answers carry the `[ASSUMPTION]` prefix, quoted when it leads the scalar).
+Generate questions calibrated to context plus best-effort answers, and flag high-risk areas and unknowns prominently (low-confidence answers carry the `[假设]` prefix, quoted when it leads the scalar).
 
 ## Write the section
 

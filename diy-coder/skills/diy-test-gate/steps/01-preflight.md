@@ -3,7 +3,7 @@
 Progress: `[Preflight] → Oracle → Matrix & Gaps → NFR → Gate → Finish`
 
 **Read (input)：** `collect` 的回执（On Activation 已跑）；`{output_dir}/test-gate.yaml` 的既有记录（只用于铸造下一个 `TG-###`）。
-**Write (output)：** `{output_dir}/test-gate.yaml` 的草稿记录（`id` / `date` / `status: draft` / `scope` / `story` / `oracle` / `coverage`）。
+**Write (output)：** `{output_dir}/test-gate.yaml` 的草稿记录（`id` / `date` / `status: 草稿` / `scope` / `story` / `oracle` / `coverage`）。
 
 ## 拒绝路径先落地
 
@@ -12,11 +12,11 @@ Progress: `[Preflight] → Oracle → Matrix & Gaps → NFR → Gate → Finish`
 | 缺什么 | 引擎给的 route | 你说什么 |
 | --- | --- | --- |
 | `stories.yaml` 缺席 / 不可解析 / 无 AC | `diy-epics-stories` | AC 是 diy 的默认 oracle 主源，没有它就没有矩阵 |
-| `test-plan.yaml` 缺席 / `project.status` 非 `final` | `diy-test-design` | 覆盖证据的单一源必须定稿 |
-| `prd.yaml` 缺席 / 不可解析 | `diy-prd` | priority 推导（must→P0 / should→P1 / could→P2）是全门分数线的前提，**不得降级** |
+| `test-plan.yaml` 缺席 / `project.status` 非 `已定稿` | `diy-test-design` | 覆盖证据的单一源必须定稿 |
+| `prd.yaml` 缺席 / 不可解析 | `diy-prd` | priority 推导（必须→P0 / 应该→P1 / 可选→P2）是全门分数线的前提，**不得降级** |
 | `--story S-x` 不存在 | `diy-epics-stories` | 先确认 story ID |
 
-`diyc` 子进程报的 test-plan 违规（`diyc.violations`）**不是拒绝**——它们是上游实况，逐条落 `gate.blockers`（`kind: coverage`），并在摘要里点名。被吞掉的违规等于伪造绿灯。
+`diyc` 子进程报的 test-plan 违规（`diyc.violations`）**不是拒绝**——它们是上游实况，逐条落 `gate.blockers`（`kind: 覆盖`），并在摘要里点名。被吞掉的违规等于伪造绿灯。
 
 ## 定位本次门
 
@@ -30,14 +30,14 @@ Progress: `[Preflight] → Oracle → Matrix & Gaps → NFR → Gate → Finish`
 ```yaml
   - id: TG-001            # 新铸造
     date: <today>
-    status: draft
+    status: 草稿
     scope: story
     story: S-x
-    oracle: {source: stories, confidence: high, items: <回执 items 数>, inferred: [], unresolved: []}
+    oracle: {source: stories, confidence: 高, items: <回执 items 数>, inferred: [], unresolved: []}
     coverage:
       items: []           # 下一步整块贴上（照抄回执，禁手抄数字）
       totals: {covered: 0, total: 0, pct: 0}
-      by_level: {unit: 0, integration: 0, e2e: 0}
+      by_level: {单元: 0, 集成: 0, 端到端: 0}
       heuristics: []
     nfr: {domains: [], overall_risk: NONE, adr: {rows: 29, passed: 0}, gaps: []}
     gate: {decision: '', hard_criteria: [], soft_criteria: [], blockers: [], waivers: [], basis: '', recommendations: []}

@@ -10,18 +10,18 @@ Progress: `Preflight → [Scope] → Generate → Audit → Confirm → Finish`
 | 入口 | 形态 | 取值约束 |
 | --- | --- | --- |
 | story | `S-x` | 该 story 全部 AC 绑定的 TC |
-| type | `unit` / `integration` / `e2e` | TC 的 `type` 字段 |
+| type | `单元` / `集成` / `端到端` | TC 的 `type` 字段 |
 | priority | `P0` / `P1` / `P2` | TC 的 `priority` 字段 |
 | 显式列表 | `TC-x.y.z,...` | 逐个校验存在 |
 
 ## 2. 范围与 `status` 的交集（机械）
 
-**只取 `status: pending`** 的 TC——红相脚手架只覆盖「测试还没落地」的用例：
+**只取 `status: 待办`** 的 TC——红相脚手架只覆盖「测试还没落地」的用例：
 
-- `fail` 是**已激活**的测试：它已经有可运行的测试代码了，拿脚手架去覆盖等于把已有断言冲掉。
-- `pass` 已收口，没有可做的。
+- `失败` 是**已激活**的测试：它已经有可运行的测试代码了，拿脚手架去覆盖等于把已有断言冲掉。
+- `通过` 已收口，没有可做的。
 
-筛选后范围内**无可做 TC**（全 `pass` / 空）→ 一行报告「范围内无待处理 TC」+ 零产出停止；绝不静默空跑、绝不新建 TC（追加 TC 归 diy-augment / diy-e2e-tests）。
+筛选后范围内**无可做 TC**（全 `通过` / 空）→ 一行报告「范围内无待处理 TC」+ 零产出停止；绝不静默空跑、绝不新建 TC（追加 TC 归 diy-augment / diy-e2e-tests）。
 
 ## 3. 已有脚手架消重（幂等）
 
@@ -31,6 +31,6 @@ Progress: `Preflight → [Scope] → Generate → Audit → Confirm → Finish`
 
 一屏计划，逐 TC 一行：`TC-x.y.z → 目标文件（新建 / 已有锚跳过）`。给用户一句进度播报后直接进 step 3；范围本身是用户已给的输入，不再重复确认（缺输入时问一次）。
 
-## Next
+## 播报与下一步
 
 Read fully and follow `./03-generate.md`.

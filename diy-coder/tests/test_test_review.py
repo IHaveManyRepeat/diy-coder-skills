@@ -23,7 +23,7 @@
 - check convention 引用复核（R-2：class ↔ convention_baseline.keys.<key>.status）
 - check 空文件不得计入评审集（R-3）
 - check recommendations 上限（R-1：Top 10）
-- check --final 附加义务（零 [ASSUMPTION] / excluded 理由 / scope 非空）
+- check --final 附加义务（零 [假设] / excluded 理由 / scope 非空）
 - check 合法产物 exit 0
 - SKILL.md 契约冒烟（母本 §1 中文定稿逐字 + 终门句指向本技能引擎）
 
@@ -92,13 +92,13 @@ def run_engine(args):
 STORIES_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-09-15'",
     "  updated: '2026-09-15'",
     "stories:",
     "- id: S-1",
     "  title: 结算",
-    "  status: in-progress",
+    "  status: 进行中",
     "  acceptance_criteria:",
     "  - id: AC-1.1",
     "    given: 夹具",
@@ -120,28 +120,28 @@ STORIES_YAML = NL.join([
 TEST_PLAN_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-09-15'",
     "  updated: '2026-09-15'",
     "test_cases:",
     "- id: TC-1.2.1",
     "  title: 已绑定但未跑",
     "  ac: AC-1.2",
-    "  type: unit",
+    "  type: 单元",
     "  priority: P1",
-    "  technique: boundary",
+    "  technique: 边界",
     "  kill_target: off-by-one",
-    "  status: pending",
+    "  status: 待办",
     "  steps:",
     "  - 断言",
     "- id: TC-1.9.1",
     "  title: 悬空 AC 绑定",
     "  ac: AC-9.9",
-    "  type: unit",
+    "  type: 单元",
     "  priority: P1",
-    "  technique: boundary",
+    "  technique: 边界",
     "  kill_target: 悬空引用",
-    "  status: pending",
+    "  status: 待办",
     "  steps:",
     "  - 断言",
     "static_checks: []",
@@ -163,7 +163,7 @@ REVIEW_YAML = NL.join([
     "reviews:",
     "- id: RV-001",
     "  date: '2026-09-15'",
-    "  status: final",
+    "  status: 已定稿",
     "  scope:",
     "    paths:",
     "    - tests/api.spec.ts",
@@ -173,13 +173,13 @@ REVIEW_YAML = NL.join([
     "    corpus_size: 5",
     "    sampled: 5",
     "    keys:",
-    "      priority_markers: {adopted: 3, status: established}",
-    "      test_ids: {adopted: 1, status: emerging}",
-    "      bdd_naming: {adopted: 2, status: emerging}",
-    "      network_first: {adopted: 0, status: absent}",
-    "      data_factories: {adopted: 0, status: absent}",
-    "      fixtures: {adopted: 1, status: emerging}",
-    "      assertion_style: {adopted: 2, status: emerging}",
+    "      priority_markers: {adopted: 3, status: 已确立}",
+    "      test_ids: {adopted: 1, status: 新现}",
+    "      bdd_naming: {adopted: 2, status: 新现}",
+    "      network_first: {adopted: 0, status: 缺失}",
+    "      data_factories: {adopted: 0, status: 缺失}",
+    "      fixtures: {adopted: 1, status: 新现}",
+    "      assertion_style: {adopted: 2, status: 新现}",
     "  findings:",
     "  - row: L2",
     "    severity: LOW",
@@ -187,16 +187,16 @@ REVIEW_YAML = NL.join([
     "    line: 12",
     "    note: 无优先级标记",
     "    basis: convention",
-    "    class: established",
+    "    class: 已确立",
     "  score:",
     "    deductions: {critical: 0, high: 0, medium: 0, low: 1, total: 1}",
     "    bonus: {applied: [], total: 0}",
     "    score: 99",
     "    grade: A",
-    "    recommendation: Approve-with-Comments",
+    "    recommendation: 有保留批准",
     "  coverage_gaps:",
-    "  - {kind: no_impl, ref: AC-1.1, note: 无实现引用, route: diy-dev}",
-    "  walkthrough: {status: partial, note: test-plan.yaml 未定稿：②③④类跳过}",
+    "  - {kind: 无实现, ref: AC-1.1, note: 无实现引用, route: diy-dev}",
+    "  walkthrough: {status: 部分覆盖, note: test-plan.yaml 未定稿：②③④类跳过}",
     "  dimensions: {determinism: 100, isolation: 100, maintainability: 100, performance: 100}",
     "  recommendations:",
     "  - 给用例补优先级标记",
@@ -291,9 +291,9 @@ class ScanTests(EngineCase):
             entry = baseline["keys"][key]
             self.assertIn("adopted", entry, key)
             self.assertIn(entry["status"],
-                          ("established", "emerging", "absent", "unknown"), key)
+                          ("已确立", "新现", "缺失", "未知"), key)
         self.assertEqual(baseline["keys"]["priority_markers"]["adopted"], 1)
-        self.assertEqual(baseline["keys"]["priority_markers"]["status"], "emerging")
+        self.assertEqual(baseline["keys"]["priority_markers"]["status"], "新现")
         for key in ("bdd_naming", "assertion_style"):
             self.assertEqual(baseline["keys"][key], {"judged_by": "llm"}, key)
 
@@ -317,9 +317,9 @@ class ScanTests(EngineCase):
         data = json.loads(r.stdout)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         reasons = {e["path"].replace("\\", "/"): e["reason"] for e in data["excluded"]}
-        self.assertEqual(reasons["tests/legacy.feature"], "unsupported-format")
-        self.assertEqual(reasons["tests/gen.spec.ts"], "generated")
-        self.assertEqual(reasons["tests/absent.spec.ts"], "out-of-scope")
+        self.assertEqual(reasons["tests/legacy.feature"], "格式不支持")
+        self.assertEqual(reasons["tests/gen.spec.ts"], "自动生成")
+        self.assertEqual(reasons["tests/absent.spec.ts"], "超出范围")
         self.assertEqual([f.replace("\\", "/") for f in data["files"]], ["tests/real.spec.ts"])
 
     # trace: V §1.4 R-3（空测试文件 → excluded 不评分 + "No tests found"）
@@ -333,8 +333,8 @@ class ScanTests(EngineCase):
         # 空文件不评分：既不在评审集，也不假装"已评审"
         self.assertEqual([f.replace("\\", "/") for f in data["files"]], ["tests/real.spec.ts"])
         reasons = {e["path"].replace("\\", "/"): e["reason"] for e in data["excluded"]}
-        self.assertEqual(reasons["tests/blank.spec.ts"], "out-of-scope")
-        self.assertEqual(reasons["tests/comments.spec.ts"], "out-of-scope")
+        self.assertEqual(reasons["tests/blank.spec.ts"], "超出范围")
+        self.assertEqual(reasons["tests/comments.spec.ts"], "超出范围")
         notes = " ".join(w["msg"] for w in data["warnings"])
         self.assertIn("No tests found", notes, data["warnings"])
         # 全空 → 走无测试文件的拒绝路径（exit 1 + 零产出）
@@ -422,7 +422,7 @@ class ScoreTests(EngineCase):
         self.write_findings(self.findings_doc([
             {"file": "tests/a.spec.ts", "line": 10, "row": "H1", "note": "硬等待"},
             {"file": "tests/a.spec.ts", "line": 10, "row": "H1", "note": "同点重复描述"},
-            {"file": "tests/a.spec.ts", "line": 20, "row": "L2", "class": "established",
+            {"file": "tests/a.spec.ts", "line": 20, "row": "L2", "class": "已确立",
              "note": "无优先级标记"},
         ]))
         r = self.score("--findings", os.path.join(self.out, "test-review-findings.json"))
@@ -432,7 +432,7 @@ class ScoreTests(EngineCase):
                                               "low": 1, "total": 6})
         self.assertEqual(data["score"], 94)
         self.assertEqual(data["grade"], "A")
-        self.assertEqual(data["recommendation"], "Request-Changes")
+        self.assertEqual(data["recommendation"], "要求修改")
         self.assertEqual(data["counts"]["duplicates"], 1)
         # 维度分复算：H1 → determinism；L2 → 空映射（源表未归属）
         self.assertEqual(data["dimensions"]["determinism"], 90)
@@ -441,19 +441,19 @@ class ScoreTests(EngineCase):
     # trace: §6 裁定 3（emerging 降一档 floor LOW；降档由 score 应用）
     def test_convention_downgrade_step(self):
         engine = load_engine()
-        self.assertEqual(engine.downgrade_severity("MEDIUM", "emerging"), "LOW")
-        self.assertEqual(engine.downgrade_severity("CRITICAL", "emerging"), "HIGH")
-        self.assertEqual(engine.downgrade_severity("LOW", "emerging"), "LOW")
-        self.assertEqual(engine.downgrade_severity("HIGH", "established"), "HIGH")
-        # 集成面：emerging 行落 LOW；absent / unknown 不得成条目（该行不成立）
+        self.assertEqual(engine.downgrade_severity("MEDIUM", "新现"), "LOW")
+        self.assertEqual(engine.downgrade_severity("CRITICAL", "新现"), "HIGH")
+        self.assertEqual(engine.downgrade_severity("LOW", "新现"), "LOW")
+        self.assertEqual(engine.downgrade_severity("HIGH", "已确立"), "HIGH")
+        # 集成面：新现行落 LOW；缺失 / 未知 不得成条目（该行不成立）
         self.write_findings(self.findings_doc([
-            {"file": "tests/a.spec.ts", "line": 5, "row": "L2", "class": "emerging",
+            {"file": "tests/a.spec.ts", "line": 5, "row": "L2", "class": "新现",
              "note": "惯例未普及"},
         ]))
         r = self.score("--findings", os.path.join(self.out, "test-review-findings.json"))
         self.assertEqual(json.loads(r.stdout)["deductions"]["low"], 1)
         self.write_findings(self.findings_doc([
-            {"file": "tests/a.spec.ts", "line": 5, "row": "L2", "class": "absent",
+            {"file": "tests/a.spec.ts", "line": 5, "row": "L2", "class": "缺失",
              "note": "该行不成立"},
         ]))
         r2 = self.score("--findings", os.path.join(self.out, "test-review-findings.json"))
@@ -464,14 +464,14 @@ class ScoreTests(EngineCase):
     def test_grade_and_recommendation_parametric(self):
         cases = [
             ([{"file": "t.spec.ts", "line": 1, "row": "C1", "note": "跳过"}],
-             "A", "Block"),
+             "A", "打回"),
             ([{"file": "t.spec.ts", "line": 1, "row": "H1", "note": "硬等待"}],
-             "A", "Request-Changes"),
+             "A", "要求修改"),
             ([{"file": "t.spec.ts", "line": i, "row": "M6", "note": "未 await"}
-              for i in range(1, 17)], "D", "Request-Changes"),
+              for i in range(1, 17)], "D", "要求修改"),
             ([{"file": "t.spec.ts", "line": 1, "row": "M6", "note": "未 await"}],
-             "A", "Approve-with-Comments"),
-            ([], "A", "Approve"),
+             "A", "有保留批准"),
+            ([], "A", "批准"),
         ]
         for findings, grade, recommendation in cases:
             self.write_findings(self.findings_doc(findings))
@@ -533,19 +533,19 @@ class WalkthroughTests(EngineCase):
         r = self.walkthrough()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
-        self.assertEqual(data["status"], "full", data)
-        for kind in ("no_impl", "no_test", "orphan_tc", "never_run"):
+        self.assertEqual(data["status"], "全覆盖", data)
+        for kind in ("无实现", "无测试", "孤儿用例", "从未运行"):
             self.assertIn(kind, data["gaps"], data)
         refs = {kind: {(g["ref"], g["route"]) for g in data["gaps"][kind]}
-                for kind in ("no_impl", "no_test", "orphan_tc", "never_run")}
-        self.assertIn(("AC-1.1", "diy-dev"), refs["no_impl"])
-        self.assertIn(("AC-1.3", "diy-dev"), refs["no_impl"])
-        self.assertIn(("AC-1.1", "diy-test-design"), refs["no_test"])
-        self.assertIn(("AC-1.2", "diy-test-author"), refs["no_test"])
-        self.assertIn(("TC-1.9.1", "user"), refs["orphan_tc"])
-        self.assertIn(("TC-1.2.1", "diy-test-author"), refs["never_run"])
-        self.assertEqual(data["counts"]["no_impl"], 2)
-        self.assertEqual(data["counts"]["orphan_tc"], 1)
+                for kind in ("无实现", "无测试", "孤儿用例", "从未运行")}
+        self.assertIn(("AC-1.1", "diy-dev"), refs["无实现"])
+        self.assertIn(("AC-1.3", "diy-dev"), refs["无实现"])
+        self.assertIn(("AC-1.1", "diy-test-design"), refs["无测试"])
+        self.assertIn(("AC-1.2", "diy-test-author"), refs["无测试"])
+        self.assertIn(("TC-1.9.1", "user"), refs["孤儿用例"])
+        self.assertIn(("TC-1.2.1", "diy-test-author"), refs["从未运行"])
+        self.assertEqual(data["counts"]["无实现"], 2)
+        self.assertEqual(data["counts"]["孤儿用例"], 1)
 
     # trace: §6 裁定 5（no_impl 护栏：项目全量零 trace 标记 → 该类整体跳过 + warning）
     def test_walkthrough_skips_no_impl_without_trace_marks(self):
@@ -554,17 +554,17 @@ class WalkthroughTests(EngineCase):
         self.write("src/settle.py", "def settle():" + NL + "    return 1" + NL)
         r = self.walkthrough()
         data = json.loads(r.stdout)
-        self.assertEqual(data["gaps"]["no_impl"], [], data)
+        self.assertEqual(data["gaps"]["无实现"], [], data)
         self.assertTrue(any("实现面不可判" in w["msg"] for w in data["warnings"]), data)
-        self.assertEqual(data["status"], "partial", data)
-        self.assertIn("no_impl", "".join(w["msg"] for w in data["warnings"]), data)
+        self.assertEqual(data["status"], "部分覆盖", data)
+        self.assertIn("无实现", "".join(w["msg"] for w in data["warnings"]), data)
 
     # trace: §6 裁定 5（缺源降级：stories 缺 → ①②③跳过；全缺 → skipped + note）
     def test_walkthrough_degrades_when_sources_missing(self):
         r = self.walkthrough()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
-        self.assertEqual(data["status"], "skipped", data)
+        self.assertEqual(data["status"], "已跳过", data)
         self.assertEqual(sum(len(v) for v in data["gaps"].values()), 0)
         self.assertTrue(data["warnings"], data)
         self.assertIn("stories.yaml",
@@ -573,10 +573,10 @@ class WalkthroughTests(EngineCase):
         self.write("diy-output/test-plan.yaml", TEST_PLAN_YAML)
         r2 = self.walkthrough()
         data2 = json.loads(r2.stdout)
-        self.assertEqual(data2["status"], "partial", data2)
-        self.assertEqual(data2["gaps"]["no_test"], [], data2)
+        self.assertEqual(data2["status"], "部分覆盖", data2)
+        self.assertEqual(data2["gaps"]["无测试"], [], data2)
         self.assertIn(("TC-1.2.1", "diy-test-author"),
-                      {(g["ref"], g["route"]) for g in data2["gaps"]["never_run"]})
+                      {(g["ref"], g["route"]) for g in data2["gaps"]["从未运行"]})
 
 
 class CheckTests(EngineCase):
@@ -605,13 +605,13 @@ class CheckTests(EngineCase):
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("SET_MISMATCH", {x["code"] for x in json.loads(r.stdout)["violations"]})
-        bad_rec = REVIEW_YAML.replace("recommendation: Approve-with-Comments",
-                                      "recommendation: Approve")
+        bad_rec = REVIEW_YAML.replace("recommendation: 有保留批准",
+                                      "recommendation: 批准")
         self.write_review(bad_rec)
         r2 = self.check("--final")
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("SET_MISMATCH", {x["code"] for x in json.loads(r2.stdout)["violations"]})
-        # 声明 severity 与引擎复算不符（L2 convention emerging → LOW；声明成 MEDIUM 须拒）
+        # 声明 severity 与引擎复算不符（L2 convention 新现 → LOW；声明成 MEDIUM 须拒）
         bad_sev = REVIEW_YAML.replace("severity: LOW", "severity: MEDIUM")
         self.write_review(bad_sev)
         r3 = self.check("--final")
@@ -629,14 +629,14 @@ class CheckTests(EngineCase):
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
         self.write_review(REVIEW_YAML.replace(
-            "walkthrough: {status: partial, note: test-plan.yaml 未定稿：②③④类跳过}",
-            "walkthrough: {status: partial, note: ''}"))
+            "walkthrough: {status: 部分覆盖, note: test-plan.yaml 未定稿：②③④类跳过}",
+            "walkthrough: {status: 部分覆盖, note: ''}"))
         r3 = self.check("--final")
         self.assertEqual(r3.returncode, 1, r3.stdout)
         self.assertIn("EMPTY_FIELD", {x["code"] for x in json.loads(r3.stdout)["violations"]})
         self.write_review(REVIEW_YAML.replace(
-            "walkthrough: {status: partial, note: test-plan.yaml 未定稿：②③④类跳过}",
-            "walkthrough: {status: skipped, note: 三源全缺}"))
+            "walkthrough: {status: 部分覆盖, note: test-plan.yaml 未定稿：②③④类跳过}",
+            "walkthrough: {status: 已跳过, note: 三源全缺}"))
         r4 = self.check("--final")
         self.assertEqual(r4.returncode, 1, r4.stdout)
         self.assertIn("SET_MISMATCH", {x["code"] for x in json.loads(r4.stdout)["violations"]})
@@ -652,10 +652,10 @@ class CheckTests(EngineCase):
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
 
-    # trace: §6 check --final 附加（零 [ASSUMPTION] / excluded 三值 / scope 非空）
+    # trace: §6 check --final 附加（零 [假设] / excluded 三值 / scope 非空）
     def test_check_final_duties(self):
         self.write_review(REVIEW_YAML.replace("note: 无优先级标记",
-                                              "note: '[ASSUMPTION] 待定'"))
+                                              "note: '[假设] 待定'"))
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("ASSUMPTION_PRESENT",
@@ -675,19 +675,19 @@ class CheckTests(EngineCase):
 
     # trace: V §1.4 R-2（convention 引用与实际语料独立复测：class ↔ baseline.status）
     def test_check_rejects_class_baseline_mismatch(self):
-        # ① class 与 status 不符（谎报 established）= 引用与测量不符 → 拒
+        # ① class 与 status 不符（谎报 已确立）= 引用与测量不符 → 拒
         self.write_review(REVIEW_YAML.replace(
-            "priority_markers: {adopted: 3, status: established}",
-            "priority_markers: {adopted: 3, status: emerging}"))
+            "priority_markers: {adopted: 3, status: 已确立}",
+            "priority_markers: {adopted: 3, status: 新现}"))
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
         bad = [x for x in json.loads(r.stdout)["violations"]
                if x["where"].endswith("findings[row=L2].class")]
         self.assertEqual([x["code"] for x in bad], ["SET_MISMATCH"], bad)
-        # ② baseline 测到 absent → 该行本不成立、不得成条目 → 拒
+        # ② baseline 测到 缺失 → 该行本不成立、不得成条目 → 拒
         self.write_review(REVIEW_YAML.replace(
-            "priority_markers: {adopted: 3, status: established}",
-            "priority_markers: {adopted: 0, status: absent}"))
+            "priority_markers: {adopted: 3, status: 已确立}",
+            "priority_markers: {adopted: 0, status: 缺失}"))
         r2 = self.check("--final")
         self.assertEqual(r2.returncode, 1, r2.stdout)
         bad2 = [x for x in json.loads(r2.stdout)["violations"]
@@ -695,17 +695,17 @@ class CheckTests(EngineCase):
         self.assertEqual([x["code"] for x in bad2], ["SET_MISMATCH"], bad2)
         # ③ 引用不可核（基线缺该键）→ 拒
         self.write_review(REVIEW_YAML.replace(
-            "      priority_markers: {adopted: 3, status: established}" + NL, ""))
+            "      priority_markers: {adopted: 3, status: 已确立}" + NL, ""))
         r3 = self.check("--final")
         self.assertEqual(r3.returncode, 1, r3.stdout)
         bad3 = [x for x in json.loads(r3.stdout)["violations"]
                 if x["where"].endswith("findings[row=L2].class")]
         self.assertEqual([x["code"] for x in bad3], ["EMPTY_FIELD"], bad3)
-        # ④ 引用与测量一致（established ↔ established / emerging ↔ emerging）→ 放行
+        # ④ 引用与测量一致（已确立 ↔ 已确立 / 新现 ↔ 新现）→ 放行
         self.write_review(REVIEW_YAML.replace(
-            "priority_markers: {adopted: 3, status: established}",
-            "priority_markers: {adopted: 3, status: emerging}").replace(
-            "    class: established", "    class: emerging"))
+            "priority_markers: {adopted: 3, status: 已确立}",
+            "priority_markers: {adopted: 3, status: 新现}").replace(
+            "    class: 已确立", "    class: 新现"))
         r4 = self.check("--final")
         self.assertEqual(r4.returncode, 0, r4.stdout + r4.stderr)
 

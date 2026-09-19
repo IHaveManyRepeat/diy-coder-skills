@@ -3,17 +3,17 @@
 Progress: `Epic Discovery → Deep Analysis → Continuity → Review → Actions → Readiness → [Finish]`
 
 **Read (input):** the complete record; the engine's `check` receipt.
-**Write (output):** `status: final` on the record; the closing summary.
+**Write (output):** `status: 已定稿` on the record; the closing summary.
 
 ## Final gate (mechanical)
 
-Write `status: final` first — `final` is what the gate inspects, not a product of it — then run:
+Write `status: 已定稿` first — `已定稿` is what the gate inspects, not a product of it — then run:
 
 ```
 python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-Exit 0 is the only pass. Fix every reported violation and re-run. In plain terms the bar is: zero `[ASSUMPTION]`; `metrics` equal to what the artifacts actually say (`SET_MISMATCH` means the numbers were edited by hand or the artifacts moved on — recompute from a fresh `collect`); `readiness` five keys non-empty; at least one action item with an owner; every `epic` / `evidence` / `next_epic.id` reference resolving. The JSON receipt (counts included) is the close-out evidence.
+Exit 0 is the only pass. Fix every reported violation and re-run. In plain terms the bar is: zero `[假设]`; `metrics` equal to what the artifacts actually say (`SET_MISMATCH` means the numbers were edited by hand or the artifacts moved on — recompute from a fresh `collect`); `readiness` five keys non-empty; at least one action item with an owner; every `epic` / `evidence` / `next_epic.id` reference resolving. The JSON receipt (counts included) is the close-out evidence.
 
 Rendering and close-out wait for exit 0. Render via diy-viewer (silent side step — command only, no browser interaction point, no path-waiting, no blocking):
 
@@ -25,7 +25,7 @@ append `--instance <name>` when one was resolved.
 
 ## Save and mark the epic reviewed (source step-11)
 
-There is no `sprint-status.yaml` in diy and no retro key to flip: this record **is** the completion mark. `status: final` on the `retros` entry — plus the journey it now records — is what tells the next session the epic was reviewed. Never write a state anywhere else (`sprint.yaml` gets zero writes from this skill).
+There is no `sprint-status.yaml` in diy and no retro key to flip: this record **is** the completion mark. `status: 已定稿` on the `retros` entry — plus the journey it now records — is what tells the next session the epic was reviewed. Never write a state anywhere else (`sprint.yaml` gets zero writes from this skill).
 
 ## Close-out summary
 

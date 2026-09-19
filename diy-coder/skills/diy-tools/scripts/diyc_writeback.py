@@ -4,11 +4,11 @@
 把散落在各 SKILL.md 提示词里的多文件手改 YAML 收敛为原子脚本操作。规则来源
 （.analysis/2026-09-13-cross-skill/batch3-contract.md）：
 
-- §4.5 transition：diy-build-loop HALT 状态迁移，合法边表冻结；review→done 故意不在
+- §4.5 transition：diy-build-loop HALT 状态迁移，合法边表冻结；待审查→已完成 故意不在
   边表——强制走 done 命令做真源回填（BUG-012 机制化）。
 - §4.6 green：diy-dev / diy-build-loop 红绿证据写回——sprint 任务 evidence 追加
-  （同 tc 替换，HALT 续跑幂等）+ test-plan 该 TC status: pass 回填。
-- §4.7 done：review→done 终态写——sprint / stories / test-plan 三真源同批回填。
+  （同 tc 替换，HALT 续跑幂等）+ test-plan 该 TC status: 通过 回填。
+- §4.7 done：待审查→已完成 终态写——sprint / stories / test-plan 三真源同批回填。
 - §4.8 bug-add：diy-review 缺陷入库——枚举校验 + BUG- 序号铸造（现有最大 +1，三位补零）。
 - §4.9 reconcile：diy-sprint Create/Update 机制化——任务集对账；TDD 门判定只经
   diyc_lib.Docs.story_covered()（与 check 共享唯一定义，禁止二份实现）。
@@ -31,35 +31,35 @@ import diyc_lib as lib
 
 # ---- 冻结常量（契约 §4.5 / §4.8） ----
 
-# 合法迁移边；review→done 缺席是刻意的（走 done 命令，禁止手工跳转）
+# 合法迁移边；待审查→已完成 缺席是刻意的（走 done 命令，禁止手工跳转）
 LEGAL_EDGES = frozenset({
-    ("pending", "in-progress"),
-    ("pending", "blocked"),
-    ("in-progress", "blocked"),
-    ("review", "blocked"),
-    ("in-progress", "review"),
-    ("review", "in-progress"),
-    ("blocked", "pending"),
-    ("done", "in-progress"),
+    ("待办", "进行中"),
+    ("待办", "已阻塞"),
+    ("进行中", "已阻塞"),
+    ("待审查", "已阻塞"),
+    ("进行中", "待审查"),
+    ("待审查", "进行中"),
+    ("已阻塞", "待办"),
+    ("已完成", "进行中"),
 })
 
-# reconcile 门重算域：review/done 是审计产物一律不动；blocked 参与（恢复覆盖可解除）
-REGATE_STATUSES = ("pending", "in-progress", "blocked")
+# reconcile 门重算域：待审查/已完成 是审计产物一律不动；已阻塞 参与（恢复覆盖可解除）
+REGATE_STATUSES = ("待办", "进行中", "已阻塞")
 
-SOURCE_VALUES = ("dev", "audit", "falsification", "user")
-CLASS_VALUES = ("functional", "non-functional")
+SOURCE_VALUES = ("开发", "审查发现", "证伪轮", "用户")
+CLASS_VALUES = ("功能型", "非功能型")
 SUBCLASS_VALUES = {
-    "functional": ("logic", "boundary", "data", "state", "integration"),
-    "non-functional": ("performance", "UX", "security", "compatibility", "reliability"),
+    "功能型": ("逻辑", "边界", "数据", "状态", "集成"),
+    "非功能型": ("性能", "用户体验", "安全", "兼容性", "可靠性"),
 }
 BUG_REQUIRED = ("source", "story", "class", "subclass", "type", "symptom",
                 "root_cause", "trigger", "fix", "prevention", "pattern")
 BUG_ID_RE = re.compile(r"BUG-(\d+)\Z")
 
 # defer-add（2026-09-15 副作用纪律修订）：保留确认类动作的入队原因枚举——
-# user-config 改用户级配置 / destructive 破坏性或共享操作 / out-of-bounds 越界写盘 /
-# user-only AI 做不了（secrets、登录、外部服务授权）
-DEFER_REASONS = ("user-config", "destructive", "out-of-bounds", "user-only")
+# 用户配置 改用户级配置 / 破坏性操作 破坏性或共享操作 / 越界改动 越界写盘 /
+# 仅人工可做 AI 做不了（secrets、登录、外部服务授权）
+DEFER_REASONS = ("用户配置", "破坏性操作", "越界改动", "仅人工可做")
 DEFER_REQUIRED = ("skill", "action", "reason")
 DEFER_ID_RE = re.compile(r"DA-(\d+)\Z")
 
@@ -179,7 +179,7 @@ def _nonempty(value):
 # ---- transition（§4.5） ----
 
 def _transition(args):
-    # trace: S-9 AC-9.1 TC-9.1.1（diy-build-loop HALT 状态迁移写回；review→done 不在本命令）
+    # trace: S-9 AC-9.1 TC-9.1.1（diy-build-loop HALT 状态迁移写回；待审查→已完成 不在本命令）
     doc, path, viol = _load(args, "sprint")
     if viol:
         return _fail(args, viol)
@@ -195,32 +195,32 @@ def _transition(args):
     src, dst = task.get("status"), args.to
     if (src, dst) not in LEGAL_EDGES:
         msg = f"非法迁移 {src} → {dst}"
-        if dst == "done":
-            msg += ("——review→done 必须走 diyc.py done（真源回填机制化，BUG-012），"
+        if dst == "已完成":
+            msg += ("——待审查→已完成 必须走 diyc.py done（真源回填机制化，BUG-012），"
                     "不得经 transition 直接跳转")
         else:
-            msg += "（合法边见 diyc.py transition 契约：含 pending/in-progress/review→blocked、"
-            msg += "blocked→pending、done→in-progress 等）"
+            msg += "（合法边见 diyc.py transition 契约：含 待办/进行中/待审查→已阻塞、"
+            msg += "已阻塞→待办、已完成→进行中 等）"
         return _fail(args, lib.v("ILLEGAL_TRANSITION",
                                  f"{rel} tasks[{args.story}].status", msg))
-    if dst == "blocked" and not _nonempty(args.reason):
+    if dst == "已阻塞" and not _nonempty(args.reason):
         return _fail(args, lib.v("EMPTY_FIELD", f"{rel} tasks[{args.story}].blocked_reason",
-                                 "--to blocked 必须给 --reason（阻塞原因，写明缺口与解除路径）"))
+                                 "--to 已阻塞 必须给 --reason（阻塞原因，写明缺口与解除路径）"))
     # 不可变组装：基于旧任务构建新条目后整体替换
     new_task = dict(task)
     new_task["status"] = dst
-    if dst == "blocked":
+    if dst == "已阻塞":
         new_task["blocked_reason"] = args.reason
-    elif src == "blocked" and dst == "pending":
+    elif src == "已阻塞" and dst == "待办":
         new_task.pop("blocked_reason", None)  # 阻塞解除：清 reason
     if args.rounds is not None:
         loop = {"at": lib.today(), "rounds": args.rounds}
-        if dst == "blocked":
-            loop["outcome"] = "blocked"  # loop.outcome 仅在终态出现
+        if dst == "已阻塞":
+            loop["outcome"] = "已阻塞"  # loop.outcome 仅在终态出现
         new_task["loop"] = loop
-    elif dst == "blocked" and isinstance(task.get("loop"), dict):
+    elif dst == "已阻塞" and isinstance(task.get("loop"), dict):
         loop = dict(task["loop"])
-        loop["outcome"] = "blocked"
+        loop["outcome"] = "已阻塞"
         new_task["loop"] = loop
     tasks[idx] = new_task
     if doc.get("tasks") is None:
@@ -270,9 +270,9 @@ def _green(args):
     if idx is None:
         return _fail(args, lib.v("UNKNOWN_ID", rel, f"story {args.story} 不在 sprint.yaml 任务表中"))
     task = tasks[idx]
-    if task.get("status") != "in-progress":
+    if task.get("status") != "进行中":
         return _fail(args, lib.v("STATUS_MISMATCH", f"{rel} tasks[{args.story}].status",
-                                 f"任务状态为 {task.get('status')}，只有 in-progress 的任务可写证据"))
+                                 f"任务状态为 {task.get('status')}，只有进行中的任务可写证据"))
     refs = task.get("test_refs") or []
     for tc in tcs:
         if tc not in refs:
@@ -315,12 +315,12 @@ def _green(args):
     if doc.get("tasks") is None:
         doc["tasks"] = tasks
 
-    # test-plan 真源回填：本次 tc → status: pass（已是 pass 跳过）
+    # test-plan 真源回填：本次 tc → status: 通过（已是 通过 跳过）
     backfilled = []
     for tc in tcs:
         pos = _find_entry(tp_cases, "id", tc)
-        if pos is not None and tp_cases[pos].get("status") != "pass":
-            tp_cases[pos]["status"] = "pass"
+        if pos is not None and tp_cases[pos].get("status") != "通过":
+            tp_cases[pos]["status"] = "通过"
             backfilled.append(tc)
 
     for p, d in ((path, doc), (tp_path, tp_doc)):
@@ -336,7 +336,7 @@ def _green(args):
 # ---- done（§4.7） ----
 
 def _done(args):
-    # trace: S-9 AC-9.1 TC-9.1.2（review→done 终态；三真源同批回填，BUG-012）
+    # trace: S-9 AC-9.1 TC-9.1.2（待审查→已完成 终态；三真源同批回填，BUG-012）
     doc, path, viol = _load(args, "sprint")
     if viol:
         return _fail(args, viol)
@@ -348,9 +348,9 @@ def _done(args):
     if idx is None:
         return _fail(args, lib.v("UNKNOWN_ID", rel, f"story {args.story} 不在 sprint.yaml 任务表中"))
     task = tasks[idx]
-    if task.get("status") != "review":
+    if task.get("status") != "待审查":
         return _fail(args, lib.v("STATUS_MISMATCH", f"{rel} tasks[{args.story}].status",
-                                 f"任务状态为 {task.get('status')}，只有 review 态任务可定稿 done"
+                                 f"任务状态为 {task.get('status')}，只有待审查态任务可定稿为已完成"
                                  f"（先经 diy-review 三层审查）"))
     refs = list(task.get("test_refs") or [])
     evidence = [e for e in (task.get("evidence") or []) if isinstance(e, dict)]
@@ -392,29 +392,29 @@ def _done(args):
         return _fail(args, lib.v("UNPARSABLE_YAML", rel_tp,
                                  f"{rel_tp} 的 test_cases 不是列表（形状异常）——修复后重跑"))
 
-    # 终态写：sprint 任务 done（--rounds 时写 loop outcome: done；已有 loop 补终态结论）
+    # 终态写：sprint 任务已完成（--rounds 时写 loop outcome: 已完成；已有 loop 补终态结论）
     new_task = dict(task)
-    new_task["status"] = "done"
+    new_task["status"] = "已完成"
     if args.rounds is not None:
-        new_task["loop"] = {"at": lib.today(), "rounds": args.rounds, "outcome": "done"}
+        new_task["loop"] = {"at": lib.today(), "rounds": args.rounds, "outcome": "已完成"}
     elif isinstance(new_task.get("loop"), dict):
         loop = dict(new_task["loop"])
-        loop["outcome"] = "done"
+        loop["outcome"] = "已完成"
         new_task["loop"] = loop
     tasks[idx] = new_task
     if doc.get("tasks") is None:
         doc["tasks"] = tasks
 
-    stories_backfilled = s_entries[s_pos].get("status") != "done"
-    s_entries[s_pos]["status"] = "done"
+    stories_backfilled = s_entries[s_pos].get("status") != "已完成"
+    s_entries[s_pos]["status"] = "已完成"
 
     tp_backfilled = []
     for tc in refs:
         if not any(e.get("tc") == tc and _nonempty(e.get("green")) for e in evidence):
             continue  # 只回填本任务已绿的 TC
         pos = _find_entry(tp_cases, "id", tc)
-        if pos is not None and tp_cases[pos].get("status") != "pass":
-            tp_cases[pos]["status"] = "pass"
+        if pos is not None and tp_cases[pos].get("status") != "通过":
+            tp_cases[pos]["status"] = "通过"
             tp_backfilled.append(tc)
 
     for p, d in ((path, doc), (stories_path, stories_doc), (tp_path, tp_doc)):
@@ -608,7 +608,7 @@ def _defer_add(args):
     if _nonempty(entry.get("target")):
         item["target"] = entry["target"]
     item["reason"] = entry["reason"]
-    item["status"] = "pending"
+    item["status"] = "待办"
     actions.append(item)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     lib.save_yaml_atomic(path, doc)
@@ -618,8 +618,8 @@ def _defer_add(args):
 # ---- reconcile（§4.9） ----
 
 def _gap_reason(missing):
-    return (f"{'、'.join(missing)} 无用例（decision: pending）——"
-            f"补用例或裁 waived/accept-gap 后重跑 reconcile")
+    return (f"{'、'.join(missing)} 无用例（decision: 待办）——"
+            f"补用例或裁 已豁免/接受缺口 后重跑 reconcile")
 
 
 def _insert_by_order(tasks, new_task, order):
@@ -687,25 +687,25 @@ def _reconcile(args):
         by_story[sid] = task
 
     order = {sid: i for i, sid in enumerate(stories)}
-    # add：有 story 无任务（story done → done；缺覆盖 → blocked + reason；否则 pending）
+    # add：有 story 无任务（story 已完成 → 已完成；缺覆盖 → 已阻塞 + reason；否则 待办）
     add = []
     for sid, story in stories.items():
         if sid in by_story:
             continue
         covered, missing = docs.story_covered(sid)
         refs = docs.tcs_for_story(sid)
-        if story.get("status") == "done":
-            add.append({"story": sid, "status": "done", "test_refs": refs})
+        if story.get("status") == "已完成":
+            add.append({"story": sid, "status": "已完成", "test_refs": refs})
         elif not covered:
-            add.append({"story": sid, "status": "blocked", "test_refs": refs,
+            add.append({"story": sid, "status": "已阻塞", "test_refs": refs,
                         "blocked_reason": _gap_reason(missing)})
         else:
-            add.append({"story": sid, "status": "pending", "test_refs": refs})
+            add.append({"story": sid, "status": "待办", "test_refs": refs})
 
     # remove：有任务无 story
     remove = [task.get("story") for task in raw_tasks if task.get("story") not in stories]
 
-    # changed：非终态重算门 + test_refs 重推（review/done 审计产物一律不动）
+    # changed：非终态重算门 + test_refs 重推（待审查/已完成 审计产物一律不动）
     changed = []
     kept = []
     for task in raw_tasks:
@@ -716,12 +716,12 @@ def _reconcile(args):
         fields = []
         if new_task.get("status") in REGATE_STATUSES:
             covered, missing = docs.story_covered(sid)
-            if not covered and new_task.get("status") != "blocked":
-                new_task["status"] = "blocked"
+            if not covered and new_task.get("status") != "已阻塞":
+                new_task["status"] = "已阻塞"
                 new_task["blocked_reason"] = _gap_reason(missing)
                 fields += ["status", "blocked_reason"]
-            elif covered and new_task.get("status") == "blocked":
-                new_task["status"] = "pending"
+            elif covered and new_task.get("status") == "已阻塞":
+                new_task["status"] = "待办"
                 new_task.pop("blocked_reason", None)
                 fields += ["status", "blocked_reason"]
             refs = docs.tcs_for_story(sid)
@@ -739,11 +739,11 @@ def _reconcile(args):
     warnings = []
     for task in new_tasks:
         sid = task.get("story")
-        if task.get("status") == "done" and not _nonempty(task.get("note")):
-            warnings.append(f"{sid} 任务 done 但无 note——审计追踪缺失，建议补记")
+        if task.get("status") == "已完成" and not _nonempty(task.get("note")):
+            warnings.append(f"{sid} 任务已完成但无 note——审计追踪缺失，建议补记")
         story = stories.get(sid)
-        if story is not None and story.get("status") == "done" and task.get("status") != "done":
-            warnings.append(f"{sid} 的 story 已 done 但任务仍 {task.get('status')}"
+        if story is not None and story.get("status") == "已完成" and task.get("status") != "已完成":
+            warnings.append(f"{sid} 的 story 已完成但任务仍 {task.get('status')}"
                             f"——不伪造交付，人工裁定（走 done 命令或重开）")
 
     actions = {
@@ -759,12 +759,12 @@ def _reconcile(args):
     if args.apply and (add or remove or changed):
         if existing is None:
             # Create（契约 §4.9 裁定）：sprint.yaml 缺席 → 建骨架 + tasks 全量（从 stories 构建）；
-            # name 取 stories.yaml 的 project.name，缺省 "project"；status: draft，技能侧随后可改 final
+            # name 取 stories.yaml 的 project.name，缺省 "project"；status: 草稿，技能侧随后可改 已定稿
             sdoc = docs.doc("stories") or {}
             sproj = sdoc.get("project")
             sname = sproj.get("name") if isinstance(sproj, dict) else None
             existing = {"project": {"name": sname if _nonempty(sname) else "project",
-                                    "status": "draft", "created": lib.today(),
+                                    "status": "草稿", "created": lib.today(),
                                     "updated": lib.today()},
                         "tasks": new_tasks}
         else:

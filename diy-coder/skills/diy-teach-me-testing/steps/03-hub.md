@@ -27,7 +27,7 @@ Progress: `Init → Assess → [Hub] → Session → Completion`
 
 `summary.generated == true` → 正常显示菜单（完成态展示）：用户可以重进任一节复习或重做，也可以回 session 7 继续探索主题。
 
-## Next
+## 播报与下一步
 
 - 选了某一节 → 读 `./04-session.md` 并照做（该步会把你带回本 Hub）。
 - 7 节齐且摘要未生成 → 读 `./05-completion.md`。

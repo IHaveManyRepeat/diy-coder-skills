@@ -57,15 +57,15 @@ PROJECT_CONTEXT_YAML = NL.join([
     "  created: '2026-09-14'",
     "  updated: '2026-09-14'",
     "scan:",
-    "  mode: full",
-    "  level: quick",
+    "  mode: 全量",
+    "  level: 快速",
     "  date: '2026-09-14'",
     "  parts:",
     "  - name: client",
-    "    type: web",
+    "    type: 网页",
     "    path: client",
     "  - name: server",
-    "    type: backend",
+    "    type: 后端",
     "    path: server",
     "stack:",
     "- part: client",
@@ -94,12 +94,12 @@ PROJECT_CONTEXT_YAML = NL.join([
     "  notes: JSON over HTTPS",
     "rules:",
     "- id: PC-001",
-    "  category: language",
+    "  category: 语言",
     "  rule: 严格模式开启，禁 any",
     "  why: 类型回归靠 tsc --noEmit 拦截",
     "  where: client/tsconfig.json",
     "- id: PC-002",
-    "  category: workflow",
+    "  category: 工作流",
     "  rule: 提交前跑 npm test",
     "  why: 夹具规则",
     "  where: package.json scripts",
@@ -166,8 +166,8 @@ class ScanTests(EngineCase):
         names = [p["name"] for p in data["parts"]]
         self.assertEqual(sorted(names), ["client", "server"])
         types = {p["name"]: p["type"] for p in data["parts"]}
-        self.assertEqual(types["client"], "web")
-        self.assertEqual(types["server"], "backend")
+        self.assertEqual(types["client"], "网页")
+        self.assertEqual(types["server"], "后端")
         langs = {s["part"]: s["language"] for s in data["stack"]}
         self.assertEqual(langs["client"], "TypeScript")
         self.assertEqual(langs["server"], "Go")
@@ -197,15 +197,15 @@ class ScanTests(EngineCase):
         self.assertEqual(data["repository_type"], "monorepo")
         self.assertEqual(sorted(p["name"] for p in data["parts"]), ["cli", "core"])
         types = {p["name"]: p["type"] for p in data["parts"]}
-        self.assertEqual(types["cli"], "cli")
+        self.assertEqual(types["cli"], "命令行")
 
     # trace: 任务书 §7（scan_level 三档：exhaustive 加 LOC，受上限约束）
     def test_scan_level_exhaustive_adds_loc(self):
         self.write("app/package.json", PKG_JSON)
         self.write("app/src/main.ts", "line1" + NL + "line2" + NL + "line3" + NL)
         quick = json.loads(self.scan().stdout)
-        deep = json.loads(self.scan("--level", "deep").stdout)
-        full = json.loads(self.scan("--level", "exhaustive").stdout)
+        deep = json.loads(self.scan("--level", "深入").stdout)
+        full = json.loads(self.scan("--level", "穷尽").stdout)
         self.assertEqual(quick["counts"]["files"], 0)
         self.assertEqual(deep["counts"]["files"], 1)
         self.assertEqual(deep["counts"]["loc"], 0)
@@ -222,11 +222,11 @@ class ScanTests(EngineCase):
         data = json.loads(r.stdout)
         self.assertTrue(data["ok"])
         self.assertEqual([p["name"] for p in data["parts"]], ["weird"])
-        self.assertEqual(data["parts"][0]["type"], "unknown")
+        self.assertEqual(data["parts"][0]["type"], "未知")
         codes = {w["code"] for w in data["warnings"]}
         self.assertIn("MANIFEST_UNPARSED", codes)
         self.assertTrue(all(w["where"] and w["msg"] for w in data["warnings"]))
-        self.assertEqual(data["level"], "quick")
+        self.assertEqual(data["level"], "快速")
 
     # trace: 任务书 §2.5 用例 1（门禁拒绝路径 → 零产出 + 结构化理由）
     def test_scan_refuses_missing_project_root(self):
@@ -252,7 +252,7 @@ class ScanTests(EngineCase):
     # trace: 任务书 §7（scan 不写产物：扫描是只读证据）
     def test_scan_writes_nothing(self):
         self.write("client/package.json", PKG_JSON)
-        r = self.scan("--level", "deep")
+        r = self.scan("--level", "深入")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertFalse(os.path.exists(self.ctx_path()))
         self.assertEqual(os.listdir(self.out), [])
@@ -278,28 +278,28 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(data["counts"]["rules"], 2)
         self.assertEqual(data["counts"]["parts"], 2)
         self.assertEqual(data["counts"]["rules_by_category"],
-                         {"language": 1, "workflow": 1})
+                         {"语言": 1, "工作流": 1})
 
     # trace: 任务书 §2.5 用例 3（各类违规各带冻结违规码）
     def test_check_reports_violation_codes(self):
         self.write("diy-output/project-context.yaml", PROJECT_CONTEXT_YAML)
         cases = [
             ("ENUM_INVALID",
-             PROJECT_CONTEXT_YAML.replace("  mode: full", "  mode: full-scan")),
+             PROJECT_CONTEXT_YAML.replace("  mode: 全量", "  mode: full-scan")),
             ("ENUM_INVALID",
-             PROJECT_CONTEXT_YAML.replace("  category: language", "  category: style")),
+             PROJECT_CONTEXT_YAML.replace("  category: 语言", "  category: style")),
             ("DUPLICATE_ID",
              PROJECT_CONTEXT_YAML.replace("id: PC-002", "id: PC-001")),
             ("EMPTY_FIELD",
              PROJECT_CONTEXT_YAML.replace("  parts:" + NL + "  - name: client"
-                                          + NL + "    type: web"
+                                          + NL + "    type: 网页"
                                           + NL + "    path: client"
                                           + NL + "  - name: server"
-                                          + NL + "    type: backend"
+                                          + NL + "    type: 后端"
                                           + NL + "    path: server" + NL, "  parts: []" + NL)),
             ("ASSUMPTION_PRESENT",
              PROJECT_CONTEXT_YAML.replace("rule: 提交前跑 npm test",
-                                          "rule: 提交前跑 [ASSUMPTION] npm test")),
+                                          "rule: 提交前跑 [假设] npm test")),
         ]
         for code, text in cases:
             self.write("diy-output/project-context.yaml", text)
@@ -345,7 +345,7 @@ class CheckValidationTests(EngineCase):
         dropped = PROJECT_CONTEXT_YAML.replace(
             "deep_dives: []" + NL,
             "- id: PC-003" + NL
-            + "  category: testing" + NL
+            + "  category: 测试" + NL
             + "  rule: 旧稿规则" + NL
             + "  why: 旧稿" + NL
             + "  where: old/" + NL
@@ -371,7 +371,7 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertTrue(r.stdout.strip())
         self.write("diy-output/project-context.yaml",
-                   PROJECT_CONTEXT_YAML.replace("  mode: full", "  mode: bogus"))
+                   PROJECT_CONTEXT_YAML.replace("  mode: 全量", "  mode: bogus"))
         r2 = run_engine(["check", "--project-root", self.root, "--output-dir", self.out])
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("ENUM_INVALID", r2.stdout)

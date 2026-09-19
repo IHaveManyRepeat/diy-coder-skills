@@ -2,11 +2,11 @@
 """S-7/S-9 真源回填条款测试（BUG-012 回归，2026-09-13 证伪轮）。
 
 契约测试：执行链 skill 的 SKILL.md 必须写明状态真源回填——
-- diy-dev：绿线后回填 test-plan.yaml 对应 TC 的 status: pass 并 bump project.updated
-- diy-build-loop：review→done 回填 stories.yaml 故事 status: done 与 test-plan.yaml
-  执行过的绿 TC status: pass；blocked 终态不回写真源
-- diy-review：独立路径的 review→done 同样回填（2026-09-13 质量分析 F-enhancement-2）
-条款缺失 = 无人值守路径只写 sprint 投影，真源留 pending（BUG-012 复发）。
+- diy-dev：绿线后回填 test-plan.yaml 对应 TC 的 status: 通过 并 bump project.updated
+- diy-build-loop：待审查→已完成 回填 stories.yaml 故事 status: 已完成 与 test-plan.yaml
+  执行过的绿 TC status: 通过；已阻塞 终态不回写真源
+- diy-review：独立路径的 待审查→已完成 同样回填（2026-09-13 质量分析 F-enhancement-2）
+条款缺失 = 无人值守路径只写 sprint 投影，真源留 待办（BUG-012 复发）。
 """
 import io
 import os
@@ -25,7 +25,7 @@ class WritebackTermsTests(unittest.TestCase):
         dev = io.open(SKILL_DEV, encoding="utf-8").read()
         self.assertIn("真源回填", dev, "diy-dev 缺真源回填条款")
         self.assertIn("test-plan.yaml", dev)
-        self.assertIn("status: pass", dev, "缺 TC 状态回填动作")
+        self.assertIn("status: 通过", dev, "缺 TC 状态回填动作")
         self.assertIn("project.updated", dev, "缺 updated 提升")
 
     # trace: S-7 AC-7.1 TC-7.1.2
@@ -39,20 +39,20 @@ class WritebackTermsTests(unittest.TestCase):
         loop = io.open(SKILL_LOOP, encoding="utf-8").read()
         self.assertIn("真源回填", loop, "diy-build-loop 缺真源回填条款")
         self.assertIn("stories.yaml", loop)
-        self.assertIn("status: done", loop, "缺故事终态回填")
+        self.assertIn("status: 已完成", loop, "缺故事终态回填")
         self.assertIn("test-plan.yaml", loop)
-        self.assertIn("status: pass", loop, "缺绿 TC 回填")
-        self.assertIn("never writes `stories.yaml`", loop, "缺 blocked 不回写真源的边界")
+        self.assertIn("status: 通过", loop, "缺绿 TC 回填")
+        self.assertIn("never writes `stories.yaml`", loop, "缺 已阻塞 不回写真源的边界")
 
-    # trace: F-enhancement-2（独立 review 路径 review→done 不回写真源）
+    # trace: F-enhancement-2（独立 review 路径 待审查→已完成 不回写真源）
     def test_review_contract_backfills_terminal_sources(self):
         with io.open(SKILL_REVIEW, encoding="utf-8") as f:
             review = f.read()
         self.assertIn("真源回填", review, "diy-review 缺真源回填条款")
         self.assertIn("stories.yaml", review)
-        self.assertIn("status: done", review, "缺故事终态回填")
+        self.assertIn("status: 已完成", review, "缺故事终态回填")
         self.assertIn("test-plan.yaml", review)
-        self.assertIn("status: pass", review, "缺绿 TC 回填")
+        self.assertIn("status: 通过", review, "缺绿 TC 回填")
 
     # trace: F-enhancement-2（对抗审查 R6 同款：重复插入 assertIn 查不出）
     def test_review_clause_not_duplicated(self):

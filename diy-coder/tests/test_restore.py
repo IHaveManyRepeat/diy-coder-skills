@@ -23,8 +23,8 @@ from test_design import GOOD_DESIGN, GOOD_HTML  # noqa: E402
 NL = chr(10)
 
 STORIES = NL.join([
-    "project:", "  name: mini", "  status: final", "stories:",
-    "- id: S-T1", "  title: 待办列表页", "  status: pending", "  acceptance_criteria:",
+    "project:", "  name: mini", "  status: 已定稿", "stories:",
+    "- id: S-T1", "  title: 待办列表页", "  status: 待办", "  acceptance_criteria:",
     "  - id: AC-T1.1",
     "    given: 待办列表页", "    when: 页面加载", "    then: 按设计稿渲染列表",
     "    refs: [F-1]", "    design_ref: P-1",

@@ -10,7 +10,7 @@ Progress: `Init → Assess → Hub → [Session] → Completion`
 先播报：本节第 N 节、名称、时长、目标（取自 `curriculum.yaml`），以及本节先修是否已完成的提示（只提示、不拦）。
 
 ```
-python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" update --session N --status in-progress --project-root "{project-root}" --output-dir "{output_dir}" --json
+python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" update --session N --status 进行中 --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
 ## 讲解（按角色适配）
@@ -44,10 +44,10 @@ python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" 
 ## 写回（唯一通道）
 
 ```
-python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" update --session N --status completed --score <0-100> --notes notes/session-NN.md --project-root "{project-root}" --output-dir "{output_dir}" --json
+python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" update --session N --status 已完成 --score <0-100> --notes notes/session-NN.md --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-- `--score` 只在 `--status completed` 时接受；`--notes` 指向的文件须先在盘上（引擎会验在场），所以**先落笔记再写回**。
+- `--score` 只在 `--status 已完成` 时接受；`--notes` 指向的文件须先在盘上（引擎会验在场），所以**先落笔记再写回**。
 - 引擎自己重算 `sessions_completed` / `completion_percentage` / `next_recommended` 并追加重做修订——**这三值你一个字都不要写**。
 - 回执 `ok: true` → 播报本节完成（分数 / 笔记路径 / 总进度 / 下一个推荐），然后回 Hub。
 
@@ -59,11 +59,11 @@ python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" 
 - 收尾时写 `notes/session-07.md`（同七段结构，「测验结果」段写「本节无 quiz，探索主题 N 个」），然后：
 
 ```
-python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" update --session 7 --status completed --topics <N> --notes notes/session-07.md --project-root "{project-root}" --output-dir "{output_dir}" --json
+python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" update --session 7 --status 已完成 --topics <N> --notes notes/session-07.md --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-- 完成判据 = `topics_explored >= curriculum.yaml` 的 `sessions[7].min_topics`（引擎在 `check` 里强制）。探索数不够就继续挖，或先把这一节留在 `in-progress`。
+- 完成判据 = `topics_explored >= curriculum.yaml` 的 `sessions[7].min_topics`（引擎在 `check` 里强制）。探索数不够就继续挖，或先把这一节留在 `进行中`。
 
-## Next
+## 播报与下一步
 
 读 `./03-hub.md` 并照做（Hub-and-spoke：任何一节走完都先回 Hub）。

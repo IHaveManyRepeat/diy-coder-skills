@@ -533,8 +533,8 @@ class Docs:
     def story_covered(self, story) -> tuple:
         """(covered, 缺覆盖 AC 列表)——TDD 门（PENDING_UNCOVERED）与 reconcile 唯一定义源。
 
-        缺覆盖 AC = 无任何 TC 绑定，且（无 coverage_gaps 条目 或 decision == pending）；
-        gap decision 为 waived / accept-gap → 豁免。story 不存在视为无缺覆盖
+        缺覆盖 AC = 无任何 TC 绑定，且（无 coverage_gaps 条目 或 decision == 待办）；
+        gap decision 为 已豁免 / 接受缺口 → 豁免。story 不存在视为无缺覆盖
         （存在性由调用方单独校验）。
         """
         entry = self.stories().get(story)
@@ -553,7 +553,7 @@ class Docs:
             if ac_id in bound_acs:
                 continue
             g = gaps.get(ac_id)
-            if isinstance(g, dict) and g.get("decision") in ("waived", "accept-gap"):
+            if isinstance(g, dict) and g.get("decision") in ("已豁免", "接受缺口"):
                 continue
             missing.append(ac_id)
         return (not missing), missing

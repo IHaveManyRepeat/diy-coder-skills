@@ -1,9 +1,9 @@
 # Step 1 — Discovery（脑爆倾倒 + 风险校准 + 工作模式）
 
-Progress: `[Discovery] → Draft → Finalize`（create 路径；update 从 step 4 进入，validate 从 step 5 进入）
+Progress: `[Discovery] → Draft → Finalize`（新建路径；更新从 step 4 进入，校验从 step 5 进入）
 
 **Read (input):** the activation receipt (`intent` / `route` / `counts`); any source material the user points to; `{output_dir}/project-context.yaml` when it exists.
-**Write (output):** the discovery message; `{output_dir}/brief.yaml` created with `project` (`status: draft`) and the skeleton the dump has already filled.
+**Write (output):** the discovery message; `{output_dir}/brief.yaml` created with `project` (`status: 草稿`) and the skeleton the dump has already filled.
 
 ## Open the room
 
@@ -22,23 +22,23 @@ The opening move is space for the full picture, not a questionnaire.
 
 ## Read the stakes
 
-Early, and in the user's own terms: passion project (**hobby**), internal pitch (**internal**), investor input (**investor**), public launch (**public**). This is `stakes` in brief.yaml and it calibrates how hard you push for the rest of the run.
+Early, and in the user's own terms: passion project (**个人兴趣**), internal pitch (**内部**), investor input (**投资人**), public launch (**公开**). This is `stakes` in brief.yaml and it calibrates how hard you push for the rest of the run.
 
 ## Offer the working mode
 
 Once the dump is captured and the stakes are read, in the user's language:
 
-- **Fast path** — batch the remaining gaps into one or two consolidated questions, then draft the full brief with `[ASSUMPTION]` tags where you inferred. The user reviews and we iterate. Best for "I'm pitching tomorrow."
+- **Fast path** — batch the remaining gaps into one or two consolidated questions, then draft the full brief with `[假设]` tags where you inferred. The user reviews and we iterate. Best for "I'm pitching tomorrow."
 - **Coaching path** — walk through together: pull the picture out, push back where assumptions are thin, draft section by section. Best for "I want a brief I'm proud of and time isn't the constraint."
 
-The coaching posture below shapes the coaching path; the fast path swaps pushback for `[ASSUMPTION]` tags the user can correct in review. The workspace persists — stop and resume freely.
+The coaching posture below shapes the coaching path; the fast path swaps pushback for `[假设]` tags the user can correct in review. The workspace persists — stop and resume freely.
 
 ## Put the workspace on disk
 
 Create `{output_dir}/brief.yaml` (create intent only) and tell the user the path:
 
 ```yaml
-project: {name: <diy-coder.yaml project.name>, status: draft, created: <today>, updated: <today>}
+project: {name: <diy-coder.yaml project.name>, status: 草稿, created: <today>, updated: <today>}
 brief: {title: '', stakes: <as read>, problem: '', solution: '', pitch: '',
         users: [], value: [], open_questions: [], assumptions: [], extra_sections: []}
 decisions: []
@@ -46,9 +46,9 @@ addendum: []
 revisions: []
 ```
 
-From here persistence is real-time: a decision goes into `decisions` with its `rationale` the moment it is made; volunteered depth goes into `addendum` with its `why_separate`; an inference awaiting confirmation is tagged `[ASSUMPTION]` in place and echoed in `brief.assumptions`.
+From here persistence is real-time: a decision goes into `decisions` with its `rationale` the moment it is made; volunteered depth goes into `addendum` with its `why_separate`; an inference awaiting confirmation is tagged `[假设]` in place and echoed in `brief.assumptions`.
 
-If `brief.yaml` already existed — the `intent` receipt said so, and it warned on create — never silently overwrite: offer to resume the in-progress draft or to run a deliberate update; any rewrite goes through step 4's snapshot discipline.
+If `brief.yaml` already existed — the `intent` receipt said so, and it warned on 新建 — never silently overwrite: offer to resume the in-progress draft or to run a deliberate update; any rewrite goes through step 4's snapshot discipline.
 
 ## Next
 

@@ -22,7 +22,7 @@ For each target, locate the story and acceptance criterion in `stories.yaml` tha
 - Read by ID — search the AC text for the feature's behavior; do not paste AC prose into test titles or steps. The case references `AC-x.y`; its `steps` state concrete verification, not a restatement of the AC.
 - The bound AC is what the appended TC carries — never an invented AC, never a range.
 
-**No AC to bind** → the feature is either unplanned or pre-AC. Do not silently attach it to the nearest-looking AC. Record the candidate with the `[ASSUMPTION]` prefix in the conversation and ask the user to adjudicate: bind it to a named existing AC, drop it, or route the gap back to diy-epics-stories. Cases cannot be appended while the binding is unresolved — `record` resolves every `ac` against `stories.yaml` and refuses the whole batch otherwise.
+**No AC to bind** → the feature is either unplanned or pre-AC. Do not silently attach it to the nearest-looking AC. Record the candidate with the `[假设]` prefix in the conversation and ask the user to adjudicate: bind it to a named existing AC, drop it, or route the gap back to diy-epics-stories. Cases cannot be appended while the binding is unresolved — `record` resolves every `ac` against `stories.yaml` and refuses the whole batch otherwise.
 
 ## Cover only what exists
 

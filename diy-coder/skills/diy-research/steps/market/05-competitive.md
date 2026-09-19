@@ -39,7 +39,7 @@ One `findings[]` entry per area, written as each search lands:
 - Web search required — industry reports, competitor sites and annual reports, competitive-intelligence analyses.
 - Company self-description is a source, not a fact: corroborate market-share and strength claims independently.
 - Two independent sources for each critical claim; conflicts presented, both sides cited.
-- `confidence` per finding: `high` / `medium` / `low`.
+- `confidence` per finding: `高` / `中` / `低`.
 
 ## Present and continue
 

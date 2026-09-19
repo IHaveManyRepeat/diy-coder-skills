@@ -19,14 +19,14 @@ NL = chr(10)
 MINI_PRD = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "features:",
     "- id: FG-1",
     "  name: 核心",
     "  requirements:",
     "  - id: FR-1.1",
     "    statement: 迷你需求",
-    "    priority: must",
+    "    priority: 必须",
 ])
 
 CONFIG_AUTO_OPEN = NL.join([

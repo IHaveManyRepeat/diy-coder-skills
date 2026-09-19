@@ -7,7 +7,7 @@
 - 用例 3：违规码逐类（ENUM_INVALID / EMPTY_FIELD / DUPLICATE_ID /
           ASSUMPTION_PRESENT / STATUS_MISMATCH / UNKNOWN_ID）
 - 用例 4：--previous 丢记录 → ID_UNSTABLE；--id 过滤单条记录
-- 用例 5：steps/ 三维度覆盖（market|technical|domain 各 4 分析步 + 01-scope + 06-synthesis；
+- 用例 5：steps/ 三维度覆盖（market|technical|domain 目录各 4 分析步 + 01-scope + 06-synthesis；
           每步结尾点名下一个文件）
 - 用例 6：SKILL.md 契约冒烟（冻结实例句 md5 + 写作纪律块 md5 + 终门句指向 research.py）
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；不依赖本机 git 状态。
@@ -54,7 +54,7 @@ DIMENSIONS = {
 }
 
 
-def record(rid="RS-001", dimension="market", status="final"):
+def record(rid="RS-001", dimension="市场", status="已定稿"):
     """合法研究记录夹具（--final 全义务满足）。"""
     return {
         "id": rid,
@@ -72,7 +72,7 @@ def record(rid="RS-001", dimension="market", status="final"):
                 "url": "https://www.iea.org/reports/global-ev-outlook-2026",
                 "accessed": "2026-09-10",
             }],
-            "confidence": "medium",
+            "confidence": "中",
         }],
         "synthesis": {
             "executive_summary": "市场增速放缓但渗透率仍上行，需以细分场景切入。",
@@ -158,14 +158,14 @@ class CheckValidationTests(EngineCase):
 
     # trace: 任务书 §3（合法记录 exit 0 唯一放行 + 计数回执）
     def test_check_final_legal_doc_passes(self):
-        self.write_doc(doc(record("RS-001", "market"), record("RS-002", "technical")))
+        self.write_doc(doc(record("RS-001", "市场"), record("RS-002", "技术")))
         r = self.check("--final")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
         self.assertTrue(data["ok"])
         self.assertEqual(data["violations"], [])
         self.assertEqual(data["counts"]["researches"], 2)
-        self.assertEqual(data["counts"]["by_dimension"], {"market": 1, "technical": 1})
+        self.assertEqual(data["counts"]["by_dimension"], {"市场": 1, "技术": 1})
         self.assertEqual(data["counts"]["findings"], 2)
         self.assertEqual(data["counts"]["sources"], 2)
 
@@ -212,7 +212,7 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r.stdout)["violations"]})
         dup = doc(record("RS-001"), record("RS-001"))
-        dup["researches"][1]["dimension"] = "domain"
+        dup["researches"][1]["dimension"] = "领域"
         self.write_doc(dup)
         r2 = self.check()
         self.assertEqual(r2.returncode, 1, r2.stdout)
@@ -225,8 +225,8 @@ class CheckValidationTests(EngineCase):
         no_findings = doc(record())
         no_findings["researches"][0]["findings"] = []
         assumed = doc(record())
-        assumed["researches"][0]["scope"] = "[ASSUMPTION] 假定只做乘用车"
-        draft_status = doc(record(status="draft"))
+        assumed["researches"][0]["scope"] = "[假设] 假定只做乘用车"
+        draft_status = doc(record(status="草稿"))
         cases = [
             ("EMPTY_FIELD", no_synthesis, ".synthesis"),
             ("EMPTY_FIELD", no_findings, ".findings"),
@@ -245,7 +245,7 @@ class CheckValidationTests(EngineCase):
 
     # trace: 任务书 §2.1（起草期宽松：draft 记录无 synthesis / 无 findings 合法）
     def test_check_draft_record_is_lenient(self):
-        draft = record(status="draft")
+        draft = record(status="草稿")
         draft["findings"] = []
         draft.pop("synthesis")
         self.write_doc(doc(draft))
@@ -255,9 +255,9 @@ class CheckValidationTests(EngineCase):
 
     # trace: 任务书 §3（--id 过滤单条记录；未知 id → UNKNOWN_ID）
     def test_check_id_filter_and_unknown_id(self):
-        broken = record("RS-001", "market")
+        broken = record("RS-001", "市场")
         broken["findings"] = []
-        self.write_doc(doc(broken, record("RS-002", "technical")))
+        self.write_doc(doc(broken, record("RS-002", "技术")))
         r = self.check("--final", "--id", "RS-002")
         self.assertEqual(r.returncode, 0, "--id 应只校验指定记录：%s" % (r.stdout + r.stderr))
         self.assertEqual(json.loads(r.stdout)["counts"]["researches"], 1)
@@ -271,8 +271,8 @@ class PreviousRoundTests(EngineCase):
     # trace: 任务书 §2.2 / §3（--previous 比对 RS-### 集合；旧有新无 → ID_UNSTABLE）
     def test_previous_dropped_id_is_unstable(self):
         prev = os.path.join(self.root, "research.prev.yaml")
-        write_yaml(prev, doc(record("RS-001"), record("RS-002", "technical")))
-        self.write_doc(doc(record("RS-002", "technical"), record("RS-003", "domain")))
+        write_yaml(prev, doc(record("RS-001"), record("RS-002", "技术")))
+        self.write_doc(doc(record("RS-002", "技术"), record("RS-003", "领域")))
         r = self.check("--previous", prev)
         self.assertEqual(r.returncode, 1, r.stdout)
         hits = [x for x in json.loads(r.stdout)["violations"] if x["code"] == "ID_UNSTABLE"]
@@ -282,9 +282,9 @@ class PreviousRoundTests(EngineCase):
     # trace: 任务书 §2.2（追加式改名安全：旧集合是新集合子集 → exit 0）
     def test_previous_subset_passes(self):
         prev = os.path.join(self.root, "research.prev.yaml")
-        write_yaml(prev, doc(record("RS-001"), record("RS-002", "technical")))
-        self.write_doc(doc(record("RS-001"), record("RS-002", "technical"),
-                           record("RS-003", "domain")))
+        write_yaml(prev, doc(record("RS-001"), record("RS-002", "技术")))
+        self.write_doc(doc(record("RS-001"), record("RS-002", "技术"),
+                           record("RS-003", "领域")))
         r = self.check("--previous", prev)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
@@ -310,7 +310,7 @@ class HumanReadableTests(EngineCase):
 
     # trace: 任务书 §2.2（无 --json → 中文人读行：每违规一行 CODE where: msg + 汇总行）
     def test_human_readable_output(self):
-        self.write_doc(doc(record(status="draft")))
+        self.write_doc(doc(record(status="草稿")))
         r = run_engine(["check", "--final", "--project-root", self.root,
                         "--output-dir", self.out])
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)

@@ -11,10 +11,10 @@
   audit   红相脚手架纪律审计（只读，**本技能的核心确定性资产**，源 atdd/automate 两份
           checklist 的手工核对在此下沉）。`--files` 必填（= 本次会话生成的测试文件集；
           不设「全测试目录」缺省——历史文件不进场）。三项判定合并在一条命令里：
-          ① 上游门禁：test-plan.yaml 在场且 `project.status: final`；文件里每个 TC 锚
+          ① 上游门禁：test-plan.yaml 在场且 `project.status: 已定稿`；文件里每个 TC 锚
              （注释 `TC: TC-x.y.z`）可解析且 TC 现场自检（`technique` / `kill_target` 非空）；
-             锚定 TC 的 `status` 必须是 `pending`（`fail` 是已激活测试、`pass` 已收口，
-             都不得被脚手架覆盖；范围内全 pass 即拒绝，不静默空跑）；
+             锚定 TC 的 `status` 必须是 `待办`（`失败` 是已激活测试、`通过` 已收口，
+             都不得被脚手架覆盖；范围内全通过即拒绝，不静默空跑）；
           ② 规则集：无占位断言 / 无 CSS 与 XPath 定位 / 无硬编码业务数据 /
              断言指向期望行为（非空断言）/ 无 waitForTimeout 与 sleep /
              无 isVisible 条件流 / 无 page object / 单断言原子 / 文件行数上限 /
@@ -129,10 +129,10 @@ SUGGESTS = {
 }
 
 # ---------------------------------------------------------------- 审计面
-PLAN_FINAL = "final"
+PLAN_FINAL = "已定稿"
 
-# 红相脚手架只覆盖 pending：fail 是已激活测试、pass 已收口，都不得被脚手架覆盖。
-SCOPE_STATUS = "pending"
+# 红相脚手架只覆盖待办：失败是已激活测试、通过已收口，都不得被脚手架覆盖。
+SCOPE_STATUS = "待办"
 
 TC_RE = re.compile(r"TC-\d+(?:\.\d+)+")
 # TC 锚 = 用例上方一行注释（`# TC: TC-x.y.z` / `// TC: TC-x.y.z`）；
@@ -828,7 +828,7 @@ def load_plan(out, root, violations):
     status = project.get("status") if isinstance(project, dict) else None
     if str(status) != PLAN_FINAL:
         violations.append(v("STATUS_MISMATCH", show + " project.status",
-                            "上游不是 final（当前 %s）——先跑 diy-test-design 定稿"
+                            "上游不是已定稿（当前 %s）——先跑 diy-test-design 定稿"
                             % (status or "缺")))
     cases = plan.get("test_cases")
     if not isinstance(cases, list):
@@ -857,7 +857,7 @@ def check_scoped_tcs(tc_ids, known, out, root, violations):
         if str(status) != SCOPE_STATUS:
             violations.append(v("STATUS_MISMATCH", "%s.status" % where,
                                 "%s 的 status=%s 不是 %s——红相脚手架只覆盖未激活的 TC"
-                                "（fail 是已激活测试、pass 已收口）；范围内无可做 TC 时"
+                                "（失败是已激活测试、通过已收口）；范围内无可做 TC 时"
                                 "不静默空跑" % (tc_id, status or "缺", SCOPE_STATUS)))
 
 

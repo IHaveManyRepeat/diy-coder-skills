@@ -14,7 +14,7 @@ Progress: `Preflight → Criteria → [Evaluate] → Score → Report`
 逐文件读，问一句："这条规则的谓词在这个文件里成立吗？"
 
 - **severity 不填**——引擎按表复算。
-- **convention 行必须带 `class`**（`established` 或 `emerging`，照 step 2 的键值）；`absent` / `unknown` 时该行不成立、**不得成条目**。`class` 不是判断，是**引用**——它与产物 `convention_baseline.keys.<convention_key>.status`（键名取 `criteria.yaml` 行的 `convention_key`）是同一件事的两处写法，`check` 会逐条对表，不符即拒（引用与实际语料独立复测）。
+- **convention 行必须带 `class`**（`已确立` 或 `新现`，照 step 2 的键值）；`缺失` / `未知` 时该行不成立、**不得成条目**。`class` 不是判断，是**引用**——它与产物 `convention_baseline.keys.<convention_key>.status`（键名取 `criteria.yaml` 行的 `convention_key`）是同一件事的两处写法，`check` 会逐条对表，不符即拒（引用与实际语料独立复测）。
 - `applicability` 行先问门开没开（文件是否真的 navigate / 是 Maestro flow / 有时间边界值……）；门关 = `PASS (n/a)`，不是 WARN、不扣分。
 - 表里没有谓词的真实缺陷 → 写进 `recommendations` 的散文，不给 severity、不扣分，并说明注册表没有对应行。
 - **空 / 极简文件**（`scan` 的 warning 带锚串）：空文件已归 `excluded` 不评分（不得为它编 findings）；**极简文件**（有内容零断言）按 C4 成条目，`note` 用 `No meaningful tests` —— 用例声明得再多，零断言就是一个不可能失败的用例，分数必须反映内容缺失。
@@ -53,11 +53,11 @@ AC 面 = `stories.yaml` 全量 AC（须定稿）；源码面 = 委派 `diyc.py t
 
 | kind | 含义 | 建议路由 |
 | --- | --- | --- |
-| `no_impl` | AC 从未出现在 `# trace:` 引用的 AC ID 中（项目全量零 trace 标记时整类跳过） | diy-dev |
-| `no_test` | AC 无 TC 绑定 → diy-test-design；有 TC 但全 `pending` → diy-test-author | 见左 |
-| `orphan_tc` | TC 的 `ac` 不可解析（委派 `diyc check --type test-plan` 转记） | user |
-| `never_run` | TC `status: pending`（含红相脚手架产出） | diy-test-author |
+| `无实现` | AC 从未出现在 `# trace:` 引用的 AC ID 中（项目全量零 trace 标记时整类跳过） | diy-dev |
+| `无测试` | AC 无 TC 绑定 → diy-test-design；有 TC 但全 `待办` → diy-test-author | 见左 |
+| `孤儿用例` | TC 的 `ac` 不可解析（委派 `diyc check --type test-plan` 转记） | user |
+| `从未运行` | TC `status: 待办`（含红相脚手架产出） | diy-test-author |
 
-`walkthrough.status` 照抄：`full`（四类全评）/ `partial`（缺源跳过若干类）/ `skipped`（三源全缺）；非 `full` 时 `note` 记缺源与跳过类。**走查不进规则集评分**——它是覆盖缺口，不是测试代码质量违规。
+`walkthrough.status` 照抄：`全覆盖`（四类全评）/ `部分覆盖`（缺源跳过若干类）/ `已跳过`（三源全缺）；非 `全覆盖` 时 `note` 记缺源与跳过类。**走查不进规则集评分**——它是覆盖缺口，不是测试代码质量违规。
 
 **下一步：读 `steps/04-score.md`。**

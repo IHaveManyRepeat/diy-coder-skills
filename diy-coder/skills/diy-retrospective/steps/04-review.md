@@ -20,7 +20,7 @@ The source ran this discussion as a scripted five-role dialogue. The roles are g
 Two questions to the user, in this order — and wait for the answers:
 
 1. *What stood out to you as going well in this epic?* — their answer frequently names a win the evidence cannot see (process, communication, product feedback). It belongs in `wins`.
-2. *Where did we struggle?* — then route the answer back to the evidence: does an artifact corroborate it? If yes, cite the anchor. If no, record it as the user's read without an `[ASSUMPTION]` prefix — the user's word is a source, not an inference — and say the anchor is missing.
+2. *Where did we struggle?* — then route the answer back to the evidence: does an artifact corroborate it? If yes, cite the anchor. If no, record it as the user's read without an `[假设]` prefix — the user's word is a source, not an inference — and say the anchor is missing.
 
 Disagreement between the user's read and the evidence is itself a finding worth one line in `challenges` — do not smooth it over, and do not let it become a blame statement.
 

@@ -35,7 +35,7 @@ Global step rules: load exactly one `steps/` file at a time — never preload or
 5. `steps/05-route.md` — take the explicit approval, classify `scope`, set `handoff`.
 6. `steps/06-finish.md` — summarize, pass the final gate, hand off.
 
-Record writes: create the record as `draft` at the end of step 1 (facts copied from the receipt, never retyped from memory), fill each section as its step completes, settle it in step 6.
+Record writes: create the record as `草稿` at the end of step 1 (facts copied from the receipt, never retyped from memory), fill each section as its step completes, settle it in step 6.
 
 Rendering is a silent side step — command only, no browser interaction point, no path-waiting, no blocking: `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"` (append `--instance <name>` when one was resolved).
 
@@ -48,18 +48,18 @@ project: {name, created, updated}
 proposals:
   - id: CP-001                # CP-### — sequential, stable, never renumbered or reused
     date: YYYY-MM-DD
-    status: draft|final|approved|rejected
+    status: 草稿|已定稿|已批准|已驳回
     trigger: <string>         # the issue — the user's own words first
-    mode: incremental|batch
-    scope: minor|moderate|major
+    mode: 增量|批量
+    scope: 轻微|中等|重大
     impacts:                  # reference-only impact list
-      - {artifact: prd|epics|stories|architecture|openapi|design|test-plan, target: FR-x.y|F-x|S-x|AC-x.y|D-x|TC-x.y.z|..., kind: modify|add|remove, why: <string>}
-      - {artifact: infra, target: 'path:<relative>', kind: modify|add|remove, why: <string>}   # deployment scripts / CI / IaC files — file targets, never product IDs
+      - {artifact: prd|epics|stories|architecture|openapi|design|test-plan, target: FR-x.y|F-x|S-x|AC-x.y|D-x|TC-x.y.z|..., kind: 修改|新增|删除, why: <string>}
+      - {artifact: infra, target: 'path:<relative>', kind: 修改|新增|删除, why: <string>}   # deployment scripts / CI / IaC files — file targets, never product IDs
     edits:                    # the concrete proposal (source old→new); `old` quotes the current value or writes (absent)
       - {artifact: <same enum>, target: <ID or path:<relative>>, field: <path>, old: <string>, new: <string>, rationale: <string>}
     ripple: [<string>]        # downstream fallout along the reference chain
     effort: {estimate, risk, timeline_impact}
-    approach: {path: direct-adjustment|rollback|mvp-review, why: <string>}
+    approach: {path: 直接调整|回滚|MVP 复审, why: <string>}
     handoff: {route: <diy skill name>, note: <string>}
     open_questions: [<string>]
 revisions: []                 # {date, change, reason} — appended when an existing record changes
@@ -70,10 +70,10 @@ revisions: []                 # {date, change, reason} — appended when an exis
 1. Write scope: `{output_dir}/change-proposal.yaml` only — records and their `revisions`. This skill never edits the source artifacts (`prd.yaml` / `epics.yaml` / `stories.yaml` / `architecture.yaml` / `openapi.yaml` / `design.yaml` / `sprint.yaml`); `handoff.route` names who executes, and the fix is theirs.
 2. Reference, never copy: `impacts.target` and `edits.target` carry a stable ID (product artifacts) or `path:<relative>` (`artifact: infra` — deployment / CI / IaC files; never a product ID); `old` / `new` quote the smallest decisive value (an ID plus a one-line gist), never a pasted section. The full rewrite is the owning skill's job.
 3. Impact facts come from the `collect` receipt: document summaries, `diyc.check.violations` and the `chain` are copied, never re-derived by hand. Cross-document mechanics (ID chains, reference resolution) belong to diyc — never re-check them by eye.
-4. An unclear trigger stops the run (source HALT): no proposal is written from a vague issue. Every impact names the evidence that showed it — never invent impact. Drafting may mark an unconfirmed inference with an `[ASSUMPTION]` prefix; the final gate requires zero — resolve it with the human or land it as an explicit `open_questions` entry.
+4. An unclear trigger stops the run (source HALT): no proposal is written from a vague issue. Every impact names the evidence that showed it — never invent impact. Drafting may mark an unconfirmed inference with an `[假设]` prefix; the final gate requires zero — resolve it with the human or land it as an explicit `open_questions` entry.
 5. Records are appended, never renumbered or reused; amending an existing record appends to `revisions` (date / change / reason). No `--previous` round is needed — proposal records are append-only, never rewritten wholesale.
 6. Rendering follows the silent-side-step line in Workflow — command only; no browser interaction point, no path report that blocks, no waiting.
-7. Final gate (mechanical): write `status: final` (or `approved`) first — the gate inspects it, it is not a product of the gate — then run `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" check --final --json`, passing the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. Rendering and close-out wait for exit 0.
-8. Route by scope (the gate enforces the pairing, allow-lists in step 5): minor → one owning skill implements directly; moderate → diy-sprint / diy-epics-stories / diy-prd rework the backlog; major → the planning layer (diy-prd / diy-architecture / diy-epics-stories) replans. Approval precedes routing — an unapproved proposal never gets handed off.
+7. Final gate (mechanical): write `status: 已定稿` (or `已批准`) first — the gate inspects it, it is not a product of the gate — then run `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" check --final --json`, passing the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. Rendering and close-out wait for exit 0.
+8. Route by scope (the gate enforces the pairing, allow-lists in step 5): `轻微` → one owning skill implements directly; `中等` → diy-sprint / diy-epics-stories / diy-prd rework the backlog; `重大` → the planning layer (diy-prd / diy-architecture / diy-epics-stories) replans. Approval precedes routing — an unapproved proposal never gets handed off.
 
 - **Writing discipline.** Main field = plain-language main clause; numbers/enums inline; machine syntax (commands/flags/paths) in parentheses; keep machine anchors verbatim (file names, token names, CLI flags) — Chinese rewrites of anchors break the diy-design detect heuristic. If the schema defines `plain`: one line of WHY the entry exists, never WHAT (restatements drift); write it only for hard-to-grasp entries. If it defines `detail`: process narrative — conclusions stay in the main field.

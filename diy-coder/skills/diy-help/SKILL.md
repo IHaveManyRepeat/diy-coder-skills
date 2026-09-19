@@ -1,6 +1,6 @@
 ---
 name: diy-help
-description: Dynamic workflow navigator. Scans diy-output artifacts (existence + status) and recommends the exact next skill, or names the blocking file when something is not final. Use when the user asks where they are, what to do next, or wants to start/continue the diy-coder workflow.
+description: Dynamic workflow navigator. Scans diy-output artifacts (existence + status) and recommends the exact next skill, or names the blocking file when something is not 已定稿. Use when the user asks where they are, what to do next, or wants to start/continue the diy-coder workflow.
 ---
 
 # diy-help — 工作流状态机导航（FR-4.2）

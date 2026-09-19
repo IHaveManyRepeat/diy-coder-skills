@@ -2,12 +2,12 @@
 """diy-checkpoint-preview 确定性引擎 e2e 测试（P1 样板，任务书 §2.5）。
 
 覆盖：
-- 用例 1：target 级联命中 sprint.yaml 中 status=review 的任务（source=sprint + 候选字段）
+- 用例 1：target 级联命中 sprint.yaml 中 status=待审查 的任务（source=冲刺任务 + 候选字段）
 - 用例 2：target 门禁拒绝（空项目 / 非 git / 显式 ref 不可解析）→ exit 1 + 结构化拒绝 + 零产出
 - 用例 3：check --final 合法记录 exit 0；非法（decision 缺失 / 枚举外 label / 悬空 story）
           exit 1 且带对应 violation code
 - 用例 4：SKILL.md 契约冒烟（冻结实例句逐字 md5 + 终门句指向 checkpoint.py check --final）
-- 附加：自建临时 git 仓库的 explicit/git 层；空仓库无提交不崩溃；check 缺文件 MISSING_FILE
+- 附加：自建临时 git 仓库的显式指定 / Git 提交层；空仓库无提交不崩溃；check 缺文件 MISSING_FILE
 
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；git 用例自建仓库，不依赖本机 git 状态。
 运行：cd diy-coder && python -m unittest discover -s tests -v
@@ -36,32 +36,32 @@ INSTANCE_ANCHOR = "Instance resolution (FR-4.5/D-9)"
 SPRINT_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "tasks:",
     "- story: S-1",
-    "  status: done",
+    "  status: 已完成",
     "  test_refs: []",
     "- story: S-2",
-    "  status: review",
+    "  status: 待审查",
     "  test_refs: []",
 ]) + NL
 
 STORIES_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "stories:",
     "- id: S-1",
     "  title: 一",
-    "  status: done",
+    "  status: 已完成",
     "  acceptance_criteria: []",
     "- id: S-2",
     "  title: 二",
-    "  status: review",
+    "  status: 待审查",
     "  acceptance_criteria:",
     "  - id: AC-2.1",
     "    given: 夹具",
@@ -81,10 +81,10 @@ CHECKPOINT_YAML = NL.join([
     "  change_type: commit",
     "  target:",
     "    ref: WORKTREE",
-    "    source: git",
+    "    source: Git 提交",
     "    story: S-2",
     "    inferred: false",
-    "  mode: bare-commit",
+    "  mode: 裸提交",
     "  concerns:",
     "  - name: 变更候选定位",
     "    why: 门禁须确定钉住被审变更",
@@ -98,10 +98,10 @@ CHECKPOINT_YAML = NL.join([
     "  - do: python checkpoint.py check --final --json",
     "    watch: exit 0",
     "    why: 唯一放行",
-    "  decision: approve",
+    "  decision: 批准",
     "  reason: 引擎与测试通过",
     "  next: 运行 diy-viewer 渲染",
-    "  status: final",
+    "  status: 已定稿",
     "revisions: []",
 ]) + NL
 
@@ -154,14 +154,14 @@ class TargetCascadeTests(EngineCase):
         self.assertEqual(r.returncode, 0, r.stderr + r.stdout)
         data = json.loads(r.stdout)
         self.assertTrue(data["ok"])
-        self.assertEqual(data["source"], "sprint")
+        self.assertEqual(data["source"], "冲刺任务")
         self.assertEqual(data["counts"]["candidates"], 1)
         cand = data["candidates"][0]
         self.assertEqual(cand["story"], "S-2")
-        self.assertEqual(cand["mode"], "spec-only")
+        self.assertEqual(cand["mode"], "仅规格")
         self.assertTrue(str(cand["spec"]).replace("\\", "/").endswith("stories.yaml"))
         # 级联短路：命中即停（BMAD step-01 语义），已查层留痕（诊断面）
-        self.assertEqual([c["source"] for c in data["checked"]], ["explicit", "sprint"])
+        self.assertEqual([c["source"] for c in data["checked"]], ["显式指定", "冲刺任务"])
         self.assertTrue(data["checked"][1]["hit"])
 
     # trace: 任务书 §2.5 用例 2（门禁拒绝 + 零产出）
@@ -211,15 +211,15 @@ class CheckValidationTests(EngineCase):
         self.assertTrue(data["ok"])
         self.assertEqual(data["violations"], [])
         self.assertEqual(data["counts"]["checkpoints"], 1)
-        self.assertEqual(data["counts"]["by_decision"], {"approve": 1})
-        self.assertEqual(data["counts"]["by_source"], {"git": 1})
+        self.assertEqual(data["counts"]["by_decision"], {"批准": 1})
+        self.assertEqual(data["counts"]["by_source"], {"Git 提交": 1})
 
     # trace: 任务书 §2.5 用例 3（三类非法各带 violation code）
     def test_check_final_reports_violation_codes(self):
         self.write("diy-output/sprint.yaml", SPRINT_YAML)
         self.write("diy-output/stories.yaml", STORIES_YAML)
         cases = [
-            ("PENDING_DECISION", CHECKPOINT_YAML.replace("  decision: approve" + NL, "")),
+            ("PENDING_DECISION", CHECKPOINT_YAML.replace("  decision: 批准" + NL, "")),
             ("ENUM_INVALID", CHECKPOINT_YAML.replace("label: schema", "label: performance")),
             ("UNKNOWN_ID", CHECKPOINT_YAML.replace("story: S-2", "story: S-99")),
         ]
@@ -282,7 +282,7 @@ class CheckValidationTests(EngineCase):
 
     # trace: 任务书 §2.2（discuss 不落 final）
     def test_check_final_rejects_discuss_decision(self):
-        text = CHECKPOINT_YAML.replace("decision: approve", "decision: discuss")
+        text = CHECKPOINT_YAML.replace("decision: 批准", "decision: 讨论")
         self.write("diy-output/checkpoint.yaml", text)
         self.write("diy-output/stories.yaml", STORIES_YAML)
         r = self.check("--final")
@@ -305,11 +305,11 @@ class CheckValidationTests(EngineCase):
         self.assertNotIn("Traceback", r2.stderr)
         self.assertEqual(json.loads(r2.stdout)["violations"][0]["code"], "UNPARSABLE_YAML")
 
-    # trace: 任务书 §2.1（起草期宽松：decision 未定 / status: draft 合法）
+    # trace: 任务书 §2.1（起草期宽松：decision 未定 / status: 草稿 合法）
     def test_check_draft_record_is_lenient(self):
         text = (CHECKPOINT_YAML
-                .replace("  decision: approve" + NL, "")
-                .replace("  status: final", "  status: draft"))
+                .replace("  decision: 批准" + NL, "")
+                .replace("  status: 已定稿", "  status: 草稿"))
         self.write("diy-output/checkpoint.yaml", text)
         self.write("diy-output/stories.yaml", STORIES_YAML)
         r = self.check()
@@ -357,8 +357,8 @@ class GitLayerTests(EngineCase):
         r = self.target()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         head = json.loads(r.stdout)
-        self.assertEqual(head["source"], "git")
-        self.assertEqual(head["mode"], "bare-commit")
+        self.assertEqual(head["source"], "Git 提交")
+        self.assertEqual(head["mode"], "裸提交")
         self.assertRegex(head["ref"], r"^[0-9a-f]{7,}$")
         self.assertIsInstance(head["diff_stat"], dict)
         # 工作区改动优先于 HEAD
@@ -375,7 +375,7 @@ class GitLayerTests(EngineCase):
         self.commit("one two three four five six seven eight nine")  # 9 词 < 10
         data = json.loads(self.target().stdout)
         cand = data["candidates"][0]
-        self.assertEqual(cand["mode"], "bare-commit")
+        self.assertEqual(cand["mode"], "裸提交")
         self.assertIs(cand["inferred"], True, data)
         self.assertTrue(cand["inferred_reason"], data)
         self.assertIs(data["inferred"], True)
@@ -411,7 +411,7 @@ class GitLayerTests(EngineCase):
         r = self.target("--ref", "HEAD")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
-        self.assertEqual(data["source"], "explicit")
+        self.assertEqual(data["source"], "显式指定")
         self.assertEqual(data["ref"], "HEAD")
         self.assertEqual(data["counts"]["candidates"], 1)
 

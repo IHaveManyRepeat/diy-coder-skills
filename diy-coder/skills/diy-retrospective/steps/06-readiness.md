@@ -9,7 +9,7 @@ Progress: `Epic Discovery → Deep Analysis → Continuity → Review → Action
 
 The source's closing question is the one to hold: *the epic is marked complete — is it really done?* Five dimensions, each answered in one plain sentence (the engine rejects empty values at the final gate):
 
-- **`testing`** — what verification actually ran? Anchor it in `coverage` and TC status. An uncovered must-AC is named here, not hidden. Gaps that remain open become critical-path items if the next epic depends on that behaviour.
+- **`testing`** — what verification actually ran? Anchor it in `coverage` and TC status. An uncovered 必须 AC is named here, not hidden. Gaps that remain open become critical-path items if the next epic depends on that behaviour.
 - **`deployment`** — live, scheduled, or still local? If not deployed, the deployment milestone belongs on the critical path.
 - **`acceptance`** — has the user / stakeholder accepted the deliverables, or is feedback still pending? Pending acceptance is a rework risk for the next epic; say so.
 - **`tech_health`** — how does the codebase feel after this epic: stable and maintainable, or fragile? Anchor the answer in evidence: deferred findings still open, defect clusters from `bugs`, round counts that spiked.

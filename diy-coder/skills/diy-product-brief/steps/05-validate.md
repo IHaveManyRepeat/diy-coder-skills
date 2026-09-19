@@ -1,13 +1,13 @@
 # Step 5 — Validate（对照简报自身目的的诚实点评）
 
-Progress: `Discovery → Draft → Finalize`（validate 从本步进入；结论回对话，不写产物）
+Progress: `Discovery → Draft → Finalize`（校验从本步进入；结论回对话，不写产物）
 
 **Read (input):** `{output_dir}/brief.yaml` — brief, `decisions`, `addendum`; the original inputs the user supplied.
 **Write (output):** nothing on disk. The critique returns inline in the conversation, `communication_language` — no separate file unless the user asks for one.
 
 ## Ground the critique
 
-Judge the brief against its own purpose, not a generic template: as a **hobby** brief, as an **internal** pitch, as **investor** input, as a **public** launch. A validation that ignores prior decisions, reversed ideas, or the context the user supplied is shallow — read `decisions` and `addendum` first, then hold the brief to what it set out to do at its own `stakes`.
+Judge the brief against its own purpose, not a generic template: as a **个人兴趣** brief, as an **内部** pitch, as **投资人** input, as a **公开** launch. A validation that ignores prior decisions, reversed ideas, or the context the user supplied is shallow — read `decisions` and `addendum` first, then hold the brief to what it set out to do at its own `stakes`.
 
 ## What to examine
 

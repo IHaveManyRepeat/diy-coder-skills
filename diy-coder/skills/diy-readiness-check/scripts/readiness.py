@@ -4,7 +4,7 @@
 子命令：
   collect  开工前体检的确定性部分（只读检测，绝不写文件）：
              1 门禁（源技能 step-01 文档发现的门禁化）：prd.yaml / epics.yaml / stories.yaml
-               三件套在场，且 epics / stories 的 project.status 为 final；不满足 →
+               三件套在场，且 epics / stories 的 project.status 为 已定稿；不满足 →
                零产出 exit 1 + 结构化拒绝回执（violations 带码 + gate.route 给路由）。
                architecture.yaml / design.yaml 缺席不拒（源 step-04「无 UX 文档」分支保留；
                源 step-01 §4「Missing Documents (WARNING)」→ architecture 缺席出 warning）。
@@ -15,14 +15,14 @@
                --final --json`——diyc 是跨文档机械核对的唯一入口，本引擎不重实现其规则；
                回执违规并入 diyc.check.violations 证据键（readiness 会话据此裁决，不在此判死）。
                diyc 缺席 / 子进程失败 → 结构化 warning 降级（TOOL_MISSING / TOOL_ERROR），不崩。
-             4 coverage：must 级 FR 与 stories AC refs 的覆盖与缺口（口径同 diyc stories 规则
-               「每个 must FR 至少被一条 AC 的 refs 引用」；diyc 回执只给违规不给逐 FR 清单，
+             4 coverage：必须级 FR 与 stories AC refs 的覆盖与缺口（口径同 diyc stories 规则
+               「每个必须 FR 至少被一条 AC 的 refs 引用」；diyc 回执只给违规不给逐 FR 清单，
                故由结构化产物派生，跨文档判定权仍在 diyc）。
   check    校验 {output_dir}/readiness.yaml（IR-### 集合，形状对齐 bug-log.yaml）：schema /
-           枚举 / finding area+severity 枚举 / verdict 与 findings 一致性（ready ⇒ 零
-           critical|high；not-ready ⇒ 至少 1 条 critical|high）/ ID 唯一；--final 附加：
-           status 已落 final、verdict 非空、每条 finding 有 evidence、counts 与集合一致
-           （findings_by_severity 与 coverage 守恒）、零 [ASSUMPTION]。exit 0 唯一放行。
+           枚举 / finding area+severity 枚举 / verdict 与 findings 一致性（就绪 ⇒ 零
+           严重|高；未就绪 ⇒ 至少 1 条 严重|高）/ ID 唯一；--final 附加：
+           status 已落 已定稿、verdict 非空、每条 finding 有 evidence、counts 与集合一致
+           （findings_by_severity 与 coverage 守恒）、零 [假设]。exit 0 唯一放行。
 
 分工裁定（任务书 §2.2/§2.3/§6）：readiness 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}] + counts；
@@ -49,19 +49,19 @@ STORIES_FILE = "stories.yaml"
 ARCH_FILE = "architecture.yaml"
 DESIGN_FILE = "design.yaml"
 
-# 门禁三件套（文件名，project.status 须为 final）；architecture/design 缺席不拒
+# 门禁三件套（文件名，project.status 须为 已定稿）；architecture/design 缺席不拒
 GATE_FILES = ((PRD_FILE, False), (EPICS_FILE, True), (STORIES_FILE, True))
 ROUTE_BY_FILE = {PRD_FILE: "diy-prd", EPICS_FILE: "diy-epics-stories",
                  STORIES_FILE: "diy-epics-stories"}
 DIYC_REL = ("diy-tools", "scripts", "diyc.py")
 DIYC_TYPES = ("prd", "epics", "stories")
 
-VERDICTS = ("ready", "ready-with-risks", "not-ready")
+VERDICTS = ("就绪", "有风险就绪", "未就绪")
 FINDING_AREAS = ("prd", "epics", "stories", "ux", "architecture")
-SEVERITIES = ("critical", "high", "medium", "low")
-BLOCKING_SEVERITIES = ("critical", "high")
+SEVERITIES = ("严重", "高", "中", "低")
+BLOCKING_SEVERITIES = ("严重", "高")
 SCOPES = ("prd", "architecture", "epics", "stories", "design")
-RECORD_STATUSES = ("draft", "final")
+RECORD_STATUSES = ("草稿", "已定稿")
 COUNT_KEYS = ("frs", "nfrs", "epics", "stories", "acs")
 
 IR_RE = re.compile(r"IR-\d{3}")
@@ -109,7 +109,7 @@ def display_path(path, project_root):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -179,9 +179,9 @@ def gate_check(docs, out_dir, project_root):
         data = entry["data"]
         project = data.get("project") if isinstance(data, dict) else None
         status = project.get("status") if isinstance(project, dict) else None
-        if must_final and status != "final":
+        if must_final and status != "已定稿":
             violations.append(v("STATUS_MISMATCH", show + " project.status",
-                                "%s 的 project.status 须为 final（实为 %s）；"
+                                "%s 的 project.status 须为 已定稿（实为 %s）；"
                                 "先跑 %s 定稿" % (filename,
                                               status if nonempty(status) else "未声明",
                                               ROUTE_BY_FILE[filename])))
@@ -233,8 +233,8 @@ def read_requirements(docs):
 
 
 def compute_coverage(frs, referenced):
-    """must 级 FR 与 AC refs 的覆盖与缺口（口径同 diyc_check_docs.check_stories）。"""
-    must = [f["id"] for f in frs if f.get("priority") == "must"]
+    """必须级 FR 与 AC refs 的覆盖与缺口（口径同 diyc_check_docs.check_stories）。"""
+    must = [f["id"] for f in frs if f.get("priority") == "必须"]
     covered = [i for i in must if i in referenced]
     gaps = [i for i in must if i not in referenced]
     return {"must_frs": len(must), "covered": len(covered), "gaps": id_sort(gaps)}
@@ -368,7 +368,7 @@ def cmd_collect(args):
     payload["ok"] = True
     payload["requirements"] = {"frs": inventory["frs"], "nfrs": inventory["nfrs"],
                                "must_frs": [f["id"] for f in inventory["frs"]
-                                            if f.get("priority") == "must"]}
+                                            if f.get("priority") == "必须"]}
     payload["coverage"] = coverage
     payload["diyc"] = diyc_block
     payload["warnings"] = warnings
@@ -401,10 +401,10 @@ def human_collect(payload):
     counts = payload["counts"]
     coverage = payload["coverage"]
     print("门禁通过：prd / epics / stories 齐备且定稿。")
-    print("需求清点：FR %d（must %d）· NFR %d · epic %d · story %d · AC %d"
+    print("需求清点：FR %d（必须 %d）· NFR %d · epic %d · story %d · AC %d"
           % (counts["frs"], counts["must_frs"], counts["nfrs"],
              counts["epics"], counts["stories"], counts["acs"]))
-    print("覆盖：must FR %d 中 %d 覆盖，缺口 %d %s"
+    print("覆盖：必须 FR %d 中 %d 覆盖，缺口 %d %s"
           % (coverage["must_frs"], coverage["covered"], len(coverage["gaps"]),
              "（%s）" % "、".join(coverage["gaps"]) if coverage["gaps"] else ""))
     if payload["diyc"]["available"]:
@@ -536,17 +536,17 @@ def check_counts(record, where, final, findings):
 
 
 def check_verdict_findings(record, where, verdict, findings):
-    """verdict 与 findings 一致性：ready ⇒ 零 critical|high；not-ready ⇒ 至少 1 条。"""
+    """verdict 与 findings 一致性：就绪 ⇒ 零 严重|高；未就绪 ⇒ 至少 1 条。"""
     if not nonempty(verdict) or str(verdict) not in VERDICTS:
         return []
     blocking = [f for f in findings
                 if isinstance(f, dict) and str(f.get("severity")) in BLOCKING_SEVERITIES]
-    if str(verdict) == "ready" and blocking:
+    if str(verdict) == "就绪" and blocking:
         return [v("SET_MISMATCH", where + ".verdict",
-                  "verdict=ready 但存在 %d 条 critical|high finding" % len(blocking))]
-    if str(verdict) == "not-ready" and not blocking:
+                  "verdict=就绪 但存在 %d 条 严重|高 finding" % len(blocking))]
+    if str(verdict) == "未就绪" and not blocking:
         return [v("SET_MISMATCH", where + ".verdict",
-                  "verdict=not-ready 但无 critical|high finding（须至少 1 条）")]
+                  "verdict=未就绪 但无 严重|高 finding（须至少 1 条）")]
     return []
 
 
@@ -619,17 +619,17 @@ def check_record(index, record, final, where_base):
 
 
 def check_final_duties(record, where, verdict, status):
-    """--final 附加义务：status 已落 final、verdict 已定、零假设。"""
+    """--final 附加义务：status 已落 已定稿、verdict 已定、零假设。"""
     violations = []
-    if str(status) != "final":
+    if str(status) != "已定稿":
         violations.append(v("STATUS_MISMATCH", where + ".status",
-                            "--final 要求 status 已落 final（实为 %s）" % status))
+                            "--final 要求 status 已落 已定稿（实为 %s）" % status))
     if not nonempty(verdict):
         violations.append(v("PENDING_DECISION", where + ".verdict",
-                            "--final 要求 verdict 已定（ready|ready-with-risks|not-ready）"))
-    if any("[ASSUMPTION]" in s for s in collect_strings(record)):
+                            "--final 要求 verdict 已定（就绪|有风险就绪|未就绪）"))
+    if any("[假设]" in s for s in collect_strings(record)):
         violations.append(v("ASSUMPTION_PRESENT", where,
-                            "--final 要求零 [ASSUMPTION]；未决推断须先落定"))
+                            "--final 要求零 [假设]；未决推断须先落定"))
     return violations
 
 
@@ -765,7 +765,7 @@ def build_parser():
     k.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     k.add_argument("--final", action="store_true",
-                   help="定稿校验：status 已落 final + verdict 已定 + evidence/counts 义务 + 零假设")
+                   help="定稿校验：status 已落 已定稿 + verdict 已定 + evidence/counts 义务 + 零假设")
     k.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     k.set_defaults(func=cmd_check)
     return ap

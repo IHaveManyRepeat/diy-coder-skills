@@ -2,10 +2,10 @@
 
 Progress: `Clarify & Route → Plan → Implement → [Review] → Present`
 
-**Read (input):** the record at `status: in-progress`; the diff since `baseline` (tracked and untracked); the changed files where a hunk is not enough.
-**Write (output):** the record's `review` block (`rounds` / `findings`), `change_log` entries on `bad_spec` loopbacks, `deferred` entries, and the next `status`.
+**Read (input):** the record at `status: 进行中`; the diff since `baseline` (tracked and untracked); the changed files where a hunk is not enough.
+**Write (output):** the record's `review` block (`rounds` / `findings`), `change_log` entries on `规格缺陷` loopbacks, `deferred` entries, and the next `status`.
 
-Set the record's `status: in-review` before continuing. The layers and the routing are diy-review's — this step runs them; it never builds a second review system.
+Set the record's `status: 审查中` before continuing. The layers and the routing are diy-review's — this step runs them; it never builds a second review system.
 
 ## Construct the diff
 
@@ -13,9 +13,9 @@ Diff everything since `baseline` (`NO_VCS` → best effort from the conversation
 
 ## Layers
 
-- **L1 correctness.** Does the implementation do exactly what `acceptance` says — no missing then-clause, no extra unasked behavior? Compare criterion by criterion. A deviation from the record's `boundaries` (`always` / `never`) is a finding.
-- **L2 boundary.** Walk the failure modes the criteria imply but do not spell out: bad input, empty/None, concurrency, error paths, silent fallbacks. Report only unhandled cases that could actually bite — noise is not a finding.
-- **L3 acceptance coverage.** Every `acceptance` entry must have a `verification` command whose recorded `result` is real and matches the claim. A criterion without a command, or with a result that does not support its claim, is a finding naming the acceptance index — never re-accept it by eye.
+- **L1 正确性.** Does the implementation do exactly what `acceptance` says — no missing then-clause, no extra unasked behavior? Compare criterion by criterion. A deviation from the record's `boundaries` (`总是` / `从不`) is a finding.
+- **L2 边界.** Walk the failure modes the criteria imply but do not spell out: bad input, empty/None, concurrency, error paths, silent fallbacks. Report only unhandled cases that could actually bite — noise is not a finding.
+- **L3 覆盖审计.** Every `acceptance` entry must have a `verification` command whose recorded `result` is real and matches the claim. A criterion without a command, or with a result that does not support its claim, is a finding naming the acceptance index — never re-accept it by eye.
 
 When a sub-agent is available, launch it at the same model capability as this session, without the conversation context (a reviewer that inherits the author's reasoning is anchored), and take back findings only. No sub-agent → run the same pass inline; never write a separate review-prompt file (this skill's single source is `spec.yaml`).
 
@@ -23,18 +23,18 @@ When a sub-agent is available, launch it at the same model capability as this se
 
 1. Deduplicate all findings.
 2. Route each finding **exactly once**. The four route names and their meanings are diy-review's table — authoritative, never restated here. Two of them land differently in this channel, which owns no `stories.yaml` / `test-plan.yaml`:
-   - `intent_gap` — as diy-review defines it: the change contradicts or misses the frozen `intent`. Do not infer intent unless there is exactly one possible reading.
-   - `bad_spec` — diy-review's target (fix the spec, not the code) lands here on the record's **non-frozen** sections: when `boundaries` / `io_matrix` / `code_map` / `tasks` / `acceptance` are wrong or ambiguous, the record is what gets fixed. When in doubt between `bad_spec` and `patch`, prefer `bad_spec` — a spec-level fix produces more coherent code.
-   - `patch` — as diy-review defines it: small, localized, fixed in place without human input.
-   - `defer` — **narrowed here** to pre-existing findings that are not this change's problem; a real finding this change caused is never `defer`. When unsure between `defer` and dropping it, drop it: only defer findings you are confident are real.
-3. Process in cascading order — `intent_gap` / `bad_spec` trigger a loopback and lower findings become moot; increment `rounds` on each loopback; above 5 HALT and escalate to the human.
+   - `意图缺口` — as diy-review defines it: the change contradicts or misses the frozen `intent`. Do not infer intent unless there is exactly one possible reading.
+   - `规格缺陷` — diy-review's target (fix the spec, not the code) lands here on the record's **non-frozen** sections: when `boundaries` / `io_matrix` / `code_map` / `tasks` / `acceptance` are wrong or ambiguous, the record is what gets fixed. When in doubt between `规格缺陷` and `小修`, prefer `规格缺陷` — a spec-level fix produces more coherent code.
+   - `小修` — as diy-review defines it: small, localized, fixed in place without human input.
+   - `后置` — **narrowed here** to pre-existing findings that are not this change's problem; a real finding this change caused is never `后置`. When unsure between `后置` and dropping it, drop it: only defer findings you are confident are real.
+3. Process in cascading order — `意图缺口` / `规格缺陷` trigger a loopback and lower findings become moot; increment `rounds` on each loopback; above 5 HALT and escalate to the human.
 
 ## Apply the route
 
-- **intent_gap** — root cause is inside the frozen `intent`. Revert the code changes, loop back to the human to renegotiate the intent, then re-run `./02-plan.md` → this step. The human owns this edit; you never rewrite `intent` yourself.
-- **bad_spec** — root cause is outside `intent`: the non-frozen sections are wrong or ambiguous, so **the record is what gets fixed, not the code**. Before editing anything: extract KEEP instructions (what worked and must survive). Amend the affected sections and append one new `change_log` entry (`finding` / `amended` / `avoided` / `keep`), respecting every existing entry — never edit one. Then re-derive against the amended record: revert the code the amendment invalidates (and only that), and re-run `./03-implement.md` → this step.
-- **patch** — fix it now. These are the only findings that survive loopbacks.
-- **defer** — append `{finding, why, date}` to `deferred`. Recorded, does not block.
+- **意图缺口** — root cause is inside the frozen `intent`. Revert the code changes, loop back to the human to renegotiate the intent, then re-run `./02-plan.md` → this step. The human owns this edit; you never rewrite `intent` yourself.
+- **规格缺陷** — root cause is outside `intent`: the non-frozen sections are wrong or ambiguous, so **the record is what gets fixed, not the code**. Before editing anything: extract KEEP instructions (what worked and must survive). Amend the affected sections and append one new `change_log` entry (`finding` / `amended` / `avoided` / `keep`), respecting every existing entry — never edit one. Then re-derive against the amended record: revert the code the amendment invalidates (and only that), and re-run `./03-implement.md` → this step.
+- **小修** — fix it now. These are the only findings that survive loopbacks.
+- **后置** — append `{finding, why, date}` to `deferred`. Recorded, does not block.
 - Anything without a route — noise. Drop it silently and say so only in the aggregate ("N rejected").
 
 Write the `review` block: `rounds` (loopbacks consumed) and `findings` (`layer` / `route` / `note`, one line each; the block may be empty on a clean pass).

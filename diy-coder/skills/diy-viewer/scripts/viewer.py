@@ -26,20 +26,41 @@ ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "tech
 # diy-design SKILL.md:65 route=/path
 FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design", "route")}
 BADGE_CLASSES = {
-    "final": "ok", "done": "ok", "pass": "ok", "passing": "ok", "must": "must",
-    "accepted": "ok",
-    "draft": "dim", "could": "dim", "pending": "dim", "skipped": "dim",
-    "proposed": "dim", "skip": "dim",
-    "in-progress": "warn", "in_review": "warn", "should": "warn", "wip": "warn",
-    "blocked": "bad", "fail": "bad", "failed": "bad", "red": "bad",
-    "blocking": "bad", "advisory": "warn",
-    "blocker": "bad", "major": "warn", "minor": "dim",
+    "已定稿": "ok", "已完成": "ok", "通过": "ok", "必须": "must",
+    "已采纳": "ok",
+    "草稿": "dim", "可选": "dim", "待办": "dim", "已跳过": "dim",
+    "待定": "dim",
+    "进行中": "warn", "应该": "warn",
+    "已阻塞": "bad", "失败": "bad",
+    "阻断": "bad", "记录不阻断": "warn",
+    "建议": "warn", "观察": "dim",
+    # R3 补全（2026-09-19 机器层中文化收口）：有明确极性的结论/状态着色；
+    # 类型/刻度类值只进 VALUE_LABELS（渲染中性徽章），与既有 18 条口径一致。
+    # 终态正向
+    "已批准": "ok", "批准": "ok", "已结论": "ok", "已确证": "ok", "可得": "ok",
+    "已锤炼": "ok", "生效": "ok", "就绪": "ok", "已确立": "ok", "全覆盖": "ok",
+    # 进行中 / 待定 / 有保留
+    "待审查": "warn", "审查中": "warn", "返工": "warn", "讨论": "warn",
+    "已推断": "warn", "假设中": "warn", "部分可得": "warn", "待验证": "warn",
+    "有风险就绪": "warn", "部分完成": "warn", "新现": "warn", "有保留批准": "warn",
+    "部分覆盖": "warn", "欠火候": "warn", "关键": "warn",
+    # 负向
+    "已驳回": "bad", "错误": "bad", "缺失": "bad", "已推翻": "bad", "无法获取": "bad",
+    "地基裂缝": "bad", "未就绪": "bad", "严重": "bad", "未完成": "bad",
+    "打回": "bad", "要求修改": "bad",
+    "无实现": "bad", "无测试": "bad", "孤儿用例": "bad", "从未运行": "bad",
+    # 初始 / 非激活 / 未知
+    "悬停": "dim", "空态": "dim", "加载中": "dim", "调查中": "dim",
+    "待证据阻塞": "dim", "已反转": "dim", "未知": "dim", "未开始": "dim",
+    "格式不支持": "dim", "自动生成": "dim", "超出范围": "dim",
+    "可并行": "dim", "锦上添花": "dim",
 }
 KEY_RE = re.compile(r"[^a-z0-9]+")
 META_KEYS = ("project", "x-project")
 HTTP_METHODS = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
 
-# 展示层中文标签：YAML 单一源保持英文 key/值不变，仅在渲染时映射。
+# 展示层中文标签：YAML 键名仍为英文，键名→中文展示标签；枚举值已是中文
+# （机器层中文化），值标签表因此键值同名，兼作已知值域白名单（徽章判定依据）。
 KEY_LABELS = {
     "id": "编号", "title": "标题", "name": "名称", "status": "状态",
     "created": "创建日期", "updated": "更新日期", "description": "描述",
@@ -91,35 +112,90 @@ KEY_LABELS = {
     "would_guess": "会猜成什么", "impact": "猜错后果", "suggestion": "建议裁定",
     "severity": "严重度", "units_total": "单元总数", "units_scanned": "已扫描单元数",
 }
+# 值标签（词表正典来源）：机器层中文化后键=中文值、值=展示标签，多数同名。
 VALUE_LABELS = {
-    "draft": "草稿", "final": "已定稿", "pending": "待办",
-    "in-progress": "进行中", "review": "待审查", "done": "已完成",
-    "blocked": "已阻塞", "pass": "通过", "fail": "失败", "skipped": "已跳过",
-    "skip": "已跳过",
-    "must": "必须", "should": "应该", "could": "可选",
-    "unit": "单元", "integration": "集成", "e2e": "端到端",
-    "waived": "已豁免", "accept-gap": "接受缺口",
-    "correctness": "正确性", "boundary": "边界", "coverage": "覆盖审计", "design": "设计采用",
-    "intent_gap": "意图缺口", "bad_spec": "规格缺陷", "patch": "小修", "defer": "后置",
-    "equivalence": "等价类", "decision-table": "决策表", "state-transition": "状态迁移",
-    "pairwise": "成对组合", "error-guessing": "错误猜测", "metamorphic": "蜕变测试",
-    "property": "属性测试", "scenario": "场景",
-    "coverage-branch": "覆盖分支", "coverage-mc-dc": "MC-DC 覆盖", "whitebox-path": "白盒路径",
-    "mutation-kill": "变异杀伤",
-    "blocking": "阻断", "advisory": "记录不阻断",
-    "functional": "功能型", "non-functional": "非功能型",
-    "logic": "逻辑", "data": "数据", "state": "状态",
-    "performance": "性能", "UX": "用户体验", "security": "安全",
-    "compatibility": "兼容性", "reliability": "可靠性",
-    "dev": "开发", "audit": "审查发现", "falsification": "证伪轮", "user": "用户",
-    "proposed": "待定", "accepted": "已采纳",
-    "icon": "图标", "text": "文字", "motion": "动效",
+    "草稿": "草稿", "已定稿": "已定稿", "待办": "待办",
+    "进行中": "进行中", "待审查": "待审查", "已完成": "已完成",
+    "已阻塞": "已阻塞", "通过": "通过", "失败": "失败", "已跳过": "已跳过",
+    "必须": "必须", "应该": "应该", "可选": "可选",
+    "单元": "单元", "集成": "集成", "端到端": "端到端",
+    "已豁免": "已豁免", "接受缺口": "接受缺口",
+    "正确性": "正确性", "边界": "边界", "覆盖审计": "覆盖审计", "设计采用": "设计采用",
+    "意图缺口": "意图缺口", "规格缺陷": "规格缺陷", "小修": "小修", "后置": "后置",
+    "等价类": "等价类", "决策表": "决策表", "状态迁移": "状态迁移",
+    "成对组合": "成对组合", "错误猜测": "错误猜测", "蜕变测试": "蜕变测试",
+    "属性测试": "属性测试", "场景": "场景",
+    "覆盖分支": "覆盖分支", "MC-DC 覆盖": "MC-DC 覆盖", "白盒路径": "白盒路径",
+    "变异杀伤": "变异杀伤",
+    "阻断": "阻断", "记录不阻断": "记录不阻断",
+    "功能型": "功能型", "非功能型": "非功能型",
+    "逻辑": "逻辑", "数据": "数据", "状态": "状态",
+    "性能": "性能", "用户体验": "用户体验", "安全": "安全",
+    "兼容性": "兼容性", "可靠性": "可靠性",
+    "开发": "开发", "审查发现": "审查发现", "证伪轮": "证伪轮", "用户": "用户",
+    "待定": "待定", "已采纳": "已采纳",
+    "图标": "图标", "文字": "文字", "形状": "形状", "动效": "动效", "色彩": "色彩",
     # spec-scan：八类执行歧义 + 三档严重度
-    "UNDEFINED_BRANCH": "分支无定义", "TERM_CONFLICT": "术语冲突",
-    "INTERFACE_GAP": "接口缺口", "INPUT_UNDEFINED": "输入不明",
-    "OUTPUT_UNDEFINED": "输出不明", "ORDER_AMBIGUOUS": "时序不明",
-    "CONFLICT": "直接矛盾", "UNSTATED_ASSUMPTION": "隐含假设",
-    "blocker": "阻断", "major": "建议", "minor": "观察",
+    "分支无定义": "分支无定义", "术语冲突": "术语冲突",
+    "接口缺口": "接口缺口", "输入不明": "输入不明",
+    "输出不明": "输出不明", "时序不明": "时序不明",
+    "直接矛盾": "直接矛盾", "隐含假设": "隐含假设",
+    "建议": "建议", "观察": "观察",
+    # R3 补全（2026-09-19 机器层中文化收口）：引擎值域常量里 viewer 未登记的中文取值。
+    # 采集口径：AST 扫描 skills/*/scripts/*.py 的值域常量（含函数内联比较），剔除
+    # 「不改清单」（P0-P3 / 大写档 / 产物名 / QA / [假设] 令牌）。下列值多为同一词跨语境共用。
+    # 状态与结论（investigate / readiness / quick-dev / correct-course / brief / test-review / prfaq）
+    "调查中": "调查中", "已结论": "已结论", "待证据阻塞": "待证据阻塞",
+    "症状驱动": "症状驱动", "探索": "探索",
+    "已确证": "已确证", "已推断": "已推断", "假设中": "假设中",
+    "可得": "可得", "部分可得": "部分可得", "缺失": "缺失", "无法获取": "无法获取",
+    "待验证": "待验证", "已推翻": "已推翻",
+    "就绪": "就绪", "有风险就绪": "有风险就绪", "未就绪": "未就绪",
+    "审查中": "审查中", "已批准": "已批准", "已驳回": "已驳回",
+    "生效": "生效", "已反转": "已反转",
+    "已确立": "已确立", "新现": "新现", "未知": "未知",
+    "全覆盖": "全覆盖", "部分覆盖": "部分覆盖",
+    "批准": "批准", "返工": "返工", "讨论": "讨论",
+    "打回": "打回", "要求修改": "要求修改", "有保留批准": "有保留批准",
+    "已锤炼": "已锤炼", "欠火候": "欠火候", "地基裂缝": "地基裂缝",
+    "未开始": "未开始", "部分完成": "部分完成", "未完成": "未完成",
+    "无实现": "无实现", "无测试": "无测试", "孤儿用例": "孤儿用例", "从未运行": "从未运行",
+    "悬停": "悬停", "空态": "空态", "加载中": "加载中", "错误": "错误",
+    # 档位与原因（严重度 / 变更规模 / 排除与后置原因 / 复盘筹备档）
+    "严重": "严重", "高": "高", "中": "中", "低": "低",
+    "轻微": "轻微", "中等": "中等", "重大": "重大",
+    "格式不支持": "格式不支持", "自动生成": "自动生成", "超出范围": "超出范围",
+    "用户配置": "用户配置", "破坏性操作": "破坏性操作", "越界改动": "越界改动",
+    "仅人工可做": "仅人工可做",
+    "关键": "关键", "可并行": "可并行", "锦上添花": "锦上添花",
+    # 类型 / 模式 / 分类类值（徽章中性色：语义是归类，不是结论）
+    "显式指定": "显式指定", "冲刺任务": "冲刺任务", "Git 提交": "Git 提交",
+    "全程轨迹": "全程轨迹", "仅规格": "仅规格", "裸提交": "裸提交",
+    "增量": "增量", "批量": "批量",
+    "修改": "修改", "新增": "新增", "删除": "删除",
+    "直接调整": "直接调整", "回滚": "回滚", "MVP 复审": "MVP 复审",
+    "新建": "新建", "更新": "更新", "校验": "校验",
+    "工单": "工单", "归档": "归档", "日志": "日志",
+    "描述": "描述", "范围": "范围", "提交": "提交",
+    "商业": "商业", "内部": "内部", "开源": "开源", "社区": "社区",
+    "个人兴趣": "个人兴趣", "投资人": "投资人", "公开": "公开",
+    "全量": "全量", "重扫": "重扫", "深挖": "深挖",
+    "快速": "快速", "深入": "深入", "穷尽": "穷尽",
+    "技术栈": "技术栈", "语言": "语言", "框架": "框架", "测试": "测试",
+    "质量": "质量", "工作流": "工作流", "反模式": "反模式",
+    "网页": "网页", "移动端": "移动端", "后端": "后端", "前端": "前端",
+    "命令行": "命令行", "库": "库", "桌面端": "桌面端", "游戏": "游戏",
+    "扩展": "扩展", "基础设施": "基础设施", "嵌入式": "嵌入式", "全栈": "全栈",
+    "新功能": "新功能", "缺陷修复": "缺陷修复", "重构": "重构", "杂务": "杂务",
+    "一次成型": "一次成型", "计划-编码-审查": "计划-编码-审查",
+    "总是": "总是", "先问": "先问", "从不": "从不",
+    "市场": "市场", "技术": "技术", "领域": "领域",
+    "流程": "流程", "文档": "文档", "团队": "团队",
+    "组长": "组长", "负责人": "负责人", "入门": "入门", "进阶": "进阶", "资深": "资深",
+    "两者": "两者", "脚手架": "脚手架", "配置": "配置", "钩子": "钩子", "脚本": "脚本",
+    "静态检查": "静态检查", "契约": "契约", "预热": "预热", "报告": "报告",
+    "可维护性": "可维护性", "合成": "合成",
+    "覆盖": "覆盖", "非功能需求": "非功能需求", "启发式": "启发式",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
@@ -144,7 +220,7 @@ GLOSSARY = {
     "功能组": "一组相关功能需求，对应产品的一个能力方向",
     "需求条目": "一条具体的功能需求，编号 FR-x.y，是故事/测试等所有下游工作的源头",
     "非功能需求": "不规定做什么功能，规定做得怎么样的要求（如性能、可维护性）",
-    "严格度": "验收松紧档位；launch=发布级，必须需求须逐条满足才算完成",
+    "严格度": "验收松紧档位；公开=发布级，必须需求须逐条满足才算完成",
     "史诗": "一组相关故事的集合，比故事大一档，通常对应产品一大块能力",
     "用户故事": "从使用者角度描述的一小段需求：谁、要什么、为什么",
     "验收标准": "做完后怎样算合格的可检查条件，编号 AC-x.y，测试用例直接对着它设计",
@@ -226,7 +302,7 @@ GLOSSARY = {
     "关联用例": "该任务必须通过的测试用例编号；为空则任务无法启动（TDD 门）",
     "编码后验证": "任务完成编码后由 diy-augment 跑的覆盖率驱动补测：通过=已完整交付；失败=有缺陷待裁断处理；已跳过=环境缺工具未跑",
     "关联功能组": "该史诗对应的功能组编号",
-    "待确认假设": "[ASSUMPTION] 标记的推测内容，需人工逐条确认后才能定稿",
+    "待确认假设": "[假设] 标记的推测内容，需人工逐条确认后才能定稿",
 }
 # 徽章值词汇表（B3）：值命中 VALUE_LABELS/已知分类/术语表（如 P0/P1/P2）才出徽章，
 # 自由文本/URL 回落 cell() 纯文本
@@ -362,7 +438,7 @@ def compute_orphans(prd_data, referenced: set) -> set:
             continue
         for req in feat.get("requirements") or []:
             if (isinstance(req, dict) and is_id_string(req.get("id"))
-                    and str(req.get("priority", "")).strip().lower() == "must"
+                    and str(req.get("priority", "")).strip().lower() == "必须"
                     and req["id"].strip() not in referenced):
                 orphans.add(req["id"].strip())
     return orphans
@@ -540,13 +616,13 @@ def esc(v) -> str:
 
 
 def cell(v) -> str:
-    """Render a scalar value; keeps line breaks, highlights [ASSUMPTION]."""
+    """Render a scalar value; keeps line breaks, highlights [假设]."""
     if v is None:
         return '<span class="dim">—</span>'
     if isinstance(v, (dict, list)):
         return f'<code class="dim">{esc(json.dumps(v, ensure_ascii=False, default=str))}</code>'
     text = esc(v)
-    if text.startswith("[ASSUMPTION]"):
+    if text.startswith("[假设]"):
         return f'<span class="assume" title="assumption, needs confirmation">{linkify(text)}</span>'
     return linkify(text).replace("\n", "<br>")
 
@@ -844,7 +920,7 @@ def count_assumptions(node, _seen=None) -> int:
     if _seen is None:
         _seen = set()
     if isinstance(node, str):
-        return 1 if node.startswith("[ASSUMPTION]") else 0
+        return 1 if node.startswith("[假设]") else 0
     if isinstance(node, dict):
         if id(node) in _seen:
             return 0
@@ -896,10 +972,10 @@ def render_openapi_section(data: dict) -> str:
 
 
 def render_augment_panel(data, others: list) -> str:
-    # trace: 2026-09-13 裁定——补测待裁断聚合面板：sprint 页集中列出 augment:fail 任务
-    # 与其失败用例（跨 test-plan/stories 反查），裁断三途径同屏可见；无 fail 任务零输出
+    # trace: 2026-09-13 裁定——补测待裁断聚合面板：sprint 页集中列出 augment:失败 任务
+    # 与其失败用例（跨 test-plan/stories 反查），裁断三途径同屏可见；无失败任务零输出
     fails = [t for t in (data.get("tasks") or [])
-             if isinstance(t, dict) and t.get("augment") == "fail"]
+             if isinstance(t, dict) and t.get("augment") == "失败"]
     if not fails:
         return ""
     tp = next((d for n, d in others if n == "test-plan"), None)
@@ -925,7 +1001,7 @@ def render_augment_panel(data, others: list) -> str:
         hits = []
         for r in refs:
             tc = tc_by_id.get(str(r).strip())
-            if not isinstance(tc, dict) or tc.get("status") != "fail":
+            if not isinstance(tc, dict) or tc.get("status") != "失败":
                 continue
             item = render_ref_item(str(r))
             kt = str(tc.get("kill_target", "")).strip()
@@ -995,7 +1071,7 @@ def build_index(docs: list, errors=None, source: str = "") -> str:
         # trace: 2026-09-13 裁定——索引卡片露出补测待裁断数（不点进 sprint 页也可见）
         if name == "sprint":
             n_fail = len([t for t in (data.get("tasks") or [])
-                          if isinstance(t, dict) and t.get("augment") == "fail"])
+                          if isinstance(t, dict) and t.get("augment") == "失败"])
             if n_fail:
                 open_html += f'<span class="badge b-bad">补测待裁断 {n_fail}</span>'
         cards.append(

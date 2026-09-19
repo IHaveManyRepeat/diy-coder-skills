@@ -2,7 +2,7 @@
 """diyc CLI 入口测试（批次 3，契约 §3/§4.1/§4.3/§4.4）。
 
 覆盖：resolve（合法/实例/非法名/配置降级）、trace（解析/排除/--src/未解析 ID）、
-static（blocking 停链 / advisory 不阻断 / 超时 / 无 static_checks）、
+static（阻断停链 / 记录不阻断 / 超时 / 无 static_checks）、
 exit code 三态（0/1/2）、人类态渲染。真产物仅只读冒烟。
 """
 import json
@@ -198,40 +198,40 @@ class StaticTests(unittest.TestCase):
 
     def test_blocking_failure_stops_chain(self):
         self.write_plan([
-            fx.static_check(1, PY + ' -c "print(1)"', gate="blocking"),
-            fx.static_check(2, PY + ' -c "import sys; sys.exit(3)"', gate="blocking"),
-            fx.static_check(3, PY + ' -c "print(3)"', gate="blocking"),
+            fx.static_check(1, PY + ' -c "print(1)"', gate="阻断"),
+            fx.static_check(2, PY + ' -c "import sys; sys.exit(3)"', gate="阻断"),
+            fx.static_check(3, PY + ' -c "print(3)"', gate="阻断"),
         ])
         p = run_diyc(self.root, "static", "--json")
         self.assertEqual(p.returncode, 1)
         r = jload(p)
         self.assertFalse(r["ok"])
         verdicts = [x["verdict"] for x in r["layers"]]
-        self.assertEqual(verdicts, ["pass", "fail", "skipped"])
+        self.assertEqual(verdicts, ["通过", "失败", "已跳过"])
         self.assertEqual(r["counts"]["failed"], 1)
         self.assertEqual(r["counts"]["skipped"], 1)
         self.assertFalse(any(x["code"] == "MISSING_FILE" for x in r["violations"]))
 
     def test_advisory_failure_does_not_block(self):
         self.write_plan([
-            fx.static_check(1, PY + ' -c "import sys; sys.exit(1)"', gate="advisory"),
-            fx.static_check(2, PY + ' -c "print(2)"', gate="blocking"),
+            fx.static_check(1, PY + ' -c "import sys; sys.exit(1)"', gate="记录不阻断"),
+            fx.static_check(2, PY + ' -c "print(2)"', gate="阻断"),
         ])
         p = run_diyc(self.root, "static", "--json")
         self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
         r = jload(p)
         self.assertTrue(r["ok"])
         verdicts = [x["verdict"] for x in r["layers"]]
-        self.assertEqual(verdicts, ["fail", "pass"])
+        self.assertEqual(verdicts, ["失败", "通过"])
 
     def test_timeout_counts_as_failure(self):
         self.write_plan([
-            fx.static_check(1, PY + ' -c "import time; time.sleep(10)"', gate="blocking"),
+            fx.static_check(1, PY + ' -c "import time; time.sleep(10)"', gate="阻断"),
         ])
         p = run_diyc(self.root, "static", "--timeout", "1", "--json")
         self.assertEqual(p.returncode, 1)
         r = jload(p)
-        self.assertEqual(r["layers"][0]["verdict"], "fail")
+        self.assertEqual(r["layers"][0]["verdict"], "失败")
 
     def test_no_static_checks_warns_ok(self):
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan([]))
@@ -252,7 +252,7 @@ class StaticTests(unittest.TestCase):
         self.write_plan([fx.static_check(1, PY + ' -c "print(1)"')])
         p = run_diyc(self.root, "static")
         self.assertEqual(p.returncode, 0, p.stderr)
-        self.assertIn("pass", p.stdout)
+        self.assertIn("通过", p.stdout)
 
 
 class UsageTests(unittest.TestCase):

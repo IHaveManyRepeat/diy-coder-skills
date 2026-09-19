@@ -2,7 +2,7 @@
 """diy-correct-course 确定性引擎 e2e 测试（B2 批 W3，任务书 §2.5/§5）。
 
 覆盖：
-- 用例 1：门禁拒绝（缺 prd.yaml / epics project.status 非 final）→ exit 1 + 结构化拒绝
+- 用例 1：门禁拒绝（缺 prd.yaml / epics project.status 非 已定稿）→ exit 1 + 结构化拒绝
           + 路由 + 零产出
 - 用例 2：--output-dir 必填（用法错误 exit 2）
 - 用例 3：collect 六产物摘要 + 委派 diyc 五型交叉核对（真跑子进程；违规并入证据键）
@@ -40,7 +40,7 @@ DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
 PRD_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "purpose: 夹具用途",
@@ -59,10 +59,10 @@ PRD_YAML = NL.join([
     "  requirements:",
     "  - id: FR-1.1",
     "    statement: 必须能力一",
-    "    priority: must",
+    "    priority: 必须",
     "  - id: FR-1.2",
     "    statement: 应当能力二",
-    "    priority: should",
+    "    priority: 应该",
     "nfrs:",
     "- id: NFR-1",
     "  statement: 性能要求",
@@ -71,7 +71,7 @@ PRD_YAML = NL.join([
 EPICS_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "epics:",
@@ -79,13 +79,13 @@ EPICS_YAML = NL.join([
     "  title: 史诗一",
     "  goal: 用户能完成一件事",
     "  feature_refs: [F-1]",
-    "  status: in-progress",
+    "  status: 进行中",
 ]) + NL
 
 STORIES_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "stories:",
@@ -100,13 +100,13 @@ STORIES_YAML = NL.join([
     "    then: 结果",
     "    refs:",
     "    - FR-1.1",
-    "  status: in-progress",
+    "  status: 进行中",
 ]) + NL
 
 ARCH_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "stack:",
@@ -121,14 +121,14 @@ ARCH_YAML = NL.join([
     "  - option: 方案乙",
     "    why_not: 更贵",
     "  affects: [FR-1.1]",
-    "  status: accepted",
+    "  status: 已采纳",
 ]) + NL
 
 OPENAPI_YAML = NL.join([
     "openapi: 3.1.0",
     "x-project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "info:",
@@ -149,7 +149,7 @@ OPENAPI_YAML = NL.join([
 DESIGN_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "pages:",
@@ -157,24 +157,24 @@ DESIGN_YAML = NL.join([
     "  name: 首页",
     "  route: /",
     "  states:",
-    "  - {name: hover, signals: [icon]}",
+    "  - {name: 悬停, signals: [图标]}",
 ]) + NL
 
 TESTPLAN_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "test_cases:",
     "- id: TC-1.1.1",
     "  title: 用例一",
     "  ac: AC-1.1",
-    "  type: unit",
+    "  type: 单元",
     "  priority: P0",
-    "  technique: example",
+    "  technique: 等价类",
     "  kill_target: 逻辑错误",
-    "  status: pending",
+    "  status: 待办",
     "  steps:",
     "  - 步骤一",
 ]) + NL
@@ -182,12 +182,12 @@ TESTPLAN_YAML = NL.join([
 SPRINT_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "tasks:",
     "- story: S-1",
-    "  status: in-progress",
+    "  status: 进行中",
     "  test_refs: [TC-1.1.1]",
 ]) + NL
 
@@ -199,13 +199,13 @@ PROPOSAL_YAML = NL.join([
     "proposals:",
     "- id: CP-001",
     "  date: '2026-09-14'",
-    "  status: final",
+    "  status: 已定稿",
     "  trigger: 实施中发现 2FA 是安全评审的必须项",
-    "  mode: incremental",
-    "  scope: moderate",
+    "  mode: 增量",
+    "  scope: 中等",
     "  impacts:",
-    "  - {artifact: prd, target: FR-1.1, kind: modify, why: 需补 2FA 要求}",
-    "  - {artifact: stories, target: AC-1.1, kind: add, why: 缺 2FA 验收标准}",
+    "  - {artifact: prd, target: FR-1.1, kind: 修改, why: 需补 2FA 要求}",
+    "  - {artifact: stories, target: AC-1.1, kind: 新增, why: 缺 2FA 验收标准}",
     "  edits:",
     "  - artifact: stories",
     "    target: AC-1.1",
@@ -216,7 +216,7 @@ PROPOSAL_YAML = NL.join([
     "  ripple:",
     "  - TC-1.1.1 需补 2FA 用例",
     "  effort: {estimate: 小, risk: 低, timeline_impact: 本 sprint 内}",
-    "  approach: {path: direct-adjustment, why: 现有 epic 结构可承载}",
+    "  approach: {path: 直接调整, why: 现有 epic 结构可承载}",
     "  handoff: {route: diy-epics-stories, note: 追加 AC 后重跑 sprint 门}",
     "  open_questions: []",
     "revisions: []",
@@ -231,14 +231,14 @@ PROPOSAL_INFRA_YAML = NL.join([
     "proposals:",
     "- id: CP-001",
     "  date: '2026-09-14'",
-    "  status: final",
+    "  status: 已定稿",
     "  trigger: 部署方式改为容器化",
-    "  mode: incremental",
-    "  scope: minor",
+    "  mode: 增量",
+    "  scope: 轻微",
     "  impacts:",
-    "  - {artifact: architecture, target: D-1, kind: modify, why: 部署决策须改容器化}",
-    "  - {artifact: infra, target: path:Dockerfile, kind: add, why: 需新建镜像构建文件}",
-    "  - {artifact: test-plan, target: TC-1.1.1, kind: modify, why: 用例须按容器环境调整}",
+    "  - {artifact: architecture, target: D-1, kind: 修改, why: 部署决策须改容器化}",
+    "  - {artifact: infra, target: path:Dockerfile, kind: 新增, why: 需新建镜像构建文件}",
+    "  - {artifact: test-plan, target: TC-1.1.1, kind: 修改, why: 用例须按容器环境调整}",
     "  edits:",
     "  - artifact: infra",
     "    target: path:.github/workflows/ci.yml",
@@ -248,7 +248,7 @@ PROPOSAL_INFRA_YAML = NL.join([
     "    rationale: 容器化后 CI 须构建镜像",
     "  ripple: []",
     "  effort: {estimate: 中, risk: 中, timeline_impact: 一个 sprint}",
-    "  approach: {path: direct-adjustment, why: 现有部署面小}",
+    "  approach: {path: 直接调整, why: 现有部署面小}",
     "  handoff: {route: diy-dev, note: 新建 Dockerfile 并补 CI 步骤}",
     "  open_questions: []",
     "revisions: []",
@@ -327,9 +327,9 @@ class GateTests(EngineCase):
                          "拒绝路径不得产出 change-proposal.yaml")
         self.assertEqual(self.out_files(), ["epics.yaml", "stories.yaml"])
 
-    # trace: 任务书 §5 门禁（三件套须 project.status: final）
+    # trace: 任务书 §5 门禁（三件套须 project.status: 已定稿）
     def test_gate_refuses_non_final_epics(self):
-        self.write_core(epics=EPICS_YAML.replace("status: final", "status: draft", 1))
+        self.write_core(epics=EPICS_YAML.replace("status: 已定稿", "status: 草稿", 1))
         r = self.collect()
         self.assertEqual(r.returncode, 1, r.stdout)
         data = json.loads(r.stdout)
@@ -443,7 +443,7 @@ class CheckValidationTests(EngineCase):
         self.assertTrue(data["ok"])
         self.assertEqual(data["violations"], [])
         self.assertEqual(data["counts"]["proposals"], 1)
-        self.assertEqual(data["counts"]["by_scope"], {"moderate": 1})
+        self.assertEqual(data["counts"]["by_scope"], {"中等": 1})
 
     # trace: 任务书 §5 check（edits 完整：old+new+rationale 非空且 old != new）
     def test_check_edits_completeness(self):
@@ -466,7 +466,7 @@ class CheckValidationTests(EngineCase):
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r.stdout)["violations"]})
-        bad_target = PROPOSAL_YAML.replace("target: FR-1.1, kind: modify", "target: req-one, kind: modify")
+        bad_target = PROPOSAL_YAML.replace("target: FR-1.1, kind: 修改", "target: req-one, kind: 修改")
         self.write("diy-output/change-proposal.yaml", bad_target)
         r2 = self.check()
         self.assertEqual(r2.returncode, 1, r2.stdout)
@@ -475,9 +475,9 @@ class CheckValidationTests(EngineCase):
     # trace: 任务书 §5 check（枚举 / 重复 ID / schema）
     def test_check_schema_violations(self):
         cases = [
-            ("ENUM_INVALID", "status: final", "status: done"),
-            ("ENUM_INVALID", "mode: incremental", "mode: freestyle"),
-            ("ENUM_INVALID", "scope: moderate", "scope: huge"),
+            ("ENUM_INVALID", "status: 已定稿", "status: 已完成"),
+            ("ENUM_INVALID", "mode: 增量", "mode: freestyle"),
+            ("ENUM_INVALID", "scope: 中等", "scope: huge"),
             ("ENUM_INVALID", "id: CP-001", "id: CP-1"),
             ("UNPARSABLE_YAML", None, None),
         ]
@@ -498,36 +498,36 @@ class CheckValidationTests(EngineCase):
     # trace: 任务书 §5 check --final（终态 status / 零假设 / impacts 非空 / approach 已定 /
     #        scope 与 handoff 一致性）
     def test_check_final_duties(self):
-        draft = PROPOSAL_YAML.replace("status: final", "status: draft")
+        draft = PROPOSAL_YAML.replace("status: 已定稿", "status: 草稿")
         self.write("diy-output/change-proposal.yaml", draft)
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("STATUS_MISMATCH", {x["code"] for x in json.loads(r.stdout)["violations"]})
 
         assumption = PROPOSAL_YAML.replace("trigger: 实施中发现 2FA 是安全评审的必须项",
-                                           "trigger: '[ASSUMPTION] 疑似缺 2FA'")
+                                           "trigger: '[假设] 疑似缺 2FA'")
         self.write("diy-output/change-proposal.yaml", assumption)
         r2 = self.check("--final")
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("ASSUMPTION_PRESENT", {x["code"] for x in json.loads(r2.stdout)["violations"]})
 
         no_impacts = PROPOSAL_YAML.replace(NL + "  - {artifact: stories, target: AC-1.1,"
-                                               " kind: add, why: 缺 2FA 验收标准}", "")
+                                               " kind: 新增, why: 缺 2FA 验收标准}", "")
         self.write("diy-output/change-proposal.yaml", no_impacts.replace(
-            NL + "  - {artifact: prd, target: FR-1.1, kind: modify, why: 需补 2FA 要求}", ""))
+            NL + "  - {artifact: prd, target: FR-1.1, kind: 修改, why: 需补 2FA 要求}", ""))
         r3 = self.check("--final")
         self.assertEqual(r3.returncode, 1, r3.stdout)
         self.assertIn("EMPTY_FIELD", {x["code"] for x in json.loads(r3.stdout)["violations"]})
 
         no_approach = PROPOSAL_YAML.replace(
-            NL + "  approach: {path: direct-adjustment, why: 现有 epic 结构可承载}", "")
+            NL + "  approach: {path: 直接调整, why: 现有 epic 结构可承载}", "")
         self.write("diy-output/change-proposal.yaml", no_approach)
         r4 = self.check("--final")
         self.assertEqual(r4.returncode, 1, r4.stdout)
         self.assertIn("PENDING_DECISION", {x["code"] for x in json.loads(r4.stdout)["violations"]})
 
-        # scope=major（规划层）却交接给 diy-sprint（backlog 层）→ 不一致
-        mismatch = (PROPOSAL_YAML.replace("scope: moderate", "scope: major")
+        # scope=重大（规划层）却交接给 diy-sprint（backlog 层）→ 不一致
+        mismatch = (PROPOSAL_YAML.replace("scope: 中等", "scope: 重大")
                     .replace("route: diy-epics-stories", "route: diy-sprint"))
         self.write("diy-output/change-proposal.yaml", mismatch)
         r5 = self.check("--final")
@@ -537,7 +537,7 @@ class CheckValidationTests(EngineCase):
     # trace: 任务书 §5 check（--id 单项过滤：只校验指定记录；未命中 → UNKNOWN_ID）
     def test_check_single_id_filter(self):
         body = PROPOSAL_YAML.split("proposals:" + NL, 1)[1].replace("revisions: []" + NL, "")
-        second = body.replace("id: CP-001", "id: CP-002").replace("status: final", "status: done")
+        second = body.replace("id: CP-001", "id: CP-002").replace("status: 已定稿", "status: 已完成")
         self.write("diy-output/change-proposal.yaml",
                    PROPOSAL_YAML.replace("revisions: []" + NL, "") + second)
         r = self.check("--id", "CP-001")
@@ -574,8 +574,8 @@ class TargetFormTests(EngineCase):
     # trace: 源 checklist §3.4 Testing strategies → test-plan 影响面可表达
     def test_test_plan_artifact_accepted(self):
         text = PROPOSAL_YAML.replace(
-            "{artifact: stories, target: AC-1.1, kind: add, why: 缺 2FA 验收标准}",
-            "{artifact: test-plan, target: TC-1.1.1, kind: add, why: 缺 2FA 用例}")
+            "{artifact: stories, target: AC-1.1, kind: 新增, why: 缺 2FA 验收标准}",
+            "{artifact: test-plan, target: TC-1.1.1, kind: 新增, why: 缺 2FA 用例}")
         self.write_proposal(text)
         r = self.check()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -594,8 +594,8 @@ class TargetFormTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r.stdout)["violations"]})
 
-        text = PROPOSAL_YAML.replace("target: FR-1.1, kind: modify",
-                                     "target: path:Dockerfile, kind: modify")
+        text = PROPOSAL_YAML.replace("target: FR-1.1, kind: 修改",
+                                     "target: path:Dockerfile, kind: 修改")
         self.write_proposal(text)
         r2 = self.check()
         self.assertEqual(r2.returncode, 1, r2.stdout)

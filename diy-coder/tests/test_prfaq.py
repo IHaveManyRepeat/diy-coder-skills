@@ -39,12 +39,12 @@ DISCIPLINE_ANCHOR = "- **Writing discipline."
 PRFAQ_DRAFT = NL.join([
     "project:",
     "  name: mini",
-    "  status: draft",
+    "  status: 草稿",
     "  created: '2026-09-14'",
     "  updated: '2026-09-14'",
     "prfaq:",
     "  stage: 2",
-    "  concept_type: commercial",
+    "  concept_type: 商业",
     "  essentials:",
     "    customer: 独立开发者",
     "    problem: 手工整理需求耗时",
@@ -77,12 +77,12 @@ PRFAQ_DRAFT = NL.join([
 PRFAQ_FINAL = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-09-14'",
     "  updated: '2026-09-14'",
     "prfaq:",
     "  stage: 5",
-    "  concept_type: open-source",
+    "  concept_type: 开源",
     "  essentials:",
     "    customer: 独立开发者",
     "    problem: 手工整理需求耗时",
@@ -110,7 +110,7 @@ PRFAQ_FINAL = NL.join([
     "    q: 最难的技术问题是什么？",
     "    a: 问题生成的领域校准",
     "  verdict:",
-    "    strength: forged",
+    "    strength: 已锤炼",
     "    narrative: 客户问题经得起追问，成本模型仍缺实证",
     "distillate:",
     "  problem: 需求整理耗时",
@@ -240,7 +240,7 @@ class CheckValidationTests(EngineCase):
     def test_check_final_reports_violation_codes(self):
         cases = [
             ("ENUM_INVALID",
-             swap(PRFAQ_FINAL, "    strength: forged", "    strength: great")),
+             swap(PRFAQ_FINAL, "    strength: 已锤炼", "    strength: great")),
             ("STATUS_MISMATCH",
              swap(PRFAQ_FINAL, "  stage: 5", "  stage: 4")),
             ("EMPTY_FIELD",
@@ -277,11 +277,11 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(r3.returncode, 1, r3.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r3.stdout)["violations"]})
 
-    # trace: B1 diy-prfaq 验收 #2（--final 零 [ASSUMPTION]）
+    # trace: B1 diy-prfaq 验收 #2（--final 零 [假设]）
     def test_check_final_rejects_assumption_marker(self):
         # YAML 块序列项以 `[` 开头须引号包裹（未引号会破坏解析）——SKILL.md 同款纪律
         text = swap(PRFAQ_FINAL, "  - 成本模型缺实测数据",
-                    "  - '[ASSUMPTION] 成本模型缺实测数据'")
+                    "  - '[假设] 成本模型缺实测数据'")
         self.write("diy-output/prfaq.yaml", text)
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)

@@ -7,13 +7,13 @@ Progress: `Acknowledge → [Stronghold] → Perimeter → Reasoning → Source T
 
 ## Find the stronghold
 
-A stronghold is one **Confirmed** piece of evidence: an error message, a function name, an HTTP route, a config parameter, a test case. Anchor here; the perimeter in step 3 expands outward from it.
+A stronghold is one **「已确证」** piece of evidence: an error message, a function name, an HTTP route, a config parameter, a test case. Anchor here; the perimeter in step 3 expands outward from it.
 
 Never start from a theory and hunt for support. The user's hypothesis (`H-001`) is not the stronghold — the stronghold is something directly observed and cited (`path:line`, timestamp, or commit hash).
 
 ## Evidence-light branch
 
-When no Confirmed evidence is reachable:
+When no 「已确证」 evidence is reachable:
 
 1. set `evidence_light: true` in the record;
 2. populate `backlog` with the prioritized data-collection items;
@@ -22,23 +22,23 @@ When no Confirmed evidence is reachable:
 
 ## Draft the record
 
-Append one record to `{output_dir}/investigation.yaml` (create the file when absent: `project: {name, status: draft, created, updated}` — `name` from `diy-coder.yaml` `project.name` — plus an empty `cases` list and `revisions: []`):
+Append one record to `{output_dir}/investigation.yaml` (create the file when absent: `project: {name, status: 草稿, created, updated}` — `name` from `diy-coder.yaml` `project.name` — plus an empty `cases` list and `revisions: []`):
 
 ```yaml
   - id: IV-001                 # next = highest existing + 1, 3 digits; never renumber, never reuse
     slug: {agreed slug}
     date: YYYY-MM-DD           # today
-    status: active
-    mode: symptom|exploration
+    status: 调查中
+    mode: 症状驱动|探索
     evidence_light: false
     handoff_brief: {rough, one line}
     case_info: {inputs: [{kind, ref}], scope: ..., time_window: ...}
     problem_statement: {the user's description, verbatim}
     stronghold: {ref: ..., why: ...}       # omit only on the evidence-light branch
     evidence:
-      - {id: EV-001, grade: confirmed, ref: ..., note: ..., availability: available}
+      - {id: EV-001, grade: 已确证, ref: ..., note: ..., availability: 可得}
     hypotheses:
-      - {id: H-001, statement: ..., status: open, test: ..., resolution: ''}
+      - {id: H-001, statement: ..., status: 待验证, test: ..., resolution: ''}
     timeline: []
     backlog: []
     missing_evidence: []

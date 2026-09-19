@@ -2,20 +2,20 @@
 """diy-test-gate 确定性引擎 e2e 测试（B3 批 W2，任务书 §4 / §2.5）。
 
 覆盖：
-- 用例 1：前置门禁拒绝（缺 stories.yaml / test-plan 非 final / 缺 prd.yaml /
+- 用例 1：前置门禁拒绝（缺 stories.yaml / test-plan 非 已定稿 / 缺 prd.yaml /
           --story 未知）→ exit 1 + 结构化拒绝 + 路由 + 零产出
 - 用例 2：collect 矩阵 join（合成四产物：priority 由 prd FR 推导 / TC 绑定 /
           证据台账归属 / totals + by_level）
-- 用例 3：collect 覆盖判定表（fail 胜、pass 无台账 → 计已验证 + warning、pending 不计）
+- 用例 3：collect 覆盖判定表（失败胜、通过无台账 → 计已验证 + warning、待办不计）
 - 用例 4：collect 软指标六项 + 缺口清单
 - 用例 5：collect 委派 diyc（真跑子进程：上游违规进 diyc.violations 不当失败吞掉；
           diyc 缺席 → TOOL_MISSING 降级不崩）
 - 用例 6：collect mutation 面（缺席 n/a + warning / 在场取全部 run 的 score 最小值）
 - 用例 7：check 合法记录 --final exit 0 唯一放行（PASS 路径）
-- 用例 8：check 门决策不自洽（硬判据 fail 而 decision PASS / 软判据 fail 而 PASS /
+- 用例 8：check 门决策不自洽（硬判据 失败 而 decision PASS / 软判据 失败 而 PASS /
           NFR 域 CONCERNS 而 PASS / 判据 actual 陈旧）
 - 用例 9：check UNKNOWN 阈值域 PASS / NFR critical FAIL 而门 PASS / 阈值 source 强制记出处
-- 用例 10：check waiver 8 键契约 + security 域不可豁免 + 豁免后 nfr_critical 重算
+- 用例 10：check waiver 8 键契约 + 安全域不可豁免 + 豁免后 nfr_critical 重算
 - 用例 11：check 引用解析（AC 悬空）+ totals 重算 + --final 义务 + 回执共同键
 - 用例 12：SKILL.md 契约冒烟（母本 §1 / §2 中文定稿逐字 + 终门句指向 gate.py）
 - 用例 13：G-1 证据时效（台账时间戳 / mutation run 日期 >7 天 → EVIDENCE_STALE）
@@ -58,25 +58,25 @@ DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚
                  "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
 
 PRD = {
-    "project": {"name": "mini", "status": "final", "created": "2026-01-01",
+    "project": {"name": "mini", "status": "已定稿", "created": "2026-01-01",
                 "updated": "2026-01-02"},
     "features": [
         {"id": "F-1", "name": "能力一", "description": "描述",
          "requirements": [
-             {"id": "FR-1.1", "statement": "必须能力一", "priority": "must"},
-             {"id": "FR-1.2", "statement": "应当能力二", "priority": "should"},
-             {"id": "FR-1.3", "statement": "可选能力三", "priority": "could"},
+             {"id": "FR-1.1", "statement": "必须能力一", "priority": "必须"},
+             {"id": "FR-1.2", "statement": "应当能力二", "priority": "应该"},
+             {"id": "FR-1.3", "statement": "可选能力三", "priority": "可选"},
          ]},
     ],
     "nfrs": [{"id": "NFR-1", "statement": "登录 P95 < 200ms"}],
 }
 
 STORIES = {
-    "project": {"name": "mini", "status": "final", "created": "2026-01-01",
+    "project": {"name": "mini", "status": "已定稿", "created": "2026-01-01",
                 "updated": "2026-01-02"},
     "stories": [
         {"id": "S-1", "epic": "E-1", "title": "登录页面",
-         "narrative": "作为用户我要登录", "status": "in-progress",
+         "narrative": "作为用户我要登录", "status": "进行中",
          "acceptance_criteria": [
              {"id": "AC-1.1", "given": "已注册", "when": "提交",
               "then": "进入首页", "refs": ["FR-1.1"]},
@@ -86,7 +86,7 @@ STORIES = {
               "then": "通过", "refs": []},
          ]},
         {"id": "S-2", "epic": "E-1", "title": "登出接口", "narrative": "退出",
-         "status": "pending",
+         "status": "待办",
          "acceptance_criteria": [
              {"id": "AC-2.1", "given": "已登录", "when": "点登出",
               "then": "回登录页", "refs": ["FR-1.3"]},
@@ -95,42 +95,42 @@ STORIES = {
 }
 
 TEST_PLAN = {
-    "project": {"name": "mini", "status": "final", "created": "2026-01-01",
+    "project": {"name": "mini", "status": "已定稿", "created": "2026-01-01",
                 "updated": "2026-01-02"},
     "test_cases": [
-        {"id": "TC-1.1.1", "title": "边界值", "ac": "AC-1.1", "type": "unit",
-         "priority": "P0", "technique": "boundary", "kill_target": "off-by-one",
-         "status": "pass", "steps": ["跑"]},
+        {"id": "TC-1.1.1", "title": "边界值", "ac": "AC-1.1", "type": "单元",
+         "priority": "P0", "technique": "边界", "kill_target": "off-by-one",
+         "status": "通过", "steps": ["跑"]},
         {"id": "TC-1.1.2", "title": "负面", "ac": "AC-1.1",
-         "type": "integration", "priority": "P0", "technique": "error-guessing",
-         "kill_target": "吞异常", "status": "pass", "steps": ["跑"]},
-        {"id": "TC-1.2.1", "title": "决策表", "ac": "AC-1.2", "type": "unit",
-         "priority": "P1", "technique": "decision-table",
-         "kill_target": "漏分支", "status": "fail", "steps": ["跑"]},
-        {"id": "TC-1.2.2", "title": "边界", "ac": "AC-1.2", "type": "unit",
-         "priority": "P1", "technique": "boundary", "kill_target": "边界错",
-         "status": "pass", "steps": ["跑"]},
-        {"id": "TC-1.3.1", "title": "等价类", "ac": "AC-1.3", "type": "unit",
-         "priority": "P2", "technique": "equivalence", "kill_target": "分类错",
-         "status": "pending", "steps": ["跑"]},
+         "type": "集成", "priority": "P0", "technique": "错误猜测",
+         "kill_target": "吞异常", "status": "通过", "steps": ["跑"]},
+        {"id": "TC-1.2.1", "title": "决策表", "ac": "AC-1.2", "type": "单元",
+         "priority": "P1", "technique": "决策表",
+         "kill_target": "漏分支", "status": "失败", "steps": ["跑"]},
+        {"id": "TC-1.2.2", "title": "边界", "ac": "AC-1.2", "type": "单元",
+         "priority": "P1", "technique": "边界", "kill_target": "边界错",
+         "status": "通过", "steps": ["跑"]},
+        {"id": "TC-1.3.1", "title": "等价类", "ac": "AC-1.3", "type": "单元",
+         "priority": "P2", "technique": "等价类", "kill_target": "分类错",
+         "status": "待办", "steps": ["跑"]},
     ],
     "static_checks": [{"order": 1, "tool": "python -m ruff check .",
-                       "kills": "语法", "gate": "blocking"}],
+                       "kills": "语法", "gate": "阻断"}],
     "coverage_gaps": [],
 }
 
 SPRINT = {
-    "project": {"name": "mini", "status": "final", "created": "2026-01-01",
+    "project": {"name": "mini", "status": "已定稿", "created": "2026-01-01",
                 "updated": "2026-01-02"},
     "tasks": [
-        {"story": "S-1", "status": "in-progress",
+        {"story": "S-1", "status": "进行中",
          "test_refs": ["TC-1.1.1", "TC-1.1.2", "TC-1.2.1", "TC-1.2.2"],
          "evidence": [
              {"tc": "TC-1.1.1", "red": "1 failed", "green": "1 passed"},
              {"tc": "TC-1.1.2", "red": "1 failed", "green": "1 passed"},
              {"tc": "TC-1.2.1", "red": "1 failed", "green": "1 passed"},
          ]},
-        {"story": "S-2", "status": "pending", "test_refs": [], "evidence": []},
+        {"story": "S-2", "status": "待办", "test_refs": [], "evidence": []},
     ],
 }
 
@@ -144,13 +144,13 @@ def soft(name, target, actual, result):
 
 
 def check_stories():
-    """check 侧引用解析夹具：两 AC，TC 全 pass。"""
+    """check 侧引用解析夹具：两 AC，TC 全 通过。"""
     return {
-        "project": {"name": "mini", "status": "final", "created": "2026-01-01",
+        "project": {"name": "mini", "status": "已定稿", "created": "2026-01-01",
                     "updated": "2026-01-02"},
         "stories": [
             {"id": "S-1", "epic": "E-1", "title": "登录",
-             "narrative": "作为用户我要登录", "status": "in-progress",
+             "narrative": "作为用户我要登录", "status": "进行中",
              "acceptance_criteria": [
                  {"id": "AC-1.1", "given": "g", "when": "w", "then": "t",
                   "refs": ["FR-1.1"]},
@@ -163,19 +163,19 @@ def check_stories():
 
 def check_plan():
     return {
-        "project": {"name": "mini", "status": "final", "created": "2026-01-01",
+        "project": {"name": "mini", "status": "已定稿", "created": "2026-01-01",
                     "updated": "2026-01-02"},
         "test_cases": [
-            {"id": "TC-1.1.1", "title": "a", "ac": "AC-1.1", "type": "unit",
-             "priority": "P0", "technique": "boundary", "kill_target": "x",
-             "status": "pass", "steps": ["跑"]},
+            {"id": "TC-1.1.1", "title": "a", "ac": "AC-1.1", "type": "单元",
+             "priority": "P0", "technique": "边界", "kill_target": "x",
+             "status": "通过", "steps": ["跑"]},
             {"id": "TC-1.1.2", "title": "b", "ac": "AC-1.1",
-             "type": "integration", "priority": "P0",
-             "technique": "error-guessing", "kill_target": "y",
-             "status": "pass", "steps": ["跑"]},
-            {"id": "TC-1.2.1", "title": "c", "ac": "AC-1.2", "type": "unit",
-             "priority": "P0", "technique": "boundary", "kill_target": "z",
-             "status": "pass", "steps": ["跑"]},
+             "type": "集成", "priority": "P0",
+             "technique": "错误猜测", "kill_target": "y",
+             "status": "通过", "steps": ["跑"]},
+            {"id": "TC-1.2.1", "title": "c", "ac": "AC-1.2", "type": "单元",
+             "priority": "P0", "technique": "边界", "kill_target": "z",
+             "status": "通过", "steps": ["跑"]},
         ],
         "static_checks": [],
         "coverage_gaps": [],
@@ -189,8 +189,8 @@ def check_domains():
          "thresholds": [{"name": name + "-t", "target": "1000ms",
                          "measured": "120ms",
                          "source": "用户会话 2026-09-15"}],
-         "findings": list(COMPLIANCE_FINDINGS) if name == "security" else []}
-        for name in ("security", "performance", "reliability", "maintainability")
+         "findings": list(COMPLIANCE_FINDINGS) if name == "安全" else []}
+        for name in ("安全", "性能", "可靠性", "可维护性")
     ]
 
 
@@ -210,9 +210,9 @@ def check_gate():
         "project": {"name": "mini", "created": "2026-01-01",
                     "updated": "2026-09-16"},
         "gates": [
-            {"id": "TG-001", "date": "2026-09-16", "status": "final",
+            {"id": "TG-001", "date": "2026-09-16", "status": "已定稿",
              "scope": "story", "story": "S-1",
-             "oracle": {"source": "stories", "confidence": "high", "items": 2,
+             "oracle": {"source": "stories", "confidence": "高", "items": 2,
                         "inferred": [], "unresolved": []},
              "coverage": {
                  "items": [
@@ -222,7 +222,7 @@ def check_gate():
                       "coverage": "FULL", "tests": ["TC-1.2.1"]},
                  ],
                  "totals": {"covered": 2, "total": 2, "pct": 100},
-                 "by_level": {"unit": 2, "integration": 1, "e2e": 0},
+                 "by_level": {"单元": 2, "集成": 1, "端到端": 0},
                  "heuristics": [],
              },
              "nfr": {
@@ -234,20 +234,20 @@ def check_gate():
              "gate": {
                  "decision": "PASS",
                  "hard_criteria": [
-                     hard("p0_coverage", "100%", "100%", "pass"),
-                     hard("overall_coverage", "100%", "100%", "pass"),
-                     hard("p1_coverage", "100%", "100%", "pass"),
+                     hard("p0_coverage", "100%", "100%", "通过"),
+                     hard("overall_coverage", "100%", "100%", "通过"),
+                     hard("p1_coverage", "100%", "100%", "通过"),
                      hard("mutation_score", ">=90%", "n/a", "n/a"),
-                     hard("nfr_critical", 0, 0, "pass"),
-                     hard("p0_uncovered", 0, 0, "pass"),
+                     hard("nfr_critical", 0, 0, "通过"),
+                     hard("p0_uncovered", 0, 0, "通过"),
                  ],
                  "soft_criteria": [
-                     soft("business_rule_coverage", "100%", "100%", "pass"),
-                     soft("boundary_coverage", "100%", "100%", "pass"),
-                     soft("negative_scenario_coverage", ">=90%", "100%", "pass"),
-                     soft("p0_depth_full", "100%", "100%", "pass"),
-                     soft("effective_case_ratio", ">=95%", "100%", "pass"),
-                     soft("id_chain_resolvable", "100%", "100%", "pass"),
+                     soft("business_rule_coverage", "100%", "100%", "通过"),
+                     soft("boundary_coverage", "100%", "100%", "通过"),
+                     soft("negative_scenario_coverage", ">=90%", "100%", "通过"),
+                     soft("p0_depth_full", "100%", "100%", "通过"),
+                     soft("effective_case_ratio", ">=95%", "100%", "通过"),
+                     soft("id_chain_resolvable", "100%", "100%", "通过"),
                  ],
                  "blockers": [],
                  "waivers": [],
@@ -338,10 +338,10 @@ class GateTests(EngineCase):
         self.assertEqual(self.out_files(), ["prd.yaml", "test-plan.yaml"],
                          "拒绝路径不得产出任何文件")
 
-    # trace: 任务书 §4 门禁（test-plan 须 final → 路由 diy-test-design）
+    # trace: 任务书 §4 门禁（test-plan 须 已定稿 → 路由 diy-test-design）
     def test_gate_refuses_non_final_test_plan(self):
         plan = copy.deepcopy(TEST_PLAN)
-        plan["project"]["status"] = "draft"
+        plan["project"]["status"] = "草稿"
         self.write_trio(plan=plan)
         r = self.collect()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -382,37 +382,37 @@ class CollectTests(EngineCase):
         items = {it["ref"]: it for it in data["items"]}
         self.assertEqual(sorted(items), ["AC-1.1", "AC-1.2", "AC-1.3", "AC-2.1"])
         self.assertEqual(items["AC-1.1"]["story"], "S-1")
-        self.assertEqual(items["AC-1.1"]["priority"], "P0", "must FR → P0")
-        self.assertEqual(items["AC-1.2"]["priority"], "P1", "should FR → P1")
+        self.assertEqual(items["AC-1.1"]["priority"], "P0", "必须 FR → P0")
+        self.assertEqual(items["AC-1.2"]["priority"], "P1", "应该 FR → P1")
         self.assertEqual(items["AC-1.3"]["priority"], "P2", "无 FR refs → P2")
-        self.assertEqual(items["AC-2.1"]["priority"], "P2", "could FR → P2")
+        self.assertEqual(items["AC-2.1"]["priority"], "P2", "可选 FR → P2")
         self.assertEqual(items["AC-1.1"]["coverage"], "FULL",
                          "≥2 类 type 全验证 → FULL")
         self.assertEqual(items["AC-1.1"]["tests"], ["TC-1.1.1", "TC-1.1.2"])
         self.assertEqual(items["AC-1.2"]["coverage"], "PARTIAL",
-                         "fail 的 TC 不计，剩下已验证一条 → PARTIAL")
+                         "失败 的 TC 不计，剩下已验证一条 → PARTIAL")
         self.assertEqual(items["AC-1.2"]["tests"], ["TC-1.2.2"])
-        self.assertEqual(items["AC-1.3"]["coverage"], "NONE", "pending 不计 → NONE")
+        self.assertEqual(items["AC-1.3"]["coverage"], "NONE", "待办不计 → NONE")
         self.assertEqual(items["AC-2.1"]["coverage"], "NONE", "无 TC → NONE")
         self.assertEqual(data["coverage"]["totals"],
                          {"covered": 1, "total": 4, "pct": 25})
         self.assertEqual(data["coverage"]["by_level"],
-                         {"unit": 2, "integration": 1, "e2e": 0})
+                         {"单元": 2, "集成": 1, "端到端": 0})
         self.assertEqual(data["coverage"]["p0"]["pct"], 100)
         self.assertEqual(data["coverage"]["p1"]["pct"], 0)
         self.assertEqual(data["scope"], "story")
         self.assertEqual(data["stories"], ["S-1", "S-2"])
 
-    # trace: 任务书 §4 覆盖判定表（① fail 胜；③ pass 无台账 → 已验证 + warning）
+    # trace: 任务书 §4 覆盖判定表（① 失败胜；③ 通过无台账 → 已验证 + warning）
     def test_collect_coverage_table(self):
         self.write_trio()
         data = json.loads(self.collect().stdout)
         warns = self.codes(data, "warnings")
         self.assertIn("EVIDENCE_MISSING", warns,
-                      "pass 但无红绿台账须出 warning：%s" % data["warnings"])
+                      "通过但无红绿台账须出 warning：%s" % data["warnings"])
         self.assertIn("TC-1.2.2", data["coverage"]["by_tc"]["missing_evidence"])
         self.assertNotIn("TC-1.2.1", data["coverage"]["by_tc"]["verified"],
-                         "fail 胜：即使留有 green 记录也不计已验证")
+                         "失败胜：即使留有 green 记录也不计已验证")
         self.assertIn("TC-1.2.1", data["coverage"]["by_tc"]["blocked"])
         self.assertIn("TC-1.3.1", data["coverage"]["by_tc"]["pending"])
         self.assertIn("EMPTY_FIELD", warns, "无 FR refs 的 AC 须 warning")
@@ -426,14 +426,14 @@ class CollectTests(EngineCase):
                                      "effective_case_ratio", "id_chain_resolvable",
                                      "negative_scenario_coverage", "p0_depth_full"])
         self.assertEqual(m["boundary_coverage"]["numerator"], 2,
-                         "判定表 ③（pass 无台账）计入已验证：AC-1.1 与 AC-1.2")
+                         "判定表 ③（通过无台账）计入已验证：AC-1.1 与 AC-1.2")
         self.assertEqual(m["boundary_coverage"]["denominator"], 4)
         self.assertEqual(m["business_rule_coverage"]["actual"], "0%",
-                         "decision-table 的 TC fail → 不计覆盖")
+                         "决策表 的 TC 失败 → 不计覆盖")
         self.assertEqual(m["negative_scenario_coverage"]["actual"], "25%")
         self.assertEqual(m["negative_scenario_coverage"]["target"], ">=90%")
         self.assertEqual(m["p0_depth_full"]["actual"], "100%",
-                         "P0 唯一 AC：≥2 类 type + 含 error-guessing")
+                         "P0 唯一 AC：≥2 类 type + 含 错误猜测")
         self.assertEqual(m["effective_case_ratio"]["actual"], "100%")
         self.assertEqual(m["id_chain_resolvable"]["actual"], "100%")
         self.assertEqual(m["id_chain_resolvable"]["target"], "100%")
@@ -562,10 +562,10 @@ class CollectTests(EngineCase):
         self.assertEqual(nfr["compliance_standards"],
                          ["SOC2", "GDPR", "HIPAA", "PCI-DSS", "ISO27001"])
         self.assertEqual([rule["pair"] for rule in nfr["cross_domain_rules"]],
-                         [["reliability", "maintainability"],
-                          ["security", "reliability"]])
+                         [["可靠性", "可维护性"],
+                          ["安全", "可靠性"]])
         self.assertEqual(nfr["cross_domain_rules"][1]["impact"], "HIGH")
-        self.assertEqual(nfr["cross_domain_rules"][1]["trigger"]["security"],
+        self.assertEqual(nfr["cross_domain_rules"][1]["trigger"]["安全"],
                          ["FAIL"])
 
     # trace: G-2 跨层重复覆盖候选（同一 technique + 同一 kill_target 跨 ≥2 层）
@@ -578,15 +578,15 @@ class CollectTests(EngineCase):
         plan = copy.deepcopy(TEST_PLAN)
         plan["test_cases"].append(
             {"id": "TC-1.1.3", "title": "同目标跨层", "ac": "AC-1.1",
-             "type": "integration", "priority": "P0", "technique": "boundary",
-             "kill_target": "off-by-one", "status": "pass", "steps": ["跑"]})
+             "type": "集成", "priority": "P0", "technique": "边界",
+             "kill_target": "off-by-one", "status": "通过", "steps": ["跑"]})
         self.write_trio(plan=plan)
         data = json.loads(self.collect().stdout)
         rows = data["coverage"]["duplicates"]
         self.assertEqual(len(rows), 1, rows)
         self.assertEqual(rows[0]["ref"], "AC-1.1")
         self.assertEqual(rows[0]["priority"], "P0")
-        self.assertEqual(rows[0]["levels"], ["integration", "unit"])
+        self.assertEqual(rows[0]["levels"], ["单元", "集成"], "层级按码点排序")
         self.assertEqual(rows[0]["tests"], ["TC-1.1.1", "TC-1.1.3"])
         self.assertEqual(data["counts"]["duplicates"], 1)
 
@@ -605,22 +605,22 @@ class CheckTests(EngineCase):
         self.assertIn("MISSING_FILE", self.codes(data, "warnings"),
                       "mutation-report 缺席走过渡期口径（warning，不拒绝）")
 
-    # trace: 任务书 §4 check（硬判据 fail 而 decision PASS → 不自洽 + actual 陈旧）
+    # trace: 任务书 §4 check（硬判据 失败 而 decision PASS → 不自洽 + actual 陈旧）
     def test_check_decision_inconsistent(self):
         self.write_check_fixtures()
         self.mutate_gate(lambda d: self._flip_hard(d, "p0_coverage",
-                                                   actual="0%", result="fail"))
+                                                   actual="0%", result="失败"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         codes = self.codes(json.loads(r.stdout))
         self.assertIn("DECISION_INCONSISTENT", codes)
         self.assertIn("CRITERION_STALE", codes)
 
-    # trace: 任务书 §4 check（软判据 fail → 门至少 CONCERNS）
+    # trace: 任务书 §4 check（软判据 失败 → 门至少 CONCERNS）
     def test_check_soft_fail_but_gate_pass(self):
         self.write_check_fixtures()
         self.mutate_gate(lambda d: self._flip_soft(d, "boundary_coverage",
-                                                   actual="50%", result="fail"))
+                                                   actual="50%", result="失败"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("DECISION_INCONSISTENT", self.codes(json.loads(r.stdout)))
@@ -628,17 +628,17 @@ class CheckTests(EngineCase):
     # trace: 任务书 §4 check（NFR 域 CONCERNS 而门 PASS → 违例）
     def test_check_domain_concerns_but_gate_pass(self):
         self.write_check_fixtures()
-        self.mutate_gate(lambda d: self._set_domain(d, "security", "CONCERNS",
+        self.mutate_gate(lambda d: self._set_domain(d, "安全", "CONCERNS",
                                                     risk="MEDIUM"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("DECISION_INCONSISTENT", self.codes(json.loads(r.stdout)))
 
-    # trace: 任务书 §4 check（overlay：synthetic 且 confidence≠high → 至少 CONCERNS）
+    # trace: 任务书 §4 check（overlay：合成 且 confidence≠高 → 至少 CONCERNS）
     def test_check_synthetic_overlay(self):
         self.write_check_fixtures()
         self.mutate_gate(lambda d: d["gates"][0]["oracle"].update(
-            {"source": "synthetic", "confidence": "medium",
+            {"source": "合成", "confidence": "中",
              "inferred": ["登录旅程"]}))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -649,8 +649,8 @@ class CheckTests(EngineCase):
         self.write_check_fixtures()
 
         def mutate(d):
-            self._set_domain(d, "performance", "FAIL", risk="HIGH")
-            self._flip_hard(d, "nfr_critical", actual=1, result="fail")
+            self._set_domain(d, "性能", "FAIL", risk="HIGH")
+            self._flip_hard(d, "nfr_critical", actual=1, result="失败")
         self.mutate_gate(mutate)
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -660,7 +660,7 @@ class CheckTests(EngineCase):
     def test_check_criterion_stale(self):
         self.write_check_fixtures()
         self.mutate_gate(lambda d: self._flip_hard(d, "nfr_critical",
-                                                   actual=2, result="pass"))
+                                                   actual=2, result="通过"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("CRITERION_STALE", self.codes(json.loads(r.stdout)))
@@ -688,7 +688,7 @@ class CheckTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("THRESHOLD_UNSOURCED", self.codes(json.loads(r.stdout)))
 
-    # trace: 任务书 §4 check（waiver 8 键契约；security 域不可豁免）
+    # trace: 任务书 §4 check（waiver 8 键契约；安全域不可豁免）
     def test_check_waiver_contract(self):
         self.write_check_fixtures()
         base = {"ref": "AC-1.2", "approved_by": "张三", "date": "2026-09-16",
@@ -701,7 +701,7 @@ class CheckTests(EngineCase):
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("WAIVER_INCOMPLETE", self.codes(json.loads(r.stdout)))
-        security = dict(base, ref="security")
+        security = dict(base, ref="安全")
         self.mutate_gate(lambda d: d["gates"][0]["gate"]["waivers"].append(security))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -712,13 +712,13 @@ class CheckTests(EngineCase):
         self.write_check_fixtures()
 
         def mutate(d):
-            self._set_domain(d, "performance", "FAIL", risk="HIGH")
-            waiver = {"ref": "performance", "approved_by": "张三",
+            self._set_domain(d, "性能", "FAIL", risk="HIGH")
+            waiver = {"ref": "性能", "approved_by": "张三",
                       "date": "2026-09-16", "reason": "已知",
                       "expires": "2026-12-31", "monitoring": "周报",
                       "fix_owner": "李四", "fix_target": "S-2"}
             d["gates"][0]["gate"]["waivers"].append(waiver)
-            d["gates"][0]["gate"]["basis"] = "performance 域 FAIL 经用户豁免。"
+            d["gates"][0]["gate"]["basis"] = "性能域 FAIL 经用户豁免。"
         self.mutate_gate(mutate)
         r = self.check("--final")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -739,7 +739,7 @@ class CheckTests(EngineCase):
         self.assertIn("SET_MISMATCH", self.codes(json.loads(r.stdout)))
         self.write_check_fixtures()
         self.mutate_gate(lambda d: d["gates"][0]["coverage"].update(
-            {"by_level": {"unit": 9, "integration": 9, "e2e": 9}}))
+            {"by_level": {"单元": 9, "集成": 9, "端到端": 9}}))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("SET_MISMATCH", self.codes(json.loads(r.stdout)))
@@ -753,7 +753,7 @@ class CheckTests(EngineCase):
             gate["basis"] = ""
             gate["hard_criteria"] = [c for c in gate["hard_criteria"]
                                      if c["name"] != "p0_uncovered"]
-            d["gates"][0]["note"] = "[ASSUMPTION] 待确认"
+            d["gates"][0]["note"] = "[假设] 待确认"
         self.mutate_gate(mutate)
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -761,13 +761,13 @@ class CheckTests(EngineCase):
         self.assertIn("ASSUMPTION_PRESENT", codes)
         self.assertIn("EMPTY_FIELD", codes)
 
-    # trace: 任务书 §4（draft 记录：decision 未定不判不自洽，落 warning）
+    # trace: 任务书 §4（草稿记录：decision 未定不判不自洽，落 warning）
     def test_check_draft_record_is_tolerated(self):
         self.write_check_fixtures()
 
         def mutate(d):
             record = d["gates"][0]
-            record["status"] = "draft"
+            record["status"] = "草稿"
             record["gate"]["decision"] = ""
             record["gate"]["basis"] = ""
         self.mutate_gate(mutate)
@@ -849,7 +849,7 @@ class CheckTests(EngineCase):
             domain["findings"] = (
                 [line for line in domain["findings"]
                  if not line.startswith("GDPR")]
-                + ["GDPR: PASS — 无个人数据", "GDPR@security: PARTIAL — 缺删除路径"])
+                + ["GDPR: PASS — 无个人数据", "GDPR@安全: PARTIAL — 缺删除路径"])
 
         self.mutate_gate(conflicting)
         r = self.check("--final")
@@ -882,7 +882,7 @@ class CheckTests(EngineCase):
         def concerns(data):
             record = data["gates"][0]
             for domain in record["nfr"]["domains"]:
-                if domain["name"] in ("reliability", "maintainability"):
+                if domain["name"] in ("可靠性", "可维护性"):
                     domain["status"] = "CONCERNS"
             record["nfr"]["overall_risk"] = "MEDIUM"
             record["gate"]["decision"] = "CONCERNS"
@@ -892,36 +892,36 @@ class CheckTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         messages = [item["msg"] for item in json.loads(r.stdout)["violations"]
                     if item["code"] == "CROSS_DOMAIN_UNRECORDED"]
-        self.assertTrue(any("reliability×maintainability" in msg
+        self.assertTrue(any("可靠性×可维护性" in msg
                             for msg in messages), messages)
 
         def with_note(data):
             concerns(data)
             data["gates"][0]["gate"]["recommendations"].append(
-                "reliability×maintainability: 成立——低覆盖会掩盖可靠性回归，先补观测")
+                "可靠性×可维护性: 成立——低覆盖会掩盖可靠性回归，先补观测")
 
         self.mutate_gate(with_note)
         r = self.check("--final")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
-        # 另一组：security = FAIL 且 reliability ≠ PASS
+        # 另一组：安全 = FAIL 且 可靠性 ≠ PASS
         def security_pair(data):
             record = data["gates"][0]
             for domain in record["nfr"]["domains"]:
-                if domain["name"] == "security":
+                if domain["name"] == "安全":
                     domain["status"] = "FAIL"
-                elif domain["name"] == "reliability":
+                elif domain["name"] == "可靠性":
                     domain["status"] = "CONCERNS"
             record["nfr"]["overall_risk"] = "HIGH"
             record["gate"]["decision"] = "FAIL"
-            self._flip_hard(data, "nfr_critical", actual=1, result="fail")
+            self._flip_hard(data, "nfr_critical", actual=1, result="失败")
 
         self.mutate_gate(security_pair)
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
         messages = [item["msg"] for item in json.loads(r.stdout)["violations"]
                     if item["code"] == "CROSS_DOMAIN_UNRECORDED"]
-        self.assertTrue(any("security×reliability" in msg for msg in messages),
+        self.assertTrue(any("安全×可靠性" in msg for msg in messages),
                         messages)
 
     # 夹具微操作（结构性改动，不靠字符串补丁）
@@ -980,8 +980,8 @@ class StepObligationTests(unittest.TestCase):
     # trace: G-4（源 nfr step-04e「Identify Cross-Domain Risks」两条规则）
     def test_g4_cross_domain_obligation(self):
         text = self.read_step("04-nfr.md")
-        self.assertIn("reliability×maintainability", text)
-        self.assertIn("security×reliability", text)
+        self.assertIn("可靠性×可维护性", text)
+        self.assertIn("安全×可靠性", text)
         self.assertIn("CROSS_DOMAIN_UNRECORDED", text)
 
 

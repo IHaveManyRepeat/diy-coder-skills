@@ -11,8 +11,8 @@
             四键非空 / FAQ 条目 id 须 PQ-### 且文档级唯一（客户与内部共用一条序列）、
             q 与 a 非空 / verdict.strength 枚举 / notes 条目 {stage: 1-5, content 非空}。
             --previous PATH：比对旧稿 PQ ID 集合，旧有新无 → ID_UNSTABLE。
-            --final：附加定稿义务——stage=5、project.status: final、press_release
-            九键非空、verdict 非空且 strength 在枚举内、distillate 非空、零 [ASSUMPTION]。
+            --final：附加定稿义务——stage=5、project.status: 已定稿、press_release
+            九键非空、verdict 非空且 strength 在枚举内、distillate 非空、零 [假设]。
             exit 0 唯一放行。
 
 分工裁定（任务书 §2.2 / P1 先例）：prfaq 属新产物类型，不进 diyc.py check 的硬编码类型集；
@@ -34,10 +34,10 @@ import yaml
 
 PRFAQ_FILE = "prfaq.yaml"
 
-CONCEPT_TYPES = ("commercial", "internal", "open-source", "community")
+CONCEPT_TYPES = ("商业", "内部", "开源", "社区")
 STAGES = (1, 2, 3, 4, 5)
-STRENGTHS = ("forged", "needs-heat", "foundation-cracks")
-PROJECT_STATUSES = ("draft", "final")
+STRENGTHS = ("已锤炼", "欠火候", "地基裂缝")
+PROJECT_STATUSES = ("草稿", "已定稿")
 ESSENTIAL_KEYS = ("customer", "problem", "stakes", "solution")
 # 源 assets/prfaq-template.md 的九节结构（Press Release 锻造面）
 PRESS_KEYS = ("headline", "subheadline", "opening", "problem", "solution",
@@ -85,7 +85,7 @@ def display_path(path, project_root):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -327,15 +327,15 @@ def check_distillate(distillate, show, violations):
 
 
 def check_final_duties(data, doc, project, stage, show, violations):
-    """--final 附加义务（任务书 §5）：stage=5 / status: final / 九键 / verdict /
-    distillate 非空 / 零 [ASSUMPTION]。"""
+    """--final 附加义务（任务书 §5）：stage=5 / status: 已定稿 / 九键 / verdict /
+    distillate 非空 / 零 [假设]。"""
     if stage != 5:
         violations.append(v("STATUS_MISMATCH", "%s.prfaq.stage" % show,
                             "--final 要求 stage=5（终局）；当前 stage=%s" % stage))
     status = project.get("status") if isinstance(project, dict) else None
-    if not nonempty(status) or str(status) != "final":
+    if not nonempty(status) or str(status) != "已定稿":
         violations.append(v("STATUS_MISMATCH", "%s.project.status" % show,
-                            "--final 要求 project.status: final"))
+                            "--final 要求 project.status: 已定稿"))
     pr = doc.get("press_release")
     if not isinstance(pr, dict):
         violations.append(v("EMPTY_FIELD", "%s.prfaq.press_release" % show,
@@ -362,9 +362,9 @@ def check_final_duties(data, doc, project, stage, show, violations):
                 and not distillate.get("value_props"):
             violations.append(v("EMPTY_FIELD", "%s distillate.value_props" % show,
                                 "--final 要求至少 1 条 value_props"))
-    if any("[ASSUMPTION]" in s for s in collect_strings(data)):
+    if any("[假设]" in s for s in collect_strings(data)):
         violations.append(v("ASSUMPTION_PRESENT", show,
-                            "--final 要求零 [ASSUMPTION]；未决推断须清空或落为 "
+                            "--final 要求零 [假设]；未决推断须清空或落为 "
                             "distillate.open_questions"))
 
 
@@ -517,7 +517,7 @@ def main():
     c.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--final", action="store_true",
-                   help="定稿校验：stage=5 + status: final + 九键 + distillate + 零假设")
+                   help="定稿校验：stage=5 + status: 已定稿 + 九键 + distillate + 零假设")
     c.add_argument("--previous", default=None,
                    help="旧稿路径（Update 改写前留档；比对 PQ ID 集合）")
     c.add_argument("--json", action="store_true", help="输出单行 JSON 回执")

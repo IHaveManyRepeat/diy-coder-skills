@@ -7,8 +7,8 @@ Progress: `[Preflight] → Scope → Generate → Audit → Confirm → Finish`
 
 ## 门禁（三查，任一不过 → 一行拒绝 + 零产出 + 路由）
 
-1. **上游产物**：`{output_dir}/test-plan.yaml` 在场且 `project.status: final`。不满足 → 一行点名（文件名 / 当前状态），路由 **diy-test-design**。TC 由它写，author 不初始化、不补写。
-2. **范围内 TC 在场**：本次要做的 TC 能在 `test_cases[]` 里按 ID 定位到。范围为空或全部非 `pending` → 一行报告「范围内无待处理 TC」+ 零产出，**不静默空跑**（范围判定在 step 2，此处只确认目标存在）。
+1. **上游产物**：`{output_dir}/test-plan.yaml` 在场且 `project.status: 已定稿`。不满足 → 一行点名（文件名 / 当前状态），路由 **diy-test-design**。TC 由它写，author 不初始化、不补写。
+2. **范围内 TC 在场**：本次要做的 TC 能在 `test_cases[]` 里按 ID 定位到。范围为空或全部非 `待办` → 一行报告「范围内无待处理 TC」+ 零产出，**不静默空跑**（范围判定在 step 2，此处只确认目标存在）。
 3. **框架就绪**：`detect` 回执的 `framework` 非 null。
 
 ## 探测命令
@@ -32,8 +32,8 @@ python "{project-root}/.claude/skills/diy-test-author/scripts/author.py" detect 
 
 - 只读：`{output_dir}` 下的 `test-plan.yaml` / `sprint.yaml` / `stories.yaml`（按 ID 定位），以及目标项目的测试目录与实现源码。
 - 引用纪律：跨文档信息一律引用 ID（`S-x` / `AC-x.y` / `TC-x.y.z` / `FR-x.y` / `D-x`），**禁止复制内容**——测试代码与摘要里引用 TC ID，不把用例正文抄进注释。
-- 写盘边界：**只写**目标项目内本次声明的测试文件；`{output_dir}` 下零写入（本技能无 YAML 写面）。目标项目与 `{output_dir}` 之外的写盘属保留确认类：交互式调用停下问用户；无头/循环调用经 `diyc.py defer-add` 入队 `{output_dir}/deferred-actions.yaml`（`reason: out-of-bounds`）后照常推进，不阻塞。
+- 写盘边界：**只写**目标项目内本次声明的测试文件；`{output_dir}` 下零写入（本技能无 YAML 写面）。目标项目与 `{output_dir}` 之外的写盘属保留确认类：交互式调用停下问用户；无头/循环调用经 `diyc.py defer-add` 入队 `{output_dir}/deferred-actions.yaml`（`reason: 越界改动`）后照常推进，不阻塞。
 
-## Next
+## 播报与下一步
 
 Read fully and follow `./02-scope.md`.

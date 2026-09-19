@@ -13,7 +13,7 @@ End this step with an explicit, shared accounting of how the meaningful contents
 - living in the addendum (with its `why_separate` intact),
 - set aside as process noise.
 
-Nothing silently disappears and no entry goes unreviewed. Then close the loose ends: clear every `[ASSUMPTION]` (the user confirms it and the tag is dropped, or it becomes an `open_questions` line) and resolve or explicitly defer every `open_questions` entry.
+Nothing silently disappears and no entry goes unreviewed. Then close the loose ends: clear every `[假设]` (the user confirms it and the tag is dropped, or it becomes an `open_questions` line) and resolve or explicitly defer every `open_questions` entry.
 
 ## 2. Polish
 
@@ -27,11 +27,11 @@ The two editorial skills this job names upstream are not built in diy yet (B4 ba
 
 ## 3. Deliver and route
 
-Tell the user it is ready: the local path of `{output_dir}/brief.yaml`, in the user's language. Name the next step in the chain — `diy-prd` turns the brief into requirements once it is final; `diy-help` maps the rest of the suite. External handoffs are out of diy scope: the YAML plus the viewer projection is the delivery.
+Tell the user it is ready: the local path of `{output_dir}/brief.yaml`, in the user's language. Name the next step in the chain — `diy-prd` turns the brief into requirements once it is 已定稿; `diy-help` maps the rest of the suite. External handoffs are out of diy scope: the YAML plus the viewer projection is the delivery.
 
 ## 4. Final gate (mechanical)
 
-Write `project.status: final` first — `final` is what the gate inspects, not a product of it — then run, with the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted):
+Write `project.status: 已定稿` first — `已定稿` is what the gate inspects, not a product of it — then run, with the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted):
 
 ```
 python "{project-root}/.claude/skills/diy-product-brief/scripts/brief.py" check --final --json

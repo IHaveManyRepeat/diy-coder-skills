@@ -2,9 +2,9 @@
 """diy-retrospective 确定性引擎 e2e 测试（B2 批 W2，任务书 §2.5/§4）。
 
 覆盖：
-- 用例 1：门禁拒绝（上游非 final / 目标 epic 不存在 / 无 done story）→ exit 1 +
+- 用例 1：门禁拒绝（上游非已定稿 / 目标 epic 不存在 / 无 已完成 story）→ exit 1 +
           结构化拒绝 + 路由 + 零产出
-- 用例 2：collect 指标守恒（stories 完成度 / loop rounds 合计 / blocked / augment fail /
+- 用例 2：collect 指标守恒（stories 完成度 / loop rounds 合计 / 已阻塞 / augment 失败 /
           bug 三分类按 epic 归属）；epic 未收尾 → 警告 + 不拒
 - 用例 3：collect 回带前一份 retro 的 action_items（prev_actions）+ 下一 epic 与共享 FR
 - 用例 4：check 合法记录 --final exit 0 唯一放行；--output-dir 必填（用法错误 exit 2）
@@ -37,7 +37,7 @@ DISCIPLINE_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
 EPICS_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "epics:",
@@ -45,18 +45,18 @@ EPICS_YAML = NL.join([
     "  title: 史诗一",
     "  goal: 用户能完成一件事",
     "  feature_refs: [F-1]",
-    "  status: in-progress",
+    "  status: 进行中",
     "- id: E-2",
     "  title: 史诗二",
     "  goal: 用户能完成第二件事",
     "  feature_refs: [F-2]",
-    "  status: pending",
+    "  status: 待办",
 ]) + NL
 
 STORIES_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-01-02'",
     "stories:",
@@ -70,7 +70,7 @@ STORIES_YAML = NL.join([
     "    when: 动作",
     "    then: 结果",
     "    refs: [FR-1.1]",
-    "  status: done",
+    "  status: 已完成",
     "- id: S-2",
     "  epic: E-1",
     "  title: 故事二",
@@ -81,7 +81,7 @@ STORIES_YAML = NL.join([
     "    when: 动作",
     "    then: 结果",
     "    refs: [FR-1.2]",
-    "  status: done",
+    "  status: 已完成",
     "- id: S-3",
     "  epic: E-1",
     "  title: 故事三",
@@ -92,7 +92,7 @@ STORIES_YAML = NL.join([
     "    when: 动作",
     "    then: 结果",
     "    refs: [FR-1.3]",
-    "  status: in-progress",
+    "  status: 进行中",
     "- id: S-4",
     "  epic: E-2",
     "  title: 故事四",
@@ -103,34 +103,34 @@ STORIES_YAML = NL.join([
     "    when: 动作",
     "    then: 结果",
     "    refs: [FR-1.1]",
-    "  status: done",
+    "  status: 已完成",
 ]) + NL
 
 SPRINT_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-02-04'",
     "tasks:",
     "- story: S-1",
-    "  status: done",
+    "  status: 已完成",
     "  test_refs: [TC-1.1.1]",
-    "  loop: {at: '2026-02-01', rounds: 2, outcome: done}",
+    "  loop: {at: '2026-02-01', rounds: 2, outcome: 已完成}",
     "- story: S-2",
-    "  status: done",
+    "  status: 已完成",
     "  test_refs: [TC-2.1.1]",
-    "  augment: fail",
-    "  loop: {at: '2026-02-02', rounds: 1, outcome: done}",
+    "  augment: 失败",
+    "  loop: {at: '2026-02-02', rounds: 1, outcome: 已完成}",
     "- story: S-3",
-    "  status: blocked",
+    "  status: 已阻塞",
     "  test_refs: []",
-    "  blocked_reason: 'AC-3.1 无用例（decision: pending）'",
-    "  loop: {at: '2026-02-03', rounds: 3, outcome: blocked}",
+    "  blocked_reason: 'AC-3.1 无用例（decision: 待办）'",
+    "  loop: {at: '2026-02-03', rounds: 3, outcome: 已阻塞}",
     "- story: S-4",
-    "  status: done",
+    "  status: 已完成",
     "  test_refs: [TC-4.1.1]",
-    "  loop: {at: '2026-02-04', rounds: 4, outcome: done}",
+    "  loop: {at: '2026-02-04', rounds: 4, outcome: 已完成}",
 ]) + NL
 
 BUG_LOG_YAML = NL.join([
@@ -141,10 +141,10 @@ BUG_LOG_YAML = NL.join([
     "bugs:",
     "- id: BUG-001",
     "  date: '2026-02-05'",
-    "  source: dev",
+    "  source: 开发",
     "  story: S-1",
-    "  class: functional",
-    "  subclass: state",
+    "  class: 功能型",
+    "  subclass: 状态",
     "  type: 双写状态不同步",
     "  symptom: 症状一",
     "  root_cause: 根因一",
@@ -154,10 +154,10 @@ BUG_LOG_YAML = NL.join([
     "  pattern: 模式一",
     "- id: BUG-002",
     "  date: '2026-02-05'",
-    "  source: audit",
+    "  source: 审查发现",
     "  story: S-2",
-    "  class: non-functional",
-    "  subclass: reliability",
+    "  class: 非功能型",
+    "  subclass: 可靠性",
     "  type: 未知形态无降级",
     "  symptom: 症状二",
     "  root_cause: 根因二",
@@ -167,10 +167,10 @@ BUG_LOG_YAML = NL.join([
     "  pattern: 模式二",
     "- id: BUG-003",
     "  date: '2026-02-05'",
-    "  source: dev",
+    "  source: 开发",
     "  story: S-4",
-    "  class: functional",
-    "  subclass: logic",
+    "  class: 功能型",
+    "  subclass: 逻辑",
     "  type: 分支漏判",
     "  symptom: 症状三",
     "  root_cause: 根因三",
@@ -183,43 +183,43 @@ BUG_LOG_YAML = NL.join([
 TEST_PLAN_YAML = NL.join([
     "project:",
     "  name: mini",
-    "  status: final",
+    "  status: 已定稿",
     "  created: '2026-01-01'",
     "  updated: '2026-02-04'",
     "test_cases:",
     "- id: TC-1.1.1",
     "  title: 用例一",
     "  ac: AC-1.1",
-    "  type: unit",
+    "  type: 单元",
     "  priority: P0",
-    "  technique: boundary",
+    "  technique: 边界",
     "  kill_target: 边界错一",
-    "  status: pass",
+    "  status: 通过",
     "  steps: [步骤]",
     "- id: TC-2.1.1",
     "  title: 用例二",
     "  ac: AC-2.1",
-    "  type: unit",
+    "  type: 单元",
     "  priority: P0",
-    "  technique: equivalence",
+    "  technique: 等价类",
     "  kill_target: 等价类错",
-    "  status: pass",
+    "  status: 通过",
     "  steps: [步骤]",
     "- id: TC-4.1.1",
     "  title: 用例四",
     "  ac: AC-4.1",
-    "  type: unit",
+    "  type: 单元",
     "  priority: P0",
-    "  technique: boundary",
+    "  technique: 边界",
     "  kill_target: 边界错四",
-    "  status: pass",
+    "  status: 通过",
     "  steps: [步骤]",
     "static_checks: []",
     "coverage_gaps:",
     "- ac: AC-3.1",
     "  story: S-3",
-    "  reason: story 未 done",
-    "  decision: pending",
+    "  reason: story 尚未完成",
+    "  decision: 待办",
 ]) + NL
 
 RETRO_YAML = NL.join([
@@ -230,7 +230,7 @@ RETRO_YAML = NL.join([
     "retros:",
     "- id: RT-001",
     "  epic: E-1",
-    "  status: final",
+    "  status: 已定稿",
     "  date: '2026-02-10'",
     "  partial: true",
     "  metrics:",
@@ -239,17 +239,17 @@ RETRO_YAML = NL.join([
     "    rounds_total: 6",
     "    blocked_count: 1",
     "    augment_fail: 1",
-    "    bugs: {functional: 1, non-functional: 1}",
+    "    bugs: {功能型: 1, 非功能型: 1}",
     "  patterns:",
     "  - {theme: 状态双写反复出现, evidence: [S-1, BUG-001], count: 2}",
     "  wins: [回归证据补跑形成机制]",
     "  challenges: [用例缺口让队列任务阻塞]",
     "  insights: [状态真源必须单一]",
     "  action_items:",
-    "  - {id: AI-001, action: 补齐 AC-3.1 的用例, owner: 用户, done_when: S-3 恢复 pending,"
-    " category: process}",
+    "  - {id: AI-001, action: 补齐 AC-3.1 的用例, owner: 用户, done_when: S-3 恢复待办,"
+    " category: 流程}",
     "  prep_items:",
-    "  - {item: 建 e2e 冒烟链, class: critical, owner: 用户, effort: 中}",
+    "  - {item: 建 e2e 冒烟链, class: 关键, owner: 用户, effort: 中}",
     "  critical_path:",
     "  - {item: 补齐 AC-3.1 用例, why: 否则下一 epic 起始任务被门阻塞, owner: 用户}",
     "  readiness:",
@@ -271,7 +271,7 @@ PREV_RETRO_YAML = NL.join([
     "retros:",
     "- id: RT-001",
     "  epic: E-1",
-    "  status: final",
+    "  status: 已定稿",
     "  date: '2026-02-10'",
     "  partial: false",
     "  metrics:",
@@ -280,14 +280,14 @@ PREV_RETRO_YAML = NL.join([
     "    rounds_total: 6",
     "    blocked_count: 1",
     "    augment_fail: 1",
-    "    bugs: {functional: 1, non-functional: 1}",
+    "    bugs: {功能型: 1, 非功能型: 1}",
     "  patterns: []",
     "  wins: [w]",
     "  challenges: [c]",
     "  insights: [i]",
     "  action_items:",
-    "  - {id: AI-001, action: 补齐 AC-3.1 的用例, owner: 用户, done_when: S-3 恢复 pending,"
-    " category: process}",
+    "  - {id: AI-001, action: 补齐 AC-3.1 的用例, owner: 用户, done_when: S-3 恢复待办,"
+    " category: 流程}",
     "  prep_items: []",
     "  critical_path: []",
     "  readiness:",
@@ -362,9 +362,9 @@ class GateTests(EngineCase):
         self.assertIn("diy-epics-stories", data["gate"]["route"])
         self.assertNotIn("retrospective.yaml", self.out_files(), "拒绝路径不得产出产物")
 
-    # trace: 任务书 §4 门禁（epics/stories 须 project.status: final）
+    # trace: 任务书 §4 门禁（epics/stories 须 project.status: 已定稿）
     def test_gate_refuses_non_final_upstream(self):
-        self.write_inputs(epics=EPICS_YAML.replace("status: final", "status: draft", 1))
+        self.write_inputs(epics=EPICS_YAML.replace("status: 已定稿", "status: 草稿", 1))
         r = self.collect("--epic", "E-1")
         self.assertEqual(r.returncode, 1, r.stdout)
         data = json.loads(r.stdout)
@@ -372,9 +372,9 @@ class GateTests(EngineCase):
         self.assertIn("STATUS_MISMATCH", {x["code"] for x in data["violations"]})
         self.assertNotIn("retrospective.yaml", self.out_files())
 
-    # trace: 任务书 §4 门禁（epic 无 done story → 拒；上游缺失 → 拒）
+    # trace: 任务书 §4 门禁（epic 无 已完成 story → 拒；上游缺失 → 拒）
     def test_gate_refuses_epic_without_done_story(self):
-        self.write_inputs(stories=STORIES_YAML.replace("  status: done", "  status: pending"))
+        self.write_inputs(stories=STORIES_YAML.replace("  status: 已完成", "  status: 待办"))
         r = self.collect("--epic", "E-1")
         self.assertEqual(r.returncode, 1, r.stdout)
         data = json.loads(r.stdout)
@@ -408,7 +408,7 @@ class CollectTests(EngineCase):
         self.assertEqual(data["metrics"], {
             "stories_total": 3, "stories_done": 2, "rounds_total": 6,
             "blocked_count": 1, "augment_fail": 1,
-            "bugs": {"functional": 1, "non-functional": 1}})
+            "bugs": {"功能型": 1, "非功能型": 1}})
         self.assertEqual(data["stories"]["total"], 3)
         self.assertEqual(data["stories"]["done"], 2)
         self.assertEqual([b["id"] for b in data["bugs"]], ["BUG-001", "BUG-002"])
@@ -434,7 +434,7 @@ class CollectTests(EngineCase):
         self.assertEqual(len(data["prev_actions"]), 1)
         prev = data["prev_actions"][0]
         self.assertEqual((prev["retro"], prev["id"], prev["category"]),
-                         ("RT-001", "AI-001", "process"))
+                         ("RT-001", "AI-001", "流程"))
         self.assertTrue(prev["action"] and prev["owner"] and prev["done_when"])
         # 无 retro 记录时 → 首份 retro，不报错
         os.remove(os.path.join(self.out, "retrospective.yaml"))
@@ -455,7 +455,7 @@ class CollectTests(EngineCase):
                          ["MISSING_FILE", "MISSING_FILE", "PENDING_DECISION"])
         self.assertEqual(data["metrics"]["rounds_total"], 0)
         self.assertEqual(data["metrics"]["blocked_count"], 0)
-        self.assertEqual(data["metrics"]["bugs"], {"functional": 0, "non-functional": 0})
+        self.assertEqual(data["metrics"]["bugs"], {"功能型": 0, "非功能型": 0})
 
 
 class CheckValidationTests(EngineCase):
@@ -475,15 +475,15 @@ class CheckValidationTests(EngineCase):
     # trace: 任务书 §4 check（action item 完整性 + category 枚举）
     def test_check_action_item_completeness(self):
         self.write_inputs()
-        no_owner = RETRO_YAML.replace(", owner: 用户, done_when: S-3 恢复 pending",
-                                      ", owner: '', done_when: S-3 恢复 pending")
+        no_owner = RETRO_YAML.replace(", owner: 用户, done_when: S-3 恢复待办",
+                                      ", owner: '', done_when: S-3 恢复待办")
         self.write("diy-output/retrospective.yaml", no_owner)
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         data = json.loads(r.stdout)
         self.assertIn("EMPTY_FIELD", {x["code"] for x in data["violations"]})
         self.assertTrue(any("owner" in x["where"] for x in data["violations"]))
-        bad_cat = RETRO_YAML.replace("category: process}", "category: unknown}")
+        bad_cat = RETRO_YAML.replace("category: 流程}", "category: unknown}")
         self.write("diy-output/retrospective.yaml", bad_cat)
         r2 = self.check()
         self.assertEqual(r2.returncode, 1, r2.stdout)
@@ -520,7 +520,7 @@ class CheckValidationTests(EngineCase):
     def test_check_final_duties(self):
         self.write_inputs()
         assumption = RETRO_YAML.replace("wins: [回归证据补跑形成机制]",
-                                        "wins: ['[ASSUMPTION] 回归证据补跑形成机制']")
+                                        "wins: ['[假设] 回归证据补跑形成机制']")
         self.write("diy-output/retrospective.yaml", assumption)
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -534,7 +534,7 @@ class CheckValidationTests(EngineCase):
         no_actions = RETRO_YAML.replace(
             "  action_items:" + NL
             + "  - {id: AI-001, action: 补齐 AC-3.1 的用例, owner: 用户,"
-              " done_when: S-3 恢复 pending, category: process}",
+              " done_when: S-3 恢复待办, category: 流程}",
             "  action_items: []")
         self.write("diy-output/retrospective.yaml", no_actions)
         r3 = self.check("--final")
@@ -547,7 +547,7 @@ class CheckValidationTests(EngineCase):
         with_followup = RETRO_YAML.replace(
             "  patterns:" + NL,
             "  prev_followup:" + NL
-            + "  - {retro: RT-001, action: 上次承诺, status: done, evidence: S-2 证据}" + NL
+            + "  - {retro: RT-001, action: 上次承诺, status: 已完成, evidence: S-2 证据}" + NL
             + "  patterns:" + NL)
         self.write("diy-output/retrospective.yaml", with_followup)
         r = self.check()
@@ -555,7 +555,7 @@ class CheckValidationTests(EngineCase):
         codes = [x["code"] for x in json.loads(r.stdout)["violations"]]
         self.assertIn("UNKNOWN_ID", codes)   # RT-001 即自身，不算上一份 → 悬空
         bad_status = with_followup.replace(
-            "{retro: RT-001, action: 上次承诺, status: done",
+            "{retro: RT-001, action: 上次承诺, status: 已完成",
             "{retro: RT-002, action: 上次承诺, status: maybe")
         self.write("diy-output/retrospective.yaml", bad_status)
         r2 = self.check()

@@ -1,6 +1,6 @@
 ---
 name: diy-e2e-tests
-description: 'Generate end to end automated tests for existing features — detect the project test framework, target implemented features, generate API and E2E cases against the real system, execute them, and append the executed cases to test-plan.yaml (type: e2e / technique: scenario, status pass|fail) with the test code landing in the project test directory. Generates tests ONLY — the artifact type stays test-plan.yaml, tasks are never moved, and code review or story validation is out of scope. Use when the user says "create qa automated tests for [feature]" or "generate e2e tests".'
+description: 'Generate end to end automated tests for existing features — detect the project test framework, target implemented features, generate API and E2E cases against the real system, execute them, and append the executed cases to test-plan.yaml (type: 端到端 / technique: 场景, status 通过|失败) with the test code landing in the project test directory. Generates tests ONLY — the artifact type stays test-plan.yaml, tasks are never moved, and code review or story validation is out of scope. Use when the user says "create qa automated tests for [feature]" or "generate e2e tests".'
 phase: 4-implementation
 precededBy: [diy-dev]
 followedBy: []
@@ -26,9 +26,9 @@ You are a QA automation engineer. Input: an implemented feature (a story, a dire
 Global step rules: load exactly one `steps/` file at a time — never preload; front-load — present a whole step's output in one message; machine anchors (framework names, commands, IDs) stay verbatim; write artifact prose in `document_output_language` while speaking `communication_language`.
 
 1. `steps/01-detect.md` — probe the framework (`e2e.py detect`); no framework → present `suggested` and take the user's confirmation; **never install anything**. Hard gate: `test-plan.yaml` + `stories.yaml` present, else one-line refusal + route to diy-test-design.
-2. `steps/02-targets.md` — identify the features under test (explicit name / directory scan / auto-discovery) and bind each to a story + AC; no AC to bind → `[ASSUMPTION]` + user adjudication.
+2. `steps/02-targets.md` — identify the features under test (explicit name / directory scan / auto-discovery) and bind each to a story + AC; no AC to bind → `[假设]` + user adjudication.
 3. `steps/03-generate-api.md` — generate API tests (status codes, response shape, happy path + 1–2 error cases) in the project's existing framework patterns.
-4. `steps/04-generate-e2e.md` — generate E2E tests (semantic locators, user workflow, visible-outcome assertions, linear and simple), then execute them against the real system; failures are fixed immediately or recorded as `fail`.
+4. `steps/04-generate-e2e.md` — generate E2E tests (semantic locators, user workflow, visible-outcome assertions, linear and simple), then execute them against the real system; failures are fixed immediately or recorded as `失败`.
 5. `steps/05-record.md` — write the cases to a JSON file and append them (`e2e.py record`); exit 0 is the only pass; close with the receipt counts.
 
 Rendering is a silent side step — command only, no browser interaction point, no path-waiting, no blocking: `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"` (append `--instance <name>` when one was resolved; in headless runs render silently, no path report).
@@ -42,18 +42,18 @@ test_cases:
   - id: TC-5.1.2            # AC id minus prefix + next seq for that AC; never renumber or reuse
     title: string
     ac: AC-5.1              # single existing AC in stories.yaml
-    type: e2e               # fixed here: this skill appends system-level cases only
+    type: 端到端               # fixed here: this skill appends system-level cases only
     priority: P0|P1|P2
-    technique: scenario     # fixed here: the nine-technique enum value for an end-to-end journey
+    technique: 场景     # fixed here: the nine-technique enum value for an end-to-end journey
     kill_target: string     # the fault hypothesis this case exposes
-    status: pass|fail       # measured — only cases that actually ran get appended
+    status: 通过|失败       # measured — only cases that actually ran get appended
     steps: [string]         # concrete verification steps with the expected outcome
 ```
 
 ## Rules
 
 1. Write scope is exactly three surfaces: appended cases in `{output_dir}/test-plan.yaml`; test code in the project's test directory; the closing session summary (no separate YAML). `sprint.yaml`, `stories.yaml`, other artifacts, and pre-existing `test_cases` entries get zero writes; no task state ever moves.
-2. Every appended case is `type: e2e` + `technique: scenario`, binds one existing AC, and carries a non-empty `kill_target`; only executed cases are appended, with the measured `status`. Framework detection is read-only: a missing framework returns `suggested` for the user to confirm — nothing is ever installed automatically.
+2. Every appended case is `type: 端到端` + `technique: 场景`, binds one existing AC, and carries a non-empty `kill_target`; only executed cases are appended, with the measured `status`. Framework detection is read-only: a missing framework returns `suggested` for the user to confirm — nothing is ever installed automatically.
 3. Final gate (mechanical): run `python "{project-root}/.claude/skills/diy-e2e-tests/scripts/e2e.py" record --tc-file <cases.json> --project-root "{project-root}" --output-dir "{output_dir}" --json` — exit 0 is the only pass; fix every reported violation and re-run; the receipt (counts and the `diyc` cross-check block included) is the close-out evidence. A `diyc` block carrying violations is a warning to relay, not a write-authority failure.
 4. Boundary statement: pre-coding design → diy-test-design; coverage-driven post-coding top-up → diy-augment; pre-coding red-phase scaffolds (existing TCs only, never executed) → diy-test-author.
 5. The render command requires PyYAML on the host Python. If it fails with `ModuleNotFoundError`, report the error and suggest `pip install pyyaml`. Do not silently fall back.

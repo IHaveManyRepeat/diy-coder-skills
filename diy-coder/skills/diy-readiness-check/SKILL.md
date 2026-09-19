@@ -33,7 +33,7 @@ Global step rules: load exactly one `steps/` file at a time — never preload or
 5. `steps/05-epic-quality-review.md` — epic user value, independence, dependencies, story sizing, AC quality; technical epics are errors.
 6. `steps/06-final-assessment.md` — compile findings, set `verdict`, settle the record and pass the final gate.
 
-Record writes: create the record as `draft` at the end of step 1 (counts and coverage copied from the receipt, never retyped from memory), fill each section as its step completes, settle it in step 6.
+Record writes: create the record as `草稿` at the end of step 1 (counts and coverage copied from the receipt, never retyped from memory), fill each section as its step completes, settle it in step 6.
 
 Rendering is a silent side step — command only, no browser interaction point, no path-waiting, no blocking: `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"` (append `--instance <name>` when one was resolved).
 
@@ -46,12 +46,12 @@ project: {name, created, updated}
 checks:
   - id: IR-001                  # IR-### — sequential, stable, never renumbered or reused
     date: YYYY-MM-DD
-    status: draft|final
+    status: 草稿|已定稿
     scope: [prd, architecture, epics, stories, design]   # documents actually inventoried
-    verdict: ready|ready-with-risks|not-ready   # empty while drafting
+    verdict: 就绪|有风险就绪|未就绪   # empty while drafting
     findings:
-      - {area: prd|epics|stories|ux|architecture, severity: critical|high|medium|low, message, evidence, route?}
-    coverage: {must_frs: 0, covered: 0, gaps: []}   # must-FR coverage, copied from the collect receipt
+      - {area: prd|epics|stories|ux|architecture, severity: 严重|高|中|低, message, evidence, route?}
+    coverage: {must_frs: 0, covered: 0, gaps: []}   # 必须级 FR 覆盖，取 collect 回执
     counts: {frs: 0, nfrs: 0, epics: 0, stories: 0, acs: 0, findings_by_severity: {}}
 revisions: []                   # {date, change, reason} — appended when an existing record changes
 ```
@@ -59,11 +59,11 @@ revisions: []                   # {date, change, reason} — appended when an ex
 ## Rules
 
 1. Write scope: `{output_dir}/readiness.yaml` only — records and their `revisions`. Never edit `prd.yaml`, `epics.yaml`, `stories.yaml`, `architecture.yaml`, or `design.yaml`: a finding's `route` names who fixes it; this skill patches nothing.
-2. Verdict coherence: `ready` ⇒ zero critical|high findings; `not-ready` ⇒ at least one. Findings carry an `evidence` anchor (file, ID, or quoted sentence) — never invent findings; a clean area says so explicitly. Drafting may mark an unconfirmed inference with an `[ASSUMPTION]` prefix; the final gate requires zero — clear them or land them as explicit routes.
+2. Verdict coherence: `就绪` ⇒ zero 严重|高 findings; `未就绪` ⇒ at least one. Findings carry an `evidence` anchor (file, ID, or quoted sentence) — never invent findings; a clean area says so explicitly. Drafting may mark an unconfirmed inference with an `[假设]` prefix; the final gate requires zero — clear them or land them as explicit routes.
 3. Requirement facts come from the `collect` receipt: `counts` and `coverage` are copied, never re-derived by hand. Cross-document mechanics (ID chains, FR coverage, cross-file truth) belong to diyc — never re-check them by eye.
 4. Records are appended, never renumbered or reused; amending an existing record appends to `revisions` (date / change / reason). No `--previous` round is needed — this skill never rewrites an existing document wholesale.
 5. Rendering follows the silent-side-step line in Workflow — command only; no browser interaction point, no path report that blocks, no waiting.
-6. Final gate (mechanical): write `status: final` first — `final` is what the gate inspects, not a product of it — then run `python "{project-root}/.claude/skills/diy-readiness-check/scripts/readiness.py" check --final --json`, passing the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. Rendering and close-out wait for exit 0.
-7. Upstream stays untouched and unreplaced: on `not-ready`, the finding's `route` names the owning skill (diy-prd / diy-architecture / diy-epics-stories / diy-design) — the fix is theirs, the record is yours. Next mainline step after a pass: diy-test-design.
+6. Final gate (mechanical): write `status: 已定稿` first — `已定稿` is what the gate inspects, not a product of it — then run `python "{project-root}/.claude/skills/diy-readiness-check/scripts/readiness.py" check --final --json`, passing the same `--project-root "{project-root}"` and `--output-dir "{output_dir}"` arguments as activation (`--output-dir` is mandatory and never defaulted). Exit 0 is the only pass; fix every reported violation and re-run; the JSON receipt (counts included) is the close-out evidence. Rendering and close-out wait for exit 0.
+7. Upstream stays untouched and unreplaced: on `未就绪`, the finding's `route` names the owning skill (diy-prd / diy-architecture / diy-epics-stories / diy-design) — the fix is theirs, the record is yours. Next mainline step after a pass: diy-test-design.
 
 - **Writing discipline.** Main field = plain-language main clause; numbers/enums inline; machine syntax (commands/flags/paths) in parentheses; keep machine anchors verbatim (file names, token names, CLI flags) — Chinese rewrites of anchors break the diy-design detect heuristic. If the schema defines `plain`: one line of WHY the entry exists, never WHAT (restatements drift); write it only for hard-to-grasp entries. If it defines `detail`: process narrative — conclusions stay in the main field.

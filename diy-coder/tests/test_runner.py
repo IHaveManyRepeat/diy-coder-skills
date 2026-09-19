@@ -2,13 +2,13 @@
 #        FR-4.5 D-9（findings: diy-build-loop/enhancement-1、diy-sprint/enhancement-2）
 """runner.py 循环编排器测试。全部用任务桩（stub_claude.py）替代真实 claude spawn。
 
-- TC-10.1.1 全量跑到终态且无人工输入（integration）
-- TC-10.2.1 中断后断点续跑不重复执行（unit，metamorphic）
-- TC-10.3.1 连续失败重试 2 次封顶后继续（unit，boundary）
-- TC-10.4.1 全程串行，任一时刻至多一个 in-progress（e2e，state-transition）
+- TC-10.1.1 全量跑到终态且无人工输入（集成）
+- TC-10.2.1 中断后断点续跑不重复执行（单元，蜕变测试）
+- TC-10.3.1 连续失败重试 2 次封顶后继续（单元，边界）
+- TC-10.4.1 全程串行，任一时刻至多一个进行中（端到端，状态迁移）
 - TC-Instance 实例模式（FR-4.5/D-9）：<output_dir>/<name>/sprint.yaml 读写、
   prompt 携带 --instance、非法名拒绝、无 --instance 主线回归
-- TC-Augment 编码后补测接线：done 触发一次 diy-augment spawn，blocked 不触发；
+- TC-Augment 编码后补测接线：已完成 触发一次 diy-augment spawn，已阻塞 不触发；
   补测会话只写 augment 字段（窄写权，status 零写回）；--skip-augment / --augment-only /
   --reopen-failed 三开关；补测汇总行
 """
@@ -28,14 +28,14 @@ HERE = Path(__file__).resolve().parent
 RUNNER = HERE.parent / "runner.py"
 STUB = HERE / "stub_claude.py"
 
-TERMINAL = ("done", "blocked")
+TERMINAL = ("已完成", "已阻塞")
 
 
 def sprint_doc(statuses):
     return {
         "project": {
             "name": "fixture",
-            "status": "final",
+            "status": "已定稿",
             "created": "2026-09-09",
             "updated": "2026-09-09",
         },
@@ -56,7 +56,7 @@ def write_sprint(path, statuses):
 
 
 def make_fixture(statuses, instance=None):
-    """建夹具项目根：diy-coder.yaml + diy-output[/<instance>]/sprint.yaml（status final）。"""
+    """建夹具项目根：diy-coder.yaml + diy-output[/<instance>]/sprint.yaml（status 已定稿）。"""
     root = Path(tempfile.mkdtemp(prefix="tmp-tc10-"))
     (root / "diy-coder.yaml").write_text(
         "paths:\n  output_dir: diy-output\n", encoding="utf-8"
@@ -133,7 +133,7 @@ class TC_10_1_1_FullRunNoStdin(unittest.TestCase):
     # trace: S-10 AC-10.1 TC-10.1.1
     def setUp(self):
         self.root, self.sprint = make_fixture(
-            {"S-1": "pending", "S-2": "pending", "S-3": "pending"}
+            {"S-1": "待办", "S-2": "待办", "S-3": "待办"}
         )
         self.log = self.root / "calls.log"
         self.sentinel = self.root / "stdin-sentinel"
@@ -145,7 +145,7 @@ class TC_10_1_1_FullRunNoStdin(unittest.TestCase):
         result = run_runner(
             self.root,
             {
-                "DIY_STUB_ROUTING": "S-1:done,S-2:blocked,S-3:done",
+                "DIY_STUB_ROUTING": "S-1:已完成,S-2:已阻塞,S-3:已完成",
                 "DIY_STUB_LOG": str(self.log),
                 "DIY_STUB_SPRINT": str(self.sprint),
                 "DIY_STUB_SENTINEL": str(self.sentinel),
@@ -159,14 +159,14 @@ class TC_10_1_1_FullRunNoStdin(unittest.TestCase):
         lines = read_log(self.log)
         aug = [ln for ln in lines if ln.endswith(" augment")]
         self.assertEqual(len(lines) - len(aug), 3)
-        self.assertEqual(len(aug), 2, f"2 个 done 任务应各触发一次补测: {lines}")
+        self.assertEqual(len(aug), 2, f"2 个已完成任务应各触发一次补测: {lines}")
 
 
 class TC_10_2_1_ResumeNoRerun(unittest.TestCase):
     # trace: S-10 AC-10.2 TC-10.2.1
     def setUp(self):
         self.root, self.sprint = make_fixture(
-            {"S-1": "done", "S-2": "done", "S-3": "pending"}
+            {"S-1": "已完成", "S-2": "已完成", "S-3": "待办"}
         )
         self.log = self.root / "calls.log"
 
@@ -175,7 +175,7 @@ class TC_10_2_1_ResumeNoRerun(unittest.TestCase):
 
     def test_done_tasks_not_reexecuted(self):
         env = {
-            "DIY_STUB_ROUTING": "S-3:done",
+            "DIY_STUB_ROUTING": "S-3:已完成",
             "DIY_STUB_LOG": str(self.log),
             "DIY_STUB_SPRINT": str(self.sprint),
         }
@@ -183,9 +183,9 @@ class TC_10_2_1_ResumeNoRerun(unittest.TestCase):
         self.assertEqual(first.returncode, 0, first.stderr)
         log_lines = read_log(self.log)
         self.assertEqual(
-            log_lines, ["S-3 done", "S-3 augment"], f"done 任务被重复执行: {log_lines}"
+            log_lines, ["S-3 已完成", "S-3 augment"], f"已完成任务被重复执行: {log_lines}"
         )
-        self.assertEqual(read_tasks(self.sprint)["S-3"]["status"], "done")
+        self.assertEqual(read_tasks(self.sprint)["S-3"]["status"], "已完成")
 
         second = run_runner(self.root, env)
         self.assertEqual(second.returncode, 0, second.stderr)
@@ -198,7 +198,7 @@ class TC_10_3_1_RetryCapThenContinue(unittest.TestCase):
     # trace: S-10 AC-10.3 TC-10.3.1
     def setUp(self):
         self.root, self.sprint = make_fixture(
-            {"S-1": "pending", "S-2": "pending"}
+            {"S-1": "待办", "S-2": "待办"}
         )
         self.log = self.root / "calls.log"
 
@@ -209,7 +209,7 @@ class TC_10_3_1_RetryCapThenContinue(unittest.TestCase):
         result = run_runner(
             self.root,
             {
-                "DIY_STUB_ROUTING": "S-1:fail,S-2:done",
+                "DIY_STUB_ROUTING": "S-1:失败,S-2:已完成",
                 "DIY_STUB_LOG": str(self.log),
                 "DIY_STUB_SPRINT": str(self.sprint),
             },
@@ -220,16 +220,16 @@ class TC_10_3_1_RetryCapThenContinue(unittest.TestCase):
             len(calls), 3, f"应恰执行 3 次（初次+2 重试），实际 {len(calls)}: {calls}"
         )
         tasks = read_tasks(self.sprint)
-        self.assertEqual(tasks["S-1"]["status"], "blocked")
+        self.assertEqual(tasks["S-1"]["status"], "已阻塞")
         self.assertIn("重试", tasks["S-1"].get("blocked_reason", ""))
-        self.assertEqual(tasks["S-2"]["status"], "done", "封顶后未继续后续任务")
+        self.assertEqual(tasks["S-2"]["status"], "已完成", "封顶后未继续后续任务")
 
 
 class TC_10_4_1_StrictlySerial(unittest.TestCase):
     # trace: S-10 AC-10.4 TC-10.4.1
     def setUp(self):
         self.root, self.sprint = make_fixture(
-            {"S-1": "pending", "S-2": "pending"}
+            {"S-1": "待办", "S-2": "待办"}
         )
         self.log = self.root / "calls.log"
 
@@ -245,7 +245,7 @@ class TC_10_4_1_StrictlySerial(unittest.TestCase):
                 try:
                     tasks = read_tasks(self.sprint)
                     samples.append(
-                        sum(1 for t in tasks.values() if t["status"] == "in-progress")
+                        sum(1 for t in tasks.values() if t["status"] == "进行中")
                     )
                 except (OSError, yaml.YAMLError):
                     pass
@@ -257,7 +257,7 @@ class TC_10_4_1_StrictlySerial(unittest.TestCase):
             result = run_runner(
                 self.root,
                 {
-                    "DIY_STUB_ROUTING": "S-1:done,S-2:done",
+                    "DIY_STUB_ROUTING": "S-1:已完成,S-2:已完成",
                     "DIY_STUB_LOG": str(self.log),
                     "DIY_STUB_SPRINT": str(self.sprint),
                     "DIY_STUB_SLEEP": "0.3",
@@ -270,18 +270,18 @@ class TC_10_4_1_StrictlySerial(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(samples, "扫描线程未采到任何样本")
         self.assertLessEqual(
-            max(samples), 1, f"任一时刻出现 >1 个 in-progress: max={max(samples)}"
+            max(samples), 1, f"任一时刻出现 >1 个进行中: max={max(samples)}"
         )
         tasks = read_tasks(self.sprint)
-        self.assertEqual(tasks["S-1"]["status"], "done")
-        self.assertEqual(tasks["S-2"]["status"], "done")
+        self.assertEqual(tasks["S-1"]["status"], "已完成")
+        self.assertEqual(tasks["S-2"]["status"], "已完成")
 
 
 class TC_Instance_Mode(unittest.TestCase):
     # trace: FR-4.5 D-9（findings: diy-build-loop/enhancement-1、diy-sprint/enhancement-2）
     # 实例模式：--instance 从 <output_dir>/<name>/sprint.yaml 读任务并写回同一路径
     def setUp(self):
-        self.root, self.sprint = make_fixture({"S-1": "pending"}, instance="case-a")
+        self.root, self.sprint = make_fixture({"S-1": "待办"}, instance="case-a")
         self.log = self.root / "calls.log"
 
     def tearDown(self):
@@ -289,7 +289,7 @@ class TC_Instance_Mode(unittest.TestCase):
 
     def env(self):
         return {
-            "DIY_STUB_ROUTING": "S-1:done",
+            "DIY_STUB_ROUTING": "S-1:已完成",
             "DIY_STUB_LOG": str(self.log),
             "DIY_STUB_SPRINT": str(self.sprint),
         }
@@ -298,18 +298,18 @@ class TC_Instance_Mode(unittest.TestCase):
         # 主线 sprint 全终态：若 runner 误读主线则零 spawn（日志为空）、实例文件不动；
         # 出现 1 次 spawn 即证明任务来自实例路径，终态回写也只落在实例文件
         main_sprint = write_sprint(
-            self.root / "diy-output" / "sprint.yaml", {"S-1": "done"}
+            self.root / "diy-output" / "sprint.yaml", {"S-1": "已完成"}
         )
         result = run_runner(
             self.root, self.env(), runner_args=("--instance", "case-a")
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
-            read_log(self.log), ["S-1 done", "S-1 augment"], "未从实例 sprint 读到待办任务"
+            read_log(self.log), ["S-1 已完成", "S-1 augment"], "未从实例 sprint 读到待办任务"
         )
-        self.assertEqual(read_tasks(self.sprint)["S-1"]["status"], "done")
-        self.assertEqual(read_tasks(main_sprint)["S-1"]["status"], "done")
-        self.assertIn("[runner] S-1 → done", result.stdout)
+        self.assertEqual(read_tasks(self.sprint)["S-1"]["status"], "已完成")
+        self.assertEqual(read_tasks(main_sprint)["S-1"]["status"], "已完成")
+        self.assertIn("[runner] S-1 → 已完成", result.stdout)
 
     def test_prompt_carries_instance_flag(self):
         spy = make_spy(self.root)
@@ -330,7 +330,7 @@ class TC_Instance_InvalidName(unittest.TestCase):
     # trace: FR-4.5 D-9 实例名白名单（字母数字开头和结尾）：非法名一行报错 + 非零退出，不 spawn。
     # "a." 与 "a\n" 为对抗审查修复后锁定（尾点在 Windows 目录名折叠 → 破坏实例隔离）
     def setUp(self):
-        self.root, self.sprint = make_fixture({"S-1": "pending"})
+        self.root, self.sprint = make_fixture({"S-1": "待办"})
         self.log = self.root / "calls.log"
 
     def tearDown(self):
@@ -342,7 +342,7 @@ class TC_Instance_InvalidName(unittest.TestCase):
                 result = run_runner(
                     self.root,
                     {
-                        "DIY_STUB_ROUTING": "S-1:done",
+                        "DIY_STUB_ROUTING": "S-1:已完成",
                         "DIY_STUB_LOG": str(self.log),
                         "DIY_STUB_SPRINT": str(self.sprint),
                     },
@@ -355,13 +355,13 @@ class TC_Instance_InvalidName(unittest.TestCase):
                 lines = [ln for ln in result.stderr.splitlines() if ln.strip()]
                 self.assertEqual(len(lines), 1, f"应一行报错，实际: {result.stderr}")
                 self.assertFalse(self.log.exists(), f"{bad!r} 被拒后仍 spawn 了子会话")
-                self.assertEqual(read_tasks(self.sprint)["S-1"]["status"], "pending")
+                self.assertEqual(read_tasks(self.sprint)["S-1"]["status"], "待办")
 
 
 class TC_Instance_MainlineUnchanged(unittest.TestCase):
     # trace: FR-4.5 D-9 无 --instance 主线回归：路径与 prompt 均等价现状
     def setUp(self):
-        self.root, self.sprint = make_fixture({"S-1": "pending"})
+        self.root, self.sprint = make_fixture({"S-1": "待办"})
         self.log = self.root / "calls.log"
 
     def tearDown(self):
@@ -373,7 +373,7 @@ class TC_Instance_MainlineUnchanged(unittest.TestCase):
         result = run_runner(
             self.root,
             {
-                "DIY_STUB_ROUTING": "S-1:done",
+                "DIY_STUB_ROUTING": "S-1:已完成",
                 "DIY_STUB_LOG": str(self.log),
                 "DIY_STUB_SPRINT": str(self.sprint),
                 "DIY_STUB_ARGV": str(argv_log),
@@ -382,8 +382,8 @@ class TC_Instance_MainlineUnchanged(unittest.TestCase):
             stub=spy,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(read_tasks(self.sprint)["S-1"]["status"], "done")
-        self.assertEqual(read_log(self.log), ["S-1 done", "S-1 augment"])
+        self.assertEqual(read_tasks(self.sprint)["S-1"]["status"], "已完成")
+        self.assertEqual(read_log(self.log), ["S-1 已完成", "S-1 augment"])
         argv_text = Path(argv_log).read_text(encoding="utf-8")
         self.assertNotIn("--instance", argv_text, "主线 prompt 混入了实例参数")
         self.assertIn(
@@ -393,11 +393,11 @@ class TC_Instance_MainlineUnchanged(unittest.TestCase):
 
 
 class TC_Augment_AfterDone(unittest.TestCase):
-    # trace: 2026-09-13 裁定——编码后补测接线：done 触发一次 diy-augment spawn，
-    # blocked 不触发；补测会话窄写权：只写 augment 字段，任务 status 零写回
+    # trace: 2026-09-13 裁定——编码后补测接线：已完成 触发一次 diy-augment spawn，
+    # 已阻塞 不触发；补测会话窄写权：只写 augment 字段，任务 status 零写回
     def setUp(self):
         self.root, self.sprint = make_fixture(
-            {"S-1": "pending", "S-2": "pending"}
+            {"S-1": "待办", "S-2": "待办"}
         )
         self.log = self.root / "calls.log"
 
@@ -406,7 +406,7 @@ class TC_Augment_AfterDone(unittest.TestCase):
 
     def env(self):
         return {
-            "DIY_STUB_ROUTING": "S-1:done,S-2:blocked",
+            "DIY_STUB_ROUTING": "S-1:已完成,S-2:已阻塞",
             "DIY_STUB_LOG": str(self.log),
             "DIY_STUB_SPRINT": str(self.sprint),
         }
@@ -415,16 +415,16 @@ class TC_Augment_AfterDone(unittest.TestCase):
         result = run_runner(self.root, self.env())
         self.assertEqual(result.returncode, 0, result.stderr)
         lines = read_log(self.log)
-        self.assertIn("S-1 done", lines)
+        self.assertIn("S-1 已完成", lines)
         self.assertIn("S-1 augment", lines)
-        self.assertIn("S-2 blocked", lines)
-        self.assertNotIn("S-2 augment", lines, "blocked 任务不应触发补测")
+        self.assertIn("S-2 已阻塞", lines)
+        self.assertNotIn("S-2 augment", lines, "已阻塞任务不应触发补测")
         self.assertIn("[runner] S-1 补测轮通过", result.stdout)
-        self.assertNotIn("S-2 补测轮", result.stdout, "blocked 任务不应出现补测行")
+        self.assertNotIn("S-2 补测轮", result.stdout, "已阻塞任务不应出现补测行")
         tasks = read_tasks(self.sprint)
-        self.assertEqual(tasks["S-1"]["status"], "done", "补测会话篡改了任务状态")
-        self.assertEqual(tasks["S-1"]["augment"], "pass", "补测结论未留痕")
-        self.assertNotIn("augment", tasks["S-2"], "blocked 任务不应有补测结论")
+        self.assertEqual(tasks["S-1"]["status"], "已完成", "补测会话篡改了任务状态")
+        self.assertEqual(tasks["S-1"]["augment"], "通过", "补测结论未留痕")
+        self.assertNotIn("augment", tasks["S-2"], "已阻塞任务不应有补测结论")
         self.assertIn("补测汇总：通过 1 / 待裁断 0", result.stdout)
 
     def test_augment_prompt_targets_completed_story(self):
@@ -444,7 +444,7 @@ class TC_Augment_AfterDone(unittest.TestCase):
 class TC_Augment_SkipFlag(unittest.TestCase):
     # --skip-augment：主循环本轮不补测（不留痕 = 之后 --augment-only 可补跑）
     def setUp(self):
-        self.root, self.sprint = make_fixture({"S-1": "pending"})
+        self.root, self.sprint = make_fixture({"S-1": "待办"})
         self.log = self.root / "calls.log"
 
     def tearDown(self):
@@ -454,29 +454,29 @@ class TC_Augment_SkipFlag(unittest.TestCase):
         result = run_runner(
             self.root,
             {
-                "DIY_STUB_ROUTING": "S-1:done",
+                "DIY_STUB_ROUTING": "S-1:已完成",
                 "DIY_STUB_LOG": str(self.log),
                 "DIY_STUB_SPRINT": str(self.sprint),
             },
             runner_args=("--skip-augment",),
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(read_log(self.log), ["S-1 done"], "skip 后仍 spawn 了补测")
+        self.assertEqual(read_log(self.log), ["S-1 已完成"], "--skip-augment 后仍 spawn 了补测")
         tasks = read_tasks(self.sprint)
-        self.assertEqual(tasks["S-1"]["status"], "done")
+        self.assertEqual(tasks["S-1"]["status"], "已完成")
         self.assertNotIn("augment", tasks["S-1"])
         self.assertIn("补测汇总：通过 0 / 待裁断 0 / 跳过 0 / 未跑 1", result.stdout)
 
 
 class TC_Augment_Only(unittest.TestCase):
-    # --augment-only：只补跑 done 且无结论的任务（pass/skip 跳过、fail 重跑覆盖结论）；
-    # 主循环零驱动（pending 任务不动）
+    # --augment-only：只补跑已完成 且无结论的任务（通过/已跳过 跳过、失败 重跑覆盖结论）；
+    # 主循环零驱动（待办 任务不动）
     def setUp(self):
         self.root, self.sprint = make_fixture(
-            {"S-1": "done", "S-2": "done", "S-3": "pending", "S-4": "done"}
+            {"S-1": "已完成", "S-2": "已完成", "S-3": "待办", "S-4": "已完成"}
         )
-        patch_augment(self.sprint, "S-1", "pass")
-        patch_augment(self.sprint, "S-4", "skip")
+        patch_augment(self.sprint, "S-1", "通过")
+        patch_augment(self.sprint, "S-4", "已跳过")
         self.log = self.root / "calls.log"
 
     def tearDown(self):
@@ -484,7 +484,7 @@ class TC_Augment_Only(unittest.TestCase):
 
     def env(self):
         return {
-            "DIY_STUB_ROUTING": "S-1:done,S-3:done",
+            "DIY_STUB_ROUTING": "S-1:已完成,S-3:已完成",
             "DIY_STUB_LOG": str(self.log),
             "DIY_STUB_SPRINT": str(self.sprint),
         }
@@ -497,19 +497,19 @@ class TC_Augment_Only(unittest.TestCase):
             "应只补跑 S-2（S-1 已通过、S-4 缺工具跳过、S-3 未完成）",
         )
         tasks = read_tasks(self.sprint)
-        self.assertEqual(tasks["S-2"]["augment"], "pass")
-        self.assertEqual(tasks["S-1"]["augment"], "pass")
-        self.assertEqual(tasks["S-3"]["status"], "pending", "--augment-only 驱动了主循环")
+        self.assertEqual(tasks["S-2"]["augment"], "通过")
+        self.assertEqual(tasks["S-1"]["augment"], "通过")
+        self.assertEqual(tasks["S-3"]["status"], "待办", "--augment-only 驱动了主循环")
         self.assertIn("补测汇总：通过 2 / 待裁断 0 / 跳过 1 / 未跑 0", result.stdout)
 
     def test_failed_task_rerun_overwrites(self):
-        # 裁断修复后重跑：fail 结论被新结论覆盖
-        patch_augment(self.sprint, "S-2", "fail")
+        # 裁断修复后重跑：失败 结论被新结论覆盖
+        patch_augment(self.sprint, "S-2", "失败")
         result = run_runner(self.root, self.env(), runner_args=("--augment-only",))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(sorted(read_log(self.log)), ["S-2 augment"])
         self.assertEqual(
-            read_tasks(self.sprint)["S-2"]["augment"], "pass", "重跑未覆盖旧结论"
+            read_tasks(self.sprint)["S-2"]["augment"], "通过", "重跑未覆盖旧结论"
         )
 
     def test_mutually_exclusive_with_skip(self):
@@ -522,14 +522,14 @@ class TC_Augment_Only(unittest.TestCase):
 
 
 class TC_Reopen_Failed(unittest.TestCase):
-    # --reopen-failed：augment:fail 任务批量重开（done→in-progress、清旧结论），
+    # --reopen-failed：augment:失败 任务批量重开（已完成→进行中、清旧结论），
     # 随后主循环修复并重新补测；已通过任务不受影响
     def setUp(self):
         self.root, self.sprint = make_fixture(
-            {"S-1": "done", "S-2": "done", "S-3": "pending"}
+            {"S-1": "已完成", "S-2": "已完成", "S-3": "待办"}
         )
-        patch_augment(self.sprint, "S-1", "fail")
-        patch_augment(self.sprint, "S-2", "pass")
+        patch_augment(self.sprint, "S-1", "失败")
+        patch_augment(self.sprint, "S-2", "通过")
         self.log = self.root / "calls.log"
 
     def tearDown(self):
@@ -537,7 +537,7 @@ class TC_Reopen_Failed(unittest.TestCase):
 
     def env(self):
         return {
-            "DIY_STUB_ROUTING": "S-1:done,S-3:done",
+            "DIY_STUB_ROUTING": "S-1:已完成,S-3:已完成",
             "DIY_STUB_LOG": str(self.log),
             "DIY_STUB_SPRINT": str(self.sprint),
         }
@@ -548,30 +548,30 @@ class TC_Reopen_Failed(unittest.TestCase):
         self.assertIn("已重开 1 个补测未通过任务：S-1", result.stdout)
         self.assertEqual(
             read_log(self.log),
-            ["S-1 done", "S-1 augment", "S-3 done", "S-3 augment"],
+            ["S-1 已完成", "S-1 augment", "S-3 已完成", "S-3 augment"],
             "重开任务应被主循环修复并重新补测",
         )
         tasks = read_tasks(self.sprint)
-        self.assertEqual(tasks["S-1"]["status"], "done")
-        self.assertEqual(tasks["S-1"]["augment"], "pass", "修复后补测未留痕")
-        self.assertEqual(tasks["S-2"]["augment"], "pass", "已通过任务不应被重开")
+        self.assertEqual(tasks["S-1"]["status"], "已完成")
+        self.assertEqual(tasks["S-1"]["augment"], "通过", "修复后补测未留痕")
+        self.assertEqual(tasks["S-2"]["augment"], "通过", "已通过任务不应被重开")
 
     def test_reopen_clears_stale_verdict(self):
-        # 修复后本轮不补测（--skip-augment）：旧 fail 结论必须已被清除，不留悬空结论
+        # 修复后本轮不补测（--skip-augment）：旧失败结论必须已被清除，不留悬空结论
         result = run_runner(
             self.root, self.env(), runner_args=("--reopen-failed", "--skip-augment")
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(read_log(self.log), ["S-1 done", "S-3 done"])
+        self.assertEqual(read_log(self.log), ["S-1 已完成", "S-3 已完成"])
         tasks = read_tasks(self.sprint)
-        self.assertEqual(tasks["S-1"]["status"], "done")
-        self.assertNotIn("augment", tasks["S-1"], "重开后旧 fail 结论应被清除")
+        self.assertEqual(tasks["S-1"]["status"], "已完成")
+        self.assertNotIn("augment", tasks["S-1"], "重开后旧失败结论应被清除")
 
 
 class TC_10_1_2_MissingClaudeCmd(unittest.TestCase):
     # trace: S-10 AC-10.1 TC-10.1.2
     def setUp(self):
-        self.root, self.sprint = make_fixture({"S-1": "pending"})
+        self.root, self.sprint = make_fixture({"S-1": "待办"})
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -601,7 +601,7 @@ class TC_10_1_2_MissingClaudeCmd(unittest.TestCase):
 class TC_10_1_2_CorruptSprintGate(unittest.TestCase):
     # trace: S-10 AC-10.1 TC-10.1.2
     def setUp(self):
-        self.root, self.sprint = make_fixture({"S-1": "pending"})
+        self.root, self.sprint = make_fixture({"S-1": "待办"})
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)

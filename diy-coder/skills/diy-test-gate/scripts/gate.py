@@ -4,23 +4,23 @@
 子命令：
   collect  质量门的确定性采集（只读，零写盘）：
              0 前置门禁（任务书 §4）：stories.yaml / test-plan.yaml（须 project.status:
-               final）/ prd.yaml 三件套在场且可解析；`--story S-x` 给出时须在 stories.yaml
+               已定稿）/ prd.yaml 三件套在场且可解析；`--story S-x` 给出时须在 stories.yaml
                可解析；AC 集为空 → 拒绝。任一项不满足 → 零产出 exit 1 + 结构化拒绝
                （violations + gate.route 给路由）。
              1 矩阵 join：AC（stories）× TC（test-plan）× 证据台账（sprint 任务
                test_refs / evidence）。覆盖判定表逐 TC（任务书 §4）：
-               ① status: fail → blocker 不计（fail 胜，即使同 TC 留有 green 记录）；
-               ② status: pass 且有 evidence（该 story 任务的台账条目 red/green 均非空；
+               ① status: 失败 → blocker 不计（失败胜，即使同 TC 留有 green 记录）；
+               ② status: 通过 且有 evidence（该 story 任务的台账条目 red/green 均非空；
                   test_refs 只用于查台账归属）→ 已验证；
-               ③ status: pass 但无台账 → 已验证 + warning。**本引擎分不出这条 pass
+               ③ status: 通过 但无台账 → 已验证 + warning。**本引擎分不出这条「通过」
                   是谁写的**（diy-e2e-tests / diy-augment 追加用例不写 evidence 属合法，
                   其余来源应经 diyc green 写回）——warning 带上 technique 供人工核对，
                   替读者摊事实、不替读者下结论；
-               ④ pending → 不计。
-               AC coverage 五值：无 TC / 全未验证 → NONE；全验证且 type 全 unit →
-               UNIT-ONLY；全 integration → INTEGRATION-ONLY；全验证且含 e2e 或 ≥2 类
+               ④ 待办 → 不计。
+               AC coverage 五值：无 TC / 全未验证 → NONE；全验证且 type 全 单元 →
+               UNIT-ONLY；全 集成 → INTEGRATION-ONLY；全验证且含 端到端 或 ≥2 类
                type → FULL；部分验证 → PARTIAL。
-             2 priority 推导：prd.yaml FR priority（must→P0 / should→P1 / could→P2），
+             2 priority 推导：prd.yaml FR priority（必须→P0 / 应该→P1 / 可选→P2），
                一 AC 多 FR 取最高；无 FR refs → P2 + warning。
              3 统计：totals / 三线（p0 / p1 / p2）/ by_level / by_tc / by_story + 缺口清单
                （kind：none | partial | blocker | heuristic | accepted_gap |
@@ -49,11 +49,11 @@
   check    校验 {output_dir}/test-gate.yaml（TG-### 集合）：schema / 枚举 / 记录 ID 唯一 /
            引用解析（产物自身的 AC / TC / S 存在性——test-gate 不在 diyc 类型集内，本引擎
            自实现，不与 diyc 已覆盖规则重复；跨文档一致性仍委派 diyc）/ totals 与 by_level
-           重算 / 门决策自洽（重算硬判据 actual；overlay：synthetic 且 confidence≠high →
-           至少 CONCERNS；NFR 域 CONCERNS 或软判据 fail → 至少 CONCERNS；任一硬判据
-           fail → 必须 FAIL；全 pass 无域 CONCERNS 无 overlay → 才可 PASS）/ waiver 8 键
-           契约（security 域 FAIL 不可豁免）/ 阈值 source 强制记出处；--final 附加：
-           status 已落 final、basis 非空、hard / soft 两组判据齐、零 [ASSUMPTION]、
+           重算 / 门决策自洽（重算硬判据 actual；overlay：合成 且 confidence≠高 →
+           至少 CONCERNS；NFR 域 CONCERNS 或软判据失败 → 至少 CONCERNS；任一硬判据
+           失败 → 必须 FAIL；全部 通过 无域 CONCERNS 无 overlay → 才可 PASS）/ waiver 8 键
+           契约（安全域 FAIL 不可豁免）/ 阈值 source 强制记出处；--final 附加：
+           status 已落 已定稿、basis 非空、hard / soft 两组判据齐、零 [假设]、
            合规五标准逐条记账（G-3：行形态 + 聚合 FAIL>PARTIAL>PASS 重算）、跨域合成
            候选的落点（G-4：命中而 findings / recommendations 无 `<域>×<域>` 行即违例）；
            mutation-report 缺席按过渡期口径只记 warning。
@@ -110,9 +110,9 @@ def gate_check(root, out, args):
             project = data.get("project")
             status = str(project.get("status") or "") \
                 if isinstance(project, dict) else ""
-            if must_final and status != "final":
+            if must_final and status != "已定稿":
                 violations.append(v("STATUS_MISMATCH", where + " project.status",
-                                    "%s 的 project.status 须为 final（实为 %s）；"
+                                    "%s 的 project.status 须为 已定稿（实为 %s）；"
                                     "路由 %s" % (name, status or "缺失",
                                               GATE_ROUTE[name])))
             docs[name] = data
@@ -148,7 +148,7 @@ def build_matrix(docs, args, warnings):
     frs, bad_frs = fr_index(prd)
     for rid, value in bad_frs:
         warnings.append(v("ENUM_INVALID", "%s %s.priority" % (PRD_FILE, rid),
-                          "FR priority 越界：%s（合法 must|should|could）" % value))
+                          "FR priority 越界：%s（合法 必须|应该|可选）" % value))
     if not has_sprint:
         warnings.append(v("MISSING_FILE", SPRINT_FILE,
                           "sprint.yaml 缺席：live 证据面降级——覆盖只认 test-plan 的 "
@@ -187,7 +187,7 @@ def build_matrix(docs, args, warnings):
             if verdict == "missing_evidence" and has_sprint:
                 warnings.append(v("EVIDENCE_MISSING",
                                   "%s %s evidence" % (SPRINT_FILE, story),
-                                  "%s（technique=%s）status=pass 但该 story 任务无 "
+                                  "%s（technique=%s）status=通过 但该 story 任务无 "
                                   "red/green 台账——设计期技法的用例应经 diyc green "
                                   "写回，无台账需人工核对"
                                   % (tc["id"], tc.get("technique") or "缺")))
@@ -287,8 +287,8 @@ def soft_metrics_block(items, plan, ac_story):
             "name": name, "target": target,
             "numerator": numerator, "denominator": denominator,
             "actual": pct_str(numerator, denominator),
-            "result": "pass" if meets(ratio(numerator, denominator), target)
-                      else "fail",
+            "result": "通过" if meets(ratio(numerator, denominator), target)
+                      else "失败",
             "estimated": False,
             "algorithm": "矩阵判定表口径（分子 / 分母见同名回执字段）",
         }
@@ -310,7 +310,7 @@ def gaps_block(items, plan, warnings):
         for tid in item["blocked"]:
             gaps.append({"ref": tid, "story": item["story"],
                          "priority": item["priority"], "kind": "blocker",
-                         "why": "判定表 ①：status=fail（fail 胜）——须落 gate.blockers"})
+                         "why": "判定表 ①：status=失败（失败胜）——须落 gate.blockers"})
         gaps.extend(item["_heuristics"])
     for gap in items_of(plan, "coverage_gaps"):
         if not isinstance(gap, dict):
@@ -321,10 +321,10 @@ def gaps_block(items, plan, warnings):
                  "kind": "accepted_gap",
                  "why": "test-plan coverage_gaps decision=%s：%s"
                         % (decision, gap.get("reason") or "")}
-        if decision == "pending":
+        if decision == "待办":
             entry["kind"] = "test_plan_pending"
             warnings.append(v("PENDING_DECISION", "%s coverage_gaps" % PLAN_FILE,
-                              "缺口 %s 仍为 decision: pending（test-plan --final 会拦）"
+                              "缺口 %s 仍为 decision: 待办（test-plan --final 会拦）"
                               % entry["ref"]))
         gaps.append(entry)
     return gaps
@@ -491,7 +491,7 @@ def build_parser():
     k.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     k.add_argument("--final", action="store_true",
-                   help="定稿校验：status 已落 final + basis 非空 + 两组判据齐 + 零假设")
+                   help="定稿校验：status 已落 已定稿 + basis 非空 + 两组判据齐 + 零假设")
     k.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     k.set_defaults(func=cmd_check)
     return ap

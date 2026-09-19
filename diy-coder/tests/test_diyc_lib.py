@@ -233,21 +233,21 @@ class DocsIndexTests(unittest.TestCase):
         self.addCleanup(fx.cleanup, self.root)
         self.out = fx.out_dir(self.root)
         fx.write_doc(self.root, "stories", fx.doc_stories([
-            fx.story("S-1", [fx.ac("AC-1.1", refs=["FR-1.1"])], status="done"),
+            fx.story("S-1", [fx.ac("AC-1.1", refs=["FR-1.1"])], status="已完成"),
         ]))
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
-            [fx.tc("TC-1.1.1", "AC-1.1", status="pass")],
-            gaps=[fx.gap("AC-1.2", "S-1", decision="waived")]))
+            [fx.tc("TC-1.1.1", "AC-1.1", status="通过")],
+            gaps=[fx.gap("AC-1.2", "S-1", decision="已豁免")]))
         fx.write_doc(self.root, "sprint", fx.doc_sprint([
-            fx.task("S-1", status="done", test_refs=["TC-1.1.1"])]))
+            fx.task("S-1", status="已完成", test_refs=["TC-1.1.1"])]))
         fx.write_doc(self.root, "architecture", {"project": fx.project_meta(),
-                                                 "decisions": [{"id": "D-1", "status": "accepted"}]})
+                                                 "decisions": [{"id": "D-1", "status": "已采纳"}]})
         fx.write_doc(self.root, "prd", {"project": fx.project_meta(),
                                         "features": [{"id": "F-1", "requirements": [
-                                            {"id": "FR-1.1", "priority": "must"}]}],
+                                            {"id": "FR-1.1", "priority": "必须"}]}],
                                         "nfrs": [{"id": "NFR-1", "statement": "s"}]})
         fx.write_doc(self.root, "epics", {"project": fx.project_meta(),
-                                          "epics": [{"id": "E-1", "status": "in-progress"}]})
+                                          "epics": [{"id": "E-1", "status": "进行中"}]})
         self.docs = diyc_lib.Docs(self.root, self.out)
 
     def test_index_shapes(self):
@@ -281,24 +281,24 @@ class DocsIndexTests(unittest.TestCase):
 
 
 class StoryCoveredTests(unittest.TestCase):
-    # trace: 契约 §4.2 PENDING_UNCOVERED 唯一定义源——三态：有 TC 覆盖 / waived 豁免 / 缺覆盖
+    # trace: 契约 §4.2 PENDING_UNCOVERED 唯一定义源——三态：有 TC 覆盖 / 已豁免 豁免 / 缺覆盖
     def setUp(self):
         self.root = fx.make_root()
         self.addCleanup(fx.cleanup, self.root)
         self.out = fx.out_dir(self.root)
         fx.write_doc(self.root, "stories", fx.doc_stories([
             fx.story("S-20", [fx.ac("AC-20.1")]),                      # 无 TC 无 gap → 缺覆盖
-            fx.story("S-21", [fx.ac("AC-21.1")]),                      # 无 TC gap=pending → 缺覆盖
-            fx.story("S-22", [fx.ac("AC-22.1")]),                      # gap=waived → 豁免
-            fx.story("S-23", [fx.ac("AC-23.1")]),                      # gap=accept-gap → 豁免
+            fx.story("S-21", [fx.ac("AC-21.1")]),                      # 无 TC gap=待办 → 缺覆盖
+            fx.story("S-22", [fx.ac("AC-22.1")]),                      # gap=已豁免 → 豁免
+            fx.story("S-23", [fx.ac("AC-23.1")]),                      # gap=接受缺口 → 豁免
             fx.story("S-24", [fx.ac("AC-24.1")]),                      # 有 TC → 覆盖
             fx.story("S-25", [fx.ac("AC-25.1"), fx.ac("AC-25.2")]),    # 部分覆盖 → 缺 AC-25.2
         ]))
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
             [fx.tc("TC-24.1.1", "AC-24.1"), fx.tc("TC-25.1.1", "AC-25.1")],
-            gaps=[fx.gap("AC-21.1", "S-21", decision="pending"),
-                  fx.gap("AC-22.1", "S-22", decision="waived"),
-                  fx.gap("AC-23.1", "S-23", decision="accept-gap")]))
+            gaps=[fx.gap("AC-21.1", "S-21", decision="待办"),
+                  fx.gap("AC-22.1", "S-22", decision="已豁免"),
+                  fx.gap("AC-23.1", "S-23", decision="接受缺口")]))
         self.docs = diyc_lib.Docs(self.root, self.out)
 
     def test_pending_or_missing_gap_is_uncovered(self):
@@ -340,9 +340,9 @@ class RealArtifactSmokeTests(unittest.TestCase):
 
     def test_story_covered_on_real_artifact(self):
         docs = diyc_lib.Docs(REPO_ROOT, REAL_OUTPUT)
-        # S-1：done story，全部 AC waived（coverage_gaps）→ 豁免覆盖
+        # S-1：已完成 story，全部 AC 已豁免（coverage_gaps）→ 豁免覆盖
         covered, missing = docs.story_covered("S-1")
-        self.assertTrue(covered, "S-1 应因 waived 豁免视为覆盖：%s" % missing)
+        self.assertTrue(covered, "S-1 应因 已豁免 豁免视为覆盖：%s" % missing)
 
 
 if __name__ == "__main__":

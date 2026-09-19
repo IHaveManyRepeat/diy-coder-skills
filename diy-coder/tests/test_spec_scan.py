@@ -14,7 +14,7 @@
 - 用例 8：check would_guess 为空 → exit 1 + EMPTY_FIELD（msg 指明哪条 finding 哪个字段）
 - 用例 9：check summary 计数与 findings 真值不符 → exit 1 + SET_MISMATCH
 - 用例 10：check --final 有单元未扫 → exit 1（非 --final 同稿 exit 0）
-- 用例 11：check --final 的 [ASSUMPTION] 字面量禁令 —— `quote` 字段豁免（引文是证据，
+- 用例 11：check --final 的 [假设] 字面量禁令 —— `quote` 字段豁免（引文是证据，
            2026-09-16 裁定）；非 quote 字段仍判 exit 1 + ASSUMPTION_PRESENT
 - 用例 12：check schema 违规表（id 形态 / 重复 ID / where 形态 / severity 越界 /
            缺 project 键 / 缺字段 / YAML 损坏）
@@ -75,21 +75,21 @@ SPEC_SCAN_YAML = NL.join([
     "  - {unit: 步骤一, path: skills/diy-dev/steps/01-init.md, scanned: true}",
     "  findings:",
     "  - id: SS-001-01",
-    "    type: UNDEFINED_BRANCH",
+    "    type: 分支无定义",
     "    where: 'skills/diy-dev/SKILL.md:42'",
     "    quote: 按需选择合适的方式处理",
     "    read_as: 作者默认实现者知道怎么选",
     "    stuck: 不知道何时走哪条分支",
     "    would_guess: 我会一律走默认路径，忽略另一分支",
-    "    severity: blocker",
+    "    severity: 阻断",
     "  - id: SS-001-02",
-    "    type: TERM_CONFLICT",
+    "    type: 术语冲突",
     "    where: skills/diy-dev/steps/01-init.md",
     "    quote: 优先级高的先做",
     "    read_as: 优先级排序规则未定义",
     "    stuck: 无法判断先后",
     "    would_guess: 我会按文件出现顺序执行",
-    "    severity: minor",
+    "    severity: 观察",
     "  summary: {total: 2, blocker: 1, major: 0, minor: 1, units_total: 2, units_scanned: 2}",
     "revisions: []",
 ]) + NL
@@ -235,11 +235,11 @@ class CheckTests(EngineCase):
         self.assertEqual(data["violations"], [])
         self.assertEqual(data["counts"]["scans"], 1)
         self.assertEqual(data["counts"]["findings"], 2)
-        self.assertEqual(data["counts"]["by_severity"], {"blocker": 1, "minor": 1})
+        self.assertEqual(data["counts"]["by_severity"], {"阻断": 1, "观察": 1})
 
     # trace: 契约 check（type 不在八值枚举 → ENUM_INVALID）
     def test_check_type_enum_rejected(self):
-        self.write_spec_scan(SPEC_SCAN_YAML.replace("type: TERM_CONFLICT", "type: MAYBE_WRONG"))
+        self.write_spec_scan(SPEC_SCAN_YAML.replace("type: 术语冲突", "type: MAYBE_WRONG"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertEqual(self.codes(r), ["ENUM_INVALID"])
@@ -285,12 +285,12 @@ class CheckTests(EngineCase):
         self.assertEqual(self.codes(r2), ["SET_MISMATCH"])
         self.assertIn("scanned", json.loads(r2.stdout)["violations"][0]["msg"])
 
-    # trace: 契约 check --final（零 [ASSUMPTION] 字面量；quote 豁免——2026-09-16 裁定）
+    # trace: 契约 check --final（零 [假设] 字面量；quote 豁免——2026-09-16 裁定）
     def test_check_final_quote_is_exempt_from_assumption_literal(self):
         # 引文是证据：被扫规格本身可能含该标记，逐字引用不得被判违规
         text = SPEC_SCAN_YAML.replace(
             "quote: 按需选择合适的方式处理",
-            "quote: 此处须带 [ASSUMPTION] 前缀（引被扫规格原文）")
+            "quote: 此处须带 [假设] 前缀（引被扫规格原文）")
         self.write_spec_scan(text)
         r = self.check("--final")
         self.assertEqual(r.returncode, 0, r.stdout)
@@ -299,7 +299,7 @@ class CheckTests(EngineCase):
     # trace: 契约 check --final（非 quote 字段仍禁该字面量——扫描器自己的推断须先落定）
     def test_check_final_rejects_assumption_literal_outside_quote(self):
         text = SPEC_SCAN_YAML.replace(
-            "stuck: 不知道何时走哪条分支", "stuck: 不知道何时走哪条分支（[ASSUMPTION]）")
+            "stuck: 不知道何时走哪条分支", "stuck: 不知道何时走哪条分支（[假设]）")
         self.write_spec_scan(text)
         r = self.check()
         self.assertEqual(r.returncode, 0, r.stdout)  # 非 --final 不触发
@@ -314,7 +314,7 @@ class CheckTests(EngineCase):
             ("ENUM_INVALID", "id: SS-001-01", "id: SS-001-1", "finding id 须为 SS-0nn-nn"),
             ("ENUM_INVALID", "where: 'skills/diy-dev/SKILL.md:42'",
              "where: 'skills/diy-dev/SKILL.md:四二'", "where 行号须为数字"),
-            ("ENUM_INVALID", "severity: minor", "severity: trivial", "severity 越界"),
+            ("ENUM_INVALID", "severity: 观察", "severity: trivial", "severity 越界"),
             ("EMPTY_FIELD", "would_guess: 我会一律走默认路径，忽略另一分支", None, "四件套缺一"),
             ("EMPTY_FIELD", "    quote: 优先级高的先做" + NL, "", "quote 为空"),
             ("EMPTY_FIELD", "  created: '2026-09-15'" + NL, "", "project.created 缺失"),
@@ -364,7 +364,7 @@ class ContractTests(EngineCase):
         self.assertIn("target", data)
         self.assertNotIn("\\", data["target"]["path"])
 
-        self.write_spec_scan(SPEC_SCAN_YAML.replace("severity: minor", "severity: trivial"))
+        self.write_spec_scan(SPEC_SCAN_YAML.replace("severity: 观察", "severity: trivial"))
         r2 = self.check()
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertEqual(len(r2.stdout.strip().splitlines()), 1, "check --json 须单行")
@@ -386,7 +386,7 @@ class ContractTests(EngineCase):
         self.assertIn("docs/spec.md", r.stdout)
         self.assertTrue(r.stdout.strip().splitlines()[-1].startswith("汇总："), r.stdout)
 
-        self.write_spec_scan(SPEC_SCAN_YAML.replace("type: TERM_CONFLICT", "type: MAYBE_WRONG"))
+        self.write_spec_scan(SPEC_SCAN_YAML.replace("type: 术语冲突", "type: MAYBE_WRONG"))
         r2 = run_engine(["check", "--project-root", self.root, "--output-dir", self.out])
         self.assertEqual(r2.returncode, 1, r2.stdout)
         lines = [line for line in r2.stdout.strip().splitlines() if line.strip()]

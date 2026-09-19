@@ -23,9 +23,9 @@ project:
 bugs:
   - id: {bid}
     date: 2026-09-13
-    source: dev
-    class: functional
-    subclass: logic
+    source: 开发
+    class: 功能型
+    subclass: 逻辑
     type: 逻辑错误
     trigger: 触发路径
     fix: 修复方案
@@ -69,7 +69,8 @@ class ExpSyncTests(unittest.TestCase):
         self.tmp.cleanup()
 
     def bucket_ids(self):
-        with open(os.path.join(self.repo, "bugs", "logic.yaml"), encoding="utf-8") as f:
+        # 桶文件名 = 中类取值（exp-sync 按 subclass 分桶）
+        with open(os.path.join(self.repo, "bugs", "逻辑.yaml"), encoding="utf-8") as f:
             return [e["id"] for e in (yaml.safe_load(f) or {}).get("bugs") or []]
 
     # trace: S-17 AC-17.1 TC-17.1.1
@@ -113,13 +114,13 @@ class ExpSyncTests(unittest.TestCase):
         # 对抗审查 R1：桶文件 bugs 值为映射时，合并写入会把键字符串当条目搬进新桶
         write_project(self.proj_a, "proj-a",
                       BUG_TMPL.format(proj="proj-a", bid="BUG-A1"), self.repo)
-        bad = os.path.join(self.repo, "bugs", "logic.yaml")
+        bad = os.path.join(self.repo, "bugs", "逻辑.yaml")
         with open(bad, "w", encoding="utf-8") as f:
             f.write("bugs:" + chr(10) + "  BUG-A1:" + chr(10) + "    id: BUG-A1" + chr(10))
         p = run_exp(["push"], cwd=self.proj_a)
         self.assertNotEqual(p.returncode, 0)
         self.assertNotIn("Traceback", p.stderr)
-        self.assertIn("logic.yaml", p.stderr)
+        self.assertIn("逻辑.yaml", p.stderr)
         with open(bad, encoding="utf-8") as f:
             raw = f.read()
         self.assertNotIn("- BUG-A1" + chr(10), raw, "坏桶被污染改写")

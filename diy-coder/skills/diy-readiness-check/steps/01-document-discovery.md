@@ -13,7 +13,7 @@ Progress: `[Document Discovery] → Requirement Inventory → Coverage Validatio
 
 Take the list from the receipt's `docs` block — do not re-scan the directories by hand:
 
-- `prd`, `epics`, `stories` — present, and for epics/stories `project.status: final` (the gate's requirement).
+- `prd`, `epics`, `stories` — present, and for epics/stories `project.status: 已定稿` (the gate's requirement).
 - `architecture` — optional: absent arrives as a warning in the receipt; carry it into the final assessment, it does not block.
 - `design` — optional: absent is a legitimate state; step 4 decides whether UX was implied and warns.
 
@@ -35,7 +35,7 @@ Append one record to `{output_dir}/readiness.yaml` (create the file when absent:
 ```yaml
   - id: IR-001                    # next = highest existing + 1, 3 digits; never renumber, never reuse
     date: YYYY-MM-DD              # today
-    status: draft
+    status: 草稿
     scope: [prd, epics, stories]  # documents actually inventoried
     findings: []
     coverage: {must_frs: 0, covered: 0, gaps: []}   # copied from the receipt

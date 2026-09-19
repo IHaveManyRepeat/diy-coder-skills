@@ -28,11 +28,11 @@ Fix the case here, not after a flaky run.
 
 ## Run them for real (BMAD step-4)
 
-Execute using the project's own test command (from step 1). **A case that has not been executed is not appended** — `record` accepts only `status: pass|fail`, and the point of this skill is that the appended cases actually ran.
+Execute using the project's own test command (from step 1). **A case that has not been executed is not appended** — `record` accepts only `status: 通过|失败`, and the point of this skill is that the appended cases actually ran.
 
-- Failure → fix the test immediately when the test is wrong; when the *implementation* is wrong, do not patch the test to hide it — leave the case red (`status: fail`) and record the observed-vs-expected evidence for step 5.
+- Failure → fix the test immediately when the test is wrong; when the *implementation* is wrong, do not patch the test to hide it — leave the case red (`status: 失败`) and record the observed-vs-expected evidence for step 5.
 - Flakiness → make the wait deterministic (wait on the condition, not the clock) and re-run. Never leave a retry loop in the test.
-- Runner unavailable or environment cannot start the system → that is a first-class result: report it, set the affected cases to `fail` only if they actually ran red, and otherwise append nothing for them. Never append an unexecuted case.
+- Runner unavailable or environment cannot start the system → that is a first-class result: report it, set the affected cases to `失败` only if they actually ran red, and otherwise append nothing for them. Never append an unexecuted case.
 
 ## Next
 

@@ -38,7 +38,7 @@ One `findings[]` entry per area, written as each search lands:
 - Web search required — regulation text, regulator websites, official government and association sources over commentary.
 - Cite effective dates and compliance timelines; jurisdictional differences are named explicitly.
 - Two independent sources for each critical claim; ambiguous or pending rules are flagged in the claim.
-- `confidence` per finding: `high` / `medium` / `low` — regulatory claims without a primary source stay at `low`.
+- `confidence` per finding: `高` / `中` / `低` — regulatory claims without a primary source stay at `低`.
 
 ## Present and continue
 

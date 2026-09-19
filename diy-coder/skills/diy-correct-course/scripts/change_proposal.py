@@ -4,7 +4,7 @@
 子命令：
   collect  执行期变更的影响面采集（只读，绝不写文件）：
              1 门禁（源 step-1 HALT 判据的机械面）：prd.yaml / epics.yaml / stories.yaml
-               三件套在场且 project.status 均为 final；不满足 → 零产出 exit 1 +
+               三件套在场且 project.status 均为 已定稿；不满足 → 零产出 exit 1 +
                结构化拒绝回执（violations 带码 + gate.route 给路由）。
                architecture.yaml / openapi.yaml / design.yaml 缺席不拒（源「Architecture、
                UI/UX 可选」）→ warning。
@@ -26,10 +26,10 @@
            （status/mode/scope/artifact/kind）/ edits 完整（old+new+rationale 非空且
            old != new）/ impacts 与 edits 的 target 形态（产物类稳定 ID / infra 类
            path:<相对路径>，形态与 artifact 双向绑定）/ handoff.route 白名单 / ID 唯一 /
-           单项 --id 过滤；--final 附加：status ∈ {final, approved}、zero [ASSUMPTION]、
+           单项 --id 过滤；--final 附加：status ∈ {已定稿, 已批准}、zero [假设]、
            handoff.route 在场且白名单、impacts 非空、approach 已选定（PENDING_DECISION）、
-           scope 与 handoff 一致性（minor→单技能直改 / moderate→backlog 重组 /
-           major→规划层）。exit 0 唯一放行。
+           scope 与 handoff 一致性（轻微→单技能直改 / 中等→backlog 重组 /
+           重大→规划层）。exit 0 唯一放行。
 
 分工裁定（任务书 §2.2/§5）：change-proposal 属新产物类型，不进 diyc.py check 的硬编码
 类型集；本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}]
@@ -60,7 +60,7 @@ DESIGN_FILE = "design.yaml"
 TESTPLAN_FILE = "test-plan.yaml"
 SPRINT_FILE = "sprint.yaml"
 
-# 六产物（影响面摘要面）；门禁三件套全部须 project.status: final（源 HALT 判据）
+# 六产物（影响面摘要面）；门禁三件套全部须 project.status: 已定稿（源 HALT 判据）
 DOC_FILES = (PRD_FILE, EPICS_FILE, STORIES_FILE, ARCH_FILE, OPENAPI_FILE, DESIGN_FILE)
 GATE_FILES = (PRD_FILE, EPICS_FILE, STORIES_FILE)
 ROUTE_BY_FILE = {PRD_FILE: "diy-prd", EPICS_FILE: "diy-epics-stories",
@@ -71,10 +71,10 @@ DIYC_REL = ("diy-tools", "scripts", "diyc.py")
 DIYC_TYPES = ("prd", "architecture", "openapi", "epics", "stories")
 HTTP_METHODS = ("get", "put", "post", "delete", "options", "head", "patch", "trace")
 
-STATUSES = ("draft", "final", "approved", "rejected")
-FINAL_STATUSES = ("final", "approved")
-MODES = ("incremental", "batch")
-SCOPES = ("minor", "moderate", "major")
+STATUSES = ("草稿", "已定稿", "已批准", "已驳回")
+FINAL_STATUSES = ("已定稿", "已批准")
+MODES = ("增量", "批量")
+SCOPES = ("轻微", "中等", "重大")
 # 目标归属：产物类（target 用稳定 ID）+ infra 类（部署脚本 / CI 配置 / IaC / 监控，
 # target 用 path:<相对路径>）——源 checklist §3.4「其他工件」的承接面；
 # 2026-09-14 用户裁定：test-plan 与 infra 此前被整体裁剪且理由部分不实，修正为可表达
@@ -82,16 +82,16 @@ ARTIFACTS = ("prd", "epics", "stories", "architecture", "openapi", "design",
              "test-plan", "infra")
 INFRA = "infra"
 PATH_PREFIX = "path:"
-KINDS = ("modify", "add", "remove")
-APPROACH_PATHS = ("direct-adjustment", "rollback", "mvp-review")
+KINDS = ("修改", "新增", "删除")
+APPROACH_PATHS = ("直接调整", "回滚", "MVP 复审")
 
-# 三级 scope → 交接对象（源 step-5：Minor 开发者直改 / Moderate backlog 重组 / Major 规划层重规划）
+# 三级 scope → 交接对象（源 step-5：轻微 开发者直改 / 中等 backlog 重组 / 重大 规划层重规划）
 ROUTE_DIRECT = ("diy-dev", "diy-quick-dev", "diy-prd", "diy-architecture", "diy-epics-stories",
                 "diy-openapi", "diy-design", "diy-create-story", "diy-test-design",
                 "diy-e2e-tests", "diy-review")
 ROUTE_BACKLOG = ("diy-sprint", "diy-epics-stories", "diy-prd")
 ROUTE_REPLAN = ("diy-prd", "diy-architecture", "diy-epics-stories")
-ROUTE_SETS = {"minor": ROUTE_DIRECT, "moderate": ROUTE_BACKLOG, "major": ROUTE_REPLAN}
+ROUTE_SETS = {"轻微": ROUTE_DIRECT, "中等": ROUTE_BACKLOG, "重大": ROUTE_REPLAN}
 KNOWN_ROUTES = tuple(sorted({r for routes in ROUTE_SETS.values() for r in routes}))
 
 # target / impacts.target 的 ID 格式集（跨产物稳定 ID：prd F/FR/NFR/G/U/Q、epics E、
@@ -146,7 +146,7 @@ def display_path(path, project_root):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -291,7 +291,7 @@ def doc_status(docs):
 # ---------------------------------------------------------------- 门禁
 
 def gate_check(docs, out_dir, project_root):
-    """门禁：三件套在场且 project.status 均为 final。返回 (passed, violations, route)。"""
+    """门禁：三件套在场且 project.status 均为 已定稿。返回 (passed, violations, route)。"""
     violations = []
     skills = []
     for filename in GATE_FILES:
@@ -309,9 +309,9 @@ def gate_check(docs, out_dir, project_root):
         data = entry["data"]
         project = data.get("project") if isinstance(data, dict) else None
         status = project.get("status") if isinstance(project, dict) else None
-        if status != "final":
+        if status != "已定稿":
             violations.append(v("STATUS_MISMATCH", show + " project.status",
-                                "%s 的 project.status 须为 final（实为 %s）；先跑 %s 定稿"
+                                "%s 的 project.status 须为 已定稿（实为 %s）；先跑 %s 定稿"
                                 % (filename, status if nonempty(status) else "未声明",
                                    ROUTE_BY_FILE[filename])))
             skills.append(ROUTE_BY_FILE[filename])
@@ -743,7 +743,7 @@ def check_edits(record, where, final):
         new = edit.get("new")
         if not nonempty(old):
             violations.append(v("EMPTY_FIELD", ew + ".old",
-                                "old 为空（add 型也须写占位，如 (absent)）"))
+                                "old 为空（新增型也须写占位，如 (absent)）"))
         if not nonempty(new):
             violations.append(v("EMPTY_FIELD", ew + ".new", "new 为空"))
         if nonempty(old) and nonempty(new) and str(old) == str(new):
@@ -774,7 +774,7 @@ def check_approach(record, where, final):
     if approach is None:
         if final:
             return [v("PENDING_DECISION", where + ".approach",
-                      "--final 要求路径已选定（direct-adjustment|rollback|mvp-review）")]
+                      "--final 要求路径已选定（直接调整|回滚|MVP 复审）")]
         return []
     if not isinstance(approach, dict):
         return [v("EMPTY_FIELD", where + ".approach", "approach 不是映射")]
@@ -849,9 +849,9 @@ def check_final_duties(record, where, status):
         violations.append(v("STATUS_MISMATCH", where + ".status",
                             "--final 要求 status ∈ {%s}（实为 %s）"
                             % ("|".join(FINAL_STATUSES), status)))
-    if any("[ASSUMPTION]" in s for s in collect_strings(record)):
+    if any("[假设]" in s for s in collect_strings(record)):
         violations.append(v("ASSUMPTION_PRESENT", where,
-                            "--final 要求零 [ASSUMPTION]；未决推断须先落定"))
+                            "--final 要求零 [假设]；未决推断须先落定"))
     return violations
 
 
@@ -1019,7 +1019,7 @@ def build_parser():
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     k.add_argument("--id", default=None, help="只校验指定记录（CP-###；缺省校验全部）")
     k.add_argument("--final", action="store_true",
-                   help="定稿校验：status ∈ {final, approved} + 零假设 + handoff/impacts/approach 义务")
+                   help="定稿校验：status ∈ {已定稿, 已批准} + 零假设 + handoff/impacts/approach 义务")
     k.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     k.set_defaults(func=cmd_check)
     return ap

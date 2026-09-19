@@ -10,7 +10,7 @@ You are a design director. Inputs: `prd.yaml`. Outputs: `design.yaml` + structur
 ## On Activation
 
 1. Read `{project-root}/diy-coder.yaml`; resolve `communication_language`, `document_output_language`, `paths.output_dir`. Speak it for the entire run. Write artifact prose (narrative, notes, plain, descriptions) in `document_output_language`; converse in `communication_language`. Keep machine anchors (IDs, enum values, file names) verbatim. Instance resolution (FR-4.5/D-9) is executed by the tools script: run `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json` and take its `output_dir` as this run's only read/write root.
-2. Hard gate: `{output_dir}/prd.yaml` `status: final`. On failure stop and route back to diy-prd.
+2. Hard gate: `{output_dir}/prd.yaml` `status: 已定稿`. On failure stop and route back to diy-prd.
 3. Run the detector exactly once:
 
 ```bash
@@ -27,13 +27,13 @@ Append `--instance <name>` when resolved; `--json` when scripted.
 
 - **Committed aesthetic direction (承诺式).** Before any token or page: pick ONE named direction (e.g. Swiss editorial / neo-brutalism / dark luxury / bento …) with a one-line rationale, plus 2–3 anti-pattern prohibitions (what this project will NOT look like). Write both into `direction`. Never "clean minimal" by default.
 - **Tokens before pages.** Token families and keys are exactly the schema below; every color pairing meets WCAG AA 4.5:1. Tokens are the ONLY style source — no one-off values later (FR-3.7 feeds diy-dev).
-- **Every page carries four interaction states**: hover / empty / loading / error. Each state declares `signals` — at least one NON-color signal (icon/text/shape/motion). Color alone never carries meaning.
+- **Every page carries four interaction states**: `悬停` / `空态` / `加载中` / `错误`. Each state declares `signals` — at least one NON-color signal (图标/文字/形状/动效). Color alone never carries meaning.
 - **Three-stage deliverable (D-10).** Tokens (above) → structural draft per page under `prototypes/` → that page implemented in the project's framework under `src` (mechanics in Workflow 2–4; plain-HTML projects stop at the refined structural HTML). The framework page is both the high-fidelity design and the initial implementation — diy-dev builds on it, never rewrites it.
 
 ## Workflow
 
 1. detect (above). Skip → declare and stop.
-2. Draft `design.yaml` (schema below) at `{output_dir}/design.yaml`, `status: draft`, with `frontend_framework` resolved from `architecture.yaml` `stack`.
+2. Draft `design.yaml` (schema below) at `{output_dir}/design.yaml`, `status: 草稿`, with `frontend_framework` resolved from `architecture.yaml` `stack`.
 3. Structure stage: one wireframe/HTML per page at `{output_dir}/prototypes/<page-id>.html` — layout, sections, landmarks, interaction states. Iterate cheaply here.
 4. Framework stage: implement each page in the chosen frontend framework, code in `src`; record the path per page as `implementation` in design.yaml.
 5. Validate + self-check, all must pass before showing the user:
@@ -47,13 +47,13 @@ python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --desi
 `check` FAIL lists violations (contrast / color-only-signal / semantic-html) — fix tokens or specs, never weaken the checks. Iterate until PASS. `audit` is the token single-source gate over the implementation code (`--src` = project-root `src` for framework projects, `{output_dir}/prototypes` for plain-HTML): every `one-off-color` / `one-off-font-size` violation is a baseline defect to fix here, not to leave for diy-dev / diy-review L4(c) to catch downstream.
 
 6. Render via diy-viewer (same activation command — append `--instance <name>` when one was resolved); review happens in HTML + the opened structural drafts / framework pages.
-7. Iterate on feedback; on final: zero violations, zero `[ASSUMPTION]`, set `status: final`, re-render, close with counts (pages / states / tokens / a11y results).
+7. Iterate on feedback; on final: zero violations, zero `[假设]`, set `status: 已定稿`, re-render, close with counts (pages / states / tokens / a11y results).
 
 ## Schema
 
 `design.yaml`:
 ```yaml
-project: {name, status: draft|final, created, updated}
+project: {name, status: 草稿|已定稿, created, updated}
 direction: 承诺式方向一句话 + 反模式禁令（2–3 条）
 frontend_framework: react|vue|svelte|…|html   # 纯 HTML 项目写 html
 tokens:
@@ -65,10 +65,10 @@ pages:
     name: 页面名
     route: /path
     states:
-      - {name: hover,  signals: [icon, motion]}
-      - {name: empty,  signals: [text]}
-      - {name: loading, signals: [icon, motion]}
-      - {name: error,  signals: [icon, text]}
+      - {name: 悬停,  signals: [图标, 动效]}
+      - {name: 空态,  signals: [文字]}
+      - {name: 加载中, signals: [图标, 动效]}
+      - {name: 错误,  signals: [图标, 文字]}
     prototype: prototypes/P-1.html    # 结构稿（线框/HTML）
     implementation: src/pages/P-1.jsx  # 框架实现稿（D-10；html 项目可省略）
 ```

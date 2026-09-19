@@ -9,12 +9,12 @@
              keep 为列表）/ 可选段（boundaries / code_map / io_matrix / deferred /
              open_questions）的结构校验。
              硬底线（任务书 §6 门禁）：`verification.commands` 为空而 status 前进到
-             in-review|done → EMPTY_FIELD——轻量通道不做形式化红绿台账，但「进审查前
+             审查中|已完成 → EMPTY_FIELD——轻量通道不做形式化红绿台账，但「进审查前
              每条 AC 有命令级实测证据」不可省（这是与 diy-dev 的明文差异）。
-             status=done 另要求 `review_order` 非空（源 step-05 / step-oneshot 的
+             status=已完成 另要求 `review_order` 非空（源 step-05 / step-oneshot 的
              Suggested Review Order 形态）。
-             `--final` 附加：project.status=final、记录 status=done、tasks 非空且全 done、
-             acceptance 非空、verification.commands 非空且每条 result 非空、零 [ASSUMPTION]。
+             `--final` 附加：project.status=已定稿、记录 status=已完成、tasks 非空且全 done、
+             acceptance 非空、verification.commands 非空且每条 result 非空、零 [假设]。
              exit 0 唯一放行；1 = 违规；2 = 用法错误（argparse）。
 
 分工裁定（任务书 §2.2/§6）：
@@ -41,19 +41,19 @@ import yaml
 
 SPEC_FILE = "spec.yaml"
 
-TYPES = ("feature", "bugfix", "refactor", "chore")
-ROUTES = ("one-shot", "plan-code-review")
-STATUSES = ("draft", "ready", "in-progress", "in-review", "done", "blocked")
-PROJECT_STATUSES = ("draft", "final")
-REVIEWED_STATUSES = ("in-review", "done")
-REVIEW_LAYERS = ("correctness", "boundary", "coverage")
-REVIEW_ROUTES = ("intent_gap", "bad_spec", "patch", "defer")
+TYPES = ("新功能", "缺陷修复", "重构", "杂务")
+ROUTES = ("一次成型", "计划-编码-审查")
+STATUSES = ("草稿", "就绪", "进行中", "审查中", "已完成", "已阻塞")
+PROJECT_STATUSES = ("草稿", "已定稿")
+REVIEWED_STATUSES = ("审查中", "已完成")
+REVIEW_LAYERS = ("正确性", "边界", "覆盖审计")
+REVIEW_ROUTES = ("意图缺口", "规格缺陷", "小修", "后置")
 
 # 必填集合键（须在场，可为空列表）：无内容写空列表，缺席是 schema 缺口
 REQUIRED_LISTS = ("tasks", "acceptance", "change_log", "deferred")
 # 可选集合键（在场才校验其条目结构）
 OPTIONAL_LISTS = ("code_map", "io_matrix", "review_order", "open_questions")
-BOUNDARY_TIERS = ("always", "ask_first", "never")
+BOUNDARY_TIERS = ("总是", "先问", "从不")
 
 SP_RE = re.compile(r"SP-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -100,7 +100,7 @@ def display_path(path, project_root):
 
 
 def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[ASSUMPTION] 扫描用。"""
+    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
     if isinstance(node, str):
         yield node
     elif isinstance(node, dict):
@@ -333,16 +333,16 @@ def check_review(record, where, status, final):
 def check_review_order(record, where, status):
     raw = record.get("review_order")
     if raw is None:
-        if str(status) == "done":
+        if str(status) == "已完成":
             return [v("EMPTY_FIELD", where + ".review_order",
-                      "status=done 要求 review_order 非空（源 Suggested Review Order）")]
+                      "status=已完成 要求 review_order 非空（源 Suggested Review Order）")]
         return []
     if not isinstance(raw, list):
         return [v("EMPTY_FIELD", where + ".review_order", "review_order 不是列表")]
     violations = []
-    if str(status) == "done" and not raw:
+    if str(status) == "已完成" and not raw:
         violations.append(v("EMPTY_FIELD", where + ".review_order",
-                            "status=done 要求 review_order 非空（源 Suggested Review Order）"))
+                            "status=已完成 要求 review_order 非空（源 Suggested Review Order）"))
     for i, concern in enumerate(raw):
         cw = "%s.review_order[%d]" % (where, i)
         if not isinstance(concern, dict):
@@ -477,13 +477,13 @@ def check_record(index, record, final, where_base):
 def check_final_duties(record, where, status):
     """--final 附加义务：该记录已完工 + 零假设（project.status 与集合在场在 cmd_check 判）。"""
     violations = []
-    if str(status) != "done":
+    if str(status) != "已完成":
         violations.append(v("STATUS_MISMATCH", where + ".status",
-                            "--final 要求该记录 status 已完工（done），实为 %s"
+                            "--final 要求该记录 status 已完工（已完成），实为 %s"
                             % (status if nonempty(status) else "未声明")))
-    if any("[ASSUMPTION]" in s for s in collect_strings(record)):
+    if any("[假设]" in s for s in collect_strings(record)):
         violations.append(v("ASSUMPTION_PRESENT", where,
-                            "--final 要求零 [ASSUMPTION]；未决推断须先落定"))
+                            "--final 要求零 [假设]；未决推断须先落定"))
     return violations
 
 
@@ -558,14 +558,14 @@ def cmd_check(args):
             status = project.get("status")
             if not nonempty(status):
                 violations.append(v("EMPTY_FIELD", show + " project.status",
-                                    "project.status 缺失（draft|final）"))
+                                    "project.status 缺失（草稿|已定稿）"))
             elif str(status) not in PROJECT_STATUSES:
                 violations.append(v("ENUM_INVALID", show + " project.status",
                                     "project.status 越界：%s（合法集 %s）"
                                     % (status, "|".join(PROJECT_STATUSES))))
-            elif args.final and str(status) != "final":
+            elif args.final and str(status) != "已定稿":
                 violations.append(v("STATUS_MISMATCH", show + " project.status",
-                                    "--final 要求 project.status 已落 final（实为 %s）" % status))
+                                    "--final 要求 project.status 已落 已定稿（实为 %s）" % status))
         revisions = data.get("revisions")
         if revisions is not None and not isinstance(revisions, list):
             violations.append(v("EMPTY_FIELD", show + " revisions", "revisions 不是列表"))
@@ -663,7 +663,7 @@ def build_parser():
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--id", default=None, help="只校验该记录（SP-xxx）；缺省校验全部记录")
     c.add_argument("--final", action="store_true",
-                   help="定稿校验：project.status=final + 记录 done + tasks 全 done + "
+                   help="定稿校验：project.status=已定稿 + 记录 已完成 + tasks 全 done + "
                         "命令实测 result + 零假设")
     c.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     c.set_defaults(func=cmd_check)

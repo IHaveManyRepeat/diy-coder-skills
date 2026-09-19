@@ -76,7 +76,7 @@ def write_text(path, text) -> Path:
     return path
 
 
-def project_meta(name="diy-coder-skill", status="final"):
+def project_meta(name="diy-coder-skill", status="已定稿"):
     return {"name": name, "status": status, "created": "2026-01-01", "updated": "2026-01-01"}
 
 
@@ -85,35 +85,35 @@ def ac(ac_id, refs=None, given="夹具 Given", when="夹具 When", then="夹具 
             "refs": list(refs or [])}
 
 
-def story(sid, acs=None, status="pending", epic="E-1"):
+def story(sid, acs=None, status="待办", epic="E-1"):
     return {"id": sid, "epic": epic, "title": "夹具故事 %s" % sid,
             "narrative": "夹具 narrative", "acceptance_criteria": list(acs or []),
             "status": status}
 
 
-def doc_stories(items, name="diy-coder-skill", status="final"):
+def doc_stories(items, name="diy-coder-skill", status="已定稿"):
     return {"project": project_meta(name, status), "stories": list(items)}
 
 
-def tc(tc_id, ac_id, status="pending", type_="unit", priority="P0",
+def tc(tc_id, ac_id, status="待办", type_="单元", priority="P0",
        technique="example", kill_target="夹具 kill target", steps=None):
     return {"id": tc_id, "title": "夹具用例 %s" % tc_id, "ac": ac_id, "type": type_,
             "priority": priority, "technique": technique, "kill_target": kill_target,
             "status": status, "steps": list(steps or ["夹具步骤"])}
 
 
-def gap(ac_id, sid, decision="pending", reason="夹具缺口", note=None):
+def gap(ac_id, sid, decision="待办", reason="夹具缺口", note=None):
     g = {"ac": ac_id, "story": sid, "reason": reason, "decision": decision}
     if note is not None:
         g["note"] = note
     return g
 
 
-def static_check(order, tool, gate="blocking", kills="夹具层"):
+def static_check(order, tool, gate="阻断", kills="夹具层"):
     return {"order": order, "tool": tool, "kills": kills, "gate": gate}
 
 
-def doc_test_plan(cases, gaps=None, static_checks=None, name="diy-coder-skill", status="final"):
+def doc_test_plan(cases, gaps=None, static_checks=None, name="diy-coder-skill", status="已定稿"):
     doc = {"project": project_meta(name, status), "test_cases": list(cases)}
     if static_checks is not None:
         doc["static_checks"] = list(static_checks)
@@ -122,11 +122,11 @@ def doc_test_plan(cases, gaps=None, static_checks=None, name="diy-coder-skill", 
     return doc
 
 
-def task(sid, status="pending", test_refs=None, **extra):
+def task(sid, status="待办", test_refs=None, **extra):
     t = {"story": sid, "status": status, "test_refs": list(test_refs or [])}
     t.update(extra)
     return t
 
 
-def doc_sprint(tasks, name="diy-coder-skill", status="final"):
+def doc_sprint(tasks, name="diy-coder-skill", status="已定稿"):
     return {"project": project_meta(name, status), "tasks": list(tasks)}
