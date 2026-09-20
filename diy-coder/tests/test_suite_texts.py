@@ -69,7 +69,9 @@ CONVERTED_INSTANCE = frozenset(["spec-scan", "prd", "teach-me-testing", "test-au
                                 "quick-dev", "help", "augment", "e2e-tests",
                                 "correct-course", "project-context",
                                 "investigate", "research", "retrospective",
-                                "architecture", "design", "dev", "review"])
+                                "architecture", "design", "dev", "review",
+                                "brainstorm", "elicit", "party-mode", "spec",
+                                "editorial-review"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
 DISCIPLINE_EN_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
@@ -95,7 +97,9 @@ CONVERTED_DISCIPLINE = frozenset(["prd", "teach-me-testing", "test-author",
                                   "readiness-check", "test-design", "quick-dev",
                                   "augment", "e2e-tests", "correct-course",
                                   "project-context", "investigate", "research",
-                                  "retrospective", "architecture", "review"])
+                                  "retrospective", "architecture", "review",
+                                  "brainstorm", "elicit", "party-mode", "spec",
+                                  "editorial-review"])
 # spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
 
@@ -202,11 +206,13 @@ def _steppers():
     return [s for s in skills()
             if os.path.isdir(os.path.join(SKILLS_DIR, "diy-" + s, "steps"))]
 
-# B3 批新建技能（**落地时在此登记**）：它们**中文原生**——§1/§3/§4/§5 一次写到位，
+# B3 / B4 批新建技能（**落地时在此登记**）：它们**中文原生**——§1/§3/§4/§5 一次写到位，
 # 故只进 `CONVERTED_*` 与这里，**不进 `INSTANCE_MEMBERS` / `DISCIPLINE_MEMBERS` / 任何 `PENDING_*`**
 # （进 PENDING 会因它们已含锚串而判红；RS4-01/04/05）。
 NEW_SKILLS = frozenset(["teach-me-testing", "test-author",
-                        "test-framework", "test-gate", "test-review"])
+                        "test-framework", "test-gate", "test-review",
+                        "brainstorm", "elicit", "party-mode", "spec",
+                        "editorial-review"])
 
 
 def _lacking(anchor, candidates):
@@ -289,6 +295,44 @@ def defer_reasons():
 DEFER_REASON_RE = re.compile(r'reason"?\s*[:=]\s*"?([^\s"\'`,;）)]+)')
 
 
+def _const_members(path, const):
+    """引擎源码里某个元组常量的成员名——读源码，不复制常量（防两处漂移）。"""
+    with open(path, encoding="utf-8") as fh:
+        src = fh.read()
+    block = re.search(const + r"\s*=\s*\((.*?)\)\n", src, re.S)
+    return set(re.findall(r'"([^"]+)"', block.group(1))) if block else set()
+
+
+def gate_criteria_names():
+    """两组判据名——取 `gate_lib.py` 里 `(("名", target), …)` 各组的第一个元素。"""
+    path = os.path.join(SKILLS_DIR, "diy-test-gate", "scripts", "gate_lib.py")
+    with open(path, encoding="utf-8") as fh:
+        src = fh.read()
+    names = set()
+    for const in ("HARD_CRITERIA", "SOFT_CRITERIA"):
+        block = re.search(const + r"\s*=\s*\((.*?)\)\n", src, re.S)
+        if block:
+            names |= set(re.findall(r'\("([^"]+)"', block.group(1)))
+    return names
+
+
+def bonus_keys():
+    path = os.path.join(SKILLS_DIR, "diy-test-review", "scripts", "test_review.py")
+    return _const_members(path, "BONUS_KEYS")
+
+
+def _cells(text, sep):
+    return [c.strip().strip("`").strip() for c in text.split(sep) if c.strip()]
+
+
+GATE_NAME_FIELD_RE = re.compile(r"\{name:\s*([^,}]+),\s*target:")
+GATE_TABLE_ROW_RE = re.compile(r"^\|\s*`([^`]+)`\s*\|")
+BONUS_KEYS_INLINE_RE = re.compile(r"六类键（([^）]+)）")
+BONUS_KEYS_LIST_RE = re.compile(r"bonus 六类\*\*（([^）]+)）")
+BONUS_GUARD_RE = re.compile(r"bonus_guard:\s*\[([^\]]*)\]")
+PREVIOUS_CHECK_RE = re.compile(r"check --type ([\w-]+) --previous")
+
+
 class EngineContractGuardTests(unittest.TestCase):
     """文档 ↔ 引擎的枚举契约，以及已被统一掉的口径措辞——两者都是「全绿也漏」的盲区。
 
@@ -322,6 +366,78 @@ class EngineContractGuardTests(unittest.TestCase):
         self.assertEqual(bad, [],
                          "路径基准已统一为 project-root 相对（母本 §7）；以下文件仍有 CWD 相对残留：\n"
                          + NL.join(bad))
+
+
+    # trace: rulings §A10——判据名 / bonus 键 两处「文档 ↔ 引擎」枚举契约
+    def test_gate_criteria_names_are_engine_legal(self):
+        legal = gate_criteria_names()
+        self.assertTrue(legal, "未能从 gate_lib.py 取到 HARD_CRITERIA / SOFT_CRITERIA")
+        bad, seen = [], set()
+        for rel, text in skill_docs("test-gate"):
+            for i, line in enumerate(text.split(NL)):
+                field = GATE_NAME_FIELD_RE.search(line)
+                if field:
+                    for val in _cells(field.group(1), "|"):
+                        seen.add(val)
+                        if val not in legal:
+                            bad.append("%s:%d name=%r" % (rel, i + 1, val))
+                if rel.endswith("steps/05-gate.md"):
+                    row = GATE_TABLE_ROW_RE.match(line)
+                    if row:
+                        seen.add(row.group(1))
+                        if row.group(1) not in legal:
+                            bad.append("%s:%d 表首列=%r" % (rel, i + 1, row.group(1)))
+        self.assertEqual(bad, [],
+                         "判据名不在引擎 %s 内（文档教了引擎会拒的值）：\n%s"
+                         % (sorted(legal), NL.join(bad)))
+        self.assertEqual(seen, legal,
+                         "判据名的文档面与引擎面不齐——引擎有而文档缺 %s；文档有而引擎缺 %s"
+                         % (sorted(legal - seen), sorted(seen - legal)))
+
+    def test_review_bonus_keys_are_engine_legal(self):
+        legal = bonus_keys()
+        self.assertTrue(legal, "未能从 test_review.py 取到 BONUS_KEYS")
+        bad, seen = [], set()
+        for rel, text in skill_docs("test-review"):
+            for i, line in enumerate(text.split(NL)):
+                for rex, sep in ((BONUS_KEYS_INLINE_RE, "|"), (BONUS_KEYS_LIST_RE, "/")):
+                    m = rex.search(line)
+                    for val in (_cells(m.group(1), sep) if m else []):
+                        seen.add(val)
+                        if val not in legal:
+                            bad.append("%s:%d bonus=%r" % (rel, i + 1, val))
+        criteria = os.path.join(SKILLS_DIR, "diy-test-review", "criteria.yaml")
+        with open(criteria, encoding="utf-8") as fh:
+            for i, line in enumerate(fh.read().split(NL)):
+                m = BONUS_GUARD_RE.search(line)
+                for val in (_cells(m.group(1), ",") if m else []):
+                    seen.add(val)
+                    if val not in legal:
+                        bad.append("criteria.yaml:%d bonus_guard=%r" % (i + 1, val))
+        self.assertEqual(bad, [],
+                         "bonus 键不在引擎 BONUS_KEYS %s 内（文档/表教了引擎会拒的值）：\n%s"
+                         % (sorted(legal), NL.join(bad)))
+        self.assertEqual(seen, legal,
+                         "bonus 键的文档面与引擎面不齐——引擎有而文档缺 %s；文档有而引擎缺 %s"
+                         % (sorted(legal - seen), sorted(seen - legal)))
+
+    # trace: rulings §D5 第 5 项——architecture 入 `--previous` 白名单后，文档才敢教这条命令
+    def test_previous_check_types_are_engine_legal(self):
+        path = os.path.join(SKILLS_DIR, "diy-tools", "scripts", "diyc.py")
+        legal = _const_members(path, "PREVIOUS_TYPES")
+        self.assertTrue(legal, "未能从 diyc.py 取到 PREVIOUS_TYPES")
+        bad, seen = [], set()
+        for skill in skills():
+            for rel, text in skill_docs(skill):
+                for i, line in enumerate(text.split(NL)):
+                    for typ in PREVIOUS_CHECK_RE.findall(line):
+                        seen.add(typ)
+                        if typ not in legal:
+                            bad.append("%s:%d --type %s" % (rel, i + 1, typ))
+        self.assertEqual(bad, [],
+                         "文档教了引擎会拒的 `--previous` 类型（白名单 %s）：\n%s"
+                         % (sorted(legal), NL.join(bad)))
+        self.assertTrue(seen, "守卫空转：全库未扫到任何 `check --type X --previous`")
 
 
 if __name__ == "__main__":

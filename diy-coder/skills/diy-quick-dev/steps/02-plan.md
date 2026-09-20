@@ -33,7 +33,7 @@ Progress: `Clarify & Route → [Plan] → Implement → Review → Present`
 
 ## CHECKPOINT 1
 
-呈出摘要，然后 HALT：`[A] 批准` | `[E] 修改`。spec 路径用 project-root 相对形式显示（不带前导 `/`）。批准之前，人可以在此提问或要求修改。更深的挑战轮（elicitation / party mode）还不是已安装的 diy 技能——后续批次才带来；在那之前，想不带上下文膨胀地拿到第二双眼睛，就单开一个会话。
+呈出摘要，然后 HALT：`[A] 批准` | `[E] 修改`。spec 路径用 project-root 相对形式显示（不带前导 `/`）。批准之前，人可以在此提问或要求修改。更深的挑战轮（elicitation / party mode）已由 `diy-elicit` / `diy-party-mode` 承接——就地调用即可，不必单开会话。
 
 - **A** —— 从磁盘重读记录。
   - **缺失：** HALT。告诉人记录没了并 STOP——什么都不写、不设任何状态、不往下走。下面全部不跑。

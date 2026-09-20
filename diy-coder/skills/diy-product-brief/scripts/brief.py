@@ -19,12 +19,22 @@
           --previous PATH：读旧稿快照，比对 BD-### 集合，旧有新无 → ID_UNSTABLE（update 模式防丢决策）
           --final 附加定稿义务：project.status 已落「已定稿」、零 [假设]（含 assumptions 清空）、
                   title/problem/solution/users 非空、每条 decision 有 rationale。exit 0 唯一放行。
+          --final 附加评审证据链（任务书 §12.1 ①ⓒ 六条）：顶层 review_refs 非空（缺失或空 →
+                  EVIDENCE_MISSING）；{output_dir}/editorial-review.yaml 在场（缺席 →
+                  MISSING_FILE）；每个 ID 在该台账 reviews[] 内（否则 UNKNOWN_ID）；该记录
+                  status: 已定稿（否则 STATUS_MISMATCH）；其 target 归一化后指向本 brief.yaml
+                  （否则 EVIDENCE_MISSING）；其 lenses 同时含 结构 与 文风（否则 EVIDENCE_MISSING）。
+                  target 归一化四步顺序不可换：normpath → 统一正斜杠 → 相对 project-root →
+                  比较（指向别处的记录不构成本文档的证据）。派发不可用（环境缺本技能的同套件
+                  兄弟 diy-editorial-review 引擎）→ TOOL_MISSING warning 降级：六条一并转
+                  warning、--final 放行（环境问题；技能在场而记录缺失或不合格仍硬拒）。
 
 分工裁定（任务书 §2.2/§2.3）：brief 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态（同 checkpoint.py / design.py），契约同构：exit 0 唯一放行 /
 --json 单行回执 / violations[{code, where, msg}] + warnings + counts。违规码全部复用
 batch3-contract §3 冻结集（MISSING_FILE UNPARSABLE_YAML EMPTY_FIELD ENUM_INVALID
-DUPLICATE_ID ID_UNSTABLE ASSUMPTION_PRESENT STATUS_MISMATCH），无新增码。
+DUPLICATE_ID ID_UNSTABLE ASSUMPTION_PRESENT STATUS_MISMATCH EVIDENCE_MISSING
+UNKNOWN_ID），无新增码；降级 warning 码 TOOL_MISSING（兄弟引擎缺席专用，同 readiness 先例）。
 
 禁手写实例解析：引擎不做 --instance / 白名单 / 目录推导；--output-dir 必填，由调用方传入
 （SKILL.md 从 diyc.py resolve 取）。产物与产物 ID 由 diy-product-brief 会话（LLM）创作——
@@ -41,6 +51,10 @@ import sys
 import yaml
 
 BRIEF_FILE = "brief.yaml"
+REVIEW_FILE = "editorial-review.yaml"
+REVIEW_SCRIPT_REL = ("diy-editorial-review", "scripts", "editorial_review.py")
+REVIEW_STATUS = "已定稿"
+REVIEW_LENSES = ("结构", "文风")
 INTENTS = ("新建", "更新", "校验")
 ROUTES = {
     "新建": "steps/01-discovery.md",
@@ -84,6 +98,22 @@ def display_path(path, project_root):
         rel = os.path.abspath(path)
     if rel.startswith(".."):
         return os.path.abspath(path).replace("\\", "/")
+    return rel.replace("\\", "/")
+
+
+def normalize_rel(value, project_root):
+    """target 归一化（任务书 §12.1 ①ⓒ(5)，**四步顺序不可换**）：① `os.path.normpath`
+    → ② `replace("\\", "/")` 统一正斜杠（Windows 下 ① 产反斜杠）→ ③ 转为相对
+    `project_root` 的形式 → ④ 返回比较用串。两侧——ER 记录的 `target` 与本
+    `brief.yaml`——各跑一次再一次比较；指向别处的记录不构成本文档的证据。"""
+    step = os.path.normpath(str(value)).replace("\\", "/")           # ① ②
+    absolute = step if os.path.isabs(step) else os.path.join(project_root, step)
+    try:
+        rel = os.path.relpath(absolute, project_root)                # ③
+    except ValueError:                                               # 跨盘（Windows）不可相对化
+        return os.path.abspath(absolute).replace("\\", "/")
+    if rel.startswith(".."):                                         # 越界（对齐 display_path）
+        return os.path.abspath(absolute).replace("\\", "/")
     return rel.replace("\\", "/")
 
 
@@ -389,6 +419,82 @@ def previous_ids(previous, project_root, violations):
             if isinstance(d, dict) and nonempty(d.get("id"))}
 
 
+def review_script_path():
+    """diy-editorial-review 的引擎路径：由本引擎自身位置推算 skills 根
+    （源码与安装两种布局同构，对齐 readiness 的 diyc_script_path 先例）。"""
+    skills_root = os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))))
+    return os.path.join(skills_root, *REVIEW_SCRIPT_REL)
+
+
+# trace: B4 任务书 §12.1 ①ⓒ（--final 评审证据链：review_refs → editorial-review.yaml 的 ER-###）
+def check_review_evidence(data, root, out, path, show, violations, warnings):
+    """--final 的六条证据校验：`review_refs` 非空 → 台账在场 → ID 在 `reviews[]` 内 →
+    该记录 `status: 已定稿` → `target` 归一化后指向本 `brief.yaml` → `lenses` 两透镜齐全
+    （忠实源 `doc_standards` 的两条 append-only 标准提供者语义）。派发不可用（环境缺兄弟
+    引擎）→ `TOOL_MISSING` 降级：六条一并转 warning、放行；与「技能在场而记录缺失或不合格
+    → 硬拒」分工不重叠——前者是环境问题、后者是产物问题。"""
+    script = review_script_path()
+    if not os.path.isfile(script):
+        warnings.append(v("TOOL_MISSING", display_path(script, root),
+                          "diy-editorial-review 引擎缺席：评审证据校验（六条）降级为 warning、"
+                          "--final 放行；请从会话侧人工确认本稿已过结构 + 文风两透镜评审"))
+        return
+    raw_refs = data.get("review_refs")
+    refs = [str(r) for r in raw_refs if nonempty(r)] if isinstance(raw_refs, list) else []
+    if not refs:
+        violations.append(v("EVIDENCE_MISSING", show + " review_refs",
+                            "--final 要求 review_refs 非空（存量的已定稿记录同样要补，"
+                            "不静默放行）：调 diy-editorial-review 评审本稿，"
+                            "把 ER-### 写进 review_refs 再定稿"))
+        return
+    review_path = os.path.join(out, REVIEW_FILE)
+    review_show = display_path(review_path, root)
+    review, err = load_yaml_safe(review_path)
+    if review is None and err is None:
+        violations.append(v("MISSING_FILE", review_show,
+                            "%s 不存在：review_refs 指向的记录无处可查"
+                            "（先调 diy-editorial-review 产出 ER-###）" % REVIEW_FILE))
+        return
+    if err is not None:
+        violations.append(v("UNPARSABLE_YAML", review_show, "评审台账不可解析：%s" % err))
+        return
+    if not isinstance(review, dict):
+        violations.append(v("EMPTY_FIELD", review_show, "评审台账顶层不是映射"))
+        return
+    raw_records = review.get("reviews")
+    records = raw_records if isinstance(raw_records, list) else []
+    by_id = {}
+    for item in records:
+        if isinstance(item, dict) and nonempty(item.get("id")):
+            by_id.setdefault(str(item["id"]), item)
+    brief_rel = normalize_rel(path, root)
+    for rid in refs:
+        record = by_id.get(rid)
+        if record is None:
+            violations.append(v("UNKNOWN_ID", show + " review_refs",
+                                "%s 不在 %s 的 reviews[] 内" % (rid, review_show)))
+            continue
+        rw = "%s reviews[%s]" % (review_show, rid)
+        status = record.get("status")
+        if str(status) != REVIEW_STATUS:
+            violations.append(v("STATUS_MISMATCH", rw + ".status",
+                                "--final 要求证据记录 status: 已定稿，实为 %s"
+                                % (status if nonempty(status) else "缺失")))
+        target = record.get("target")
+        if not nonempty(target) or normalize_rel(target, root) != brief_rel:
+            violations.append(v("EVIDENCE_MISSING", rw + ".target",
+                                "该记录评审的是 %s，不是本 brief.yaml"
+                                "——指向别处的记录不构成本文档的证据"
+                                % (target if nonempty(target) else "（target 缺失）")))
+        lenses = record.get("lenses")
+        seen = {str(x) for x in lenses} if isinstance(lenses, list) else set()
+        if set(REVIEW_LENSES) - seen:
+            violations.append(v("EVIDENCE_MISSING", rw + ".lenses",
+                                "该记录 lenses=%s 未同时含 结构 与 文风"
+                                "（定稿路径要求两透镜齐全）" % (lenses,)))
+
+
 def cmd_check(args):
     root = os.path.abspath(args.project_root)
     out = args.output_dir
@@ -419,6 +525,8 @@ def cmd_check(args):
         if args.final and any("[假设]" in s for s in collect_strings(data)):
             violations.append(v("ASSUMPTION_PRESENT", show,
                                 "--final 要求零 [假设]；未决假设须先落定"))
+        if args.final:
+            check_review_evidence(data, root, out, path, show, violations, warnings)
 
     if args.previous:
         old = previous_ids(args.previous, root, violations)
@@ -456,6 +564,8 @@ def cmd_check(args):
     if ok:
         human = ["PASS：%s 校验通过（decisions=%d%s）"
                  % (show, counts["decisions"], "，final" if args.final else "")]
+        human += ["WARNING %s %s: %s" % (w["code"], w["where"], w["msg"])
+                  for w in warnings]
     else:
         human = ["FAIL："] + ["- %s %s: %s" % (x["code"], x["where"], x["msg"])
                               for x in violations]
@@ -483,7 +593,8 @@ def main():
     c.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--final", action="store_true",
-                   help="定稿校验：status 已落「已定稿」+ 零假设 + 主体非空 + 每条决策有 rationale")
+                   help="定稿校验：status 已落「已定稿」+ 零假设 + 主体非空 + 每条决策有 "
+                        "rationale + review_refs 评审证据链（六条）")
     c.add_argument("--previous", default=None,
                    help="旧稿快照路径：比对 BD-### 集合，旧有新无 → ID_UNSTABLE")
     c.add_argument("--json", action="store_true", help="输出单行 JSON 回执")

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B4 批保真度报告 —— core 通用工具（5 技能 + 存量回接）</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+      --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+     font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:24px;margin:0 0 6px}
+h2{font-size:18px;margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:22px 0 8px}
+h4{font-size:14.5px;margin:18px 0 6px}
+p,li{font-size:14.5px}
+table{border-collapse:collapse;width:100%;background:var(--panel);
+      border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13.5px;margin:12px 0}
+th,td{border-bottom:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:#eef2f8;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+code{background:var(--code);border-radius:4px;padding:1px 5px;font-size:13px;
+     font-family:Consolas,"Courier New",monospace}
+pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:14px 16px;overflow:auto;font-size:13px}
+pre code{background:none;color:inherit;padding:0}
+blockquote{margin:12px 0;padding:8px 14px;border-left:3px solid var(--accent);
+           background:var(--panel);color:var(--dim)}
+.ui{list-style:none;padding-left:0}
+.ui li{padding:3px 0 3px 18px;position:relative}
+.ui li::before{content:"•";position:absolute;left:4px;color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>B4 批保真度报告 —— core 通用工具（5 技能 + 存量回接）</h1>
+<ul>
+<li>日期：2026-09-20 ｜ 批次：BMAD 迁移 阶段 B 第 4 批 ｜ 状态：<strong>待用户知悉</strong>（B2–B7 按计划 §五为<strong>非强制人工审</strong>，异常项才需看；本报告为知悉面）</li>
+<li>任务书与裁定记录：<code>diy-coder/.analysis/2026-09-19-migration-b4/taskbook.md</code>（终态 md5 <code>77667d6b84ad8644694f34f91857af9f</code> · 444 行）；开工前 dogfood 扫描回合：同目录 <code>dogfood-scan-2026-09-20.md</code>（首轮 68 条 + 增量补扫 15 条，<strong>阻断 7/7 处置完毕</strong>）</li>
+<li>范式蓝本：P1 样板 + B1/B2/B3 批 16 技能（均已拍板）；写作蓝本：套件级句式母本 <code>diy-coder/.analysis/2026-09-16-skill-remediation/suite-texts.md</code></li>
+<li>驱动：主 agent 编排（W1–W5 分技能并行交付 → V 独立验证<strong>分两路</strong>：能力清点 + 终审计）</li>
+<li>验证档案：同目录 <code>v-capability-inventory.md</code>（能力清点 296 行）· <code>v-audit.md</code>（终审计 248 行）· <code>v-viewer-gaps.md</code>（标签缺口 89 行）</li>
+</ul>
+<h2>一、批次结果总览</h2>
+<table>
+<thead>
+<tr>
+<th>技能</th>
+<th>源技能</th>
+<th>产物</th>
+<th>领域引擎</th>
+<th>steps</th>
+<th>测试数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>diy-brainstorm</td>
+<td>bmad-brainstorming</td>
+<td><code>brainstorm.yaml</code>（BS-### + 会话内 <code>no</code> 序号）</td>
+<td><code>brainstorm.py</code> 870 行（list / techniques / init / check）</td>
+<td>5 文件</td>
+<td>11</td>
+</tr>
+<tr>
+<td>diy-elicit</td>
+<td>bmad-advanced-elicitation</td>
+<td><strong>零产物</strong>（增强交还调用方）</td>
+<td><code>elicit.py</code> 192 行（<strong>只读</strong>：<code>methods</code>；形 B）</td>
+<td><strong>单文件</strong></td>
+<td>9</td>
+</tr>
+<tr>
+<td>diy-party-mode</td>
+<td>bmad-party-mode</td>
+<td><strong>零产物</strong>（对话即交付）</td>
+<td><strong>无引擎</strong>（形 C——无确定性面）</td>
+<td><strong>单文件</strong></td>
+<td>9</td>
+</tr>
+<tr>
+<td>diy-spec</td>
+<td>bmad-spec</td>
+<td><code>spec-kernel.yaml</code>（SK-### + CAP-N）</td>
+<td><code>spec_kernel.py</code> 683 行（new / check；<strong>本批唯一 <code>--previous</code> yes</strong>）</td>
+<td>4 文件</td>
+<td>11</td>
+</tr>
+<tr>
+<td>diy-editorial-review</td>
+<td>prose + structure（2 合 1）</td>
+<td><code>editorial-review.yaml</code>（ER-###）</td>
+<td><code>editorial_review.py</code> 714 行（stats / check）</td>
+<td>3 文件</td>
+<td>9</td>
+</tr>
+</tbody>
+</table>
+<p>静态资产：<code>diy-brainstorm/brain-methods.csv</code>（<strong>61 技术 / 10 类</strong>）· <code>diy-elicit/methods.csv</code>（<strong>69 方法 / 12 类</strong>；<code>output_pattern</code> 箭头结构逐字保留）——两侧均<strong>全译不裁</strong>、条数与类别数零损失（CSV 解析器计数）。</p>
+<p><strong>批级要点</strong></p>
+<ol>
+<li><strong>全批 anytime 横切工具</strong>——5 技能均不产主线产物链节点；验收 #10 逐条确认「非主线/WDS 交汇点」。</li>
+<li><strong>两处零产物</strong>：<code>diy-elicit</code>（增强在会话内完成，落盘归产物持有者）与 <code>diy-party-mode</code>（对话即交付）——判例承自 B3 <code>diy-test-author</code>；<strong>真零写盘</strong>（不写自有产物、亦不写任何其他文件）。</li>
+<li><strong>第一个通用契约工具</strong>：<code>diy-spec</code> 与 <code>diy-quick-dev</code> 的 <code>spec.yaml</code> 划清边界（「被多方消费的独立契约」vs「小变更执行通道」），<strong>双向声明</strong>——diy-spec 侧写在自己的 SKILL.md，quick-dev 侧属本批存量回接 ⑤。</li>
+<li><strong>形 B / 形 C 两档引擎新形态首次出现</strong>：<code>diy-elicit</code> 是只读工具引擎（无 <code>check</code>、无写回命令、旗标只收 <code>[--json]</code>、回执键豁免 <code>project_root</code>/<code>output_dir</code>/<code>violations</code> 三键）；<code>diy-party-mode</code> <strong>无引擎</strong>（名册解析已裁、零产物 → 无确定性面可下沉，<strong>不得为凑测试造无意义引擎</strong>）。</li>
+<li><strong>存量回接五处</strong>（本批收口链执行）：① brief 强制调用档（C 方案，连带 4 文件）· ② quick-dev <code>02-plan.md</code> · ③ project-context <code>03-rules.md</code> · ④ prfaq <code>01-ignition.md</code> · ⑤ quick-dev 结构段<strong>新增</strong> spec 边界句（无既有实文）。</li>
+<li><strong>YAML 1.1 裸键 <code>no</code> 陷阱</strong>：PyYAML 把裸键 <code>no:</code> 解析为布尔 <code>False</code>——W1（<code>brainstorm.py</code> 载入归一）与 W5（<code>editorial_review.py</code> 读点双形）各自处置，V2 真跑裁决<strong>结果等价</strong>；viewer 层同类问题（表头直出 <code>False</code>）登记 C 阶段（§八）。</li>
+</ol>
+<h2>二、逐技能保真度</h2>
+<h3>2.1 diy-brainstorm</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>源 steps → diy</td>
+<td>8 文件 → <strong>5 文件</strong>（01 session + 续接 → 02 techniques 四模式 → 03 facilitate → 04 organize → 05 finish）；<code>step-01b-continue</code> 的续接能力落 <strong><code>current_step: 1-5</code></strong> 路由表；<code>02a-d</code> 四个同构模板收敛为单文件内 A–D 模式分支</td>
+</tr>
+<tr>
+<td>源 menu → diy 分支</td>
+<td>4 → 4 一一对应（用户自选 / AI 推荐 / 随机 / 渐进流）；源内嵌菜单续接 3 项 + 教练 K/T/A/B/C 5 项全保留（源 <code>menu</code> 字段未登记它们，属<strong>源登记面残缺</strong>，非 diy 超范围）</td>
+</tr>
+<tr>
+<td>门禁</td>
+<td>无上游依赖；薄输入（无议题也无素材）→ 拒绝 + 零产出（<strong>不代拟议题</strong>）；<code>已完成</code> 记录只读回看不再写入</td>
+</tr>
+<tr>
+<td>ID 链</td>
+<td><code>BS-###</code> 由引擎 <code>init</code> 铸造（取最大值 +1，空号不复用）；想法用会话内序号 <code>no</code>（1..N 连续，跳号/重号报 <code>SET_MISMATCH</code>）；<code>themes[].ideas</code> / <code>priorities</code> / <code>actions[].idea</code> 引用可解析（越界 <code>UNKNOWN_ID</code>）</td>
+</tr>
+<tr>
+<td>viewer</td>
+<td>有 YAML 产物 → 有渲染步骤；<code>technique</code> 值（61 技术名）是<strong>必然告警路径</strong>，缺口见 §八</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心改造</strong>：<strong>教练对话过程不入产物</strong>（源 <code>Facilitation Narrative</code> / <code>Session Highlights</code> / 能量观察整段裁——对话即过程记录，产物只收结论，契合母本 §6）；源 frontmatter 状态机（<code>stepsCompleted[]</code> / <code>session_active</code> 等）转为记录级 <code>status: 草稿|进行中|已完成</code> + <code>current_step: 1-5</code>（三态不足以定位续接点，源靠专门的 01b 读 <code>stepsCompleted</code> 续接）；会话续接 diy 化（<code>list</code> 只回五字段 <code>id/topic/date/status/current_step</code>，「只列不读」纪律保留）；菜单 A（深挖）接线 <code>diy-elicit</code>（同批建成互引）。<strong>61 技术库中文化</strong>：逐条保留「适用时机 + 核心动作」，<code>--category</code> 合法值随库中文类名。<strong>裁剪</strong>：会话 md 文档 + <code>template.md</code>（YAML 单一源）· <code>context_file</code>/<code>inputDocuments</code> 参数面（customize 不迁；替代 = 可选<strong>只读</strong> <code>project-context.yaml</code>/<code>prfaq.yaml</code>/<code>brief.yaml</code>）· 人设剧本。<strong>B4 后回接：无</strong>（本技能是回接的受益方——④ prfaq 改道路由到它）。</p>
+<h3>2.2 diy-elicit</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>源 steps → diy</td>
+<td>单文件（<code>steps: null</code>）→ <strong>0</strong>（无 <code>steps/</code>；源即单文件短流程，决策阶段 ≤3，不硬拆）</td>
+</tr>
+<tr>
+<td>源 menu → diy 分支</td>
+<td>4 → 4 + 2（<code>1-5</code> / <code>r</code> 洗牌 / <code>a</code> 全列 / <code>x</code> 交还；另 2 个源侧响应分支 <code>Direct Feedback</code> / <code>Multiple Numbers</code> 逐个保留）</td>
+</tr>
+<tr>
+<td>门禁</td>
+<td>增强对象在场（当前 section 或 <code>--target</code> 文档段）；空对象 / &lt;1 句 → 拒绝 + 零产出；独立使用时无对象 → 问一次</td>
+</tr>
+<tr>
+<td>ID 链</td>
+<td><strong>N/A</strong>（零产物、零写面）</td>
+</tr>
+<tr>
+<td>viewer</td>
+<td><strong>无渲染</strong>（零 YAML 产物；Rules 写明理由）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心改造</strong>：<strong>零 YAML 写面</strong>（本技能不改任何文件）——源 Case 1-5 的「apply to the doc」语义在 diy 单源体系下等价于「调用方接受后自行落盘」（<code>revisions</code> 由产物持有者记）；<strong>形 B 只读引擎</strong>（<code>methods</code>：加载 / 随机抽 / 按类筛选 / 全列，无 check 无写回）；<strong>69 方法全译</strong>（<code>category</code> 12 中文类名即 <code>--category</code> 合法值；<code>method_name</code> 中文名 + 原英文括注；<code>output_pattern</code> 整列英文<strong>逐字保留</strong>——箭头与顺序是弹性流程引导，部分为不可译符号串）。<strong>与 W5 的边界</strong>（V2 逐句核）：elicit <strong>增强当前内容</strong>（增强版交还、落盘归持有者），editorial-review <strong>只评审出建议</strong>（<code>revised</code> 是建议稿、从不产出目标文档新文本）；两者都不<strong>代改</strong> target。<strong>B4 后回接：无</strong>（C 阶段横切入口接线属另一项，见 §七）。</p>
+<h3>2.3 diy-party-mode</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>源 steps → diy</td>
+<td>单文件 → <strong>0</strong>（无 <code>steps/</code>）</td>
+</tr>
+<tr>
+<td>源 menu → diy 分支</td>
+<td>2 → 2 零裁剪（<code>--model &lt;model&gt;</code> / <code>--solo</code> 逐字保留）</td>
+</tr>
+<tr>
+<td>门禁</td>
+<td>无议题 → 开场问一次（源 welcome 路径）；子代理不可用且用户拒绝 <code>--solo</code> → 一行说明 + 停止</td>
+</tr>
+<tr>
+<td>ID 链</td>
+<td><strong>N/A</strong>（零产物）</td>
+</tr>
+<tr>
+<td>viewer</td>
+<td><strong>无渲染</strong>（零 YAML 产物；Rules 写明理由）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心改造</strong>：<strong>视角动态派生取代 agent 名册</strong>（本批最大改造）——源 <code>resolve_config.py --key agents</code> 四层合并 + 7 字段名册 + <code>{icon} **{name}:**</code> 人设 prompt <strong>一体裁撤</strong>（diy 无 agent 人设体系）；<strong>三要素回落</strong>：身份（code/name/title/icon）→「视角名」（用户可点名/增补/替换）、专长（description/module）→「关注点」、立场 → <strong>显性写出 + 反面义务</strong>（必须找出该视角下的风险或反例）——源靠人设隐含立场，diy 显性化并加产出义务，<strong>对源是加强</strong>。方法本体逐条保留：真子代理独立 spawn + 并行派发（<strong>禁自己生成视角发言</strong>，<code>--solo</code> 例外且须明示）、逐字呈现不合成、讨论摘要 ≤400 词、2-4 选角 + 轮换 + 点名必含、异常处置四条、自然语言退出、交叉应答。<strong>零引擎</strong>（形 C）：源唯一机械面（名册解析）已裁，其余全是 LLM 对话判断。<strong>与 <code>diy-review</code> 的边界</strong>：diy-review 是<strong>结构化缺陷检出</strong>（findings 台账，供门禁与路由），本技能是<strong>讨论形态</strong>（产出对话本身）——两侧不互替（V2 机械化为断言：对侧不得自称「圆桌」「多视角」）。<strong>B4 后回接：无</strong>（②③ 两处是回接方向相反——quick-dev / project-context 点名它）。</p>
+<h3>2.4 diy-spec</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>源 steps → diy</td>
+<td>单文件（129 行）→ <strong>4 文件</strong>（01 input 判定 + slug 解析 → 02 distill 五字段 + artifacts 开条判据 → 03 validate 两遍自校验 → 04 finish 终门）</td>
+</tr>
+<tr>
+<td>源 menu → diy 分支</td>
+<td>2 → 2 零裁剪（<code>express</code> / <code>guided</code>；稀疏输入二选一，无头默认 express 并记录）</td>
+</tr>
+<tr>
+<td>门禁</td>
+<td>无输入 → 交互问；输入过薄 → 拒绝 + 路由 <code>diy-prd</code>；slug 无头缺失 → 拒绝 + <code>missing_slug</code> 语义说明（headless JSON error_code 改人读诊断，已登记偏离）</td>
+</tr>
+<tr>
+<td>ID 链</td>
+<td><code>SK-###</code> 由引擎 <code>new</code> 铸造；<code>CAP-N</code> 由 LLM 铸造、引擎校验（格式 / 唯一 / <strong>稳定不重用</strong>，退役标 <code>retired: true</code> 留痕）；<strong><code>--previous</code> 按 slug 配对</strong>比 CAP 集合，旧有新无且未标 retired → <code>ID_UNSTABLE</code></td>
+</tr>
+<tr>
+<td>viewer</td>
+<td>有 YAML 产物 → 有渲染步骤；缺口见 §八</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心改造</strong>：<strong>md 文件夹形态折叠</strong>——<code>.decision-log.md</code> → <code>revisions</code> + 记录级 <code>verdict</code>（判决段）；spec-authored companions → <code>artifacts[]</code>（内容内联，图表用多行块字符串；「kernel 一行装不下」保留为开条判据）；adopted companions → <code>companions[]</code> 路径引用（只引用不改）；「不许静默丢弃」落 <code>verdict.preservation.dropped</code>。<strong>CAP 退役机制</strong>：源有「never reuse retired IDs」但无承载字段（落 md 靠人记），diy 用 <code>retired: true</code> 痕迹位（退役 = 保留条目 + 标真，绝不删——删除会同时毁掉审计价值与 <code>--previous</code> 可判性）。<strong><code>--previous</code> 判 yes</strong>（本批唯一）：CAP 稳定不重用是 Spec Law 6 招牌纪律，<strong>只有机械保障才拦得住</strong>（记录可被 LLM 直编改写）。<strong>命名避让</strong>：产物 <code>spec-kernel.yaml</code> / 引擎 <code>spec_kernel.py</code>（V 实核全库无第二处使用）。<strong>边界双向</strong>：与 <code>diy-quick-dev</code> 的 <code>spec.yaml</code> 互不读写；<code>diy-spec ≠ diy-prd</code>（轻内核契约 vs 完整产品需求文档）。<strong>裁剪</strong>：<code>customize.toml</code> 全配置面 · headless JSON 契约（改人读诊断 + 引擎回执）。<strong>B4 后回接：无</strong>（⑤ 是 quick-dev 侧加句）。</p>
+<h3>2.5 diy-editorial-review</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>源 steps → diy</td>
+<td>单文件 + 单文件 → <strong>3 文件</strong>（01 scope + stats 结构地图 → 02 analyze 结构透镜→文风透镜 → 03 report findings 落盘 + 终门）</td>
+</tr>
+<tr>
+<td>源 menu → diy 分支</td>
+<td>0 + 0 → 2（<code>--lens 结构</code> / <code>--lens 文风</code>，缺省两支全跑；源无菜单项可裁；源 <code>args: [path]</code> → <code>--target &lt;path&gt;</code>）</td>
+</tr>
+<tr>
+<td>门禁</td>
+<td>target 不存在 / 空 / &lt;3 词 → 拒绝 + 零产出；非法 <code>--lens</code> / <code>--reader-type</code> → <code>ENUM_INVALID</code>；「无问题」是合法完成（源 HALT 语义保留）</td>
+</tr>
+<tr>
+<td>ID 链</td>
+<td><code>ER-###</code> 随首次评审由 LLM 铸造、<code>check</code> 校验格式与唯一性（无骨架命令）；findings <code>no</code> 记录内序号自 1 连续；<code>target</code> 基准 = project-root 相对 + 正斜杠 + 无 <code>path:</code> 前缀（写入侧与校验侧同基准）</td>
+</tr>
+<tr>
+<td>viewer</td>
+<td>有 YAML 产物 → 有渲染步骤；缺口见 §八</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心改造</strong>：<strong>两透镜一次评审</strong>（prose + structure <strong>A 级组 2 合并</strong>）——findings 分槽承载（<code>structure.findings</code> / <code>prose.findings</code>），结构先行（源文自述 "run this BEFORE copy editing"）；<code>reader_type</code> 枚举中文化 <code>人类|LLM</code>。<strong>建议制保留</strong>：只出 Original/Revised/Changes 与 CUT/MERGE/MOVE/CONDENSE/QUESTION/PRESERVE 六分类建议（含影响词数估计），<strong>不代改 target</strong>。<strong>被调用形态</strong>（与 brief 的强制调用档接口，§12.1 ①）：被 <code>diy-product-brief</code> 调用时默认两透镜全跑、不中途问、直接 <code>check --final</code> 置 <code>已定稿</code>（交互点跳过是本形态的<strong>明示例外</strong>，Rules 写明）；<code>--lens</code> 单透镜自由度只属独立调用形态。<strong><code>stats</code> 词数口径</strong>：中文字符按 1 词计 + 西文按词分词（与 LLM 的 <code>impact_words</code> 估计同口径；<code>--final</code> 只核内部自洽，不判估计合理性）。<strong>裁剪</strong>：两源独立入口收敛（单透镜仍可只跑）· 人设段（<code>Your Role</code>）· 源 markdown 报告形态（YAML 单源 + viewer 投影）· <code>length_target</code> 不落字段（判断结果落 <code>meets_length_target</code>）。<strong>B4 后回接：无</strong>（① 是它被 brief 调用）。</p>
+<h2>三、批级裁定摘要</h2>
+<p><strong>六项前置裁定</strong>（主 agent 编制期，用户过审时未推翻）：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>裁定</th>
+<th>落地</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>diy-brainstorm</code> 产物 = <code>brainstorm.yaml</code>；教练过程不入产物；<code>status</code> 三态 + <strong><code>current_step: 1-5</code></strong>（源 <code>stepsCompleted[]</code> 的 diy 单值承载）</td>
+<td>§2.1</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>diy-elicit</code> <strong>零 YAML 写面</strong>（落盘归产物持有者，「记入 revisions」按<strong>由持有者记</strong>执行）</td>
+<td>§2.2</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>diy-party-mode</code> <strong>视角动态派生</strong>取代 agent 名册（保留真子代理 + 逐字不合成）</td>
+<td>§2.3</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>diy-spec</code> 产物 = <code>spec-kernel.yaml</code>（避让 quick-dev 的 <code>spec.yaml</code>；引擎名 <code>spec_kernel.py</code> 同避让）</td>
+<td>§2.4</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>diy-editorial-review</code> 两透镜一次评审 + <strong>建议制不代改</strong>；两源独立入口收敛为「一次评审两透镜」</td>
+<td>§2.5</td>
+</tr>
+<tr>
+<td>6</td>
+<td>两方法库<strong>全译不裁</strong>（61 + 69 条；条数与类别数不得减少）</td>
+<td>§一</td>
+</tr>
+</tbody>
+</table>
+<p><strong>V 终审计衍生裁定（4 条，主 agent 拍板）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>事项</th>
+<th>裁定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td>W2 边界句「两者都不落盘」与 W5 有自有产物字面冲突</td>
+<td><strong>采纳改写</strong>：「两者都不把改动落盘」（消歧，不改分工语义）；已由 W2 落地复跑绿</td>
+</tr>
+<tr>
+<td>R2</td>
+<td>W4 <code>verdict.coherence</code> 兼载 express/guided（冻结 schema 无 <code>verdict.note</code> 键——§6 裁定 4 措辞与 schema 不一致）</td>
+<td><strong>追认</strong>（有据落点）；§6 裁定 4 措辞待更正，登记本报告</td>
+</tr>
+<tr>
+<td>R3</td>
+<td>W4 <code>constraints</code> 允许空列表（与「五字段非空」字面张力）</td>
+<td><strong>追认</strong>（Spec Law 3 是品质判据——凑一条不淘汰设计的约束 = decoration，比空列表更坏）</td>
+</tr>
+<tr>
+<td>R4</td>
+<td>裸键 <code>no</code> 两处处置形态差异（W1 写回后 <code>'no':</code> / W5 原样 <code>no:</code>）</td>
+<td><strong>合规放行 + 登记</strong>（读面等价、写面不同键类型；viewer 层归一入 C 阶段 §八）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>改进采纳 3 条</strong>（V1 能力清点的观察项）：W5 prose 原则 2「保留结构」补显式句（B 段第 3 条）· W4 补 <code>project-context.yaml</code> 只读取材面（落 <code>steps/01-input.md</code>，理由：母本 §4 禁主文件列举封闭清单）· 两处均已落地复跑绿。</p>
+<h2>四、V 独立验证结论</h2>
+<p><strong>能力清点（V1，296 行）</strong>：<strong>零丢失</strong>——5 技能逐条对照 BMAD 原文，所有裁剪项均有据（§0 裁定 / 迁移计划改判）；两方法库条数与 <code>output_pattern</code> 箭头计数逐位相等（168 = 168）；W1 的 8→5 并步对账成立（含 01b 在 <code>current_step</code> 上的落点）；W4 <code>--previous</code> 是真机械保障（义务链完整：留 <code>.prev</code> → 必附 <code>--previous</code> → 过门才删）。<strong>观察 2 条</strong>（已处置，见 §三 改进采纳）· 另发现两处普查文档毛刺（<code>source-census.md</code> 的「60 + 69」与「SKILL 130」笔误，不影响产物）。</p>
+<p><strong>终审计（V2，248 行）</strong>：<strong>总判通过，无阻断项</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>审计项</th>
+<th>判</th>
+<th>证据摘要</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A 母本逐字（§1–§6）</td>
+<td>✅</td>
+<td>手工逐字比对全过（判据比测试更严：§3 比四行全文）；5 技能<strong>尚未登记时该方法静默跳过</strong>——V 手工结果先于测试接管（登记后由 <code>test_suite_texts.py</code> 强制）</td>
+</tr>
+<tr>
+<td>B 门禁路径实测</td>
+<td>✅</td>
+<td>20 条真跑（全 tempfile）：W1 <code>UNKNOWN_ID</code>/<code>ENUM_INVALID</code> · W2 <code>ENUM_INVALID</code> + 形 B 回执键 · W3 <strong>6 组变异测试全数转红</strong>（含对侧 <code>diy-review</code> 改写触发双向断言）· W4 <code>ID_UNSTABLE</code> 真造旧稿丢 CAP + 退役放行 · W5 三拒绝路径</td>
+</tr>
+<tr>
+<td>C 跨技能一致性（4 项）</td>
+<td>✅</td>
+<td>① W2↔W5 增强/建议边界 · ② W3↔diy-review 双向（反向 grep 零命中 + 断言） · ③ W4↔quick-dev（quick-dev 反向句属回接 ⑤） · ④ 61 + 69 对账</td>
+</tr>
+<tr>
+<td>D W 自报裁定复核</td>
+<td>✅</td>
+<td><strong>裸键 <code>no</code> 真跑裁决</strong>：两引擎对裸键产物均 rc=0、注入重号/跳号均转红——机制不同（载入归一 vs 读点双形）而<strong>结果等价</strong>；W5 报告点名 <code>brainstorm.py:495</code> 的疑虑<strong>已过时</strong>（该处依赖载入期归一，<code>brainstorm.py:98-127</code> 已处理）</td>
+</tr>
+<tr>
+<td>E 结构面</td>
+<td>✅</td>
+<td>5 份 SKILL.md 88/73/65/84/87 行（≤90）；四段中文标题无额外二级标题；frontmatter 六字段逐格同值；12 个 steps 文件 H1 + <code>Read (input)</code>/<code>Write (output)</code> + 尾节点名齐全</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分歧点裁决留档</strong>：W5 施工期观察「<code>brainstorm.py:495</code> 可能未处理 <code>no</code> 键」与 W1 自报「已加 normalize_keys」冲突——V2 真跑裁决<strong>以实测为准：两处等价</strong>（W5 的观察基于其施工时点的未完成态）。</p>
+<h2>五、主 agent 集成验证（2026-09-20）</h2>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>命令/方式</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>回接锚句复核（收口链①）</td>
+<td>逐个打开五处挂点<strong>按文本</strong>重扫实文</td>
+<td>① 确认失效（中文化轮改写，C 方案替换）· ②③④ 前向标记完好（仅点名）· ⑤ 无既有实文（新增句）——与任务书 §12.1 的 2026-09-20 实核一致</td>
+</tr>
+<tr>
+<td>存量回接（收口链②）</td>
+<td>① 连带面 4 文件（03-finalize / SKILL.md / brief.py / test_brief.py）+ ②③④⑤</td>
+<td>① 六条校验全落（<strong>零新码</strong>：EVIDENCE_MISSING / MISSING_FILE / UNKNOWN_ID / STATUS_MISMATCH + 降级档 TOOL_MISSING）；test_brief <strong>20 → 28 用例</strong>；②③④⑤ 各一处最小改动</td>
+</tr>
+<tr>
+<td>母本登记（收口链③）</td>
+<td><code>test_suite_texts.py</code> 三处（<code>NEW_SKILLS</code> / <code>CONVERTED_INSTANCE</code> / <code>CONVERTED_DISCIPLINE</code>）</td>
+<td><strong>10 passed</strong>（登记前 2 红为预期中间态）；5 技能进 §1/§2 强制断言面</td>
+</tr>
+<tr>
+<td>注册（验收 #5）</td>
+<td><code>bash diy-coder/sync.sh</code></td>
+<td>已安装 <strong>37 个 skill</strong>（32 存量 + 5 本批）；冒烟四检全 OK</td>
+</tr>
+<tr>
+<td>全量回归</td>
+<td><code>cd diy-coder &amp;&amp; python -m pytest -q</code></td>
+<td><strong>854 passed / 54 subtests passed</strong>（146s；795 → 854 = 5 技能 49 条 + test_brief 新增 8 条 + 其他）</td>
+</tr>
+<tr>
+<td>渲染（#6）</td>
+<td>viewer.py 探针（3 新类型 temp 项目真跑）</td>
+<td>rc=0，<code>rendered 3 doc(s)</code>，stderr 0 字节；<strong>但该值样本相关</strong>——V 的映射表核对（§八）另查出 brainstorm <code>technique</code> 的必然告警路径</td>
+</tr>
+<tr>
+<td>并发窗口声明</td>
+<td><code>git status</code> 全程核对</td>
+<td>本批写面（5 新目录 + 5 新测试 + 回接 4 文件 + test_suite_texts + docs）与另一窗口的「枚举中文化」改动（21 个存量文件）<strong>零重叠</strong>；854 全绿同时覆盖两侧</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>边界声明：本节为主 agent 自测数据；§四 由 V 独立取证（其脚本/实测面）。</p>
+</blockquote>
+<h2>六、验收 13 项对照（迁移计划 §二）</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>验收项</th>
+<th>证据</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>薄主文件（四段）+ steps/ 厚子文件</td>
+<td>5 份 SKILL.md 65–88 行；W1/W4/W5 有 steps（5/4/3 文件），W2/W3 <strong>单文件形态</strong>（理由已在体写：无多会话状态、决策阶段 ≤3）</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>2</td>
+<td>产物 YAML schema + 稳定 ID 前缀</td>
+<td><code>BS-###</code> / <code>SK-###</code>+<code>CAP-N</code> / <code>ER-###</code>；W2/W3 零产物（N/A）</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>3</td>
+<td>前置门禁（零产出 + 路由）</td>
+<td>各技能门禁用例 + 拒绝路径零产出（V2 实测 20 条）</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>4</td>
+<td>ID 链接入</td>
+<td>W1 序号引用可解析 · W4 <code>CAP-N</code> 稳定不重用 + 退役痕迹 · W5 <code>no</code> 连续 + <code>target</code> 基准；W2/W3 N/A</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>5</td>
+<td>注册</td>
+<td><code>sync.sh</code> → <strong>37 技能</strong></td>
+<td>通过</td>
+</tr>
+<tr>
+<td>6</td>
+<td>viewer 渲染</td>
+<td>ⓐ 母本 §5 逐字（V2 核）· ⓑ 3 新类型降级 rc=0；标签缺口清单入 §八</td>
+<td>通过（降级）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>冒烟 TC</td>
+<td>5 技能 49 条新用例；全量 <strong>854 绿</strong></td>
+<td>通过</td>
+</tr>
+<tr>
+<td>8</td>
+<td>登记元数据</td>
+<td>frontmatter 5/5 与 §2.1 表逐格同值（V2 核）</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>9</td>
+<td>读取成本纪律</td>
+<td>W1/W4/W5 母本 §4 逐字；<strong>W2/W3 无 steps → 永久不适用</strong>（理由句在场）</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>10</td>
+<td>双源输入声明</td>
+<td><strong>N/A</strong>——5 技能均非主线/WDS 交汇点（逐条确认）</td>
+<td>不适用</td>
+</tr>
+<tr>
+<td>11</td>
+<td>渲染静默</td>
+<td>W1/W4/W5 母本 §5 逐字；<strong>W2/W3 无渲染</strong>（理由句在场）</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>12</td>
+<td>diyc 接线（a–e）</td>
+<td>a 实例委托（5/5 母本句 + <code>diyc.py resolve</code>）· b 终门（W1/W4/W5 各引擎 <code>check --final</code>；W2 无 check、W3 无引擎——N/A 说明在场）· c <code>--previous</code>（<strong>W4 唯一 yes</strong>，其余记账不实现）· d 语言绑定（母本 §3）· e 写权边界（W1/W4/W5 写 <code>{output_dir}</code>；<strong>W2/W3 真零写盘声明</strong>）</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>13</td>
+<td>副作用纪律</td>
+<td>① 自动执行档 = 渲染（回执见 §五）· ② 环境自适应档 = 无 · ③ 保留确认档 = W3 的 spawn &gt;4 / <code>--model</code> 覆盖（<strong>对话内确认，不入 defer 队列</strong>）；<code>defer-add</code> 取证由主 agent 在 tempfile 完成</td>
+<td>通过</td>
+</tr>
+</tbody>
+</table>
+<h2>七、非阻断观察清单</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>对象</th>
+<th>观察</th>
+<th>严重度</th>
+<th>处置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>O1</td>
+<td>W5</td>
+<td>prose 7 原则中「保留结构」仅隐式承接</td>
+<td>低-中</td>
+<td><strong>已补</strong>（<code>steps/02-analyze.md</code> B 段第 3 条显式句）</td>
+</tr>
+<tr>
+<td>O2</td>
+<td>W4</td>
+<td>缺 <code>project-context.yaml</code> 只读取材面（同批不对称）</td>
+<td>低</td>
+<td><strong>已补</strong>（<code>steps/01-input.md</code> 的 <code>Read (input)</code> + 可选素材段）</td>
+</tr>
+<tr>
+<td>O3</td>
+<td>W5</td>
+<td>双原则集（human/LLM 各 9 条）压缩为 4 轴 + 义务句，未逐条枚举</td>
+<td>低</td>
+<td>接受（母本 §6 + §7 回报必答未要求逐条），登记不修</td>
+</tr>
+<tr>
+<td>O4</td>
+<td>W4</td>
+<td>TDD 顺序：<code>steps/01</code> 的 <code>.prev</code> 快照时机与 <code>04</code> 的删除时机跨步（非同一文件内闭环）</td>
+<td>极低</td>
+<td>契约 §8.3 先例同构，接受</td>
+</tr>
+<tr>
+<td>O5</td>
+<td>LINK1</td>
+<td>brief 的「下次 04-update 时补跑」未写进 <code>04-update.md</code> 自身文本（连带面 4 文件不含它）</td>
+<td>低</td>
+<td><strong>裁定：不改</strong>——任务书 ⓖⓑ 的实质约束（报错 + 指引 + 不静默放行）已满足于 <code>03-finalize.md</code> + 引擎诊断</td>
+</tr>
+<tr>
+<td>O6</td>
+<td>LINK1</td>
+<td><code>TOOL_MISSING</code> 只覆盖「环境缺兄弟引擎」档（「无头 runner 无法派发子技能」产物侧不可区分）</td>
+<td>低</td>
+<td>接受（引擎无判据；ⓖⓒ 已明确不给开关）</td>
+</tr>
+<tr>
+<td>O7</td>
+<td>全批</td>
+<td>C 阶段横切入口接线（prd / architecture / epics-stories / design 接 elicit / party-mode）</td>
+<td>—</td>
+<td><strong>不在本批</strong>（任务书 §12.2 递延），主 agent 已在任务书登记，C 阶段执行</td>
+</tr>
+<tr>
+<td>O8</td>
+<td>全批</td>
+<td><code>diy-help</code> CHAIN 不登记（5 技能均不产主链产物）</td>
+<td>—</td>
+<td>确认（§12.4）；C 阶段「登记表驱动」改造按 frontmatter 六字段自动纳入</td>
+</tr>
+<tr>
+<td>O9</td>
+<td>普查文档</td>
+<td><code>source-census.md</code> 两处笔误（「60 + 69」应为 61；「SKILL 130」应为 129）</td>
+<td>极低</td>
+<td>记录不修（研究档，产物已按正数）</td>
+</tr>
+</tbody>
+</table>
+<h2>八、viewer 标签缺口清单（<strong>C 阶段输入</strong>，任务书 §12.8）</h2>
+<p>3 个新产物类型 + <code>brief.yaml</code> 新字段 <code>review_refs</code> 全部走<strong>通用降级</strong>（不崩、逐页渲染）；缺口实测 = 收口链⑥ temp 项目渲染 + V 的<strong>映射表核对</strong>（<code>viewer.py</code> 的 <code>DOC_LABELS</code> / <code>KEY_LABELS</code> / <code>VALUE_LABELS</code> / <code>ENUM_KEYS</code> / <code>BADGE_CLASSES</code>）：</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>文档名标签</th>
+<th>枚举值缺口（有 stderr 告警）</th>
+<th>静默枚举字段（key 不在 <code>ENUM_KEYS</code>）</th>
+<th>key 标签缺口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>brainstorm</td>
+<td>缺（页标题 / 导航出英文名）</td>
+<td><strong><code>technique</code></strong>——61 个技术名 0 命中词表，凡有非空 <code>ideas[].technique</code> <strong>必然告警</strong></td>
+<td><code>approach</code> / <code>category</code> / <code>current_step</code></td>
+<td>22 键（含 <code>no</code> 布尔化——表头直出 <code>False</code>）</td>
+</tr>
+<tr>
+<td>spec-kernel</td>
+<td>缺</td>
+<td><strong>无</strong>（<code>verdict</code> 虽 ∈ <code>ENUM_KEYS</code> 但值是映射，不触发 badge）</td>
+<td>—</td>
+<td>19 键；<code>retired</code> 布尔直出 <code>True</code></td>
+</tr>
+<tr>
+<td>editorial-review</td>
+<td>缺</td>
+<td><strong>无</strong></td>
+<td><code>category</code>（CUT/MERGE/… 英文原样直出）/ <code>meets_length_target</code> / <code>lenses</code> / <code>reader_type</code> / <code>model</code></td>
+<td>20 键（<code>purpose</code> 语义漂移——与文档 purpose 混淆）</td>
+</tr>
+<tr>
+<td>brief · <code>review_refs</code></td>
+<td>存量缺口（<code>brief</code> 文档名本就缺）</td>
+<td>另发现 <code>decisions[].decision</code> 自由文本撞 <code>ENUM_KEYS</code> → 每文档 2 行告警（需补 <code>FREE_TEXT_FIELDS</code>）</td>
+<td><code>review_refs</code> <strong>不在 <code>REF_KEYS</code></strong> → 无悬空检测（目标不在场时静默断裂，既不标红也不告警）</td>
+<td>英文直出 <code>&lt;h2 id="review-refs"&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>实测 stderr 原始诊断</strong>（V 以 4 份 W 测试夹具做等价渲染复测；收口链⑥ 的「stderr 0 字节」<strong>成立但样本相关</strong>——骨架样本无 <code>technique</code> 值）：</p>
+<p><code>单文档 brainstorm: 41 字节 / 1 行  →  unmapped enum: 连续五问
+单文档 spec-kernel: 0 字节
+单文档 editorial-review: 0 字节
+单文档 brief: 100 字节 / 2 行  →  产物落 YAML 单一源、外部交接裁剪
+四文档合批: 141 字节 / 3 行</code></p>
+<p><strong>附带发现</strong>：<code>no</code> 键布尔化在 viewer 层同样存在（表头直出 <code>False</code>，实测 4 处）——<strong>加 <code>KEY_LABELS["no"]</code> 修不掉</strong>，需键归一（两引擎均有先例：<code>normalize_keys()</code> / <code>seq_no()</code>，viewer 无）。</p>
+<p><strong>处置口径</strong>：共享文件（<code>viewer.py</code>）改动统一排 <strong>C 阶段</strong>（与 B1/B2/B3 标签缺口同批处理，避免逐批 churn）；本清单即 C 阶段的启动输入。<strong>待 C 阶段拍板</strong>：<code>no</code> 键归一形态 · 61 个 <code>technique</code> 值逐个入表还是 doc 级豁免 · <code>brief</code> 存量文档名标签是否同批补 · <code>verdict</code>/<code>purpose</code> 语义漂移是否走文档级覆盖。</p>
+<h2>九、审阅指引（B4 为<strong>非强制人工审</strong>）</h2>
+<p>B2–B7 批按计划 §五只出报告。若你要抽查，建议顺序：</p>
+<ol>
+<li><strong>§三 裁定摘要</strong> —— 六项前置裁定 + V 衍生的 4 条 + 3 条改进采纳，3 分钟扫完。</li>
+<li><strong>§四 V 结论</strong> —— 能力清点零丢失 + 终审计五面全过；<strong>分歧点裁决</strong>（<code>no</code> 键）是最有信息量的一处。</li>
+<li><strong>§八 标签缺口</strong> —— C 阶段输入，含一个反直觉发现（收口链的「零告警」是样本相关）。</li>
+<li>抽 2 个技能的 SKILL.md 确认四段结构与写权边界：<code>diy-elicit</code>（<strong>零写面</strong> + 形 B 只读引擎）与 <code>diy-party-mode</code>（<strong>零产物零引擎</strong> + 视角动态派生）最值得看。</li>
+<li>抽一个引擎冒烟：<code>python diy-coder/skills/diy-spec/scripts/spec_kernel.py check --final --project-root . --output-dir diy-output --json</code>（产物不存在时应回 <code>MISSING_FILE</code> rc=1）；<code>--previous</code> 的 <code>ID_UNSTABLE</code> 是唯一机械保障路径，值得单独试。</li>
+</ol>
+</div>
+</body>
+</html>

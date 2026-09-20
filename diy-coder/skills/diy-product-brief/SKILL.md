@@ -38,7 +38,7 @@ outputs: brief.yaml
 
 1. `steps/01-discovery.md` — 新建：请用户脑爆倾倒并交出既有材料，读利害档位，给快速路径 / 陪跑路径二选一，把工作区以 `status: 草稿` 落盘。
 2. `steps/02-draft.md` — 逐节成文；形状随产品而定，不随模板；决策与附录实时写；起草期带 `[假设]` 前缀。
-3. `steps/03-finalize.md` — 决策日志审计（进简报 / 进附录 / 搁置）、三遍润色，交付并点名路由（diy-prd；其余由 diy-help 分派）。
+3. `steps/03-finalize.md` — 决策日志审计（进简报 / 进附录 / 搁置）、先调 `diy-editorial-review` 取 findings 再按三遍顺序施加润色（`ER-###` 落 `review_refs`），交付并点名路由（diy-prd；其余由 diy-help 分派）。
 4. `steps/04-update.md` — 更新：变更信号对账，改动前先摊开与既有决策的冲突；属根本性变更则改提**新建**。
 5. `steps/05-validate.md` — 校验：对照简报自身目的的诚实点评，引具体句子，结论回对话，并始终提供把发现并入更新。
 
@@ -69,6 +69,7 @@ decisions:                                 # 规范记忆：每个决策、变�
 addendum:                                  # 属于下游或塞不进简报的纵深；实时捕获
   - {section, content, why_separate}
 revisions: []                              # {date, change, reason} —— 既有记录被改时追加
+review_refs: []                            # [ER-###] —— 定稿润色的证据（记录在 {output_dir}/editorial-review.yaml）：只记 ID 不复制内容；--final 要求非空且指向本 brief.yaml 的 已定稿 + 两透镜记录
 ```
 
 ## 规则

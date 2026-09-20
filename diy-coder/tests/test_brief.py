@@ -10,6 +10,8 @@
 - 用例 5：--previous 丢决策 → ID_UNSTABLE（更新模式防丢决策）
 - 用例 6：SKILL.md 契约冒烟（母本 §1 / §2 / §3 / §4 中文定稿逐字 + 四段中文标题 + 薄主文件 ≤93 行
           + 终门句指向 brief.py check --final + steps/ 逐个点名下一文件 + 技能面零 bmad- 悬空引用）
+- 用例 7：--final 评审证据链（任务书 §12.1 ①ⓒ 六条：review_refs 缺失/空、台账缺席、ID 越界、
+          记录非已定稿、target 归一化后指向别处、lenses 单透镜；+ ⓖ 兄弟技能缺席 → TOOL_MISSING 降级）
 
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；不依赖本机 git 状态。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_brief.py" -v
@@ -18,6 +20,7 @@ import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -89,9 +92,35 @@ BRIEF_YAML = NL.join([
     "revisions: []",
 ]) + NL
 
-# 定稿态：project.status 落「已定稿」+ assumptions 清空（--final 义务的全部满足态）
+# 定稿态：project.status 落「已定稿」+ assumptions 清空 + review_refs 有据（--final 义务的全部满足态）
 BRIEF_FINAL_YAML = (BRIEF_YAML
-                    .replace("  status: 草稿", "  status: 已定稿"))
+                    .replace("  status: 草稿", "  status: 已定稿")
+                    .replace("revisions: []",
+                             NL.join(["revisions: []", "review_refs: [ER-001]"])))
+
+# 配套评审台账（diy-editorial-review 形态）：target 基准 = project-root 相对 + 正斜杠
+REVIEW_YAML = NL.join([
+    "project:",
+    "  name: mini",
+    "  created: '2026-09-14'",
+    "  updated: '2026-09-14'",
+    "reviews:",
+    "- id: ER-001",
+    "  target: diy-output/brief.yaml",
+    "  date: '2026-09-14'",
+    "  status: 已定稿",
+    "  lenses: [结构, 文风]",
+    "  reader_type: 人类",
+    "  structure:",
+    "    model: 参考 MECE",
+    "    findings: []",
+    "    estimated_reduction_words: 0",
+    "    meets_length_target: 未设目标",
+    "  prose:",
+    "    findings: []",
+    "  open_questions: []",
+    "revisions: []",
+]) + NL
 
 
 def run_engine(args):
@@ -130,6 +159,12 @@ class EngineCase(unittest.TestCase):
 
     def brief_path(self):
         return os.path.join(self.out, "brief.yaml")
+
+    def write_final(self, brief=None, review=REVIEW_YAML):
+        """定稿夹具：brief + 配套评审台账（--final 证据链的合法在场态；review=None 模拟台账缺席）。"""
+        self.write("diy-output/brief.yaml", BRIEF_FINAL_YAML if brief is None else brief)
+        if review is not None:
+            self.write("diy-output/editorial-review.yaml", review)
 
 
 class IntentGateTests(EngineCase):
@@ -213,9 +248,9 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(data["counts"]["users"], 1)
         self.assertEqual(data["counts"]["addendum"], 1)
 
-    # trace: 任务书 §2.5 用例 3（--final 定稿记录 exit 0）
+    # trace: 任务书 §2.5 用例 3（--final 定稿记录 exit 0，含评审证据链齐备）
     def test_check_final_legal_record_passes(self):
-        self.write("diy-output/brief.yaml", BRIEF_FINAL_YAML)
+        self.write_final()
         r = self.check("--final")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
@@ -235,7 +270,7 @@ class CheckValidationTests(EngineCase):
                                       NL.join(["  assumptions:", "  - '[假设] 用户未定'"]))),
         ]
         for code, text in cases:
-            self.write("diy-output/brief.yaml", text)
+            self.write_final(text)
             r = self.check("--final")
             self.assertEqual(r.returncode, 1, "%s: %s" % (code, r.stdout + r.stderr))
             data = json.loads(r.stdout)
@@ -250,7 +285,7 @@ class CheckValidationTests(EngineCase):
         text = BRIEF_FINAL_YAML.replace(
             "  problem: 手工迁移逐字对照成本高",
             "  problem: '[假设] 手工迁移逐字对照成本高'")
-        self.write("diy-output/brief.yaml", text)
+        self.write_final(text)
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("ASSUMPTION_PRESENT", {x["code"] for x in json.loads(r.stdout)["violations"]})
@@ -310,6 +345,89 @@ class CheckValidationTests(EngineCase):
         r3 = self.check("--previous", os.path.join(self.out, "nope.yaml"))
         self.assertEqual(r3.returncode, 1, r3.stdout)
         self.assertIn("MISSING_FILE", {x["code"] for x in json.loads(r3.stdout)["violations"]})
+
+
+class FinalEvidenceTests(EngineCase):
+    """用例 7：--final 的评审证据链（任务书 §12.1 ①ⓒ 六条校验 + ⓖ 降级档）。"""
+
+    # trace: 任务书 §12.1 ①ⓒ(1)（review_refs 缺失或空 → EVIDENCE_MISSING；存量已定稿记录不静默放行）
+    def test_final_requires_review_refs(self):
+        for text in (BRIEF_FINAL_YAML.replace("review_refs: [ER-001]" + NL, ""),
+                     BRIEF_FINAL_YAML.replace("review_refs: [ER-001]", "review_refs: []")):
+            self.write_final(text)
+            r = self.check("--final")
+            self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+            data = json.loads(r.stdout)
+            self.assertIn("EVIDENCE_MISSING", {x["code"] for x in data["violations"]}, r.stdout)
+            self.assertTrue(any("review_refs" in x["where"] for x in data["violations"]), r.stdout)
+            self.assertTrue(any("diy-editorial-review" in x["msg"] for x in data["violations"]),
+                            "补跑指引须写进 msg：%s" % r.stdout)
+
+    # trace: 任务书 §12.1 ①ⓒ(2)（editorial-review.yaml 缺席 → MISSING_FILE）
+    def test_final_requires_review_ledger(self):
+        self.write_final(review=None)
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("MISSING_FILE", {x["code"] for x in json.loads(r.stdout)["violations"]})
+
+    # trace: 任务书 §12.1 ①ⓒ(3)（ID 不在 reviews[] 内 → UNKNOWN_ID）
+    def test_final_rejects_unknown_review_id(self):
+        self.write_final(BRIEF_FINAL_YAML.replace("[ER-001]", "[ER-999]"))
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        data = json.loads(r.stdout)
+        self.assertIn("UNKNOWN_ID", {x["code"] for x in data["violations"]})
+        self.assertTrue(any("ER-999" in x["msg"] for x in data["violations"]), r.stdout)
+
+    # trace: 任务书 §12.1 ①ⓒ(5)（target 指向别处 → EVIDENCE_MISSING，不构成本文档的证据）
+    def test_final_rejects_foreign_target(self):
+        self.write_final(review=REVIEW_YAML.replace("target: diy-output/brief.yaml",
+                                                    "target: diy-output/other.yaml"))
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("EVIDENCE_MISSING", {x["code"] for x in json.loads(r.stdout)["violations"]})
+
+    # trace: 任务书 §12.1 ①ⓒ(5)（归一化四步：normpath → 正斜杠 → 相对 project-root → 比较）
+    def test_final_accepts_target_normalization_equivalents(self):
+        for value in ("diy-output\\brief.yaml", "./diy-output/brief.yaml",
+                      "diy-output/./brief.yaml", os.path.join(self.out, "brief.yaml")):
+            self.write_final(review=REVIEW_YAML.replace("target: diy-output/brief.yaml",
+                                                        "target: %s" % value))
+            r = self.check("--final")
+            self.assertEqual(r.returncode, 0, "%s: %s" % (value, r.stdout + r.stderr))
+
+    # trace: 任务书 §12.1 ①ⓒ(4)（该记录 status ≠ 已定稿 → STATUS_MISMATCH）
+    def test_final_rejects_draft_review_record(self):
+        self.write_final(review=REVIEW_YAML.replace("  status: 已定稿", "  status: 草稿"))
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        data = json.loads(r.stdout)
+        self.assertIn("STATUS_MISMATCH", {x["code"] for x in data["violations"]})
+        self.assertTrue(any("reviews[ER-001].status" in x["where"] for x in data["violations"]),
+                        r.stdout)
+
+    # trace: 任务书 §12.1 ①ⓒ(6)（lenses 未同时含 结构 与 文风 → EVIDENCE_MISSING）
+    def test_final_requires_both_lenses(self):
+        for single in ("lenses: [结构]", "lenses: [文风]"):
+            self.write_final(review=REVIEW_YAML.replace("lenses: [结构, 文风]", single))
+            r = self.check("--final")
+            self.assertEqual(r.returncode, 1, "%s: %s" % (single, r.stdout))
+            self.assertIn("EVIDENCE_MISSING", {x["code"] for x in json.loads(r.stdout)["violations"]})
+
+    # trace: 任务书 §12.1 ①ⓖⓐ（派发不可用 → TOOL_MISSING 降级：六条校验转 warning、--final 放行）
+    def test_final_degrades_when_review_skill_absent(self):
+        self.write_final()
+        fake = os.path.join(self.root, "skills", "diy-product-brief", "scripts")
+        os.makedirs(fake, exist_ok=True)
+        engine = shutil.copyfile(ENGINE, os.path.join(fake, "brief.py"))
+        r = subprocess.run([sys.executable, engine, "check", "--final",
+                            "--project-root", self.root, "--output-dir", self.out, "--json"],
+                           capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        data = json.loads(r.stdout)
+        self.assertTrue(data["ok"], r.stdout)
+        self.assertEqual(data["violations"], [], r.stdout)
+        self.assertEqual([w["code"] for w in data["warnings"]], ["TOOL_MISSING"], r.stdout)
 
 
 class SkillContractTests(unittest.TestCase):

@@ -74,6 +74,8 @@ specs:
 revisions: []                      # {date, change, reason}——既有记录被改时追加
 ```
 
+本技能的 `spec.yaml` 服务「小变更的执行通道」（记录随实现走）；需要「被多方消费的独立契约」时走 `diy-spec` 的 `spec-kernel.yaml`——两产物不同名、不同生命周期、不互相读写。
+
 ## 规则
 
 1. 写范围：`{output_dir}/spec.yaml` 加记录点名的实现文件。绝不碰 `sprint.yaml`、`stories.yaml`、`test-plan.yaml`、`bug-log.yaml`——真实缺陷归 diy-review 的 bug-add，不在这里。

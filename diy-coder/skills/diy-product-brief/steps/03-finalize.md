@@ -23,7 +23,13 @@ Progress: `Discovery → Draft → [Finalize]`
 2. 语气与惯例——术语、口径、合规约束；
 3. 文字机械层——语法、清晰度、错别字。
 
-三遍润色在本技能内联执行，不外包给别的技能。先润 `brief` 再润 `addendum`，让用户审的是一份定稿，而不是移动靶。
+动手前先取 findings：调用 `diy-editorial-review` 评审 `{output_dir}/brief.yaml`（传 `--target {output_dir}/brief.yaml`；两透镜全跑、不中途停下问，评审完它自己走终门）。分工是**产出归它、施加归本技能**——它只出建议、不代改 target，本技能按上面三遍顺序把 findings 施加到 `brief` 与 `addendum`。先润 `brief` 再润 `addendum`，让用户审的是一份定稿，而不是移动靶。findings 里拿不准或需作者拍板的（`QUESTION` 类），落 `open_questions`，不擅自动内容。
+
+**证据落盘。** 成功取回记录后，把它的 `ER-###` 写进 `brief.yaml` 顶层 `review_refs`——只记 ID，不复制 findings 内容。`--final` 拿它做六条校验：`review_refs` 非空、`{output_dir}/editorial-review.yaml` 在场、该 ID 在 `reviews[]` 内、记录 `status: 已定稿`、`target` 归一化后指向本 `brief.yaml`、`lenses` 同时含 结构 与 文风（结构 + 文风是源里两条 append-only 的标准提供者，不可少其一）。`where` / `msg` 指哪修哪，修完重跑。
+
+**证据时效。** 按 findings 施加改动后，该记录仍是本版简报的证据；但本轮若另有实质改动（内容增删改，不只是措辞），重评审一次、换上新的 `ER-###`。时效靠这条纪律判定，不做内容摘要比对（流程会过重，ER schema 也无承载字段）。
+
+**失败与降级。** 派发不可用（环境缺 `diy-editorial-review`）→ 引擎按 `TOOL_MISSING` 降级：六条校验一并转 warning、`--final` 放行，附一行中文诊断——这是**环境问题**，不是产物问题。边界别混：**技能在场而记录缺失或不合格 → 硬拒**（`EVIDENCE_MISSING` / `MISSING_FILE` / `UNKNOWN_ID` / `STATUS_MISMATCH`，exit 1），不静默放行。存量已定稿的 `brief.yaml`（本门收紧前产出）无 `review_refs` 也走硬拒，回执带补跑指引：补评审一次、把新 ID 落 `review_refs`（更新路径下即 `./04-update.md` 对完账回到本步时）。**没有 bypass 旗标**——强制调用是本节的本体，不给回退开关。
 
 ## 3. 交付与路由
 

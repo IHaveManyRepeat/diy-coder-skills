@@ -1,0 +1,70 @@
+num,category,method_name,description,output_pattern
+1,进阶,思想树（Tree of Thoughts）,同时展开多条推理路径再评估择优；用于有多个可行解法的复杂问题。,paths → evaluation → selection
+2,进阶,思想图（Graph of Thoughts）,把推理建模为互相连接的想法网络、暴露隐藏关系；用于系统思考与发现涌现模式。,nodes → connections → patterns
+3,进阶,思想线索（Thread of Thought）,用一条连续叙事线贯穿长上下文、保持推理一致；用于 RAG 与长文档的一致性维护。,context → thread → synthesis
+4,进阶,自洽性验证（Self-Consistency Validation）,独立生成多种解法再比对一致性；用于结论代价高、必须交叉验证的决策。,approaches → comparison → consensus
+5,进阶,元提示分析（Meta-Prompting Analysis）,退一步分析方法论本身；用于优化提示与改进解题过程。,current → analysis → optimization
+6,进阶,规划式推理（Reasoning via Planning）,以世界模型与目标状态引导构建推理树；用于战略规划与顺序决策。,model → planning → strategy
+7,进阶,思维链脚手架（Chain-of-Thought Scaffolding）,结论之前强制写出中间推理步骤；防直觉跳跃掩盖逻辑漏洞。,premise → step → step → conclusion
+8,进阶,少样本范例预热（Few-Shot Exemplar Priming）,进入正题前先给 2-3 个工作范例；用示范对齐输出格式与深度。,examples → pattern recognition → application
+9,协作,利益相关方圆桌（Stakeholder Round Table）,召集多方视角共同贡献；用于需求收集与竞争诉求间的平衡方案。,perspectives → synthesis → alignment
+10,协作,专家组评审（Expert Panel Review）,组起领域专家做深度专项分析；需要技术纵深与同行评审质量时用。,expert views → consensus → recommendations
+11,协作,辩论对决（Debate Club Showdown）,两个立场对辩、主持人记分；用于探索争议决策与寻找中间地带。,thesis → antithesis → synthesis
+12,协作,用户画像焦点小组（User Persona Focus Group）,让产品用户画像对方案作出反应、说出不满；用于验证功能与发现未满足需求。,reactions → concerns → priorities
+13,协作,时间旅人议会（Time Traveler Council）,由过去的你与未来的你给现在的你建议；用于权衡长期后果与短期压力。,past wisdom → present choice → future impact
+14,协作,跨职能作战室（Cross-Functional War Room）,产品、工程、设计同桌攻关；暴露可行性、合意性、存续性之间的取舍。,constraints → trade-offs → balanced solution
+15,协作,师徒问答（Mentor and Apprentice）,资深者讲解、新人提朴素问题；借教学暴露隐藏假设。,explanation → questions → deeper understanding
+16,协作,软硬兼施（Good Cop Bad Cop）,支持性人设与批判性人设交替出场；既找可发扬的优点也找要解决的弱点。,encouragement → criticism → balanced view
+17,协作,即兴接龙（Improv Yes-And）,多方承接彼此的想法、不否决；用协作式叠加产生意外的创意方向。,idea → build → build → surprising result
+18,协作,客服情景剧（Customer Support Theater）,愤怒用户与客服对演找痛点；暴露真实用户挫折与服务缺口。,complaint → investigation → resolution → prevention
+19,协作,六顶思考帽（Six Thinking Hats）,轮转六种模式（事实、感受、谨慎、乐观、创意、流程）；确保每个角度都被覆盖且不串台。,white → red → black → yellow → green → blue
+20,协作,德尔菲法（Delphi Method）,专家各自独立给估计、看过匿名汇总再修订；在避免锚定偏差的前提下收敛到校准后的群体判断。,independent estimates → reveal → revise → converge
+21,竞争,红蓝对抗（Red Team vs Blue Team）,攻防式对抗分析找漏洞；用于安全测试与构建健壮方案。,defense → attack → hardening
+22,竞争,路演质询（Shark Tank Pitch）,创业者向挑剔的投资人路演、被戳漏洞；压力测试商业可行性、逼出价值主张的清晰度。,pitch → challenges → refinement
+23,竞争,代码评审走廊（Code Review Gauntlet）,理念各异的资深开发评审同一份代码；暴露风格之争并找出最佳实践共识。,reviews → debates → standards
+24,核心,第一性原理分析（First Principles Analysis）,剥掉假设、从基本事实重建；用于创新与破解看似无解的问题。,assumptions → truths → new approach
+25,核心,五问深挖（5 Whys Deep Dive）,连问五次为什么钻到根因；简单但有效地理解失败。,why chain → root cause → solution
+26,核心,苏格拉底式提问（Socratic Questioning）,用有针对性的提问暴露隐藏假设、引导发现；适合教学与自我发现。,questions → revelations → understanding
+27,核心,批判与打磨（Critique and Refine）,系统检视优点与缺陷后改进；草稿的标准质检。,strengths/weaknesses → improvements → refined
+28,核心,讲清推理（Explain Reasoning）,逐步走一遍思路、展示结论如何得出；透明性关键时用。,steps → logic → conclusion
+29,核心,面向读者伸缩详略（Expand or Contract for Audience）,按目标读者动态调整细节量与技术深度；让内容匹配读者的接受能力。,audience → adjustments → refined content
+30,核心,二阶思考（Second-Order Thinking）,越过直接后果去预判连锁效应与长期影响；用于一阶方案会埋下隐藏问题的战略决策。,action → consequences → second-order effects → informed choice
+31,核心,反向分析（Inversion Analysis）,不问如何成功改问什么必然导致失败；从反面暴露障碍与盲点。,goal → invert → failure paths → avoidance → solution
+32,核心,问题分解（Problem Decomposition）,把复杂问题拆成独立子问题分别求解再组装；任务过大或纠缠时用。,whole → parts → solutions → reassembly
+33,核心,类比映射（Analogy Mapping）,找理解透彻的平行领域、把其结构迁移过来；借成熟心智模型换得洞见。,source domain → mapping → target insight
+34,核心,钢人化（Steelmanning）,回应之前先把对立观点构造到最强形态；建立可信度并抓到稻草人式辩论漏掉的盲点。,opposing view → strongest form → honest rebuttal
+35,创意,SCAMPER 法（SCAMPER Method）,用七个创意透镜（替代、合并、适配、修改、他用、消除、重排）系统化构思；用于产品创新。,S→C→A→M→P→E→R
+36,创意,逆向拆解（Reverse Engineering）,从期望结果倒推实现路径；用于目标达成与理解终点。,end state → steps backward → path forward
+37,创意,假设情景（What If Scenarios）,探索替代现实以理解可能性与影响；用于应急预案与开放探索。,scenarios → implications → insights
+38,创意,随机输入刺激（Random Input Stimulus）,注入无关概念激发意外连接；用强制横向思维打破创意阻塞。,random word → associations → novel ideas
+39,创意,接龙共创（Exquisite Corpse Brainstorm）,每方只看得到上一份贡献就接着写；用受限协作产生意外组合。,contribution → handoff → contribution → surprise
+40,创意,类型混搭（Genre Mashup）,合并两个不相关的领域找新做法；用意外的交叉授粉实现创新。,domain A + domain B → hybrid insights
+41,创意,约束注入（Constraint Injection）,故意加一个人为限制（预算、时间、技术）逼出新解法；压力之下创意更旺。,add constraint → forced creativity → remove constraint → evaluate
+42,创意,形态分析（Morphological Analysis）,列出问题的独立参数、枚举每个参数的选项再系统组合；确保不漏非显然配置。,parameters → options grid → combinations → evaluation
+43,框定,抽象阶梯（Abstraction Laddering）,向上问为什么求战略清晰、向下问怎么做求战术细节；确保在正确的层高解题。,concrete ↔ abstract → right level
+44,框定,重述问题（Reframe the Question）,质疑所陈述的问题是否真是问题；常常问题本身错了、换个框答案自现。,stated problem → reframe → true problem → solution
+45,框定,利益相关方透镜轮转（Stakeholder Lens Rotation）,依次代入每个利益相关方的世界观看同一情境；暴露谁的需求被忽略。,perspective A → B → C → gaps found
+46,学习,费曼技巧（Feynman Technique）,把复杂概念讲到像教小孩一样简单；真正的理解经不起含糊。,complex → simple → gaps → mastery
+47,学习,主动回忆测试（Active Recall Testing）,不看参考资料自测理解；用于找出真实缺口。,test → gaps → reinforcement
+48,学习,刻意练习循环（Deliberate Practice Loop）,锁定一个具体子技能、带即时反馈反复练再调整再重复；针对性改进优于泛泛重复。,isolate → drill → feedback → adjust → repeat
+49,哲学,奥卡姆剃刀（Occam's Razor Application）,消除不必要的复杂度、找最简充分解释；调试必备。,options → simplification → selection
+50,哲学,电车难题变体（Trolley Problem Variations）,借道德困境探索伦理取舍；用于理解价值观与艰难决策。,dilemma → analysis → decision
+51,研究,文献综述人设（Literature Review Personas）,由乐观派、怀疑派、综合者三类研究者评述来源；平衡评估证据质量。,sources → critiques → synthesis
+52,研究,论文答辩模拟（Thesis Defense Simulation）,学生面对关注点各异的委员会为假设辩护；压力测试研究方法与结论。,thesis → challenges → defense → refinements
+53,研究,比较分析矩阵（Comparative Analysis Matrix）,多名分析者按加权准则评估各选项；结构化决策、打分显式。,options → criteria → scores → recommendation
+54,研究,来源三角验证（Source Triangulation）,接受一个论断前要求至少三类独立来源（定量、定性、专家）；防单一来源偏差。,claim → source A → source B → source C → confidence rating
+55,复盘,后见之明反思（Hindsight Reflection）,想象从未来回看当下以获得视角；项目复盘利器。,future view → insights → application
+56,复盘,经验萃取（Lessons Learned Extraction）,系统识别关键收获与可执行改进；持续改进必备。,experience → lessons → actions
+57,风险,预演失败分析（Pre-mortem Analysis）,先想象未来的失败再倒推预防；重大发布前的风险缓解利器。,failure scenario → causes → prevention
+58,风险,失效模式分析（Failure Mode Analysis）,系统探索每个组件可能怎么坏；可靠性工程与安全关键系统必备。,components → failures → prevention
+59,风险,批判视角挑战（Challenge from Critical Perspective）,扮演魔鬼代言人压力测试想法、找出弱点；克服群体思维必备。,assumptions → challenges → strengthening
+60,风险,风险识别（Identify Potential Risks）,按各类别头脑风暴可能出什么错；项目规划与部署准备的基本功。,categories → risks → mitigations
+61,风险,混沌猴情景（Chaos Monkey Scenarios）,故意搞坏以测试韧性与恢复；确保系统能优雅降级。,break → observe → harden
+62,风险,假设审计（Assumption Audit）,显式列出方案背后的每个假设、按信心与影响打分再压力测试最弱的一环；防在地基不牢处起楼。,list → rate → stress-test → shore up
+63,风险,级联失效模拟（Cascading Failure Simulation）,追踪一个组件失效如何沿依赖传播；暴露隐藏耦合与单点故障。,trigger failure → trace propagation → find amplifiers → decouple
+64,技术,架构决策记录（Architecture Decision Records）,由多个建筑师人设提出并辩论架构选择、显式记录取舍；确保决策有理有据且留档。,options → trade-offs → decision → rationale
+65,技术,橡皮鸭调试进化版（Rubber Duck Debugging Evolved）,把代码讲给越来越懂技术的鸭子听直到找出 bug；强制在多个抽象层级上说清。,simple → detailed → technical → aha
+66,技术,算法奥林匹克（Algorithm Olympics）,多个解法在同一问题上用基准测试比拼；靠直接对比找出最优解。,implementations → benchmarks → winner
+67,技术,安全审计人设（Security Audit Personas）,由攻击者、防御者、审计员从不同威胁模型审视系统；多角度的安全评审。,vulnerabilities → defenses → compliance
+68,技术,性能剖析小组（Performance Profiler Panel）,数据库专家、前端专家、DevOps 工程师共同诊断慢；跨全栈找瓶颈。,symptoms → analysis → optimizations
+69,技术,边界与极端值扫查（Boundary & Edge Case Sweep）,系统测试极值（零值、空值、最大值）与类型错配；抓快乐路径思维总会漏掉的失败。,inputs → boundaries → edge cases → failures found
