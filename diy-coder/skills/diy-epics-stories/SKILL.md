@@ -18,7 +18,7 @@ description: Derive epics.yaml and stories.yaml from prd.yaml features. Acceptan
 2. 硬门：加载 `{output_dir}/prd.yaml`；`project.status` 必须是 `已定稿`。不满足 → 一行拒绝（点名缺什么）+ 零产出 + 路由 `diy-prd`。
 3. 目标文件：`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml`。判意图：
    - **Create** —— 两份都不在场 → 全量派生。
-   - **Update** —— 任一份在场 → 先 `cp {output_dir}/epics.yaml {output_dir}/epics.yaml.prev` 与 `cp {output_dir}/stories.yaml {output_dir}/stories.yaml.prev`，载入既有稿、对账变更信号，**所有 ID 保持稳定**；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --previous {output_dir}/epics.yaml.prev --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --previous {output_dir}/stories.yaml.prev --json`（exit 0 = ID 稳定）；然后删掉两份 `.prev` 文件。
+   - **Update** —— 任一份在场 → 先 `cp {output_dir}/epics.yaml {output_dir}/epics.yaml.prev` 与 `cp {output_dir}/stories.yaml {output_dir}/stories.yaml.prev`，载入既有稿、对账变更信号，**所有 ID 保持稳定**；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --previous {output_dir}/epics.yaml.prev --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --previous {output_dir}/stories.yaml.prev --json`（exit 0 = 无记录丢失；两份产物各查各的）。**任一非 0 一律不删对应的 `.prev`**：`ID_UNSTABLE` → 从该份快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 该份快照不可用、安全网失效，停手告知用户，确认前不得再写。两份都 exit 0 才删掉两份 `.prev` 文件。
 
 ## 工作流
 
@@ -78,10 +78,10 @@ stories:
 ## 规则
 
 1. **写范围恰好两份产物**：`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml`（加各自的 `.prev` 临时件）。`prd.yaml` / `design.yaml` / `sprint.yaml` / 源码 / CI 一律不碰；`design_ref` 的绑定与回填只落在 `stories.yaml` 的 AC 字段上。
-2. **ID 链是硬契约。** `E-*` / `S-*` / `AC-*` 一经铸造永不重编号、永不复用；重写既有稿必须走 `.prev` → `check --previous`（exit 0 = ID 稳定）→ 删 `.prev`，见激活时第 3 条。
+2. **ID 链是硬契约。** `E-*` / `S-*` / `AC-*` 一经铸造永不重编号、永不复用；重写既有稿必须走 `.prev` → `check --previous`（exit 0 = 无记录丢失；两份产物各查各的）→ 删 `.prev`。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。见激活时第 3 条。
 3. **未决信息必须落文件（三条约定）**：
    - `[假设]` 前缀只写在**值**上，不新增独立键；值以 `[` 开头时整值加引号（`title: '[假设] …'`，裸 `[` 会破坏 YAML）。
-   - `final` 前必须清零：交互态 = 用户确认后去掉前缀；headless 态 = 一律转为显式未决行落 `stories.yaml` 顶层 `notes:`（值带 `[假设]` 前缀，逐行点名 ID 与缺什么）——**不删、不猜**，文档停在 `草稿`。
+   - `final` 前必须清零：交互态 = 用户确认后去掉前缀；headless 态 = 一律转为显式未决行落 `stories.yaml` 顶层 `notes:`（值**不带** `[假设]` 前缀，写成 `S-x: 待确认 …`，逐行点名 ID 与缺什么）——**不删、不猜**。
    - 终门扫的字段集 = 两份文件里**全部字符串值**（引擎递归全扫、不设白名单）；零 `[假设]` 才放行。
 4. **路由。** 下游是 `diy-test-design`（按 `stories.yaml` 的 AC 集设计用例）；主线顺序 = `prd → architecture → openapi(可选) → design(可选) → epics+stories → test-plan → sprint → build-loop`。
 

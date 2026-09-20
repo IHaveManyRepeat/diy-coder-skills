@@ -542,7 +542,7 @@ class WalkthroughTests(EngineCase):
         self.assertIn(("AC-1.3", "diy-dev"), refs["无实现"])
         self.assertIn(("AC-1.1", "diy-test-design"), refs["无测试"])
         self.assertIn(("AC-1.2", "diy-test-author"), refs["无测试"])
-        self.assertIn(("TC-1.9.1", "user"), refs["孤儿用例"])
+        self.assertIn(("TC-1.9.1", "用户"), refs["孤儿用例"])
         self.assertIn(("TC-1.2.1", "diy-test-author"), refs["从未运行"])
         self.assertEqual(data["counts"]["无实现"], 2)
         self.assertEqual(data["counts"]["孤儿用例"], 1)

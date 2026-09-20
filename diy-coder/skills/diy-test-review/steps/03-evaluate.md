@@ -55,7 +55,7 @@ AC 面 = `stories.yaml` 全量 AC（须定稿）；源码面 = 委派 `diyc.py t
 | --- | --- | --- |
 | `无实现` | AC 从未出现在 `# trace:` 引用的 AC ID 中（项目全量零 trace 标记时整类跳过） | diy-dev |
 | `无测试` | AC 无 TC 绑定 → diy-test-design；有 TC 但全 `待办` → diy-test-author | 见左 |
-| `孤儿用例` | TC 的 `ac` 不可解析（委派 `diyc check --type test-plan` 转记） | user |
+| `孤儿用例` | TC 的 `ac` 不可解析（委派 `diyc check --type test-plan` 转记） | 用户 |
 | `从未运行` | TC `status: 待办`（含红相脚手架产出） | diy-test-author |
 
 `walkthrough.status` 照抄：`全覆盖`（四类全评）/ `部分覆盖`（缺源跳过若干类）/ `已跳过`（三源全缺）；非 `全覆盖` 时 `note` 记缺源与跳过类。**走查不进规则集评分**——它是覆盖缺口，不是测试代码质量违规。

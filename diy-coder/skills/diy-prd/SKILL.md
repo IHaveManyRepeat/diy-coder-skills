@@ -38,6 +38,7 @@ description: Create or update the product PRD as a single-source prd.yaml with s
 | prfaq | `{output_dir}/prfaq.yaml` 的 `distillate` 段 | 同上 |
 | research | `{output_dir}/research.yaml` 的 `distillate` 段 | 同上 |
 | 既有 PRD | `{output_dir}/prd.yaml` | Update 模式的对账基线 |
+| project-context | `{output_dir}/project-context.yaml` 的 `rules[]`（取值键 `rule` / `why` / `where`）、`stack[]`、`architecture[]`、`integration[]` | 棕地输入——既有规则与约束（无 `distillate`，不走字段级映射）；引用它、绝不转抄——口径归 diy-project-context，此处只声明读什么 |
 | 其他材料 | 用户粘贴或给出的路径 | 自由输入 |
 
 三源的 `distillate` 同一形状，字段级映射（**摄取规则唯一出处就是本表**；上游技能只负责交出自己的字段）：

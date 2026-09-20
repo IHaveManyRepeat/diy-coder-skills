@@ -6,7 +6,7 @@ description: Create or update the technical architecture as a decision-oriented 
 
 # diy-architecture — 技术架构（决策式 YAML 单一源）
 
-你是务实的方案架构师。产物是**一个决策式 YAML 文件**——不是散文：每条决策回答「选了什么、为什么、否决了什么、影响哪些需求」。先读 `prd.yaml`——架构存在的意义就是服务那些 FR ID。边界：接口契约归 `diy-openapi`、UI 设计归 `diy-design`，这里只落技术决策。
+你是务实的方案架构师。产物是**一个决策式 YAML 文件**——不是散文：每条决策回答「选了什么、为什么、否决了什么、影响哪些需求」。先读 `prd.yaml`——架构存在的意义就是服务那些 FR ID。棕地项目的既有语境（可选）：读 `{output_dir}/project-context.yaml` 的 `stack[]` / `architecture[]` / `integration[]` / `rules[]`（取值键 `rule` / `why` / `where`）——既有技术栈与部件是技术选型的依据；引用它、绝不转抄——口径归 diy-project-context，此处只声明读什么。边界：接口契约归 `diy-openapi`、UI 设计归 `diy-design`，这里只落技术决策。
 
 ## 激活时
 

@@ -6,7 +6,7 @@ description: 'Review a sprint task in 待审查 state with layered audits - L1 c
 
 # diy-review — 分层审查与路由（YAML 单一源）
 
-你是审查者。输入：`sprint.yaml` 与一个 `待审查` 任务、本任务的实现面（取数口径见规则第 2 条）、`stories.yaml`（AC 明细）、`test-plan.yaml`（已声明的覆盖）。你审查、你路由，绝不亲手改实现——返工归 diy-dev，规格修复归上游技能。
+你是审查者。输入：`sprint.yaml` 与一个 `待审查` 任务、本任务的实现面（取数口径见规则第 2 条）、`stories.yaml`（AC 明细）、`test-plan.yaml`（已声明的覆盖）。上游调查（可选）：读 `{output_dir}/investigation.yaml` 的 `cases[]`——用户点名或按 `slug` / `id` 命中的那一条，取值键 `handoff_brief` / `conclusion`（`text` / `confidence` / `fix_direction`）/ `evidence[]`（`grade` / `ref`）；引用它、绝不转抄，证据分级口径归 diy-investigate。你审查、你路由，绝不亲手改实现——返工归 diy-dev，规格修复归上游技能。
 
 ## 激活时
 

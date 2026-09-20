@@ -19,6 +19,8 @@ Progress: `[立案] → 分析 → 改动 → 提案 → 路由 → 收尾`
 
 来自 diy-retrospective 的交接，**具名来源**是 `{output_dir}/retrospective.yaml` 的 `significant_changes[]`：每条 `{change, impact, recommended_action}`，diy-retrospective 记录级 `id` 形如 `RT-yy`。整批**只开一条 proposal**——N 条变化进同一条记录的 `impacts`（必要时加 `edits`），绝不拆成 N 条记录；`trigger` 写「来自 <RT-id> 的 significant_changes：<各条 change 的摘句>」，并把 `recommended_action` 与 `impact` 带进 `why` / `rationale` 的取材面。diy-retrospective 那批条目本身就是证据，不再要求用户重述一遍。
 
+来自 diy-investigate 的交接，**具名来源**是 `{output_dir}/investigation.yaml` 的 `cases[]`——用户点名或按 `slug` / `id` 命中的那一条，取值键 `handoff_brief` / `conclusion`（`text` / `confidence` / `fix_direction`）/ `evidence[]`（`grade` / `ref`）。引用它、绝不转抄，证据分级口径归 diy-investigate。
+
 **触发不清就 HALT**：要用户给出「要改什么、为什么改」的具体细节，加至少一条具体证据（报错 / 信号 / 约束）。没有具体证据的触发不开工，也绝不拿自己的假设填空——建立在猜测触发上的提案，会把真实工作路由到错处。
 
 ## 定 mode

@@ -11,7 +11,7 @@ diy 里设计/UX 的单一源是 `design.yaml`（页面 `P-x`、design tokens）
 
 ## design.yaml 在场 —— 校验对齐
 
-**UX ↔ PRD。** 设计展示的每条用户旅程都必须追溯到 PRD 需求（`FR-x.y`），否则记一条：页面承载了没有需求背书的功能 = PRD 从未批准的范围（`route: diy-prd`）；某条 frontend-facing 需求设计从未覆盖 = 缺口（`route: diy-design`）。
+**UX ↔ PRD。** 设计展示的每条用户旅程都必须追溯到 PRD 需求（`FR-x.y`），否则记一条：页面承载了没有需求背书的功能 = PRD 从未批准的范围（`route: diy-prd`）；某条前端面需求设计从未覆盖 = 缺口（`route: diy-design`）。
 
 **UX ↔ 架构。** 检查架构决策（`architecture.yaml` 的 `D-x`）支撑得住设计所需——设计隐含的响应式与加载时长目标、客户端状态、任何其后台服务无决策覆盖的 UI 组件。点名该决策、或点明它的缺席，都要带证据锚点。
 
@@ -27,8 +27,8 @@ python "{project-root}/.claude/skills/diy-design/scripts/design.py" detect --pro
 
 （resolved 实例时附 `--instance <name>`；脚本化时加 `--json`。）
 
-- `has_frontend: true`（PRD 检出 frontend-facing 需求）而 `design.yaml` 缺席 → 一条 finding：`area: ux`、`severity: 中`、`route: diy-design`，`evidence` 取探测器命中的 FR ID——源工作流那条告警，保留。
-- `has_frontend: false` → 没有隐含 frontend-facing 需求，明说一句、什么都不记；第 6 步按干净面汇报。diy-design 用同一探测器且会声明 SKIP——两处结论一致，不会对打。
+- `has_frontend: true`（PRD 检出前端面需求）而 `design.yaml` 缺席 → 一条 finding：`area: ux`、`severity: 中`、`route: diy-design`，`evidence` 取探测器命中的 FR ID——源工作流那条告警，保留。
+- `has_frontend: false` → 没有隐含前端面需求，明说一句、什么都不记；第 6 步按干净面汇报。diy-design 用同一探测器且会声明 SKIP——两处结论一致，不会对打。
 
 ## 播报与下一步
 

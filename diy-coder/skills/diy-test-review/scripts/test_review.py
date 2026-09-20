@@ -127,7 +127,7 @@ GAP_KINDS = ("无实现", "无测试", "孤儿用例", "从未运行")
 GAP_REF_KINDS = {"无实现": "ac", "无测试": "ac", "孤儿用例": "tc", "从未运行": "tc"}
 GAP_ROUTES = {"无实现": ("diy-dev",),
               "无测试": ("diy-test-design", "diy-test-author"),
-              "孤儿用例": ("user",),
+              "孤儿用例": ("用户",),
               "从未运行": ("diy-test-author",)}
 AC_RE = re.compile(r"AC-\d+(?:\.\d+)*")
 TC_RE = re.compile(r"TC-\d+(?:\.\d+)*")
@@ -1175,7 +1175,7 @@ def cmd_walkthrough(args):
             match = re.search(r"test_cases\[([^\]]+)\]\.ac(?:\[\d+\])?$", where)
             if item.get("code") == "UNKNOWN_ID" and match:
                 gaps["孤儿用例"].append({
-                    "kind": "孤儿用例", "ref": match.group(1), "route": "user",
+                    "kind": "孤儿用例", "ref": match.group(1), "route": "用户",
                     "note": "TC 的 ac 不可解析：%s（%s）"
                             % (item.get("msg"), display_path(
                                 os.path.join(out, TEST_PLAN_FILE), root))})

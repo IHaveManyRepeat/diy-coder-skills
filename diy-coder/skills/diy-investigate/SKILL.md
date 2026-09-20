@@ -31,7 +31,7 @@ outputs: investigation.yaml
 
 ## 工作流
 
-全局步骤纪律：一次只载一个 `steps/` 文件——绝不预载或批量载六个步骤文件；前置给全（front-load）——一步的输出整块给出，不挤牙膏、不在步中追问；所有代码引用一律 CWD 相对 `path:line`；独立操作并发发（一条消息多个工具调用）；产物叙述用 `document_output_language` 写、对话讲 `communication_language`。
+全局步骤纪律：一次只载一个 `steps/` 文件——绝不预载或批量载六个步骤文件；前置给全（front-load）——一步的输出整块给出，不挤牙膏、不在步中追问；所有代码引用一律 project-root 相对 `path:line`；独立操作并发发（一条消息多个工具调用）；产物叙述用 `document_output_language` 写、对话讲 `communication_language`。
 
 1. `steps/01-acknowledge.md` — 确认输入形态并路由：既有案件（slug 命中）→ 续案播报；新案 → 定 scope。用户给的假设登记为 `H-001`，绝不当事实。
 2. `steps/02-stronghold.md` — 定范围与据点（一条「已确证」锚）并起草记录；无可达「已确证」证据 → 无据分支（`evidence_light`）。
@@ -81,7 +81,7 @@ revisions: []                      # {date, change, reason}——改既有记录
 3. 据点先行：先锚一条「已确证」证据，再向外扩。绝不从理论出发去找支持。用户描述是假设，不是事实——独立核实，证据矛盾时明说。
 4. 假设永不删除：更新 `status` 并加 `resolution`。错路留在案卷里——一条 `status ≠ 待验证` 的假设没有 `resolution`，终门拒绝放行。每次向「已确证」移动，先跑证伪轮（主动找反证）并把这次尝试记进 `resolution`。
 5. 缺失证据也是发现：落 `missing_evidence`（what / would_resolve / how）——它是缺口的载体；`availability: 缺失` 只标记已有条目跑丢。`evidence_light` 案件合法，绝不静默。
-6. 所有代码引用用 CWD 相对 `path:line`（不带前导 `/`），以便在 IDE 终端里可点击。
+6. 所有代码引用用 project-root 相对 `path:line`（基准 = `{project-root}`，不随会话 CWD 变化；不带前导 `/`）——终端 CWD 就在项目根时，IDE 终端里可点击。
 7. 委派闸值（本规则是单一定义源，分层写死）：单文件 >10K tokens → 该文件派；一次要读 ≥5 个文件 → 整批派；一个类别合计 >10K tokens → 该类别派。任一命中即派，子代理只返结构化 JSON，从结果里引 `path:line`，父上下文不重读。
 8. 路由（交接菜单，点名最高价值的那一个）：查实的缺陷 → 入库 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" bug-add --entry '<json>' --json`（`source: 用户`；`story` 取波及的 `S-x`，确无归属写 `n/a`）——由用户确认后就地执行；一行小修 → `diy-quick-dev`；范围/计划要变 → `diy-correct-course`；值得立故事 → `diy-create-story`；修复要重审 → `diy-review`。
 9. 记录只追加，永不重编号、永不复用；改既有记录就向 `revisions` 追加（date / change / reason）。不需要 `--previous` 轮——案件天然追加式。

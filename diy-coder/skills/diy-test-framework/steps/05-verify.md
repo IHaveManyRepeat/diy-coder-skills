@@ -32,7 +32,7 @@ python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" defer-add --ent
 ## 4. 人工处置项（AI 做不了的事）
 配 CI secrets（含失败通知的 `NOTIFY_SECRET`，见 `docs/ci-secrets-checklist.md`）/ 账号登录 / 装本地工具 → 会话摘要逐条列出（含为什么需要）。**秘密只落会话摘要，不写进任何项目文件、不进 `checks` 的 `command`**。
 
-交互式：停下把清单摆给用户（并入 `open_questions`）；无头 / 循环调用：**不阻塞**，经 `defer-add` 入队（`reason: user-only`，`target` 写平台侧配置位置），台账 `deferred` 记回执 `id`：
+交互式：停下把清单摆给用户（并入 `open_questions`）；无头 / 循环调用：**不阻塞**，经 `defer-add` 入队（`reason: 仅人工可做`，`target` 写平台侧配置位置），台账 `deferred` 记回执 `id`：
 
 ```
 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" defer-add --entry '{"skill": "diy-test-framework", "action": "配置 CI 秘密 <名字>（值只由用户填）", "reason": "仅人工可做", "target": "<平台秘密库>"}' --project-root "{project-root}" --json

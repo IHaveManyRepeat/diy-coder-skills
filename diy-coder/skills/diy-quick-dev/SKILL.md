@@ -26,12 +26,13 @@ outputs: spec.yaml
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 解析本次运行：显式 `SP-xxx` 或用户点名的 spec → 按该记录 `status` 路由（`草稿` → plan；`就绪` / `进行中` → implement；`审查中` → review；`已完成` → 只读；`已阻塞` → 点名阻塞项并停下）。`草稿` 记录若尚未定 `route`，先回到 Multi-goal / 路由判定——断点恢复不得跳过路由。无线索 → 把活跃记录（`草稿` / `就绪` / `进行中` / `审查中`）排成带序号的候选清单并给 `[N]`（新工作）；未定型的意图文件是起始意图，永远不是可续跑的记录。
-3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。产物只在铸造下一个 `SP-###` 或按 `id:` 行修订某条记录时打开；结构判定取引擎的 JSON 回执，不靠重读规则。
-4. 读 `steps/01-clarify-route.md` 全文并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
+3. 上游调查（可选）：读 `{output_dir}/investigation.yaml` 的 `cases[]`——用户点名或按 `slug` / `id` 命中的那一条，取值键 `handoff_brief` / `conclusion`（`text` / `confidence` / `fix_direction`）/ `evidence[]`（`grade` / `ref`）；引用它、绝不转抄，证据分级口径归 diy-investigate。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。产物只在铸造下一个 `SP-###` 或按 `id:` 行修订某条记录时打开；结构判定取引擎的 JSON 回执，不靠重读规则。
+5. 读 `steps/01-clarify-route.md` 全文并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流
 
-全局步骤纪律：一次只载一个 `steps/` 文件——绝不预载或批量载六个步骤文件；前置给全（front-load）——一步的输出整块给出，不挤牙膏；终端里出现的每个代码引用都是 CWD 相对 `path:line`；产物叙述用 `document_output_language` 写、对话讲 `communication_language`。
+全局步骤纪律：一次只载一个 `steps/` 文件——绝不预载或批量载六个步骤文件；前置给全（front-load）——一步的输出整块给出，不挤牙膏；终端里出现的每个代码引用都是 project-root 相对 `path:line`；产物叙述用 `document_output_language` 写、对话讲 `communication_language`。
 
 1. `steps/01-clarify-route.md` — 意图核对（参数 → 近期对话 → 问用户）、编号式澄清循环、多目标检查（SCOPE STANDARD：一个目标、900–1600 tokens——只给建议，用户可否决，永不设门），然后定路由：零爆炸半径 → 一次成型；其余 → 计划-编码-审查（拿不准时一律 计划-编码-审查）。起草记录。
 2. `steps/02-plan.md` — 调研、填记录、按 READY FOR DEVELOPMENT 标准自审，然后 CHECKPOINT 1（`[A]` 批准 / `[E]` 修改）与「重读防丢失」纪律。

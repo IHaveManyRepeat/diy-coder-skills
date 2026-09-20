@@ -5,7 +5,9 @@
 （.analysis/2026-09-13-cross-skill/batch3-contract.md）：
 
 - §4.5 transition：diy-build-loop HALT 状态迁移，合法边表冻结；待审查→已完成 故意不在
-  边表——强制走 done 命令做真源回填（BUG-012 机制化）。
+  边表——强制走 done 命令做真源回填（BUG-012 机制化）。（2026-09-18 修订，SS-012-04：
+  已完成→进行中 这条边清 `augment`——重开即清旧 verdict，与 runner.py --reopen-failed
+  同语义；冻结契约 batch3-contract.md §4.5 的「不清 augment」括号注由此作废。）
 - §4.6 green：diy-dev / diy-build-loop 红绿证据写回——sprint 任务 evidence 追加
   （同 tc 替换，HALT 续跑幂等）+ test-plan 该 TC status: 通过 回填。
 - §4.7 done：待审查→已完成 终态写——sprint / stories / test-plan 三真源同批回填。
@@ -213,6 +215,10 @@ def _transition(args):
         new_task["blocked_reason"] = args.reason
     elif src == "已阻塞" and dst == "待办":
         new_task.pop("blocked_reason", None)  # 阻塞解除：清 reason
+    elif src == "已完成" and dst == "进行中":
+        # 重开即清旧 verdict（SS-012-04，与 runner.py --reopen-failed 同语义）；
+        # 不清则留下「进行中 + 旧 augment」的陈旧组合，check 的枚举校验抓不到
+        new_task.pop("augment", None)
     if args.rounds is not None:
         loop = {"at": lib.today(), "rounds": args.rounds}
         if dst == "已阻塞":

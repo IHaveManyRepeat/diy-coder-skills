@@ -257,5 +257,72 @@ viewer
         self._check(ANCHOR_PRECISE, skills(), self.PENDING_PRECISE)
 
 
+# ------------------------------------------------ D 引擎契约守卫（2026-09-20）
+
+def skill_docs(skill):
+    """技能目录下全部 .md（SKILL.md + steps/*.md）；跳过 .analysis 历史工作区。
+
+    `read()` 只读 SKILL.md；本组要扫 steps/，故另起一个全目录读法。
+    """
+    root = os.path.join(SKILLS_DIR, "diy-" + skill)
+    out = []
+    for dirpath, dirs, files in os.walk(root):
+        dirs[:] = [d for d in dirs if d != ".analysis"]
+        for name in sorted(files):
+            if name.endswith(".md"):
+                path = os.path.join(dirpath, name)
+                with open(path, encoding="utf-8") as fh:
+                    rel = os.path.relpath(path, SKILLS_DIR).replace(os.sep, "/")
+                    out.append((rel, fh.read()))
+    return out
+
+
+def defer_reasons():
+    """引擎的 defer-add 合法 reason 集——读源码，不复制常量（防两处漂移）。"""
+    path = os.path.join(SKILLS_DIR, "diy-tools", "scripts", "diyc_writeback.py")
+    with open(path, encoding="utf-8") as fh:
+        src = fh.read()
+    m = re.search(r"DEFER_REASONS\s*=\s*\(([^)]*)\)", src)
+    return set(re.findall(r'"([^"]+)"', m.group(1))) if m else set()
+
+
+DEFER_REASON_RE = re.compile(r'reason"?\s*[:=]\s*"?([^\s"\'`,;）)]+)')
+
+
+class EngineContractGuardTests(unittest.TestCase):
+    """文档 ↔ 引擎的枚举契约，以及已被统一掉的口径措辞——两者都是「全绿也漏」的盲区。
+
+    收口交叉核对（2026-09-20）实测：`diy-test-framework` 教模型传引擎会判 `ENUM_INVALID`
+    的值，而当时唯一的守卫是 `test_e2e.py` 里**逐文件**钉死的一处，扫不到别家。
+    """
+
+    # trace: rulings §A8 机器层缺口①——diy-test-framework/steps/05-verify.md:35 曾教 `reason: user-only`
+    def test_defer_add_reason_is_engine_legal(self):
+        legal = defer_reasons()
+        self.assertTrue(legal, "未能从 diyc_writeback.py 取到 DEFER_REASONS")
+        bad = []
+        for skill in skills():
+            for rel, text in skill_docs(skill):
+                lines = text.split(NL)
+                for i, line in enumerate(lines):
+                    if "defer-add" not in line:
+                        continue
+                    window = NL.join(lines[max(0, i - 2): i + 3])
+                    for val in DEFER_REASON_RE.findall(window):
+                        if val not in legal:
+                            bad.append("%s:%d reason=%r" % (rel, i + 1, val))
+        self.assertEqual(bad, [],
+                         "defer-add 的 reason 不在引擎 DEFER_REASONS %s 内（文档教了引擎会拒的值）：\n%s"
+                         % (sorted(legal), NL.join(bad)))
+
+    # trace: rulings §A8 裁定④——路径基准全库统一为 project-root 相对（引擎正典 context.py:174）
+    def test_no_cwd_relative_residue(self):
+        bad = [rel for skill in skills() for rel, text in skill_docs(skill)
+               if "CWD 相对" in text or "CWD-relative" in text]
+        self.assertEqual(bad, [],
+                         "路径基准已统一为 project-root 相对（母本 §7）；以下文件仍有 CWD 相对残留：\n"
+                         + NL.join(bad))
+
+
 if __name__ == "__main__":
     unittest.main()

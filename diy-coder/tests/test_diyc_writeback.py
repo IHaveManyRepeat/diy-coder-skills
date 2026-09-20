@@ -3,7 +3,8 @@
 
 覆盖（任务书 + batch3-contract.md §4.5-§4.9）：
 - transition：八条合法边全部接受、待审查→已完成 与 待办→已完成 拒绝、已阻塞 必填 reason、
-  已阻塞→待办 清 reason、已完成→进行中 保留 augment、--rounds 持久化 loop（终态补 outcome）、bump；
+  已阻塞→待办 清 reason、已完成→进行中 清 augment（SS-012-04：重开即清旧 verdict）、
+  --rounds 持久化 loop（终态补 outcome）、bump；
 - green：evidence 写回 + test-plan 回填 + 双文件 bump、二次跑幂等（同 tc 替换不叠加）、
   状态/test_refs/test-plan 存在性/计数/空 red-green 逐一拒绝；
 - done：三真源同批回填、空 test_refs 豁免、evidence 不完整/状态非待审查/故事不存在拒绝、rounds outcome；
@@ -138,8 +139,9 @@ class TransitionTests(WritebackCase):
         self.assertEqual(task["status"], "待办")
         self.assertNotIn("blocked_reason", task)
 
-    def test_done_to_in_progress_keeps_augment(self):
-        # augment 清除归 runner --reopen-failed，transition 不动（契约 §4.5 括号注）
+    def test_done_to_in_progress_clears_augment(self):
+        # SS-012-04：重开即清旧 verdict，与 runner --reopen-failed 同语义
+        # （冻结契约 §4.5 的「不清 augment」括号注已作废）
         self._sprint_one("已完成", augment="失败",
                          loop={"at": "2026-01-01", "rounds": 1, "outcome": "已完成"})
         res = diyc_writeback.run(self.args("transition", story="S-1", to="进行中",
@@ -147,7 +149,17 @@ class TransitionTests(WritebackCase):
         self.assertTrue(res["ok"], res)
         task = self.read("sprint")["tasks"][0]
         self.assertEqual(task["status"], "进行中")
-        self.assertEqual(task["augment"], "失败")
+        self.assertNotIn("augment", task)
+
+    def test_done_to_in_progress_without_augment_ok(self):
+        # 缺席本就无事：重开不应凭空造键（未被补测过的任务）
+        self._sprint_one("已完成")
+        res = diyc_writeback.run(self.args("transition", story="S-1", to="进行中",
+                                           reason=None, rounds=None))
+        self.assertTrue(res["ok"], res)
+        task = self.read("sprint")["tasks"][0]
+        self.assertEqual(task["status"], "进行中")
+        self.assertNotIn("augment", task)
 
     def test_rounds_persisted(self):
         self._sprint_one("待办")

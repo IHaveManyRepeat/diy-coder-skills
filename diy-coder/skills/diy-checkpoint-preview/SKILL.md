@@ -31,7 +31,7 @@ outputs: checkpoint.yaml
 
 ## 工作流
 
-全局步骤纪律：一次只加载一个 `steps/` 文件——绝不预载五个步骤文件；Front-load：一步的输出整块给出，不在步骤中间提问、不挤牙膏；每个代码引用都是 CWD 相对的 `path:line`；产物叙述文字用 `document_output_language` 写，对话用 `communication_language`。
+全局步骤纪律：一次只加载一个 `steps/` 文件——绝不预载五个步骤文件；Front-load：一步的输出整块给出，不在步骤中间提问、不挤牙膏；每个代码引用都是 project-root 相对的 `path:line`；产物叙述文字用 `document_output_language` 写，对话用 `communication_language`。
 
 1. `steps/01-orientation.md` — 定向：意图 + 变更面统计，定 `mode`，起草记录；无作者轨迹时从 diff 自建一条（兜底在该文件内）。
 2. `steps/02-walkthrough.md` — 按**关注点**带看（连贯的设计意图，绝不按文件排布）：每个关注点给它的 why 与关键 `path:line` 停靠点，按理解顺序。
@@ -56,9 +56,9 @@ checkpoints:
     target: {ref, source: 显式指定|冲刺任务|Git 提交, story?, spec?, inferred?}   # 照抄回执
     mode: 仅规格|裸提交          # 照抄回执；`全程轨迹` 标「本生态不适用」——引擎 MODES 含它，但 `suggested_review_order` 全套件无人产出，永不出现
     concerns:
-      - {name, why, sites: [path:line, ...]}   # sites 是 CWD 相对路径，IDE 终端里可点击
+      - {name, why, sites: [path:line, ...]}   # sites 是 project-root 相对路径（基准 = {project-root}，不随会话 CWD 变化）
     risks:
-      - {label: auth|public API|schema|billing|infra|security|config|other, where, why}   # 按爆炸半径排序
+      - {label: 认证|公开 API|数据模型|计费|基础设施|安全|配置|其他, where, why}   # 按爆炸半径排序
     observations:
       - {do, watch, why}                        # `watch` = 观测到的结果（`do` / `watch` 必填）
     decision: 批准|返工|讨论     # 起草期留空；`讨论` 永不收口
@@ -76,7 +76,7 @@ revisions: []                    # {date, change, reason} —— 改既有记录
 2. 人的话就是证据：`reason` 与 `next` 引述或贴近转述人说的话——绝不替人编结论。`讨论` 保持 `status: 草稿` 并回到决策点；循环到 `批准` 或 `返工` 为止。
 3. 风险标签取上面枚举；排序按爆炸半径（错了会坏多少），绝不按 diff 顺序，也绝不用数值严重度。无风险 → 明说；绝不编造发现。
 4. 观察建议对人可选、天然手动；绝不复述 CI、测试套件或自动检查。
-5. 每个代码引用用 CWD 相对 `path:line`（无前导 `/`），保证在 IDE 内置终端里可点击。
+5. 每个代码引用用 project-root 相对 `path:line`（基准 = `{project-root}`，不随会话 CWD 变化；不带前导 `/`）——终端 CWD 就在项目根时，IDE 终端里可点击。
 6. 渲染守 Workflow 里的静默旁路一句——只写命令；不新增浏览器交互点、不报路径阻塞等待、不等待。
 7. 终门（机械）：先写 `status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-checkpoint-preview/scripts/checkpoint.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两个实参同激活（`--output-dir` 必填、绝不缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾都等 exit 0。
 8. 更新纪律：记录只追加，永不重编号、永不复用；改既有记录就往 `revisions` 追加（date / change / reason）。不需要 `--previous` 轮——本技能从不整篇重写既有文档。

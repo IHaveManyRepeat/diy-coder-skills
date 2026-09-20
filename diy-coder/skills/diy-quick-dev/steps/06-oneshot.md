@@ -34,7 +34,7 @@ Progress: `[Clarify & Route] → One-Shot`（由 step 1 的早期出口抵达；
 
 1. 写 `{output_dir}/spec.yaml` 的 `project.status: 已定稿` 与记录的 `status: 已完成`。
 2. 跑终门：`python "{project-root}/.claude/skills/diy-quick-dev/scripts/spec.py" check --final --id SP-xxx --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--output-dir` 必填、无缺省）——exit 0 是唯一放行；否则修完重跑。
-3. 用 diy-viewer 渲染（静默旁路，只写命令）并展示摘要：改动文件各配一行说明（CWD 相对 `path:line`）、findings——已打的补丁、已延后项、已丢弃项（全被丢弃就直说）——以及承载其 `review_order` 的 spec 路径。
+3. 用 diy-viewer 渲染（静默旁路，只写命令）并展示摘要：改动文件各配一行说明（project-root 相对 `path:line`）、findings——已打的补丁、已延后项、已丢弃项（全被丢弃就直说）——以及承载其 `review_order` 的 spec 路径。
 4. **不 commit、不 push、不开编辑器。** 收尾给一条人自己能跑的 conventional 提交信息，外加一句「要不要我起草 PR 描述」。然后 HALT 等人。
 
 ## 播报与下一步

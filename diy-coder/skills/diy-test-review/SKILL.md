@@ -19,7 +19,7 @@ outputs: test-review.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物散文用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
    缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
@@ -65,7 +65,7 @@ reviews:
       grade: A|B|C|D|F
       recommendation: 打回|要求修改|有保留批准|批准
     coverage_gaps:              # 三向走查结果（不进评分）
-      - {kind: 无实现|无测试|孤儿用例|从未运行, ref: AC-x.y|TC-x.y.z, note: <string>, route: diy-dev|diy-test-design|diy-test-author|user}   # route = 建议路由（供用户/主 agent 决策，非自动调用）
+      - {kind: 无实现|无测试|孤儿用例|从未运行, ref: AC-x.y|TC-x.y.z, note: <string>, route: diy-dev|diy-test-design|diy-test-author|用户}   # route = 建议路由（供用户/主 agent 决策，非自动调用）
     walkthrough: {status: 全覆盖|部分覆盖|已跳过, note: <string>}   # 非全覆盖时 note 记缺源与跳过类
     dimensions: {determinism: N, isolation: N, maintainability: N, performance: N}   # 展示用；score 复算（每维 = max(0, 100 − Σ该维命中权重)）
     recommendations: [<string>]

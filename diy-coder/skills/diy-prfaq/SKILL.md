@@ -60,7 +60,7 @@ prfaq:
   customer_faq: [{id: PQ-001, q, a}]   # PQ-### —— 与 internal_faq 共用一条文档级序列：顺序递增，永不重编号、永不复用
   internal_faq: [{id: PQ-0nn, q, a}]   # 续同一条 PQ 序列
   verdict: {strength: 已锤炼|欠火候|地基裂缝, narrative}   # narrative，不是分数
-distillate: {problem, target_users, value_props: [<string>], constraints: [<string>], open_questions: [<string>]}   # 下游 PRD 输入 —— `diy-prd` 消费的机器契约；保持干净摘要（constraints 同时承载被拒选项，写作 "Not <X>: because <Y>"，使 PRD 不能再提议它们）
+distillate: {problem, target_users, value_props: [<string>], constraints: [<string>], open_questions: [<string>]}   # 下游 PRD 输入 —— `diy-prd` 消费的机器契约（字段级映射定义在 diy-prd 侧，本技能只声明交什么）；保持干净摘要（constraints 同时承载被拒选项，写作 "Not <X>: because <Y>"，使 PRD 不能再提议它们）
 notes:                               # 各阶段的教练笔记 —— 过程叙事（概念类型理由、被挑战的假设、方向判定背后的教练过程、子代理发现过程）；不进 `distillate`
   - {stage: 1|2|3|4|5, content}
 revisions: []                        # {date, change, reason}，date 为 YYYY-MM-DD —— 既有条目变更时追加

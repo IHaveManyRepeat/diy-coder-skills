@@ -26,13 +26,14 @@ outputs: story-context.yaml
 2. 落定目标故事：用户显式给的 story ID；否则取 `{output_dir}/sprint.yaml` `tasks[]` 里文件序第一条 `status` 非 `已完成` 的任务（跳过 `已阻塞`）；两者都不成立 → 停下问用户，给出尚未 `已完成` 的故事 ID。
    然后跑确定性开场：`python "{project-root}/.claude/skills/diy-create-story/scripts/story_context.py" collect --story <S-x> --project-root "{project-root}" --output-dir "{output_dir}" --json`
    exit 1 是零产出拒绝：转述它的一行理由与其 `gate.route`（diy-epics-stories）或 `suggestions` 列表，然后停下——拒绝永不变成记录。
-3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+3. 上游调查（可选）：读 `{output_dir}/investigation.yaml` 的 `cases[]`——用户点名或按 `slug` / `id` 命中的那一条，取值键 `handoff_brief` / `conclusion`（`text` / `confidence` / `fix_direction`）/ `evidence[]`（`grade` / `ref`）；引用它、绝不转抄，证据分级口径归 diy-investigate。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
    `{output_dir}/story-context.yaml` 只在铸下一个 `SC-###`、或按某条记录的 `story:` 行改它时才打开；AC / TC / 决策 / 前序事实一律取回执，绝不手工回读 `stories.yaml` / `test-plan.yaml` / `architecture.yaml`——唯一例外是第 4 步判据取材时读 `{output_dir}/test-plan.yaml` 的 `static_checks` 段。本 schema 不定义 `detail` 字段——无内容可跳。
-4. 读 `steps/01-target.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每个步骤结尾点名下一个要读的文件。
+5. 读 `steps/01-target.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每个步骤结尾点名下一个要读的文件。
 
 ## 工作流
 
-全局步骤纪律：一次只加载一个 `steps/` 文件——绝不预载或批量预载这五个步骤文件；front-load——一步的输出整块给出，不在步骤中间提问；跨文档的每个事实都是 ID 引用或 CWD-relative 路径，绝不转抄；产物散文用 `document_output_language` 写，对话用 `communication_language`。
+全局步骤纪律：一次只加载一个 `steps/` 文件——绝不预载或批量预载这五个步骤文件；front-load——一步的输出整块给出，不在步骤中间提问；跨文档的每个事实都是 ID 引用或 project-root 相对 `path:line`，绝不转抄；产物散文用 `document_output_language` 写，对话用 `communication_language`。
 
 1. `steps/01-target.md` — 落定故事、跑 `collect`、按回执起草记录。
 2. `steps/02-artifacts.md` — 上游事实全取回执（`acs` / `tcs` / `decisions` / `prior` / `git`），不读文档：引用 AC 与 TC、挑出适用的决策、提炼遗留。
@@ -61,7 +62,7 @@ contexts:
     design_ref: P-x             # 可选：该故事 AC 带 design_ref 时的主页面
     decisions: [D-x]            # 适用的架构决策，按 ID
     files:                      # 本故事将触碰的文件（勘察所得，绝不猜）
-      - path: <relative>        # CWD-relative，正斜杠
+      - path: <relative>        # project-root 相对，正斜杠
         action: 新建|更新
         why: <one-line>
         current_state: <string> # 仅 更新 型，必填：该文件今天做什么

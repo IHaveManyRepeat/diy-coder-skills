@@ -103,7 +103,7 @@ CHECKPOINT_YAML = NL.join([
     "    sites:",
     "    - diy-coder/skills/diy-checkpoint-preview/scripts/checkpoint.py:1",
     "  risks:",
-    "  - label: schema",
+    "  - label: 数据模型",
     "    where: diy-output/checkpoint.yaml checkpoints[0]",
     "    why: 新增产物形状需人工确认",
     "  observations:",
@@ -232,7 +232,7 @@ class CheckValidationTests(EngineCase):
         self.write("diy-output/stories.yaml", STORIES_YAML)
         cases = [
             ("PENDING_DECISION", CHECKPOINT_YAML.replace("  decision: 批准" + NL, "")),
-            ("ENUM_INVALID", CHECKPOINT_YAML.replace("label: schema", "label: performance")),
+            ("ENUM_INVALID", CHECKPOINT_YAML.replace("label: 数据模型", "label: performance")),
             ("UNKNOWN_ID", CHECKPOINT_YAML.replace("story: S-2", "story: S-99")),
         ]
         for code, text in cases:

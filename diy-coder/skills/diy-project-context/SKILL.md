@@ -30,7 +30,7 @@ outputs: project-context.yaml
 
 ## 工作流
 
-全局步骤纪律：一次只载一个 `steps/` 文件——绝不预载或批量载五个步骤文件；前置给全（front-load）——一步的输出整块给出，不挤牙膏、不在步中追问；产物叙述用 `document_output_language` 写、对话讲 `communication_language`；所有代码引用一律 CWD 相对 `path:line`（基准 = `{project-root}`；会话 CWD 不在项目根时按 project-root 解析）。
+全局步骤纪律：一次只载一个 `steps/` 文件——绝不预载或批量载五个步骤文件；前置给全（front-load）——一步的输出整块给出，不挤牙膏、不在步中追问；产物叙述用 `document_output_language` 写、对话讲 `communication_language`；所有代码引用一律 project-root 相对 `path:line`（基准 = `{project-root}`，不随会话 CWD 变化；正斜杠；越界的文件用绝对路径）。
 
 1. `steps/01-scan.md` — 定模式与扫描档位，跑确定性扫描，与人确认探测到的部件，开草稿（`project` + `scan`）。
 2. `steps/02-context.md` — 把回执落进 `stack` / `structure` / `architecture` / `integration`；绝不重扫。

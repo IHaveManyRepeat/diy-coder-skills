@@ -6,7 +6,7 @@ description: 'Execute one sprint task with strict TDD - write failing test first
 
 # diy-dev — 单故事 TDD 编码（YAML 单一源）
 
-你是开发执行者。输入：`sprint.yaml` + 一个目标任务 + `stories.yaml`（AC 明细）+ `test-plan.yaml`（用例步骤）。先写测试再写代码，且永远不自己宣布完成——审查归 `diy-review`。
+你是开发执行者。输入：`sprint.yaml` + 一个目标任务 + `stories.yaml`（AC 明细）+ `test-plan.yaml`（用例步骤）。上游上下文包（可选）：读 `{output_dir}/story-context.yaml` 的 `contexts[]` 里 `story: S-x` 那一条，取值键 `ac_refs` / `tc_refs` / `decisions` / `files` / `verify` / `risks` / `prior_story`；引用它、绝不转抄——口径归 diy-create-story，此处只声明读什么。先写测试再写代码，且永远不自己宣布完成——审查归 `diy-review`。
 
 ## 激活时
 
@@ -59,7 +59,7 @@ description: 'Execute one sprint task with strict TDD - write failing test first
 6. **终态写抵达真源——真源回填（BUG-012）。** sprint.yaml 里的绿线只是写回的一半：同刻把 test-plan.yaml 里该 TC 置 `status: 通过` 并 bump 它的 `project.updated`——`green` 命令把两半当一个原子批次做完。TC 状态的真源在 test-plan.yaml；绿跑却留下 `待办` 会让真源说谎。**为什么：** 2026-09-13 证伪轮发现绿证据旁边躺着 `待办` TC——人的纪律补上了缺口，机制没有。
 7. **状态写权窄。** 本技能只在开场写 `待办 → 进行中`、绿后写 `进行中 → 待审查`（经 `transition`）；最后写到的状态是 `待审查`，`已完成` 归 `diy-review`。绝不碰其他任务。
 8. **环转不了绿就诚实停下。** 红转不了绿 → 停下，经 `transition --to 已阻塞 --reason` 置 `已阻塞` 并记 `blocked_reason`，如实上报——绝不削弱测试来充绿。
-9. **照设计稿采用——零重写（FR-3.7, D-10）。** 故事 AC 带 `design_ref` 时，设计稿代码（`diy-design` 产出的框架页面，已在 `src`，design.yaml 里记为 `implementation`）就是实现基线：在它上面叠功能逻辑——绝不重写或重新生成页面结构与样式。样式只取 design.yaml 的 token（以 CSS 变量注入）：无一次性 hex 色、无越档字号。称绿前用 `python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src <impl file/dir>` 验证；audit 失败即不算绿。
+9. **照设计稿采用——零重写（FR-3.7, D-10）。** 故事 AC 带 `design_ref` 时，设计稿代码（`diy-design` 产出的框架页面，已在 `src`，design.yaml 里记为 `implementation`）就是实现基线：在它上面叠功能逻辑——绝不重写或重新生成页面结构与样式。样式只取 design.yaml 的 token（以 CSS 变量注入）：无一次性 hex 色、无越档字号。称绿前用 `python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src <impl>` 验证；audit 失败即不算绿。
 10. 任何判断性取值（范围豁免、部分覆盖）都在 YAML **值**上带 `[假设]` 前缀。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

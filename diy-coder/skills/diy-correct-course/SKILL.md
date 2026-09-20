@@ -26,6 +26,7 @@ outputs: change-proposal.yaml
 2. 输入面两路：
    - **用户报出的单个问题**——实施中发现的技术限制、干系人新要求、对原要求的误解、方向调整、失败的方案。
    - **diy-retrospective 的交接**——`{output_dir}/retrospective.yaml` 的 `significant_changes[]`，每条 `{change, impact, recommended_action}`。整批**只开一条 proposal**：N 条变化进同一条记录的 `impacts`（必要时加 `edits`），绝不拆成 N 条记录；`trigger` 写明来源（diy-retrospective 记录级 `id` 与那批条目的 `change` 摘句）。
+   - **上游调查（可选）**：读 `{output_dir}/investigation.yaml` 的 `cases[]`——用户点名或按 `slug` / `id` 命中的那一条，取值键 `handoff_brief` / `conclusion`（`text` / `confidence` / `fix_direction`）/ `evidence[]`（`grade` / `ref`）；引用它、绝不转抄，证据分级口径归 diy-investigate。
 3. 跑确定性开场（门 + 六文档影响面摘要 + 委派 diyc 跨文档核对 + 引用链）：
    `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" collect --project-root "{project-root}" --output-dir "{output_dir}" [--target <ID>] --json`
    硬门 = `{output_dir}/prd.yaml`、`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml` 三件套在场且各自的 `project.status: 已定稿`。exit 1 是零产出的拒绝：转述它的一行理由与 `gate.route`，然后停下——拒绝永不变成记录。

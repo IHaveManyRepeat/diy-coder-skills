@@ -44,8 +44,8 @@ TARGET_SOURCES = ("显式指定", "冲刺任务", "Git 提交")
 MODES = ("全程轨迹", "仅规格", "裸提交")
 DECISIONS = ("批准", "返工", "讨论")
 RECORD_STATUSES = ("草稿", "已定稿")
-RISK_LABELS = ("auth", "public API", "schema", "billing", "infra", "security",
-               "config", "other")
+RISK_LABELS = ("认证", "公开 API", "数据模型", "计费", "基础设施", "安全",
+               "配置", "其他")
 WORKTREE_REF = "WORKTREE"
 
 CK_RE = re.compile(r"CK-\d{3}")

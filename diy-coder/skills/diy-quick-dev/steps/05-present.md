@@ -13,7 +13,7 @@ Progress: `Clarify & Route → Plan → Implement → Review → [Present]`
 2. **入口点领读** —— 最能先揭示设计意图的那个 `path:line`。
 3. 同一关注点内，从最重要 / 架构上最有意思的排到辅助性的；稍微偏向高风险或跨边界的看点。
 4. **外围收尾** —— 测试、配置、类型等支撑性改动放最后。
-5. 每个看点：`{path, line, why}`——`path` 用 CWD 相对、不带前导 `/`，`line` 是锚点，`why` 一行极简（≤15 词）说清此处为何用这种做法、达成了什么。不写段落。
+5. 每个看点：`{path, line, why}`——`path` 用 project-root 相对、不带前导 `/`，`line` 是锚点，`why` 一行极简（≤15 词）说清此处为何用这种做法、达成了什么。不写段落。
 
 ## 落定记录
 
@@ -26,7 +26,7 @@ Progress: `Clarify & Route → Plan → Implement → Review → [Present]`
 
 然后展示摘要：
 
-- 改动的文件，各一行；终端里所有路径都是 CWD 相对并带 `:line`，绝不带前导 `/`。
+- 改动的文件，各一行；终端里所有路径都是 project-root 相对 `path:line`，绝不带前导 `/`。
 - 审查明细：用了多少轮、按路由分的 findings（已修 / 已延后 / 已丢弃）——若 findings 全被丢弃，直说。
 - spec 路径，并说明它的 `review_order` 现在承载阅读轨迹。
 - **提交与推送是人的事。** 绝不 commit、绝不 push、绝不打开编辑器——收尾只给一行建议（一条人自己能跑的 conventional 提交信息，外加一句「要不要我起草 PR 描述」）。工作树保持原样。
