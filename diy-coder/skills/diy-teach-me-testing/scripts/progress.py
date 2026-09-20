@@ -26,7 +26,7 @@ session id（1-7）对齐，禁混为一文件。引擎负责全部机械判定�
             --session N [--status S] [--score S] [--notes P] [--topics N]
               幂等 upsert：以 session id 为键，重复完成不重复计数（sessions_completed 由
               status 计数得出）。重做（已完成的节再次完成）→ score/日期以最新为准
-              + 追加一条 revisions（{date, change: "session N 重做", reason: "redo"}）；
+              + 追加一条 revisions（{date, change: "session N 重做", reason: "重做"}）；
               notes md 由技能侧覆盖同名文件，引擎只记路径。
             --learner [--role R] [--experience S] [--goals G] [--pain-points P]
               写 learner 区块并置 assessed = 当日（02-assess 专线）。
@@ -900,7 +900,7 @@ def apply_session(args, data, index_by_id, out_dir, out_show):
     new_data["sessions"] = sessions
     if redo:
         new_data["revisions"] = list(data.get("revisions") or []) + [
-            {"date": stamp, "change": "session %d 重做" % sid, "reason": "redo"}]
+            {"date": stamp, "change": "session %d 重做" % sid, "reason": "重做"}]
     change = {"kind": "session", "session": sid, "from": row.get("status"),
               "to": status, "redo": redo}
     return new_data, change, []

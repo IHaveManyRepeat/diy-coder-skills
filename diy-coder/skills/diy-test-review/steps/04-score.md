@@ -22,7 +22,7 @@ python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" sc
 
 把回执的 `deductions` / `bonus` / `score` / `grade` / `recommendation` / `dimensions` / `counts` 照抄进草稿记录：
 
-- `findings` 区块逐条写 `{row, severity, file, line, note, basis, class}`——`severity` 与 `basis` 取自 `criteria.yaml` 的对应行，`class` 仅 convention 行写（照抄 step 2 的键值），`line` 为 null 只限文件级行。
+- `findings` 区块逐条写 `{row, severity, file, line, note, basis, class}`——`severity` 与 `basis` 取自 `criteria.yaml` 的对应行，`class` 仅 惯例 行写（照抄 step 2 的键值），`line` 为 null 只限文件级行。
 - **`score` 五键与 `dimensions` 一律由引擎产出**；手写数字会被 `check` 的账本自洽判据打回。
 
 ## 3. 展示

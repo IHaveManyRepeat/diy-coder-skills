@@ -171,6 +171,35 @@ class PrdCheckTest(CheckBase):
         fx.write_text(prev, yaml.safe_dump(prd_doc(), allow_unicode=True, sort_keys=False))
         self.assertTrue(check(self.root, "prd", previous=str(prev))["ok"])
 
+    def test_previous_architecture_dcr_ids(self):
+        # 遗留小项（rulings §D5 第 5 项）：architecture 纳入 --previous 白名单。
+        # 稳定 ID = decisions/D-* + components/C-* + risks/R-*——前缀不同，扁平并集不冲突。
+        arch = {"project": {"name": "x", "status": "已定稿",
+                            "created": "2026-01-01", "updated": "2026-01-01"},
+                "decisions": [{"id": "D-1", "title": "选型", "decision": "选 A",
+                               "rationale": "B 落败",
+                               "alternatives": [{"option": "B", "why_not": "慢"}],
+                               "affects": ["FR-1.1"], "status": "已采纳"}],
+                "components": [{"id": "C-1", "name": "核心", "responsibility": "主流程"}],
+                "risks": [{"id": "R-1", "risk": "风险", "mitigation": "缓解"}]}
+        prev = fx.write_text(self.root / "architecture.prev.yaml",
+                             yaml.safe_dump(arch, allow_unicode=True, sort_keys=False))
+
+        fx.write_doc(self.root, "architecture", arch)
+        self.assertTrue(check(self.root, "architecture", previous=str(prev))["ok"],
+                        "ID 全保留应放行")
+
+        fx.write_doc(self.root, "architecture", dict(arch, risks=[]))
+        r = check(self.root, "architecture", previous=str(prev))
+        self.assertIn("ID_UNSTABLE", codes(r))
+        self.assertIn("R-1", msgs(r))
+
+        # 三个命名空间互不遮蔽：只丢 D-1 须点名 D-1，且不误报 C-1
+        fx.write_doc(self.root, "architecture", dict(arch, decisions=[]))
+        r2 = check(self.root, "architecture", previous=str(prev))
+        self.assertIn("D-1", msgs(r2))
+        self.assertNotIn("C-1", msgs(r2))
+
     def test_previous_relative_resolves_against_project_root(self):
         # V 验证 B1：相对 --previous 按 project-root 解析（与 trace --src 同语义），不随 cwd
         fx.write_doc(self.root, "prd", prd_doc())

@@ -18,7 +18,7 @@ Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 python "{project-root}/.claude/skills/diy-test-gate/scripts/gate.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-exit 0 是唯一放行；每条违规修掉并重跑。`--final` 会额外要求：`status: 已定稿`、`basis` 非空、hard / soft 两组判据齐、零 `[假设]`、合规五标准逐条记账（`COMPLIANCE_UNRECORDED` / `COMPLIANCE_AGGREGATE_MISMATCH`）、跨域合成候选有落点（`CROSS_DOMAIN_UNRECORDED`）；`mutation-report.yaml` 缺席只记 warning（过渡期口径），但其在场性一旦成立即参与 `mutation_score` 重算。
+exit 0 是唯一放行；每条违规修掉并重跑。`--final` 会额外要求：`status: 已定稿`、`basis` 非空、hard / soft 两组判据齐、零 `[假设]`、合规五标准逐条记账（`COMPLIANCE_UNRECORDED` / `COMPLIANCE_AGGREGATE_MISMATCH`）、跨域合成候选有落点（`CROSS_DOMAIN_UNRECORDED`）；`mutation-report.yaml` 缺席只记 warning（过渡期口径），但其在场性一旦成立即参与 `变异得分` 重算。
 
 违规码速查：`DECISION_INCONSISTENT`（档位与判据 / 域状态 / overlay 不自洽）、`CRITERION_STALE`（判据 actual / result 与重算不符）、`WAIVER_INCOMPLETE` / `WAIVER_INAPPLICABLE`（豁免契约 / 安全域）、`THRESHOLD_UNSOURCED`、`UNKNOWN_THRESHOLD_PASS`、`COMPLIANCE_UNRECORDED` / `COMPLIANCE_AGGREGATE_MISMATCH`（合规五标准）、`CROSS_DOMAIN_UNRECORDED`（跨域合成）、`SET_MISMATCH`（totals / by_level / overall_risk / ADR 行数）、`UNKNOWN_ID`（引用悬空）、`EMPTY_FIELD` / `ENUM_INVALID` / `DUPLICATE_ID` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT`。JSON 回执（含计数）就是收尾证据。
 
@@ -39,6 +39,6 @@ python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-ro
 - **Blocker**：按 `kind` 分组（覆盖 / 非功能需求 / 启发式）逐条一句——每条要能让接手方直接动手。
 - **路由**：`PASS` → 主线继续（`diy-review` / 发布准备）；`CONCERNS` → `recommendations` + 到期豁免清单；`FAIL` → 建议 `diy-correct-course`（走变更流程重排）或把缺口回 `diy-dev` / `diy-test-design` 修复后重跑本门。
 
-同时说明五件事：`sprint.yaml` 缺席时的降级（覆盖只认 test-plan `status`，已写进 `gate.basis` 末句）、`mutation_score` 是否 `n/a`、无台账 `通过`（判定表 ③）的条数与来源、重复覆盖候选的判定（`coverage.duplicates` 为空也要点一句）、证据时效（`EVIDENCE_STALE` 条数及处置）。
+同时说明五件事：`sprint.yaml` 缺席时的降级（覆盖只认 test-plan `status`，已写进 `gate.basis` 末句）、`变异得分` 是否 `n/a`、无台账 `通过`（判定表 ③）的条数与来源、重复覆盖候选的判定（`coverage.duplicates` 为空也要点一句）、证据时效（`EVIDENCE_STALE` 条数及处置）。
 
 写盘与摘要都完成即结束——本步是最后一步，没有后续文件要读。

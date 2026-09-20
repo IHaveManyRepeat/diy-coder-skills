@@ -74,7 +74,7 @@ sessions_completed: N                # 派生（引擎写）= status == 已完�
 completion_percentage: N             # 派生（引擎写）= floor(sessions_completed*100/7 + 0.5)
 next_recommended: <1-7|null>         # 派生（引擎写）= 最小 id 未 已完成 节；全 已完成 → null
 summary: {generated: true|false, path: <relative path|null>, date: <date|null>}   # path = completion-summary.md；写通道 = update --summary
-revisions: []                        # {date, change, reason} —— 重做同一节时追加一条（reason 缺省 redo）
+revisions: []                        # {date, change, reason} —— 重做同一节时追加一条（reason 缺省 重做）
 ```
 
 ## 规则

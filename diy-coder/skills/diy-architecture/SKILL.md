@@ -18,7 +18,7 @@ description: Create or update the technical architecture as a decision-oriented 
 2. 硬门：加载 `{output_dir}/prd.yaml`；其 `project.status` 必须是 `已定稿`。缺席或非 `已定稿` → 向用户预警并问是否照样继续（棕地例外）；继续即留痕、**不留悬空豁免**——在 `risks[]` 落一条 `R-###`：`risk` 写「以 `prd.yaml`（记明其 `status` / `updated` 快照）为基线继续，用户已裁定」，`mitigation` 写「`prd.yaml` 定稿后重跑本技能 Update，复核每条 `decisions[].affects`」。
 3. 目标文件：`{output_dir}/architecture.yaml`。判意图：
    - **Create** —— 文件缺席 → 从零走决策批次。
-   - **Update** —— 文件在场 → 先 `cp {output_dir}/architecture.yaml {output_dir}/architecture.yaml.prev`，载入既有稿同用户的变更信号对账：`D-*` / `C-*` / `R-*` ID 保持稳定、永不重编号，`updated` 刷今天；新稿写完后删掉 `.prev`。
+   - **Update** —— 文件在场 → 先 `cp {output_dir}/architecture.yaml {output_dir}/architecture.yaml.prev`，载入既有稿同用户的变更信号对账：`D-*` / `C-*` / `R-*` ID 保持稳定、永不重编号，`updated` 刷今天；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type architecture --previous {output_dir}/architecture.yaml.prev --json`（exit 0 = 无记录丢失）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev` 文件。
    - 二者都说不通 → 问用户一次，别猜。
 
 ## 工作流
@@ -69,7 +69,7 @@ risks:
 ## 规则
 
 1. **写范围恰好一份产物**：`{output_dir}/architecture.yaml`（加 `.prev` 临时件）。`prd.yaml` / `stories.yaml` / 源码一律不碰——非 `已定稿` 的 `prd.yaml` 也只读、只在 `risks[]` 留痕。
-2. **ID 链是硬契约。** `D-*` / `C-*` / `R-*` 一经铸造永不重编号、永不复用；重写既有稿走激活时第 3 条的 `.prev` 快照 → 对账改写 → 删 `.prev`。源码里的 `# trace: D-x` 由 `diyc.py trace` 按这些 ID 解析——丢 ID 即 `TRACE_UNRESOLVED`；`check --previous` 的类型白名单不含 architecture（prd / openapi / epics / stories / test-plan 五类），故 ID 稳定性由本纪律与 `trace` 面兜底，不要试图跑该命令。
+2. **ID 链是硬契约。** `D-*` / `C-*` / `R-*` 一经铸造永不重编号、永不复用；重写既有稿走激活时第 3 条的 `.prev` 快照 → 对账改写 → 删 `.prev`。源码里的 `# trace: D-x` 由 `diyc.py trace` 按这些 ID 解析——丢 ID 即 `TRACE_UNRESOLVED`；`check --previous` 的类型白名单已含 architecture，重写既有稿时按激活时第 3 条跑它做机械比对（三条失败分支见该条）。
 3. **每条决策至少一条被否决备选**（`alternatives` 带 `why_not`）；没有备选的决策通常是未经检验的默认值。`affects` 只引用 `prd.yaml` 里既有的 FR/NFR ID——引用，绝不复制需求文本。
 4. **决策只为需求存在。** 持久化 / 安全 / 性能这类横切关切，也只在某条 FR/NFR 要求时才成型——不臆造架构。
 5. **未决项留在文件里。** 任何未经用户确认的推断——含机制细节与风险缓解——都要带 `[假设]` 前缀写在 YAML **值**上（只写值、不新增独立键），绝不只在对话里列；终门对全字段深扫 `[假设]`。

@@ -56,7 +56,7 @@ def _done(report, counts) -> dict:
 
 def _stable_ids(typ, doc) -> set:
     """按类型取稳定 ID 集合（契约 §4.2：prd=FR/NFR；openapi=operationId；
-    epics=E；stories=S+AC；test-plan=TC）。"""
+    epics=E；stories=S+AC；test-plan=TC；architecture=D/C/R）。"""
     ids = set()
 
     def add(value):
@@ -88,6 +88,11 @@ def _stable_ids(typ, doc) -> set:
     elif typ == "test-plan":
         for t in d.items(doc, "test_cases"):
             add(t.get("id"))
+    elif typ == "architecture":
+        # D-*/C-*/R-* 三个命名空间各自独立（前缀不同，扁平并集不冲突）
+        for key in ("decisions", "components", "risks"):
+            for item in d.items(doc, key):
+                add(item.get("id"))
     return ids
 
 

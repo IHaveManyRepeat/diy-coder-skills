@@ -30,7 +30,7 @@ from diyc_lib import receipt, v  # noqa: E402
 CHECK_TYPES = ("prd", "architecture", "openapi", "epics", "stories",
                "test-plan", "sprint", "review")
 # --previous 稳定 ID 比对仅这些类型支持（契约 §4.2）
-PREVIOUS_TYPES = ("prd", "openapi", "epics", "stories", "test-plan")
+PREVIOUS_TYPES = ("prd", "openapi", "epics", "stories", "test-plan", "architecture")
 WRITEBACK_COMMANDS = ("transition", "green", "done", "bug-add", "defer-add", "reconcile")
 
 # trace 扫描：文件扩展集与目录排除（契约 §4.3）

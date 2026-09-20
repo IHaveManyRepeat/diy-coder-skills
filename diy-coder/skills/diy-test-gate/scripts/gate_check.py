@@ -12,7 +12,7 @@ by_level 重算 / 门决策自洽（硬判据 actual 重算 + 两组判据与 de
 `mutation-report.yaml` 缺席按过渡期口径只记 warning（C 阶段落地后翻硬门）。
 
 本模块只重算「同记录内可机械重算」的量（判据 actual、totals、by_level、overall_risk、
-nfr_critical、p0_uncovered、mutation_score、合规聚合）——不重跑 collect 的覆盖判定表
+非功能致命、P0 未覆盖、变异得分、合规聚合）——不重跑 collect 的覆盖判定表
 （那是 `gate.py collect` 与 steps/03 LLM 复核的职责），避免二份实现。本模块不写盘。
 
 违约码：复用 batch3-contract §3 冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
@@ -439,21 +439,21 @@ def check_gate_decision(record, where, violations, warnings, criteria, domains,
     p1 = [it for it in coverage_items if it["priority"] == "P1"]
     mutation = ctx["mutation"]
     derived = {
-        "p0_coverage": pct_str(sum(1 for it in p0
+        "P0 覆盖": pct_str(sum(1 for it in p0
                                    if it["coverage"] in COVERED_VALUES), len(p0))
         if p0 else "n/a",
-        "overall_coverage": pct_str(
+        "总覆盖": pct_str(
             sum(1 for it in coverage_items if it["coverage"] in COVERED_VALUES),
             len(coverage_items)),
-        "p1_coverage": pct_str(sum(1 for it in p1
+        "P1 覆盖": pct_str(sum(1 for it in p1
                                    if it["coverage"] in COVERED_VALUES), len(p1))
         if p1 else "100%",
-        "mutation_score": "%d%%" % mutation["score"]
+        "变异得分": "%d%%" % mutation["score"]
         if mutation["present"] and mutation["score"] is not None else "n/a",
-        "nfr_critical": len([name for name in domains
+        "非功能致命": len([name for name in domains
                              if str(domains[name].get("status") or "").upper()
                              == "FAIL" and name not in waived]),
-        "p0_uncovered": len([it for it in p0 if it["coverage"] == "NONE"]),
+        "P0 未覆盖": len([it for it in p0 if it["coverage"] == "NONE"]),
     }
     for name, entry in hard.items():
         if name not in derived:
@@ -466,14 +466,14 @@ def check_gate_decision(record, where, violations, warnings, criteria, domains,
                                 "%s.gate.hard_criteria.%s.actual" % (where, name),
                                 "actual 与机械重算不符：声明 %s，重算 %s"
                                 % (entry.get("actual"), want_actual)))
-        if name == "mutation_score" and not mutation["present"] and result != "n/a":
+        if name == "变异得分" and not mutation["present"] and result != "n/a":
             violations.append(v("CRITERION_STALE",
                                 "%s.gate.hard_criteria.%s.result" % (where, name),
                                 "mutation-report.yaml 缺席时 result 只能记 n/a"
                                 "（过渡期口径，C 阶段前不拒绝）"))
         if want_actual == "n/a":
             want_result = "n/a"
-        elif name in ("nfr_critical", "p0_uncovered"):
+        elif name in ("非功能致命", "P0 未覆盖"):
             want_result = "通过" if int(derived[name]) == 0 else "失败"
         else:
             value = float(want_actual.rstrip("%") or 0)

@@ -10,7 +10,7 @@ Progress: `Preflight → [Criteria] → Evaluate → Score → Report`
 `criteria.yaml` 是**唯一权威表**（逐行留档自源 `criteria-registry.md`，35 行；M9 / M10 / L9 标 `disabled: true` 留档——私有库绑定裁剪，**有效 32 行**）：
 
 - `severity` 读表，**不选**：命中的 severity 永远是行值；表里没有的行为只写散文建议（`recommendations`），不给 severity、不扣分。发明 severity 是评审的缺陷，不是测试的发现。
-- `basis` 三类门：`absolute`（每个文件必查）/ `applicability`（文件确实做该行为才查，读文件定，不看流行度）/ `convention`（仓库确有此惯例才查）。
+- `basis` 三类门：`必查`（每个文件都查）/ `视情况`（文件确实做该行为才查，读文件定，不看流行度）/ `惯例`（仓库确有此惯例才查）。
 - `detect`：`mechanical` 行由 `scan` 直接产出（step 3 只做复核）；`semantic` 行由你判定。
 - `dimensions` / `bonus_guard`：引擎的展示维度与 bonus 矛盾复核映射，**不在本步使用**，只解释判定为何如此。
 

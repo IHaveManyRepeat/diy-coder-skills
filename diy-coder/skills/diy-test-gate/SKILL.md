@@ -62,14 +62,14 @@ gates:
       gaps: [{what: <string>, why: <string>}]   # 证据缺口（替代「猜阈值」）
     gate:
       decision: PASS|CONCERNS|FAIL     # 无法评估不设档——走 HALT，不落门产物
-      hard_criteria:                   # 一票否决：任一 失败 → 整门 FAIL；mutation_score 过渡期记 n/a
-        - {name: p0_coverage|overall_coverage|p1_coverage, target: '100%', actual: '<x>%'|n/a, result: 通过|失败|n/a}   # 任务书 §4 三行分列：n/a 仅适用 p0_coverage 空档（p1_coverage 空档取 100%）
-        - {name: mutation_score, target: '>=90%', actual: '<x>%'|n/a, result: 通过|失败|n/a}   # 多 run 聚合 = 全部 run 的 score 最小值；报告缺席时 actual 记 n/a
-        - {name: nfr_critical|p0_uncovered, target: 0, actual: N, result: 通过|失败}       # nfr_critical = FAIL 域数 − 已豁免域数
+      hard_criteria:                   # 一票否决：任一 失败 → 整门 FAIL；变异得分 过渡期记 n/a
+        - {name: P0 覆盖|总覆盖|P1 覆盖, target: '100%', actual: '<x>%'|n/a, result: 通过|失败|n/a}   # 任务书 §4 三行分列：n/a 仅适用 P0 覆盖 空档（P1 覆盖 空档取 100%）
+        - {name: 变异得分, target: '>=90%', actual: '<x>%'|n/a, result: 通过|失败|n/a}   # 多 run 聚合 = 全部 run 的 score 最小值；报告缺席时 actual 记 n/a
+        - {name: 非功能致命|P0 未覆盖, target: 0, actual: N, result: 通过|失败}       # 非功能致命 = FAIL 域数 − 已豁免域数
       soft_criteria:                   # 任一 失败 → 降为 CONCERNS（不影响 FAIL 判定）；estimated 项须附 algorithm
-        - {name: business_rule_coverage|boundary_coverage|p0_depth_full|id_chain_resolvable, target: '100%', actual: '<x>%', result: 通过|失败}
-        - {name: negative_scenario_coverage, target: '>=90%', actual: '<x>%', result: 通过|失败}
-        - {name: effective_case_ratio, target: '>=95%', actual: '<x>%', result: 通过|失败}
+        - {name: 业务规则覆盖|边界覆盖|P0 深度完整|ID 链可解析, target: '100%', actual: '<x>%', result: 通过|失败}
+        - {name: 负向场景覆盖, target: '>=90%', actual: '<x>%', result: 通过|失败}
+        - {name: 有效用例比, target: '>=95%', actual: '<x>%', result: 通过|失败}
       blockers: [{ref: <ID|string>, kind: 覆盖|非功能需求|启发式, why: <string>}]
       waivers: [{ref, approved_by, date, reason, expires, monitoring, fix_owner, fix_target}]   # 8 键固定；仅人工写入；安全域 FAIL 不可豁免
       basis: <string>                  # 决策依据一句话

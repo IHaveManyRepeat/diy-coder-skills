@@ -101,8 +101,8 @@ DEDUCTION_WEIGHTS = {"CRITICAL": 10, "HIGH": 5, "MEDIUM": 2, "LOW": 1}
 DIMENSION_WEIGHTS = {"CRITICAL": 20, "HIGH": 10, "MEDIUM": 5, "LOW": 2}
 SEVERITIES = ("CRITICAL", "HIGH", "MEDIUM", "LOW")
 SEVERITY_STEPS = {"CRITICAL": "HIGH", "HIGH": "MEDIUM", "MEDIUM": "LOW", "LOW": "LOW"}
-BONUS_KEYS = ("excellentBdd", "comprehensiveFixtures", "dataFactories",
-              "networkFirst", "perfectIsolation", "allTestIds")
+BONUS_KEYS = ("优秀 BDD", "完备夹具", "数据工厂",
+              "网络优先", "完全隔离", "测试 ID 完备")
 BONUS_POINTS = 5
 BONUS_MAX = 30
 DIMENSIONS = ("determinism", "isolation", "maintainability", "performance")
@@ -859,7 +859,7 @@ def _finding_violations(raw, table):
                                 "行级行的 line 须为正整数（实为 %s）" % line))
             continue
         klass = item.get("class")
-        if spec.get("basis") == "convention":
+        if spec.get("basis") == "惯例":
             if not nonempty(klass):
                 violations.append(v("EMPTY_FIELD", where + ".class",
                                     "convention 行须带 class（已确立|新现）"))
@@ -871,7 +871,7 @@ def _finding_violations(raw, table):
                 continue
         elif nonempty(klass):
             violations.append(v("ENUM_INVALID", where + ".class",
-                                "class 仅 basis=convention 行可带（%s 是 %s 行）"
+                                "class 仅 basis=惯例 行可带（%s 是 %s 行）"
                                 % (row, spec.get("basis"))))
             continue
         severity = downgrade_severity(str(spec.get("severity")), str(klass))
@@ -1315,7 +1315,7 @@ def _check_findings(record, where, table):
                                 "行级行的 line 须为正整数（实为 %s）" % line))
             continue
         klass = item.get("class")
-        if spec.get("basis") == "convention":
+        if spec.get("basis") == "惯例":
             if str(klass) not in CONVENTION_ENTRY_STATUSES:
                 violations.append(v("ENUM_INVALID", fw + ".class",
                                     "convention 行的 class 须为 已确立|新现（实为 %s）"
@@ -1323,7 +1323,7 @@ def _check_findings(record, where, table):
                 continue
         elif nonempty(klass):
             violations.append(v("ENUM_INVALID", fw + ".class",
-                                "class 仅 basis=convention 行可带（%s 是 %s 行）"
+                                "class 仅 basis=惯例 行可带（%s 是 %s 行）"
                                 % (row, spec.get("basis"))))
             continue
         expected = downgrade_severity(str(spec.get("severity")), str(klass))
@@ -1492,7 +1492,7 @@ def _check_convention_citation(record, where, deduped, table):
     """
     violations = []
     keyed = [item for item in deduped
-             if table.get(item["row"], {}).get("basis") == "convention"]
+             if table.get(item["row"], {}).get("basis") == "惯例"]
     if not keyed:
         return violations
     baseline = record.get("convention_baseline")

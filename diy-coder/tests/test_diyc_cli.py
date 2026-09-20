@@ -282,10 +282,14 @@ class UsageTests(unittest.TestCase):
         self.assertIn("review", p.stderr)
 
     def test_check_previous_type_whitelist(self):
-        # 契约 §4.2：--previous 仅 prd/openapi/epics/stories/test-plan
+        # 契约 §4.2：--previous 仅 prd/openapi/epics/stories/test-plan/architecture
         p = run_diyc(self.root, "check", "--type", "sprint", "--previous", "x.yaml", "--json")
         self.assertEqual(p.returncode, 2)
         self.assertIn("--previous", p.stderr)
+        # architecture 已入白名单（rulings §D5 第 5 项）：不再是用法错误
+        q = run_diyc(self.root, "check", "--type", "architecture",
+                     "--previous", "x.yaml", "--json")
+        self.assertNotEqual(q.returncode, 2, q.stderr)
 
 
 @unittest.skipUnless(os.path.isdir(REAL_OUTPUT), "无真产物目录，跳过冒烟")

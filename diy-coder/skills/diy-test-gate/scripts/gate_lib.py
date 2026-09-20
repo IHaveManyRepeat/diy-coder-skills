@@ -69,15 +69,15 @@ ORACLE_CONFIDENCES = ("高", "中", "低")
 RECORD_STATUSES = ("草稿", "已定稿")
 BLOCKER_KINDS = ("覆盖", "非功能需求", "启发式")
 CRITERION_RESULTS = ("通过", "失败", "n/a")
-HARD_CRITERIA = (("p0_coverage", "100%"), ("overall_coverage", "100%"),
-                 ("p1_coverage", "100%"), ("mutation_score", ">=90%"),
-                 ("nfr_critical", 0), ("p0_uncovered", 0))
-SOFT_CRITERIA = (("business_rule_coverage", "100%"),
-                 ("boundary_coverage", "100%"),
-                 ("negative_scenario_coverage", ">=90%"),
-                 ("p0_depth_full", "100%"),
-                 ("effective_case_ratio", ">=95%"),
-                 ("id_chain_resolvable", "100%"))
+HARD_CRITERIA = (("P0 覆盖", "100%"), ("总覆盖", "100%"),
+                 ("P1 覆盖", "100%"), ("变异得分", ">=90%"),
+                 ("非功能致命", 0), ("P0 未覆盖", 0))
+SOFT_CRITERIA = (("业务规则覆盖", "100%"),
+                 ("边界覆盖", "100%"),
+                 ("负向场景覆盖", ">=90%"),
+                 ("P0 深度完整", "100%"),
+                 ("有效用例比", ">=95%"),
+                 ("ID 链可解析", "100%"))
 WAIVER_KEYS = ("ref", "approved_by", "date", "reason", "expires", "monitoring",
                "fix_owner", "fix_target")
 BUSINESS_TECHNIQUES = ("决策表", "状态迁移")
@@ -555,12 +555,12 @@ def mutation_block(out, warnings, today=None):
     data, err = load_yaml_safe(os.path.join(out, MUTATION_FILE))
     if err is not None:
         warnings.append(v("UNPARSABLE_YAML", MUTATION_FILE,
-                          "mutation-report.yaml 解析失败，mutation_score 记 n/a：%s" % err))
+                          "mutation-report.yaml 解析失败，变异得分 记 n/a：%s" % err))
         return block
     if data is None:
         warnings.append(v("MISSING_FILE", MUTATION_FILE,
                           "mutation-report.yaml 缺席（diy-augment 未跑变异）："
-                          "mutation_score 记 n/a + warning"
+                          "变异得分 记 n/a + warning"
                           "（过渡期口径，C 阶段前不拒绝）"))
         return block
     runs = items_of(data, "runs")

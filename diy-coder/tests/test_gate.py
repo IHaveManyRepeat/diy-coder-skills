@@ -15,7 +15,7 @@
 - 用例 8：check 门决策不自洽（硬判据 失败 而 decision PASS / 软判据 失败 而 PASS /
           NFR 域 CONCERNS 而 PASS / 判据 actual 陈旧）
 - 用例 9：check UNKNOWN 阈值域 PASS / NFR critical FAIL 而门 PASS / 阈值 source 强制记出处
-- 用例 10：check waiver 8 键契约 + 安全域不可豁免 + 豁免后 nfr_critical 重算
+- 用例 10：check waiver 8 键契约 + 安全域不可豁免 + 豁免后 非功能致命 重算
 - 用例 11：check 引用解析（AC 悬空）+ totals 重算 + --final 义务 + 回执共同键
 - 用例 12：SKILL.md 契约冒烟（母本 §1 / §2 中文定稿逐字 + 终门句指向 gate.py）
 - 用例 13：G-1 证据时效（台账时间戳 / mutation run 日期 >7 天 → EVIDENCE_STALE）
@@ -234,20 +234,20 @@ def check_gate():
              "gate": {
                  "decision": "PASS",
                  "hard_criteria": [
-                     hard("p0_coverage", "100%", "100%", "通过"),
-                     hard("overall_coverage", "100%", "100%", "通过"),
-                     hard("p1_coverage", "100%", "100%", "通过"),
-                     hard("mutation_score", ">=90%", "n/a", "n/a"),
-                     hard("nfr_critical", 0, 0, "通过"),
-                     hard("p0_uncovered", 0, 0, "通过"),
+                     hard("P0 覆盖", "100%", "100%", "通过"),
+                     hard("总覆盖", "100%", "100%", "通过"),
+                     hard("P1 覆盖", "100%", "100%", "通过"),
+                     hard("变异得分", ">=90%", "n/a", "n/a"),
+                     hard("非功能致命", 0, 0, "通过"),
+                     hard("P0 未覆盖", 0, 0, "通过"),
                  ],
                  "soft_criteria": [
-                     soft("business_rule_coverage", "100%", "100%", "通过"),
-                     soft("boundary_coverage", "100%", "100%", "通过"),
-                     soft("negative_scenario_coverage", ">=90%", "100%", "通过"),
-                     soft("p0_depth_full", "100%", "100%", "通过"),
-                     soft("effective_case_ratio", ">=95%", "100%", "通过"),
-                     soft("id_chain_resolvable", "100%", "100%", "通过"),
+                     soft("业务规则覆盖", "100%", "100%", "通过"),
+                     soft("边界覆盖", "100%", "100%", "通过"),
+                     soft("负向场景覆盖", ">=90%", "100%", "通过"),
+                     soft("P0 深度完整", "100%", "100%", "通过"),
+                     soft("有效用例比", ">=95%", "100%", "通过"),
+                     soft("ID 链可解析", "100%", "100%", "通过"),
                  ],
                  "blockers": [],
                  "waivers": [],
@@ -422,21 +422,22 @@ class CollectTests(EngineCase):
         self.write_trio()
         data = json.loads(self.collect().stdout)
         m = data["soft_metrics"]
-        self.assertEqual(sorted(m), ["boundary_coverage", "business_rule_coverage",
-                                     "effective_case_ratio", "id_chain_resolvable",
-                                     "negative_scenario_coverage", "p0_depth_full"])
-        self.assertEqual(m["boundary_coverage"]["numerator"], 2,
+        # 排序按码位（中文名不再落在 ASCII 段，与英文名的字母序不同）
+        self.assertEqual(sorted(m), ["ID 链可解析", "P0 深度完整",
+                                     "业务规则覆盖", "有效用例比",
+                                     "负向场景覆盖", "边界覆盖"])
+        self.assertEqual(m["边界覆盖"]["numerator"], 2,
                          "判定表 ③（通过无台账）计入已验证：AC-1.1 与 AC-1.2")
-        self.assertEqual(m["boundary_coverage"]["denominator"], 4)
-        self.assertEqual(m["business_rule_coverage"]["actual"], "0%",
+        self.assertEqual(m["边界覆盖"]["denominator"], 4)
+        self.assertEqual(m["业务规则覆盖"]["actual"], "0%",
                          "决策表 的 TC 失败 → 不计覆盖")
-        self.assertEqual(m["negative_scenario_coverage"]["actual"], "25%")
-        self.assertEqual(m["negative_scenario_coverage"]["target"], ">=90%")
-        self.assertEqual(m["p0_depth_full"]["actual"], "100%",
+        self.assertEqual(m["负向场景覆盖"]["actual"], "25%")
+        self.assertEqual(m["负向场景覆盖"]["target"], ">=90%")
+        self.assertEqual(m["P0 深度完整"]["actual"], "100%",
                          "P0 唯一 AC：≥2 类 type + 含 错误猜测")
-        self.assertEqual(m["effective_case_ratio"]["actual"], "100%")
-        self.assertEqual(m["id_chain_resolvable"]["actual"], "100%")
-        self.assertEqual(m["id_chain_resolvable"]["target"], "100%")
+        self.assertEqual(m["有效用例比"]["actual"], "100%")
+        self.assertEqual(m["ID 链可解析"]["actual"], "100%")
+        self.assertEqual(m["ID 链可解析"]["target"], "100%")
         for value in m.values():
             self.assertFalse(value.get("estimated"), value)
 
@@ -608,7 +609,7 @@ class CheckTests(EngineCase):
     # trace: 任务书 §4 check（硬判据 失败 而 decision PASS → 不自洽 + actual 陈旧）
     def test_check_decision_inconsistent(self):
         self.write_check_fixtures()
-        self.mutate_gate(lambda d: self._flip_hard(d, "p0_coverage",
+        self.mutate_gate(lambda d: self._flip_hard(d, "P0 覆盖",
                                                    actual="0%", result="失败"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -619,7 +620,7 @@ class CheckTests(EngineCase):
     # trace: 任务书 §4 check（软判据 失败 → 门至少 CONCERNS）
     def test_check_soft_fail_but_gate_pass(self):
         self.write_check_fixtures()
-        self.mutate_gate(lambda d: self._flip_soft(d, "boundary_coverage",
+        self.mutate_gate(lambda d: self._flip_soft(d, "边界覆盖",
                                                    actual="50%", result="失败"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -645,12 +646,12 @@ class CheckTests(EngineCase):
         self.assertIn("DECISION_INCONSISTENT", self.codes(json.loads(r.stdout)))
 
     # trace: 任务书 §4 check（NFR critical FAIL 而门 PASS → 违例且不可豁免）
-    def test_check_nfr_critical_fail_but_gate_pass(self):
+    def test_check_非功能致命_fail_but_gate_pass(self):
         self.write_check_fixtures()
 
         def mutate(d):
             self._set_domain(d, "性能", "FAIL", risk="HIGH")
-            self._flip_hard(d, "nfr_critical", actual=1, result="失败")
+            self._flip_hard(d, "非功能致命", actual=1, result="失败")
         self.mutate_gate(mutate)
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -659,7 +660,7 @@ class CheckTests(EngineCase):
     # trace: 任务书 §4 check（判据 actual 与重算不符 → CRITERION_STALE）
     def test_check_criterion_stale(self):
         self.write_check_fixtures()
-        self.mutate_gate(lambda d: self._flip_hard(d, "nfr_critical",
+        self.mutate_gate(lambda d: self._flip_hard(d, "非功能致命",
                                                    actual=2, result="通过"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -707,8 +708,8 @@ class CheckTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("WAIVER_INAPPLICABLE", self.codes(json.loads(r.stdout)))
 
-    # trace: 任务书 §4 check（豁免后 nfr_critical 重算：FAIL 域数 − 已豁免域数）
-    def test_check_waiver_reduces_nfr_critical(self):
+    # trace: 任务书 §4 check（豁免后 非功能致命 重算：FAIL 域数 − 已豁免域数）
+    def test_check_waiver_reduces_非功能致命(self):
         self.write_check_fixtures()
 
         def mutate(d):
@@ -752,7 +753,7 @@ class CheckTests(EngineCase):
             gate = d["gates"][0]["gate"]
             gate["basis"] = ""
             gate["hard_criteria"] = [c for c in gate["hard_criteria"]
-                                     if c["name"] != "p0_uncovered"]
+                                     if c["name"] != "P0 未覆盖"]
             d["gates"][0]["note"] = "[假设] 待确认"
         self.mutate_gate(mutate)
         r = self.check("--final")
@@ -781,7 +782,7 @@ class CheckTests(EngineCase):
 
         def mutate(d):
             for c in d["gates"][0]["gate"]["soft_criteria"]:
-                if c["name"] == "boundary_coverage":
+                if c["name"] == "边界覆盖":
                     c["estimated"] = True
         self.mutate_gate(mutate)
         r = self.check()
@@ -914,7 +915,7 @@ class CheckTests(EngineCase):
                     domain["status"] = "CONCERNS"
             record["nfr"]["overall_risk"] = "HIGH"
             record["gate"]["decision"] = "FAIL"
-            self._flip_hard(data, "nfr_critical", actual=1, result="失败")
+            self._flip_hard(data, "非功能致命", actual=1, result="失败")
 
         self.mutate_gate(security_pair)
         r = self.check("--final")

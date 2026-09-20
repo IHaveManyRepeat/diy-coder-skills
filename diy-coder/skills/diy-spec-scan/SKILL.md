@@ -57,7 +57,7 @@ scans:
   - id: SS-001                     # 顺序递增、稳定，永不重编号、永不复用
     date: YYYY-MM-DD               # 本次扫描的日子，不随 updated 变
     status: 草稿|已定稿             # `已定稿` 是终门检查的对象
-    target: {kind: taskbook|skill|spec, path: <relative>, files: N, lines: N}   # kind 由你判定
+    target: {kind: 任务书|技能|规格, path: <relative>, files: N, lines: N}   # kind 由你判定
     units:                         # 扫描单元清单（覆盖凭证：证明扫了什么）
       - {unit: <单元名>, path: <relative>, lines: N, scanned: true|false}
     findings:

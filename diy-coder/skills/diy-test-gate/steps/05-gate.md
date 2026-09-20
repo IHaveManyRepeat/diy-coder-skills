@@ -11,25 +11,25 @@ Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 
 | name | target | actual 取数 |
 | --- | --- | --- |
-| `p0_coverage` | `100%` | P0 AC 的 covered / total（covered = `FULL` / `UNIT-ONLY` / `INTEGRATION-ONLY`） |
-| `overall_coverage` | `100%` | 全部 AC 的 covered / total |
-| `p1_coverage` | `100%` | P1 AC；**无 P1 时记 `100%` + `通过`**（源 effectiveP1=100 口径） |
-| `mutation_score` | `>=90%` | 回执 `mutation.score`（`mutation-report.yaml` 全部 run 的**最小值**，保守口径）；报告缺席 → `n/a` + warning（过渡期：C 阶段前不影响 decision，C 落地后记 `失败`） |
-| `nfr_critical` | `0` | FAIL 域数 − `waivers` 已豁免域数（`安全` 域 FAIL **不可豁免**） |
-| `p0_uncovered` | `0` | priority = P0 且 coverage = `NONE` 的行数 |
+| `P0 覆盖` | `100%` | P0 AC 的 covered / total（covered = `FULL` / `UNIT-ONLY` / `INTEGRATION-ONLY`） |
+| `总覆盖` | `100%` | 全部 AC 的 covered / total |
+| `P1 覆盖` | `100%` | P1 AC；**无 P1 时记 `100%` + `通过`**（源 effectiveP1=100 口径） |
+| `变异得分` | `>=90%` | 回执 `mutation.score`（`mutation-report.yaml` 全部 run 的**最小值**，保守口径）；报告缺席 → `n/a` + warning（过渡期：C 阶段前不影响 decision，C 落地后记 `失败`） |
+| `非功能致命` | `0` | FAIL 域数 − `waivers` 已豁免域数（`安全` 域 FAIL **不可豁免**） |
+| `P0 未覆盖` | `0` | priority = P0 且 coverage = `NONE` 的行数 |
 
 **软判据（任一 `失败` → 门降为 `CONCERNS`；不影响 FAIL 判定）**
 
 | name | target | 口径（分子 / 分母） |
 | --- | --- | --- |
-| `business_rule_coverage` | `100%` | 带 `决策表` / `状态迁移` 的已验证 TC 覆盖的 AC 数 ÷ 矩阵 AC 总数 |
-| `boundary_coverage` | `100%` | 带 `边界` 的已验证 TC 覆盖的 AC 数 ÷ 同上 |
-| `negative_scenario_coverage` | `>=90%` | 带 `错误猜测` 的已验证 TC 覆盖的 AC 数 ÷ 同上 |
-| `p0_depth_full` | `100%` | P0 AC 中「已验证 TC ≥2 类 type 且含 ≥1 条异常场景 TC」的占比 |
-| `effective_case_ratio` | `>=95%` | （`ac` 可解析 + `kill_target` 非空 + `steps` 非空）的 TC 数 ÷ TC 总数 |
-| `id_chain_resolvable` | `100%` | TC→AC→story 全链可解析的 TC 数 ÷ TC 总数（**不读源码**） |
+| `业务规则覆盖` | `100%` | 带 `决策表` / `状态迁移` 的已验证 TC 覆盖的 AC 数 ÷ 矩阵 AC 总数 |
+| `边界覆盖` | `100%` | 带 `边界` 的已验证 TC 覆盖的 AC 数 ÷ 同上 |
+| `负向场景覆盖` | `>=90%` | 带 `错误猜测` 的已验证 TC 覆盖的 AC 数 ÷ 同上 |
+| `P0 深度完整` | `100%` | P0 AC 中「已验证 TC ≥2 类 type 且含 ≥1 条异常场景 TC」的占比 |
+| `有效用例比` | `>=95%` | （`ac` 可解析 + `kill_target` 非空 + `steps` 非空）的 TC 数 ÷ TC 总数 |
+| `ID 链可解析` | `100%` | TC→AC→story 全链可解析的 TC 数 ÷ TC 总数（**不读源码**） |
 
-`actual` 与 `result` 照 `collect` 回执的 `soft_metrics` 写；`estimated: true` 只用于引擎算不出的项，且**必须**填 `algorithm`（缺 → `EMPTY_FIELD` 违例）。`check` 会按记录内数据重算 `p0/overall/p1`、`nfr_critical`、`p0_uncovered`、`mutation_score` 并与你写的 `actual` / `result` 对账（`CRITERION_STALE`）——**禁手填估计值**。
+`actual` 与 `result` 照 `collect` 回执的 `soft_metrics` 写；`estimated: true` 只用于引擎算不出的项，且**必须**填 `algorithm`（缺 → `EMPTY_FIELD` 违例）。`check` 会按记录内数据重算 `p0/overall/p1`、`非功能致命`、`P0 未覆盖`、`变异得分` 并与你写的 `actual` / `result` 对账（`CRITERION_STALE`）——**禁手填估计值**。
 
 ## 规则树（decision 怎么定）
 
@@ -43,7 +43,7 @@ Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 
 - **`FAIL` 优先**：硬指标不过就是不过，软指标再好也不改档。
 - **没有「无法评估」档**：拿不到足够数据（如 oracle 解析不出）→ 走 HALT，**不落门产物**——半份记录会被下游当成已评估。
-- 三线口径：源为 `P0=100% / overall>=80% / P1 目标 90% 且最低 80%`；**diy 拉满为三线全 `100%`**（2026-09-15 用户裁定），故 `p0_coverage` / `overall_coverage` / `p1_coverage` 的 target 都是 `100%`，覆盖率无中间档；CONCERNS 只出自软判据失败、NFR 域 CONCERNS、overlay 命中三处。
+- 三线口径：源为 `P0=100% / overall>=80% / P1 目标 90% 且最低 80%`；**diy 拉满为三线全 `100%`**（2026-09-15 用户裁定），故 `P0 覆盖` / `总覆盖` / `P1 覆盖` 的 target 都是 `100%`，覆盖率无中间档；CONCERNS 只出自软判据失败、NFR 域 CONCERNS、overlay 命中三处。
 
 ## Overlay
 

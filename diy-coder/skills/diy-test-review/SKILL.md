@@ -57,10 +57,10 @@ reviews:
     scope: {paths: [<relative>], files_reviewed: N, excluded: [{path, reason: 格式不支持|自动生成|超出范围}]}
     convention_baseline: {corpus_size: N, sampled: N, keys: {priority_markers: {adopted: N, status: 已确立|新现|缺失|未知}, test_ids: {...}, bdd_naming: {...}, network_first: {...}, data_factories: {...}, fixtures: {...}, assertion_style: {...}}}   # 7 key；机械键 status 由 scan 判定，bdd_naming / assertion_style 由 LLM 判读
     findings:
-      - {row: C1|H3|M5|L2, severity: CRITICAL|HIGH|MEDIUM|LOW, file: <relative>, line: N|null, note: <string>, basis: absolute|applicability|convention, class: 已确立|新现|null}   # severity 由引擎复算（convention 行按 class 降档）；class 仅 basis=convention 行必填；line 为 null 仅限文件级行 H5/H6/H7/H8/L4
+      - {row: C1|H3|M5|L2, severity: CRITICAL|HIGH|MEDIUM|LOW, file: <relative>, line: N|null, note: <string>, basis: 必查|视情况|惯例, class: 已确立|新现|null}   # severity 由引擎复算（惯例行按 class 降档）；class 仅 basis=惯例 行必填；line 为 null 仅限文件级行 H5/H6/H7/H8/L4
     score:                      # 五键全部由 score 命令复算，LLM 不写
       deductions: {critical: N, high: N, medium: N, low: N, total: N}
-      bonus: {applied: [<string>], total: N}   # 六类键（excellentBdd|comprehensiveFixtures|dataFactories|networkFirst|perfectIsolation|allTestIds），只列得 5 分者；total ≤ 30
+      bonus: {applied: [<string>], total: N}   # 六类键（优秀 BDD|完备夹具|数据工厂|网络优先|完全隔离|测试 ID 完备），只列得 5 分者；total ≤ 30
       score: N
       grade: A|B|C|D|F
       recommendation: 打回|要求修改|有保留批准|批准

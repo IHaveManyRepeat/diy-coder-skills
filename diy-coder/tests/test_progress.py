@@ -276,7 +276,7 @@ class UpdateSessionTests(EngineCase):
         self.assertEqual(session["completed_date"], self.today)
         self.assertEqual(len(doc["revisions"]), 1)
         self.assertEqual(doc["revisions"][0]["change"], "session 1 重做")
-        self.assertEqual(doc["revisions"][0]["reason"], "redo")
+        self.assertEqual(doc["revisions"][0]["reason"], "重做")
         self.assertEqual(doc["revisions"][0]["date"], self.today)
 
     # trace: §7 测试 5（派生字段基准 = 裁定 2 三式；手改 → SET_MISMATCH）
@@ -745,7 +745,7 @@ class TeachingContentTests(unittest.TestCase):
         s4 = self.outline(4)
         self.assertIn("覆盖规划", s4)
         self.assertIn("覆盖目标一律 100%", s4)
-        self.assertIn("p0_coverage", s4)
+        self.assertIn("P0 覆盖", s4)
         self.assertIn("不按优先级递减", s4)
 
     # trace: T-5（quiz 每题 3 次作答机会；计分口径不动）

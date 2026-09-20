@@ -67,7 +67,7 @@ sessions:
       - 从验收标准推导：每条 AC 至少一条用例，绝不虚构覆盖
       - 九种编码前技法：equivalence / boundary / decision-table / state-transition / pairwise / error-guessing / metamorphic / property / scenario——按故障假设挑，不按习惯挑
       - 覆盖规划：按故障假设选测试层级（`test-plan.yaml` 的 `type`）——层级是设计决策，**不按优先级分档**、也不按习惯挑
-      - 覆盖目标一律 100%：门机械强判 `p0_coverage` / `overall_coverage` / `p1_coverage` 三线全 100%（见 `test-gate.yaml`）——**无中间档、不按优先级递减**，任一档不达标即 FAIL
+      - 覆盖目标一律 100%：门机械强判 `P0 覆盖` / `总覆盖` / `P1 覆盖` 三线全 100%（见 `test-gate.yaml`）——**无中间档、不按优先级递减**，任一档不达标即 FAIL
       - 静态检查链 `static_checks`：按滤网关系排序（硬依赖在前、给下层降噪），blocking 失败即停链
       - oracle 纪律：推不出预期结果就不伪造断言，记 `coverage_gaps` 标 [SPEC-GAP]
       - 缺口是决策：pending / waived / accept-gap 三态，由用户裁定

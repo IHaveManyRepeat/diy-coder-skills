@@ -5,16 +5,16 @@
 #   · 有效规则集 = 32 行（disabled 行不得出现在产物 findings 中）
 #   · detect 是机械/语义分界的唯一权威：mechanical 行由 test_review.py `scan` 直接产出，
 #     semantic 行由 LLM 判定（severity 仍由引擎按本表复算，LLM 不填）
-#   · basis 三类门：absolute（每文件必查）/ applicability（文件确实做该行为才查）/
-#     convention（仓库既有惯例才查，按 class 降档：emerging → 降一档 floor LOW；
-#     absent / unknown → 该行不成立、不得成条目）
+#   · basis 三类门：必查（每文件必查）/ 视情况（文件确实做该行为才查）/
+#     惯例（仓库既有惯例才查，按 class 降档：新现 → 降一档 floor LOW；
+#     缺失 / 未知 → 该行不成立、不得成条目）
 #   · dimensions 照源四个 worker 表的行归属（源表未归属行：H9 / M8 / L2 / L8 → 空映射）
 #   · bonus_guard = bonus 六类与该表规则行的矛盾复核映射（score 用）
 # 字段：
 #   row            规则 ID（C1-C7 / H1-H9 / M1-M10 / L1-L9）
 #   criterion      规则名（源文逐字）
 #   severity       源表钉死的档位（引擎复算的唯一来源）
-#   basis          absolute | applicability | convention
+#   basis          必查 | 视情况 | 惯例
 #   gate           门的判据（源文 Gate 列；convention 行写惯例键名）
 #   convention_key convention 行的惯例键（对应 scan baseline 的 key；其余行 null）
 #   detect         mechanical | semantic
@@ -26,7 +26,7 @@ rules:
   - row: C1
     criterion: Disabled test
     severity: CRITICAL
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: mechanical
@@ -36,7 +36,7 @@ rules:
   - row: C2
     criterion: Focused test
     severity: CRITICAL
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: mechanical
@@ -46,7 +46,7 @@ rules:
   - row: C3
     criterion: Tautological assertion
     severity: CRITICAL
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: mechanical
@@ -56,7 +56,7 @@ rules:
   - row: C4
     criterion: No assertion
     severity: CRITICAL
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
@@ -66,7 +66,7 @@ rules:
   - row: C5
     criterion: Mock asserted against itself
     severity: CRITICAL
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
@@ -76,7 +76,7 @@ rules:
   - row: C6
     criterion: Assertion unreachable
     severity: CRITICAL
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
@@ -86,7 +86,7 @@ rules:
   - row: C7
     criterion: Flow outcome cannot fail
     severity: CRITICAL
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: the reviewed file is a Maestro flow'
     convention_key: null
     detect: semantic
@@ -96,7 +96,7 @@ rules:
   - row: H1
     criterion: Hard wait
     severity: HIGH
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: mechanical
@@ -106,7 +106,7 @@ rules:
   - row: H2
     criterion: Wall-clock fixture
     severity: HIGH
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: the file builds or asserts a time-bounded value'
     convention_key: null
     detect: semantic
@@ -116,7 +116,7 @@ rules:
   - row: H3
     criterion: Conditional assertion
     severity: HIGH
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
@@ -126,17 +126,17 @@ rules:
   - row: H4
     criterion: Unreset shared state
     severity: HIGH
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
     dimensions: [isolation]
-    bonus_guard: [perfectIsolation]
+    bonus_guard: [完全隔离]
     disabled: false
   - row: H5
     criterion: Oversize test file
     severity: HIGH
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: mechanical
@@ -146,7 +146,7 @@ rules:
   - row: H6
     criterion: Pact worker parallelism
     severity: HIGH
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: mechanical
@@ -156,7 +156,7 @@ rules:
   - row: H7
     criterion: Pact pool isolation
     severity: HIGH
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: >= 2 .pacttest.ts for the pair'
     convention_key: null
     detect: mechanical
@@ -166,7 +166,7 @@ rules:
   - row: H8
     criterion: Pact serialization defeated
     severity: HIGH
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: mechanical
@@ -176,7 +176,7 @@ rules:
   - row: H9
     criterion: Secret inlined in a flow
     severity: HIGH
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: the reviewed file is a Maestro flow'
     convention_key: null
     detect: mechanical
@@ -186,27 +186,27 @@ rules:
   - row: M1
     criterion: Network-first violated
     severity: MEDIUM
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: the file navigates and then reads data-dependent content'
     convention_key: null
     detect: semantic
     dimensions: [performance]
-    bonus_guard: [networkFirst]
+    bonus_guard: [网络优先]
     disabled: false
   - row: M2
     criterion: Repeated literal payload
     severity: MEDIUM
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: the file constructs domain payloads'
     convention_key: null
     detect: semantic
     dimensions: [maintainability]
-    bonus_guard: [comprehensiveFixtures, dataFactories]
+    bonus_guard: [完备夹具, 数据工厂]
     disabled: false
   - row: M3
     criterion: Multi-concern test
     severity: MEDIUM
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
@@ -216,7 +216,7 @@ rules:
   - row: M4
     criterion: Ungrouped suite
     severity: MEDIUM
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
@@ -226,7 +226,7 @@ rules:
   - row: M5
     criterion: Low-level event dispatch
     severity: MEDIUM
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: a user-level interaction API is a project dependency'
     convention_key: null
     detect: semantic
@@ -236,7 +236,7 @@ rules:
   - row: M6
     criterion: Unawaited async
     severity: MEDIUM
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
@@ -246,7 +246,7 @@ rules:
   - row: M7
     criterion: Excessive nesting
     severity: MEDIUM
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
@@ -256,7 +256,7 @@ rules:
   - row: M8
     criterion: Positional flow selector
     severity: MEDIUM
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: the reviewed file is a Maestro flow'
     convention_key: null
     detect: semantic
@@ -266,7 +266,7 @@ rules:
   - row: M9
     criterion: Configured utility bypassed
     severity: MEDIUM
-    basis: convention
+    basis: 惯例
     gate: 'Convention: playwrightUtils (precondition playwrightUtilsActive)'
     convention_key: playwright_utils
     detect: semantic
@@ -276,7 +276,7 @@ rules:
   - row: M10
     criterion: Configured contract utility bypassed
     severity: MEDIUM
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: the reviewed file is a JS/TS Pact artifact (precondition pactjsUtilsActive)'
     convention_key: null
     detect: semantic
@@ -286,17 +286,17 @@ rules:
   - row: L1
     criterion: Fragile selector
     severity: LOW
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: the file locates DOM elements'
     convention_key: null
     detect: semantic
     dimensions: [maintainability]
-    bonus_guard: [allTestIds]
+    bonus_guard: [测试 ID 完备]
     disabled: false
   - row: L2
     criterion: Missing priority marker
     severity: LOW
-    basis: convention
+    basis: 惯例
     gate: 'Convention: priorityMarkers'
     convention_key: priority_markers
     detect: semantic
@@ -306,17 +306,17 @@ rules:
   - row: L3
     criterion: Missing stable test id
     severity: LOW
-    basis: convention
+    basis: 惯例
     gate: 'Convention: testIds'
     convention_key: test_ids
     detect: semantic
     dimensions: [maintainability]
-    bonus_guard: [allTestIds]
+    bonus_guard: [测试 ID 完备]
     disabled: false
   - row: L4
     criterion: Pact single-file pool advisory
     severity: LOW
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: exactly 1 .pacttest.ts for the pair'
     convention_key: null
     detect: mechanical
@@ -326,17 +326,17 @@ rules:
   - row: L5
     criterion: Implementation-shaped name
     severity: LOW
-    basis: convention
+    basis: 惯例
     gate: 'Convention: bddNaming'
     convention_key: bdd_naming
     detect: semantic
     dimensions: [maintainability]
-    bonus_guard: [excellentBdd]
+    bonus_guard: [优秀 BDD]
     disabled: false
   - row: L6
     criterion: Magic value
     severity: LOW
-    basis: absolute
+    basis: 必查
     gate: Absolute
     convention_key: null
     detect: semantic
@@ -346,7 +346,7 @@ rules:
   - row: L7
     criterion: Inconsistent assertion style
     severity: LOW
-    basis: convention
+    basis: 惯例
     gate: 'Convention: assertionStyle'
     convention_key: assertion_style
     detect: semantic
@@ -356,7 +356,7 @@ rules:
   - row: L8
     criterion: Unscoped flow text match
     severity: LOW
-    basis: applicability
+    basis: 视情况
     gate: 'Applicability: the reviewed file is a Maestro flow'
     convention_key: null
     detect: semantic
@@ -366,7 +366,7 @@ rules:
   - row: L9
     criterion: Spec bypasses merged fixtures
     severity: LOW
-    basis: convention
+    basis: 惯例
     gate: 'Convention: playwrightUtils (precondition playwrightUtilsActive)'
     convention_key: playwright_utils
     detect: semantic

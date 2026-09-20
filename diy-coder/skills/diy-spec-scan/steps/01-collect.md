@@ -19,9 +19,9 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
 
 `target.kind` 由你判定（引擎不给），三选一：
 
-- `taskbook` — 任务书 / 施工指令（含角色分工、分节规格）
-- `skill` — 技能规格（`SKILL.md` + `steps/`）
-- `spec` — 其他给 AI 执行的规格文本
+- `任务书` — 施工指令（含角色分工、分节规格）
+- `技能` — 技能规格（`SKILL.md` + `steps/`）
+- `规格` — 其他给 AI 执行的规格文本
 
 ## 调整单元粒度
 

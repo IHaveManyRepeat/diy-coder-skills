@@ -186,7 +186,7 @@ REVIEW_YAML = NL.join([
     "    file: tests/api.spec.ts",
     "    line: 12",
     "    note: 无优先级标记",
-    "    basis: convention",
+    "    basis: 惯例",
     "    class: 已确立",
     "  score:",
     "    deductions: {critical: 0, high: 0, medium: 0, low: 1, total: 1}",
@@ -485,15 +485,15 @@ class ScoreTests(EngineCase):
     def test_bonus_domain_and_guard(self):
         # 数值域：points 只许 0 或 5
         self.write_findings(self.findings_doc(
-            [], [{"key": "perfectIsolation", "points": 3, "note": "部分分"}],
+            [], [{"key": "完全隔离", "points": 3, "note": "部分分"}],
         ))
         r = self.score("--findings", os.path.join(self.out, "test-review-findings.json"))
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r.stdout)["violations"]})
-        # 矛盾复核：bonus 得 5 而对应规则行有命中（perfectIsolation ↔ H4）
+        # 矛盾复核：bonus 得 5 而对应规则行有命中（完全隔离 ↔ H4）
         self.write_findings(self.findings_doc(
             [{"file": "t.spec.ts", "line": 3, "row": "H4", "note": "共享状态未重置"}],
-            [{"key": "perfectIsolation", "points": 5, "note": "全文件干净"}],
+            [{"key": "完全隔离", "points": 5, "note": "全文件干净"}],
         ))
         r2 = self.score("--findings", os.path.join(self.out, "test-review-findings.json"))
         self.assertEqual(r2.returncode, 1, r2.stdout)
@@ -501,8 +501,8 @@ class ScoreTests(EngineCase):
         # 上限 30 与总分：六类全给 → 100 - 0 + 30
         self.write_findings(self.findings_doc([], [
             {"key": k, "points": 5, "note": "全文件成立"} for k in
-            ("excellentBdd", "comprehensiveFixtures", "dataFactories",
-             "networkFirst", "perfectIsolation", "allTestIds")]))
+            ("优秀 BDD", "完备夹具", "数据工厂",
+             "网络优先", "完全隔离", "测试 ID 完备")]))
         r3 = self.score("--findings", os.path.join(self.out, "test-review-findings.json"))
         data = json.loads(r3.stdout)
         self.assertEqual(data["bonus"]["total"], 30)
@@ -801,7 +801,7 @@ class CriteriaRegistryTests(unittest.TestCase):
     def test_convention_rows_carry_baseline_key(self):
         keys = ("priority_markers", "test_ids", "bdd_naming", "network_first",
                 "data_factories", "fixtures", "assertion_style")
-        convention = [r for r in self.doc["rules"] if r["basis"] == "convention"]
+        convention = [r for r in self.doc["rules"] if r["basis"] == "惯例"]
         self.assertTrue(convention, "convention 行缺失（三类门之一）")
         for row in convention:
             self.assertTrue(row.get("convention_key"), row["row"])
@@ -820,12 +820,12 @@ class CriteriaRegistryTests(unittest.TestCase):
             for key in row.get("bonus_guard") or []:
                 guards.setdefault(key, set()).add(row["row"])
         self.assertEqual(guards, {
-            "excellentBdd": {"L5"},
-            "comprehensiveFixtures": {"M2"},
-            "dataFactories": {"M2"},
-            "networkFirst": {"M1"},
-            "perfectIsolation": {"H4"},
-            "allTestIds": {"L1", "L3"},
+            "优秀 BDD": {"L5"},
+            "完备夹具": {"M2"},
+            "数据工厂": {"M2"},
+            "网络优先": {"M1"},
+            "完全隔离": {"H4"},
+            "测试 ID 完备": {"L1", "L3"},
         })
 
 

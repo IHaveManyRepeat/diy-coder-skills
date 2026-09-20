@@ -58,7 +58,7 @@
            候选的落点（G-4：命中而 findings / recommendations 无 `<域>×<域>` 行即违例）；
            mutation-report 缺席按过渡期口径只记 warning。
     check 只重算「同记录内可机械重算」的量（判据 actual、totals、by_level、overall_risk、
-    nfr_critical、p0_uncovered、mutation_score）——不重跑 collect 的覆盖判定表（那是
+    非功能致命、P0 未覆盖、变异得分）——不重跑 collect 的覆盖判定表（那是
     collect 与 steps/03 LLM 复核的职责），避免二份实现。
     本引擎不写盘：产物由会话（LLM）按 Schema 段创作，引擎只采集与校验。
 
@@ -274,12 +274,12 @@ def soft_metrics_block(items, plan, ac_story):
         if resolvable:
             chain += 1
     rows = (
-        ("business_rule_coverage", "100%", by_technique["business"], total_acs),
-        ("boundary_coverage", "100%", by_technique["boundary"], total_acs),
-        ("negative_scenario_coverage", ">=90%", by_technique["negative"], total_acs),
-        ("p0_depth_full", "100%", p0_depth, p0_total),
-        ("effective_case_ratio", ">=95%", effective, len(plan_tcs)),
-        ("id_chain_resolvable", "100%", chain, len(plan_tcs)),
+        ("业务规则覆盖", "100%", by_technique["business"], total_acs),
+        ("边界覆盖", "100%", by_technique["boundary"], total_acs),
+        ("负向场景覆盖", ">=90%", by_technique["negative"], total_acs),
+        ("P0 深度完整", "100%", p0_depth, p0_total),
+        ("有效用例比", ">=95%", effective, len(plan_tcs)),
+        ("ID 链可解析", "100%", chain, len(plan_tcs)),
     )
     block = {}
     for name, target, numerator, denominator in rows:

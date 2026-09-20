@@ -52,7 +52,7 @@ python "{project-root}/.claude/skills/diy-project-context/scripts/context.py" sc
 ```
 我这样分类了这个项目：
 
-- 仓库类型：{repository_type}
+- 仓库类型：{repository_type}（单体 / 多部件 / 单仓多包）
 - {part.name}（{part.path}）— {part.type}
   技术栈：{stack row} / 清单：{part.manifests}
 
