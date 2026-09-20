@@ -63,7 +63,7 @@ DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚
                  "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
 
 
-def test_plan(status="已定稿", tc_status="待办", kill_target="边界值未被拦截",
+def _plan(status="已定稿", tc_status="待办", kill_target="边界值未被拦截",
               technique="boundary", tc_id="TC-1.1.1"):
     """最小 test-plan.yaml 夹具（本技能只读：门禁 + TC 自检面）。"""
     lines = [
@@ -137,7 +137,7 @@ class EngineCase(unittest.TestCase):
         self.root = self.tmp.name
         self.out = os.path.join(self.root, "diy-output")
         os.makedirs(self.out, exist_ok=True)
-        self.write("diy-output/test-plan.yaml", test_plan())
+        self.write("diy-output/test-plan.yaml", _plan())
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -185,9 +185,9 @@ class GateTests(EngineCase):
     """门禁面：不满足即拒绝（exit 1 + 对应违规码 + 零产出）。"""
 
     # trace: 任务书 §3 门禁（test-plan 存在且 status: 已定稿）
-    def test_gate_rejects_non_final_test_plan(self):
+    def test_gate_rejects_non_final__plan(self):
         spec = self.spec("tests/boundary.spec.ts", JS_PRECODE_OK)
-        self.write("diy-output/test-plan.yaml", test_plan(status="草稿"))
+        self.write("diy-output/test-plan.yaml", _plan(status="草稿"))
         before = self.snapshot()
         r = self.audit([spec])
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
@@ -210,7 +210,7 @@ class GateTests(EngineCase):
     # trace: 任务书 §3 门禁（范围内无可做 TC：全通过不得静默空跑）
     def test_gate_rejects_pass_tc_in_scope(self):
         spec = self.spec("tests/boundary.spec.ts", JS_PRECODE_OK)
-        self.write("diy-output/test-plan.yaml", test_plan(tc_status="通过"))
+        self.write("diy-output/test-plan.yaml", _plan(tc_status="通过"))
         self.assertEqual(run_engine(["audit"]).returncode, 2)  # 缺 --files → 用法错误
         r = self.audit([spec])
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -219,7 +219,7 @@ class GateTests(EngineCase):
     # trace: 任务书 §3 门禁（TC 现场自检：technique / kill_target 非空）
     def test_gate_rejects_empty_kill_target(self):
         spec = self.spec("tests/boundary.spec.ts", JS_PRECODE_OK)
-        self.write("diy-output/test-plan.yaml", test_plan(kill_target="''"))
+        self.write("diy-output/test-plan.yaml", _plan(kill_target="''"))
         r = self.audit([spec])
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("EMPTY_FIELD", {x["code"] for x in json.loads(r.stdout)["violations"]})
