@@ -18,7 +18,7 @@ description: Derive epics.yaml and stories.yaml from prd.yaml features. Acceptan
 2. 硬门：加载 `{output_dir}/prd.yaml`；`project.status` 必须是 `已定稿`。不满足 → 一行拒绝（点名缺什么）+ 零产出 + 路由 `diy-prd`。
 3. 目标文件：`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml`。判意图：
    - **Create** —— 两份都不在场 → 全量派生。
-   - **Update** —— 任一份在场 → 先 `cp {output_dir}/epics.yaml {output_dir}/epics.yaml.prev` 与 `cp {output_dir}/stories.yaml {output_dir}/stories.yaml.prev`，载入既有稿、对账变更信号，**所有 ID 保持稳定**；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --previous {output_dir}/epics.yaml.prev --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --previous {output_dir}/stories.yaml.prev --json`（exit 0 = 无记录丢失；两份产物各查各的）。**任一非 0 一律不删对应的 `.prev`**：`ID_UNSTABLE` → 从该份快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 该份快照不可用、安全网失效，停手告知用户，确认前不得再写。两份都 exit 0 才删掉两份 `.prev` 文件。
+   - **Update** —— 任一份在场 → 只对**在场的那份**做快照与校验（两个 `cp` 各只在该份在场时执行；不在场的那份直接全量派生、不产也不查 `.prev`）：`cp {output_dir}/epics.yaml {output_dir}/epics.yaml.prev` 与 `cp {output_dir}/stories.yaml {output_dir}/stories.yaml.prev`，载入既有稿、对账变更信号，**所有 ID 保持稳定**；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --previous {output_dir}/epics.yaml.prev --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --previous {output_dir}/stories.yaml.prev --json`（exit 0 = 无记录丢失；两份产物各查各的）。**任一非 0 一律不删对应的 `.prev`**：`ID_UNSTABLE` → 从该份快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 该份快照不可用、安全网失效，停手告知用户，确认前不得再写。查过的几份都 exit 0 才删掉它们的 `.prev` 文件。
 
 ## 工作流
 

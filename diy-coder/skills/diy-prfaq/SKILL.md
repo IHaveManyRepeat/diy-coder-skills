@@ -72,7 +72,7 @@ revisions: []                        # {date, change, reason}，date 为 YYYY-MM
 2. ID 纪律：`PQ-###` 由会话一次性铸造，顺序递增、两条 FAQ 列表共用且唯一；新问题追加在末尾，取下一个号。ID 永不重编号、永不复用。引擎只校验格式与唯一性——绝不铸造 ID。
 3. 假设标记（C7 三条约定）：推断或低置信的答案（headless 尤甚）在 YAML **值**上带 `[假设]` 前缀——① 前缀只写在值上，不新增独立键；值以标记打头时必须加引号（`a: '[假设] ...'`；未加引号的 `[` 会破坏 YAML）；② `final` 前必须清零——交互态经用户确认后删前缀，**headless 态一律转成显式的 `distillate.open_questions` 条目，不删不猜**；③ 终门扫的字段集 ＝ 整份 `prfaq.yaml` 的全部字符串（键与值都算，含 `notes` / `revisions` / `distillate`）。终门要求零前缀。
 4. 客户优先的强制、概念类型校准与提问角度是**有约束力的方法学**，不是建议；质量杠（不用行话 / 不用含糊词 / 妈妈测试 /「那又怎样」测试 / 诚实框定）体现在挑战里，绝不向用户列举。
-5. 恢复只读 `prfaq.stage`；修订已定稿的 PRFAQ 会重开对应阶段（`stage` 回移）并向 `revisions` 追加（date / change / reason）。任何整体重写之前：`cp {output_dir}/prfaq.yaml {output_dir}/prfaq.yaml.prev`，然后跑 `prfaq.py check --previous {output_dir}/prfaq.yaml.prev --json`（exit 0 = ID 稳定），再删掉 `.prev` 文件。
+5. 恢复只读 `prfaq.stage`；修订已定稿的 PRFAQ 会重开对应阶段（`stage` 回移）并向 `revisions` 追加（date / change / reason）。任何整体重写之前：`cp {output_dir}/prfaq.yaml {output_dir}/prfaq.yaml.prev`，然后跑 `prfaq.py check --previous {output_dir}/prfaq.yaml.prev --json`（exit 0 = 无记录丢失）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净再删掉 `.prev` 文件。
 6. 渲染照工作流里的静默旁路句——只写命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点。
 7. 终门（机械）：先写 `project.status: 已定稿` 与 `prfaq.stage: 5`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-prfaq/scripts/prfaq.py" check --final --json`，实参与激活时同一份：`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"`（`--output-dir` 必填、从不取缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾都等 exit 0。
 

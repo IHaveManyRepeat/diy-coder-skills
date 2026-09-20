@@ -21,8 +21,8 @@ Progress: `Discovery → Draft → Finalize`（更新从本步进入；收口回
 2. 起草对好账的简报。把每条被推翻的决策翻成 `status: 已反转`，替代条按下一个 `BD-###` 追加——永不重编号、永不重用、永不改写旧史。
 3. 跑（`--project-root` / `--output-dir` 与激活期同值）：
    `python "{project-root}/.claude/skills/diy-product-brief/scripts/brief.py" check --previous {output_dir}/brief.yaml.prev --project-root "{project-root}" --output-dir "{output_dir}" --json`
-   Exit 0 = 没丢决策。`ID_UNSTABLE` 表示重写漏了某个 id——补回去，校验清干净之前不得推进。
-4. 删掉 `.prev`。刷新 `project.updated`，每条被改动的记录向 `revisions` 追加 `{date, change, reason}`。
+   Exit 0 = 没丢决策。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。
+4. 删掉 `.prev`（第 3 步 exit 0 之后）。刷新 `project.updated`，每条被改动的记录向 `revisions` 追加 `{date, change, reason}`。
 
 ## 根本性变更
 

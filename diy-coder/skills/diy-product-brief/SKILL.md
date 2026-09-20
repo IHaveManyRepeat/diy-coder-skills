@@ -79,7 +79,7 @@ revisions: []                              # {date, change, reason} —— 既�
 4. 陪跑姿态：看利害档位下菜——`个人兴趣` 的项目不需要 `投资人` 级的严谨，融资路演才需要；绝不编造护城河。
 5. 抽取，不吞入：源材料——转录稿、脑爆笔记、演示稿、研究报告、代码、旧简报——以按相关性过滤后的摘录进入对话，不整包加载；子代理抽取，母代理保持轻装。
 6. 篇幅与连贯：1-2 页；更长的都进 `addendum` 并写明 `why_separate`。下游（尤其 diy-prd）会读它，形状连贯才算数。外部交接（Confluence、Notion、工单系统）不在 diy 范围内——YAML 加 viewer 投影就是交付。
-7. 更新纪律：重写既有简报前先快照——`cp {output_dir}/brief.yaml {output_dir}/brief.yaml.prev`；起草完跑 `python "{project-root}/.claude/skills/diy-product-brief/scripts/brief.py" check --previous {output_dir}/brief.yaml.prev --project-root "{project-root}" --output-dir "{output_dir}" --json`（exit 0 = 没丢 `BD-###`），然后删掉 `.prev`。改既有记录时向 `revisions` 追加 `{date, change, reason}`；id 永不重编号、永不重用。
+7. 更新纪律：重写既有简报前先快照——`cp {output_dir}/brief.yaml {output_dir}/brief.yaml.prev`；起草完跑 `python "{project-root}/.claude/skills/diy-product-brief/scripts/brief.py" check --previous {output_dir}/brief.yaml.prev --project-root "{project-root}" --output-dir "{output_dir}" --json`（exit 0 = 没丢 `BD-###`）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev`。改既有记录时向 `revisions` 追加 `{date, change, reason}`；id 永不重编号、永不重用。
 8. 终门（机械）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-product-brief/scripts/brief.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--output-dir` 必填、无缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾等 exit 0。
 9. 渲染按工作流里的静默旁路句执行——只写命令；不新增浏览器交互点、不报告阻塞路径、不等待。
 

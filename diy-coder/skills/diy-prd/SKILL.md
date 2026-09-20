@@ -55,7 +55,7 @@ description: Create or update the product PRD as a single-source prd.yaml with s
 
 ### 落盘与收尾
 
-1. Create 模式：写 `{output_dir}/prd.yaml`（`status: 草稿`）并告知路径。Update 模式：先 `cp {output_dir}/prd.yaml {output_dir}/prd.yaml.prev`，载入既有文件与用户的变更信号对账——刷新 `updated`、所有 ID 保持稳定——再写；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --previous {output_dir}/prd.yaml.prev --json`（exit 0 = ID 稳定）；然后删掉 `.prev` 文件。
+1. Create 模式：写 `{output_dir}/prd.yaml`（`status: 草稿`）并告知路径。Update 模式：先 `cp {output_dir}/prd.yaml {output_dir}/prd.yaml.prev`，载入既有文件与用户的变更信号对账——刷新 `updated`、所有 ID 保持稳定——再写；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --previous {output_dir}/prd.yaml.prev --json`（exit 0 = 无记录丢失）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev` 文件。
 2. 立即渲染草稿供审阅。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 3. 摊开每个 `[假设]` 与未决问题；迭代到用户确认。
 4. 终门（机械）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `status` 回退 `草稿`**，修完重走本步。
