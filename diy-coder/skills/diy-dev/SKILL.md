@@ -2,6 +2,12 @@
 name: diy-dev
 description: 'Execute one sprint task with strict TDD - write failing test first (red), then minimal implementation (green), then write execution evidence back into sprint.yaml task entry. Refuses to code when the task''s test cases are missing from test-plan.yaml (routes back to diy-test-design). Use when the user wants to implement/dev a specific story/task manually.'
 # ↑ 中文：用严格 TDD 执行一个冲刺任务——先写失败测试（红），再做最小实现（绿），最后把执行证据写回 sprint.yaml 的任务条目；任务的用例在 test-plan.yaml 里缺失即拒绝编码，路由回 `diy-test-design`。用户想手动实现/开发某个故事或任务时触发。
+phase: 4-implementation
+precededBy: [diy-create-story, diy-test-author]
+followedBy: [diy-e2e-tests, diy-review]
+required: false
+line: mainline
+outputs: —
 ---
 
 # diy-dev — 单故事 TDD 编码（YAML 单一源）

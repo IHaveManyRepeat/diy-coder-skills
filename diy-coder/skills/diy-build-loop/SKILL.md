@@ -2,6 +2,12 @@
 name: diy-build-loop
 description: Drive ONE sprint task from its current state to a terminal state (已完成/已阻塞) in a single invocation - the dev loop (TDD red/green per diy-dev), the review layers (per diy-review), and bounded rework rounds, all in one run. Writes every state transition back to sprint.yaml immediately (HALT protocol) so an external runner can resume from the breakpoint. Ambiguity it cannot resolve itself becomes blocked with a named reason - never spin. Use when the user says "run one iteration" / "iterate this task", or when the runner invokes it headless.
 # ↑ 中文：一次调用把一个冲刺任务从当前状态推到终态（`已完成` 或 `已阻塞`）——dev 环（按 diy-dev 的红/绿 TDD）、审查层（按 diy-review）、有上限的返工轮，全在这一次运行里跑完。每次状态迁移立刻写回 sprint.yaml（HALT 协议），外部 runner 可从断点续跑。自己解不了的歧义转 `已阻塞` 并点名理由——绝不空转。用户说「跑一轮迭代」「迭代这个任务」，或 runner 无头调用它时使用。
+phase: 4-implementation
+precededBy: [diy-sprint]
+followedBy: []
+required: false
+line: mainline
+outputs: —
 ---
 
 # diy-build-loop — 单次迭代（编码→自测→审查→修复，YAML 单一源）

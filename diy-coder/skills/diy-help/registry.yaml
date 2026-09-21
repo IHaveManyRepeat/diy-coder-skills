@@ -1,0 +1,50 @@
+# diy-help 登记表（C·1 登记表驱动 —— 迁移计划 §五 阶段 C 第 1 项 / 缺口 1）
+#
+# 职责边界 —— 本表**只装 frontmatter 六字段没有的东西**：
+#   本表       = ① 链序（哪些技能成一条链、什么次序）② 可选节点缺席时的提示文案
+#                ③ 线级：入口技能 / 执行技能 / 下游待登记的说明
+#   frontmatter（各技能自己的 SKILL.md，六字段封闭集）= 自我声明
+#                line / phase / precededBy / followedBy / required / outputs
+# 两者**不重复任何一条事实**：本表不提产物文件名（从该技能 `outputs` 派生）、
+# 不提高阶段与依赖（引擎不读）；链节点的 `required: false` 即本表的可选节点。
+# 一致性由 tests/test_help_registry.py 守卫（双向严格）。
+#
+# 为什么链序不写进 frontmatter 的依赖边：`diy-openapi` / `diy-design` 是**可选节点**
+# （frontmatter `required: false`）但占链上第 3 / 第 4 位；这个"位置"不是依赖关系
+# （design 并不需要 openapi），写成 precededBy/followedBy 就是假依赖，而
+# diy-bmb-module 强制镜像对称校验会把它固化成真。
+
+version: 1
+
+lines:
+  # 线名 mainline / wds 是机器锚点，逐字保留；label 给人看
+  mainline:
+    label: 产品主线
+    entry: diy-prd            # 无任何产物时的分叉目标；必须是 chain 的第一个
+    exec: diy-build-loop      # 链走完（末节点已定稿）而 sprint 任务未全完成时的执行技能
+    exec_note: ""             # exec 为 null 时必填，说明下游为何缺席
+    chain:                    # ← 链序：本表的核心内容
+      - diy-prd
+      - diy-architecture
+      - diy-openapi
+      - diy-design
+      - diy-epics-stories
+      - diy-test-design
+      - diy-sprint
+    notes:                    # 仅可选节点（frontmatter required: false）用；其余不写
+      diy-openapi: "openapi.yaml 不存在——若本项目有 API 面，可随时运行 diy-openapi 生成契约（无接口面可跳过）"
+      diy-design: "design.yaml 不存在——若本项目有前端需求，可随时运行 diy-design 生成设计；无前端可跳过"
+    status_paths:             # 覆盖默认权威位置 [project, status]（该产物把元数据写在别处时）
+      # diy-openapi 规则硬定「合法 3.1 高于一切、元数据只住 x-project」（SKILL.md:19）
+      diy-openapi: [x-project, status]
+
+  wds:
+    label: WDS 线（官网 / 营销站）
+    entry: diy-wds-brief
+    exec: null
+    exec_note: "WDS 线下游（system / assets / evolution / analyze / reverse）随 B7 批次登记；本批该线止于 diy-wds-scenarios"
+    chain:
+      - diy-wds-brief
+      - diy-wds-trigger
+      - diy-wds-scenarios
+    notes: {}

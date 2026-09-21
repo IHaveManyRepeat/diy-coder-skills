@@ -2,6 +2,12 @@
 name: diy-help
 description: Dynamic workflow navigator. Scans diy-output artifacts (existence + status) and recommends the exact next skill, or names the blocking file when something is not 已定稿. Use when the user asks where they are, what to do next, or wants to start/continue the diy-coder workflow.
 # ↑ 中文：动态工作流导航——扫 diy-output 产物的存在性与 status，给出精确的下一个技能；有产物没定稿就点名卡住的那份文件。用户问「现在到哪了 / 下一步做什么」，或要开始、继续 diy-coder 工作流时触发。
+phase: anytime
+precededBy: []
+followedBy: []
+required: false
+line: any
+outputs: —
 ---
 
 # diy-help — 工作流状态机导航（FR-4.2）
@@ -25,7 +31,7 @@ description: Dynamic workflow navigator. Scans diy-output artifacts (existence +
    python "{project-root}/.claude/skills/diy-help/scripts/help.py" --project-root "{project-root}"
    ```
 
-   resolved 实例时附 `--instance <name>`；调用方是别的脚本时才附 `--json`。唯一例外：用户对结果存疑 → 带 `--json` 重跑一次（见规则 2）。
+   resolved 实例时附 `--instance <name>`；用户已选定工作线时附 `--line <线名>`（见规则 5）；调用方是别的脚本时才附 `--json`。唯一例外：用户对结果存疑 → 带 `--json` 重跑一次（见规则 2）。
 2. 分支判定读 `--json` 回执的键（`blocked` / `next_skill` / `workflow_done`）；无 `--json` 的人读中文行只作转述。
    - `blocked` 在场 → 逐字转述该段并聚焦这里；整个跳过可选提示，绝不软化成一张选项菜单。
    - `next_skill` 在场 → 点名该技能，并建议新开一个上下文窗口。
@@ -34,15 +40,20 @@ description: Dynamic workflow navigator. Scans diy-output artifacts (existence +
 
 ## 结构
 
-本技能零产物；它读的是**产物链**与**脚本回执**（`--json`）：
+本技能零产物；它读的是**登记表 + 各技能的 frontmatter**与**脚本回执**（`--json`）：
 
 ```yaml
-# 产物链 = 脚本 CHAIN 的判定顺序；status 一律读节点声明的路径
-prd.yaml → architecture.yaml → openapi.yaml(可选) → design.yaml(可选)
-         → epics.yaml + stories.yaml（两文件齐全才算完成）
-         → test-plan.yaml → sprint.yaml → 任务执行
+# 产物链 = 登记表（diy-help/registry.yaml）的链序 + 各技能 frontmatter 的 outputs；
+#          status 一律读节点声明的路径
+主线 mainline：prd.yaml → architecture.yaml → openapi.yaml(可选) → design.yaml(可选)
+              → epics.yaml + stories.yaml（两文件齐全才算完成）
+              → test-plan.yaml → sprint.yaml → 任务执行
+WDS 线 wds  ：wds-brief.yaml → wds-trigger.yaml → wds-scenarios.yaml →（下游待登记）
 # 回执键
 position: 零起点 | 第 N/M 步：<skill> | 阻塞于 <file> | 执行阶段 | 工作流完成
+          # 非主线时带线名前缀（如「WDS 线（官网 / 营销站） 第 2/3 步：…」）
+line: 当前判定的线（mainline / wds / null=零起点）
+branches: [{line, label, entry}] | null   # 零起点或两线并存时给候选，其余为 null
 output_dir: 本次运行唯一的读写根
 completed_steps: [技能名]
 next_skill: 技能名 | null
@@ -51,8 +62,9 @@ notes: [可选提示]          # blocked 在场时被抑制
 workflow_done: true | false
 ```
 
+- **两个源，各管各的**：链序与缺席提示在 `registry.yaml`；某节点要不要扫、扫哪些文件、是否可跳过，读该技能自己 `SKILL.md` frontmatter 的 `outputs` / `required`。本技能不复制、不重算。
 - 各产物的 status 在 `project.status`；`openapi.yaml` 的在 `x-project.status`（读不到才回落 `project.status`）。
-- `openapi.yaml` / `design.yaml` 是可选节点：缺席=合法跳过（`notes` 给提示），在场但非 `已定稿` 才阻塞。
+- 可选节点（frontmatter `required: false`）缺席=合法跳过（`notes` 给提示），在场但非 `已定稿` 才阻塞。
 - 位置与推荐只由脚本给出——本技能不重算、不预测。
 
 ## 规则
@@ -61,5 +73,6 @@ workflow_done: true | false
 2. **脚本是唯一权威。** 绝不发明回执之外的位置或技能。结果与用户认知相左时，带 `--json` 重跑一次并摊开原始数据——这是「只跑一次」的唯一例外；YAML 文件是真源，不是本技能。
 3. **回复纪律。** 用 `project.communication_language` 回复；10 行上限只约束我自己的附加说明，脚本输出（尤其 `blocked` 段）逐字转述不受行数限制——宁可超行数，也不得压缩或改写阻塞原因。
 4. **依赖。** 脚本要求宿主 Python 装有 PyYAML。报 `ModuleNotFoundError`（`No module named 'yaml'`）时照实报告并建议 `pip install pyyaml`——绝不静默降级。
+5. **分叉与并存。** `branches` 在场即用户要选线：零起点按**用途**分叉（产品/应用 → 主线入口；官网/营销站 → WDS 入口；分析/迁移现有系统 → 逆向入口，随 B7 登记）；两条线产物并存时**问用户选定当前工作线**，再用 `--line <线名>` 重跑——绝不自行合并两条线。`branches` 不在场就按回执单线走，不问。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

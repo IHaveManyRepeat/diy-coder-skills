@@ -2,6 +2,12 @@
 name: diy-review
 description: 'Review a sprint task in 待审查 state with layered audits - L1 correctness, L2 boundary, L3 acceptance-coverage, plus L4 design adoption for UI tasks whose ACs carry design_ref. Every finding routes to exactly one of 意图缺口 / 规格缺陷 / 小修 / 后置. Verdict 通过 moves the task to 已完成 after backfilling stories.yaml and test-plan.yaml; a 失败 with 规格缺陷 blocks the task for upstream spec repair, any other 失败 sends it back to 进行中. Real defects found are also logged into bug-log.yaml (three-level classification) to feed future fault hypotheses. Optional falsification round after 通过 (--falsify <story|all>, accepted on 已完成 targets): attack the finished work with bug-log patterns and non-functional dimensions. Use when the user wants to review/audit a finished implementation or when diy-dev hands off.'
 # ↑ 中文：审查 `待审查` 状态的冲刺任务——分层审计 L1 正确性 / L2 边界 / L3 覆盖审计；AC 带 `design_ref` 的 UI 任务加 L4 设计采用。每条 finding 恰好路由到「意图缺口 / 规格缺陷 / 小修 / 后置」之一。判决 `通过` 时由 `done` 原子写回 `stories.yaml` / `test-plan.yaml` 两个真源并把任务送进 `已完成`；带 `规格缺陷` 的 `失败` 阻塞任务待上游修规格，其余 `失败` 打回 `进行中`。发现的真缺陷另入 bug-log.yaml（三级分类）喂养后续故障假设。`通过` 后可跑可选证伪轮（`--falsify <story|all>`，接受 `已完成` 目标）：用 bug-log 模式与非功能维度攻击已完成的工作。用户想审查/审计完成的实现，或 diy-dev 交棒时使用。
+phase: 4-implementation
+precededBy: [diy-dev]
+followedBy: [diy-retrospective, diy-augment]
+required: false
+line: mainline
+outputs: —
 ---
 
 # diy-review — 分层审查与路由（YAML 单一源）

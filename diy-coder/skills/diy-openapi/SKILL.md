@@ -2,6 +2,12 @@
 name: diy-openapi
 description: Derive or update an OpenAPI 3.1 interface contract (openapi.yaml) from prd.yaml and architecture.yaml for interface-first review. Use when the user wants to define an API contract, generate openapi, or revise an existing openapi.yaml.
 # ↑ 中文：从 prd.yaml 与 architecture.yaml 推导或更新 OpenAPI 3.1 接口契约（openapi.yaml），供接口先行评审。用户想定义 API 契约、生成 openapi，或修订既有 openapi.yaml 时触发。
+phase: 3-solutioning
+precededBy: [diy-architecture]
+followedBy: []
+required: false
+line: mainline
+outputs: openapi.yaml
 ---
 
 # diy-openapi — 接口契约（OpenAPI 3.1 单一源）

@@ -2,6 +2,12 @@
 name: diy-viewer
 description: Render diy-coder YAML artifacts (prd.yaml, architecture.yaml, etc.) into human-friendly HTML (browser auto-opens in interactive terminals only; AI/automated runs render silently). Use when the user asks to view/see/preview any diy-output document, or after any diy-* skill produces or updates a YAML artifact.
 # ↑ 中文：把 diy-coder 的 YAML 产物（prd.yaml、architecture.yaml 等）渲染成人类友好的 HTML（浏览器只在交互终端自动打开；AI/自动化运行静默渲染）。用户想查看/预览任何 diy-output 文档，或任何 diy-* 技能产出/更新了 YAML 产物之后，触发本技能。
+phase: anytime
+precededBy: []
+followedBy: []
+required: false
+line: any
+outputs: —
 ---
 
 # diy-viewer — YAML 单一源 → HTML 人类友好投影

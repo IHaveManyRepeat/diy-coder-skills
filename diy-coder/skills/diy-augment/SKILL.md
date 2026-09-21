@@ -2,6 +2,12 @@
 name: diy-augment
 description: 'Coded-post test augmentation. After a task reaches done, run the project''s coverage toolchain against the implementation, triage uncovered branches, condition combinations, and paths, then append complementary cases (覆盖分支 / MC-DC 覆盖 / 白盒路径) to test-plan.yaml with stable per-AC TC IDs, execute them, write back status, and leave the verdict (通过 / 失败 / 已跳过) on the task''s augment field in sprint.yaml. When a mutation toolchain is available (a user-confirmed mutation entry in the test-plan static_checks chain, or a command the user gives in-session), also run it against a sandboxed copy and close survivors with 变异杀伤 cases, recording the run in mutation-report.yaml. Report-only on failures — this skill never reopens a task; reopening is a user verdict run by a human via .claude/skills/diy-tools/scripts/runner.py --reopen-failed. Invoked by runner.py after each done task; standalone invocation with a task ID is equivalent.'
 # ↑ 中文：编码后补测——任务到 `已完成` 后，对实现面跑项目覆盖率工具链，分类未覆盖分支 / 条件组合 / 路径，按稳定的每-AC TC ID 把互补用例追加进 test-plan.yaml，执行并逐条回写 status，判定（`通过` / `失败` / `已跳过`）落在 sprint.yaml 该任务的 `augment` 字段上。变异工具链在场时（test-plan 的 static_checks 链里用户确认的变异条目，或本会话用户显式给出的命令）另对沙箱副本跑一遍，用 `变异杀伤` 用例收口幸存体，运行记录落 mutation-report.yaml。失败只出判定——本技能绝不重开任务；重开是用户裁断，由人手动执行 `.claude/skills/diy-tools/scripts/runner.py --reopen-failed`。runner.py 在每个 `已完成` 任务后调用本技能；带任务 ID 独立调用等价。
+phase: 4-implementation
+precededBy: []
+followedBy: [diy-test-gate, diy-test-review]
+required: false
+line: mainline
+outputs: —
 ---
 
 # diy-augment — 编码后补测（覆盖率驱动追加 TC）

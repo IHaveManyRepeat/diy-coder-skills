@@ -2,6 +2,12 @@
 name: diy-test-design
 description: Derive test-plan.yaml from stories.yaml acceptance criteria using fault-based test design. For each AC, list fault hypotheses first, then derive cases via named techniques (等价类, 边界, 决策表, 状态迁移, 成对组合, 错误猜测, 蜕变测试, 属性测试); every case declares which fault it kills (kill_target). Uncovered ACs surface as explicit coverage gaps for user decision. Use when the user wants test cases designed before coding (TDD-first).
 # ↑ 中文：从 stories.yaml 的验收标准按故障驱动法推导 test-plan.yaml——每条 AC 先列故障假设、再用点名技法推导用例，每条用例声明自己杀哪条故障（`kill_target`），未覆盖的 AC 显式记成覆盖缺口交用户裁决。用户想在编码前设计用例（TDD 先行）时触发。
+phase: 3-solutioning
+precededBy: [diy-epics-stories]
+followedBy: [diy-sprint, diy-test-author]
+required: true
+line: mainline
+outputs: test-plan.yaml
 ---
 
 # diy-test-design — 测试用例设计（YAML 单一源）

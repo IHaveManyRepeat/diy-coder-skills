@@ -2,6 +2,12 @@
 name: diy-epics-stories
 description: Derive epics.yaml and stories.yaml from prd.yaml features. Acceptance criteria use given/when/then and reference stable FR IDs. Use when the user wants to create epics, break down stories, or plan work breakdown from the PRD.
 # ↑ 中文：从 prd.yaml 的 feature 派生 epics.yaml 与 stories.yaml——验收标准一律 given/when/then 并引用稳定的 FR ID。用户想创建史诗、拆解故事，或从 PRD 做工作分解时触发。
+phase: 3-solutioning
+precededBy: [diy-architecture]
+followedBy: [diy-test-design, diy-readiness-check]
+required: true
+line: mainline
+outputs: epics.yaml + stories.yaml
 ---
 
 # diy-epics-stories — 史诗与故事派生（YAML 单一源）

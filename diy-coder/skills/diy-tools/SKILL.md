@@ -2,6 +2,12 @@
 name: diy-tools
 description: Internal deterministic CLI (diyc.py) for the diy-coder suite. Shared checker/writeback engine that host skills invoke for instance resolution, mechanical checks, TDD gates, static-check chains, and HALT writeback. Not user-facing - host skills call it, never the user for workflow decisions.
 # ↑ 中文：diy-coder 套件的内部确定性 CLI（diyc.py）——宿主技能调用的共享检查器/写回器（实例解析、机械检查、TDD 门、静态检查链、HALT 写回）。非用户直调：宿主技能调它，用户不用它做工作流决策。
+phase: anytime
+precededBy: []
+followedBy: []
+required: false
+line: any
+outputs: —
 ---
 
 # diy-tools — diyc 检查器/写回器（内部工具，非用户直调）

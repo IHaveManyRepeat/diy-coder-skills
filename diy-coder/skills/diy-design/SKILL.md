@@ -2,6 +2,12 @@
 name: diy-design
 description: 'Produce design.yaml as the committed design single source (named aesthetic direction, design tokens, per-page specs with four interaction states) plus a three-stage deliverable — tokens, wireframe/HTML structural drafts, then the pages implemented in the project frontend framework (the design IS framework code living in src; plain-HTML projects stop at HTML). Runs a deterministic engine (detect / validate / check / audit). Skips explicitly when the PRD has no frontend-facing requirements. Use when the user wants design specs before implementation, or mentions design/frontend baseline.'
 # ↑ 中文：产出 design.yaml 设计单一源（承诺式美学方向、设计 token、每页四条交互状态的规格）+ 三段式交付——token、线框/HTML 结构稿、页面在项目前端框架里的实现（设计稿即住在 src 的框架代码；纯 HTML 项目止于 HTML）。配套确定性引擎（detect / validate / check / audit）。PRD 无 frontend-facing 需求时显式跳过。用户想在实现前先要设计规格，或提到设计/前端基线时触发。
+phase: 3-solutioning
+precededBy: [diy-prd]
+followedBy: []
+required: false
+line: mainline
+outputs: design.yaml
 ---
 
 # diy-design — 按需设计稿（token + 线框定结构 + 框架实现，D-10）
@@ -15,9 +21,7 @@ description: 'Produce design.yaml as the committed design single source (named a
    缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
-2. 硬门：`{output_dir}/prd.yaml` 的 `project.status: 已定稿`。
-   - 满足 → 继续第 3 步。
-   - 不满足 → 停下，一行说明缺什么，路由 `diy-prd`；**零产出**。
+2. 硬门：`{output_dir}/prd.yaml` 的 `project.status: 已定稿`——满足 → 继续第 3 步；不满足 → 停下，一行说明缺什么，路由 `diy-prd`；**零产出**。
 3. 跑一次探测器（SKIP 判据在回执里）：
 
 ```bash

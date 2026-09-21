@@ -2,6 +2,12 @@
 name: diy-sprint
 description: Generate sprint.yaml task state machine from stories.yaml and test-plan.yaml. One task per story (exact set equality), five states (待办/进行中/待审查/已完成/已阻塞), TDD gate marks test-less tasks blocked with reason. Use when the user wants a sprint queue to drive the build loop.
 # ↑ 中文：从 stories.yaml 与 test-plan.yaml 生成 sprint.yaml 任务状态机——一故事一任务（集合精确相等）、五态（待办/进行中/待审查/已完成/已阻塞）；TDD 门把缺用例的任务标为已阻塞并写明理由。用户想要一条驱动 build loop 的冲刺队列时触发。
+phase: 4-implementation
+precededBy: [diy-test-design]
+followedBy: [diy-create-story, diy-build-loop]
+required: true
+line: mainline
+outputs: sprint.yaml
 ---
 
 # diy-sprint — 任务状态机生成（YAML 单一源）

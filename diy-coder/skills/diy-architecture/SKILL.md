@@ -2,6 +2,12 @@
 name: diy-architecture
 description: Create or update the technical architecture as a decision-oriented architecture.yaml where every decision links to affected FR IDs from prd.yaml. Use when the user wants to create architecture, make technical decisions, or update an existing architecture.yaml.
 # ↑ 中文：创建或更新技术架构——决策式 architecture.yaml，每条决策链接到 prd.yaml 里受影响的 FR ID。用户想创建架构、做技术决策，或更新既有 architecture.yaml 时触发。
+phase: 3-solutioning
+precededBy: [diy-prd]
+followedBy: [diy-openapi, diy-epics-stories]
+required: true
+line: mainline
+outputs: architecture.yaml
 ---
 
 # diy-architecture — 技术架构（决策式 YAML 单一源）

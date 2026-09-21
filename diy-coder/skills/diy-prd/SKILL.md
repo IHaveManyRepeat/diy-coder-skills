@@ -2,6 +2,12 @@
 name: diy-prd
 description: Create or update the product PRD as a single-source prd.yaml with stable requirement IDs. Use when the user wants to create a PRD, write product requirements, or update an existing prd.yaml.
 # ↑ 中文：创建或更新产品 PRD——单一源 prd.yaml、需求 ID 稳定。用户想创建 PRD、写产品需求，或更新既有 prd.yaml 时触发。
+phase: 2-planning
+precededBy: []
+followedBy: [diy-architecture, diy-design]
+required: true
+line: mainline
+outputs: prd.yaml
 ---
 
 # diy-prd — 产品需求文档（YAML 单一源）
