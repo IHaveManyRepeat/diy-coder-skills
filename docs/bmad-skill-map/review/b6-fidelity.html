@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B6 批保真度报告 —— cis 创意套件（1 技能 · 4 方法分支）</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+      --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+     font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:.01em}
+h2{font-size:1.25rem;margin:34px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h3{font-size:1.05rem;margin:22px 0 8px;color:var(--accent)}
+p{margin:10px 0}
+ul,ol{margin:8px 0 8px 22px;padding:0}
+li{margin:4px 0}
+code{background:var(--code);border:1px solid var(--line);border-radius:4px;
+     padding:1px 5px;font-family:Consolas,"Courier New",monospace;font-size:.9em}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:var(--panel);
+      font-size:.94em}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#eef2f8;font-weight:600}
+tbody tr:nth-child(even){background:#fafbfe}
+strong{color:#0f172a}
+</style>
+</head>
+<body>
+<main>
+<h1>B6 批保真度报告 —— cis 创意套件（1 技能 · 4 方法分支）</h1>
+<ul>
+<li>批次：BMAD 迁移 阶段 B 第 6 批 ｜ 完成日期：2026-09-21 ｜ 编制：主 agent</li>
+<li>任务书：<code>diy-coder/.analysis/2026-09-21-migration-b6/taskbook.md</code>（终态 md5 <strong><code>a3f0678875dc243d34642dffcc1390e6</code></strong> · <strong>507 行</strong> · 影子仓 <code>dcb825a</code> + 施工期 6 处订正未提交）</li>
+<li>开工前自检：dogfood 扫描<strong>两轮</strong>（首轮 52 原始 → 36 去重全采纳；<strong>开工前复扫又抓 3 处残留</strong>，见 §七-0）</li>
+<li>交付：<code>diy-cis-method</code> —— 套件从 40 → <strong>41 技能</strong></li>
+<li>本批三点特殊：① <strong>首个「1 技能承载 4 条完整方法流」的批次</strong>（4 合 1，四条流各有 7–10 步<strong>逐份不同</strong>的序列，合计 35 步）；② <strong>源侧四份全产 md 文档</strong>而 diy 侧取 YAML——「保真 vs 统一」的正面取舍，代价 = 新增 1 个 viewer 标签缺口；③ <strong>源侧方法库接线性系统性缺陷</strong>（四份库无一被完整引用，不可达率 0%/17%/50%/60%）——用户裁定「保真照搬 + <code>--all</code> 可查全库」</li>
+</ul>
+<h2>一、批次结果总览</h2>
+<table>
+<thead><tr><th>项</th><th>源（<code>module=='cis'</code>）</th><th>diy</th></tr></thead>
+<tbody>
+<tr><td>方法流技能</td><td><code>bmad-cis-{innovation-strategy,problem-solving,design-thinking,storytelling}</code>（SKILL.md 1299 行 · 35 步）</td><td><code>diy-cis-method</code>（<code>steps/</code> <strong>5 文件</strong> · 35 小节）</td></tr>
+<tr><td>agent 人设</td><td>6 份（5 空壳 + <code>presentation-master</code> 非空壳）</td><td><strong>全裁</strong>（风格并入 Rules 段；<code>presentation-master</code> 见 §九）</td></tr>
+<tr><td>模板</td><td>4 份（578 行 · 132 占位符）</td><td><code>deliverable</code> 键表 <strong>122 键</strong> / 必填 <strong>34 键</strong></td></tr>
+<tr><td>方法库</td><td>4 份 CSV（115 条）</td><td>目录根 <strong><code>cis-methods.csv</code></strong>（表头 6 列 + <strong>115 行</strong>）</td></tr>
+<tr><td>引擎</td><td>—</td><td><code>cis_method.py</code> <strong>976 行</strong> · 5 子命令</td></tr>
+<tr><td>测试</td><td>—</td><td><code>test_cis_method.py</code> <strong>808 行</strong> · <strong>30 用例</strong></td></tr>
+</tbody></table>
+<p><strong>合计</strong>：1 技能 · 4 源工作流 + 6 源 agent（普查基线 1299 行 SKILL.md + 578 行模板 + 115 条库）→ diy <strong>5 个 <code>steps/</code> 文件 1135 行 · 1 引擎 976 行 · 30 用例 · 单表 116 行</strong>。</p>
+<p><strong>批级口径</strong>：零阻断 · <strong>能力丢失 0 条</strong>（V 独立清点，唯一「有实值时被裁」的 <code>customize</code> 四键<strong>四源实值全空</strong>）· 真实损失 <strong>0</strong> · 欠账 <strong>6 条</strong>（见 §七）。</p>
+<h2>二、逐分支保真度</h2>
+<h3>2.1 创新策略（源 <code>innovation-strategy</code> 347 行 · 9 步）</h3>
+<ul>
+<li><strong>步骤小节 9/9</strong>，标题逐条对译源 <code>goal</code>，每节带 <code>_源 step N：&lt;英文 goal&gt;_</code> 机械锚点</li>
+<li><strong>键</strong>：源模板占位符 45 → <code>deliverable</code> <strong>43 键</strong>（−2 通用注入项 <code>date</code>/<code>user_name</code>）；必填 <strong>9</strong></li>
+<li><strong>可达集 25 / 全库 30</strong>：引 5 类（市场分析 / 商业模式 / 颠覆 / 战略 / 价值链）；<strong><code>技术</code> 类 5 条不可达 = 源侧缺陷，保真照搬</strong></li>
+<li><strong>能量检查点</strong>：第 3 / 5 / 8 步</li>
+</ul>
+<h3>2.2 问题求解（源 <code>problem-solving</code> 325 行 · 9 步）</h3>
+<ul>
+<li><strong>步骤小节 9/9</strong>；<strong>第 9 步为 <code>optional</code></strong>（源侧如此）——<code>已完成</code> 时 <code>current_step</code> ∈ {8, 9}，<strong>四分支里唯一的同档例外</strong>，引擎显式放行（测试⑥）</li>
+<li><strong>键</strong>：35 → <strong>33 键</strong>（−2）；必填 <strong>9</strong></li>
+<li><strong>可达集 30 / 全库 30</strong>：6 类全引（源侧 0% 不可达）</li>
+<li><strong>能量检查点</strong>：第 5 / 8 步</li>
+</ul>
+<h3>2.3 设计思维（源 <code>design-thinking</code> 274 行 · 7 步）</h3>
+<ul>
+<li><strong>步骤小节 7/7</strong>；<code>EMPATHIZE</code> / <code>DEFINE</code> / <code>IDEATE</code> / <code>PROTOTYPE</code> / <code>TEST</code> 五专名逐字保留英文大写</li>
+<li><strong>键</strong>：23 → <strong>21 键</strong>（−2 通用注入项；模板首部的 <code>{{project_name}}</code> <strong>保留为合法键、不入必填表</strong>，见 §七-2）；必填 <strong>7</strong></li>
+<li><strong>可达集 15 / 全库 30</strong>：<strong>只引 3 类</strong>（共情 / 构思 / 原型）——<code>定义</code>/<code>测试</code>/<code>落地</code> 三阶段 15 条不可达 = <strong>源侧缺陷，保真照搬</strong>（<strong>不是遗漏</strong>，W2 三处显式声明）</li>
+</ul>
+<h3>2.4 叙事（源 <code>storytelling</code> 353 行 · 10 步）</h3>
+<ul>
+<li><strong>步骤小节 10/10</strong>；<strong>无能量检查点</strong>（源侧为零）</li>
+<li><strong>键</strong>：29 → <strong>25 键</strong>（−4 = 通用注入项 2 + <strong>agent 线残留 <code>agent_role</code>/<code>agent_name</code></strong>）；必填 <strong>9</strong>（<strong>第 10 步唯一标签是四个注入项 → 该步无实键</strong>）</li>
+<li><strong>多键合写</strong>：源侧 10 步里 <strong>9 步</strong>是逗号分隔多键标签（另三份<strong>零多键</strong>）；W2 逐键切分列出、W3 引擎按逗号切分校验</li>
+<li><strong>两处源侧 bug 修复</strong>（裁定 6，用户裁定 B）：</li>
+</ul>
+<ol>
+<li><strong>Step 2</strong> 原硬编码 10 条框架 → 改<strong>由引擎按类呈现全部 25 条</strong>（默认集 = <code>--all</code>，<strong>四分支唯一两值相等者</strong>）</li>
+<li><strong>Step 3</strong> 原引<strong>不存在的列</strong> <code>key_elements</code> → 改引真实列（源 <code>key_questions</code>，归并后列名 = <code>prompts</code>）</li>
+</ol>
+<ul>
+<li>源侧为 5 个框架写的专属提问<strong>保留为增强段</strong>；<strong>净增 15 条可达（源 10 → 修后 25）</strong>，登记为「<strong>源侧缺陷修复</strong>」而非保真偏离</li>
+</ul>
+<h2>三、批级裁定摘要</h2>
+<table>
+<thead><tr><th>裁定</th><th>落点</th></tr></thead>
+<tbody>
+<tr><td>1 四分支组织 = 主文件 + 路由步 + 4 分支文件</td><td><strong>本批的「diy 版步数」= 分支文件内的小节数（9/9/7/10），不是 <code>steps/</code> 文件数</strong>（B5 旧公式在此失效）</td></tr>
+<tr><td>2 6 个人设全裁 + 能力对账逐条落地</td><td>4 份风格 → Rules 段（一分支一句，取材回源 <code>communication_style</code> 原句）；Carson 一份归 <code>diy-brainstorm</code>（禁改面 → 登记 C 阶段补）；<code>presentation-master</code> → 见 §九</td></tr>
+<tr><td>3 产物 = 单 YAML 集合 <code>cis-method.yaml</code></td><td>代价：新增 1 个 viewer 标签缺口（§八）；命名避让 = 限<strong>文件名 / 顶层键 / 记录层键</strong>，<code>deliverable</code> 内部键逐字保留</td></tr>
+<tr><td>4 检查点四选项保留并接线</td><td><code>[a]</code>→<code>diy-elicit</code>、<code>[p]</code>→<code>diy-party-mode</code>（<strong>本批新造句</strong>）、<code>[y]</code> 首次定义 → <strong>B6 是 C4 的先例</strong></td></tr>
+<tr><td>5 方法库 115 条合为目录根 CSV</td><td>表头 6 列保英文、值中文化（<strong>依据 = B4 先例</strong>，非 glossary §9）；<strong>23 个 <code>category</code> 中文名三工位逐字冻结</strong></td></tr>
+<tr><td>6 源侧引用的修与不修</td><td>可达性 20 条不修（照搬）；叙事 2 处 bug 修（见 §2.4）</td></tr>
+<tr><td>7 <code>customize</code> 面四键整裁</td><td>四源实值<strong>全为默认空</strong> → 裁撤<strong>零行为变化</strong></td></tr>
+<tr><td>8 <code>{...}</code> 令牌白名单</td><td>保留 <code>{project-root}</code>；<code>{output_folder}</code>→<code>{output_dir}</code>；其余<strong>一律 <code>TOKEN_UNRESOLVED</code></strong></td></tr>
+<tr><td>9 子命令集与回执</td><td>形 A；<code>init</code> 是<strong>唯一写盘</strong>命令；<strong><code>--instance</code> 一律不做</strong></td></tr>
+<tr><td>10 <code>--previous</code> 判 <strong>no</strong></td><td><code>sessions[]</code> 只追加、无 ID 集合收缩面</td></tr>
+<tr><td>11 <code>--final</code> 语义</td><td>骨架完备 + 枚举合法 + 34 键齐全 + 同档 + 零 <code>[假设]</code>；<code>exit 0</code> 唯一放行</td></tr>
+<tr><td>12 登记面三处</td><td><code>NEW_SKILLS</code> / <code>CONVERTED_INSTANCE</code> / <code>CONVERTED_DISCIPLINE</code>；<strong>禁入</strong> <code>*_MEMBERS</code> 与全部 <code>PENDING_*</code></td></tr>
+<tr><td><strong>★ 用户裁定 A（2026-09-21）</strong></td><td><code>presentation-master</code> = <strong>(c′) 登记为 B7 批输入</strong>（见 §九）</td></tr>
+<tr><td><strong>★ 用户裁定 B（2026-09-21）</strong></td><td>源侧可达性 = <strong>保真照搬 + <code>--all</code> 可查全库</strong>，仅修叙事引用 bug</td></tr>
+</tbody></table>
+<p><strong>违规码</strong>：复用冻结集 8 个 + <strong>唯一新增码 <code>TOKEN_UNRESOLVED</code></strong>（<strong>不在</strong> <code>batch3-contract.md</code> §3 冻结集内，V 实测 <code>grep -c</code> = 0 于该契约文件）——<strong>不是「零新增」</strong>。</p>
+<p><strong>产物状态口径</strong>：取 <code>diy-brainstorm</code> 先例<strong>三值</strong>（<code>草稿|进行中|已完成</code>），是对母本 §8 两值口径的<strong>有据偏离</strong>（已登记）。</p>
+<h2>四、V 独立验证结论（2026-09-21）</h2>
+<ul>
+<li><strong>结论：审计通过，无阻断项。</strong> 能力清点<strong>真实损失 0 条</strong></li>
+<li><strong>八项重点验全过</strong>：① 小节数 9/9/7/10（三处独立取数一致）② W1 指路 ↔ W2 键表一致 ③ <strong>34 键 源 ⟷ W2 ⟷ W3 三向逐字相同</strong>（注入项 ∩ 为空）④ <strong>三方类别零漂移</strong>（21 个去重类名逐字比对，零越界零漏点）⑤ 可达集 25/30/15/25 与 census §4.1 逐行对上 ⑥ 两处修复<strong>落了且登记了</strong>（<code>05-story.md:89</code>/<code>:120</code>，<code>key_elements</code> 全库命中<strong>均在否定句内</strong>）⑦ <code>presentation-master</code> 逐条在场 ⑧ 违规码恰 9 个 = 8 冻结 + 1 新增</li>
+<li><strong>三点另核</strong>：(a) <code>{{project_name}}</code> 两侧真的按追认口径处置 ✓ (b) <code>--output-dir</code> 只读语义<strong>亲手跑过，相容</strong>（带→0、不带→<code>EMPTY_FIELD</code> 不静默）(c) 验收 13 项 <strong>12 过 / 1 属主 agent 面</strong></li>
+<li><strong>抽验</strong>：三测试独立复跑全 OK；母本逐字<strong>脚本比对</strong>（非目检）</li>
+<li><strong>V 发现 6 条</strong>（1 中 5 低）→ <strong>3 条就地处置、3 条留档</strong>（§七）</li>
+</ul>
+<h2>五、主 agent 集成验证（2026-09-21）</h2>
+<table>
+<thead><tr><th>#</th><th>收口链项</th><th>命令 / 口径</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>① 登记</td><td><code>test_suite_texts.py</code> 三处</td><td><strong>11 tests OK</strong>（登记前 2 红）——连带证明 §1/§2/§3/§4/§5/§6 六节锚串<strong>逐字携带、零回改</strong></td></tr>
+<tr><td>2</td><td>② sync</td><td><code>bash diy-coder/sync.sh</code></td><td><strong>41 个 skill</strong> → <code>.claude/skills</code>（40 + 本批 1）；冒烟通过</td></tr>
+<tr><td>3</td><td>③ 全量测试</td><td><code>python -m unittest discover -s diy-coder/tests</code></td><td><strong>985 tests OK</strong>（B5 基线 949 + 本批 30 + 其他 +6）</td></tr>
+<tr><td>4</td><td>④ 渲染自证</td><td><code>cis_method.py init</code>（tempdir）→ <code>viewer.py</code></td><td><code>init</code> rc 0（<code>CM-001</code>）；渲染 <strong>rc 0 · rendered 1 doc</strong>（<code>cis-method.html</code> + <code>index.html</code>）；标签缺口见 §八</td></tr>
+<tr><td>5</td><td>⑤ 本报告</td><td><code>render_fidelity.py</code>（复用 B5 渲染器）</td><td><code>b6-fidelity.{md,html}</code></td></tr>
+<tr><td>6</td><td>⑥ 计划节</td><td><code>迁移计划.md</code> <strong>§十九</strong>（§十八 已被 C·2 线占用）</td><td>见该节</td></tr>
+</tbody></table>
+<h2>六、验收 13 项对照（迁移计划 §二）</h2>
+<table>
+<thead><tr><th>#</th><th>验收项</th><th>责任</th><th>证据</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>薄主文件 + steps/ 厚子文件</td><td>W1/W2</td><td><code>SKILL.md</code> <strong>81 行</strong>（≤90 硬阈值，余量 9 行，<strong>未触发裁撤序</strong>）；<code>steps/</code> 5 文件</td></tr>
+<tr><td>2</td><td>产物 schema / 稳定 ID</td><td>W3（<code>CM-###</code>）</td><td>schema 段 + <code>check</code> 用例（⑬ <code>DUPLICATE_ID</code>）</td></tr>
+<tr><td>3</td><td>前置门禁（零产出退出）</td><td>W1（<code>01-route.md</code> 门禁拍）</td><td>源四份 <code>required: false</code> / 零上游依赖 → 门禁 = <strong>议题非空</strong>（<strong>改写已登记</strong>）</td></tr>
+<tr><td>4</td><td>ID 链接入</td><td>W3</td><td>四条实证：唯一性 <code>DUPLICATE_ID</code>（⑬）/ 顺序性 <code>init</code> 递增（③）/ <strong>不进 <code>help.py</code> CHAIN、不被任何门禁引用</strong>（anytime 咨询产物）/ <code>revisions[].change</code> 引用纪律句落规则段</td></tr>
+<tr><td>5</td><td>注册</td><td>主 agent</td><td>sync 输出 <strong>41 技能</strong></td></tr>
+<tr><td>6</td><td>viewer 渲染</td><td>W1 登记缺口 + 收口链④ 执行</td><td>§八</td></tr>
+<tr><td>7</td><td>冒烟 TC（≥5）</td><td>W3</td><td><strong>30 用例</strong>（十三类全覆盖）</td></tr>
+<tr><td>8</td><td>登记元数据</td><td>W1</td><td>frontmatter 六字段（<code>precededBy</code>/<code>followedBy</code> <strong>四源逐源真为空</strong>）</td></tr>
+<tr><td>9</td><td>读取成本纪律</td><td>W1+W2</td><td>母本 §4 逐字（脚本比对）</td></tr>
+<tr><td>10</td><td>双源输入声明</td><td>W1</td><td><strong>判「非交汇点」</strong>（不读 <code>prd.yaml</code> / <code>sprint.yaml</code> / WDS 产物）</td></tr>
+<tr><td>11</td><td>渲染静默</td><td>W1</td><td>规则段照母本 §5 逐字（渲染是静默旁路）</td></tr>
+<tr><td>12</td><td>diyc 接线 a–e</td><td>W1</td><td>a 委托 <code>diyc.py resolve</code>；b 终门 = <code>check --final</code>；c 判 <strong>no</strong>；d 母本 §3 逐字；e 写权边界 = 只写 <code>cis-method.yaml</code></td></tr>
+<tr><td>13</td><td>副作用纪律</td><td>W1–W3 自证 + V 抽验</td><td>唯一写面 = <code>{output_dir}/cis-method.yaml</code>（自动执行档）+ 静默渲染；<code>[a]</code>/<code>[p]</code> 调零写面技能；<strong>无确认档、无 defer 产生面</strong></td></tr>
+</tbody></table>
+<h2>七、非阻断观察清单（欠账，C 阶段或后续批处置）</h2>
+<p><strong>0. 开工前复扫（机制项，重要）</strong>：首轮自检的<strong>机制教训</strong>——「逐条处置 ≠ 逐处改透」，扫描台账记的是 finding 不是落点。首轮收尾复扫抓到 3 处漏改后，<strong>开工前按旧值字符串再扫一遍又抓到 3 处</strong>：</p>
+<table>
+<thead><tr><th>残留</th><th>位置</th><th>处置</th></tr></thead>
+<tbody>
+<tr><td>子命令名 <code>new</code>（应 <code>init</code>）</td><td>裁定 9</td><td><strong>已改</strong></td></tr>
+<tr><td>「本批所需码全部在冻结集内，零新增」</td><td>§1 必读输入</td><td><strong>已改</strong>（→ 冻结集复用 + 唯一新增 <code>TOKEN_UNRESOLVED</code>）</td></tr>
+<tr><td>「diy 侧 22 个 <code>outputs:</code>」</td><td>§0 三点</td><td><strong>已改</strong>（→ 23 个 / 例外 3 处）</td></tr>
+</tbody></table>
+<p>→ <strong>此道已写入任务书 §11 ⑤，此后强制。</strong></p>
+<p><strong>V 发现 6 条</strong>：</p>
+<table>
+<thead><tr><th>#</th><th>级</th><th>归属</th><th>内容</th><th>处置</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>中</td><td>主 agent</td><td><code>迁移计划.md</code> §十八 <strong>已被 C·2 线占用</strong>（施工期间写入，开工前复核时为空）</td><td><strong>已处置</strong>：本批改走 <strong>§十九</strong>，不覆盖</td></tr>
+<tr><td>2</td><td>低</td><td>任务书</td><td>§2.3「132（裁后基数）」自相矛盾</td><td><strong>已订正</strong>：<code>132</code> = 源占位符数，<strong><code>122</code></strong> = 裁后合法键数</td></tr>
+<tr><td>3</td><td>低</td><td>W2</td><td>创新/问题/设计三份<strong>末步缺独立「落盘」行</strong>（<code>落上述 N 键</code> 无先行词；键数经源侧核实<strong>均正确</strong>）</td><td><strong>已返工修复</strong>（三处各补一行；叙事第 10 步无键可落，<strong>正确未动</strong>）</td></tr>
+<tr><td>4</td><td>低</td><td>W1</td><td><code>diy-prfaq</code> 路由句不在 <code>interface-map.md</code> §3 的边界八对内</td><td><strong>留档</strong>：属路由建议句（非边界声明），C 阶段统一裁</td></tr>
+<tr><td>5</td><td>低</td><td>W3</td><td><code>--all</code> 与 <code>--random</code> 设为<strong>互斥</strong>（任务书未声明）</td><td><strong>留档</strong>：V 判合理（<code>--random</code> 语义 = 从默认集抽）</td></tr>
+<tr><td>6</td><td>低</td><td>W2/W3</td><td>只读子命令省 <code>--output-dir</code> 报 <code>EMPTY_FIELD</code>（措辞可两读）</td><td><strong>留档</strong>：行为相容非缺陷；与 B5 欠账 #3「<code>--output-dir</code> 必填面三家不一致」<strong>同源</strong>，宜一次口径裁定</td></tr>
+</tbody></table>
+<p><strong>另两条待办</strong>：</p>
+<ul>
+<li><strong>任务书 §2.3 注入项枚举漏计 <code>project_name</code></strong>（W2 施工期发现，主 agent 实测确认：仅 <code>bmad-cis-design-thinking/template.md:1</code> 命中，其余三源零命中）→ <strong>已订正为五个</strong>，两侧按「保留在合法键表、不入 34 键必填表」处置</li>
+<li><strong><code>machine-zh-glossary.md</code> §9 规则 5 的字面张力</strong>（「技能自带数据表的值不改」vs 本批值中文化）→ 真依据是 <strong>B4 先例</strong>；<strong>建议 C 阶段给规则 5 加一条例外注</strong>，否则后续批次会反复遇到同一冲突</li>
+</ul>
+<h2>八、viewer 标签缺口清单（<strong>C 阶段输入</strong>）</h2>
+<p><code>cis-method.yaml</code> 为<strong>新产物类型</strong>。V 与主 agent 两处实测：</p>
+<ul>
+<li><code>grep -n "cis-method" viewer.py</code> → <strong>零命中</strong>；<code>DOC_LABELS</code> 经 C·2 线扩展后已有 <strong>31 条</strong>，但<strong>其普查面是「已建 40 技能」，本技能为第 41 个</strong> → 仍缺</li>
+<li>渲染实况：<code>rc 0 · rendered 1 doc</code>，<code>cis-method.html</code> 页面<strong>标题回落为裸类型名 <code>cis-method</code></strong>（走通用降级渲染，键值+列表卡片）</li>
+<li><strong>归属</strong>：C2 面（缺口 2 通用降级渲染）已由 C·2 线落地通用路径，<strong>本项只剩「补一条 <code>DOC_LABELS["cis-method"]</code> 中文标签 + <code>DOC_KEY_LABELS</code> 键标签」的收尾</strong>，登记为 C 阶段输入</li>
+</ul>
+<h2>九、<code>presentation-master</code> 能力承接登记（<strong>用户裁定 (c′) → B7 批输入</strong>）</h2>
+<p><strong>定性</strong>：6 个 agent 里唯一的<strong>非空壳</strong>——其 <code>SKILL.md</code> 与其余五份<strong>逐字同构</strong>（72 行空壳），真实内容全在 <code>customize.toml</code>（71 行，其余五份 36–58 行）。7 条菜单<strong>全部指向 prompt、不绑任何技能</strong>，故方案 B 的否决理由「人设无独有能力——菜单指向的技能本来就在迁移计划内」<strong>在这一条上不成立</strong>。</p>
+<p><strong>裁定 (c′) 的落点（本批只「不丢」，不自造步骤序列、不改 B7 任何文件）</strong>：</p>
+<ol>
+<li><strong>本报告</strong>（本节）载全文——<strong>8 条原则 + 7 条配方</strong>，未来可从本文件逐字取回</li>
+<li><strong><code>迁移计划.md</code> §十九</strong> 记一条 <strong>B7 前置项</strong>：交 <code>diy-wds-assets</code>（源 <code>wds-6-asset-generation</code>）裁定归位</li>
+</ol>
+<p><strong>为什么不是 <code>diy-design</code></strong>（2026-09-21 实测否决，非推断）：三条硬约束——① 输入契约硬门 <code>prd.yaml: 已定稿</code> + <code>design.py detect</code> 探 <code>has_frontend</code>；② 产物契约 <code>design.yaml</code> + <code>prototypes/&lt;页 id&gt;.html</code> + 框架实现落 <code>src</code>；③ 流水线位置在 <code>prd → design → dev</code> 中游。且 C·3 已排定它吸收 WDS 工作流 + bmad-ux + 场景桥。</p>
+<p><strong>(c′) 的容器依据</strong>：<code>wds-6-asset-generation</code> 同为「读规格 → 选风格 → 精炼 prompt → 生成 → 评审」范式，自带 <code>data/styles/</code> 库（design-styles 6 + content-styles 10），<strong>确有 <code>workflow-videos.md</code></strong>（对得上 <code>EX</code> 配方）但<strong>无 slides / pitch 活动</strong>——故 B7 仍可能以「产物域不匹配」再裁；<strong>那一裁由容器在场时作出</strong>。</p>
+<h3>9.1 八条视觉传达原则（源 <code>principles</code>，逐字）</h3>
+<ol>
+<li>Know your audience — pitch decks, YouTube thumbnails, and conference talks are three different crafts.（懂受众：路演 / 缩略图 / 演讲是三种手艺）</li>
+<li>Visual hierarchy drives attention — design the eye's journey deliberately.（视觉层级设计眼睛的旅程）</li>
+<li>Clarity over cleverness, unless cleverness serves the message.（清晰优先于机巧，除非机巧服务于讯息）</li>
+<li>Every frame needs a job — inform, persuade, transition, or cut it.（每帧都要有职责，否则剪掉）</li>
+<li>Test the 3-second rule — can they grasp the core idea that fast?（3 秒规则）</li>
+<li>White space builds focus — cramming kills comprehension.（留白构建焦点，堆砌扼杀理解）</li>
+<li>Consistency signals professionalism — establish and maintain a visual language.（一致性即专业）</li>
+<li>Story structure applies everywhere — hook, build tension, deliver payoff.（故事结构普适：钩子→张力→兑付）</li>
+</ol>
+<h3>9.2 七条 prompt 配方（源 <code>menu</code>，逐字）</h3>
+<table>
+<thead><tr><th>code</th><th>描述</th><th>prompt 全文</th></tr></thead>
+<tbody>
+<tr><td><code>SD</code></td><td>多页幻灯片（专业版式 + 视觉层级）</td><td>Design a multi-slide presentation using Excalidraw frame-based layout. Apply audience-appropriate visual hierarchy, enforce the 3-second rule on every frame, and use consistent visual language throughout.</td></tr>
+<tr><td><code>EX</code></td><td>视频解说版式（视觉脚本 + 留人钩子）</td><td>Design a YouTube explainer layout. Produce a visual script with engagement hooks at 0s, 3s, and every 15-30s; specify on-screen visuals per beat; apply bold, casual typographic style appropriate to the platform.</td></tr>
+<tr><td><code>PD</code></td><td>投资人路演（数据可视化 + 叙事弧）</td><td>Craft an investor pitch presentation. Build a narrative arc (problem → solution → traction → ask), design data visualizations that make the numbers pop, and enforce a polished, professional visual language.</td></tr>
+<tr><td><code>CT</code></td><td>大会演讲 / 工作坊（演讲者备注）</td><td>Build a conference talk or workshop presentation. Include speaker notes per slide, design for a live audience (large type, minimal text), and structure a hook-build-payoff narrative.</td></tr>
+<tr><td><code>IN</code></td><td>信息可视化（视觉叙事）</td><td>Design a creative information visualization. Choose the chart/diagram type that lets the data tell the story, layer visual storytelling on top of the data, and cut every pixel that doesn't inform-persuade-or-transition.</td></tr>
+<tr><td><code>VM</code></td><td>概念插画（鲁布·戈德堡 / 旅程地图 / 创意流程）</td><td>Create a conceptual illustration — Rube Goldberg machine, journey map, or creative-process diagram. Use visual metaphor to explain the concept; prioritize memorability over comprehensiveness.</td></tr>
+<tr><td><code>CV</code></td><td>单张概念图</td><td>Generate a single expressive image (concept visual) that explains the idea creatively and memorably. Apply visual metaphor, test the 3-second comprehension rule, and make the image the explanation — not a decoration on top of one.</td></tr>
+</tbody></table>
+<p><strong>人物设定参考</strong>：Nancy Duarte（演示架构）+ Saul Bass（电影化平面）+ Excalidraw 帧即场景纪律。</p>
+<p><strong><code>communication_style</code> 原句</strong>（供 B7 参考）："Energetic creative director in the editing room with you — sarcastic wit, dramatic reveals, visual metaphors, celebrates bold choices and roasts bad design with humor."</p>
+<h2>十、审阅指引（B6 为<strong>非强制人工审</strong>）</h2>
+<p><strong>审阅面</strong>：本报告 + <code>v-audit.md</code>（终审计证据）+ <code>v-capability-inventory.md</code>（能力清点）。</p>
+<p><strong>异常项才需看</strong>：</p>
+<ol>
+<li>§七-0 的<strong>开工前复扫</strong>机制——它证明「自检闭合」不等于「改透」，且已固化为 §11 ⑤</li>
+<li>§八 的标签缺口收尾（只差两条标签的补录，C 阶段小活）</li>
+<li>§九 的 <strong>(c′) 承接</strong>——B7 编制时须回看本节；7 条配方在 B7 是否真能落进 <code>diy-wds-assets</code>，届时信息更全</li>
+<li>§七 的第 6 条与 B5 欠账 #3 <strong>同源</strong>（<code>--output-dir</code> 必填面），若要收敛需一次跨批口径裁定</li>
+</ol>
+<p><strong>下一步</strong>：<strong>B7</strong>（wds 8 技能，最大批，是 C·3 里 <code>diy-design</code>/<code>diy-dev</code> 升级的前置）或 C 阶段余项（§五 C 1–7 / 9 / 10）。</p>
+</main>
+</body>
+</html>
