@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B7a 批保真度报告 —— wds 前置三段（3 技能）</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+      --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+     font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:.01em}
+h2{font-size:1.25rem;margin:34px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h3{font-size:1.05rem;margin:22px 0 8px;color:var(--accent)}
+p{margin:10px 0}
+ul,ol{margin:8px 0 8px 22px;padding:0}
+li{margin:4px 0}
+code{background:var(--code);border:1px solid var(--line);border-radius:4px;
+     padding:1px 5px;font-family:Consolas,"Courier New",monospace;font-size:.9em}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:var(--panel);
+      font-size:.94em}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#eef2f8;font-weight:600}
+tbody tr:nth-child(even){background:#fafbfe}
+strong{color:#0f172a}
+</style>
+</head>
+<body>
+<main>
+<h1>B7a 批保真度报告 —— wds 前置三段（3 技能）</h1>
+<ul>
+<li>批次：BMAD 迁移 阶段 B 第 7 批<strong>前半</strong>（B7 已按用户裁定拆为 <strong>B7a / B7b</strong>）｜ 完成日期：2026-09-21 ｜ 编制：主 agent</li>
+<li>任务书：<code>diy-coder/.analysis/2026-09-21-migration-b7/taskbook-b7a.md</code>（影子仓自检后 <code>ec07782</code>，施工期再订正 2 处）</li>
+<li>开工前自检：dogfood 扫描 <strong>71 条</strong>（阻断 6 / 高 19 / 中 37 / 低 9）逐条处置 + <strong>两轮旧值复扫</strong>封口（再抓 2 处漏改）</li>
+<li>交付：<code>diy-wds-brief</code> / <code>diy-wds-trigger</code> / <code>diy-wds-scenarios</code> —— 套件从 41 → <strong>44 技能</strong></li>
+<li>本批三点特殊：① <strong>WDS 线是独立产品线</strong>（与 diy 主线并行不交汇），本批 3 技能自成一条可跑的短链（brief → trigger → scenarios）；② <strong>源侧缺陷密度远高于前六批</strong>（死链、断链、幽灵路径、互斥阈值成片）——「保真」在本批<strong>不等于「照抄」</strong>；③ <strong>WDS 线在 C·3 前是断头路</strong>（<code>diy-design</code> 硬门 <code>prd.yaml: 已定稿</code>）——本批产出的 <code>visual_direction</code> 等键<strong>本批零消费者</strong>，属既定排序（见 §七-3）</li>
+</ul>
+<h2>一、批次结果总览</h2>
+<table>
+<thead><tr><th>技能</th><th>源</th><th>源规模</th><th>源步（主/校验/合计）</th><th>diy 交付</th><th>用例</th></tr></thead>
+<tbody>
+<tr><td><code>diy-wds-brief</code></td><td><code>wds-0-project-setup</code> + <code>wds-0-alignment-signoff</code> + <code>wds-1-project-brief</code>（<strong>3 合 1</strong>）</td><td>165 文件 / 20,615 行</td><td>2+6+40 / 6 / <strong>54</strong></td><td><code>SKILL.md</code> <strong>86 行</strong> · <code>steps/</code> <strong>7 文件 57 小节</strong> · 引擎 832 行 · 35 用例</td><td>35</td></tr>
+<tr><td><code>diy-wds-trigger</code></td><td><code>wds-2-trigger-mapping</code></td><td>52 / 7,782</td><td>10 / 5 / <strong>15</strong></td><td><strong>89 行</strong> · <code>steps/</code> <strong>6 文件 11 小节</strong> · 引擎 1198 行</td><td>38</td></tr>
+<tr><td><code>diy-wds-scenarios</code></td><td><code>wds-3-scenarios</code></td><td>21 / 3,449</td><td>9 / 5 / <strong>14</strong></td><td><strong>88 行</strong> · <code>steps/</code> <strong>6 文件 16 小节</strong> · 引擎 1003 行</td><td>44</td></tr>
+</tbody></table>
+<p><strong>合计</strong>：3 技能 · 5 源（20,615 + 7,782 + 3,449 = <strong>31,846 行</strong>）→ diy <strong>19 个 <code>steps/</code> 文件 · 3 引擎 3,033 行 · 117 用例</strong>。</p>
+<p><strong>批级口径</strong>：零阻断 · <strong>能力损失 3 处</strong>（全部显式登记，见 §二）· <strong>源侧缺陷修复 9 条</strong>（登记为「修复」非偏离）· 欠账见 §七。</p>
+<h2>二、逐技能保真度</h2>
+<h3>2.1 <code>diy-wds-brief</code>（WDS 线入口：分诊 → 对齐 → 战略简报）</h3>
+<ul>
+<li><strong>7 个步骤文件 / 57 小节</strong>：<code>01-intake</code>(3) · <code>02-alignment</code>(12) · <code>03-signoff</code>(6) · <code>04-core</code>(12) · <code>05-content</code>(7) · <code>06-visual</code>(7) · <code>07-finish</code>(10)</li>
+<li><strong>产物</strong> <code>wds-brief.yaml</code>：<code>intake</code> · <code>client_profile</code>(四域) · <code>brief.{core, content, visual, platform}</code> · <code>alignment</code>(十节) · <code>signoff</code>(三型) · 顶层 <code>project.status</code>（母本 §8 两值）</li>
+<li><strong>★ 裁定 13（用户拍板）签核全留</strong>：三型并列（<code>external_contract</code> 11 节 / <code>service_agreement</code> 12 节 / <code>internal</code> 7 节）；<strong>diy 无合同类产物载体</strong> → 由 W1 设计段 schema 并回报三项（段结构 / 为何不另立产物 / viewer 标签需求）</li>
+<li><strong>源侧修复（4 条）</strong>：① <code>service-agreement</code> <strong>无构建步</strong>（277 行模板从未被加载）→ <strong>补齐 12 节构建步</strong>；② <code>05f Availability</code> 写的节在合同模板中<strong>不存在</strong> → 补为合同第 6 节（<strong>条件性</strong>，仅长期聘用）；③ 术语表 11 处死链 → 词表内联；④ 简报档位读一个<strong>从不被创建的文件</strong> → 改由 <code>init --brief-level</code> 落 <code>intake.brief_level</code></li>
+<li><strong>74 项校验去重结果</strong>：<strong>74 → 74，零删除</strong>（逐对核对后确认三组疑似交叉均非重复，「视觉 45 项」在 wds-4/wds-7 面、不在本技能 74 项内）</li>
+<li><strong>能力损失（登记）</strong>：源 <code>progress-tracker</code> 的「首次即确认 / 需纠正」反思统计不迁（diy 无承载位）；<code>_bmad/wds/data/agent-guides/saga/</code> 5 份 1,433 行 → <strong>能力以引导问句内联</strong>（非纯丢弃）</li>
+</ul>
+<h3>2.2 <code>diy-wds-trigger</code>（业务目标 ↔ 用户心理的 Effect Mapping）</h3>
+<ul>
+<li><strong>6 个步骤文件 / 11 小节</strong>；产物 <code>wds-trigger.yaml</code>：<code>business_goals[]</code> · <code>personas[]</code>(<code>TG-&lt;n&gt;</code>，<strong>驱动因素内嵌</strong> <code>DF-&lt;n&gt;.&lt;m&gt;+|-</code>) · <code>driver_patterns</code> · <code>priority</code> · <code>feature_impact[]</code> · <code>effect_map</code></li>
+<li><strong>裁定 7（Effect Map 两形态）</strong>：<code>yaml</code> 是单一源、Mermaid 是派生视图——源 <code>08a–08h</code> <strong>8 微步骤的构图纪律收编为唯一定义</strong>（配置 / 节点模板 / emoji 规则 / 连接数校验 = 目标数 + 2×人物数 / 4 类 classDef 逐字），<code>templates/trigger-map.template.md</code> <strong>收编而非删除</strong>（92 行可填骨架 + 必守十条）；<code>data/mermaid-formatting-guide.md</code>（262 行，无消费方且与步骤正文数字互斥）→ 裁</li>
+<li><strong>裁定 9（三模式降级）</strong>：W 为默认完整路径；<strong>S/D 保留 5 层管线的第 2–5 层为自审循环，第 1 层（Learn Form）标为不可用</strong>——源侧该层依赖 <strong>5 条不存在的文档</strong>（幽灵路径）。<strong>不新建方法层</strong>（那是「造」不是「迁」）→ <strong>登记为能力损失</strong></li>
+<li><strong>裁定 11（doc-synthesis 改写）</strong>：替代入口从「用户往会话里塞文档」→ <strong>读 diy 既有产物</strong>（七维覆盖图 → <code>wds-brief.yaml</code> / <code>prd.yaml</code> / <code>research.yaml</code> / <code>prfaq.yaml</code> / <code>brainstorm.yaml</code> 的逐键映射表已落）</li>
+<li><strong>裁定 6（口径归一，两处）</strong>：驱动因素 <strong>3–5</strong>（源采集端口径，展示端不再截断到 3）· 人物群 <strong>2–4</strong>（去掉「三级 TG0/1/2 + 5/3/3 加权」假设）</li>
+<li><strong>裁定 10（Feature Impact 保留）</strong>：<code>06a–06e</code> 五微步骤 + 评分常量（Primary 5/3/1 / 其他 3/1/0 / Must-Have 阈值）全保——<strong>与裁定 6 去掉的 <code>5/3/3</code> 是两组不同常量，不冲突</strong></li>
+<li><strong><code>metrics</code> 子命令</strong>（本技能独有）：人物群数 / 每人正负驱动条数 / Effect Map 连接数四条机械核对；越界 → warning（不阻断，保真源侧「展示端自适应」口径）</li>
+</ul>
+<h3>2.3 <code>diy-wds-scenarios</code>（场景大纲 + 页面树）</h3>
+<ul>
+<li><strong>6 个步骤文件 / 16 小节</strong>；产物 <code>wds-scenarios.yaml</code>：<code>scenarios[]</code>(<code>SC-&lt;nn&gt;</code>) → <code>pages[]</code>(<code>SC-&lt;nn&gt;.P&lt;n&gt;</code>)</li>
+<li><strong>裁定 12（只产 YAML）</strong>：<strong>不建 <code>C-UX-Scenarios/</code> 目录树、不建 <code>Sketches/</code></strong>——那是 C·3 <code>diy-design</code> 的产物位；源的「逐场景建文件夹 + 页面样板 md」→ 「写 <code>scenarios[]</code> 记录 + 其 <code>pages[]</code>」</li>
+<li><strong>裁定 8（ID 体系）</strong>：<code>SC-&lt;nn&gt;</code> / <code>SC-&lt;nn&gt;.P&lt;n&gt;</code> / <code>TG-&lt;n&gt;</code>；**废止独立的 <code>P-*</code> 前缀<strong>（源侧 0 处，且 <code>P-</code> 在 diy 命名空间是高危未占名）→ </strong>属对已定稿计划的改判，已登记**（计划 §四 :214/:246 原写「引 <code>SC-*</code>/<code>P-*</code>」）</li>
+<li><strong>裁定 17（交接契约键）</strong>：每条记录必携 <code>design_intent</code>(<code>[K|C|S|D|L]</code>) / <code>design_status</code>(初值 <code>not-started</code>) / <code>trigger_map_context</code></li>
+<li><strong>裁定 15（validate 裁撤）</strong>：源 <code>steps-v</code> 5 步 751 行 + <code>validation-report.md</code> 裁；<strong>五维校验并入 <code>06-finish.md</code></strong>（36 项）。另：源 <code>workflow.xml</code> 450 行（32 个 <code>&lt;gate&gt;</code>，与 md 双写）——<strong>先抽闸门清单再裁文件</strong>（32 闸逐条落点表见 W3 回报 ⑧）</li>
+<li><strong>源侧修复（4 条）</strong>：① 规模带 <code>&lt;20/20–50/100+</code> 的 <strong>50–99 空档</strong> → <code>&lt;20 / 20–50 / &gt;50</code>；② 模式推荐的 <strong><code>Dialog</code> 幽灵值</strong> → 归一本技能实装的 <code>对话/建议</code>；③ 避坑维度 <strong>6 vs 7</strong> → 取 checklist 权威版 <strong>7</strong>；④ 源页面样板首步三键与场景文件<strong>重复存储</strong> → 单一源</li>
+<li><strong>三条骨律全保</strong>：阳光路径零分支 / 场景名必须含人物名 / 每页恰属一条战略链；两个用户关卡保留</li>
+</ul>
+<h2>三、批级裁定摘要（18 条 + 用户 3 项）</h2>
+<table>
+<thead><tr><th>裁定</th><th>落点</th></tr></thead>
+<tbody>
+<tr><td>1 三源融合 = 单技能 + 7 步骤文件</td><td><strong>本批的「步数」= 文件内小节数（57/11/16），不是 <code>steps/</code> 文件数</strong>（B6 已遇同类）</td></tr>
+<tr><td>2 产物 = 三技能各一个 YAML</td><td><strong>顶层 <code>project.status</code> 取母本 §8 两值</strong>（★ 订正：首稿写「顶层不设 status」是从 B6 的 <code>sessions[]</code> 集合<strong>误植</strong>——三产物各是「一项目一份」的单记录）</td></tr>
+<tr><td>3 命名避让</td><td><code>wds-</code> 前缀为统一命名空间；记录 ID 见裁定 8</td></tr>
+<tr><td>4 frontmatter 六字段</td><td>★ 订正两处（自检阻断）：<code>required</code> <strong>三技能全 <code>true</code></strong>（首稿误填 false）· <code>phase</code> <strong>逐技能取源实值</strong>（<code>1-wds-strategy</code>×2 / <code>2-wds-design</code>，首稿自造 <code>wds</code>）；<code>line: wds</code> 首次引入</td></tr>
+<tr><td>5 源侧缺陷处置</td><td><strong>四类</strong>（平台耦合→裁 / 冗余重复→裁到单一源 / <strong>断链可修→修</strong> / <strong>断链不可修→裁+登记</strong>）；判据 = <strong>有没有落点</strong>，不是「是不是断链」</td></tr>
+<tr><td>6 号源侧互斥口径归一</td><td>驱动因素 3–5 · 人物群 2–4 · 避坑 7 项</td></tr>
+<tr><td>7 Effect Map 两形态</td><td>yaml 单一源 + Mermaid 派生视图（构图纪律收编为唯一定义）</td></tr>
+<tr><td>8 ID 体系</td><td><code>SC-&lt;nn&gt;</code> / <code>SC-&lt;nn&gt;.P&lt;n&gt;</code> / <code>TG-&lt;n&gt;</code>；**废止 <code>P-*</code><strong>（</strong>对计划的改判，已登记**）</td></tr>
+<tr><td>9 三模式降级</td><td>W 完整；S/D 第 1 层标不可用（<strong>能力损失已登记</strong>）</td></tr>
+<tr><td>10 Feature Impact 保留</td><td>评分常量全保（与裁定 6 是两组不同常量）</td></tr>
+<tr><td>11 doc-synthesis 改写</td><td>读 diy 既有产物 + 七维映射表</td></tr>
+<tr><td>12 页面骨架归 <code>diy-design</code></td><td>本批只产 YAML（不建目录树）</td></tr>
+<tr><td><strong>13 签核全留</strong></td><td><strong>用户 2026-09-21 拍板</strong>；三型并列段 schema（W1 设计并回报三项）</td></tr>
+<tr><td>14 census 的 P2–P7 / C / K2 / K7</td><td>逐条裁定（主 agent，可推翻须列理由）</td></tr>
+<tr><td>15 <code>validate</code> 子流程裁撤</td><td>校验维度并入 finish 节；<code>validation-report.md</code> 产裁</td></tr>
+<tr><td>16 <code>driving_forces</code> 归属键</td><td>嵌 <code>personas[]</code> 内 + 顶层 <code>driver_patterns</code></td></tr>
+<tr><td>17 <code>scenarios[]</code> 交接契约键</td><td><code>design_intent</code> / <code>design_status</code> / <code>trigger_map_context</code></td></tr>
+<tr><td>18 <code>--previous</code> 判 <strong>no</strong></td><td>三技能一致（单记录多段，无 ID 集合收缩面）</td></tr>
+</tbody></table>
+<p><strong>用户同日另拍板两项（不在本任务书内）</strong>：① <strong>B7 拆 B7a/B7b</strong>；② <code>diy-analyze</code>（B7b）建且产物进 <code>diy-output/</code>、<code>presentation-master</code>（B7b）完整建第 9 活动。</p>
+<p><strong>违规码</strong>：三技能<strong>零新增码</strong>（复用冻结集；<code>wds-brief</code> 复用 <code>SET_MISMATCH</code> 承载「<code>init --project-type</code> 与既有产物不符」，已在 docstring 登记为语义复用）。</p>
+<p><strong>★ 红线留存</strong>：三技能全库 <code>check --type</code> 命中 <strong>6 处，全是否定句</strong>（无 <code>--previous</code> 后缀）——<code>diyc.py</code> 的 <code>CHECK_TYPES</code> 8 型封闭集未被污染。</p>
+<h2>四、V 独立验证结论（2026-09-21）</h2>
+<ul>
+<li><strong>结论：审计通过，零阻断项。</strong> 能力清点：census-1 真能力 A–I <strong>9/9 承接</strong>；census-2 T1–T11 <strong>11/11 有归属</strong>；能力损失 3 处全部登记到位</li>
+<li><strong>十一项重点验</strong>：① 小节数 57/11/16（三处独立取数吻合）② 19 个 <code>steps/*.md</code> 引用<strong>零 MISS</strong>、与冻结表逐字一致 ③ <strong>跨技能 schema 衔接 16 行对账表</strong>（见下）④ 裁定 <strong>11/11 全落</strong> ⑤ 签核段三型并列真在场（实跑键转储）+ 服务协议构建步真补齐 ⑥ 红线零违规 ⑦ <strong>跨技能门禁四种情形实跑全部零产出</strong> ⑧ 三技能引擎冒烟 + <code>metrics</code> 四越界全 warning ⑨ <strong>117 用例 V 亲手跑全 OK</strong> ⑩ frontmatter 六字段与源实值逐字段一致（<strong>开工前自检抓到的四个错处零回退</strong>）⑪ 验收 12 过 / 1 未验（#5 注册属主 agent 面）</li>
+<li><strong>V 差异说明（比前批更强的三点）</strong>：① 增了<strong>跨窗口实测</strong>——C·1 已落地并把 WDS 线登记为 <code>registry.yaml</code> 里的<strong>独立一条线</strong>（<code>entry: diy-wds-brief</code>、三节点、<code>exec_note</code>「本批止于 <code>diy-wds-scenarios</code>」），与 W3 的边界句<strong>逐字一致</strong> → 验收 #4 由「三技能自称不进 CHAIN」升级为<strong>外部机制实证</strong>；② 不止读文本，给了<strong>引擎级实跑证据</strong>（门禁四情形 / metrics 四越界 / 四型签核 <code>check --final</code> / 只读子命令 md5 不变）；③ 「未复现」项仅 1 条（W 回报是消息载体、未落盘，无法逐项对账）</li>
+<li><strong>V 发现 8 条</strong>（1 高 3 中 4 低）→ <strong>见 §七</strong></li>
+</ul>
+<h2>五、主 agent 集成验证（2026-09-21）</h2>
+<table>
+<thead><tr><th>#</th><th>收口链项</th><th>命令 / 口径</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>① 登记</td><td><code>test_suite_texts.py</code> 三处（<code>NEW_SKILLS</code> / <code>CONVERTED_INSTANCE</code> / <code>CONVERTED_DISCIPLINE</code>）+3 名</td><td><strong>11 tests OK</strong>（登记前三技能各报 2 红）——连带证明六节锚串逐字携带、零回改</td></tr>
+<tr><td>2</td><td>② sync</td><td><code>bash diy-coder/sync.sh</code></td><td><strong>44 个 skill</strong>（41 + 本批 3）；冒烟通过</td></tr>
+<tr><td>3</td><td>③ 全量测试</td><td><code>python -m unittest discover -s diy-coder/tests</code></td><td><strong>1116 tests OK</strong>（含并行窗口 C·1/C·4 的改动）；<strong>其中一次中间红见下</strong></td></tr>
+<tr><td>4</td><td>④ 渲染</td><td>三技能各 <code>init</code>（<strong>tempdir</strong>）→ <code>viewer.py</code></td><td><code>brief</code> rc 0 · <strong>rendered 1 doc</strong>；<code>trigger</code> rc 0 · <strong>2 docs</strong>；<code>scenarios</code> rc 0 · <strong>2 docs</strong>。<strong>门禁独立复现</strong>：上游缺失时 <code>trigger</code> / <code>scenarios</code> 的 <code>init</code> 分别 rc 1 —— 零产出</td></tr>
+<tr><td>5</td><td>⑤ 本报告</td><td><code>render_fidelity.py</code>（复用 B5 渲染器）</td><td><code>b7a-fidelity.{md,html}</code></td></tr>
+<tr><td>6</td><td>⑥ 计划节</td><td><code>迁移计划.md</code> <strong>§二十二</strong>（§十七 B5 / §十八 C·2 / §十九 B6 / <strong>§二十 C·4 / §二十一 C·1 均已占用</strong>）</td><td>见该节</td></tr>
+<tr><td><strong>7</strong></td><td><strong>收口期修复（主 agent）</strong></td><td><code>precededBy</code> 缺 <code>diy-</code> 前缀</td><td><strong>3 处 + 任务书源头 1 处</strong>：<code>diy-wds-trigger</code> / <code>diy-wds-scenarios</code> 的 frontmatter 与 <code>test_wds_trigger.py:89</code> 的断言，从 <code>["wds-brief"]</code> / <code>["wds-trigger"]</code> 改为 <code>[diy-wds-brief]</code> / <code>[diy-wds-trigger]</code>。<strong>根因</strong>：裁定 4 按源侧「去 <code>bmad-</code> 前缀」推的短名——<strong>库内约定是带 <code>diy-</code> 前缀的完整技能名</strong>（<code>diy-architecture:6</code> 的 <code>precededBy: [diy-prd]</code>）。<strong>由 C·1 的守卫 <code>test_help_registry.py::test_dependency_targets_are_installed</code> 抓出</strong>（判 <code>dangling</code>），修后全量转绿</td></tr>
+</tbody></table>
+<p><strong>★ 收口期的这条修复值得单独记一笔（机制面）</strong>：本批是<strong>第一次「新批次的 frontmatter 被另一个窗口的守卫抓到」</strong>——C·1 建的 <code>test_help_registry.py</code> 在我拿到 V 审计结果之后落地，随即在全量测试里判出红。<strong>它证明「登记表驱动」这条路已经形成自我校验</strong>：新技能写错依赖名，不再只靠人工审、而是被机械守卫拦住。<strong>B7b 编制时须把这条约定写进 §2.1 的 frontmatter 冻结表</strong>（已在 B7a 任务书裁定 4 追订正二）。</p>
+<h2>六、验收 13 项对照（迁移计划 §二）</h2>
+<table>
+<thead><tr><th>#</th><th>验收项</th><th>责任</th><th>证据</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>薄主文件 + steps/ 厚子文件</td><td>W1/W2/W3</td><td><strong>86 / 89 / 88 行</strong>（≤90 硬阈值）+ steps <strong>7 / 6 / 6 文件</strong></td></tr>
+<tr><td>2</td><td>产物 schema / 稳定 ID</td><td>三 W</td><td>三个 <code>wds-*.yaml</code> + <code>SC-&lt;nn&gt;</code> / <code>SC-&lt;nn&gt;.P&lt;n&gt;</code> / <code>TG-&lt;n&gt;</code> / `DF-&lt;n&gt;.&lt;m&gt;+</td><td>-<code> / </code>BG-&lt;n&gt;`</td></tr>
+<tr><td>3</td><td>前置门禁（零产出退出）</td><td>W2/W3（W1 = 入口）</td><td>四种情形实跑零产出（上游缺失 / 非定稿 × 两技能）</td></tr>
+<tr><td>4</td><td>ID 链接入</td><td>三 W</td><td>唯一性 / 顺序性 / <strong>不进 <code>help.py</code> CHAIN</strong>（C·1 落地的 <code>registry.yaml</code> 把它们登记为<strong>独立线</strong>，外部机制实证）</td></tr>
+<tr><td>5</td><td>注册</td><td>主 agent</td><td>sync → <strong>44 技能</strong></td></tr>
+<tr><td>6</td><td>viewer 渲染</td><td>三 W 登记 + 主 agent 执行</td><td>§八</td></tr>
+<tr><td>7</td><td>冒烟 TC（≥5）</td><td>W1/W2/W3</td><td><strong>35 / 38 / 44 = 117 用例</strong></td></tr>
+<tr><td>8</td><td>登记元数据（裁定 4）</td><td>三 W</td><td>六字段逐技能取<strong>源实值</strong>（V 逐字段比对零回退）</td></tr>
+<tr><td>9</td><td>读取成本纪律</td><td>三 W</td><td>母本 §4 逐字（脚本比对，非目检）</td></tr>
+<tr><td>10</td><td>双源输入声明</td><td>三 W</td><td>三技能<strong>均非主线/WDS 交汇点</strong>（交汇点在 C·3 的 <code>diy-design</code>）——逐技能明写</td></tr>
+<tr><td>11</td><td>渲染静默</td><td>三 W</td><td>规则段照母本 §5 逐字</td></tr>
+<tr><td>12</td><td>diyc 接线 a–e</td><td>三 W</td><td>a 委托 <code>diyc.py resolve</code>；b 终门 = <strong>自带引擎 <code>check</code></strong>；c 判 <strong>no</strong>（裁定 18）；d 母本 §3 逐字；e 写权边界 = 只写本技能产物</td></tr>
+<tr><td>13</td><td>副作用纪律</td><td>三 W 自证 + V 抽验</td><td>唯一写面 = 自己的 <code>wds-*.yaml</code>（自动执行档）+ 静默渲染；<strong>无外部服务、无确认档、无 defer 产生面</strong></td></tr>
+</tbody></table>
+<h2>七、非阻断观察清单（欠账，C 阶段或后续批处置）</h2>
+<p><strong>V 发现 8 条</strong>（1 高 3 中 4 低）：</p>
+<table>
+<thead><tr><th>#</th><th>级</th><th>归属</th><th>内容</th><th>处置</th></tr></thead>
+<tbody>
+<tr><td>V-01</td><td><strong>高</strong></td><td>W1</td><td>合同第 6 节 <code>availability</code> 被<strong>无条件必填</strong>，与步文件「<strong>仅长期聘用</strong>」互斥——固定价 + 10 节 → <code>check --final</code> rc=1，<strong>且测试把 bug 固化了</strong></td><td><strong>已返工修复</strong>：引擎改<strong>条件性必填</strong>（仅 <code>pricing_model: 长期聘用</code> 时计入）；测试补两条用例（固定价缺键 → rc=0 / 长期聘用缺键 → rc=1）</td></tr>
+<tr><td>V-02</td><td>中</td><td>主 agent（§2.3.1）</td><td>W2 对 §2.3.1 冻结的四组键<strong>实读仅 1/4</strong>——<strong>W2 的判断正确</strong>（输出语言由 <code>diy-coder.yaml</code> 决定、视觉方向消费者在 C·3）</td><td><strong>已订正任务书</strong>：§2.3.1 收窄「必读」面，其余降「可选读」——<strong>不强推读无用键</strong>（YAGNI）</td></tr>
+<tr><td>V-03</td><td>中</td><td>主 agent（§2.3.1）</td><td>§2.3.1 <strong>漏列 W3 的可选读行</strong>（源侧 wds-3 确读简章的站点类型/页数/导航/SEO 关键词）</td><td><strong>已订正任务书</strong>：补可选读行</td></tr>
+<tr><td>V-04</td><td>中</td><td>主 agent</td><td><code>迁移计划.md</code> <strong>§二十 / §二十一 施工期间被 C·4 / C·1 两窗写走</strong>（开工前复核时 §二十 尚空）</td><td><strong>已处置</strong>：本批改走 <strong>§二十二</strong>；教训写入 §9（<strong>收口落笔前必须重查节号</strong>）</td></tr>
+<tr><td>V-05</td><td>低</td><td>主 agent</td><td>驱动因素 ID 形态 `DF-&lt;n&gt;.&lt;m&gt;+</td><td>-` 是 W2 在裁定 8 之外的<strong>补白</strong>，首稿未登记</td><td><strong>已在裁定 8 处追认并登记</strong></td></tr>
+<tr><td>V-06</td><td>低</td><td>W1</td><td>源侧缺陷四类台账里「断链<strong>不可修</strong>」的条目并入「断链<strong>可修</strong>」标签</td><td>留档（法据：裁定 5 已重排为四类且<strong>判据 = 有没有落点</strong>，W1 的归类实质正确、仅标签串味）</td></tr>
+<tr><td>V-07</td><td>低</td><td>W3</td><td>Freya 第 4 条原则<strong>零登记</strong>（既没落本技能、也没写明归 B7b）</td><td>留档：C·3/C 阶段归位时补登记</td></tr>
+<tr><td>V-08</td><td>低</td><td>W3</td><td>驱动 ID 交叉核对<strong>只核人物号、不核存在性</strong></td><td>留档（现状不产生错判，后续批可加固）</td></tr>
+</tbody></table>
+<p><strong>另三条待办</strong>：</p>
+<ol>
+<li><strong><code>visual_direction</code> 本批零消费者</strong>——不是缺陷（下游在 C·3），但<strong>保真度报告须明写「本批产出、C·3 消费」</strong>（本报告 §0 已写）</li>
+<li><strong><code>line: wds</code> + WDS 线自有 <code>phase</code> 值首次引入</strong> → <strong>C1 面</strong>：C·1 已落地 <code>registry.yaml</code>，须确认这两处的并表口径</li>
+<li><strong>WDS 线机械写回命令面</strong>（计划 §四 要求）——本批<strong>只出契约不实现</strong>，交 C·3（建议随 <code>design.py</code> 扩 <code>transition</code> 落地）</li>
+</ol>
+<h2>八、viewer 标签缺口清单（<strong>C 阶段输入</strong>）</h2>
+<p>三个新产物类型<strong>均不在</strong> <code>DOC_LABELS</code>（C·2 已扩至 32 条，普查面是「已建 41 技能」）：</p>
+<table>
+<thead><tr><th>产物</th><th>文档标签</th><th>键标签</th><th>值标签</th><th>备注</th></tr></thead>
+<tbody>
+<tr><td><code>wds-brief.yaml</code></td><td><strong>缺</strong></td><td><code>signoff</code> / <code>external_contract</code> / <code>service_agreement</code> / <code>internal</code> / <code>pricing_model</code> / <code>finalized</code> 等</td><td><code>signoff.type</code> / <code>alignment.status</code> / <code>intake.stage</code> 三个中文值域</td><td><strong>另有一条着色硬需求</strong>：这三处是<strong>复合键名</strong>，不在 <code>ENUM_KEYS</code> 内 → <strong>既不报诊断也不着色</strong>（要么扩 <code>ENUM_KEYS</code>、要么让 <code>VALUE_LABELS</code> 兜底）</td></tr>
+<tr><td><code>wds-trigger.yaml</code></td><td><strong>缺</strong></td><td>若干</td><td><code>personas[].priority</code> 的 `主\</td><td>其他` <strong>+2 值标签</strong></td><td><strong>Effect Map 的 Mermaid 渲染器仍缺</strong>——这不是「缺标签」而是<strong>缺渲染器</strong>，且<strong>当前无责任人</strong>（本批只登记不实现；产物侧已备好 <code>effect_map.diagram</code> 全文，渲染器上线即可直接消费）</td></tr>
+<tr><td><code>wds-scenarios.yaml</code></td><td><strong>缺</strong></td><td>若干（<code>design_intent</code> / <code>design_status</code> / <code>coverage.matrix</code> 等）</td><td>—</td><td>渲染走通用降级</td></tr>
+</tbody></table>
+<h2>九、审阅指引（B7a 为<strong>非强制人工审</strong>）</h2>
+<p><strong>审阅面</strong>：本报告 + <code>v-audit.md</code>（终审计证据）+ <code>v-capability-inventory.md</code>（能力清点）+ <code>dogfood-scan-2026-09-21.md</code>（开工前自检台账）。</p>
+<p><strong>异常项才需看</strong>：</p>
+<ol>
+<li><strong>§三 的裁定 2/4 是被自检打回的</strong>——<code>required</code> 填反、<code>phase</code> 自造，<strong>根因是「凭前批先例类推源侧字段」</strong>；B7b 编制时须先机械取数（<code>_req_check.txt</code> 那类）再填</li>
+<li><strong>§七 的 V-04</strong>：节号在施工期间被并行窗口写走（<strong>第二次撞车</strong>，B6 已遇一次）——<strong>收口前重查节号</strong>已成硬纪律</li>
+<li><strong>§八 的 Effect Map 渲染器</strong>：本批备好了数据，但<strong>渲染器无人认领</strong>——须在 §二十二 点名责任人</li>
+<li><strong>§三 裁定 8 是对已定稿计划的改判</strong>（废止 <code>P-*</code>）——**若你要维持 <code>P-*</code>，回退成本仅在 <code>diy-wds-scenarios</code> 一处**</li>
+</ol>
+<p><strong>下一步</strong>：<strong>B7b</strong>（<code>diy-wds-system</code> / <code>diy-wds-assets</code> / <code>diy-wds-evolution</code> / <code>diy-analyze</code> / <code>diy-reverse</code>，含用户拍板的两项：<code>diy-analyze</code> 建、<code>presentation-master</code> 完整建第 9 活动）或 C 阶段余项。</p>
+</main>
+</body>
+</html>

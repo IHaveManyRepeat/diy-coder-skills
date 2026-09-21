@@ -73,7 +73,8 @@ CONVERTED_INSTANCE = frozenset(["spec-scan", "prd", "teach-me-testing", "test-au
                                 "brainstorm", "elicit", "party-mode", "spec",
                                 "editorial-review",
                                 "bmb-builder", "bmb-module", "eval-runner",
-                                "cis-method"])
+                                "cis-method",
+                                "wds-brief", "wds-trigger", "wds-scenarios"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
 DISCIPLINE_EN_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
@@ -103,7 +104,8 @@ CONVERTED_DISCIPLINE = frozenset(["prd", "teach-me-testing", "test-author",
                                   "brainstorm", "elicit", "party-mode", "spec",
                                   "editorial-review",
                                   "bmb-builder", "bmb-module", "eval-runner",
-                                  "cis-method"])
+                                  "cis-method",
+                                  "wds-brief", "wds-trigger", "wds-scenarios"])
 # spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
 
@@ -210,7 +212,7 @@ def _steppers():
     return [s for s in skills()
             if os.path.isdir(os.path.join(SKILLS_DIR, "diy-" + s, "steps"))]
 
-# B3–B6 批新建技能（**落地时在此登记**）：它们**中文原生**——§1/§3/§4/§5 一次写到位，
+# B3–B7a 批新建技能（**落地时在此登记**）：它们**中文原生**——§1/§3/§4/§5 一次写到位，
 # 故只进 `CONVERTED_*` 与这里，**不进 `INSTANCE_MEMBERS` / `DISCIPLINE_MEMBERS` / 任何 `PENDING_*`**
 # （进 PENDING 会因它们已含锚串而判红；RS4-01/04/05）。
 NEW_SKILLS = frozenset(["teach-me-testing", "test-author",
@@ -218,7 +220,8 @@ NEW_SKILLS = frozenset(["teach-me-testing", "test-author",
                         "brainstorm", "elicit", "party-mode", "spec",
                         "editorial-review",
                         "bmb-builder", "bmb-module", "eval-runner",
-                        "cis-method"])
+                        "cis-method",
+                        "wds-brief", "wds-trigger", "wds-scenarios"])
 
 
 def _lacking(anchor, candidates):

@@ -1,0 +1,128 @@
+# diy-wds-brief 产物 schema 蓝本（{output_dir}/wds-brief.yaml）
+#
+# 用法：**骨架由引擎铸**（`wds_brief.py init --project-type <greenfield|brownfield>`），
+# 本文件是**填值参照**——各段该有哪些键、每个键问什么、什么条件下必填。
+# 键名逐字照抄（英文、snake_case）；值写 `document_output_language`（中文叙述，机器锚点保留）。
+# 本文件**不是**产物，不落 `{output_dir}/`、不参与 `check`——它是给会话看的键表。
+#
+# 三个共同纪律（母本 §2 写作纪律在上游 SKILL.md 规则段）：
+#   ① 不复述上游已写的信息——引用 `path:<relative>` 或键名，不复制内容
+#   ② 未决项写 `revisions`，不用 `[假设]` 标记（`check --final` 查零 [假设]）
+#   ③ `{...}` 令牌白名单只有 `{project-root}` 与 `{output_dir}`，其余一律被引擎拒
+
+project:
+  name: <string>            # init 铸造（取自 diy-coder.yaml 的 project.name）；此后不改
+  created: YYYY-MM-DD       # init 铸造；此后不改
+  updated: YYYY-MM-DD       # 每次写回刷今天
+  status: 草稿|已定稿        # 母本 §8 两值；单记录产物 → 顶层设（不是记录级）
+
+intake:                     # 分诊结论 + 续接锚点（源 wds-0-project-setup step-01/02）
+  project_type: greenfield|brownfield   # 入口门禁：非空才放行；改判走 revisions（引擎报 SET_MISMATCH）
+  complexity: simple|standard|complex|complex+mobile   # 产品复杂度（决定阶段开关）
+  brief_level: complete|simplified      # complete 走全键表；simplified 走收窄键表
+  strategic_analysis: full|simplified|skip   # 只记档位；下游 diy-wds-trigger 按它决定是否整段走
+  stage: 分诊|对齐|签核|核心|内容|视觉|收尾  # **续接锚点**；已定稿要求 stage: 收尾
+  existing_materials: {has_materials: <bool>, summary: <string>}   # 源 step-02 第 6 问（可选）
+
+client_profile:             # 客户画像四域（源 wds-1 step-01a；**不是**他们的产品、不是他们的用户）
+  organization: {type, size, industry, tech_maturity, design_maturity}
+  key_people: {primary_contact: {name, role, mandate}, champion, technical_contact,
+               other_stakeholders: [{name, role, influence}], decision_style}
+  internal_drivers: {trigger, internal_success, deadline}
+  collaboration: {communication, response_speed, timeline_culture, prior_agency_experience,
+                  stakes, involvement_level, role, recommendation_style}
+
+brief:                      # 四段的段名是**跨技能读契约**（§2.3.1）——改键名必须同步 W2/W3
+  core:                     # 源 wds-1 step-02..12（核心段 12 小节）
+    vision: <string>        # ★ 下游读；step 4 / 第 1 步（会话四拍的第 4 拍由你综合）
+    positioning: <string>   # ★ 下游读；第 2 步（含目标/需求/品类/好处/差异点五件）
+    business_model: B2B|B2C|B2B+B2C        # 第 3 步；含 B2B 时 business_customers 必填
+    business_customers: {}  # 第 4 步（仅 B2B；企业画像 + 决策结构 + 采购角色）
+    target_users: <string>  # ★ 下游读；第 5 步（写成外行读得懂的画像）
+    product_concept: <string>   # ★ 下游读；第 6 步（结构构念，不是功能清单）
+    success_metrics: [<string>]  # 第 7 步（≥3 条可量；简化档可空）
+    competitive_landscape: {alternatives: [...], retention_reasons: [...], advantage}  # 第 8 步（≥2 替代方案）
+    constraints: [<string>] # 第 9 步（简化档必填；无约束也要写「无已识别约束」）
+    platform_strategy: {}   # 第 10 步（平台与设备策略；技术选型在 platform 段）
+    tone_of_voice: {}       # 第 11 步（**界面里**怎么说话；品牌层语气在 content 段）
+  content:
+    content_language:       # ★ 下游读；源 step-13..18（内容段 7 小节）
+      personality: {}       # ≥3 个人格词，具体到能反驳
+      tone: {}              # 核心语气 + 光谱 + 「我们会说/绝不说」对照
+      languages: {}         # 主语言 + 附加语言 + 翻译路径 + 正式度（简化档唯一必填）
+      seo_keywords: {}      # ≥3 主词 + 意图 + 页-词映射（两页不抢一词）+ 长尾 + URL
+      content_structure: {} # 结构类型 + 优先级 + 导航原则 + 明确不含
+  visual:
+    visual_direction:       # ★ 下游读；六维（源 step-19/21/22/23/24/25）
+      inspiration: {}       # 灵感工坊（2–6 参考站 + 逐站「取什么」）
+      existing_brand: {}    # 既有资产 + 「必须保留 / 可以动」约束（无则明确落「无」）
+      references: {}        # 参考站 + 视觉情绪 + 避免项（≥2 站且写清取什么）
+      design_style: {}      # UI 风格 / 美学 / 色彩 / 字体（简化档唯一必填；**术语表内联在步文件**）
+      layout_effects: {}    # 布局法 + 关键元素 + 特效清单 + 性能降级口
+      imagery: {}           # 摄影风格 + 来源 + 红线（不用影像也要明确落）
+  platform:
+    platform_requirements:  # ★ 下游读；源 step-27..32（平台段 6 小节）
+      tech_stack: {}        # CMS/框架 + 前端 + 托管 + 硬约束（简化档唯一必填）
+      integrations: [{}]    # 每项含 name + purpose（必填）+ 现在/将来
+      contact_strategy: {}  # 主渠道 + 表单字段 + 服务时段
+      multilingual: {}      # 语言 + 切换方式 + URL 结构 + 翻译流程（单语也要明确落）
+
+alignment:                  # 源 wds-0-alignment-signoff Phase 1–3（十节，可换序）
+  status: 不需要|未开始|进行中|已定稿   # 「不需要」→ 十节全免；「已定稿」要求十节齐备
+  realization: <string>     # 实情 + 软证据 + 硬证据（先软后硬）
+  why_it_matters: <string>  # 帮谁、谁的什么痛点、做成什么样
+  how_we_see_it_working: <string>   # 高层概览（对软件/流程/服务/产品/战略通用）
+  paths_we_explored: [<string>]     # 2–3 条备选路径
+  recommended_solution: <string>    # 首选 + 为什么是它
+  path_forward: <string>            # 活怎么干（走哪几段、要不要调研、交接方式）
+  value_we_create: <string>         # 野心 + 成功指标 + 成功的样子 + 怎么盯
+  cost_of_inaction: <string>        # 财务 / 机会 / 竞争 / 运营 四类代价
+  our_commitment: <string>          # 时间 / 钱 / 人 / 技术 + 风险（粗估即可）
+  summary: <string>                 # 要点（让读者自己下结论）
+
+signoff:                    # 裁定 13：**三型并列**，一次分型闸只填一型
+  type: 不签核|对外合同|服务协议|内部审批
+  status: 未开始|构建中|已定稿
+  external_contract:        # 仅 type: 对外合同
+    pricing_model: 固定价|计时|长期聘用|混合   # 源 04b；决定 payment_terms / not_to_exceed / availability 三节写法
+    sections:               # 源 05a–05k 的 11 节（availability 的补齐见步文件「★ 源侧缺陷修复」）
+      project_overview: <string>      # 取 alignment.realization + recommended_solution
+      business_model: <string>
+      scope_of_work: {deliverables, in_scope, out_of_scope}   # 取 alignment.path_forward；范围三段缺一不可
+      payment_terms: {}               # 总额 / 结构 / 日程 / 方式 / 到期日 / 逾期 / 条件
+      timeline: <string>
+      availability: <string>          # 仅长期聘用模式
+      confidentiality: <string>       # 双向 + 例外 + 期限
+      not_to_exceed: {}               # 固定价必填 / 计时可选 / 长期聘用不适用
+      work_initiation: <string>
+      terms_and_conditions: {}        # 变更 / IP / 终止 / 争议 / 管辖 / 合同语言
+      approval: {client, contractor}
+    finalized: <bool>
+  service_agreement:        # 仅 type: 服务协议（源侧无构建步 → 本批补齐）
+    pricing_model: 固定价|计时|长期聘用|混合
+    sections:               # 按服务协议模板的 12 节
+      project_overview: <string>
+      scope_of_services: <string>     # 偏持续服务而非一次性交付
+      our_commitment: <string>
+      timeline: <string>
+      why_it_matters: <string>        # 取 alignment.why_it_matters
+      expected_outcomes: <string>     # 取 alignment.value_we_create
+      service_terms: {}               # 服务协议独有：付款 + 交付物验收 + IP
+      risks_and_considerations: <string>   # 取 alignment.cost_of_inaction + our_commitment
+      confidentiality: <string>
+      not_to_exceed: {}
+      terms_and_conditions: {}
+      approval: {}
+    finalized: <bool>
+  internal:                 # 仅 type: 内部审批（**不填 pricing_model**；内部文书，非对外合同）
+    sections:
+      project_overview: <string>
+      goals_and_metrics: {}           # 想干成什么 / 成功指标 / 怎么量 / KPI
+      budget_and_resources: {}
+      ownership: {}                   # 项目负责人 / 流程负责人 / 干系人 / 谁拍板
+      approval_and_signoff: {}        # 谁批 / 审批阶段 / 签署流程 / 时限
+      timeline_and_milestones: {}
+      optional_sections: {}           # 风险（可选）/ 保密（可选）/ 路径概览（可选）
+    finalized: <bool>
+
+revisions: []               # {date, change, reason}——改既有内容时追加；change 引用段名/键名，不复制内容
