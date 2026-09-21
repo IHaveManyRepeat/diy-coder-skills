@@ -78,7 +78,7 @@ loop:
 6. **自动模式不跑证伪轮。** diy-review 可选的收尾证伪轮只由用户触发，本技能不跑；也不额外记录——它没跑不算 finding。
 7. **写范围收窄。** 只写目标任务的条目：周期里的各状态、`loop` 摘要，以及其阶段产出的 evidence / review 块。绝不碰其他任务，绝不改写 `test_refs`。
 8. **终态写抵达真源——真源回填（BUG-012）。** `done` 命令（`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" done --story <S-x> --rounds N --json`）把 `待审查 → 已完成` 连同回填当一个原子批次做完：sprint.yaml 里任务 `status: 已完成` 且 `loop: {at, rounds, outcome: 已完成}`，stories.yaml 里该故事 `status: 已完成`，test-plan.yaml 里本次跑绿的每个 TC `status: 通过`（dev 阶段已按 diy-dev 写过，终态写做对账），并 bump 所有被触及的 `project.updated`。`已阻塞` 只是 sprint 层结论——不写 `stories.yaml`、不写 `test-plan.yaml`：故事未交付，什么也不算通过。**为什么：** 2026-09-13 证伪轮发现无头链已到 sprint 终态、真源却停在 `待办`。
-9. **调度归 runner。** 无头串行驱动由 `runner.py` 负责（安装形态 `.claude/skills/diy-tools/scripts/runner.py`，**由人手动执行**）——签名 `python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" [--project-root <目录>] [--instance <实例名>] [--claude-cmd <命令…>] [--max-retries N] [--allow <白名单条目>] [--skip-augment | --augment-only | --reopen-failed]`。示例：`python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" --project-root "{project-root}"`。它逐条 spawn 本技能的无头运行；本技能自己绝不挑下一个任务。
+9. **调度归 runner。** 无头串行驱动由 `runner.py` 负责（安装形态 `.claude/skills/diy-tools/scripts/runner.py`，**由人手动执行**）——签名 `python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" [--project-root <目录>] [--instance <实例名>] [--claude-cmd <命令…>] [--max-retries N] [--allow <白名单条目>] [--deny <拒止条目>] [--skip-augment | --augment-only | --reopen-failed]`。示例：`python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" --project-root "{project-root}"`。它逐条 spawn 本技能的无头运行；本技能自己绝不挑下一个任务。
 10. 任何判断性取值都在 YAML 值上带 `[假设]` 前缀。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

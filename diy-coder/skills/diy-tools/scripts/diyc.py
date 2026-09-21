@@ -363,6 +363,13 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--entry", default=None, help="JSON 对象字符串")
     g.add_argument("--entry-file", default=None, help="JSON 对象文件路径")
 
+    p = sub.add_parser("defer-set", parents=[common],
+                       help="待确认动作 status 翻转（待办→已完成|已拒绝）")
+    p.add_argument("--id", required=True,
+                   help="待确认动作编号（DA-###，取自 deferred-actions.yaml）")
+    p.add_argument("--status", required=True,
+                   help="翻转目标：已完成（用户已确认并执行）| 已拒绝（裁定不做）")
+
     p = sub.add_parser("reconcile", parents=[common], help="sprint 任务与故事集对账")
     p.add_argument("--apply", action="store_true", help="执行写回（默认 dry-run 只算不写）")
 

@@ -13,6 +13,8 @@
 - defer-add（2026-09-15 副作用纪律修订）：序号铸造（既有 DA-003 → DA-004；无文件 →
   DA-001 骨架）、四类 reason 全收、可选字段缺席不留空键、append 保留既有条目、
   枚举/必填/坏 JSON/互斥参数拒绝；
+- defer-set（2026-09-20 迁移计划 §五 C·8②）：待办→已完成|已拒绝 双向翻转、只动目标条目、
+  bump 与回执字段、未知 ID / 非法 status / 已是终态 / 文件缺席 / actions 形状异常 五类拒绝；
 - reconcile：dry-run 零落盘 / --apply 落盘、add（缺覆盖→已阻塞+reason、story 已完成→已完成、
   已豁免 缺口视为覆盖）、remove 孤儿任务、changed 门重算（进行中→已阻塞、已阻塞→待办 清 reason）、
   待审查/已完成 不动、已完成 story 任务非已完成 只 warning 不伪造、test_refs 重推、新任务按 story 序插入、
@@ -564,6 +566,89 @@ class DeferAddTests(WritebackCase):
         res = diyc_writeback.run(self.args("defer-add", entry="{}", entry_file="x.json"))
         self.assertFalse(res["ok"])
         self.assertEqual(res["violations"][0]["code"], "SET_MISMATCH")
+
+
+@NEEDS_W1
+class DeferSetTests(WritebackCase):
+    """defer-set（迁移计划 §五 C·8②）：待确认动作的 status 翻转——队列出口侧。"""
+
+    def _seed(self, statuses=("待办",)):
+        actions = [
+            {"id": f"DA-{i:03d}", "date": "2026-01-01", "skill": "diy-dev",
+             "action": f"动作 {i}", "reason": "仅人工可做", "status": st}
+            for i, st in enumerate(statuses, start=1)
+        ]
+        self.write("deferred-actions",
+                   {"project": diyc_fixture.project_meta(), "actions": actions})
+        return actions
+
+    def _set(self, action_id, status):
+        return diyc_writeback.run(self.args("defer-set", id=action_id, status=status))
+
+    def test_flip_pending_to_done(self):
+        self._seed()
+        res = self._set("DA-001", "已完成")
+        self.assertTrue(res["ok"], res)
+        self.assertEqual(res["id"], "DA-001")
+        self.assertEqual(res["status"], "已完成")
+        self.assertEqual(res["file"], "diy-output/deferred-actions.yaml")
+        self.assertEqual(res["updated"], diyc_lib.today())
+        doc = self.read("deferred-actions")
+        self.assertEqual(doc["actions"][0]["status"], "已完成")
+        self.assertEqual(doc["project"]["updated"], diyc_lib.today())
+
+    def test_flip_pending_to_rejected(self):
+        self._seed()
+        res = self._set("DA-001", "已拒绝")
+        self.assertTrue(res["ok"], res)
+        self.assertEqual(self.read("deferred-actions")["actions"][0]["status"], "已拒绝")
+
+    def test_only_target_entry_touched(self):
+        self._seed(("待办", "待办", "已完成"))
+        res = self._set("DA-002", "已完成")
+        self.assertTrue(res["ok"], res)
+        doc = self.read("deferred-actions")
+        self.assertEqual([a["status"] for a in doc["actions"]],
+                         ["待办", "已完成", "已完成"])
+        self.assertEqual(doc["actions"][1]["action"], "动作 2")
+        self.assertEqual(doc["actions"][1]["reason"], "仅人工可做")
+
+    def test_unknown_id_rejected_zero_write(self):
+        self._seed()
+        res = self._set("DA-999", "已完成")
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "UNKNOWN_ID")
+        self.assertEqual(self.read("deferred-actions")["actions"][0]["status"], "待办")
+
+    def test_bad_status_rejected(self):
+        for bad in ("待办", "done", "已完成 ", ""):
+            with self.subTest(status=bad):
+                self._seed()
+                res = self._set("DA-001", bad)
+                self.assertFalse(res["ok"], res)
+                self.assertEqual(res["violations"][0]["code"], "ENUM_INVALID")
+
+    def test_already_resolved_rejected(self):
+        for terminal in ("已完成", "已拒绝"):
+            with self.subTest(status=terminal):
+                self._seed((terminal,))
+                res = self._set("DA-001", "已完成")
+                self.assertFalse(res["ok"])
+                self.assertEqual(res["violations"][0]["code"], "ILLEGAL_TRANSITION")
+                self.assertEqual(self.read("deferred-actions")["actions"][0]["status"],
+                                 terminal)
+
+    def test_missing_file_rejected(self):
+        res = self._set("DA-001", "已完成")
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "MISSING_FILE")
+
+    def test_actions_shape_rejected(self):
+        self.write("deferred-actions",
+                   {"project": diyc_fixture.project_meta(), "actions": "nope"})
+        res = self._set("DA-001", "已完成")
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "UNPARSABLE_YAML")
 
 
 @NEEDS_W1

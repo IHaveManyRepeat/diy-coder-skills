@@ -16,6 +16,35 @@ import yaml
 
 TERMINAL = {"已完成", "已阻塞"}
 DEFAULT_MAX_RETRIES = 2  # R-4：重试上限 2 次封顶
+
+# —— 无头会话命令白名单（迁移计划 §五 C·8；§十三 2026-09-15 副作用纪律裁定）——
+# 三档处置的落地：写代码/测试链条内的命令属「自动执行」档，交互式与无头一致。
+# 工具名两套：Bash 与 PowerShell（Windows 无头会话的命令工具名为 PowerShell，
+# 见 _spawn 注释）；规则写法统一为空格式（官方 --help 示例形式；冒号 :* 是等价
+# legacy 写法，个别版本有静默失效报告）。
+_TOOLS = ("Bash", "PowerShell")
+# 跨语言命令族：Python / JS-TS / Go / Rust / Java 的构建、测试、lint、依赖安装，
+# 外加 git 三步（add / commit / push）。规格列举见 §五 C·8。
+_ALLOWED_COMMANDS = (
+    "python", "pip", "ruff", "pytest",
+    "npm", "npx", "node", "pnpm", "yarn", "playwright",
+    "go", "cargo", "mvn", "gradle",
+    "git add", "git commit", "git push",
+)
+DEFAULT_ALLOW = [f"{tool}({cmd} *)" for tool in _TOOLS for cmd in _ALLOWED_COMMANDS]
+# 拒止表（deny）：破坏性 git 操作保留确认语义（§十三 二次修订裁定：保留确认档的
+# git 项收窄为破坏性操作）。求值序 deny → ask → allow，deny 永远赢——这是
+# 「push 进白名单」与「force 保留确认」能同时成立的唯一机制：allowedTools 是纯前缀
+# 匹配、看不见后缀 flag，无法在 allow 侧表达"放行 push 但排除 force"。
+# ⚠ 已知缺口：`-f` 短写无法在不误伤分支名（如 bug-fix）的前提下表达，故未纳入；
+# 该缺口由技能侧行为条款承担第一道防线，此处登记备查（见 C·8 裁定记录）。
+_DENIED_PATTERNS = (
+    "git push *--force*",      # 覆盖 --force 与 --force-with-lease
+    "git push *--delete*",     # 删远端分支
+    "git reset *--hard*",
+    "git branch *-D*", "git branch *--delete*",
+)
+DEFAULT_DENY = [f"{tool}({pat})" for tool in _TOOLS for pat in _DENIED_PATTERNS]
 # trace: FR-4.5 D-9 实例名白名单（与 viewer/help 同源）：字母数字开头和结尾，中间可含 . _ -。
 # 首字符字母数字拒绝点目录/分隔符；末字符禁点（Windows 尾点目录被静默折叠，b. ≡ b 破坏实例隔离）
 INSTANCE_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?")
@@ -51,7 +80,7 @@ def pick_next(doc: dict):
 
 
 def spawn_iteration(claude_cmd: list, project_root: Path, story_id: str,
-                    allow: list, instance: str = None) -> int:
+                    allow: list, deny: list, instance: str = None) -> int:
     # trace: S-10 AC-10.1 D-4 R-1 spawn 无头 claude CLI 执行 diy-build-loop 单次迭代
     # trace: FR-4.5 D-9（finding: diy-build-loop/enhancement-1）实例模式经 prompt 透传
     # --instance 激活参数，子会话按各技能 On Activation 约定解析到 <output_dir>/<name>/；
@@ -61,7 +90,8 @@ def spawn_iteration(claude_cmd: list, project_root: Path, story_id: str,
     # 不读 stdin，继承不构成人工输入通道（无人值守语义不变）
     # --permission-mode acceptEdits + --allowedTools 白名单：R-1 定稿——文件编辑自动接受，
     # 命令执行仅放行白名单（TDD red/green 必需），禁 skip-permissions；
-    # 白名单默认 Bash/PowerShell 的 python+ruff 前缀，其他 stack 经 --allow 传入（语言无关）
+    # 白名单默认跨语言构建/测试链条（DEFAULT_ALLOW），其他命令经 --allow 传入；
+    # --disallowedTools 拒止表兜破坏性 git（DEFAULT_DENY），经 --deny 覆盖
     prompt = _instance_clause(instance) + (
         f"运行 diy-build-loop skill 处理任务 {story_id}：读取本项目 diy-coder.yaml 解析 "
         f"output_dir 下的 sprint.yaml，把任务 {story_id} 从当前状态驱动到终态"
@@ -70,7 +100,7 @@ def spawn_iteration(claude_cmd: list, project_root: Path, story_id: str,
         f"提示：本会话的命令执行工具（PowerShell）是核心工具、不进入 ToolSearch 索引，"
         f"直接调用即可；先用 ToolSearch 搜索来确认其存在会得到假阴性。"
     )
-    return _spawn(claude_cmd, project_root, prompt, allow)
+    return _spawn(claude_cmd, project_root, prompt, allow, deny)
 
 
 def _instance_clause(instance: str) -> str:
@@ -82,16 +112,21 @@ def _instance_clause(instance: str) -> str:
     )
 
 
-def _spawn(claude_cmd: list, project_root: Path, prompt: str, allow: list) -> int:
+def _spawn(claude_cmd: list, project_root: Path, prompt: str,
+           allow: list, deny: list) -> int:
     # diy-build-loop / diy-augment 共用的 spawn 机制：--permission-mode acceptEdits +
-    # --allowedTools 白名单（TDD 与补测命令仅放行 python/ruff 前缀）
+    # --allowedTools 白名单 + --disallowedTools 拒止表（前者放行构建/测试链条，
+    # 后者兜破坏性 git——deny 与 allow 求值序 deny → ask → allow，前者永远赢）
     # errors="replace"：子会话（或桩）stderr 跟随宿主 locale（Windows 中文 = GBK），
     # 其增量输出若非 UTF-8 不应打断 runner——本函数只取退出码，decode 失败无信息价值
+    cmd = claude_cmd + ["-p", prompt,
+                        "--output-format", "json",
+                        "--permission-mode", "acceptEdits",
+                        "--allowedTools"] + allow
+    if deny:
+        cmd += ["--disallowedTools"] + deny
     proc = subprocess.run(
-        claude_cmd + ["-p", prompt,
-                      "--output-format", "json",
-                      "--permission-mode", "acceptEdits",
-                      "--allowedTools"] + allow,
+        cmd,
         cwd=str(project_root),
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -103,7 +138,7 @@ def _spawn(claude_cmd: list, project_root: Path, prompt: str, allow: list) -> in
 
 
 def spawn_augment(claude_cmd: list, project_root: Path, story_id: str,
-                  allow: list, instance: str = None) -> int:
+                  allow: list, deny: list, instance: str = None) -> int:
     # trace: 2026-09-13 裁定——编码后补测（diy-augment）：每任务已完成 后触发，
     # 覆盖率驱动追加 TC 写回 test-plan.yaml；本函数只负责 spawn，
     # 失败由调用方降级为一行提示，不阻塞串行主循环
@@ -118,7 +153,7 @@ def spawn_augment(claude_cmd: list, project_root: Path, story_id: str,
         f"提示：本会话的命令执行工具（PowerShell）是核心工具、不进入 ToolSearch 索引，"
         f"直接调用即可；先用 ToolSearch 搜索来确认其存在会得到假阴性。"
     )
-    return _spawn(claude_cmd, project_root, prompt, allow)
+    return _spawn(claude_cmd, project_root, prompt, allow, deny)
 
 
 def augment_note(sprint_path: Path, story_id: str, rc: int) -> str:
@@ -162,6 +197,30 @@ def augment_summary(doc: dict) -> list:
     return lines
 
 
+def deferred_summary(output_dir: Path) -> list:
+    # trace: 迁移计划 §五 C·8②——runner 结束时的待确认动作汇总。副作用纪律的保留确认档
+    # 在无头下不阻塞任务（经 diyc.py defer-add 入队），代价是用户"挨个产物翻"才发现——
+    # 本汇总行让循环结束时一眼看到累积量（仿 augment_summary 形态：有则一行，无则零行）。
+    # 读取容错与 viewer 同源：文件缺席/坏 YAML/形状异常一律降级为不打扰（汇总非门禁）
+    path = output_dir / "deferred-actions.yaml"
+    if not path.is_file():
+        return []
+    try:
+        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (yaml.YAMLError, OSError):
+        return [f"[runner] {path.name} 读取失败（解析/IO），待确认动作未汇总"]
+    actions = doc.get("actions") if isinstance(doc, dict) else None
+    if not isinstance(actions, list):
+        return []
+    pending = [a for a in actions
+               if isinstance(a, dict) and a.get("status") == "待办"]
+    if not pending:
+        return []
+    ids = "、".join(str(a.get("id") or "?") for a in pending)
+    return [f"[runner] 待确认动作 {len(pending)} 条待办：{ids}"
+            f"——见 {path.name}，用户确认执行后用 diyc.py defer-set 翻转 status"]
+
+
 def reopen_augment_failed(sprint_path: Path) -> list:
     # trace: 2026-09-13 裁定——失败 裁断处置之一（代码缺陷→重开）：已完成+augment:失败
     # 批量重开（已完成→进行中、清旧结论、note 记裁断动作），随后主循环修复并重新补测；
@@ -191,12 +250,12 @@ def find_task(doc: dict, story_id: str) -> dict:
 
 
 def drive_task(sprint_path: Path, claude_cmd: list, project_root: Path,
-               story_id: str, max_retries: int, allow: list,
+               story_id: str, max_retries: int, allow: list, deny: list,
                instance: str = None) -> str:
     # trace: S-10 AC-10.3 TC-10.3.1 驱动单任务：初次 + 至多 max_retries 次重试，
     # 重试用尽仍非终态 → 已阻塞 写回原因，返回由调用方继续后续任务
     for _attempt in range(1 + max_retries):
-        spawn_iteration(claude_cmd, project_root, story_id, allow, instance)
+        spawn_iteration(claude_cmd, project_root, story_id, allow, deny, instance)
         current = find_task(load_sprint(sprint_path), story_id)
         if current.get("status") in TERMINAL:
             return current["status"]
@@ -228,8 +287,14 @@ def main(argv=None) -> int:
                         help="单任务重试上限（默认 2，对齐 R-4）")
     parser.add_argument("--allow", action="append", default=None,
                         help="无头会话命令白名单条目（可重复，如 'Bash(go test:*)'）；"
-                             "默认 Bash/PowerShell 的 python+ruff 前缀（TDD 执行与 static_checks 必需，"
-                             "语言无关——其他 stack 自行传入，本机 Windows 无头会话工具名为 PowerShell）")
+                             "默认跨语言构建/测试链条：Bash 与 PowerShell 两套工具名 × "
+                             "python/pip/ruff/pytest、npm/npx/node/pnpm/yarn/playwright、"
+                             "go、cargo、mvn/gradle、git add|commit|push"
+                             "（§五 C·8；本机 Windows 无头会话工具名为 PowerShell）")
+    parser.add_argument("--deny", action="append", default=None,
+                        help="无头会话命令拒止条目（可重复，如 'Bash(git push *--force*)'）；"
+                             "默认拒破坏性 git：force/force-with-lease 推送、删远端分支、"
+                             "reset --hard、删分支（§十三 保留确认档；求值序 deny 永远赢）")
     parser.add_argument("--instance", default=None,
                         help="实例名（FR-4.5/D-9）：读写 <output_dir>/<实例名>/sprint.yaml；"
                              "默认 None = 主线平铺（零迁移）")
@@ -257,10 +322,8 @@ def main(argv=None) -> int:
               file=sys.stderr)
         return 1
 
-    allow = args.allow or [
-        "Bash(python:*)", "Bash(ruff:*)",
-        "PowerShell(python *)", "PowerShell(ruff *)",
-    ]
+    allow = args.allow or DEFAULT_ALLOW
+    deny = args.deny or DEFAULT_DENY
 
     # trace: S-10 AC-10.1 L2 边界修复——Windows 上 claude 是 claude.cmd，
     # CreateProcess 不解析 PATHEXT，直接 spawn "claude" 会 FileNotFoundError；
@@ -328,9 +391,11 @@ def main(argv=None) -> int:
                    if t.get("status") == "已完成"
                    and t.get("augment") not in ("通过", "已跳过")]
         for story_id in targets:
-            rc = spawn_augment(args.claude_cmd, root, story_id, allow, args.instance)
+            rc = spawn_augment(args.claude_cmd, root, story_id, allow, deny, args.instance)
             print(f"[runner] {story_id} {augment_note(sprint_path, story_id, rc)}", flush=True)
         for line in augment_summary(load_sprint(sprint_path)):
+            print(line, flush=True)
+        for line in deferred_summary(output_dir):
             print(line, flush=True)
         print("[runner] 补测补跑完成（--augment-only），退出", flush=True)
         return 0
@@ -342,16 +407,18 @@ def main(argv=None) -> int:
             break
         story_id = task["story"]
         outcome = drive_task(sprint_path, args.claude_cmd, root, story_id,
-                             args.max_retries, allow, args.instance)
+                             args.max_retries, allow, deny, args.instance)
         print(f"[runner] {story_id} → {outcome}", flush=True)
         if outcome == "已完成" and not args.skip_augment:
             # trace: 2026-09-13 裁定——已完成 后编码后补测（diy-augment）；
             # 结论以 augment 字段为准（通过/失败/已跳过），未留痕降级为提示行，
             # 不阻塞主循环、不回退任务状态
-            rc = spawn_augment(args.claude_cmd, root, story_id, allow, args.instance)
+            rc = spawn_augment(args.claude_cmd, root, story_id, allow, deny, args.instance)
             print(f"[runner] {story_id} {augment_note(sprint_path, story_id, rc)}", flush=True)
 
     for line in augment_summary(load_sprint(sprint_path)):
+        print(line, flush=True)
+    for line in deferred_summary(output_dir):
         print(line, flush=True)
     print("[runner] 全部任务已到终态（已完成/已阻塞），退出", flush=True)
     return 0

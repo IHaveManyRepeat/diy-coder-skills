@@ -158,7 +158,7 @@ DESIGN_DOC = NL.join([
 ])
 
 DOC_NAMES = ["prd", "architecture", "epics", "stories", "test-plan",
-             "openapi", "sprint", "bug-log", "design"]
+             "openapi", "sprint", "bug-log", "design", "deferred-actions"]
 
 
 class _Fixture(unittest.TestCase):
@@ -183,6 +183,54 @@ class _Fixture(unittest.TestCase):
         html = open(os.path.join(self.out, ".view", name + ".html"),
                     encoding="utf-8").read()
         return html, html.split("</main>")[0]
+
+
+DEFERRED_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  created: 2026-09-20",
+    "  updated: 2026-09-20",
+    "actions:",
+    "- id: DA-001",
+    "  date: 2026-09-20",
+    "  skill: diy-dev",
+    "  action: 安装项目依赖",
+    "  command: npm install",
+    "  reason: 破坏性操作",
+    "  status: 待办",
+    "- id: DA-002",
+    "  date: 2026-09-20",
+    "  skill: diy-test-framework",
+    "  action: 改用户级配置",
+    "  target: .claude/settings.json",
+    "  reason: 用户配置",
+    "  status: 已完成",
+])
+
+
+class ViewerDeferredActionsTests(_Fixture):
+    # trace: 迁移计划 §五 C·8②——待确认动作队列的展示层标签（英文键名直出回归防线）
+    def test_deferred_actions_page_is_chinese(self):
+        self.write("deferred-actions.yaml", DEFERRED_DOC)
+        p = run_viewer(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html, body = self.page_body("deferred-actions")
+        self.assertIn("<h1>待确认动作</h1>", html, "deferred-actions 页面标题未映射")
+        for label in ("动作清单", "动作", "命令", "技能", "目标", "原因", "状态",
+                      "编号", "日期"):
+            self.assertIn(label, body, "deferred-actions 键 %s 未映射为中文" % label)
+        for leak in (">actions<", ">action<", ">command<", ">skill<", ">target<"):
+            self.assertNotIn(leak, body, "英文键名直出：%s" % leak)
+
+    def test_reason_and_status_values_are_known(self):
+        # reason 四值与 status 待办 均在值词表内，不得被判枚举漂移
+        self.write("deferred-actions.yaml", DEFERRED_DOC)
+        p = run_viewer(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr, "reason/status 值被判为枚举漂移")
+        _, body = self.page_body("deferred-actions")
+        self.assertIn("破坏性操作", body)
+        self.assertIn("待办", body)
 
 
 class ViewerDocScopedTypeLabelTests(_Fixture):

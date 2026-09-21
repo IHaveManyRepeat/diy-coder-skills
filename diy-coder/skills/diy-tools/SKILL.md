@@ -30,6 +30,7 @@ python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" <subcommand> [o
 | `done --story S-x [--rounds N]` | `待审查→已完成` 终态写回，含单一事实源回填。 |
 | `bug-add --entry '<json>' \| --entry-file P` | 往 bug-log.yaml 铸造 BUG-0xx。 |
 | `defer-add --entry '<json>' \| --entry-file P` | 把一个延迟动作排进 `deferred-actions.yaml`（铸造 `DA-0xx`；`reason` ∈ `用户配置`/`破坏性操作`/`越界改动`/`仅人工可做`）。凡是副作用纪律要求用户确认的动作：排队而非阻塞——用户稍后确认并自行执行。 |
+| `defer-set --id DA-0xx --status 已完成\|已拒绝` | 翻转一条待确认动作的 `status`（`待办` → `已完成` = 用户已确认并自行执行 / `已拒绝` = 裁定不做）。单向：两个目标值是终态，再翻转判 `ILLEGAL_TRANSITION`。只动 `status`，动作本身永远由用户执行。 |
 | `reconcile [--apply]` | sprint 任务对账 stories/test-plan（缺省 dry-run；`--apply` 才写）。 |
 | `baseline-add --code C --where W --reason R` | 往 `{output_dir}/diyc-baseline.yaml` 追加一条已知遗留条目（落 `on`: 今天、`by`: 用户）。重复 `(code, where)` → `BASELINE_DUPLICATE`，台账损坏 → `BASELINE_INVALID`；两者均拒绝、零写入。只在用户明确批准后执行（规则 4）。 |
 

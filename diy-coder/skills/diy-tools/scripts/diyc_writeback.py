@@ -64,6 +64,8 @@ BUG_ID_RE = re.compile(r"BUG-(\d+)\Z")
 DEFER_REASONS = ("用户配置", "破坏性操作", "越界改动", "仅人工可做")
 DEFER_REQUIRED = ("skill", "action", "reason")
 DEFER_ID_RE = re.compile(r"DA-(\d+)\Z")
+# 翻转目标（§五 C·8②）：待办 是唯一可翻转态，这两个是终态
+DEFER_RESOLVED = ("已完成", "已拒绝")
 
 
 def run(args) -> dict:
@@ -78,6 +80,8 @@ def run(args) -> dict:
         return _bug_add(args)
     if args.command == "defer-add":
         return _defer_add(args)
+    if args.command == "defer-set":
+        return _defer_set(args)
     if args.command == "reconcile":
         return _reconcile(args)
     raise ValueError(f"diyc_writeback 不认识的子命令：{args.command!r}（diyc.py 接线 bug）")
@@ -619,6 +623,42 @@ def _defer_add(args):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     lib.save_yaml_atomic(path, doc)
     return _receipt(args, True, updated=doc["project"]["updated"], id=new_id, file=rel)
+
+
+def _defer_set(args):
+    # trace: 迁移计划 §五 C·8②——待确认动作的 status 翻转命令，队列的出口侧。
+    # 入队（defer-add）把保留确认类动作由"阻塞任务"改为"留痕待办"；本命令是它的
+    # 消费端：用户确认并自行执行后标 已完成，裁定不做后标 已拒绝。只允许
+    # 待办 → 已完成|已拒绝 单向（已是终态再翻转一律拒绝，不静默改历史）；
+    # 本命令只动 status，动作本身永远由用户执行。
+    if args.status not in DEFER_RESOLVED:
+        return _fail(args, lib.v("ENUM_INVALID", "defer-set --status",
+                                 f"status={args.status!r} 非法，"
+                                 f"合法值：{'/'.join(DEFER_RESOLVED)}"))
+    doc, path, viol = _load(args, "deferred-actions")
+    if viol:
+        return _fail(args, viol)
+    rel = _rel(args, path)
+    actions = doc.get("actions")
+    if not isinstance(actions, list):
+        return _fail(args, lib.v("UNPARSABLE_YAML", f"{rel} actions",
+                                 f"{rel} 的 actions 不是列表（形状异常）——拒绝改写"))
+    target = next((a for a in actions
+                   if isinstance(a, dict) and a.get("id") == args.id), None)
+    if target is None:
+        return _fail(args, lib.v("UNKNOWN_ID", rel,
+                                 f"{args.id} 不在 {rel} 的 actions 表中"))
+    if target.get("status") != "待办":
+        return _fail(args, lib.v("ILLEGAL_TRANSITION", f"{rel} {args.id}",
+                                 f"{args.id} 当前 status={target.get('status')!r}——"
+                                 f"只有 待办 可翻转，已完成/已拒绝 是终态"))
+    target["status"] = args.status
+    viol = _bump(args, path, doc)
+    if viol:
+        return _fail(args, viol)
+    lib.save_yaml_atomic(path, doc)
+    return _receipt(args, True, updated=doc["project"]["updated"],
+                    id=args.id, status=args.status, file=rel)
 
 
 # ---- reconcile（§4.9） ----

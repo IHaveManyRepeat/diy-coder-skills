@@ -11,6 +11,10 @@
 - TC-Augment 编码后补测接线：已完成 触发一次 diy-augment spawn，已阻塞 不触发；
   补测会话只写 augment 字段（窄写权，status 零写回）；--skip-augment / --augment-only /
   --reopen-failed 三开关；补测汇总行
+- TC-AllowDeny（迁移计划 §五 C·8①）：默认白名单跨语言覆盖（两套工具名 × 构建/测试链条）、
+  默认拒止表兜破坏性 git、--allow / --deny 各自替换默认
+- TC-Deferred（迁移计划 §五 C·8②）：结束时待确认动作汇总——有 待办 则一行、全终态/无文件
+  零行、坏 YAML 降级一行不崩
 """
 import os
 import shutil
@@ -630,6 +634,117 @@ class TC_10_1_2_CorruptSprintGate(unittest.TestCase):
         self.assertNotEqual(r.returncode, 0)
         self.assertNotIn("Traceback", r.stderr)
         self.assertIn("[runner]", r.stderr)
+
+
+def make_deferred(out_dir, statuses):
+    doc = {
+        "project": {"name": "fixture", "created": "2026-01-01", "updated": "2026-01-01"},
+        "actions": [
+            {"id": f"DA-{i:03d}", "date": "2026-01-01", "skill": "diy-dev",
+             "action": f"动作 {i}", "reason": "用户配置", "status": st}
+            for i, st in enumerate(statuses, start=1)
+        ],
+    }
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "deferred-actions.yaml").write_text(
+        yaml.safe_dump(doc, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
+
+class TC_AllowDeny(unittest.TestCase):
+    # trace: 迁移计划 §五 C·8①——无头会话命令白名单扩容（跨语言构建/测试链条）
+    # + --disallowedTools 拒止表兜破坏性 git（§十三 保留确认档）
+    def setUp(self):
+        self.root, self.sprint = make_fixture({"S-1": "待办"})
+        self.log = self.root / "calls.log"
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def spy_argv(self, runner_args=()):
+        spy = make_spy(self.root)
+        argv_log = self.root / "argv.log"
+        result = run_runner(
+            self.root,
+            {
+                "DIY_STUB_ROUTING": "S-1:已完成",
+                "DIY_STUB_LOG": str(self.log),
+                "DIY_STUB_SPRINT": str(self.sprint),
+                "DIY_STUB_ARGV": str(argv_log),
+                "DIY_STUB_PATH": str(STUB),
+            },
+            runner_args=runner_args,
+            stub=spy,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return Path(argv_log).read_text(encoding="utf-8")
+
+    def test_default_allow_covers_language_toolchains(self):
+        argv = self.spy_argv()
+        for entry in ("Bash(python *)", "PowerShell(python *)",
+                      "Bash(pip *)", "Bash(ruff *)", "Bash(pytest *)",
+                      "Bash(npm *)", "Bash(npx *)", "Bash(node *)",
+                      "Bash(pnpm *)", "Bash(yarn *)", "Bash(playwright *)",
+                      "Bash(go *)", "Bash(cargo *)", "Bash(mvn *)", "Bash(gradle *)",
+                      "Bash(git add *)", "Bash(git commit *)", "Bash(git push *)",
+                      "PowerShell(cargo *)", "PowerShell(git push *)"):
+            with self.subTest(entry=entry):
+                self.assertIn(entry + "\n", argv, f"白名单缺 {entry}")
+        # 规则写法统一为空格形式（冒号 :* 是等价 legacy 写法，个别版本有静默失效报告）
+        self.assertNotIn("python:*)", argv, "白名单残留冒号写法")
+
+    def test_default_deny_guards_destructive_git(self):
+        argv = self.spy_argv()
+        self.assertIn("--disallowedTools\n", argv, "未传拒止表")
+        for entry in ("Bash(git push *--force*)", "PowerShell(git push *--force*)",
+                      "Bash(git push *--delete*)", "Bash(git reset *--hard*)",
+                      "Bash(git branch *-D*)", "Bash(git branch *--delete*)"):
+            with self.subTest(entry=entry):
+                self.assertIn(entry + "\n", argv, f"拒止表缺 {entry}")
+
+    def test_custom_allow_replaces_default(self):
+        argv = self.spy_argv(runner_args=("--allow", "Bash(echo *)"))
+        self.assertIn("Bash(echo *)\n", argv)
+        self.assertNotIn("Bash(npm *)\n", argv, "自定义 --allow 未替换默认清单")
+
+    def test_custom_deny_replaces_default(self):
+        argv = self.spy_argv(runner_args=("--deny", "Bash(rm *)"))
+        self.assertIn("Bash(rm *)\n", argv)
+        self.assertNotIn("Bash(git push *--force*)\n", argv,
+                         "自定义 --deny 未替换默认拒止表")
+
+
+class TC_Deferred_Summary(unittest.TestCase):
+    # trace: 迁移计划 §五 C·8②——runner 结束时的待确认动作汇总（有则一行，无则零行）
+    def setUp(self):
+        self.root, self.sprint = make_fixture({"S-1": "已完成"})  # 全终态：零 spawn
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def test_pending_actions_reported(self):
+        make_deferred(self.root / "diy-output", ("待办", "已完成", "待办"))
+        result = run_runner(self.root, {})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("待确认动作 2 条待办：DA-001、DA-003", result.stdout)
+
+    def test_no_pending_no_line(self):
+        make_deferred(self.root / "diy-output", ("已完成", "已拒绝"))
+        result = run_runner(self.root, {})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("待确认动作", result.stdout)
+
+    def test_no_file_no_line(self):
+        result = run_runner(self.root, {})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("待确认动作", result.stdout)
+
+    def test_broken_yaml_degrades_to_one_line(self):
+        out = self.root / "diy-output"
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "deferred-actions.yaml").write_text("actions: [broken", encoding="utf-8")
+        result = run_runner(self.root, {})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("读取失败", result.stdout)
 
 
 if __name__ == "__main__":

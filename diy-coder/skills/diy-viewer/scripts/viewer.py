@@ -111,6 +111,9 @@ KEY_LABELS = {
     "quote": "原文摘录", "read_as": "我读到什么", "stuck": "卡在哪",
     "would_guess": "会猜成什么", "impact": "猜错后果", "suggestion": "建议裁定",
     "severity": "严重度", "units_total": "单元总数", "units_scanned": "已扫描单元数",
+    # deferred-actions 族（副作用纪律保留确认队列，§五 C·8）；
+    # actions 是顶层列表键，渲染成 h2 标题（与 tasks / bugs 同款）
+    "action": "动作", "command": "命令", "skill": "技能", "actions": "动作清单",
 }
 # 值标签（词表正典来源）：机器层中文化后键=中文值、值=展示标签，多数同名。
 VALUE_LABELS = {
@@ -203,6 +206,7 @@ DOC_LABELS = {
     "sprint": "冲刺任务",
     "bug-log": "缺陷模式库", "design": "设计稿",
     "spec-scan": "规格歧义扫描",
+    "deferred-actions": "待确认动作",
 }
 # 文档级标签覆盖（B1）：同一 key 在不同文档语义不同——bug-log 的 type 是缺陷三级分类，
 # 其余文档（test-plan/openapi 等）回落全局 type=类型
@@ -212,6 +216,9 @@ DOC_KEY_LABELS = {
     # target/lines/files 收在此处——checkpoint 的 target 语义不同，不加全局映射
     "spec-scan": {"unit": "单元", "type": "歧义类型", "kind": "目标类型",
                   "target": "扫描目标", "lines": "行数", "files": "文件数"},
+    # deferred-actions：target 在全局表缺位（checkpoint / correct-course / editorial-review
+    # 各有自己的 target 语义），故只在本文档挂标签，不动全局
+    "deferred-actions": {"target": "目标"},
 }
 # 术语表（展示层，FR-4.1 可读性）：标签/徽章/标题命中即挂悬浮解释，YAML 单一源不动。
 # key = 渲染后的展示文本（已 esc，纯中文无 HTML 字符，查找安全）。
