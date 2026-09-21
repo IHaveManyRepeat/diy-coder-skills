@@ -74,6 +74,7 @@ tasks:
     augment: 通过|失败|已跳过       # diy-augment 的编码后裁断（可选；缺席 = 尚未补测；定义见 diy-augment）
     blocked_reason: string        # 当且仅当 status: 已阻塞 时必填
     note: string                  # 回填引述、假设、排序说明
+revisions: []                 # {date, change, reason} —— 人工改动时追加
 ```
 
 ## 规则
@@ -81,7 +82,8 @@ tasks:
 1. **写范围恰好一份产物**：`{output_dir}/sprint.yaml`（`reconcile` 的原子写）。`stories.yaml` / `test-plan.yaml` / 源码一律不碰；任务只引用上游 ID，绝不复制内容。
 2. **状态写入面窄。** 本技能只写初始状态与对账结果；`待审查→已完成` 归 diy-review，重开 `已完成→进行中` 是用户裁断（两个入口见上）——本技能永不自行重开，永不改 `已完成` 任务的 `evidence` / `augment` 审计痕迹。
 3. **未决信息必须落文件。** 推断的豁免或排序判断在 YAML **值**上带 `[假设]` 前缀（值以 `[` 开头时整值加引号）；`final` 前必须清零；未决集合 = viewer 页面上黄底高亮的集合，绝不只列在对话里。
-4. **路由。** 过门后交给 `diy-build-loop`（用 runner 驱动 待办→…→已完成 的循环）；`已阻塞` 任务指明人工解除路径；缺用例需补设计时路由 `diy-test-design`。
+4. **人工改动才记修订。** `reconcile` 的对账（增删任务、重算门与 `test_refs`）与状态迁移各有回执或 `loop` 留痕——**不进** `revisions`；用户重排、裁定重开、豁免取舍这类人工改动，往顶层 `revisions` 追加一条 `{date, change, reason}`。`reconcile` 新建的产物骨架不含该键——新建后由本技能补写一次顶层 `revisions: []`。
+5. **路由。** 过门后交给 `diy-build-loop`（用 runner 驱动 待办→…→已完成 的循环）；`已阻塞` 任务指明人工解除路径；缺用例需补设计时路由 `diy-test-design`。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

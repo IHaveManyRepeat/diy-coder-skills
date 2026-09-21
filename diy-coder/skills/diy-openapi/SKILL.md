@@ -39,6 +39,7 @@ x-project:                       # diy-coder 元数据扩展（viewer 渲染它�
   status: 草稿 | 已定稿          # 写状态的唯一位置
   created: YYYY-MM-DD            # 建文件时设，此后不改
   updated: YYYY-MM-DD            # 每次写回刷今天
+  revisions: []                  # {date, change, reason} —— 改既有 operation 时追加
 info:
   title: string
   version: 0.1.0                 # 契约版本，与 status 无关
@@ -59,7 +60,7 @@ components:
 ## 规则
 
 - **合法 OpenAPI 3.1 高于一切。** 根键遵循规范；项目元数据住在 `x-project` 扩展里（与 prd 的 project 块同形；viewer 会读它）。
-- **ID 链是硬契约。** 每个 operation 带 `x-fr: [FR-x.y]`，引用 prd.yaml 里已有的 FR ID——只引用，绝不复制。
+- **ID 链是硬契约。** 每个 operation 带 `x-fr: [FR-x.y]`，引用 prd.yaml 里已有的 FR ID——只引用，绝不复制。Update 对账确曾改写既有 operation 时，往 `x-project.revisions` 追加一条 `{date, change, reason}`（落点在 `x-project` 块内——裸根键违反合法 3.1；`change` 引用 `operationId`、不复制内容）。
 - **DRY。** 重复的形状进 `components/schemas`，用 `$ref` 引用；不重复内联 body。
 - **范围 = FR 集合。** 只建模需求真正要的端点——不臆造 CRUD、不做没人要的版本机制。
 - **未决项留在文件里。** 任何等用户确认的推断——字段名、状态码、错误形状——都要带 `[假设]` 前缀写在 YAML **值**上，绝不只在对话里列。

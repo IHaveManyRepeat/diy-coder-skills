@@ -27,13 +27,13 @@ description: Create or update the technical architecture as a decision-oriented 
 
 1. 写 `{output_dir}/architecture.yaml`（`status: 草稿`，决策一律 `待定`）；告知用户路径。
 2. 立即渲染供审阅。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
-3. 迭代：用户接受 / 修改 / 否决决策；`[假设]` 项要么解决、要么经用户确认后去掉前缀。
+3. 迭代：用户接受 / 修改 / 否决决策；`[假设]` 项要么解决、要么经用户确认后去掉前缀。每批呈出后给菜单 `[A]` 深挖（调用 `diy-elicit`）/ `[P]` 多视角（调用 `diy-party-mode`）/ `[C]` 继续——菜单后停下等用户；`[A]`/`[P]` 零写面，返回后采纳的改动由本技能落盘，再重显菜单。无头 / 非交互 = 不摆菜单，直落下一批。
 4. 终门（机械）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type architecture --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `status` 回退 `草稿`**，修完重走本步。白话门槛：零未确认假设、零 `待定` 决策、每个 `affects` ID 都能在 prd.yaml 里解析。
 5. 过门之后才收口：重渲染一次，用 JSON 回执里的计数做收尾一行摘要（路径 + 计数）。
 
 ## 结构
 
-`{output_dir}/architecture.yaml` 的唯一源头；照此形状写，空顶层键省略：
+`{output_dir}/architecture.yaml` 的唯一源头；照此形状写，空顶层键省略——`revisions` 例外：恒写，无修订写 `[]`：
 
 ```yaml
 project:
@@ -64,12 +64,13 @@ risks:
   - id: R-1                      # 稳定；门豁免留痕等条目同住这里
     risk: string
     mitigation: string           # 未确认时带 [假设] 前缀
+revisions: []                    # {date, change, reason} —— 改既有条目时追加
 ```
 
 ## 规则
 
 1. **写范围恰好一份产物**：`{output_dir}/architecture.yaml`（加 `.prev` 临时件）。`prd.yaml` / `stories.yaml` / 源码一律不碰——非 `已定稿` 的 `prd.yaml` 也只读、只在 `risks[]` 留痕。
-2. **ID 链是硬契约。** `D-*` / `C-*` / `R-*` 一经铸造永不重编号、永不复用；重写既有稿走激活时第 3 条的 `.prev` 快照 → 对账改写 → 删 `.prev`。源码里的 `# trace: D-x` 由 `diyc.py trace` 按这些 ID 解析——丢 ID 即 `TRACE_UNRESOLVED`；`check --previous` 的类型白名单已含 architecture，重写既有稿时按激活时第 3 条跑它做机械比对（三条失败分支见该条）。
+2. **ID 链是硬契约。** `D-*` / `C-*` / `R-*` 一经铸造永不重编号、永不复用；重写既有稿走激活时第 3 条的 `.prev` 快照 → 对账改写 → 删 `.prev`。源码里的 `# trace: D-x` 由 `diyc.py trace` 按这些 ID 解析——丢 ID 即 `TRACE_UNRESOLVED`；`check --previous` 的类型白名单已含 architecture，重写既有稿时按激活时第 3 条跑它做机械比对（三条失败分支见该条）。Update 对账确曾改写既有决策时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `D-*`、不复制内容）——纯新增不算改既有。
 3. **每条决策至少一条被否决备选**（`alternatives` 带 `why_not`）；没有备选的决策通常是未经检验的默认值。`affects` 只引用 `prd.yaml` 里既有的 FR/NFR ID——引用，绝不复制需求文本。
 4. **决策只为需求存在。** 持久化 / 安全 / 性能这类横切关切，也只在某条 FR/NFR 要求时才成型——不臆造架构。
 5. **未决项留在文件里。** 任何未经用户确认的推断——含机制细节与风险缓解——都要带 `[假设]` 前缀写在 YAML **值**上（只写值、不新增独立键），绝不只在对话里列；终门对全字段深扫 `[假设]`。

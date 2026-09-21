@@ -17,7 +17,7 @@ description: 'Coded-post test augmentation. After a task reaches done, run the p
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 载入 `{output_dir}/sprint.yaml`，定位激活提示点名的任务。硬门：该任务在 `tasks[]` 里的 `status` 必须是 `已完成`（任务级字段——`project.status` 是文件水位线，不是本门的读取层）；补测只在编码后发生，其他状态 → 一行说明并停下，零产出。任务 `augment` 字段若在场（`通过` / `失败` / `已跳过`）＝ 既往判定：本轮与它对账，不重复造用例。
 3. 输入：`{output_dir}/test-plan.yaml`（用例、`static_checks` 链、覆盖证据的落点）与 `{output_dir}/stories.yaml`（AC 索引）；解析该故事的 AC 集合与既有每-AC TC 序列（每个 AC 当前的最大 seq）。
-4. 写范围恰为四个面（`test-plan.yaml` 的追加用例及其 `status`、本任务的 `augment`、本任务的 `test_refs`、`mutation-report.yaml`）；任务的 `status` 与 `evidence` 都不在写面——细则见规则第 1、9 条。
+4. 写范围恰为四个面（`test-plan.yaml` 的追加用例及其 `status`、改既有用例时的顶层 `revisions` 追加条、本任务的 `augment`、本任务的 `test_refs`、`mutation-report.yaml`）；任务的 `status` 与 `evidence` 都不在写面——细则见规则第 1、9、10 条。
 
 ## 工作流
 
@@ -52,7 +52,7 @@ revisions: []                 # {date, change, reason}——改既有条目时�
 
 ## 规则
 
-1. **写范围恰为四个面。** `{output_dir}/test-plan.yaml`（追加的用例及其 `status`）、本任务的 `augment` 字段、本任务的 `test_refs`（并入追加 TC ID）、`{output_dir}/mutation-report.yaml`（只在真跑过变异时）。任务的 `status` / `blocked_reason` / `note` 永不触碰；`stories.yaml`、源码与其他产物零写入。
+1. **写范围恰为四个面。** `{output_dir}/test-plan.yaml`（追加的用例及其 `status`、改既有用例时顶层 `revisions` 追加条）、本任务的 `augment` 字段、本任务的 `test_refs`（并入追加 TC ID）、`{output_dir}/mutation-report.yaml`（只在真跑过变异时）。任务的 `status` / `blocked_reason` / `note` 永不触碰；`stories.yaml`、源码与其他产物零写入。
 2. **覆盖率工具链与实现面。** 工具链取值路径 ＝ `{output_dir}/test-plan.yaml` 的 `static_checks` 链（链的定义源在 `diy-test-design`，此处只引用不重定义）；链里没有覆盖率条目 → 一行 note，落 `已跳过`。实现面 ＝ `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" trace --json` 回执 `references[].file` 里引用了本任务 `S-x` 的文件集合（扫面用 `--src` 收窄），加上 `git status --porcelain` 里本任务的未跟踪实现文件；开场一行声明本次采样的实现面。只有被工具报出的缺口才成用例——从不被报出的未测项不在范围内。
 3. **技法映射（四值）。** 未覆盖分支 → `覆盖分支`；未覆盖条件组合（MC/DC）→ `MC-DC 覆盖`；未覆盖执行路径 → `白盒路径`；变异幸存体 → `变异杀伤`。编码前的九种设计技法归 `diy-test-design`，此处永不选。`priority` 沿用该 AC 的既有档位——映射（`必须`→P0 / `应该`→P1 / `可选`→P2 / NFR 引用的 AC→P0）唯一权威出处 = `diy-test-design`，只引用不重定义。
 4. **覆盖率门槛取值顺序与 `AC path`。** 门槛顺序：① 用户本次给出的阈值 > ② `{output_dir}/test-plan.yaml` 的 `static_checks[]` 里覆盖率条目命令自带的阈值 > ③ 都没有 → **不过滤**（全量缺口入列），并把「本项目无覆盖率门槛」一行记进收尾。`AC path` ＝ 该未覆盖项位于某条 AC 的 TC `steps` 点名的文件/符号内，或位于带该 AC `# trace:` 行的文件内；落在 AC path 上的条目即使低于门槛也保留。
@@ -61,7 +61,7 @@ revisions: []                 # {date, change, reason}——改既有条目时�
 7. **判定必落。** 每轮结束恰落一个 `augment` 值：`通过`（执行的用例全绿）/ `失败`（至少一条红——缺陷为真、等用户裁断）/ `已跳过`（覆盖率工具链不可用或未获许可；什么都没执行）。判定是 runner 的汇报依据、也是 `--augment-only` 的恢复点——缺判定与「从未跑过」不可区分。
 8. **失败只出判定。** 用例上写 `status: 失败`、任务上落 `augment: 失败`、收尾列出该用例的复现证据（命令 + 实测 vs 预期），然后停下。任务的 `status` 保持 `已完成`——本技能绝不重开任务。重开是用户裁断：由**人手动执行** `python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" --project-root "{project-root}" --reopen-failed`（安装形态 `.claude/skills/diy-tools/scripts/runner.py`）批量重开、修复、重新补测。
 9. **证据交接点。** 追加用例的 `evidence`（红/绿行）不是本技能的写面：它由**下一次 `进行中` 周期**经 `diyc.py green` 写入（该命令只对 `进行中` 任务生效）——唯一写者是 `diy-dev` / `diy-build-loop`。故 `已完成` 现场的追加件暂缺 `evidence` 是正常状态：`diy-review` L3 报出的 `EVIDENCE_MISSING` 是**信号**（下一次修复周期补齐），不是豁免、也不是本技能可代写的字段——绝不编造 red。
-10. **重跑对账、永不重复。** 与既有追加用例等价（同 AC、同技法、同 `kill_target`）的用例就地更新——从本轮刷新其 `status`，绝不追加孪生；新 ID 只给真正的新缺口；判定被本轮结果覆盖。
+10. **重跑对账、永不重复。** 与既有追加用例等价（同 AC、同技法、同 `kill_target`）的用例就地更新——从本轮刷新其 `status`，绝不追加孪生；新 ID 只给真正的新缺口；判定被本轮结果覆盖。就地更新即改既有条目：往 `{output_dir}/test-plan.yaml` 顶层的 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `TC-x.y.z` 与刷新了什么）——引擎不写该键，由本技能补写。
 11. **证据进 `note`。** 每条追加用例的 `note` ＝ 驱动它的覆盖证据（工具 + 未覆盖项；`变异杀伤` 用例 ＝ 变异体身份与故障），用 `document_output_language` 的散文写；机器锚点（命令、ID）逐字保留。
 12. **渲染与降级。** 渲染命令需要宿主 Python 有 PyYAML；`ModuleNotFoundError` 时报错并建议 `pip install pyyaml`，绝不静默降级。覆盖率工具、用例执行、渲染三处的失败一律降级为一行报告——绝不阻断，也绝不回退或作废已落盘的写回。
 

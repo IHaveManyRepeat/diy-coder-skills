@@ -70,12 +70,13 @@ pages:
       - {name: 错误,  signals: [图标, 文字]}
     prototype: prototypes/P-1.html    # 结构稿（线框/HTML）
     implementation: src/pages/P-1.jsx # 框架实现稿（D-10；纯 HTML 项目省略）
+revisions: []             # {date, change, reason} —— 改既有条目时追加
 ```
 
 ## 规则
 
 1. **写范围**：只写 `{output_dir}/design.yaml` 与 `{output_dir}/prototypes/`（含各自的 `.prev` 临时件），以及 `src` 里的框架实现稿；`prd.yaml` / `architecture.yaml` / `stories.yaml` 一律只读。
-2. **单一源与多版本（D-10）**：结构稿从 design.yaml 再生；框架页在 `src` 里长（既是设计也是实现），多版本设计同样住在 `src`、落选即废弃/删除——不留隔离副本。**删/改名/合并页面 id 前**先扫 `{output_dir}/stories.yaml` 的 `AC[].design_ref`，列出会悬空的 AC，收尾摘要**路由 `diy-epics-stories`**（`stories.yaml` 写权在它，本技能只读）。
+2. **单一源与多版本（D-10）**：结构稿从 design.yaml 再生；框架页在 `src` 里长（既是设计也是实现），多版本设计同样住在 `src`、落选即废弃/删除——不留隔离副本。**删/改名/合并页面 id 前**先扫 `{output_dir}/stories.yaml` 的 `AC[].design_ref`，列出会悬空的 AC，收尾摘要**路由 `diy-epics-stories`**（`stories.yaml` 写权在它，本技能只读）。改写既有页 / 方向 / token、或废弃落选版本时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `P-*` 或字段名、不复制内容）。
 3. **配对集合以引擎回执为准**：配色配对由 `design.py check` 枚举、原样列在回执 `checked.contrast_pairs`；创作期按回执**逐对**保证 ≥4.5:1，**不自拟子集**。token 是唯一风格源，之后不得出现一次性色值/字号。
 4. **四态不许省**：每页必带 `悬停` / `空态` / `加载中` / `错误`——`validate` 缺一即 FAIL，不设省略出口；每态至少一条**非色彩**信号（图标/文字/形状/动效），颜色不单独承载语义。确属不适用也给**最小真实信号**并注明（例：纯静态内容页 `加载中: {signals: [文字]}`，正文写「无异步加载，保留占位」）——绝不编造该页不会发生的行为；收尾点名哪些态是占位。
 5. **方向先于 token，token 先于页面**：动手前定一个**具名**方向 + 一行理由 + 2–3 条反模式禁令（本项目绝不长什么样），两者都写进 `direction`（**字符串**，形状见「结构」）。绝不默认「干净极简」。

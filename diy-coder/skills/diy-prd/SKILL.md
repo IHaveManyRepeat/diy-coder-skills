@@ -17,6 +17,7 @@ description: Create or update the product PRD as a single-source prd.yaml with s
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 目标文件：`{output_dir}/prd.yaml`。
 3. 判定意图：**Create**（文件不存在）或 **Update**（文件已存在）。含糊时直接问。
+4. anytime 声明：交互式时提一句——任意时点都可调 `diy-elicit`（对某一节做深挖增强）或 `diy-party-mode`（换多视角会审）；两者零写面，增强结果交回本技能落盘并记 `revisions`（无头不提）。
 
 ## 工作流
 
@@ -96,13 +97,14 @@ open_questions:                   # resolved answers stay for audit; new ones ap
   - id: Q-1
     question: string
     answer: string | null
+revisions: []                 # {date, change, reason} —— 改既有条目时追加
 ```
 
-照此形状写；空顶层键省略。
+照此形状写；空顶层键省略——`revisions` 例外：恒写，无修订写 `[]`。
 
 ## 规则
 
-- **ID 链是硬契约。** `F-*` / `FR-*` / `NFR-*` 一经铸造，永不重编号——下游产物（architecture、epics/stories、test-plan）按 ID 引用它们，绝不复制内容。
+- **ID 链是硬契约。** `F-*` / `FR-*` / `NFR-*` 一经铸造，永不重编号——下游产物（architecture、epics/stories、test-plan）按 ID 引用它们，绝不复制内容。Update 对账确曾改写既有条目时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 ID、不复制内容）——纯新增不算改既有。
 - 写能力，不写实现。技术选型归后续 architecture 步。
 - 篇幅随利害定。砍掉产品确实不需要的章节；砍时要给得出用户会接受的理由。
 - **每个未决决定都留在文件里。** 任何等用户确认的推断——包括 `strictness` 这类元数据级——都要带 `[假设]` 前缀写进 prd.yaml（前缀只写在**值**上，不新增独立键：`strictness: "[假设] 公开"`）。绝不只在对话里列确认项：用户在 HTML 里审阅，未决集合必须等于页面上黄底高亮的集合。用户批准后才可去掉前缀。

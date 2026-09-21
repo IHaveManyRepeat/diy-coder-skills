@@ -26,8 +26,8 @@ description: Derive epics.yaml and stories.yaml from prd.yaml features. Acceptan
 
 ### 派生纪律
 
-- **Epic 跟随 feature 分组。** 缺省 `prd.yaml` 的每个 `F-*` 对应一个 `E-*`，`feature_refs` 引用来源；合并或拆分必须写明理由。
-- **Story 是独立可交付单元**，颗粒度按「一个无人值守的 build-loop 任务」定——需要人在中途拍板的 story 是切大了或切错了。
+- **Epic 跟随 feature 分组。** 缺省 `prd.yaml` 的每个 `F-*` 对应一个 `E-*`，`feature_refs` 引用来源；合并或拆分必须写明理由。本段派生呈出后停一次：给菜单 `[A]` 深挖（`diy-elicit`）/ `[P]` 多视角（`diy-party-mode`）/ `[C]` 继续——`[A]`/`[P]` 零写面，返回后采纳的改动由本技能落进 `epics.yaml`，再重显菜单；无头 / 非交互不摆菜单。
+- **Story 是独立可交付单元**，颗粒度按「一个无人值守的 build-loop 任务」定——需要人在中途拍板的 story 是切大了或切错了。本段派生呈出后停一次：给菜单 `[A]` 深挖（`diy-elicit`）/ `[P]` 多视角（`diy-party-mode`）/ `[C]` 继续——`[A]`/`[P]` 零写面，返回后采纳的改动由本技能落进 `stories.yaml`，再重显菜单；无头 / 非交互不摆菜单。
 - **AC 一律 given/when/then**，在**最外层可观测面**断言（行为，不是内部实现）。每条 AC 的 `refs` 引用 `prd.yaml` 里既有的 FR/NFR ID，**绝不复制需求原文**。
 - **覆盖率必须完整**：每条必须级 FR 至少被一条 AC 引用；应该级 FR 要么被覆盖，要么在 `stories.yaml` 顶层 `notes:` 里逐行写 skip line（`<FR-x.y>: <为什么故意不覆盖>`）——**绝不只在对话里带过**。
 - **设计绑定（FR-2.4）**：AC 实现前端面 FR 的 story，其每条这类 AC 带 `design_ref: P-x`，引用 `design.yaml` 的 `pages` 里的页 ID——该页是实现基线，不是装饰。仅在 `{output_dir}/design.yaml` 在场且其 `project.status: 已定稿` 时才绑（diy-design 被跳过的项目没有绑定）；每条 `design_ref` 都必须可解析（viewer 把悬空的标红，stories 终门机械复核解析）。design 若**晚于本技能**产出，重跑本技能 Update 路径回填 `design_ref`——写范围仍只在 `stories.yaml` 的 AC 绑定上；主线顺序 design 在本技能之前，按主线走不会落空。
@@ -54,6 +54,7 @@ epics:
     goal: string
     feature_refs: [F-x]     # 引用 prd.yaml 里既有的 feature ID
     status: 待办|进行中|已完成
+revisions: []                # {date, change, reason} —— 改既有条目时追加
 ```
 
 `stories.yaml`：
@@ -73,12 +74,13 @@ stories:
         refs: [FR-x.y | NFR-x]   # 引用 prd.yaml 既有 ID，必须可解析
         design_ref: P-x       # 可选；必须在 design.yaml 的 pages 里解析
     status: 待办|进行中|待审查|已完成|已阻塞
+revisions: []                # {date, change, reason} —— 改既有条目时追加
 ```
 
 ## 规则
 
 1. **写范围恰好两份产物**：`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml`（加各自的 `.prev` 临时件）。`prd.yaml` / `design.yaml` / `sprint.yaml` / 源码 / CI 一律不碰；`design_ref` 的绑定与回填只落在 `stories.yaml` 的 AC 字段上。
-2. **ID 链是硬契约。** `E-*` / `S-*` / `AC-*` 一经铸造永不重编号、永不复用；重写既有稿必须走 `.prev` → `check --previous`（exit 0 = 无记录丢失；两份产物各查各的）→ 删 `.prev`。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。见激活时第 3 条。
+2. **ID 链是硬契约。** `E-*` / `S-*` / `AC-*` 一经铸造永不重编号、永不复用；重写既有稿必须走 `.prev` → `check --previous`（exit 0 = 无记录丢失；两份产物各查各的）→ 删 `.prev`。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。见激活时第 3 条。Update 对账确曾改写既有条目时，往对应文件的顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 ID、不复制内容）——两份各记各的，全量派生不算改既有。
 3. **未决信息必须落文件（三条约定）**：
    - `[假设]` 前缀只写在**值**上，不新增独立键；值以 `[` 开头时整值加引号（`title: '[假设] …'`，裸 `[` 会破坏 YAML）。
    - `final` 前必须清零：交互态 = 用户确认后去掉前缀；headless 态 = 一律转为显式未决行落 `stories.yaml` 顶层 `notes:`（值**不带** `[假设]` 前缀，写成 `S-x: 待确认 …`，逐行点名 ID 与缺什么）——**不删、不猜**。
