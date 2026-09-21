@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B5 批保真度报告 —— bmb 元能力（3 技能）</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+      --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+     font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:.01em}
+h2{font-size:1.25rem;margin:34px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h3{font-size:1.05rem;margin:22px 0 8px;color:var(--accent)}
+p{margin:10px 0}
+ul,ol{margin:8px 0 8px 22px;padding:0}
+li{margin:4px 0}
+code{background:var(--code);border:1px solid var(--line);border-radius:4px;
+     padding:1px 5px;font-family:Consolas,"Courier New",monospace;font-size:.9em}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:var(--panel);
+      font-size:.94em}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#eef2f8;font-weight:600}
+tbody tr:nth-child(even){background:#fafbfe}
+strong{color:#0f172a}
+</style>
+</head>
+<body>
+<main>
+<h1>B5 批保真度报告 —— bmb 元能力（3 技能）</h1>
+<ul>
+<li>批次：BMAD 迁移 阶段 B 第 5 批 ｜ 完成日期：2026-09-21 ｜ 编制：主 agent</li>
+<li>任务书：<code>diy-coder/.analysis/2026-09-20-migration-b5/taskbook.md</code>（终态 md5 <code>c9fc38421b1e307f43ce74090b58db6b</code> · 305 行 · 影子仓 <code>877eca4</code>）</li>
+<li>开工前自检：dogfood 扫描两轮（首轮 50 + 增量补扫 13，全部处置）→ 机器产物 <code>SS-029</code>（终门 <code>check --final</code> PASS）</li>
+<li>交付：<code>diy-bmb-builder</code> / <code>diy-bmb-module</code> / <code>diy-eval-runner</code> —— 套件从 37 → <strong>40 技能</strong></li>
+<li>本批三点特殊：① <strong>「造物者」批</strong>（产物是 diy 体系自身的构件：技能树 / 批次计划 / 评测档案）；② 源侧<strong>五源全零 YAML 产物</strong>（B1–B4 之后首例，验收 #2/#6 按 <code>diy-test-author</code> 判例给等价形态）；③ 源侧 <strong>module / eval 两个概念在 diy 整体不存在</strong>——本批的接口工作不是「接上去」而是「先定落点」</li>
+</ul>
+<h2>一、批次结果总览</h2>
+<table>
+<thead><tr><th>技能</th><th>源（<code>module=='bmb'</code>）</th><th>源步数 → diy</th><th>引擎</th><th>测试</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td><code>diy-bmb-builder</code></td><td><code>bmad-agent-builder</code> 8 + <code>bmad-workflow-builder</code> 10（<strong>2合1</strong>）</td><td>8→5 · 10→5</td><td><code>bmb_builder.py</code> 1467 行（7 子命令）</td><td>25 用例</td><td>✅</td></tr>
+<tr><td><code>diy-bmb-module</code></td><td><code>bmad-module-builder</code> 12 + <code>bmad-bmb-setup</code> 6（<strong>2合1</strong>，setup 整体裁）</td><td>12→4 · 6→0</td><td><code>bmb_module.py</code> 774 行</td><td>28 用例</td><td>✅</td></tr>
+<tr><td><code>diy-eval-runner</code></td><td><code>bmad-eval-runner</code> 7</td><td>7→3</td><td><code>eval_runner.py</code> 1528 行</td><td>22 用例</td><td>✅</td></tr>
+</tbody></table>
+<p><strong>合计</strong>：3 技能 · 5 源技能（普查基线 18809 行）→ diy <strong>12 个 <code>steps/</code> 文件 · 3 引擎 3769 行 · 75 用例</strong>。</p>
+<p><strong>批级口径</strong>：零阻断 · <strong>能力丢失 0 条</strong>（V 独立清点）· 冻结项偏离 <strong>1 条</strong>（登记项）· 欠账 <strong>6 条</strong>（非阻断观察，见 §七）。</p>
+<h2>二、逐技能保真度</h2>
+<h3>2.1 diy-bmb-builder（技能工厂：Build / Edit / Analyze 三意图）</h3>
+<ul>
+<li><strong>交付</strong>：<code>SKILL.md</code> 65 行（四段）· <code>steps/</code> 5 文件（<code>01-intent</code> / <code>02-build</code> / <code>03-analyze</code> / <code>04-gate</code> / <code>05-finish</code>）· <code>scripts/bmb_builder.py</code> 1467 行 · <code>test_bmb_builder.py</code> 25 用例</li>
+<li><strong>保真</strong>：单循环构建流（懂来意 → 扎真专家知识 → 硬化 → 隐含项 → memlog → 最小版本 → 真输入上跑 → 两版对比才加脚手架 → 脚本机会 → lint gate → handoff）全程保留；5 个共有 lens 的契约形状与 <code>schema_version: 2</code> 与既有 12 份实物同形</li>
+<li><strong>Analyze 复用既有报告格式</strong>（裁定 6）：12 件全落（<code>findings.json</code> + <code>lens-*</code> × 5 + <code>prepass-*</code> × 2 + <code>scan-*</code> × 2 + <code>report.{md,html}</code>），V 实跑验证与 2026-09-13 的 12 份实物逐文件名相同</li>
+<li><strong>裁剪</strong>：agent 全线（sanctum / Three Laws / PULSE / 三型梯度 / 2 个 lens / 3 个模板脚本）· customize 面（<code>customize.toml</code> 三层合并 / <code>{agent.*}</code> 占位符 / 引导文档）· CW（源侧有档无实体）· <code>report-shell.html</code>（改用自包含精简模板）</li>
+<li><strong>能力对账</strong>（V 核）：身份 → 技能 Rules 段；记忆 → diy 产物 YAML；自主 → <code>runner.py</code> 调度</li>
+</ul>
+<h3>2.2 diy-bmb-module（批次规划器：只规划不造）</h3>
+<ul>
+<li><strong>交付</strong>：<code>SKILL.md</code> 81 行 · <code>steps/</code> 4 文件 · <code>scripts/bmb_module.py</code> 774 行 · <code>test_bmb_module.py</code> 28 用例</li>
+<li><strong>产物</strong>：<code>{output_dir}/module-plan.yaml</code>（<code>MP-###</code> + <code>slug</code> + <code>skills[]</code> 逐技能自足 brief），<strong>本批唯一带 schema 的新产物类型</strong></li>
+<li><strong>保真</strong>：IM 七相 <strong>7/7 在</strong>（含「灌骨架 + 未定」手法改造为「YAML 空值 + 显式禁令」）；<code>validate-module.py</code> 11 项 → diy <strong>10 项有等价落点 + 1 项换对象</strong>（CSV 相关的 ④⑤⑨ 与 ① 随 help CSV 与 setup 形态裁）</li>
+<li><strong><code>--previous</code> 判 yes</strong>（清单收缩 = 计划变更）：按 <code>slug</code> 配对（号段重铸不失配），<code>dropped: true</code> 留痕放行</li>
+<li><strong>零写面</strong>：校验不写任何被校验技能的文件（frontmatter 亦然），有「前后逐字节快照相等 + 无 <code>.tmp</code> 残骸」用例断言</li>
+<li><strong>裁剪</strong>：<code>bmad-bmb-setup</code> 整体 6 步（<code>merge-config</code>/<code>merge-help-csv</code>/<code>cleanup-legacy</code> 三件套 + <code>_bmad</code> 三写面）· CM 的「打包」出口换成「按 <code>build_order</code> 指路 builder」· 往他人 SKILL.md 注入注册检查那一手（本批不授权）</li>
+</ul>
+<h3>2.3 diy-eval-runner（四模式评测器）</h3>
+<ul>
+<li><strong>交付</strong>：<code>SKILL.md</code> 67 行 · <code>steps/</code> 3 文件 · <code>scripts/eval_runner.py</code> 1528 行 · <code>references/</code> 5 文件 · <code>test_eval_runner.py</code> 22 用例</li>
+<li><strong>产物</strong>：<code>{output_dir}/eval-runs/&lt;YYYYMMDD-HHMMSS&gt;-&lt;label&gt;/</code>（<strong>零 YAML 主产物</strong>），四模式目录形状逐行列清即 <code>check --run-dir</code> 的判据表；「永不删除、覆盖、轮转」写进规则</li>
+<li><strong>保真</strong>：<code>state_prefix</code>（单发模拟多轮的关键发明）逐字保留；清场环境契约（从零构建、绝不继承）<strong>经 V 反向探针验证</strong>——假运行时落盘的 env 键<strong>恰为</strong> <code>['CLAUDE_CONFIG_DIR','HOME','PATH']</code>，宿主密钥零泄漏，空串 auth 不传</li>
+<li><strong>两条反自欺硬规则经反向探针</strong>：① trigger 禁子串——V 用「init 事件列全部技能名 + 纯文本点名」构造，<strong>触发率实测 0.0</strong>，证明子串面真关闭；② grader 三纪律（不给部分分 / 举证责任在通过方 / 反向批评 rubric）落进引擎终门 + 文档</li>
+<li><strong>同构件</strong>：<code>mlog</code> 与 W1 两份实现——V 用 4 场景族 14 步对跑，<strong>rc / ack 键集 / 违规码 / 文件 md5 全同</strong></li>
+<li><strong>裁剪</strong>：platform-adapter 抽象层 + 硬编码 CLI 配置 · <code>BMAD_EVAL_ADAPTER</code> 发现位 · <code>_bmad</code> 配置回落 · <code>~/bmad-evals/</code> 落点 · <code>--workers</code> 并发 · <code>evals_required</code> 整键</li>
+</ul>
+<h2>三、批级裁定摘要</h2>
+<table>
+<thead><tr><th>裁定</th><th>落点</th></tr></thead>
+<tbody>
+<tr><td>1 产物形态（混合）</td><td>W2 产 YAML；W1/W3 零 YAML 主产物（按 <code>diy-test-author</code> 判例给等价形态条款）</td></tr>
+<tr><td>2 <code>diy-bmb-module</code> = 批次规划 + 注册校验（<strong>只规划不造</strong>）</td><td>用户 2026-09-20 拍板；<code>bmad-bmb-setup</code> 整体裁撤</td></tr>
+<tr><td>3 eval run 目录落 <code>{output_dir}/eval-runs/</code></td><td>否则无头下写盘被 defer、自改进闭环不可用</td></tr>
+<tr><td>4 adapter 裁为薄配置</td><td>保留「不硬编码模型名」纪律 + <code>--invocation</code> 覆盖位 + 可选 <code>adapter.json</code></td></tr>
+<tr><td>5 <code>diy-bmb-builder</code> 只造 diy 技能</td><td>agent 全线裁；保留构建流程本体 + prompt-quality-canon + 5 lens</td></tr>
+<tr><td>6 Analyze 复用既有五透镜报告格式</td><td>本批是能力<strong>收编</strong>、不是新建</td></tr>
+<tr><td>横切纪律 1–4</td><td>源侧概念不存在则裁 / <code>{project-root}</code> 二象性 / 副作用纪律三档 / 产物一步到位 + 自足可分发</td></tr>
+</tbody></table>
+<h2>四、V 独立验证结论（2026-09-21）</h2>
+<ul>
+<li><strong>结论：可进入收口链，无阻断项。</strong> 能力清点<strong>丢失项零条</strong>（8 组裁剪全部有裁定依据）；步数逐源与 raw JSON 相等</li>
+<li><strong>四条重点逐条</strong>：① W1 的 Analyze 模式对 W2/W3 实跑<strong>通过</strong>（12 件全落，且<strong>真抓出 3 条非空转问题</strong>）② W1↔W2 交棒接口<strong>功能一致 6/7</strong>（仅名字前缀约定单侧写明，实跑确认现状不出错）③ W3 隔离契约与两条反自欺规则<strong>在场、可测、经反向探针</strong> ④ memlog 双实现<strong>逐字节相同</strong></li>
+<li><strong>抽验</strong>：三测试独立复跑 23/28/22 全 OK；母本逐字<strong>脚本比对</strong>（非目检）三技能全 PASS；结构面（≤90 行 / 四段同序 / 六字段取值）逐格相符</li>
+<li><strong>8 条需定夺项</strong>→ 2 条已修、6 条登记欠账（§七）</li>
+</ul>
+<h2>五、主 agent 集成验证（2026-09-21）</h2>
+<table>
+<thead><tr><th>#</th><th>项</th><th>命令 / 口径</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>收口链① 登记</td><td><code>test_suite_texts.py</code> 三处（<code>NEW_SKILLS</code> / <code>CONVERTED_INSTANCE</code> / <code>CONVERTED_DISCIPLINE</code>）</td><td>11 tests <strong>OK</strong>（登记前 2 红）——连带证明三技能 §1/§2/§3/§4/§6 锚串逐字携带</td></tr>
+<tr><td>2</td><td>收口链② sync</td><td><code>bash sync.sh</code></td><td><strong>40 个 skill</strong> → <code>.claude/skills</code>；源↔副本 <strong>427 文件 0 差异</strong>（仅副本多出 1795 为 bmad-* 既有技能）</td></tr>
+<tr><td>3</td><td>收口链③ 全量测试</td><td><code>python -m pytest tests/ -q</code></td><td><strong>949 passed</strong>（874 基线 + 75 本批 − 0），86 subtests</td></tr>
+<tr><td>4</td><td>收口链④ 渲染自证</td><td><code>bmb_module.py new --slug demo-batch</code>（tempdir）→ <code>viewer.py</code></td><td><code>new</code> rc 0（<code>MP-001</code>）；渲染 <strong>rc 0 · rendered 1 doc</strong>（<code>module-plan.html</code> + <code>index.html</code>）</td></tr>
+<tr><td>5</td><td>修复验证（V 发现①）</td><td>越界 <code>mlog --file ../../escaped.md</code></td><td><strong>rc 1 + <code>NAME_ILLEGAL</code> + 零写入</strong>（修前 rc 0 且文件落到 <code>--dir</code> 外两层）</td></tr>
+<tr><td>6</td><td>修复验证（V 发现②）</td><td><code>test_bmb_builder.py</code></td><td>25 用例 OK（含 2 条新增守卫用例）</td></tr>
+</tbody></table>
+<h2>六、验收 13 项对照（迁移计划 §二）</h2>
+<table>
+<thead><tr><th>#</th><th>验收项</th><th>责任</th><th>证据</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>薄主文件 + steps/ 厚子文件</td><td>各 W</td><td>65/81/67 行 · 5/4/3 个 steps</td></tr>
+<tr><td>2</td><td>产物 schema / 稳定 ID</td><td>W2（<code>MP-###</code>）；W1/W3 <strong>豁免</strong>（零 YAML 主产物，回报已写理由与替代形态）</td><td>schema 段 + <code>check</code> 用例</td></tr>
+<tr><td>3</td><td>前置门禁（零产出退出）</td><td>各 W</td><td>门禁用例（W1 四门 / W2 三门 / W3 四门）</td></tr>
+<tr><td>4</td><td>ID 链接入</td><td>W2（<code>skills[].name</code> 引用闭包 + <code>MP-###</code> 稳定）；W1/W3 <strong>N/A</strong>（无全局 ID 体系）</td><td><code>--previous</code> / 对称性用例</td></tr>
+<tr><td>5</td><td>注册</td><td>主 agent（37 + 3 经 sync）+ W1 产物直落安装面</td><td>sync 输出 + W1 落点断言用例</td></tr>
+<tr><td>6</td><td>viewer 渲染</td><td>W2 登记标签缺口（§八）；渲染执行归收口链④；W1/W3 <strong>N/A</strong>（无 YAML 产物，规则段写明理由）</td><td>§五 第 4 行回执</td></tr>
+<tr><td>7</td><td>冒烟 TC（≥5）</td><td>各 W</td><td>25 / 28 / 22 用例</td></tr>
+<tr><td>8</td><td>登记元数据</td><td>各 W</td><td>frontmatter 六字段（V 逐格核对）</td></tr>
+<tr><td>9</td><td>读取成本纪律</td><td>各 W</td><td>母本 §4 逐字（脚本比对）</td></tr>
+<tr><td>10</td><td>双源输入声明</td><td>各 W</td><td>三技能均非主线/WDS 交汇点（逐条确认）</td></tr>
+<tr><td>11</td><td>渲染静默</td><td>W2（viewer 调用照母本 §5）；W1 适用（脚本渲染不打开、不报路径）；W3 无 viewer 调用（写明理由）</td><td>规则段 + V 抽验</td></tr>
+<tr><td>12</td><td>diyc 接线 a–e</td><td>各 W</td><td>a 三技能均委托 <code>diyc.py resolve</code>；b W1/W2 = <code>check --final</code>、W3 = <code>check --run-dir</code>；c W2 yes / W1、W3 no；d 母本 §3 逐字；e W1 三写面 / W2 零写面</td></tr>
+<tr><td>13</td><td>副作用纪律</td><td>各 W 自证 + V 抽验</td><td>W1 的 Edit 覆盖无头入队（<code>defer-add</code> 唯一产生面）；W3 白名单未覆盖 → warning + skip <strong>不入队</strong></td></tr>
+</tbody></table>
+<h2>七、非阻断观察清单（欠账，C 阶段或后续批处置）</h2>
+<p>V 发现 8 条，<strong>2 条已修</strong>（<code>mlog --file</code> 写面越界 / <code>INTERNAL_ERROR</code> 码登记），余 <strong>6 条</strong>留档：</p>
+<table>
+<thead><tr><th>#</th><th>归属</th><th>内容</th><th>建议</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>W1</td><td>围栏容差 <code>.strip()</code> 与源 + W3 不一致（宽容侧）</td><td>与 #3 同批统一</td></tr>
+<tr><td>2</td><td>W2</td><td>文档写 <code>missing_slug</code>、实现报 <code>EMPTY_FIELD</code>（违 §10 第 6 条「文档与实现必须一致」）</td><td>改文档措辞</td></tr>
+<tr><td>3</td><td>W1/W2/W3</td><td>只读子命令 <code>--output-dir</code> 必填面三家不一致（W1/W2 必填且与既有 37 技能先例同侧，W3 可选且缺省落空串）</td><td>一次口径裁定后统一</td></tr>
+<tr><td>4</td><td>W2</td><td>「frontmatter 是 <code>diy-help</code> 的读面」——全仓搜索证实<strong>当前零消费者</strong>（任务书自述为「备供 C 阶段登记表驱动」）</td><td>C·1 落地时回填</td></tr>
+<tr><td>5</td><td>W3</td><td><code>--runs 0</code> 静默按 1（同库 <code>--random 0</code> 是先例拒）</td><td>统一为拒</td></tr>
+<tr><td>6</td><td>W3</td><td>docstring 声明 <code>UNPARSABLE_JSON</code> 而实文另有 <code>UNPARSABLE_YAML</code></td><td>补登记</td></tr>
+</tbody></table>
+<p><strong>另两条待办</strong>（来自 V 未决问题）：① 七对边界句的「对方侧随 C 阶段补」——W1 已写明该句、<strong>W3 的规则 7 没写</strong>，建议 C 阶段统一；② W2 的 <code>--previous</code> tombstone 边缘（旧稿标 <code>dropped: true</code> 的条目若在新稿被整条删掉，现口径仍判 <code>ID_UNSTABLE</code>）——<strong>主 agent 裁定：维持严格口径</strong>（清单收缩必留痕），无用例覆盖该分支，留待后续批按需补。</p>
+<h2>八、viewer 标签缺口清单（<strong>C 阶段输入</strong>）</h2>
+<p><code>module-plan.yaml</code> 为<strong>新产物类型</strong>，V 用 W2 的 tempdir 产物实跑 <code>viewer.py</code>（渲染成功 rc 0，<code>module-plan.html</code>），发现缺口<strong>比任务书描述更重</strong>——分两条登记：</p>
+<p><strong>(a) 缺文档级标签覆盖</strong>：<code>slug</code> / <code>kind</code> / <code>dropped</code> / <code>new</code> / <code>brief</code> 等键无中文标签（回落原名；<code>待决问题</code> / <code>项目定位</code> 命中全局键表故正常）。建议补 <code>DOC_LABELS["module-plan"]</code> 与 <code>DOC_KEY_LABELS["module-plan"]</code>。</p>
+<p><strong>(b) 引用语义错配导致假「引用不存在」徽章（更有害）</strong>：<code>depends_on</code> / <code>dependencies</code> / <code>build_order</code> 里的<strong>技能名</strong>被通用跨文档引用解析器当作<strong>记录 ID</strong>——<code>diy-alpha</code>（合法计划内引用）与 <code>diy-nope</code>（真悬空）<strong>同样</strong>挂 <code>&lt;span class="dangling"&gt;</code> + 徽章「引用不存在」。<strong>它会把一份健康的计划显示成有病</strong>，比 (a) 更需优先处置。</p>
+<p><code>viewer.py</code> 在禁改面内，故只登记不改；两条均归 C 阶段「缺口 2：viewer 通用降级渲染」。</p>
+<h2>九、审阅指引（B5 为<strong>非强制人工审</strong>）</h2>
+<p><strong>审阅面</strong>：本报告 + <code>v-audit.md</code>（终审计证据）+ <code>v-capability-inventory.md</code>（能力清点）。</p>
+<p><strong>异常项才需看</strong>：</p>
+<ol>
+<li>§七 的 6 条欠账（其中 #3「<code>--output-dir</code> 必填面三家不一致」是唯一的跨技能一致性面，若要收敛需一次口径裁定）</li>
+<li>§八 的标签缺口 (b)（假「引用不存在」徽章会误导使用者）</li>
+<li>「造物者」批的自我兑现：W1 的 Analyze 模式审自家产品<strong>真抓出 3 条问题</strong>（<code>diy-</code> 前缀无机械校验 / 全问句触发率 0 无诊断 / step 3 重复读取）——这些是<strong>能力的正面证据</strong>，但其中前两条是否要修，留作后续批判断</li>
+</ol>
+<p><strong>下一步</strong>：C 阶段余项（<code>迁移计划.md</code> §五 C 1–7 / 9 / 10）或 B6 / B7 批。</p>
+</main>
+</body>
+</html>

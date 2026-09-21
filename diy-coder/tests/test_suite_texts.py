@@ -71,7 +71,8 @@ CONVERTED_INSTANCE = frozenset(["spec-scan", "prd", "teach-me-testing", "test-au
                                 "investigate", "research", "retrospective",
                                 "architecture", "design", "dev", "review",
                                 "brainstorm", "elicit", "party-mode", "spec",
-                                "editorial-review"])
+                                "editorial-review",
+                                "bmb-builder", "bmb-module", "eval-runner"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
 DISCIPLINE_EN_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
@@ -99,7 +100,8 @@ CONVERTED_DISCIPLINE = frozenset(["prd", "teach-me-testing", "test-author",
                                   "project-context", "investigate", "research",
                                   "retrospective", "architecture", "review",
                                   "brainstorm", "elicit", "party-mode", "spec",
-                                  "editorial-review"])
+                                  "editorial-review",
+                                  "bmb-builder", "bmb-module", "eval-runner"])
 # spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
 
@@ -212,7 +214,8 @@ def _steppers():
 NEW_SKILLS = frozenset(["teach-me-testing", "test-author",
                         "test-framework", "test-gate", "test-review",
                         "brainstorm", "elicit", "party-mode", "spec",
-                        "editorial-review"])
+                        "editorial-review",
+                        "bmb-builder", "bmb-module", "eval-runner"])
 
 
 def _lacking(anchor, candidates):
