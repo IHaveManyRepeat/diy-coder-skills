@@ -24,7 +24,14 @@ ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "tech
 # 自由文本字段 (doc, key)：schema 无枚举约束——同名 key 在别的产物可以是枚举。
 # 依据：diy-architecture SKILL.md:43 decision=what was chosen；diy-review SKILL.md:31 type=short tag；
 # diy-design SKILL.md:65 route=/path
-FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design", "route")}
+FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design", "route"),
+                    # trace: C·2 假诊断清零——枚举键装非枚举内容的四处：
+                    # brief 的 BD 决策是一句自由文本；readiness/change-proposal/test-review
+                    # 的 route 装的是技能名（diy-*），不是 design 族的路由串
+                    ("brief", "decision"), ("readiness", "route"),
+                    ("change-proposal", "route"), ("test-review", "route"),
+                    # test-gate 的 source 含日期（「用户会话 2026-09-21」）——无法静态登记白名单
+                    ("test-gate", "source")}
 BADGE_CLASSES = {
     "已定稿": "ok", "已完成": "ok", "通过": "ok", "必须": "must",
     "已采纳": "ok",
@@ -98,6 +105,8 @@ KEY_LABELS = {
     "source": "来源", "date": "日期", "trigger": "触发方法", "fix": "修复方案",
     "prevention": "根治机制", "taxonomy": "分类注册表",
     "plain": "通俗解释", "detail": "过程详情",
+    # 修订历史（全产物通用顶层段）：{date, change, reason}
+    "revisions": "修订历史", "change": "变更",
     # design 族（diy-design schema）：B2 补齐，防英文直出
     "direction": "方向", "frontend_framework": "前端框架", "tokens": "设计令牌",
     "color": "颜色", "spacing": "间距", "typography": "字号", "scale": "缩放",
@@ -114,6 +123,117 @@ KEY_LABELS = {
     # deferred-actions 族（副作用纪律保留确认队列，§五 C·8）；
     # actions 是顶层列表键，渲染成 h2 标题（与 tasks / bugs 同款）
     "action": "动作", "command": "命令", "skill": "技能", "actions": "动作清单",
+    # trace: C·2 缺口 2 落地（2026-09-21）——B3/B4/B5 批产物键普查补齐（test-gate /
+    # test-framework / test-review / learning-progress / brainstorm / spec-kernel /
+    # editorial-review / module-plan）。语义依据各技能 SKILL.md 结构节与引擎骨架常量；
+    # viewer 递归渲染全部层级，故含嵌套键。同键异义者见 DOC_KEY_LABELS
+    "actual": "实际值", "adopted": "符合数", "adr": "ADR 核对", "algorithm": "估算算法",
+    "applied": "已加分项", "approach": "方案", "approved_by": "批准人",
+    "artifacts": "内联制品", "assertion_style": "断言风格", "assessed": "画像日期",
+    "assumptions": "假设清单", "audience": "目标读者", "basis": "依据",
+    "bdd_naming": "BDD 命名", "blockers": "阻断项", "body": "正文", "bonus": "加分",
+    "breakthroughs": "突破项", "brief": "简报正文", "build_order": "构建顺序",
+    "by_level": "分层计数", "capabilities": "能力清单", "category": "类别",
+    "changes": "改动说明", "checks": "自检记录", "ci": "流水线",
+    "coherence": "一致性判决", "companions": "伴生文档", "completed_date": "完成日期",
+    "completion_percentage": "完成度", "comprehension_note": "理解力提示",
+    "concept": "核心构想", "confidence": "置信度", "constraints": "约束条件",
+    "convention_baseline": "惯例基线", "corpus_size": "语料总数", "coverage": "覆盖矩阵",
+    "covered": "已覆盖数", "critical": "致命", "current_step": "当前步骤",
+    "data_factories": "数据工厂", "deductions": "扣分", "deferred": "后置项",
+    "dependencies": "依赖项", "determinism": "确定性", "dimensions": "维度分",
+    "domains": "非功能域", "dropped": "已丢弃", "duplicates": "重复覆盖",
+    "duration_min": "课时时长", "estimated": "估算",
+    "estimated_reduction_words": "预估削减", "excluded": "排除清单",
+    "experience": "经验档", "expires": "失效日期",
+    "file": "文件", "files": "文件清单", "files_reviewed": "已评审文件数",
+    "fix_owner": "修复责任人", "fix_target": "修复目标", "fixtures": "夹具",
+    "focus": "聚焦点", "framework": "测试框架", "gaps": "缺口清单",
+    "gates": "门禁口径", "generated": "已生成", "grade": "等级",
+    "hard_criteria": "硬判据", "heuristics": "盲区启发式", "high": "高",
+    "idea": "关联想法", "ideas": "想法清单", "impact_words": "影响词数",
+    "in_ci": "已入 CI", "inferred": "推断条目", "intent": "意图",
+    "isolation": "隔离性", "items": "条目", "keys": "惯例键", "kind": "类别",
+    "language": "语言", "learner": "学员画像", "lenses": "透镜", "line": "行号",
+    "locations": "出现位置", "low": "低", "maintainability": "可维护性",
+    "measured": "实测值", "medium": "中", "meets_length_target": "达标判定",
+    "mode": "模式", "model": "结构模型", "monitoring": "监控方式",
+    "network_first": "网络优先", "new": "新值", "next_recommended": "下一课推荐",
+    "nfr": "非功能需求", "no": "序号", "non_goals": "非目标", "novelty": "差异点",
+    "oracle": "判定基准", "original": "原文片段", "overall_risk": "总体风险",
+    "p0": "P0 门槛", "p1": "P1 门槛", "package_manager": "包管理器",
+    "pain_points": "痛点", "passed": "通过数", "paths": "路径清单", "pct": "覆盖率",
+    "performance": "性能", "plans": "计划记录", "platform": "平台",
+    "preservation": "保留走查", "priorities": "优先级",
+    "priority_markers": "优先级标记", "prose": "文风编辑", "quick_wins": "速赢项",
+    "reader_type": "读者类型", "recommendation": "处置建议",
+    "recommendations": "建议清单", "ref": "引用", "resources": "资源",
+    "result": "结果", "retired": "已退休", "reviews": "评审记录",
+    "revised": "修订建议", "role": "角色",
+    "row": "规则行号", "rows": "清单行数", "runner": "运行命令",
+    "sampled": "采样数", "scope": "范围", "score": "得分",
+    "sessions": "会话记录", "sessions_completed": "已完成课时数",
+    "setups": "基建记录", "skills": "技能清单", "slug": "短名",
+    "soft_criteria": "软判据", "sources": "来源清单", "specs": "规格记录",
+    "stages": "阶段", "started_date": "开始日期",
+    "static_check_alignment": "静态检查对齐", "structure": "结构",
+    "success": "成功判据", "success_signal": "成功信号", "target": "目标",
+    "techniques": "用过技术", "test_ids": "测试 ID", "tests": "已验证用例",
+    "themes": "主题聚类", "thresholds": "阈值", "timeline": "时间线",
+    "top": "最优先", "topic": "主题", "topics_explored": "已探索主题",
+    "total": "合计", "totals": "合计", "unit_layer": "单元层",
+    "unresolved": "未决条目", "vision": "批次愿景", "waivers": "豁免记录",
+    "walkthrough": "三向走查", "what": "缺失内容",
+    # trace: C·2——diyc-baseline（diy-tools 的豁免台账）键补齐，此前整页英文裸奔
+    "baseline": "基线", "code": "违规码", "where": "位置",
+    "on": "批准日期", "by": "批准人",
+    # trace: C·2（V 验证补漏）——mutation-report（diy-augment 的变异运行记录）此前无类型名、
+    # 键全裸奔。schema 见 diy-augment/SKILL.md:34
+    "runs": "运行记录", "killed": "杀死数", "survivors": "幸存变异体",
+    "equivalents": "等价变异体", "mutant": "变异体",
+    # trace: C·2 缺口 2 落地（2026-09-21）——B1/B2 批产物键普查补齐（research / brief /
+    # prfaq / checkpoint / readiness / project-context / story-context / retrospective /
+    # change-proposal / spec / investigation）。语义依据各技能 SKILL.md 结构节与引擎骨架常量
+    "a": "回答", "ac_refs": "关联验收标准", "acceptance": "验收判据", "accessed": "访问日期", "acs": "验收标准数",
+    "action_items": "行动项", "addendum": "附录", "amended": "修订方式", "architecture": "架构结论",
+    "area": "领域", "artifact": "目标产物", "augment_fail": "补测失败数", "availability": "可得性",
+    "avoided": "避免方式", "backlog": "待探清单", "between": "关联部件", "blocked_count": "阻塞任务数",
+    "boundaries": "自主边界", "carryover": "前序遗留", "case_info": "案件信息", "cases": "案件记录",
+    "challenges": "挑战", "change_log": "变更日志", "change_type": "变更类型", "checkpoints": "带看记录",
+    "claim": "断言", "cmd": "命令", "code_map": "代码地图", "commands": "验证命令", "concept_type": "概念类型",
+    "concern": "关注点", "concerns": "关注点", "conclusion": "调查结论", "content": "内容", "contexts": "上下文包",
+    "contract": "集成契约", "count": "出现次数", "counts": "计数", "critical_path": "关键路径",
+    "current_state": "当前状态", "customer_faq": "客户问答", "customer_quote": "客户引语",
+    "deep_dives": "深挖记录", "deployment": "部署就绪", "design_notes": "设计说明", "diagnostic_steps": "诊断步骤",
+    "dimension": "维度", "distillate": "交付摘要", "do": "操作", "done": "是否完成", "done_when": "完成判据",
+    "edits": "具体改动", "effort": "工作量", "error_handling": "错误处理", "essentials": "核心要素",
+    "estimate": "估算", "event": "事件", "evidence_light": "无据标记", "executive_summary": "综合摘要",
+    "exists": "是否存在", "expect": "预期结果", "extra_sections": "补充章节", "field": "字段",
+    "files_scanned": "扫描文件数", "finding": "发现条目", "findings_by_severity": "严重度分布",
+    "fix_direction": "修复方向", "follow_ups": "续案记录", "frs": "功能需求数", "getting_started": "上手方式",
+    "handoff": "交接", "handoff_brief": "交接简报", "headline": "主标题", "how": "获取途径",
+    "how_it_works": "运作方式", "hypotheses": "假设清单", "impacts": "影响清单", "inputs": "输入清单",
+    "insights": "洞察", "integration": "部件集成", "internal_faq": "内部问答", "io_matrix": "输入输出矩阵",
+    "item": "事项", "keep": "保留项", "key_dirs": "关键目录", "key_points": "要点", "label": "风险标签",
+    "leader_quote": "负责人引语", "level": "扫描档位", "manual": "手工验证", "message": "问题描述",
+    "metrics": "机械指标", "missing_evidence": "缺失证据", "must_frs": "必须需求数", "next": "下一步",
+    "next_epic": "下一史诗", "observations": "亲手验证", "old": "原值", "opening": "开篇", "owner": "责任人",
+    "part": "所属部件", "partial": "部分回顾", "parts": "部件清单", "patterns": "模式清单", "pitch": "推介叙事",
+    "point": "差异点", "prep_items": "准备项", "preserve": "须保留行为", "press_release": "新闻稿",
+    "prev_followup": "前轮承诺", "prfaq": "PRFAQ 正文", "prior_story": "前序故事", "problem": "问题",
+    "problem_statement": "问题原述", "proposals": "变更提案", "q": "问题", "readiness": "就绪度",
+    "recommended_action": "推荐动作", "reproduction": "复现方式", "researches": "研究记录",
+    "resolution": "落定结论", "retro": "上轮回顾", "retros": "回顾记录", "review_order": "审阅顺序",
+    "review_refs": "评审证据", "ripple": "下游连带", "rounds_total": "轮次总数", "rule": "规则正文",
+    "rules": "实现规则", "scan": "扫描档案", "scenario": "场景", "section": "章节", "side_findings": "切向发现",
+    "significant_changes": "重大变更", "sites": "停靠点", "solution": "解决方案", "spec": "规格引用",
+    "stage": "阶段", "stakes": "利害档位", "stops": "停靠点", "stories_done": "故事完成数",
+    "stories_total": "故事总数", "strength": "判定档位", "stronghold": "据点", "subheadline": "副标题",
+    "synthesis": "综合结论", "target_users": "目标用户", "task": "任务描述", "tc_refs": "关联测试用例",
+    "tech_health": "技术健康", "test": "验证方法", "testing": "测试就绪", "theme": "主题", "time_window": "时间窗",
+    "timeline_impact": "时间线影响", "tree": "目录树", "url": "网址", "value": "价值要点", "value_props": "价值主张",
+    "verification": "验证记录", "verify": "完成判据", "watch": "观测结果", "who": "用户角色",
+    "why_separate": "分离理由", "wins": "亮点", "would_resolve": "解开条件",
 }
 # 值标签（词表正典来源）：机器层中文化后键=中文值、值=展示标签，多数同名。
 VALUE_LABELS = {
@@ -199,6 +319,10 @@ VALUE_LABELS = {
     "静态检查": "静态检查", "契约": "契约", "预热": "预热", "报告": "报告",
     "可维护性": "可维护性", "合成": "合成",
     "覆盖": "覆盖", "非功能需求": "非功能需求", "启发式": "启发式",
+    # trace: C·2——editorial-review 的建议类别存英文大写（引擎 editorial_review.py:397 按原样
+    # 校验，属机器锚点不可改），展示层给白话译名；判据见 steps/02-analyze.md:29-34
+    "CUT": "整段删除", "MERGE": "合并章节", "MOVE": "调整位置",
+    "CONDENSE": "显著压缩", "QUESTION": "待作者拍板", "PRESERVE": "显式保留",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
@@ -207,6 +331,19 @@ DOC_LABELS = {
     "bug-log": "缺陷模式库", "design": "设计稿",
     "spec-scan": "规格歧义扫描",
     "deferred-actions": "待确认动作",
+    # trace: C·2 缺口 2 落地（2026-09-21）——B1–B5 批次新产物类型的中文名，
+    # 此前未知类型在页面标题/导航/索引卡片三处回落英文原名。命名取自各技能
+    # SKILL.md frontmatter 的中文自述，不另造词
+    "research": "联网调研", "brief": "产品简报", "prfaq": "PRFAQ 拷问",
+    "checkpoint": "变更带看", "readiness": "开工就绪体检", "project-context": "项目语境档",
+    "story-context": "故事上下文包", "retrospective": "epic 回顾",
+    "change-proposal": "变更提案", "spec": "轻量变更规格",
+    "investigation": "取证调查",
+    "test-gate": "质量门", "test-framework": "测试框架台账", "test-review": "测试质量审计",
+    "learning-progress": "学习进度", "brainstorm": "头脑风暴",
+    "spec-kernel": "SPEC 内核", "editorial-review": "文稿双透镜评审",
+    "module-plan": "技能批次计划", "diyc-baseline": "工具基线快照",
+    "mutation-report": "变异测试报告",
 }
 # 文档级标签覆盖（B1）：同一 key 在不同文档语义不同——bug-log 的 type 是缺陷三级分类，
 # 其余文档（test-plan/openapi 等）回落全局 type=类型
@@ -219,6 +356,66 @@ DOC_KEY_LABELS = {
     # deferred-actions：target 在全局表缺位（checkpoint / correct-course / editorial-review
     # 各有自己的 target 语义），故只在本文档挂标签，不动全局
     "deferred-actions": {"target": "目标"},
+    # trace: C·2 缺口 2 落地（2026-09-21）——B2–B5 批同键异义的文档级覆盖。
+    # 判据：全局标签在该文档会误导（读成另一个东西）时才覆盖，否则留全局
+    # test-gate：全局 decision=处理决定（review 层），此处是门的三档裁决 PASS/CONCERNS/FAIL
+    "test-gate": {"decision": "门裁决", "kind": "缺口类别", "what": "缺口描述"},
+    # test-framework：全局 action=动作（deferred-actions），此处是文件级写行为 新建/更新；
+    # file/files 在此为「CI 配置路径」与「生成文件清单」，与 spec-scan 的 files=文件数 不同义
+    "test-framework": {"action": "文件操作", "file": "CI 配置路径",
+                       "files": "生成文件清单", "kind": "文件类别"},
+    # test-review：全局 class=大类（bug-log 三级分类），此处是惯例档位 已确立/新现；
+    # 全局 route=路由（design 页面路径），此处装「该问题该交给哪个技能」，非页面路由；
+    # 全局 basis=依据（test-gate 决策依据），此处是规则三类门 必查/视情况/惯例
+    "test-review": {"class": "惯例档位", "route": "建议路由", "basis": "门禁类型",
+                    "kind": "缺口类型", "ref": "引用编号"},
+    # brainstorm：全局 technique=设计技术（测试设计技术），此处是脑暴方法名；
+    # 全局 steps=验证步骤（test-plan），此处是行动步骤；全局 goals=目标（列表），此处是单段文本；
+    # 全局 actions=动作清单（deferred-actions 待确认队列），此处是收敛出的行动计划
+    "brainstorm": {"technique": "头脑风暴方法", "steps": "行动步骤",
+                   "goals": "会话目标", "actions": "行动计划"},
+    # spec-kernel：全局 verdict=结论（标量），此处是对象，含 coherence / preservation 两段判决
+    "spec-kernel": {"verdict": "内核判决"},
+    # editorial-review：record 级 target=被评审文档路径，findings 内 target=章节名（同文档双义，
+    # 取记录级口径）；全局 purpose=项目定位（prd），此处是本文档为何存在
+    "editorial-review": {"target": "被评审文档", "purpose": "文档目的",
+                         "structure": "结构编辑"},
+    # module-plan：全局 purpose=项目定位（prd），此处是技能用途；
+    # depends_on 在此装技能名（diy-<name>）而非 ID，标签须体现「技能」以免误读为 ID 链
+    "module-plan": {"purpose": "技能用途", "depends_on": "依赖技能",
+                    "kind": "技能性质", "brief": "自足简述", "new": "本批新建"},
+    # learning-progress：全局 notes=备注（短文），此处是课堂笔记文件相对路径；
+    # 全局 sessions=会话记录（brainstorm），此处是 7 节课时
+    "learning-progress": {"notes": "课堂笔记", "sessions": "课时记录"},
+    # change-proposal：全局 trigger=触发方法（bug-log 缺陷复现），此处是触发本次变更的问题；
+    # target 是影响目标，scope 是变更规模（轻微|中等|重大），kind 是改动类型（修改|新增|删除）
+    "change-proposal": {"trigger": "触发问题", "target": "影响目标",
+                        "scope": "变更规模", "kind": "改动类型"},
+    # checkpoint：全局 target=目标（test-gate 阈值），此处是本次带看的变更范围；
+    # ref 是变更锚点（非 test-review 的规则引用编号），inferred 是意图推断
+    "checkpoint": {"target": "变更定位", "ref": "锚点", "inferred": "意图推断"},
+    # 存量技能（B1–B4 已建）的产物同样有同键异义：brief 的 decisions 是 BD 决策日志
+    # （全局「技术决策」指架构 D-x）；brief/prfaq 的 stakes 分别是项目侧风险档位与客户侧
+    # 利害；readiness / investigation 的 evidence 是证据锚点/证据条目（全局「执行证据」指红绿台账）
+    "brief": {"decisions": "决策日志", "stakes": "风险档位"},
+    "prfaq": {"stakes": "客户利害", "notes": "教练笔记"},
+    "readiness": {"evidence": "证据锚点", "checks": "体检记录"},
+    "investigation": {"evidence": "证据条目", "statement": "假设陈述",
+                      "kind": "输入形态", "grade": "证据等级", "slug": "续案键"},
+    # 其余同键异义：retrospective 的 class 是准备项档位（非缺陷「大类」）、
+    # impact 是波及面（非「猜错后果」）、acceptance 是验收就绪度、blockers 是阻塞任务；
+    # story-context 的 action 是文件动作、files 是涉及文件；
+    # spec 的 role 是文件作用；project-context 的 structure 是目录结构；
+    # diyc-baseline 的 baseline 是台账本身（全局「基线」指比对基准）
+    "retrospective": {"class": "准备档位", "impact": "影响",
+                      "acceptance": "验收就绪", "blockers": "阻塞任务"},
+    "story-context": {"action": "文件动作", "files": "涉及文件"},
+    "spec": {"role": "文件作用"},
+    "project-context": {"structure": "目录结构"},
+    "diyc-baseline": {"baseline": "基线台账"},
+    # mutation-report：全局 task=任务描述（quick-dev 的 code_map）、total=合计（计数语境）；
+    # 此处 task 装任务 ID、total 装变异体总数
+    "mutation-report": {"task": "任务", "total": "变异体总数"},
 }
 # 术语表（展示层，FR-4.1 可读性）：标签/徽章/标题命中即挂悬浮解释，YAML 单一源不动。
 # key = 渲染后的展示文本（已 esc，纯中文无 HTML 字符，查找安全）。
@@ -324,8 +521,10 @@ ID_RE = re.compile(r"\b[A-Z]{1,4}-\d+(?:\.\d+)*\b")
 ID_FULL_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
 # trace: S-15 AC-15.1 design_ref（AC 绑定 design.yaml 页面引用）入引用链，悬空即标红
 REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr", "design_ref"}
-# 过程性字段默认折叠（FR-4.1 可读性，D-10 后白话化纪律）：结论常驻、过程按需展开
-FOLDED_KEYS = {"evidence", "findings"}
+# 过程性字段默认折叠（FR-4.1 可读性，D-10 后白话化纪律）：结论常驻、过程按需展开。
+# revisions 依「修订历史留痕」裁定（迁移计划 §已定补充，2026-09-13 用户拍板）：
+# 「viewer 渲染为默认折叠的修订历史卡片（沿用 detail 折叠做法）」
+FOLDED_KEYS = {"evidence", "findings", "revisions"}
 FOLDED_NOTE_LEN = 80
 PREVIEW_KEYS = ("statement", "then", "title", "question", "goal", "risk", "name",
                 "decision", "description", "narrative")
@@ -505,14 +704,23 @@ def ref_cell(i: str) -> str:
 
 
 def render_ref_list(items: list) -> str:
-    """ID 引用列表：纯编号链接。"""
+    """ID 引用列表：已登记 ID 出链接；未登记但形如 ID 的标红；其余回落纯文本。"""
+    # trace: C·2 假悬空修复（V 独立验证后修订）——判序**先查索引，再判形态**：
+    # ① 索引命中即链——覆盖 spec-scan 的 `SS-001-01` 这类三段短横 ID（is_id_string 的
+    #    `[A-Z]{1,4}-\\d+` 不认它，若先判形态会把它降级成文本、再被 linkify 半匹配成
+    #    指向 `SS-001` 的错链）
+    # ② 未命中且形如 ID → 悬空标红，与 collect_dangling 的守卫对称
+    # ③ 两者皆否（module-plan 的 depends_on 装技能名 diy-* 等）→ 纯文本，且不经 linkify
     lis = []
     for x in items:
-        hit = ID_INDEX.get(str(x).strip())
-        if hit is None:
-            lis.append(f"<li>{dangling_ref(x)}</li>")  # trace: S-12 AC-12.1
+        s = str(x).strip()
+        hit = ID_INDEX.get(s)
+        if hit is not None:
+            lis.append(f"<li>{id_link(s, hit)}</li>")
+        elif is_id_string(s):
+            lis.append(f"<li>{dangling_ref(s)}</li>")  # trace: S-12 AC-12.1
         else:
-            lis.append(f"<li>{id_link(str(x), hit)}</li>")
+            lis.append(f"<li>{esc(x)}</li>")
     return f'<ul class="reflist">{"".join(lis)}</ul>'
 
 
@@ -690,6 +898,10 @@ def is_flat_dict(d) -> bool:
 
 
 def render_value(key: str, v, depth: int) -> str:
+    # trace: C·2——空修订史不渲染：revisions 是全产物通用段，新建产物常态为空列表，
+    # 逐页留一块「展开修订历史（0 项）」纯属噪音（有记录才折叠展示）
+    if key == "revisions" and isinstance(v, list) and not v:
+        return ""
     out = _render_value_raw(key, v, depth)
     fold = key in FOLDED_KEYS or (
         key == "note" and isinstance(v, str) and len(v) > FOLDED_NOTE_LEN)
