@@ -74,7 +74,9 @@ CONVERTED_INSTANCE = frozenset(["spec-scan", "prd", "teach-me-testing", "test-au
                                 "editorial-review",
                                 "bmb-builder", "bmb-module", "eval-runner",
                                 "cis-method",
-                                "wds-brief", "wds-trigger", "wds-scenarios"])
+                                "wds-brief", "wds-trigger", "wds-scenarios",
+                                "wds-system", "wds-assets", "wds-evolution",
+                                "analyze", "reverse"])
 INSTANCE_NON_MEMBERS = frozenset(["tools", "viewer"])  # 不解析配置
 
 DISCIPLINE_EN_MD5 = "f1b3b6fbb528f0cfab31f3196b3547ae"
@@ -105,7 +107,9 @@ CONVERTED_DISCIPLINE = frozenset(["prd", "teach-me-testing", "test-author",
                                   "editorial-review",
                                   "bmb-builder", "bmb-module", "eval-runner",
                                   "cis-method",
-                                  "wds-brief", "wds-trigger", "wds-scenarios"])
+                                  "wds-brief", "wds-trigger", "wds-scenarios",
+                                  "wds-system", "wds-assets", "wds-evolution",
+                                  "analyze", "reverse"])
 # spec-scan 带同前缀的技能自定短块——非 §2 成员，不参与断言
 DISCIPLINE_NON_MEMBERS = frozenset(["spec-scan"])
 
@@ -221,7 +225,9 @@ NEW_SKILLS = frozenset(["teach-me-testing", "test-author",
                         "editorial-review",
                         "bmb-builder", "bmb-module", "eval-runner",
                         "cis-method",
-                        "wds-brief", "wds-trigger", "wds-scenarios"])
+                        "wds-brief", "wds-trigger", "wds-scenarios",
+                        "wds-system", "wds-assets", "wds-evolution",
+                        "analyze", "reverse"])
 
 
 def _lacking(anchor, candidates):

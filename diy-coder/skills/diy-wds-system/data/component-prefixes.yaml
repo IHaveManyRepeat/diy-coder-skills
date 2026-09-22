@@ -1,0 +1,50 @@
+# 组件类型前缀表（diy-wds-system 冻结资产）
+#
+# 来源：源 `wds-7-design-system/steps-c/step-08b-create-new-component.md:68–95`
+#   —— 该段是一张「类型 → 前缀」箭头表，**机械计数 = 26 行**（`sed -n '68,96p' … | grep -c '→'`）。
+#   ★ 源普查（census-3 §3.3 / §8.2）与任务书 §2.3 均写「25 条前缀」——**经复核实为 26**，
+#     本表按机械取数落 26 条，差额在回报中登记为「普查/任务书算术偏差」。
+#
+# 本表是在源的「类型 → 前缀」两列之外**补了 category 一列**：
+#   源侧的两张表（26 前缀表 :68–95 与 6 分类表 :117–122）之间**没有 join 关系**，
+#   而产物 schema（§2.3）要求 `prefixes` 与 `categories` 两段同时在场、组件记录带 `category`。
+#   本列按源分类表的括注（`Interactive (buttons, links, controls)` 等）逐条归属，
+#   括注未覆盖的类型按主角色归属——**登记为 W1 补白，非源侧原值**。
+#
+# 前缀用途：组件 ID = `[prefix]-[NNN]`，逐前缀独立计数、三位补零、顺序递增、不重编不复用
+# （源 step-08b:56–64 的编号规则）。
+schema_version: 1
+source: wds-7-design-system/steps-c/step-08b-create-new-component.md:68-95
+count: 26
+table:
+  - {type: Button,        prefix: btn, category: Interactive}
+  - {type: Input Field,   prefix: inp, category: Form}
+  - {type: Card,          prefix: crd, category: Content}
+  - {type: Modal,         prefix: mdl, category: Feedback}
+  - {type: Dropdown,      prefix: drp, category: Interactive}
+  - {type: Checkbox,      prefix: chk, category: Form}
+  - {type: Radio,         prefix: rad, category: Form}
+  - {type: Toggle,        prefix: tgl, category: Form}
+  - {type: Tab,           prefix: tab, category: Navigation}
+  - {type: Accordion,     prefix: acc, category: Layout}
+  - {type: Alert,         prefix: alt, category: Feedback}
+  - {type: Badge,         prefix: bdg, category: Content}
+  - {type: Avatar,        prefix: avt, category: Content}
+  - {type: Icon,          prefix: icn, category: Content}
+  - {type: Image,         prefix: img, category: Content}
+  - {type: Link,          prefix: lnk, category: Interactive}
+  - {type: Text,          prefix: txt, category: Content}
+  - {type: Heading,       prefix: hdg, category: Content}
+  - {type: List,          prefix: lst, category: Layout}
+  - {type: Table,         prefix: tbl, category: Layout}
+  - {type: Form,          prefix: frm, category: Form}
+  - {type: Container,     prefix: cnt, category: Layout}
+  - {type: Grid,          prefix: grd, category: Layout}
+  - {type: Flex,          prefix: flx, category: Layout}
+  - {type: Divider,       prefix: div, category: Layout}
+  - {type: Spacer,        prefix: spc, category: Layout}
+# 分布（机械计数）：Interactive 3 · Form 5 · Layout 8 · Content 7 · Feedback 2 · Navigation 1。
+# ★ Navigation 仅 1 条（`tab`）——源分类表把「breadcrumbs / menus」列为 Navigation 的成员，
+#   而 26 前缀表里**没有** breadcrumb / menu 两个类型。登记为「源前缀表与分类表不完备」
+#   （census-3 D14 的延伸；同源证据是 step-08a:265–281 的 README 骨架只列 4 分类）。
+#   本表不擅自补前缀（补了就是造源侧没有的类型）——需要时用户在会话里按同款命名规则新增并回写本表。

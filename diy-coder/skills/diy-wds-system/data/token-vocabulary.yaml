@@ -1,0 +1,114 @@
+# 令牌词汇表 —— 四套源词汇归一到一套（diy-wds-system 冻结资产；裁定 5 连带②）
+#
+# 上位约束（裁定 5，用户 2026-09-21 拍板）：
+#   `design.yaml` 的 `tokens` 是**唯一风格源**，设计系统从其**反向派生**——本产物只存
+#   「令牌名 + 指向」，**不存值**（引用不复述）。故本表是**名层**，值层一律解析到
+#   `design.yaml.tokens.{color,spacing,typography}`。
+#
+# 源侧四套并行词汇表（census-3 §3.4 / D15，逐条给位置）：
+#   V1 9 元  `space-3xs … space-3xl` —— wds-4/data/guides/DESIGN-LOOP-GUIDE.md:92
+#   V2 7 元  `zero, sm, md, lg, xl, 2xl, 3xl` —— wds-4/steps-p/step-08-spacing-typography.md:82
+#   V3 8 元  V2 + `flex` —— wds-4/templates/page-specification.template.md:163
+#   V4 数值阶 `spacing-0,1,2,3,4,6,8,12,16` —— wds-7/templates/design-tokens.template.md:81–89
+#
+# ── 归一为一套：`space-*` 语义名，10 个 ──
+# 依据（三条，逐条可核）：
+#   ① **取超集 → 零信息损失**：V2/V3 的 7 个语义步是 V1 的子集（去掉 `3xs`/`2xs`）
+#      再加 `zero`；V4 是同一刻度的**另一种写法**（数值阶）。取 V1 为骨架 + 补 `space-0`
+#      即同时覆盖四套，**不新增任何 V1 没有的语义层**（KISS）。
+#   ② **带命名空间前缀 → 不跨桶撞名**：V2/V3 的裸名 `sm`/`md`/`lg` 与源侧
+#      `design-tokens.template.md:96–106` 的**断点** `sm: 640px` / `md: 768px` 同名——
+#      同一份 YAML 里两个桶抢三个名字（实测）。加 `space-` 前缀后无歧义。
+#      这同时满足裁定 5 的机械要求：引擎核 `components[].token_refs` 时必须能**无歧义解析**。
+#   ③ **对称且封闭**：V1 以 `space-md` 为轴左右各 4 级（3xs/2xs/xs/sm ← md → lg/xl/2xl/3xl），
+#      是四套里唯一自洽闭合的刻度；V1 缺席的 `zero` 用 `space-0` 补（源 V3 明令要求零间距也要有名字：
+#      `Zero spacing (overlap / flush) MUST be documented`，模板 :169）。
+#
+# 两处归一期的口径订正（**非裁能力，登记**）：
+#   · V3 的 `flex` **不是间距值**（是布局模式，不是一个长度）→ 移出 spacing 桶，
+#     由 `components[].styling.layout` 承载。源侧把它塞进 `size` 位是缺陷。
+#   · V4 的数值阶**降为值层**（`n × unit`，`unit` 逐字取 `design.yaml.tokens.spacing.unit`）
+#     ——不再作为第二套名层；要表达刻度外的值就调 `scale`，不新造名字。
+schema_version: 1
+single_set: "space-*"
+
+# ── 唯一一套：name → design.yaml.tokens.spacing.scale 的下标（0 基） ──
+spacing:
+  - {name: space-0,   step: null}   # 零间距：不占 scale 位，值恒 0
+  - {name: space-3xs, step: 0}
+  - {name: space-2xs, step: 1}
+  - {name: space-xs,  step: 2}
+  - {name: space-sm,  step: 3}
+  - {name: space-md,  step: 4}      # 对称轴
+  - {name: space-lg,  step: 5}
+  - {name: space-xl,  step: 6}
+  - {name: space-2xl, step: 7}
+  - {name: space-3xl, step: 8}
+
+# ── 另两个命名空间：名字一律等于 design.yaml 对应桶的键（派生），本表只冻结解析口径 ──
+namespaces:
+  color:
+    rule: 逐字取 design.yaml.tokens.color 的键集（既有形态：bg / surface / text / text_muted / accent / accent_text）
+  typography:
+    rule: 逐字取 design.yaml.tokens.typography 的键集（family_base / family_heading / scale）——
+          字号档名由 design.yaml 的 scale 决定，本技能不另立 `text-*` / `heading-*` 两套（源侧正是两套，V4）
+  spacing:
+    rule: 本表 single_set（上面 10 个名字），值按 step 下标解析到 design.yaml.tokens.spacing.scale
+
+# ── 归一表（四套 → 一套，逐条；`→` 后为归一结果，`×` 为移出/降层并说明去处）──
+normalization:
+  - source: V1
+    where: wds-4/data/guides/DESIGN-LOOP-GUIDE.md:92
+    form: 9 元 space-*
+    basis: 取为骨架（见依据①③）
+    rows:
+      - {from: space-3xs, to: space-3xs}
+      - {from: space-2xs, to: space-2xs}
+      - {from: space-xs,  to: space-xs}
+      - {from: space-sm,  to: space-sm}
+      - {from: space-md,  to: space-md}
+      - {from: space-lg,  to: space-lg}
+      - {from: space-xl,  to: space-xl}
+      - {from: space-2xl, to: space-2xl}
+      - {from: space-3xl, to: space-3xl}
+  - source: V2
+    where: wds-4/steps-p/step-08-spacing-typography.md:82
+    form: 7 元裸名
+    basis: 补 space- 前缀；zero 归 space-0
+    rows:
+      - {from: zero, to: space-0}
+      - {from: sm,   to: space-sm}
+      - {from: md,   to: space-md}
+      - {from: lg,   to: space-lg}
+      - {from: xl,   to: space-xl}
+      - {from: "2xl", to: space-2xl}
+      - {from: "3xl", to: space-3xl}
+  - source: V3
+    where: wds-4/templates/page-specification.template.md:163
+    form: 8 元裸名（V2 + flex）
+    basis: 前 7 同 V2；flex 不是间距值
+    rows:
+      - {from: zero, to: space-0}
+      - {from: sm,   to: space-sm}
+      - {from: md,   to: space-md}
+      - {from: lg,   to: space-lg}
+      - {from: xl,   to: space-xl}
+      - {from: "2xl", to: space-2xl}
+      - {from: "3xl", to: space-3xl}
+      - {from: flex, to: null, note: "移出 spacing → components[].styling.layout（布局模式，非长度）"}
+  - source: V4
+    where: wds-7/templates/design-tokens.template.md:81-89
+    form: Tailwind 数值阶
+    basis: 降为值层（n × unit），不作第二套名层
+    rows:
+      - {from: spacing-0,  to: space-0,        note: 值恒 0}
+      - {from: spacing-1,  to: null, note: 值层：1 × unit，需落名时按最近语义名归拢}
+      - {from: spacing-2,  to: null, note: 值层：2 × unit}
+      - {from: spacing-3,  to: null, note: 值层：3 × unit}
+      - {from: spacing-4,  to: null, note: 值层：4 × unit}
+      - {from: spacing-6,  to: null, note: 值层：6 × unit}
+      - {from: spacing-8,  to: null, note: 值层：8 × unit}
+      - {from: spacing-12, to: null, note: 值层：12 × unit}
+      - {from: spacing-16, to: null, note: 值层：16 × unit}
+# 归一的判据复核口：`components[].token_refs` 里出现的每个 `spacing.<名>` 必须在本表 single_set 内，
+# 否则 `TOKEN_UNRESOLVED`（引擎 mechanic 核）——这条就是「四套归一」的机械兑现面。

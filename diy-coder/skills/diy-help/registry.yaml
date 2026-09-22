@@ -42,9 +42,15 @@ lines:
     label: WDS 线（官网 / 营销站）
     entry: diy-wds-brief
     exec: null
-    exec_note: "WDS 线下游（system / assets / evolution / analyze / reverse）随 B7 批次登记；本批该线止于 diy-wds-scenarios"
+    exec_note: "WDS 链收于 diy-wds-evolution；该线的编码执行面（diy-dev 双模式的 WDS 侧）随 C·3 落地，此前链走完即止。diy-analyze / diy-reverse 是独立入口（line: any），不属本链"
     chain:
       - diy-wds-brief
       - diy-wds-trigger
       - diy-wds-scenarios
-    notes: {}
+      - diy-wds-system
+      - diy-wds-assets
+      - diy-wds-evolution
+    notes:
+      diy-wds-system: "wds-design-system.yaml 不存在——若本项目需要组件库与令牌，可随时运行 diy-wds-system 建库；不需要可跳过"
+      diy-wds-assets: "wds-assets.yaml 不存在——若本项目需要线框 / 页面稿 / 图标 / 文案 / 演示等资产，可随时运行 diy-wds-assets 生成；不需要可跳过"
+      diy-wds-evolution: "wds-evolution.yaml 不存在——产品已有后续改进需求时，可运行 diy-wds-evolution 跑一轮 Kaizen 迭代；首轮建设期可跳过"

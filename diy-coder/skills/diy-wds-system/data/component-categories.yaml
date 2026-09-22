@@ -1,0 +1,23 @@
+# 组件分类表（diy-wds-system 冻结资产）
+#
+# 来源：源 `wds-7-design-system/steps-c/step-08b-create-new-component.md:117–122`
+#   —— 6 条括注式清单，**机械计数 = 6**（`sed -n '117,123p' … | grep -c '^- '`）。
+#
+# ★ 同源缺陷（census-3 D12）：源 `step-08a:265–281` 的 `components/README.md` 骨架
+#   只列 4 分类（Interactive / Form / Layout / Content），**缺 Feedback 与 Navigation**。
+#   本表取 step-08b 的**分类定义侧**（6 类），理由是它是「定义」而 README 是「呈现」——
+#   呈现侧缺 2 类的后果是「新组件越往后写，索引越无法归类」（源侧实测）。
+#   diy 侧不生成 README 索引文件（裁定 2：产物是一个 YAML），索引职能由 `components[]`
+#   的 `category` 字段 + `list --category` 过滤承接 → **该缺陷在 diy 形态下自然消失**。
+schema_version: 1
+source: wds-7-design-system/steps-c/step-08b-create-new-component.md:117-122
+count: 6
+categories:
+  - {name: Interactive, members: [Buttons, Links, Controls]}
+  - {name: Form,        members: [Inputs, Selects, Checkboxes]}
+  - {name: Layout,      members: [Containers, Grids, Dividers]}
+  - {name: Content,     members: [Text, Images, Media]}
+  - {name: Feedback,    members: [Alerts, Toasts, Modals]}
+  - {name: Navigation,  members: [Tabs, Breadcrumbs, Menus]}
+# 用法：每条 `components[]` 记录的 `category` 必须取自本表的 `name`；
+#       且必须与 `data/component-prefixes.yaml` 里同前缀那一行的 `category` 一致（引擎机械核，`SET_MISMATCH`）。

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{PROJECT_NAME}} — 设计系统目录</title>
+<!--
+  源模板 = wds-7-design-system/templates/catalog.template.html（363 行，19 个双花括号 UPPER_SNAKE 占位符）。
+  diy 侧改动（逐条）：
+    ① FIGMA_LINKS 占位符裁（裁定 6：不接外部服务）→ 19 → 18 个占位符；
+    ② 源的 localhost 服务与四路由（/tokens /components /graph /search）裁（平台耦合）→ 单文件静态页，
+       四视图落成同页四区，关系视图与意图搜索由页内脚本在 data-* 属性上现算（无服务、无外部依赖）；
+    ③ 源模板里的 npm/npx 安装说明段保留为 {{INSTALLATION_INSTRUCTIONS}} 一处（源 D25：那是生成物的说明，非技能依赖）。
+  生成方式：由 SKILL.md 的 `steps/03-view.md` 第 2/4 步整份装填后写 {output_dir}/wds-design-system-catalog.html。
+-->
+<style>
+:root{--bg:#fff;--fg:#111;--muted:#666;--line:#e5e5e5;--accent:#06f;--card:#fafafa}
+@media (prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--muted:#999;--line:#333;--card:#1a1a1a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,sans-serif}
+header{padding:24px 28px;border-bottom:1px solid var(--line)}
+h1{margin:0 0 6px;font-size:22px}
+h2{margin:32px 0 12px;font-size:17px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.meta{color:var(--muted);font-size:13px}
+main{padding:0 28px 64px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.swatch{display:inline-block;width:56px;height:28px;border-radius:4px;border:1px solid var(--line);vertical-align:middle}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+code{font-family:ui-monospace,monospace;font-size:13px}
+input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+#nav a{display:inline-block;margin:0 12px 6px 0;font-size:13px}
+.hit{outline:2px solid var(--accent)}
+.dim{opacity:.35}
+</style>
+</head>
+<body>
+<header>
+  <h1>{{PROJECT_ICON}} {{PROJECT_NAME}}</h1>
+  <div class="meta">{{PROJECT_DESCRIPTION}}</div>
+  <div class="meta">v{{VERSION}} · 建于 {{CREATED_DATE}} · 更新 {{LAST_UPDATED}} · 设计系统 {{DESIGN_SYSTEM_MODE}} · 组件 {{COMPONENT_COUNT}}</div>
+</header>
+
+<main>
+  <h2>概览 · Overview</h2>
+  <div class="card">{{PROJECT_OVERVIEW}}</div>
+  <div class="card"><b>用法示例</b><pre><code>{{USAGE_EXAMPLE}}</code></pre></div>
+  <div class="card"><b>安装 / 接入</b><pre><code>{{INSTALLATION_INSTRUCTIONS}}</code></pre></div>
+
+  <h2 id="nav">组件导航 · Component Catalog</h2>
+  <div id="nav-box">{{COMPONENT_NAVIGATION}}</div>
+
+  <h2>意图搜索 · Intent Search</h2>
+  <input type="search" id="q" placeholder="I need a background for warning messages / 输入组件名、分类、令牌名…">
+  <div class="meta" id="q-out">匹配组件 0 · 匹配令牌 0（点结果高亮关系）</div>
+
+  <h2>令牌 · Token Explorer</h2>
+  {{DESIGN_TOKENS_CONTENT}}
+  <h3>色彩</h3>{{COLOR_TOKENS}}
+  <h3>字体排版</h3>{{TYPOGRAPHY_TOKENS}}
+  <h3>间距（归一后的唯一一套 `space-*`）</h3>{{SPACING_TOKENS}}
+
+  <h2>组件 · Component Catalog（全变体 / 全状态 / 令牌依赖）</h2>
+  <div class="grid" id="components">{{COMPONENTS_CONTENT}}</div>
+
+  <h2>关系视图 · Relationship Viewer</h2>
+  <div class="meta">点组件卡片高亮它引用的令牌；点令牌高亮引用它的组件（页内现算，无服务）。</div>
+  <div id="graph" class="card"></div>
+
+  <h2>变更 · Changelog</h2>
+  <div class="card">{{CHANGELOG_CONTENT}}</div>
+</main>
+
+<script>
+// 四视图之「关系视图」与「意图搜索」：全部现算，数据来自组件卡片上的 data-* 属性。
+const cards = [...document.querySelectorAll('#components .card[data-id]')];
+const tokensOf = c => (c.dataset.tokens || '').split(',').map(s => s.trim()).filter(Boolean);
+const uniq = a => [...new Set(a)];
+
+const graph = document.getElementById('graph');
+graph.innerHTML = cards.map(c =>
+  '<div class="card" data-id="' + c.dataset.id + '"><b>' + c.dataset.id + '</b> → ' +
+  (tokensOf(c).map(t => '<code data-token="' + t + '">' + t + '</code>').join(' ') || '<span class="dim">零令牌依赖</span>') +
+  '</div>').join('');
+
+function clearHits() {
+  document.querySelectorAll('.hit').forEach(el => el.classList.remove('hit'));
+}
+function highlightByToken(t) {
+  clearHits();
+  document.querySelectorAll('[data-token="' + t + '"]').forEach(el => el.classList.add('hit'));
+  cards.forEach(c => { if (tokensOf(c).includes(t)) c.classList.add('hit'); });
+}
+function highlightByCard(id) {
+  clearHits();
+  const c = cards.find(x => x.dataset.id === id);
+  if (!c) return;
+  c.classList.add('hit');
+  tokensOf(c).forEach(t => document.querySelectorAll('[data-token="' + t + '"]').forEach(el => el.classList.add('hit')));
+}
+document.querySelectorAll('[data-token]').forEach(el =>
+  el.addEventListener('click', () => highlightByToken(el.dataset.token)));
+cards.forEach(c => c.addEventListener('click', () => highlightByCard(c.dataset.id)));
+
+const q = document.getElementById('q'), qOut = document.getElementById('q-out');
+q.addEventListener('input', () => {
+  const s = q.value.trim().toLowerCase();
+  clearHits();
+  if (!s) { qOut.textContent = '匹配组件 0 · 匹配令牌 0（点结果高亮关系）'; return; }
+  let nc = 0, nt = 0;
+  cards.forEach(c => {
+    const hay = [c.dataset.id, c.dataset.name, c.dataset.category, c.dataset.usage, c.dataset.tokens].join(' ').toLowerCase();
+    if (hay.includes(s)) { c.classList.add('hit'); nc++; }
+  });
+  uniq(cards.flatMap(tokensOf)).forEach(t => {
+    if (t.toLowerCase().includes(s)) { document.querySelectorAll('[data-token="' + t + '"]').forEach(el => el.classList.add('hit')); nt++; }
+  });
+  qOut.textContent = '匹配组件 ' + nc + ' · 匹配令牌 ' + nt + '（点结果高亮关系）';
+});
+</script>
+</body>
+</html>

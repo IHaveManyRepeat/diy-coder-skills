@@ -1,0 +1,77 @@
+# diy-wds-assets 产物 schema 蓝本（{output_dir}/wds-assets.yaml）
+#
+# 用法：**骨架由引擎铸**（`wds_assets.py init`——8 个活动壳一次铸出），本文件是**填值参照**：
+# 各段该有哪些键、每个键问什么、什么条件下必填。键名逐字照抄（英文、snake_case）；
+# 值写 `document_output_language`（中文叙述，机器锚点保留）。
+# 本文件**不是**产物，不落 `{output_dir}/`、不参与 `check`——它是给会话看的键表。
+#
+# 三条共同纪律（母本 §2 写作纪律在上游 SKILL.md 规则段）：
+#   ① 不复述上游已写的信息——引用 `SC-<nn>.P<n>` 或键名，不复制内容
+#   ② 未决项写 `revisions`，不用 `[假设]` 标记（`check --final` 查零 [假设]）
+#   ③ `{...}` 令牌白名单只有 `{project-root}` 与 `{output_dir}`，其余一律被引擎拒
+
+project:
+  name: <string>            # init 铸造（取自 diy-coder.yaml 的 project.name）；此后不改
+  created: YYYY-MM-DD       # init 铸造；此后不改
+  updated: YYYY-MM-DD       # 每次写回刷今天
+  status: 草稿|已定稿        # 母本 §8 两值；单记录产物 → 顶层设（不是记录级）
+
+stage: 线框|页面稿|UI件|图标|图片|动效|文案|演示|收尾   # **续接锚点**；已定稿要求 收尾
+
+activities:                 # **恒 8 条**（W P U I M V C S）；init 铸壳，不增不删
+  - id: AS-01               # 两位序号，按 code 顺序固定（AS-01=W … AS-08=S）
+    code: W|P|U|I|M|V|C|S   # 源 8 活动码去掉已裁的 [E]；S = 演示（第 9 活动，裁定 7）
+    name: 线框               # 中文名：线框 / 页面稿 / UI 件 / 图标 / 图片 / 动效 / 文案 / 演示
+    status: 未开始|进行中|已评审|已跳过   # 记录级推进锚点；已定稿时不允许停在 未开始/进行中
+    scope: all|select|missing|priority|category|batch|type   # 源侧范围选择（按活动取其一；可空）
+    style:                  # 本活动的风格选择（读目录后按名选；不读的风格轴留 null）
+      design: <design-styles 卡名>      # 6 选 1：brutalist/corporate/editorial/minimal/organic/playful
+      content: <content-styles 卡名>    # 10 选 1（按批，可不同批不同卡）；不适用留 null
+      format: <presentation-formats 卡名>   # 仅 AS-08：sd-slides / ex-explainer / …/ cv-concept-visual
+    items:                  # 每条 = 一个可粘贴的提示词 + 它的产出位
+      - id: AS-01.1         # `AS-<活动两位>.<条目两位>`；递增铸号，不重编不复用
+        name: <string>
+        pages: [SC-01.P1]   # 服务的页面 ID；**上游硬契约，不许编造**
+        spec: <一句话用途>    # 这条资产干什么用
+        variant: <变体 / 风格码 / 复杂度级 / 批名>   # 语义随活动变（见各 step 文件）
+        state: [default, hover, focus, active, disabled]   # 仅 AS-03（5 态固定）；其余可空
+        size: "1440x900"    # 尺寸或比例（"16:9"）/ "css" / "lottie"
+        token_ref: <设计系统令牌键>   # 可空：无设计系统降级时**全留空**，不许一半一半
+        prompt: <整段可粘贴提示词>    # **唯一生成通道**（裁定 6）——非空
+        prompt_lang: en|zh
+        content:            # **仅 AS-07**：五模型六段块（见 steps/07-content.md）
+          content_purpose: {content_type, statement, audience, success_test, model_priority, review_question}
+          trigger_map_context: {business_goal, persona, drivers, awareness}
+          awareness_strategy: {start_level, end_level, start_characteristics, end_characteristics,
+                               language_guidelines, information_priorities, emotional_journey}
+          action_filter: {required_action, success_test, business_impact, motivation,
+                          essential_information, cut_list, obstacles}
+          empowerment_frame: {current, badass, aha_moment, capability_reframe, cognitive_load}
+          structural_order: {section_why, section_how, section_what, flow_validation}
+          final: {versions, chosen, rationale, traceability}
+        assets:             # **路径引用**（裁定 12）——不嵌二进制
+          - {path: assets/wireframes/home-desktop.html, format: html|svg|css|json|md|png}   # 路径必须落在 assets/<本活动目录>/
+        review:             # 各活动的检查表结论（见各 step 文件）
+          checks: [<逐条结论>]   # 一致性 / 合规 / 无障碍 / 隐喻 等（按活动）
+          verdict: 通过|重生|待定  # 已评审的活动里不允许留 待定
+
+prompts:                    # **派生索引**（不复制正文）：每条 = 一个可粘贴提示词包
+  - id: AS-01.1             # **复用来源条目的 ID**（不另铸号）
+    activity: AS-01
+    target: <外部服务的提示词目标>   # 用户说的收件人；不连它也照样记
+    file: assets/wireframes/prompts/home-desktop.md   # 导出文件（必须落在本活动的 prompts/ 下）
+    exported: true|false    # 已定稿要求全 true
+
+presentation:               # 第 9 活动（AS-08）的成品记录；7 配方子模式
+  - id: AS-08.1             # 与 activities[AS-08].items[] 的 ID 同域
+    recipe: SD|EX|PD|CT|IN|VM|CV   # 七值封闭集（见 data/presentation-formats/index.md）
+    audience: <给谁看 / 场合 / 时长 / 已有认知 / 要他做什么>
+    format_card: data/presentation-formats/sd-slides.md   # 指到选中的配方卡
+    frames:                 # 6 步共享骨架的产物形态；不 1:1 建 7 条流（裁定 7）
+      - {n: 1, job: inform|persuade|transition, headline: <一句话>, notes: <备注 / 画面说明 / 数据来源>}
+    assets: [{path: assets/presentation/<name>.html, format: html}]
+    review:
+      principles: [<8 原则逐条结论>]   # 见 steps/08-presentation.md 第 5 步
+      verdict: 通过|重生|待定
+
+revisions: []               # {date, change, reason}——改既有内容时追加（只追加，不动既有条目）

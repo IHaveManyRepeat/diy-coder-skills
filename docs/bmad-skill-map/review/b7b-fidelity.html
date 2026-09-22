@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B7b 批保真度报告 —— wds 设计段与后段（5 技能）</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+      --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+     font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:.01em}
+h2{font-size:1.25rem;margin:34px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h3{font-size:1.05rem;margin:22px 0 8px;color:var(--accent)}
+p{margin:10px 0}
+ul,ol{margin:8px 0 8px 22px;padding:0}
+li{margin:4px 0}
+code{background:var(--code);border:1px solid var(--line);border-radius:4px;
+     padding:1px 5px;font-family:Consolas,"Courier New",monospace;font-size:.9em}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:var(--panel);
+      font-size:.94em}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#eef2f8;font-weight:600}
+tbody tr:nth-child(even){background:#fafbfe}
+strong{color:#0f172a}
+</style>
+</head>
+<body>
+<main>
+<h1>B7b 批保真度报告 —— wds 设计段与后段（5 技能）</h1>
+<ul>
+<li>批次：BMAD 迁移 阶段 B 第 7 批<strong>后半</strong>（B7 已按用户 2026-09-21 裁定拆为 <strong>B7a / B7b</strong>）｜ 完成日期：2026-09-22 ｜ 编制：主 agent</li>
+<li>任务书：<code>diy-coder/.analysis/2026-09-21-migration-b7/taskbook-b7b.md</code>（自检后定稿；<strong>收口期订正 1 处</strong>，见 §三）</li>
+<li>开工前自检：dogfood 扫描 <strong>72 条</strong>（阻断 4 / 高 20 / 中 35 / 低 12 → 采纳 <strong>58</strong> / 驳回 10）；片 3 核引 <strong>83 条 / 9 条不实</strong>；收尾按旧值字符串全库复扫<strong>真残留 0</strong></li>
+<li>交付：<code>diy-wds-system</code> / <code>diy-wds-assets</code> / <code>diy-wds-evolution</code> / <code>diy-analyze</code> / <code>diy-reverse</code> —— 套件从 44 → <strong>49 技能</strong></li>
+<li>本批四点特殊：① <strong>WDS 线设计段落地</strong>（B7a 的三段短链自此接上设计段与后段，成为一条可跑到底的六节点线）；② <strong>两个独立入口技能</strong>（<code>diy-analyze</code> / <code>diy-reverse</code>，<code>line: any</code>，不进任何链）；③ <strong>本批零外部服务</strong>（裁定 6 —— 无 Figma 通道、无生成式 API，唯一出口是提示词导出）；④ <strong><code>diy-wds-evolution</code> 是三线唯一有「目标项目代码写面」的技能</strong>（<code>[I]</code> 相），与其余四技能的「只写自己产物」不同型（见 §七-1）</li>
+</ul>
+<h2>一、批次结果总览</h2>
+<table>
+<thead><tr><th>技能</th><th>源</th><th>源规模</th><th>源步</th><th>diy 交付</th><th>用例</th></tr></thead>
+<tbody>
+<tr><td><code>diy-wds-system</code></td><td><code>wds-7-design-system</code> + <code>wds-4</code> 的 <code>[M]</code> 活动</td><td>24 文件 / 7,855 行（排 html 7,492）+ [M] 4 / 434</td><td>3 + 3</td><td><code>SKILL.md</code> <strong>89 行</strong> · <code>steps/</code> <strong>5 文件 23 小节</strong> · 引擎 680 行</td><td>61</td></tr>
+<tr><td><code>diy-wds-assets</code></td><td><code>wds-6-asset-generation</code></td><td>91 / 13,217</td><td>8 活动 W/P/U/I/M/V/C/E</td><td><strong>89 行</strong> · <code>steps/</code> <strong>9 文件 48 小节</strong> · 引擎 630 行</td><td>42</td></tr>
+<tr><td><code>diy-wds-evolution</code></td><td><code>wds-8-product-evolution</code></td><td>22 / 5,099</td><td>6 活动 A/S/D/I/T/P</td><td><strong>88 行</strong> · <code>steps/</code> <strong>6 文件 27 小节</strong> · 引擎 619 行</td><td>44</td></tr>
+<tr><td><code>diy-analyze</code></td><td><code>wds-5</code> 的 <code>[A]</code> 活动</td><td>5 / 813</td><td>4</td><td><strong>78 行</strong> · <code>steps/</code> <strong>4 文件 11 小节</strong> · 引擎 453 行</td><td>26</td></tr>
+<tr><td><code>diy-reverse</code></td><td><code>wds-5</code> 的 <code>[R]</code> 活动</td><td>5 / 685</td><td>4</td><td><strong>83 行</strong> · <code>steps/</code> <strong>4 文件 11 小节</strong> · 引擎 460 行</td><td>33</td></tr>
+</tbody></table>
+<p><strong>合计</strong>：5 技能 · 源 <strong>151 文件 / 28,103 行</strong> → diy <strong>28 个 <code>steps/</code> 文件 · 120 小节 · 5 引擎 2,842 行 · 206 用例</strong>（全量套件 <strong>1322 用例全绿</strong>）。</p>
+<p><strong>批级口径</strong>：V 独立验证核出 <strong>25 条</strong>（1 阻断 / 2 高 / 9 中 / 13 低）→ <strong>阻断与高项全部返工修复</strong>（§四），中低项登记留档（§七）· <strong>能力损失 3 处</strong>（全部显式登记，见 §二）· <strong>源侧处置四类口径</strong>（裁定 5）· <strong>零外部服务</strong>（裁定 6）。</p>
+<h2>二、逐技能保真度</h2>
+<h3>2.1 <code>diy-wds-system</code>（设计系统段：组件库 + 令牌命名空间）</h3>
+<ul>
+<li><strong>5 个步骤文件 / 23 小节</strong>：<code>01-create</code>(C,含重复检测) · <code>02-import</code>(I) · <code>03-view</code>(V+B 合一) · <code>04-edit</code>(E,已去 Figma) · <code>05-finish</code>(收尾 + [M] 用法一致性校验)</li>
+<li><strong>产物</strong> <code>wds-design-system.yaml</code>：<code>components[]</code>（ID <code>[prefix]-[NNN]</code>，<strong>26 前缀 / 6 分类</strong>）· <code>tokens</code>（<strong>派生自 <code>design.yaml.tokens</code></strong>，引用不复述）· <code>categories</code> · <code>prefixes</code>；另产 <code>wds-design-system-catalog.html</code></li>
+<li><strong>裁定 4（V+B 合一）</strong>：源 <code>workflow-view.md</code>(68) + <code>workflow-browse.md</code>(87) 都产 localhost 应用，功能高度重叠 → 合一</li>
+<li><strong>裁定 5（token 单一源）</strong>：<code>tokens</code> 段从 <code>design.yaml.tokens</code> <strong>派生</strong>；<code>design.yaml</code> 不存在时降级为「独立定义 token」并标注</li>
+<li><strong>裁定 6 射程延及本技能</strong>：源 <code>wds-7/workflow-edit.md</code> 是<strong>纯 Figma 活动</strong> → 裁 Figma 通道，<code>04-edit</code> 降级为<strong>本地组件文件编辑</strong></li>
+<li><strong><code>COMPLEXITY-ROUTER</code>(842 行) 归本技能</strong>（自检裁定）：<code>data/complexity-router.md</code> 64 行五节</li>
+<li><strong>验收 #4 的证据面</strong>：本技能 <code>line</code> 收口期从 <code>any</code> 裁决回 <code>wds</code>（见 §三）</li>
+</ul>
+<h3>2.2 <code>diy-wds-assets</code>（资产工厂：8 活动 + 第 9 活动）</h3>
+<ul>
+<li><strong>9 个步骤文件 / 48 小节</strong>：<code>01-wireframes</code> · <code>02-page-designs</code> · <code>03-ui-elements</code> · <code>04-icons</code> · <code>05-images</code> · <code>06-motion</code> · <code>07-content</code> · <code>08-presentation</code>（<strong>第 9 活动</strong>）· <code>09-finish</code></li>
+<li><strong>产物</strong> <code>wds-assets.yaml</code>：<code>activities[]</code>（每活动一组 <code>items[]</code>，ID <code>AS-&lt;nn&gt;.&lt;m&gt;</code>）· <code>prompts[]</code>（提示词导出）· <code>presentation[]</code>（第 9 活动）；HTML 优先，落 <code>{output_dir}/assets/&lt;活动&gt;/</code></li>
+<li><strong>★ 第 9 活动（裁定 7，本批对 B6 §九的正式交付）</strong>：B6 移交 → B7a 登记 → <strong>本批落地</strong>。<strong>8 原则 + 7 配方逐条在场</strong>，7 段 prompt 与 <code>b6-fidelity.md</code> §九<strong>逐字符相同</strong>（V2 独立核对）；新建第三轴 <code>data/presentation-formats/</code>（7 配方 + index）</li>
+<li><strong>裁定 6（零外部服务）</strong>：源 8 活动的生成调用全部裁 → <strong>唯一通道 = 导出提示词</strong>（用户在外生成后回填）；V2 独立复测：<code>requests/urllib/socket/subprocess</code> <strong>零命中</strong></li>
+<li><strong>源侧真能力 11 项</strong>（census-4 §8.1）：<strong>承接 10 / 裁 1</strong>（A10 的 <code>OBJECT ID</code> 五项校验随 <code>[E]</code> 整块裁，符合普查自带的「条件不成立」判据）</li>
+<li><strong>V 高项 V2-01 已返工</strong>：<code>pages[].id</code> 必读键<strong>零机械核</strong>（实测非法 ID 与删上游均 <code>rc=0</code>）→ 补 <code>PAGE_ID_RE</code> + <code>page_ids()</code> 抽取 + <code>check</code> 沿用 <code>gate_upstream</code>，<strong>复用冻结违规码</strong>（<code>SET_MISMATCH</code> / <code>UNKNOWN_ID</code> / <code>MISSING_FILE</code> / <code>STATUS_MISMATCH</code>），补 2 用例</li>
+</ul>
+<h3>2.3 <code>diy-wds-evolution</code>（棕地增量：Kaizen 迭代流水线）</h3>
+<ul>
+<li><strong>6 个步骤文件 / 27 小节</strong>：<code>01-analyze</code> · <code>02-scope</code> · <code>03-design</code> · <code>04-implement</code> · <code>05-test</code> · <code>06-finish</code></li>
+<li><strong>产物</strong> <code>wds-evolution.yaml</code>：<code>rounds[]</code>（每轮 A/S/D/I/T/P 六相）· <code>kaizen_priority</code>（Impact×Effort×Learning），ID <code>EV-&lt;nn&gt;</code></li>
+<li><strong>裁定 9（入口技能）</strong>：门禁 = 既有产物<strong>任一</strong>在场（<code>design.yaml</code> / <code>sprint.yaml</code> / <code>wds-*.yaml</code>），<strong>不硬性要求 <code>已定稿</code></strong></li>
+<li><strong>Kaizen 差异化内涵全保</strong>：<code>data/kaizen-principles.md</code> 118 行六节（Kaizen vs Kaikaku / 四条原则 / 何时暂停三情形）+ <code>data/priority-framework.md</code> 69 行</li>
+<li><strong>★ 写面特殊性</strong>：<code>[I]</code> 相<strong>写目标项目代码</strong>（源侧语义），另有确认档与可选 <code>gh pr create</code> —— 三线唯一，与验收 #13 的字面措辞不符，<strong>判「书错物对」</strong>（见 §六 #13 与 §七-1）</li>
+<li><strong>V 高项 V3-01 已返工</strong>：<code>--output-dir</code> 缺省是 <strong>CWD 相对</strong>、不认 <code>--project-root</code>（实测<strong>静默读到另一个项目的产物且 rc=0</strong>）→ 修为 <code>os.path.join(args.project_root, "diy-output")</code>，与其余四技能逐字一致，补 1 用例</li>
+</ul>
+<h3>2.4 <code>diy-analyze</code>（独立入口：代码库分析）</h3>
+<ul>
+<li><strong>4 个步骤文件 / 11 小节</strong>：<code>01-define</code> · <code>02-scan</code> · <code>03-map</code> · <code>04-document</code></li>
+<li><strong>产物</strong> <code>analysis.yaml</code>：<code>question</code> · <code>architecture</code>（含 Mermaid 字符串）· <code>components[]</code> · <code>data_flow[]</code> · <code>dependencies[]</code> · <code>risks[]</code> · <code>recommendations[]</code>，ID <code>AN-&lt;nn&gt;</code></li>
+<li><strong>门禁 = 代码库可读</strong>（入口技能，无上游 diy 产物）；<strong>只记既有事实、不做技术决策</strong></li>
+<li><strong>与用户级 <code>arch-analyze</code> 的分工</strong>（用户 2026-09-21 拍板）：本技能管「就一个问题分析既有代码库」、产 <code>diy-output/analysis.yaml</code>；<code>arch-analyze</code> 管「任意项目代码库体检」、产 <code>docs/arch/</code> —— <strong>本批只落本侧边界句</strong>，对方不改（属用户私有技能）</li>
+<li><strong>源能力（census-5 §7.1）</strong>：七类问题分类表 / 四档范围 / 时间盒 / 三类产出<strong>全部承接</strong>并 YAML 化</li>
+</ul>
+<h3>2.5 <code>diy-reverse</code>（独立入口：外部目标逆向）</h3>
+<ul>
+<li><strong>4 个步骤文件 / 11 小节</strong>：<code>01-define</code> · <code>02-explore</code> · <code>03-specs</code> · <code>04-extract-tokens</code></li>
+<li><strong>产物</strong>：<strong>逆向填充既有 <code>design.yaml</code></strong>（<code>tokens</code> 标提取来源 + 页规格 <code>P-&lt;n&gt;</code>）+ 逐页结构稿</li>
+<li><strong>★ 裁定 13（写权边界）</strong>：<strong>只在 <code>design.yaml</code> 不存在时初始生成</strong>；已存在 → <strong>拒绝覆盖</strong>（<code>OVERWRITE_REFUSED</code>）走 <code>revisions</code> 建议 + 路由 <code>diy-design</code>。<strong>必须满足既有 <code>design.yaml</code> schema 与 <code>design.py validate</code> 三道</strong>（自检阻断项：首稿自造 <code>SC-&lt;nn&gt;.P&lt;n&gt;</code> 形态被纠正）</li>
+<li><strong>三条纪律承接</strong>（census-5 E8）：先观察后提取 / 尊重知识产权 / <strong>抓规则不抄像素</strong></li>
+<li><strong>与 <code>diy-analyze</code> 同族</strong>：共享骨架 11 条逐字串在八份文件全覆盖（V2 实测逐字行重合 <strong>144/329 = 44%</strong>，与裁定 1「省 40–50% 重复」同量级）</li>
+</ul>
+<h2>三、批级裁定摘要（20 条 + 收口期裁决 1 条）</h2>
+<p>任务书 §0.2 载 <strong>20 条前置裁定</strong>，其中 <strong>6 项经用户 2026-09-21 拍板</strong>（拆 B7a/B7b · 签核分支全留 · <code>diy-analyze</code> 建且产物进 <code>diy-output/</code> · <code>presentation-master</code> 完整建第 9 活动 · 不接外部服务 · 二进制资产落位）。要点：</p>
+<table>
+<thead><tr><th>组</th><th>裁定</th><th>内容</th></tr></thead>
+<tbody>
+<tr><td>结构</td><td>1 · 4 · 11</td><td>步骤文件构成 §2.4 为准（自检订正 3 处）· V+B 合一 · 跨技能读契约 16 行</td></tr>
+<tr><td>内容</td><td>5 · 7 · 8 · 12 · 13</td><td>token 派生自 <code>design.yaml</code> · 第 9 活动完整建 · 门禁取链上邻居 · 二进制资产落位 · <code>diy-reverse</code> 写权边界</td></tr>
+<tr><td>纪律</td><td>6 · 16 · 17 · 19</td><td><strong>零外部服务</strong> · 不可机械的部分必须写明 · 设计系统默认开启 · <code>--previous</code> 判 no</td></tr>
+<tr><td>元数据</td><td>3</td><td>frontmatter 六字段逐格取数（自检订正 4 处）</td></tr>
+<tr><td>批务</td><td>2 · 9 · 10 · 14 · 15 · 18 · 20</td><td>合并口径 · 入口技能 · 文件所有权 · …</td></tr>
+</tbody></table>
+<p><strong>★ 收口期裁决 1 条（推翻任务书自检的「订正 4」）</strong>：</p>
+<p><strong><code>diy-wds-system</code> 的 <code>line</code> = <code>wds</code>（非 <code>any</code>）</strong>。任务书自检的「订正 4」依据计划 §四 <code>:232</code>「设计系统…<strong>主线与 WDS 线通用</strong>」把 <code>line</code> 改判为 <code>any</code> —— <strong>经查该句主语是「设计系统能力」（默认开启的射程，说的是这一步两条线都会走到），不是技能线归属</strong>。四条同向证据：</p>
+<ol>
+<li>计划 §四 <code>:230</code> 把本技能列在「<strong>其余 WDS 技能</strong>」标题下；</li>
+<li><strong>本任务书 §9 #10</strong> 明写「<code>diy-wds-system</code> / <code>diy-wds-assets</code> / <code>diy-wds-evolution</code> <strong>属 WDS 线</strong>」（同一份任务书内部，订正 4 与 #10 自相矛盾）；</li>
+<li>§10 ⑦ 要求把三节点接入 <code>wds.chain</code>；</li>
+<li>C·1 守卫 <code>tests/test_help_registry.py:93-101</code> 断言<strong>链节点 <code>frontmatter.line</code> == 线名</strong>。</li>
+</ol>
+<p><strong>四条同向、唯「订正 4」反向</strong>。V1 以<strong>真守卫方法</strong>独立复现了冲突（追加三节点 → <code>AssertionError: 'any' != 'wds'</code>；现登记表因未被 ⑦ 触碰而暂绿）。<strong>处置</strong>：<code>SKILL.md</code> 回改 <code>line: wds</code> + 正文 <code>:15</code> 的依据句一并改写（去掉「（<code>line: any</code>）」，保留「本产物是两线共用的设计系统单一源」的事实表述）+ 任务书订正 4 留痕推翻。<strong>性质：收口期修复，非偏离</strong>。</p>
+<h2>四、V 独立验证结论（2026-09-22）</h2>
+<p><strong>编制</strong>：3 个互不可见的独立验证 agent 并行作业（结构面 / 内容面 / 合规面），口径统一为「<strong>不采信施工方自述</strong>」——每条结论自带亲手取数（<code>grep -c</code> / 引擎实跑 / 真守卫复现 / 常量转储），夹具一律 <code>tempfile</code>，探针落系统临时目录，未读写仓库真实 <code>diy-output/</code>。</p>
+<table>
+<thead><tr><th>面</th><th>报告</th><th>总判定</th><th>阻断</th><th>高</th><th>中</th><th>低</th></tr></thead>
+<tbody>
+<tr><td>V1 结构面</td><td><code>v-b7b-struct.md</code></td><td>有条件通过</td><td><strong>1</strong></td><td>0</td><td>1</td><td>2</td></tr>
+<tr><td>V2 内容面</td><td><code>v-b7b-content.md</code></td><td>有条件通过</td><td>0</td><td><strong>1</strong></td><td>4</td><td>4</td></tr>
+<tr><td>V3 合规面</td><td><code>v-b7b-compliance.md</code></td><td>有条件通过</td><td>0</td><td><strong>1</strong></td><td>4</td><td>7</td></tr>
+<tr><td><strong>合计</strong></td><td>—</td><td>—</td><td><strong>1</strong></td><td><strong>2</strong></td><td><strong>9</strong></td><td><strong>13</strong></td></tr>
+</tbody></table>
+<p><strong>验证覆盖面（V 亲手实跑）</strong>：小节数逐文件校准 120 / 28 文件 · 步骤名双向闭合零 MISS · frontmatter <strong>30 格</strong>全可溯源（零「待取数」）· 跨技能 schema 逐键对账 · 第 9 活动 8 原则 + 7 配方<strong>逐字符相同</strong> · 裁撤台账 <strong>24 行</strong>逐条回源（零无依据、零「声明裁了还在」）· 能力清点 <strong>25 条</strong>（承接 21 / 部分 1 / 裁 3，<strong>未复现 0</strong>）· 引擎契约 <strong>119 条断言</strong>零失败 · 门禁 <strong>18 种情形</strong>实跑 · 全库红线扫描 · ID 跳号/重复夹具 · md5 写面核 · 既有测试 <strong>203 → 206</strong> 全绿。</p>
+<p><strong>三处返工（阻断 + 高，全部修复）</strong>：</p>
+<table>
+<thead><tr><th>#</th><th>项</th><th>根因</th><th>修复</th></tr></thead>
+<tbody>
+<tr><td><strong>V1-01</strong>（阻断）</td><td><code>line: any</code> ↔ WDS 链登记互斥</td><td>任务书自检「订正 4」误读 <code>:232</code></td><td><code>SKILL.md</code> 回改 <code>wds</code> + 正文改写 + 任务书订正（§三）</td></tr>
+<tr><td><strong>V2-01</strong>（高）</td><td><code>diy-wds-assets</code> 的 <code>pages[].id</code> 零机械核（非法 ID / 删上游均 <code>rc=0</code>）</td><td><code>check</code> 全程不读上游</td><td>补 <code>PAGE_ID_RE</code> + <code>page_ids()</code> + <code>check</code> 沿用 <code>gate_upstream</code>；<strong>复用冻结码零新增</strong>；补 2 用例</td></tr>
+<tr><td><strong>V3-01</strong>（高）</td><td><code>diy-wds-evolution</code> 的 <code>--output-dir</code> 缺省为 CWD 相对 → <strong>静默读到另一项目的产物且 rc=0</strong></td><td>缺省未拼 <code>project_root</code></td><td>修为 <code>os.path.join(args.project_root, "diy-output")</code>，与其余四技能逐字一致；补 1 用例</td></tr>
+</tbody></table>
+<p><strong>中低项</strong>：22 条全部登记留档（§七），<strong>不返工</strong>（承 B7a 先例：只对高及以上返工）。其中 <strong>3 条判「书错物对」</strong>（V3-05/06/07）—— 指向任务书与 research 的陈旧数字与措辞，<strong>交付以实物为准</strong>。</p>
+<h2>五、主 agent 集成验证（收口链 ①~⑦）</h2>
+<table>
+<thead><tr><th>步</th><th>内容</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>①</td><td><code>test_suite_texts.py</code> 三处登记（<strong>+5 名</strong>）</td><td>✅ 清掉本批开工以来的 2 条预期红灯（<code>PENDING_PRECISE</code> / <code>PENDING_READ_DISCIPLINE</code> 台账未同步）</td></tr>
+<tr><td>②</td><td><code>sync.sh</code>（<code>install.py</code> 兼容壳）</td><td>✅ <strong>49 个 skill</strong> 已安装 + 四项冒烟通过</td></tr>
+<tr><td>③</td><td>全量测试</td><td>✅ <strong>1322 passed / 0 failed</strong>（170 subtests，258.91s）—— 含 V 返工新增的 3 条用例</td></tr>
+<tr><td>④</td><td>五产物渲染自证 + 标签缺口</td><td>✅ <code>init rc</code> 全 0 · <code>viewer rc</code> 全 0 · <code>rendered</code> <strong>2/2/2/1/1</strong>（前三个含夹具上游）；渲染静默成立（<code>_is_interactive()=False</code>，浏览器未开、零阻塞）；<strong>门禁独立复现 6 条</strong>（上游缺失 → 连 <code>diy-output</code> 目录都不建）；缺口 <strong>18 条</strong> → §八</td></tr>
+<tr><td>⑤</td><td>本报告</td><td>✅</td></tr>
+<tr><td>⑥</td><td><code>迁移计划.md</code> <strong>§二十三</strong></td><td>✅</td></tr>
+<tr><td>⑦</td><td><code>diy-help/registry.yaml</code> WDS 链补登记</td><td>✅ <code>wds.chain</code> 3 → <strong>6 节点</strong>（brief → trigger → scenarios → <strong>system → assets → evolution</strong>）；<code>exec_note</code> 改写为链尾说明并<strong>订正原先把两个独立入口列为「WDS 线下游」的错</strong>；<code>notes</code> 补三条可选节点文案；<code>test_help_registry.py</code> <strong>11 项 / 60 subtests 全绿</strong></td></tr>
+</tbody></table>
+<p><strong>收口期修复留痕（2 处，值得单记）</strong>：</p>
+<ol>
+<li><strong><code>diy-wds-system</code> 的 <code>line</code></strong>（§三）：V1 以真守卫复现冲突 → 主 agent 裁决 + 任务书订正。<strong>机制意义</strong>：这是<strong>第二次</strong>由 C·1 守卫体系提前暴露「取数误判」（首次是 B7a 的 <code>precededBy</code> 悬空名）——守卫正在把「值错」从人工审转为机械拦截。</li>
+<li><strong><code>test_wds_system.py:670</code> 的连带红灯</strong>：改 <code>line</code> 后该用例（硬编码断言 <code>line: any</code>）转红，由返工 agent 如实上报（它守住了「不碰面外文件」的纪律）→ 主 agent 改断言为 <code>line: wds</code>。<strong>教训</strong>：<strong>改 frontmatter 值必须同步全库扫该值的断言</strong>——这是「按旧值字符串全库复扫」纪律的<strong>新命中场景</strong>（前三批的复扫针对文档，本次针对<strong>测试断言</strong>）。</li>
+</ol>
+<h2>六、验收 13 项对照（迁移计划 §二）</h2>
+<table>
+<thead><tr><th>#</th><th>验收项</th><th>结果</th><th>证据</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>薄主文件 + <code>steps/</code> 厚子文件</td><td>✅</td><td>SKILL.md <strong>89/89/88/78/83</strong> 全 ≤90 硬阈值；steps <strong>5/9/6/4/4</strong> 文件；小节 <strong>23/48/27/11/11</strong> 合计 120（V1 逐文件校准）</td></tr>
+<tr><td>2</td><td>产物 schema（<code>{output_dir}/</code>、稳定 ID 前缀）</td><td>✅</td><td>五种 ID 形态（<code>[prefix]-[NNN]</code> 26 前缀 / <code>AS-&lt;nn&gt;.&lt;m&gt;</code> / <code>EV-&lt;nn&gt;</code> / <code>AN-&lt;nn&gt;</code> / <code>P-&lt;n&gt;</code>）；各 <code>check</code> 用例在场</td></tr>
+<tr><td>3</td><td>前置门禁（零产出退出 + 路由）</td><td>✅</td><td><strong>18 种情形</strong>实跑；上游缺失四种情形<strong>全部零产出</strong>（连输出目录都不建）</td></tr>
+<tr><td>4</td><td>ID 链接入</td><td>✅</td><td>唯一性 + 顺序性实跑；<code>analyze</code>/<code>reverse</code> <strong>不进任何线</strong>（<code>line: any</code>）；三个 <code>diy-wds-*</code> <strong>进 WDS 链</strong>（收口链 ⑦）</td></tr>
+<tr><td>5</td><td>注册</td><td>✅</td><td><code>sync.sh</code> → <strong>49 技能</strong>；<code>registry.yaml</code> 六节点登记</td></tr>
+<tr><td>6</td><td>viewer 渲染</td><td>✅（缺口登记）</td><td>五产物渲染 rc 全 0；缺口 18 条落 §八（C 阶段输入）</td></tr>
+<tr><td>7</td><td>冒烟 TC（≥5）</td><td>✅</td><td>各技能 <strong>61 / 42 / 44 / 26 / 33</strong>，远超下限；全量 1322 绿</td></tr>
+<tr><td>8</td><td>登记元数据（裁定 3）</td><td>✅</td><td>frontmatter <strong>30 格</strong>逐格取数证据，零「待取数」；<code>_req_check.txt</code> 无本批行 → 取数改指 <code>module-wds.json</code>（V1 独立核实属实）</td></tr>
+<tr><td>9</td><td>读取成本纪律（母本 §4 逐字）</td><td>✅</td><td>V1 逐技能核锚串在场</td></tr>
+<tr><td>10</td><td>双源输入声明</td><td>✅</td><td>三个 <code>diy-wds-*</code> 属 WDS 线、两个入口技能<strong>逐技能明写</strong>（<code>diy-reverse</code> 的否定式归属句 V1 判缺 → V1-02，<strong>中项，登记留档</strong>）</td></tr>
+<tr><td>11</td><td>渲染静默（母本 §5 逐字）</td><td>✅</td><td>规则段在场 + 渲染自证实测静默</td></tr>
+<tr><td>12</td><td>diyc 接线（a~e）</td><td>✅</td><td>a 委托 <code>diyc.py resolve</code> · b 终门走自带引擎 · c <code>--previous</code> 判 no · d 语言绑定逐字 · e 写权边界（<code>diy-reverse</code> 的 <code>design.yaml</code> 唯一跨产物写面，且只初始生成）</td></tr>
+<tr><td>13</td><td>副作用纪律</td><td>⚠️ <strong>书错物对</strong></td><td><strong>本批零外部服务</strong>成立（V2 独立扫 <code>requests/urllib/socket/subprocess</code> 零命中）；<strong>唯一写面</strong>在 evolution 上为假 —— 其 <code>[I]</code> 相写目标项目代码、有确认档、可选 <code>gh pr create</code>，三处均有源侧依据且被 §5 W3 卡默许 → <strong>措辞须改，交付合理</strong>（§七-1）</td></tr>
+</tbody></table>
+<p><strong>13 项中 12 项 ✅、1 项 ⚠️（书错物对，交付无缺）</strong>。</p>
+<h2>七、非阻断观察清单（欠账，C 阶段或后续批处置）</h2>
+<p><strong>0. 写面模型（★ 建议单列一句）</strong>：<code>diy-wds-evolution</code> 的 <code>[I]</code> 相<strong>写目标项目代码</strong>，超出「跨技能共享面不共写」的表述范围。<strong>C 阶段建立写面模型时勿按「本批只写产物」假设</strong>（V3 §未决 5）。</p>
+<p><strong>1. 待返工/待登记（中项 9 条）</strong></p>
+<ul>
+<li><strong>V1-02</strong>（中）：<code>diy-reverse</code> 缺 #10 要求的<strong>否定式归属句</strong>（<code>diy-analyze</code> 有三处、它零处）；机器字段 <code>line: any</code> 正确。修法：规则 10 边界段补一句（一行）。</li>
+<li><strong>V2-02</strong>（中）：<code>diy-wds-assets/steps/09-finish.md:23</code> 称引擎回执给 <code>coverage</code>，实测无此键。</li>
+<li><strong>V2-03</strong>（中）：§2.3.1 的可选读 <code>brief.visual.visual_direction</code> 在 <code>diy-wds-system</code> <strong>零落点</strong>。</li>
+<li><strong>V2-04</strong>（中）：裁定 17 的三套枚举归一表无落点（<code>design_system_enabled</code> 7 引用 / 0 生产者）。</li>
+<li><strong>V2-05</strong>（中）：验收 #13 的「唯一写面」与 evolution 实测不符（同 §六 #13）。</li>
+<li><strong>V3-02</strong>（中）：<code>diy-wds-assets</code> 回执面四处偏离套件契约（键名 <code>message</code> 应为 <code>msg</code>；<code>where</code> 绝对 + 反斜杠应为相对 + 正斜杠；<code>project_root</code> 被 <code>resolve()</code> 应为 as-given；<code>--json</code> 22 行多行应为单行）。<strong>回执是机器读面</strong>，与四技能不同源会漏判。</li>
+<li><strong>V3-03</strong>（中）：<code>diy-wds-assets</code> 四个<strong>只读</strong>子命令强制 <code>--output-dir</code>（rc=2），§2.2 只要求写盘子命令必填；根因是缺 <code>{project_root}/diy-output</code> 兜底。</li>
+<li><strong>V3-04</strong>（中）：<code>diy-wds-assets</code> 的 <code>AS-&lt;nn&gt;.&lt;m&gt;</code> 无<strong>活动内递增</strong>机械核（跳号实跑 rc=0），与 <code>SKILL.md:78</code> 规则 5 与验收 #4 的「顺序性」不符。</li>
+<li><strong>V3-05</strong>（中）：验收 #13 措辞面（同 §六 #13）。</li>
+</ul>
+<p><strong>2. 留档（低项 13 条）</strong>：V1-03（任务书「25 前缀」实为 26，交付对、<strong>已在任务书与本报告 §三 侧以实物为准</strong>）· V1-04（两技能声明 <code>outputs: design.yaml</code>，判非缺陷但<strong>提示：收口期若新增反查须按「一产物多写者」设计</strong>）· V3-06/07（同型「书错物对」：前缀计数与 <code>diy-reverse</code> 的 ID 形态表）· V3-08（evolution 门禁收窄未在 §2.3.1 登记）· V3-09（两个入口技能缺红线否定句，实际风险≈0）· V3-10（红线守卫只抓 <code>--previous</code> 形态，<strong>守卫声明应限定</strong>）· V3-11（registry 未接入，<strong>已由 ⑦ 闭环</strong>）· V3-12（第 5 子命令未登记为对 §2.2 的偏离，三处均只读零写盘）· V2-06…V2-09（回执形态 / 任务书 §2.3 与裁定 13 自相矛盾 / 令牌一致性无在场核 / §2.3.1 表漏 assets 对 brief·trigger 的读面）。</p>
+<p><strong>3. 本批已闭环的前批欠账</strong>：B7a 移交的 <code>presentation-master</code> 归位（8 原则 + 7 配方<strong>逐字符相同</strong>落地）· B7a 的「WDS 链 5 节点登记 + <code>lines.wds.exec</code>」（<strong>⑦ 闭环，实际落 6 节点</strong>）。</p>
+<p><strong>4. 移交 C 阶段</strong>：<code>line: wds</code> + WDS 线自有 <code>phase</code> 值的 C1 并表 · 五个新产物标签 + <code>presentation-formats</code> 渲染路径 + <code>assets/&lt;活动&gt;/</code> 子目录（<strong>⑧ 见 §八</strong>）· token 派生关系对 <code>design.py audit</code> 的影响 · WDS 线<strong>机械写回命令面</strong>（本批只出契约不实现）· <code>diy-design</code>/<code>diy-dev</code> 的 WDS 模式（C·3）。</p>
+<h2>八、viewer 标签缺口清单（<strong>C 阶段输入</strong>）</h2>
+<p>收口链 ④ 实测（<code>b7b-render-check.md</code>，<strong>18 条</strong>）：</p>
+<table>
+<thead><tr><th>类</th><th>条数</th><th>内容</th></tr></thead>
+<tbody>
+<tr><td><code>DOC_LABELS</code> 缺</td><td><strong>4</strong></td><td>5 个新产物中 <code>design</code> <strong>已存在</strong>（<code>viewer.py:331</code>），实缺 4 类</td></tr>
+<tr><td><code>ENUM_KEYS</code> 缺</td><td><strong>12 键</strong> + 一批值级</td><td><code>design_system_mode</code> / <code>complexity</code> / <code>category</code> 等键整体缺；值级缺 <code>在用</code> / <code>已评审</code> / <code>已交付</code>、<code>analysis</code> 五值<strong>全缺</strong></td></tr>
+<tr><td><strong>渲染器级</strong></td><td><strong>2</strong></td><td>① <code>data/presentation-formats/</code> <strong>无渲染路径</strong>；② <code>assets/&lt;活动&gt;/</code> <strong>子目录静默丢弃</strong>（<code>viewer.py</code> 只扫顶层 <code>*.yaml</code>）</td></tr>
+<tr><td><strong>本批新增</strong></td><td><strong>2</strong></td><td>① <code>KEY_LABELS</code> 缺 <strong>59 键</strong>；② <code>code</code> 同键异义被误标「违规码」</td></tr>
+</tbody></table>
+<p><strong>渲染自证结果</strong>：五产物 <code>init rc</code> 全 0、<code>viewer rc</code> 全 0、<code>rendered</code> <strong>2/2/2/1/1</strong> —— <strong>渲染本身无缺陷</strong>，缺口全在<strong>标签映射</strong>与<strong>目录扫描面</strong>。</p>
+<h2>九、审阅指引（B7b 为<strong>非强制人工审</strong>）</h2>
+<p>按迁移计划 §五 人工审核点设计：<strong>B2–B7 只需出报告</strong>（剩余风险降为单技能内容质量，抽样 + 自动校验比全审划算）。<strong>本批非强制人工审</strong>，建议抽查三处：</p>
+<ol>
+<li><strong>§三 的收口期裁决</strong>（<code>line: wds</code>）—— 该裁决推翻任务书自检的一条订正，请确认论证链（四条同向证据）成立；</li>
+<li><strong>§二 2.2 的第 9 活动</strong>（B6 §九的正式交付）—— 8 原则 + 7 配方是否确为「完整落地」；</li>
+<li><strong>§七-0 的写面提醒</strong> —— evolution 的代码写面是否需要在 C·3 建 WDS 机械写回时一并建模。</li>
+</ol>
+<p><strong>报告族</strong>：本报告 · <code>review/b7a-fidelity.md</code>（前半批）· <code>diy-coder/.analysis/2026-09-21-migration-b7/</code> 下 <code>v-b7b-{struct,content,compliance}.md</code>（三份 V 原始报告）与 <code>b7b-render-check.md</code>（渲染自证）。</p>
+</main>
+</body>
+</html>
