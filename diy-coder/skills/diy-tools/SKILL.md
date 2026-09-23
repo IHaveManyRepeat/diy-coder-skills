@@ -28,9 +28,10 @@ python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" <subcommand> [o
 | 命令 | 用途 |
 | --- | --- |
 | `resolve` | 解析 `output_dir`（配置 + 实例）。唯一的实例解析入口；宿主技能把回执里的 `output_dir` 当作自己唯一的读写根。 |
-| `check --type T [--final] [--previous PA] [--story S-x] [--strict]` | T ∈ prd/architecture/openapi/epics/stories/test-plan/sprint/review 的机械检查。exit 0 是唯一放行；`--previous` 守护 ID 稳定；`--final` 跑终门义务清单。消费基线台账（见回执）。 |
+| `check --type T [--final] [--previous PA] [--story S-x] [--strict]` | T ∈ prd/architecture/openapi/epics/stories/test-plan/sprint/review/mutation-report 的机械检查。exit 0 是唯一放行；`--previous` 守护 ID 稳定；`--final` 跑终门义务清单。消费基线台账（见回执）。`mutation-report` 是 C·9 纳入的类型——校验 `score` 的**保守口径**自洽（`round(killed/total×100)`，候选等价体仍留分母；裁定分由 gate 重算）。 |
 | `trace [--src P]... [--strict]` | 拿 `# trace:` / `// trace:` 注释对账 stories/test-plan/architecture。未解析的 ID → exit 1。 |
 | `static [--timeout 600] [--strict]` | 按序跑 test-plan 的 `static_checks`；出现阻断性失败即停链（后续层跳过）。 |
+| `mutate --tool CMD [--scope F]... [--full] [--sandbox P] [--keep] [--timeout 3600]` | 变异执行的沙箱：把项目复制进隔离副本，在副本里逐字跑 `--tool`，跑完销毁副本（`--keep` 保留供排查）；命令里的 `{scope}` 替换为 `--scope` 给的文件（省略即全量）。**不解析工具输出**——`rc` 与 `output_tail` 原样进回执，survivors 的解释归 `diy-augment`（mutmut / cosmic-ray / Stryker 的词汇各不相同）。副本默认落系统临时目录；`--sandbox` 改址（路径须不存在）。工作区脏度前后对比进回执。 |
 | `transition --story S-x --to STATE [--reason T] [--rounds N]` | HALT 状态迁移。`待审查→已完成` 在此被拒——走 `done`。 |
 | `green --story S-x --tc TC-a --red "..." --green "..."` | 追加 red/green 证据；回填 test-plan 的 TC 状态。 |
 | `done --story S-x [--rounds N]` | `待审查→已完成` 终态写回，含单一事实源回填。 |

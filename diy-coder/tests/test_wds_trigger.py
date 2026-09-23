@@ -214,7 +214,6 @@ def product_yaml(status="已定稿", stage="收尾", mode="W", entry="工作坊"
             features[index]["decision"] = value
     graph = {}
     if effect_map:
-        count = len(goals) if connections is None else connections
         lines = ["BG%d --> PLATFORM" % i for i in range(len(goals))]
         lines += ["PLATFORM --> TG%d" % i for i in range(len(personas))]
         lines += ["TG%d --> DF%d" % (i, i) for i in range(len(personas))]

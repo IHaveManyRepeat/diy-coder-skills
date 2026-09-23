@@ -639,5 +639,68 @@ class CommonTest(CheckBase):
         self.assertIsInstance(r["counts"], dict)
 
 
+# ---------------------------------------------------------------- mutation-report
+
+def mutation_doc(**over):
+    """合法的最小 mutation-report：10 变异体 9 被杀（保守分 90），1 条候选等价体。"""
+    run = {"date": "2026-09-22", "task": "S-1", "killed": 9, "total": 10, "score": 90,
+           "survivors": [{"mutant": "core/Add_Sub", "file": "a.py", "line": 1}],
+           "equivalents": [{"mutant": "core/Add_Sub", "reason": "不可区分"}]}
+    run.update(over)
+    return {"project": {"name": "mini", "status": "已定稿"}, "runs": [run],
+            "revisions": []}
+
+
+class MutationReportTest(CheckBase):
+    """C·9 缺口⑦：mutation-report 此前是唯一无校验器的产物（schema 漂移无人拦）。"""
+
+    def test_clean_report_passes_with_counts(self):
+        fx.write_doc(self.root, "mutation-report", mutation_doc())
+        r = check(self.root, "mutation-report")
+        self.assertTrue(r["ok"], msgs(r))
+        self.assertEqual({"runs": 1, "survivors": 1, "equivalents": 1,
+                          "critical_runs": 0}, r["counts"])
+
+    def test_score_must_match_conservative_formula(self):
+        """裁定前的分是保守值——候选等价体仍留在分母。"""
+        fx.write_doc(self.root, "mutation-report", mutation_doc(score=100))
+        r = check(self.root, "mutation-report")
+        self.assertFalse(r["ok"])
+        self.assertIn("SET_MISMATCH", codes(r))
+        self.assertIn("按 killed/total 重算 90", msgs(r))
+
+    def test_critical_tally_checked_too(self):
+        fx.write_doc(self.root, "mutation-report",
+                     mutation_doc(critical={"killed": 1, "total": 2, "score": 90}))
+        r = check(self.root, "mutation-report")
+        self.assertIn("SET_MISMATCH", codes(r))
+        self.assertEqual(1, r["counts"]["critical_runs"])
+
+    def test_critical_must_be_mapping_when_present(self):
+        fx.write_doc(self.root, "mutation-report", mutation_doc(critical=50))
+        r = check(self.root, "mutation-report")
+        self.assertIn("TYPE_INVALID", codes(r))
+        self.assertIn("省略该键", msgs(r))
+
+    def test_missing_runs_rejected(self):
+        fx.write_doc(self.root, "mutation-report", {"project": {"status": "草稿"}})
+        r = check(self.root, "mutation-report")
+        self.assertIn("EMPTY_FIELD", codes(r))
+
+    def test_equivalent_requires_mutant_and_reason(self):
+        doc = mutation_doc()
+        doc["runs"][0]["equivalents"] = [{"mutant": "core/Add_Sub"}]
+        fx.write_doc(self.root, "mutation-report", doc)
+        r = check(self.root, "mutation-report")
+        self.assertIn("EMPTY_FIELD", codes(r))
+        self.assertIn("reason", msgs(r))
+
+    def test_zero_total_rejected(self):
+        fx.write_doc(self.root, "mutation-report",
+                     mutation_doc(killed=0, total=0, score=0))
+        r = check(self.root, "mutation-report")
+        self.assertIn("ENUM_INVALID", codes(r))
+
+
 if __name__ == "__main__":
     unittest.main()

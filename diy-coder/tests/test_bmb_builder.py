@@ -24,7 +24,6 @@
 import io
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -271,7 +270,6 @@ class MlogTests(EngineCase):
 
     def test_append_only_and_ack(self):
         logs = os.path.join(self.out, "build-logs")
-        args = ["mlog", "--dir", logs, "--file", "demo-skill.md", "--json"]
         init = run_engine(["mlog", "--dir", logs, "init", "--file", "demo-skill.md",
                            "--subject", "demo-skill 构建", "--json"] + self.common())
         self.assertEqual(init.returncode, 0, init.stderr + init.stdout)

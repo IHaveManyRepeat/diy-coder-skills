@@ -62,9 +62,9 @@ gates:
       gaps: [{what: <string>, why: <string>}]   # 证据缺口（替代「猜阈值」）
     gate:
       decision: PASS|CONCERNS|FAIL     # 无法评估不设档——走 HALT，不落门产物
-      hard_criteria:                   # 一票否决：任一 失败 → 整门 FAIL；变异得分 过渡期记 n/a
+      hard_criteria:                   # 一票否决：任一 失败 → 整门 FAIL；变异得分 日常可记 n/a
         - {name: P0 覆盖|总覆盖|P1 覆盖, target: '100%', actual: '<x>%'|n/a, result: 通过|失败|n/a}   # 任务书 §4 三行分列：n/a 仅适用 P0 覆盖 空档（P1 覆盖 空档取 100%）
-        - {name: 变异得分, target: '>=90%', actual: '<x>%'|n/a, result: 通过|失败|n/a}   # 多 run 聚合 = 全部 run 的 score 最小值；报告缺席时 actual 记 n/a
+        - {name: 变异得分, target: '>=90%', actual: '<x>%'|n/a, result: 通过|失败|n/a}   # 多 run 聚合 = 全部 run 的 score 最小值；报告缺席日常记 n/a、--final 时判 MISSING_FILE（§十三:459）
         - {name: 非功能致命|P0 未覆盖, target: 0, actual: N, result: 通过|失败}       # 非功能致命 = FAIL 域数 − 已豁免域数
       soft_criteria:                   # 任一 失败 → 降为 CONCERNS（不影响 FAIL 判定）；estimated 项须附 algorithm
         - {name: 业务规则覆盖|边界覆盖|P0 深度完整|ID 链可解析, target: '100%', actual: '<x>%', result: 通过|失败}

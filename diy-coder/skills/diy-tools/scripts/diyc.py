@@ -2,7 +2,8 @@
 """diyc CLI 入口：全部子命令定义 + 统一收口（契约 §2/§3/§4）。
 
 - 本文件拥有全部 argparse 定义；行为模块只暴露 run(args) -> dict：
-  check → diyc_check（懒加载）、写回五命令 → diyc_writeback（懒加载，按 args.command 分派）；
+  check → diyc_check、mutate → diyc_mutate（两者懒加载，见 BEHAVIOR_MODULES）、
+  写回六命令 → diyc_writeback（懒加载，按 args.command 分派）；
   resolve/trace/static 三个子命令由本文件直接实现。
 - 统一收口：解析 output_dir 写入 args.output_dir、设置 args.command、补公共回执键、
   emit 输出并以 exit code 收尾（ok → 0，否则 1；用法错误 2 由 argparse 给出）；
@@ -19,7 +20,6 @@ import importlib
 import io
 import os
 import re
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -28,10 +28,12 @@ import diyc_lib  # noqa: E402
 from diyc_lib import receipt, v  # noqa: E402
 
 CHECK_TYPES = ("prd", "architecture", "openapi", "epics", "stories",
-               "test-plan", "sprint", "review")
+               "test-plan", "sprint", "review", "mutation-report")
 # --previous 稳定 ID 比对仅这些类型支持（契约 §4.2）
 PREVIOUS_TYPES = ("prd", "openapi", "epics", "stories", "test-plan", "architecture")
 WRITEBACK_COMMANDS = ("transition", "green", "done", "bug-add", "defer-add", "reconcile")
+# 懒加载行为模块映射；未列出的子命令（六个写回）缺省走 diyc_writeback
+BEHAVIOR_MODULES = {"check": "diyc_check", "mutate": "diyc_mutate"}
 
 # trace 扫描：文件扩展集与目录排除（契约 §4.3）
 TRACE_SCAN_EXTS = {".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".go", ".rs",
@@ -204,23 +206,6 @@ def _human_trace(result) -> list:
 
 # ---------------------------------------------------------------- static
 
-def _run_tool(tool, cwd, timeout):
-    """跑一层静态检查：返回 (rc, 合并输出, timed_out)；超时 rc=None。"""
-    try:
-        proc = subprocess.run(tool, shell=True, cwd=cwd, timeout=timeout,
-                              capture_output=True, text=True, encoding="utf-8",
-                              errors="replace")
-        return proc.returncode, (proc.stdout or "") + (proc.stderr or ""), False
-    except subprocess.TimeoutExpired as e:
-        out = ""
-        for chunk in (e.stdout, e.stderr):
-            if isinstance(chunk, bytes):
-                out += chunk.decode("utf-8", "replace")
-            elif chunk:
-                out += chunk
-        return None, out, True
-
-
 def _tail(text, limit=20) -> list:
     lines = [ln for ln in (text or "").splitlines() if ln.strip()]
     return lines[-limit:]
@@ -262,7 +247,7 @@ def cmd_static(args) -> dict:
                            "verdict": "已跳过", "tail": []})
             skipped_n += 1
             continue
-        rc, out, timed_out = _run_tool(tool, args.project_root, args.timeout)
+        rc, out, timed_out = diyc_lib.run_tool(tool, args.project_root, args.timeout)
         verdict = "通过" if rc == 0 else "失败"
         if timed_out:
             out = ("[diyc] 超时（>%ss）被杀\n" % args.timeout) + out
@@ -336,6 +321,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--timeout", type=int, default=600, help="单层超时秒数（默认 600）")
     p.add_argument("--strict", action="store_true", help="忽略 baseline 台账（发布/CI 复核）")
 
+    p = sub.add_parser("mutate", parents=[common],
+                       help="变异执行的沙箱机制（副本创建/销毁；diyc_mutate）")
+    p.add_argument("--tool", default=None,
+                   help="变异命令全文（可含 {scope} 占位符，替换为 --scope 的文件）")
+    p.add_argument("--scope", action="append", default=None,
+                   help="变异范围：改动文件路径（可重复）；省略即全量")
+    p.add_argument("--full", action="store_true", help="全量变异（放发版前）")
+    p.add_argument("--sandbox", default=None,
+                   help="沙箱路径（省略即系统临时目录；指定路径须不存在）")
+    p.add_argument("--keep", action="store_true", help="跑完保留沙箱（供排查）")
+    p.add_argument("--timeout", type=int, default=3600, help="超时秒数（默认 3600）")
+
     p = sub.add_parser("transition", parents=[common], help="HALT 状态迁移（diyc_writeback）")
     p.add_argument("--story", required=True)
     p.add_argument("--to", required=True, help="目标状态")
@@ -381,10 +378,31 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
+def _human_mutate(result) -> list:
+    scope = result.get("scope")
+    lines = [
+        "沙箱：%s（%s）" % (result.get("sandbox"),
+                            "保留" if result.get("sandbox_kept") else "已销毁"),
+        "范围：%s" % ("全量" if result.get("mode") == "full"
+                      else "%d 个文件" % len(scope or [])),
+        "命令：%s" % _short(result.get("tool"), 96),
+        "rc=%s%s" % (result.get("rc"),
+                     "（超时被杀）" if result.get("timed_out") else ""),
+        "工作区脏度：%s → %s" % ((result.get("workspace") or {}).get("dirty_before"),
+                                 (result.get("workspace") or {}).get("dirty_after")),
+    ]
+    tail = result.get("output_tail") or []
+    if tail:
+        lines.append("输出末 %d 行：" % len(tail))
+        lines += ["  | %s" % ln for ln in tail]
+    return lines
+
+
 HUMAN_RENDERERS = {
     "resolve": _human_resolve,
     "trace": _human_trace,
     "static": _human_static,
+    "mutate": _human_mutate,
 }
 
 
@@ -429,7 +447,7 @@ def _finalize(result, args) -> dict:
 
 def _run_behavior(args) -> dict:
     """懒加载行为模块；模块缺失与用法错误同级（exit 2），模块内部 ImportError 照常抛出。"""
-    module_name = "diyc_check" if args.command == "check" else "diyc_writeback"
+    module_name = BEHAVIOR_MODULES.get(args.command, "diyc_writeback")
     try:
         module = importlib.import_module(module_name)
     except ModuleNotFoundError as e:

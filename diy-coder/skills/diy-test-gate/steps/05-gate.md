@@ -14,7 +14,7 @@ Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 | `P0 覆盖` | `100%` | P0 AC 的 covered / total（covered = `FULL` / `UNIT-ONLY` / `INTEGRATION-ONLY`） |
 | `总覆盖` | `100%` | 全部 AC 的 covered / total |
 | `P1 覆盖` | `100%` | P1 AC；**无 P1 时记 `100%` + `通过`**（源 effectiveP1=100 口径） |
-| `变异得分` | `>=90%` | 回执 `mutation.score`（`mutation-report.yaml` 全部 run 的**最小值**，保守口径）；报告缺席 → `n/a` + warning（过渡期：C 阶段前不影响 decision，C 落地后记 `失败`） |
+| `变异得分` | `>=90%` | 回执 `mutation.score`（`mutation-report.yaml` 全部 run 的**最小值**）；报告缺席 → 日常记 `n/a` + warning、**`--final` 时判 `MISSING_FILE`**（迁移计划 §十三:459 原文「缺席日常 `n/a`、`--final` 时必须」）。**已批准等价体的重算**：`waivers` 里出现过 `mutant:<标识>` 时，用 `killed / (total − 已批准数) × 100` 重算并**取代**报告里的值——报告写的是候选全留分母的**保守分**（`diy-augment` 无从知道裁定结果），裁定分只能在本步重算。另：报告里 `critical.score` 非 100% → 直接判 `CRITERION_STALE`（关键路径 100% 是硬判据） |
 | `非功能致命` | `0` | FAIL 域数 − `waivers` 已豁免域数（`安全` 域 FAIL **不可豁免**） |
 | `P0 未覆盖` | `0` | priority = P0 且 coverage = `NONE` 的行数 |
 
@@ -54,10 +54,10 @@ Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 ## 豁免（用户交互点，仅人工授权写入）
 
 - `waivers` 每条的 8 键固定：`ref` / `approved_by` / `date` / `reason` / `expires` / `monitoring` / `fix_owner` / `fix_target`——**缺一键即 `WAIVER_INCOMPLETE`**。`expires` 必须显式给出（源文无默认到期）。
-- `ref` 可以是域名、`AC-x.y`、`TC-x.y.z`；`ref: 安全` **被拒**（`安全` 域 FAIL 不可豁免）。
+- `ref` 四形态：域名、`AC-x.y`、`TC-x.y.z`、`mutant:<变异体标识>`；`ref: 安全` **被拒**（`安全` 域 FAIL 不可豁免）。第四形态承载**等价变异体裁定**——标识须命中 `mutation-report.yaml` 里某个 `equivalents[].mutant`（不在候选集里 → `WAIVER_INAPPLICABLE`，挡掉手写错标识造成的假豁免）。
 - **流程**：先列出「未获裁定的缺口 + 建议豁免项 + 后果」，交用户裁决；用户明确同意后才写入，`reason` 引用户的话（原话或贴近转述），`approved_by` 写用户。
 - **无头 / 循环调用**：不停下等——缺口照计 blocker、门照判（通常是 `FAIL`），裁决请求落 `recommendations` 与 `open_questions`，供用户事后处理。
-- 引擎**永不自动生成 waiver**；`diy-augment` 报的等价变异体同样要经用户裁定才落这里。
+- 引擎**永不自动生成 waiver**；`diy-augment` 报的等价变异体同样要经用户裁定才落这里——它只报候选（其 `score` 是保守值），**裁定分由本步重算**：批准一条 `mutant:<标识>` 就从分母里去掉一个。这是「裁定后不拉低得分」的唯一实现路径：没被裁定过的候选仍留在分母。
 
 ## 回填与下一步
 

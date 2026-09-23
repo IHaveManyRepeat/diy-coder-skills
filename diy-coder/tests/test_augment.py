@@ -213,6 +213,8 @@ class AugmentSkillContractTests(unittest.TestCase):
         self.assertIn("开场一行声明本次采样的实现面", raw, "实现面采样未要求声明")
 
     # trace: B-16 SS-019-05（mutation 取值路径 + 「未配置」兜底 + 沙箱基线）
+    # C·9（2026-09-22）：SS-019-05 当时点出的「最坏路径无任何机械拦截」已补——沙箱从
+    # 「技能手留 git 基线」升级为 `diyc.py mutate` 机械建/销 + 脏度前后对比，断言随之升级。
     def test_mutation_config_path_fallback_and_sandbox(self):
         raw = self.read_skill()
         self.assertIn("`static_checks[].tool` 中用户确认为变异工具的条目", raw,
@@ -220,7 +222,9 @@ class AugmentSkillContractTests(unittest.TestCase):
         self.assertIn("按「未配置」处置", raw, "mutation 缺「未配置」兜底")
         self.assertIn("不写 `mutation-report.yaml`、不设判定", raw, "未配置的处置不完整")
         self.assertIn("本技能不复制工作树", raw, "沙箱基线未声明由命令自建")
-        self.assertIn("执行前用 `git status --porcelain` 留基线", raw, "缺沙箱执行前基线")
+        self.assertIn("沙箱由 `diyc.py mutate` 建与销毁", raw, "沙箱未接机械执行面")
+        self.assertIn("`workspace.dirty_before` → `dirty_after` 上升即停并报", raw,
+                      "缺沙箱执行前后的脏度基线")
 
     # trace: B-16 SS-019-07（覆盖率门槛取值顺序 + AC path 判据）
     def test_coverage_gate_order_and_ac_path(self):
@@ -231,12 +235,18 @@ class AugmentSkillContractTests(unittest.TestCase):
         self.assertIn("`AC path` ＝ 该未覆盖项位于某条 AC 的 TC `steps` 点名的文件/符号内", raw,
                       "AC path 判据未写死")
 
-    # trace: B-16 SS-019-04（删 waivers 从句 + score 公式自足）
-    def test_no_waivers_clause_and_score_formula(self):
+    # trace: B-16 SS-019-04（score 公式自足 + 等价体裁定落点）
+    # C·9（2026-09-22）：SS-019-04 当年删 waivers 从句的理由是「全库无带 waivers 的门」——
+    # 该前提已消失：B3 建的 diy-test-gate 有完整 waivers（8 键 + WAIVER_INCOMPLETE 校验），
+    # 且其 SKILL.md 明写「diy-augment 产出的等价变异体也须经用户裁定才进 waivers」。
+    # 故断言反转：从句必须回来，否则两侧接线断裂（等价体裁定无落点）。
+    def test_score_formula_and_equivalence_landing(self):
         raw = self.read_skill()
-        self.assertNotIn("waivers", raw, "仍残留门不存在的 waivers 从句（B10 同法：删）")
-        self.assertIn("score = killed / (total − equivalents)", raw, "score 公式缺失")
-        self.assertIn("不计入 `score` 分母", raw, "等价体不计入分母的口径缺失")
+        self.assertIn("score = killed / total", raw, "保守口径 score 公式缺失")
+        self.assertIn("裁定的唯一落点在 gate", raw, "等价体裁定落点缺失")
+        self.assertIn("`waivers` 登记", raw, "与 gate waivers 的接线缺失")
+        self.assertNotIn("score = killed / (total − equivalents)", raw,
+                         "旧口径（等价体直接出分母）会让分数虚高——须为保守口径")
 
     # trace: B-16 SS-019-06（零缺口 = 不写用例但判定照落）
     def test_zero_gap_still_leaves_verdict(self):

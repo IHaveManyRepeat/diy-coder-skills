@@ -31,6 +31,7 @@ TYPE_FILES = {
     "test-plan": "test-plan.yaml",
     "sprint": "sprint.yaml",
     "review": "sprint.yaml",   # 契约 §4.2：review 为任务级，落在 sprint.yaml
+    "mutation-report": "mutation-report.yaml",   # C·9：纳入 doc-check 注册面
 }
 
 VERDICT_ROUTES = ("意图缺口", "规格缺陷", "小修", "后置")   # rule: diy-review/SKILL.md:Routing

@@ -9,7 +9,8 @@ by_level 重算 / 门决策自洽（硬判据 actual 重算 + 两组判据与 de
 合规五标准的记账与聚合（G-3，第五个走查维度，落 `nfr.domains[].findings`）；
 `--final` 附加：status 已落 已定稿、basis 非空、hard / soft 两组判据齐、零 [假设]、
 合规五标准逐条记账、跨域合成候选的落点（G-4）；
-`mutation-report.yaml` 缺席按过渡期口径只记 warning（C 阶段落地后翻硬门）。
+`mutation-report.yaml` 缺席日常记 `n/a` + warning、`--final` 时判 `MISSING_FILE`
+（迁移计划 §十三:459 原文「缺席日常 `n/a`、`--final` 时必须」——C·9 落地时补齐该义务）。
 
 本模块只重算「同记录内可机械重算」的量（判据 actual、totals、by_level、overall_risk、
 非功能致命、P0 未覆盖、变异得分、合规聚合）——不重跑 collect 的覆盖判定表
@@ -40,7 +41,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gate_lib import (  # noqa: E402
     AC_RE, ADR_ASSET, BLOCKER_KINDS, COMPLIANCE_STANDARDS, COVERAGE_VALUES,
     COVERED_VALUES, CRITERION_RESULTS, DECISIONS,
-    DOMAIN_STATUSES, DOMAINS, GATE_FILE, HARD_CRITERIA, ORACLE_CONFIDENCES,
+    DOMAIN_STATUSES, DOMAINS, GATE_FILE, HARD_CRITERIA, MUTANT_REF_PREFIX,
+    ORACLE_CONFIDENCES,
     ORACLE_SOURCES, PLAN_FILE, PRIORITIES, RECORD_STATUSES, RISK_OF_STATUS,
     RISK_VALUES, SOFT_CRITERIA, STORIES_FILE, TC_RE, TC_TYPES, TG_RE,
     USER_SOURCE_RE, WAIVER_KEYS, ac_index, adr_rows, all_strings, compliance_lines,
@@ -284,15 +286,21 @@ def check_cross_domain(record, where, violations, domains, final):
                             % (state, hit["impact"], hit["marker"])))
 
 
-def check_waivers(record, where, violations):
-    """waiver 8 键契约 + 安全域不可豁免；返回已豁免域名集合。"""
+def check_waivers(record, where, violations, candidates=None):
+    """waiver 8 键契约 + 安全域不可豁免；返回 (已豁免域名集合, 已批准等价变异体集合)。
+
+    ref 四种合法形态：域名（`安全` 不可豁免）/ `AC-x.y` / `TC-x.y.z` / `mutant:<标识>`。
+    第四种承载**等价变异体裁定**——`diy-augment` 报的候选只有经用户在此登记后才
+    出 `变异得分` 的分母（`candidates` 为本次 report 报出的候选集合，非空时校验
+    ref 必须命中其一，防手写错标识导致的假豁免）。
+    """
     gate = record.get("gate") if isinstance(record.get("gate"), dict) else {}
     waivers = gate.get("waivers")
-    waived = set()
+    waived, waived_mutants = set(), set()
     if not isinstance(waivers, list):
         violations.append(v("EMPTY_FIELD", where + ".gate.waivers",
                             "waivers 须为列表（无豁免写空列表）"))
-        return waived
+        return waived, waived_mutants
     for i, waiver in enumerate(waivers):
         spot = "%s.gate.waivers[%d]" % (where, i)
         if not isinstance(waiver, dict):
@@ -311,11 +319,44 @@ def check_waivers(record, where, violations):
                                     "安全域 FAIL 不可豁免（源 checklist 硬规则）"))
             else:
                 waived.add(ref)
+        elif ref.startswith(MUTANT_REF_PREFIX):
+            name = ref[len(MUTANT_REF_PREFIX):].strip()
+            if not name:
+                violations.append(v("WAIVER_INAPPLICABLE", spot + ".ref",
+                                    "%s 后须跟变异体标识（实为空）" % MUTANT_REF_PREFIX))
+            elif candidates is not None and name not in candidates:
+                violations.append(v("WAIVER_INAPPLICABLE", spot + ".ref",
+                                    "变异体 %s 不在 mutation-report.yaml 的等价体候选里"
+                                    "（防手写错标识的假豁免）" % name))
+            else:
+                waived_mutants.add(name)
         elif not (AC_RE.match(ref) or TC_RE.match(ref)):
             violations.append(v("WAIVER_INAPPLICABLE", spot + ".ref",
-                                "waiver ref 须为域名 / AC-x.y / TC-x.y.z（实为 %s）"
-                                % ref))
-    return waived
+                                "waiver ref 须为域名 / AC-x.y / TC-x.y.z / "
+                                "%s<变异体标识>（实为 %s）" % (MUTANT_REF_PREFIX, ref)))
+    return waived, waived_mutants
+
+
+def recompute_mutation_score(mutation, waived_mutants):
+    """用已批准的等价体重算各 run 得分，取最小值；返回 (score, approved_n)。
+
+    保守分（report 里写的，候选全留分母）→ 裁定分（已批准的候选出分母）。
+    `score = round(killed / (total − 已批准数) × 100)`；无可用 run 时返回 (None, N)。
+    """
+    scores, approved_total = [], 0
+    for run in mutation.get("detail") or []:
+        killed, total = run.get("killed"), run.get("total")
+        if not (isinstance(killed, int) and isinstance(total, int)):
+            continue
+        if isinstance(killed, bool) or isinstance(total, bool):
+            continue
+        approved = len(set(run.get("equivalents") or []) & set(waived_mutants))
+        approved_total += approved
+        denom = total - approved
+        if denom <= 0:
+            continue
+        scores.append(killed / denom * 100)
+    return (int(min(scores)) if scores else None), approved_total
 
 
 def check_coverage(record, where, violations, ctx):
@@ -413,8 +454,12 @@ def check_coverage(record, where, violations, ctx):
 
 
 def check_gate_decision(record, where, violations, warnings, criteria, domains,
-                        waived, coverage_items, ctx):
-    """硬判据重算 + decision 自洽（overlay / 域状态 / 两组判据）。"""
+                        waived, coverage_items, ctx, waived_mutants=None):
+    """硬判据重算 + decision 自洽（overlay / 域状态 / 两组判据）。
+
+    `waived_mutants` ＝ waivers 里已批准的等价变异体标识（C·9）：`变异得分` 用它
+    从保守分重算为裁定分——未裁定的候选仍留在分母，只有用户登记过的那部分出分母。
+    """
     gate = record.get("gate") if isinstance(record.get("gate"), dict) else {}
     decision = str(gate.get("decision") or "").strip().upper()
     status = str(record.get("status") or "").strip()
@@ -438,6 +483,18 @@ def check_gate_decision(record, where, violations, warnings, criteria, domains,
     p0 = [it for it in coverage_items if it["priority"] == "P0"]
     p1 = [it for it in coverage_items if it["priority"] == "P1"]
     mutation = ctx["mutation"]
+    # 裁定分（用 waivers 里已批准的等价体重算）优先于 report 里的保守分
+    final_score, approved_n = recompute_mutation_score(mutation, waived_mutants or set())
+    if approved_n:
+        mutation["approved_equivalents"] = approved_n
+        mutation["score_conservative"] = mutation.get("score")
+        mutation["score"] = final_score
+        critical = mutation.get("critical")
+        if critical and critical.get("score") != 100:
+            violations.append(v("CRITERION_STALE",
+                                "%s.gate.hard_criteria.变异得分" % where,
+                                "critical.score = %s%%（关键路径硬判据须 100%%）"
+                                % critical.get("score")))
     derived = {
         "P0 覆盖": pct_str(sum(1 for it in p0
                                    if it["coverage"] in COVERED_VALUES), len(p0))
@@ -470,7 +527,7 @@ def check_gate_decision(record, where, violations, warnings, criteria, domains,
             violations.append(v("CRITERION_STALE",
                                 "%s.gate.hard_criteria.%s.result" % (where, name),
                                 "mutation-report.yaml 缺席时 result 只能记 n/a"
-                                "（过渡期口径，C 阶段前不拒绝）"))
+                                "（日常口径；定稿另判 MISSING_FILE，见 --final 附加）"))
         if want_actual == "n/a":
             want_result = "n/a"
         elif name in ("非功能致命", "P0 未覆盖"):
@@ -572,7 +629,9 @@ def check_record(index, record, final, show, ctx, violations, warnings):
     domains = check_nfr(record, where, violations)
     check_compliance(record, where, violations, final)
     check_cross_domain(record, where, violations, domains, final)
-    waived = check_waivers(record, where, violations)
+    waived, waived_mutants = check_waivers(
+        record, where, violations,
+        candidates=(ctx.get("mutation") or {}).get("candidates"))
     criteria = check_criteria(record, where, violations)
     gate = record.get("gate") if isinstance(record.get("gate"), dict) else {}
     if gate.get("blockers") is not None \
@@ -597,12 +656,18 @@ def check_record(index, record, final, show, ctx, violations, warnings):
         violations.append(v("EMPTY_FIELD", where + ".open_questions",
                             "open_questions 须为列表（未决项显式落点）"))
     check_gate_decision(record, where, violations, warnings, criteria, domains,
-                        waived, items, ctx)
+                        waived, items, ctx, waived_mutants)
     if final:
         if status != "已定稿":
             violations.append(v("STATUS_MISMATCH", where + ".status",
                                 "--final 要求 status 已落「已定稿」（实为 %s）"
                                 % (record.get("status") or "缺失")))
+        # rule: 迁移计划 §十三:459「mutation-report.yaml 缺席日常 `n/a`、`--final` 时必须」
+        if not (ctx.get("mutation") or {}).get("present"):
+            violations.append(v("MISSING_FILE",
+                                where + ".gate.hard_criteria.变异得分",
+                                "--final 要求 mutation-report.yaml 在场（日常 run 记 n/a 合法，"
+                                "定稿不得）：先经 `diyc.py mutate` 真跑一次变异"))
         if not nonempty(gate.get("basis")):
             violations.append(v("EMPTY_FIELD", where + ".gate.basis",
                                 "--final 要求 basis 非空（决策依据一句话）"))

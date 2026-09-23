@@ -204,8 +204,15 @@ COMPLIANCE_FINDINGS = [
 ]
 
 
-def check_gate():
-    """check 侧 PASS 路径夹具：两 AC 全 FULL、四域 PASS、两组判据自洽。"""
+def check_gate(with_mutation=False):
+    """check 侧 PASS 路径夹具：两 AC 全 FULL、四域 PASS、两组判据自洽。
+
+    `with_mutation`：定稿记录经 `--final` 要求 `mutation-report.yaml` 在场
+    （迁移计划 §十三:459「缺席日常 n/a、--final 时必须」），故那类用例须带变异面，
+    判据 actual 随之为具体分数。
+    """
+    mutation_row = (hard("变异得分", ">=90%", "90%", "通过") if with_mutation
+                    else hard("变异得分", ">=90%", "n/a", "n/a"))
     return {
         "project": {"name": "mini", "created": "2026-01-01",
                     "updated": "2026-09-16"},
@@ -237,7 +244,7 @@ def check_gate():
                      hard("P0 覆盖", "100%", "100%", "通过"),
                      hard("总覆盖", "100%", "100%", "通过"),
                      hard("P1 覆盖", "100%", "100%", "通过"),
-                     hard("变异得分", ">=90%", "n/a", "n/a"),
+                     mutation_row,
                      hard("非功能致命", 0, 0, "通过"),
                      hard("P0 未覆盖", 0, 0, "通过"),
                  ],
@@ -258,6 +265,31 @@ def check_gate():
         ],
         "revisions": [],
     }
+
+
+# C·9（2026-09-22）：等价体裁定夹具——10 个变异体 9 被杀（保守分 90%），
+# 1 个候选等价体待裁；日期取当天，避开 EVIDENCE_STALE（>7 天）的干扰。
+MUTANT_ID = "core/ReplaceBinaryOperator_Add_Sub"
+
+
+def mutation_report(critical=None, killed=9, total=10):
+    run = {"date": date.today().isoformat(), "task": "S-1", "scope": "src/a.py",
+           "killed": killed, "total": total, "score": int(killed / total * 100),
+           "survivors": [{"mutant": MUTANT_ID, "file": "src/a.py", "line": 10}],
+           "equivalents": [{"mutant": MUTANT_ID,
+                            "reason": "该断言下加法与减法不可区分"}]}
+    if critical is not None:
+        run["critical"] = critical
+    return {"project": {"name": "mini", "status": "已定稿"}, "runs": [run],
+            "revisions": []}
+
+
+def mutant_waiver():
+    """等价体豁免的合法 8 键（ref 用 mutant: 前缀形态）。"""
+    return {"ref": "mutant:" + MUTANT_ID, "approved_by": "张三",
+            "date": date.today().isoformat(), "reason": "确认语义等价",
+            "expires": "2026-12-31", "monitoring": "无",
+            "fix_owner": "李四", "fix_target": "S-1"}
 
 
 def run_engine(args):
@@ -290,14 +322,19 @@ class EngineCase(unittest.TestCase):
         if sprint is not None:
             self.write_doc("sprint.yaml", sprint)
 
-    def write_check_fixtures(self):
+    def write_check_fixtures(self, with_mutation=False):
         self.write_doc("prd.yaml", PRD)
         self.write_doc("stories.yaml", check_stories())
         self.write_doc("test-plan.yaml", check_plan())
-        self.write_doc("test-gate.yaml", check_gate())
+        self.write_doc("test-gate.yaml", check_gate(with_mutation))
+        if with_mutation:
+            self.write_doc("mutation-report.yaml", mutation_report())
 
     def mutate_gate(self, mutate):
-        data = copy.deepcopy(check_gate())
+        """改写 test-gate.yaml。变异面的有无**跟随现场**——定稿夹具带 mutation-report
+        时判据须记具体分数（`--final` 要求它在场，§十三:459），两处口径不能劈叉。"""
+        with_mutation = os.path.isfile(os.path.join(self.out, "mutation-report.yaml"))
+        data = copy.deepcopy(check_gate(with_mutation))
         mutate(data)
         self.write_doc("test-gate.yaml", data)
 
@@ -595,16 +632,27 @@ class CollectTests(EngineCase):
 class CheckTests(EngineCase):
 
     # trace: 任务书 §4 / §2.5（合法记录 --final exit 0 唯一放行）
+    # C·9：定稿形态须含 mutation-report（§十三:459「--final 时必须」），故夹具带变异面
     def test_check_final_legal_record_passes(self):
-        self.write_check_fixtures()
+        self.write_check_fixtures(with_mutation=True)
         r = self.check("--final")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
         self.assertTrue(data["ok"], data["violations"])
         self.assertEqual(data["counts"]["gates"], 1)
         self.assertEqual(data["counts"]["by_decision"], {"PASS": 1})
-        self.assertIn("MISSING_FILE", self.codes(data, "warnings"),
-                      "mutation-report 缺席走过渡期口径（warning，不拒绝）")
+
+    # trace: C·9 / 迁移计划 §十三:459（mutation-report 缺席：日常 n/a 合法，--final 时必须）
+    def test_final_requires_mutation_report(self):
+        self.write_check_fixtures()
+        r = self.check()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("MISSING_FILE", self.codes(json.loads(r.stdout), "warnings"),
+                      "日常缺席只记 warning")
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("MISSING_FILE", self.codes(json.loads(r.stdout)),
+                      "--final 缺席须判违规（不再是 warning）")
 
     # trace: 任务书 §4 check（硬判据 失败 而 decision PASS → 不自洽 + actual 陈旧）
     def test_check_decision_inconsistent(self):
@@ -710,7 +758,7 @@ class CheckTests(EngineCase):
 
     # trace: 任务书 §4 check（豁免后 非功能致命 重算：FAIL 域数 − 已豁免域数）
     def test_check_waiver_reduces_非功能致命(self):
-        self.write_check_fixtures()
+        self.write_check_fixtures(with_mutation=True)
 
         def mutate(d):
             self._set_domain(d, "性能", "FAIL", risk="HIGH")
@@ -747,7 +795,7 @@ class CheckTests(EngineCase):
 
     # trace: 任务书 §4 check（--final 附加：零假设 / basis 非空 / 两组判据齐）
     def test_check_final_duties(self):
-        self.write_check_fixtures()
+        self.write_check_fixtures(with_mutation=True)
 
         def mutate(d):
             gate = d["gates"][0]["gate"]
@@ -831,7 +879,7 @@ class CheckTests(EngineCase):
 
     # trace: G-3 合规五标准（第五个走查维度）：记账完整 + 聚合 FAIL>PARTIAL>PASS
     def test_check_compliance_recording(self):
-        self.write_check_fixtures()
+        self.write_check_fixtures(with_mutation=True)
         r = self.check("--final")
         self.assertEqual(r.returncode, 0, "五标准齐 → 放行：%s" % r.stdout)
 
@@ -878,7 +926,7 @@ class CheckTests(EngineCase):
 
     # trace: G-4 跨域风险合成（候选命中 → 须落 recommendations / findings；不成立也要写明）
     def test_check_cross_domain_synthesis(self):
-        self.write_check_fixtures()
+        self.write_check_fixtures(with_mutation=True)
 
         def concerns(data):
             record = data["gates"][0]
@@ -943,6 +991,67 @@ class CheckTests(EngineCase):
             if domain["name"] == name:
                 domain["status"] = status
                 data["gates"][0]["nfr"]["overall_risk"] = risk
+
+    # trace: C·9 缺口③（等价变异体裁定 → gate waivers 落点；得分重算）
+    def test_mutant_waiver_recomputes_score(self):
+        """裁定分只能在此重算：批准 1 个等价体 → 9/(10−1)×100 = 100%。
+
+        mutation-report 写的是**保守分**（候选全留分母——diy-augment 无从知道裁定
+        结果），故 gate 记录的 actual 必须写重算后的值，写保守分即陈旧。
+        """
+        self.write_check_fixtures()
+        self.write_doc("mutation-report.yaml", mutation_report())
+        self.mutate_gate(lambda d: (
+            d["gates"][0]["gate"]["waivers"].append(mutant_waiver()),
+            self._flip_hard(d, "变异得分", "90%", "通过")))
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("CRITERION_STALE", self.codes(json.loads(r.stdout)),
+                      "声明保守分 90% 而非重算分 100% 应判陈旧")
+
+        self.write_check_fixtures()
+        self.write_doc("mutation-report.yaml", mutation_report())
+        self.mutate_gate(lambda d: (
+            d["gates"][0]["gate"]["waivers"].append(mutant_waiver()),
+            self._flip_hard(d, "变异得分", "100%", "通过")))
+        r = self.check()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    # trace: C·9 缺口③（ref 的变异体形态：前缀 + 候选匹配，防假豁免）
+    def test_mutant_waiver_ref_validation(self):
+        base = {"approved_by": "张三", "date": date.today().isoformat(),
+                "reason": "等价", "expires": "2026-12-31", "monitoring": "无",
+                "fix_owner": "李四", "fix_target": "S-1"}
+        self.write_check_fixtures()
+        self.write_doc("mutation-report.yaml", mutation_report())
+        self.mutate_gate(lambda d: d["gates"][0]["gate"]["waivers"].append(
+            dict(base, ref="mutant:core/NotACandidate")))
+        r = self.check()
+        self.assertIn("WAIVER_INAPPLICABLE", self.codes(json.loads(r.stdout)),
+                      "候选集外的变异体标识不得被豁免")
+
+        self.write_check_fixtures()
+        self.write_doc("mutation-report.yaml", mutation_report())
+        self.mutate_gate(lambda d: d["gates"][0]["gate"]["waivers"].append(
+            dict(base, ref="mutant:")))
+        r = self.check()
+        self.assertIn("WAIVER_INAPPLICABLE", self.codes(json.loads(r.stdout)),
+                      "前缀后为空不得被豁免")
+
+    # trace: C·9 缺口⑤（关键路径 100% 硬判据）
+    def test_critical_path_score_must_be_100(self):
+        self.write_check_fixtures()
+        self.write_doc("mutation-report.yaml",
+                       mutation_report(critical={"killed": 1, "total": 2, "score": 50}))
+        self.mutate_gate(lambda d: (
+            d["gates"][0]["gate"]["waivers"].append(mutant_waiver()),
+            self._flip_hard(d, "变异得分", "100%", "通过")))
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        data = json.loads(r.stdout)
+        self.assertIn("CRITERION_STALE", self.codes(data))
+        self.assertTrue(any("关键路径" in x["msg"] for x in data["violations"]),
+                        [x["msg"] for x in data["violations"]])
 
 
 class StepObligationTests(unittest.TestCase):

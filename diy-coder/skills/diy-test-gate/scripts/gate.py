@@ -40,8 +40,8 @@
                **走查纪律的输入面**，判定与落点（`findings` / `recommendations`）在 steps/04，
                校验在 check。
              6 mutation 面：读 {output_dir}/mutation-report.yaml，缺席 → score=null +
-               warning（过渡期口径，C 阶段前不拒绝）；在场 → 取全部 run 的 score
-               最小值（保守口径）。
+               warning（日常口径；`--final` 时必须，见 check 面 MISSING_FILE）；
+               在场 → 取全部 run 的 score 最小值（保守口径）。
              7 跨文档核对委托（任务书 §2.3）：子进程 `diyc.py check --type test-plan
                --final --json`——rc 0|1 均为正常回执，其 violations 进 diyc.violations
                （计入本技能判定，不当失败吞掉）；diyc 缺席 / rc=2 / 回执不可解析 →
@@ -56,7 +56,8 @@
            status 已落 已定稿、basis 非空、hard / soft 两组判据齐、零 [假设]、
            合规五标准逐条记账（G-3：行形态 + 聚合 FAIL>PARTIAL>PASS 重算）、跨域合成
            候选的落点（G-4：命中而 findings / recommendations 无 `<域>×<域>` 行即违例）；
-           mutation-report 缺席按过渡期口径只记 warning。
+           mutation-report 缺席日常只记 warning、`--final` 时判 MISSING_FILE
+           （迁移计划 §十三:459「缺席日常 n/a、--final 时必须」）。
     check 只重算「同记录内可机械重算」的量（判据 actual、totals、by_level、overall_risk、
     非功能致命、P0 未覆盖、变异得分）——不重跑 collect 的覆盖判定表（那是
     collect 与 steps/03 LLM 复核的职责），避免二份实现。

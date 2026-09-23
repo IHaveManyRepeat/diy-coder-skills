@@ -80,6 +80,11 @@ SOFT_CRITERIA = (("业务规则覆盖", "100%"),
                  ("ID 链可解析", "100%"))
 WAIVER_KEYS = ("ref", "approved_by", "date", "reason", "expires", "monitoring",
                "fix_owner", "fix_target")
+# waiver ref 的第四种合法形态（除 域名 / AC-x.y / TC-x.y.z 外）：等价变异体标识。
+# 用**前缀**而不是固定形态——各变异工具的标识互不相同（cosmic-ray 报
+# `core/ReplaceBinaryOperator_Add_Sub`、mutmut 报 `x_add__mutmut_1`、Stryker 报 mutator 名），
+# 把形态定死等于把某一家的词汇固化成套件契约（与 diyc mutate 不解析输出的同一条纪律）。
+MUTANT_REF_PREFIX = "mutant:"
 BUSINESS_TECHNIQUES = ("决策表", "状态迁移")
 BOUNDARY_TECHNIQUES = ("边界",)
 NEGATIVE_TECHNIQUES = ("错误猜测",)
@@ -549,9 +554,19 @@ def run_diyc_checks(project_root, out_dir):
 # ---------------------------------------------------------------- mutation 面
 
 def mutation_block(out, warnings, today=None):
-    """mutation-report.yaml → 保守聚合面（多 run 取最小值）+ 时效面（run 日期 >7 天）。"""
+    """mutation-report.yaml → 保守聚合面（多 run 取最小值）+ 时效面（run 日期 >7 天）。
+
+    `score` 的量纲是**百分数整数**（0–100，e.g. 90 = 90%），与 `HARD_CRITERIA` 的
+    `("变异得分", ">=90%")` 同一量纲——report 里若写小数（0.9）会被 `int()` 截成 0，
+    故 `diy-augment` 的 schema 明写百分数（C·9 统一，2026-09-22）。
+
+    `candidates` 是全部 run 的等价体候选标识（扁平化），供 `gate_check` 把 waivers 里的
+    `mutant:<id>` ref 匹配回具体 run。**裁定的落点在 waivers、不在本文件**：此处只报候选
+    与保守分（未裁定的候选仍留在分母），用户裁定后才由 check 侧重算。
+    """
     block = {"present": False, "source": MUTATION_FILE, "runs": 0,
-             "score": None, "target": ">=90%", "equivalents": 0}
+             "score": None, "target": ">=90%", "equivalents": 0,
+             "candidates": [], "detail": [], "critical": None}
     data, err = load_yaml_safe(os.path.join(out, MUTATION_FILE))
     if err is not None:
         warnings.append(v("UNPARSABLE_YAML", MUTATION_FILE,
@@ -560,8 +575,8 @@ def mutation_block(out, warnings, today=None):
     if data is None:
         warnings.append(v("MISSING_FILE", MUTATION_FILE,
                           "mutation-report.yaml 缺席（diy-augment 未跑变异）："
-                          "变异得分 记 n/a + warning"
-                          "（过渡期口径，C 阶段前不拒绝）"))
+                          "变异得分 记 n/a + warning（日常口径；`--final` 时必须，"
+                          "见 gate_check 的同码违规）"))
         return block
     runs = items_of(data, "runs")
     scores = [run.get("score") for run in runs if isinstance(run, dict)
@@ -569,9 +584,25 @@ def mutation_block(out, warnings, today=None):
               and not isinstance(run.get("score"), bool)]
     equivalents = sum(len(items_of(run, "equivalents")) for run in runs
                       if isinstance(run, dict))
+    candidates, detail, crit_scores = [], [], []
+    for run in runs:
+        if not isinstance(run, dict):
+            continue
+        eqs = [str(e.get("mutant")).strip() for e in items_of(run, "equivalents")
+               if isinstance(e, dict) and str(e.get("mutant") or "").strip()]
+        candidates.extend(eqs)
+        crit = run.get("critical")
+        crit_score = crit.get("score") if isinstance(crit, dict) else None
+        if isinstance(crit_score, (int, float)) and not isinstance(crit_score, bool):
+            crit_scores.append(crit_score)
+        detail.append({"killed": run.get("killed"), "total": run.get("total"),
+                       "equivalents": eqs, "score": run.get("score")})
     block.update({"present": True, "runs": len(runs),
                   "score": int(min(scores)) if scores else None,
-                  "equivalents": equivalents})
+                  "equivalents": equivalents, "candidates": candidates,
+                  "detail": detail,
+                  "critical": {"score": int(min(crit_scores)), "target": "100%"}
+                              if crit_scores else None})
     if runs and len(scores) != len(runs):
         warnings.append(v("EMPTY_FIELD", MUTATION_FILE + " runs[].score",
                           "部分 run 缺 score：聚合只取可读项"))

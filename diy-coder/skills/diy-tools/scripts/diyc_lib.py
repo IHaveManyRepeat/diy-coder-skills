@@ -23,6 +23,7 @@ import io
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import date, datetime
 
@@ -231,6 +232,27 @@ def emit(result, as_json, human_lines_fn=None) -> int:
         for line in lines:
             print(line)
     return 0 if result.get("ok") else 1
+
+
+def run_tool(tool, cwd, timeout):
+    """跑一条外部命令：返回 (rc, 合并输出, timed_out)；超时 rc=None。
+
+    两个调用面共用：`diyc static` 的逐层滤网、`diyc mutate` 的沙箱执行
+    （2026-09-22 从 diyc.py 提取——两处实现同一件事就是漂移的开始）。
+    """
+    try:
+        proc = subprocess.run(tool, shell=True, cwd=cwd, timeout=timeout,
+                              capture_output=True, text=True, encoding="utf-8",
+                              errors="replace")
+        return proc.returncode, (proc.stdout or "") + (proc.stderr or ""), False
+    except subprocess.TimeoutExpired as e:
+        out = ""
+        for chunk in (e.stdout, e.stderr):
+            if isinstance(chunk, bytes):
+                out += chunk.decode("utf-8", "replace")
+            elif chunk:
+                out += chunk
+        return None, out, True
 
 
 # ---------------------------------------------------------------- baseline
