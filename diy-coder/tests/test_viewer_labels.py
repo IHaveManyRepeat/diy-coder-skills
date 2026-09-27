@@ -264,5 +264,416 @@ class ViewerKeyLabelTests(_Fixture):
             self.assertNotIn(leak, html, "mutation-report 英文键名直出：%s" % leak)
 
 
+# ---------------------------------------------------------------------------
+# C·11 W3（§5.1 标签缺口 / §5.2 链接档 + 诊断档）
+# ---------------------------------------------------------------------------
+
+WDS_ASSETS_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 已定稿",
+    "stage: 收尾",
+    "activities:",
+    "- id: AS-01",
+    "  code: W",
+    "  name: 线框",
+    "  status: 已评审",
+    "  items:",
+    "  - id: AS-01.1",
+    "    title: 首页线框",
+    "    prompt: 画一张首页线框",
+    "    prompt_lang: zh",
+    "    scope: all",
+    "    assets:",
+    "    - {path: assets/wireframes/home-desktop.html, format: html}",
+    "    review: {checks: [布局清晰], verdict: 通过}",
+    "  - id: AS-01.2",
+    "    title: 二次线框",
+    "    prompt: another",
+    "    prompt_lang: en",
+    "    scope: missing",
+    "    assets:",
+    "    - {path: assets/wireframes/gone.html, format: html}",
+    "    review: {checks: [], verdict: 重生}",
+    "  - id: AS-01.3",
+    "    title: 批量件",
+    "    prompt: batch prompt",
+    "    prompt_lang: zh",
+    "    scope: batch",
+    "    assets:",
+    "    - {path: assets/wireframes/batch.png, format: png}",
+    "    review: {checks: [], verdict: 待定}",
+    "- id: AS-08",
+    "  code: S",
+    "  name: 演示",
+    "  status: 已评审",
+    "  scope: all",
+    "  style: {design: null, content: null, format: sd-slides}",
+    "  items:",
+    "  - id: AS-08.1",
+    "    name: 演示 主件",
+    "    prompt: 生成一张演示",
+    "    prompt_lang: zh",
+    "    assets:",
+    "    - {path: assets/presentation/deck.html, format: html}",
+    "    review: {checks: [], verdict: 通过}",
+    "prompts:",
+    "- {id: AS-01.1, activity: AS-01, target: 外部服务,",
+    "   file: assets/wireframes/prompts/home-desktop.md, exported: true}",
+    "presentation:",
+    "- id: AS-08.1",
+    "  recipe: SD",
+    "  audience: 投资人",
+    "  format_card: data/presentation-formats/sd-slides.md",
+    "  frames:",
+    "  - {n: 1, job: inform, headline: 标题, notes: 备注}",
+    "  assets:",
+    "  - {path: assets/presentation/deck.html, format: html}",
+    "  review: {principles: [视觉层级], verdict: 待定}",
+])
+
+WDS_SYSTEM_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 已定稿",
+    "design_system_mode: 'on'",
+    "tokens:",
+    "  source: {file: design.yaml, path: tokens, mode: 派生}",
+    "  namespaces: {color: [brand], spacing: [sm], typography: [body]}",
+    "categories: [Interactive, Form, Layout, Content, Feedback, Navigation]",
+    "prefixes:",
+    "- {type: Button, prefix: btn, category: Interactive}",
+    "- {type: Form, prefix: frm, category: Form}",
+    "components:",
+    "- id: btn-001",
+    "  name: Button",
+    "  prefix: btn",
+    "  category: Interactive",
+    "  complexity: complex",
+    "  status: 在用",
+    "  variants: [primary]",
+    "  states: [{name: 默认, signals: [图标]}]",
+    "  styling: {visual_properties: {bg: '#fff'}, layout: {}, library_component: null}",
+    "  behavior: {interactions: [点击], animations: [淡入], rules: []}",
+    "  accessibility: {aria: aria-label, keyboard: [Enter], screen_reader: 读作按钮}",
+    "  usage: {when_to_use: 主操作, when_not_to_use: [次要操作], best_practices: [一屏一个]}",
+    "  used_in: [SC-01.P1]",
+    "  token_refs: [color.brand]",
+    "  related: []",
+    "  version: {created: 2026-09-23, updated: 2026-09-23, changes: 1}",
+    "  notes: null",
+    "- id: btn-002",
+    "  name: Button ghost",
+    "  prefix: btn",
+    "  category: Interactive",
+    "  complexity: moderate",
+    "  status: 已废弃",
+    "  variants: [ghost]",
+    "  states: []",
+    "  styling: {}",
+    "  behavior: {}",
+    "  accessibility: {}",
+    "  usage: {}",
+    "  used_in: []",
+    "  token_refs: []",
+    "  related: []",
+    "  version: {}",
+    "  notes: null",
+])
+
+WDS_EVOLUTION_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 已定稿",
+    "kaizen_priority:",
+    "  formula: 'Priority = Impact x Effort x Learning'",
+    "  candidates:",
+    "  - {target: 提速, impact: high, effort: low, learning: medium, score: 0.9}",
+    "rounds:",
+    "- id: EV-01",
+    "  target: 提速",
+    "  status: 已交付",
+    "  entry: 存量接入",
+    "  analysis: {snapshot: 现状, root_cause: 慢查询, hypothesis: 加索引}",
+    "  scope: {target: 提速, risk: Low, data_changes: 无}",
+    "  design: {approach: quick-fix, change_summary: 加索引}",
+    "  implement: {branch: feat/x, files: [src/a.py]}",
+    "  test:",
+    "    scope: 本轮增量",
+    "    criteria:",
+    "    - {kind: HP, criterion: P95, how: 压测, expected: 1, actual: 0.5, verdict: 通过}",
+    "    - {kind: EC, criterion: 空输入, how: 手工, expected: 不崩, actual: 崩了, verdict: 未通过}",
+    "  delivery:",
+    "    summary: 完成",
+    "    artifacts: {analysis: ok, scope: ok, design: ok, implement: ok, test: ok, pr: PR-1}",
+    "    monitoring: {metrics: [P95], period: 一周}",
+])
+
+ANALYSIS_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 已定稿",
+    "question: {text: 鉴权怎么组织, scope: 认证与会话, output_format: 架构图, time_box: 30 分钟}",
+    "architecture:",
+    "  summary: 分层应用",
+    "  tech_stack: [Python]",
+    "  overview: 三层",
+    "  mermaid: 'graph TD'",
+    "  layers: [展示层, 应用层, 领域层, 基础设施层, 未分层]",
+    "components:",
+    "- {id: AN-01, name: Auth, layer: 领域层, responsibility: 登录, location: src/auth, status: 已核实}",
+    "- {id: AN-02, name: DB, layer: 基础设施层, responsibility: 存储, location: src/db, status: 待核实}",
+    "data_flow:",
+    "- {name: 登录流, steps: [表单, 校验], components: [AN-01]}",
+    "dependencies:",
+    "- {from: AN-01, to: AN-02, type: 外部库, note: 取会话}",
+    "risks:",
+    "- {risk: 无校验, severity: 高, location: src/routes, impact: 漏洞}",
+    "recommendations:",
+    "- {action: 补校验, priority: 高, effort: 2 小时, target: src/routes}",
+])
+
+# 同键异义的旁证产物：这些键在本文档里不是枚举（值不进值表也**不得**报诊断）
+SAME_KEY_DOCS = {
+    # diyc-baseline：code 是违规码（全局标签），不是活动码
+    "diyc-baseline": NL.join([
+        "project:", "  name: fx", "  status: 已定稿",
+        "baseline: {created: 2026-09-23}",
+        "waivers:",
+        "- {id: WV-1, code: MISSING_FILE, where: diy-output/sprint.yaml, by: 我, on: 2026-09-23}",
+    ]),
+    # mutation-report（diy-augment）：scope 是本次采样的实现面
+    "mutation-report": NL.join([
+        "project:", "  name: fx", "  status: 已定稿",
+        "runs:",
+        "- {date: 2026-09-23, task: S-1, scope: 本任务实现面, killed: 8, total: 10, score: 0.8}",
+    ]),
+    # prfaq：stage 是 1..5 的续跑锚点
+    "prfaq": NL.join([
+        "project:", "  name: fx", "  status: 草稿",
+        "stage: 3",
+        "press_release: 稿子",
+    ]),
+    # wds-brief：stage 是另一套中文锚点（与 wds-assets 的九值不同源）
+    "wds-brief": NL.join([
+        "project:", "  name: fx", "  status: 草稿",
+        "intake: {project_type: greenfield, complexity: standard, brief_level: complete,",
+        "         strategic_analysis: full, stage: 分诊}",
+    ]),
+    # wds-trigger：mode 是 W/S/D、entry 是 工作坊|既有产物、stage 是第三套中文锚点
+    "wds-trigger": NL.join([
+        "project:", "  name: fx", "  status: 草稿",
+        "stage: 目标",
+        "mode: W",
+        "entry: 工作坊",
+    ]),
+    # wds-scenarios：entry 是 Q6 的自由文本答案
+    "wds-scenarios": NL.join([
+        "project:", "  name: fx", "  status: 已定稿",
+        "scenarios:",
+        "- {id: SC-01, name: 场景, entry: 用户从首页进入下单}",
+    ]),
+    # readiness / research / wds-evolution：scope 都不是枚举
+    "readiness": NL.join([
+        "project:", "  name: fx", "  status: 已定稿",
+        "checks:",
+        "- {no: 1, scope: [prd, architecture], verdict: 就绪}",
+    ]),
+    "research": NL.join([
+        "project:", "  name: fx", "  status: 已定稿",
+        "topic: 领域调研",
+        "scope: 竞品与市场，不含定价",
+    ]),
+}
+
+
+class ViewerB7bLabelTests(_Fixture):
+    # trace: C·11 W3 §5.1——B7b 五产物的文档名 / 键名 / 值名三张标签表补齐
+    def test_new_doc_types_have_chinese_titles(self):
+        for name, label in (("wds-design-system", "设计系统"), ("wds-assets", "资产工厂"),
+                            ("wds-evolution", "Kaizen 迭代"), ("analysis", "单问架构分析")):
+            self.write(name + ".yaml", "project:" + NL + "  name: fx" + NL)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        index = open(os.path.join(self.out, ".view", "index.html"), encoding="utf-8").read()
+        for name, label in (("wds-design-system", "设计系统"), ("wds-assets", "资产工厂"),
+                            ("wds-evolution", "Kaizen 迭代"), ("analysis", "单问架构分析")):
+            self.assertIn("<h1>%s</h1>" % label, self.page(name),
+                          "%s 页面标题未映射为 %s" % (name, label))
+            self.assertIn(label, index.split('href="%s.html"' % name, 1)[1][:160],
+                          "%s 索引卡片未映射为 %s" % (name, label))
+
+    def test_b7b_artifact_keys_are_chinese(self):
+        self.write("wds-design-system.yaml", WDS_SYSTEM_DOC)
+        self.write("wds-assets.yaml", WDS_ASSETS_DOC)
+        self.write("wds-evolution.yaml", WDS_EVOLUTION_DOC)
+        self.write("analysis.yaml", ANALYSIS_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        for name, leaks in (
+            ("wds-design-system", (">accessibility<", ">behavior<", ">styling<", ">variants<",
+                                   ">prefixes<", ">token_refs<", ">used_in<", ">when_to_use<",
+                                   ">design_system_mode<", ">complexity<", ">related<")),
+            ("wds-assets", (">activities<", ">assets<", ">format<", ">format_card<", ">frames<",
+                            ">job<", ">n<", ">presentation<", ">principles<", ">prompts<",
+                            ">recipe<", ">style<", ">prompt_lang<", ">stage<")),
+            ("wds-evolution", (">analysis<", ">candidates<", ">criteria<", ">delivery<",
+                               ">entry<", ">formula<", ">implement<", ">learning<",
+                               ">kaizen_priority<", ">pr<")),
+            ("analysis", (">codebase<", ">data_flow<", ">layers<", ">location<", ">mermaid<",
+                          ">overview<", ">tech_stack<", ">time_box<")),
+        ):
+            html = self.page(name)
+            for leak in leaks:
+                self.assertNotIn(leak, html, "%s 英文键名直出：%s" % (name, leak))
+
+    def test_every_enum_key_has_a_chinese_key_label(self):
+        # 枚举键缺键标签 → 键名裸出 + 每次渲染报一行 `unmapped enum: <键名>`（§5.1 实测症状）
+        labelled = set(viewer.KEY_LABELS)
+        for doc in viewer.DOC_KEY_LABELS.values():
+            labelled.update(doc)
+        self.assertEqual(sorted(k for k in viewer.ENUM_KEYS if k not in labelled), [],
+                         "ENUM_KEYS 里有键没有中文键标签")
+
+    def test_new_enum_keys_and_values_are_badged(self):
+        # 键进 ENUM_KEYS + 值进值表 → 徽章在场（此前一律回落纯文本）
+        self.write("wds-design-system.yaml", WDS_SYSTEM_DOC)
+        self.write("wds-assets.yaml", WDS_ASSETS_DOC)
+        self.write("wds-evolution.yaml", WDS_EVOLUTION_DOC)
+        self.write("analysis.yaml", ANALYSIS_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        cases = (
+            ("wds-design-system", ("在用", "已废弃", "复杂", "中等", "交互", "派生")),
+            # 收口后裁定（M2）补三值：scope 的 batch / format 的 png / style.format 的配方卡名
+            ("wds-assets", ("已评审", "重生", "全部", "缺失项", "收尾", "中文",
+                            "批量", "png", "多页幻灯片")),
+            ("wds-evolution", ("已交付", "存量接入", "未通过")),
+            ("analysis", ("领域层", "基础设施层", "已核实", "待核实", "外部库")),
+        )
+        for name, values in cases:
+            html = self.page(name)
+            for v in values:
+                self.assertIn('class="badge b-neutral">%s</span>' % v, html,
+                              "%s 的值 %s 未出徽章" % (name, v))
+        # 键标签（非枚举键的值不出徽章，但标签必须中文化）
+        evo = self.page("wds-evolution")
+        for label in ("Kaizen 优先级", "优先级公式", "候选清单", "判据清单", "学习因子", "变更请求"):
+            self.assertIn(label, evo, "wds-evolution 键 %s 未映射" % label)
+
+    def test_strict_enum_keys_report_no_drift_after_table_fill(self):
+        # 改表前这五份产物共刷 13 行 unmapped enum；补表后一个字都不许再报
+        for name, doc in (("wds-design-system", WDS_SYSTEM_DOC), ("wds-assets", WDS_ASSETS_DOC),
+                          ("wds-evolution", WDS_EVOLUTION_DOC), ("analysis", ANALYSIS_DOC)):
+            self.write(name + ".yaml", doc)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr, "补表后仍报枚举漂移：%s" % p.stderr)
+
+    def test_code_label_is_doc_scoped(self):
+        # code 同键异义：wds-assets 是活动码、diyc-baseline 仍是违规码（全局键不动）。
+        # 断言只看本文档正文——页尾的 ID 详情模板含跨文档内容
+        self.write("wds-assets.yaml", WDS_ASSETS_DOC)
+        self.write("diyc-baseline.yaml", SAME_KEY_DOCS["diyc-baseline"])
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        assets_body = self.page("wds-assets").split("</main>")[0]
+        self.assertIn("<th>活动码</th>", assets_body)
+        self.assertNotIn("违规码", assets_body)
+        self.assertIn("违规码", self.page("diyc-baseline").split("</main>")[0])
+
+    def test_same_key_different_meaning_reports_no_drift(self):
+        # trace: §5.1 FREE_TEXT_FIELDS 连带——新增枚举键在别处装非枚举内容，不得灌诊断
+        for name, doc in SAME_KEY_DOCS.items():
+            self.write(name + ".yaml", doc)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr, "同键异义被误报枚举漂移：%s" % p.stderr)
+
+    def test_prefixes_type_is_not_an_enum_in_design_system(self):
+        # trace: R-02——prefixes[].type 装 26 个组件类型名（Button…Spacer），不是枚举
+        self.write("wds-design-system.yaml", WDS_SYSTEM_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr, "组件类型名被误报枚举漂移")
+        html = self.page("wds-design-system")
+        self.assertIn("Button", html, "类型名内容丢失")
+        # 前缀表内：类型列必须是裸文本（回落 cell()）；若被当枚举，值会换成徽章里的「表单」
+        seg = html.split("</main>")[0].split('<h2 id="prefixes">', 1)[1].split("<h2", 1)[0]
+        for type_name in ("Button", "Form"):
+            self.assertIn(">%s</td>" % type_name, seg,
+                          "类型名 %s 被徽章化（应回落纯文本）" % type_name)
+
+
+class ViewerAssetLinkTests(_Fixture):
+    # trace: C·11 W3 §5.2 链接档（裁定 11）——assets[].path 出相对链接且真能到达目标文件
+    def write_asset(self, rel, body="<html>ok</html>"):
+        path = os.path.join(self.out, *rel.split("/"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(body)
+        return path
+
+    def test_asset_path_renders_relative_link_that_reaches_the_file(self):
+        target = self.write_asset("assets/wireframes/home-desktop.html")
+        deck = self.write_asset("assets/presentation/deck.html")
+        self.write("wds-assets.yaml", WDS_ASSETS_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = self.page("wds-assets")
+        for rel in ("assets/wireframes/home-desktop.html", "assets/presentation/deck.html"):
+            self.assertIn(f'href="../{rel}"', html, "资产路径未出相对链接：%s" % rel)
+        # 判据不是「href 文案对」，是「从页面出发真能到达该文件」——按页面所在目录解析 href
+        page_dir = os.path.dirname(os.path.join(self.out, ".view", "wds-assets.html"))
+        for rel, want in (("assets/wireframes/home-desktop.html", target),
+                          ("assets/presentation/deck.html", deck)):
+            got = os.path.normpath(os.path.join(page_dir, "..", rel))
+            self.assertEqual(got, os.path.normpath(want),
+                             "链接落点不是真实文件：%s" % rel)
+            self.assertTrue(os.path.isfile(got), "链接目标不存在：%s" % got)
+
+    def test_non_asset_path_stays_plain_text(self):
+        # 同键 path 在别的产物是路由/路径，不得被链接化（不造死链）
+        self.write("wds-assets.yaml", WDS_ASSETS_DOC)
+        self.write("spec-scan.yaml", NL.join([
+            "project:", "  name: fx", "  status: 草稿",
+            "scans:",
+            "- {id: SS-001-01, type: 分支无定义, severity: 阻断,",
+            "   target: src/a.py, files: 3, lines: 10}",
+        ]))
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        # 只看 spec-scan 本文档正文的单元格：`src/a.py` 是扫描目标，不是资产路径
+        body = self.page("spec-scan").split("</main>")[0]
+        self.assertIn("src/a.py", body)
+        self.assertNotIn('href="../src/a.py"', body, "非资产路径被链接化")
+
+
+class ViewerAssetsNoteTests(_Fixture):
+    # trace: C·11 W3 §5.2 诊断档（裁定 12）——assets/ 有内容 → 一行 stderr；无内容 → 静默
+    def test_note_when_assets_dir_has_files(self):
+        path = os.path.join(self.out, "assets", "wireframes")
+        os.makedirs(path)
+        with open(os.path.join(path, "home.html"), "w", encoding="utf-8") as f:
+            f.write("<html>ok</html>")
+        self.write("wds-assets.yaml", WDS_ASSETS_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)  # 诊断不改 rc
+        notes = [ln for ln in p.stderr.splitlines() if "assets" in ln]
+        self.assertEqual(len(notes), 1, "诊断不是一行：%r" % p.stderr)
+        self.assertIn("未渲染", notes[0])
+        self.assertIn("点开查看", notes[0])
+
+    def test_no_note_when_assets_dir_absent_or_empty(self):
+        self.write("wds-assets.yaml", WDS_ASSETS_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("未渲染", p.stderr, "无 assets/ 却报了资产诊断")
+        os.makedirs(os.path.join(self.out, "assets", "wireframes"))
+        p2 = self.render()
+        self.assertEqual(p2.returncode, 0, p2.stderr)
+        self.assertNotIn("未渲染", p2.stderr, "空 assets/ 却报了资产诊断")
+
+
 if __name__ == "__main__":
     unittest.main()

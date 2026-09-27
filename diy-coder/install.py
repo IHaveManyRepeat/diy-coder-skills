@@ -37,6 +37,7 @@ def main() -> int:
     # A-9（决策 1）：仓库根的 runner / exp-sync 分发进 diy-tools/scripts/——
     # 引用处按此安装形态路径写，均由人手动执行
     tools_scripts = os.path.join(skill_dst, "diy-tools", "scripts")
+    os.makedirs(tools_scripts, exist_ok=True)   # C·5 余项②：不依赖 copytree 先铺出该目录
     for tool in ("runner.py", "exp-sync.py"):
         shutil.copyfile(os.path.join(src, tool), os.path.join(tools_scripts, tool))
 
@@ -48,15 +49,19 @@ def main() -> int:
     else:
         cfg_note = "已存在，未覆盖"
 
-    ok = smoke(src)
+    ok = smoke(skill_dst)
     print(f"[diy-coder] 已安装 {count} 个 skill -> {skill_dst}")
     print(f"[diy-coder] diy-coder.yaml {cfg_note}")
     print(f"[diy-coder] 冒烟{'通过' if ok else '未全过（按上面提示修环境即可，skills 已就位）'}")
     return 0 if ok else 1
 
 
-def smoke(src: str) -> bool:
+def smoke(skills_dir: str) -> bool:
     # trace: D-8 R-2 安装冒烟：python 版本 / PyYAML / viewer 引擎 / diyc 引擎可执行
+    # ★ C·5 余项① 修复（C·11 收口后裁定，2026-09-27）：冒烟对象 = **安装侧** `skills_dir`。
+    #   原实现传源仓库根（`smoke(src)`）——源好而安装侧坏（分发级失败）时仍拿 rc=0 绿回执，
+    #   检验对象错位。改后源树不再被执行（余项③「装完只读源」字面成立）；
+    #   `-B` 防冒烟在安装侧落 `__pycache__`（安装侧 .pyc 是分发洁净度的断言面）。
     ok = True
     v = sys.version_info
     if v < (3, 10):
@@ -70,15 +75,15 @@ def smoke(src: str) -> bool:
     except ImportError:
         print("[冒烟] PyYAML 未安装：pip install pyyaml（viewer/help/runner 均用宿主 python 直跑）")
         ok = False
-    viewer = os.path.join(src, "skills", "diy-viewer", "scripts", "viewer.py")
-    r = subprocess.run([sys.executable, viewer, "--help"], capture_output=True)
+    viewer = os.path.join(skills_dir, "diy-viewer", "scripts", "viewer.py")
+    r = subprocess.run([sys.executable, "-B", viewer, "--help"], capture_output=True)
     if r.returncode == 0:
         print("[冒烟] viewer.py 可执行 OK")
     else:
         print("[冒烟] viewer.py --help 失败（多与上面的 PyYAML 缺失相关）")
         ok = False
-    diyc = os.path.join(src, "skills", "diy-tools", "scripts", "diyc.py")
-    r = subprocess.run([sys.executable, diyc, "--help"], capture_output=True)
+    diyc = os.path.join(skills_dir, "diy-tools", "scripts", "diyc.py")
+    r = subprocess.run([sys.executable, "-B", diyc, "--help"], capture_output=True)
     if r.returncode == 0:
         print("[冒烟] diyc.py 可执行 OK")
     else:

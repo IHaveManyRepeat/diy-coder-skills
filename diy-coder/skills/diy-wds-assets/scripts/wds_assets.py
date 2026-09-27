@@ -2,10 +2,20 @@
 """diy-wds-assets 领域引擎（B7b / W2）。
 
 子命令：init（唯一写盘）/ list / show / check / prompts。
-- 全部子命令收 `--project-root`（默认 `.`）；写盘子命令 `init` 必填 `--output-dir`。
+- 全部子命令收 `--project-root`（默认 `.`）；`--output-dir` 缺省回落 `{project_root}/diy-output`
+  （写盘子命令 `init` 必填）；只读子命令四个（list / show / check / prompts）零写盘。
 - **`--instance` 一律不做**（键恒 `null` 在位）。
 - 回执共同键：{ok, command, project_root, output_dir, instance, violations, warnings, counts}
   —— `warnings` 与 `violations` 同形；`init` 另含 `updated`，只读子命令不含。
+  `project_root` 按 as-given 回显（不 resolve），`output_dir` 为 resolved + 正斜杠；
+  违规项 schema = `{code, where, msg}`（`where` 正斜杠、路径型相对 project-root）。
+
+★ **第五子命令 `prompts` 是对 §2.2「四子命令」的一处登记性偏离**（V3-12）：
+  任务书 §3 要求「提示词导出索引」独立成面——`prompts[]` 的 `exported` 翻转与导出文件是
+  本技能**唯一的生成通道**（裁定 6：不接任何外部服务），而 §2.2 冻结「四子命令」
+  （init / list / show / check）——两条并存的最小满足 = 加一个**只读、零写盘**的第五子命令。
+  先例：B7a 的 `diy-wds-trigger` 亦在四子命令之外加了 `metrics`；本批 `diy-wds-system`
+  同款加 `similarity`。**不写盘**。
 - 退出码：0 放行 / 1 违规 / 2 用法错误。
 - 违规码：**复用冻结集**（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID / UNKNOWN_ID /
   EMPTY_FIELD / ENUM_INVALID / STATUS_MISMATCH / SET_MISMATCH / ASSUMPTION_PRESENT）
@@ -48,9 +58,7 @@ ACTIVITIES = [
     ("AS-07", "C", "文案", "content"),
     ("AS-08", "S", "演示", "presentation"),
 ]
-CODES = [row[1] for row in ACTIVITIES]
 DIR_OF = {row[0]: row[3] for row in ACTIVITIES}
-DIR_OF_CODE = {row[1]: row[3] for row in ACTIVITIES}
 
 STAGES = ["线框", "页面稿", "UI件", "图标", "图片", "动效", "文案", "演示", "收尾"]
 ACTIVITY_STATUS = ["未开始", "进行中", "已评审", "已跳过"]
@@ -70,32 +78,55 @@ RECIPES = {
 }
 FRAME_JOBS = ["inform", "persuade", "transition"]
 PRINCIPLE_COUNT = 8
+PRESENTATION_ACTIVITY = "AS-08"     # 第 9 活动：presentation[] 的 ID 空间（裁定 10）
+# AS-07 文案条目的六段（键名逐字取 `steps/07-content.md:10` 自己的声明，裁定 17 c）
+CONTENT_ACTIVITY = "AS-07"
+CONTENT_KEYS = (
+    "content_purpose", "trigger_map_context", "awareness_strategy",
+    "action_filter", "empowerment_frame", "structural_order",
+)
 ITEM_ID_RE = re.compile(r"^AS-(\d{2})\.(\d{1,3})$")
 PAGE_ID_RE = re.compile(r"^SC-\d{2}\.P\d+$")
 TOKEN_RE = re.compile(r"\{([^{}\n]+)\}")
-TOKEN_WHITELIST = {"project-root", "output_dir"}
+SKILL_DIR = Path(__file__).resolve().parent.parent
+# 模板位清单的提取口径（裁定 16 ③；C·11 V-A F-1 扩面到全部模板）：
+# 逐模板按各自结构取「要填的位」——两模板的骨架与注记结构不同：
+# · prompt-export：骨架在围栏代码块内；围栏外说明段含 `{output_dir}` 路径写法（:92），非模板位
+# · content-output：文件本身即骨架（活文档），正文位在围栏外；`>` 引用注记（含 `{output_dir}` / `{…}`）非模板位
+TEMPLATE_SPECS = (
+    ("prompt-export.template.md", "fenced"),
+    ("content-output.template.md", "noquote"),
+)
 
 
 class Report:
-    """违规 / 警告的收集器（两者同形）。"""
+    """违规 / 警告的收集器（两者同形）。
 
-    def __init__(self, command: str, project_root: Path, output_dir: Path):
+    `root_given` = `--project-root` 的 as-given 原值（契约 §3：回执按原样回显，**不 resolve**）；
+    内部文件操作用 `project_root`（resolved），两者分工见 `main()`。
+    """
+
+    def __init__(self, command: str, project_root: Path, output_dir: Path, root_given=None):
         self.command = command
         self.project_root = project_root
         self.output_dir = output_dir
+        self.root_given = str(project_root) if root_given is None else str(root_given)
         self.violations: list[dict] = []
         self.warnings: list[dict] = []
         self.counts: dict = {}
         self.extra: dict = {}
 
-    def add(self, code, where, message, bucket="violations"):
-        getattr(self, bucket).append({"code": code, "where": where, "message": message})
+    def add(self, code, where, msg, bucket="violations"):
+        # `where` 在此再归一一次反斜杠（契约 §3：统一正斜杠）——双保险，构造点不必各写一遍
+        getattr(self, bucket).append(
+            {"code": code, "where": str(where).replace("\\", "/"), "msg": msg}
+        )
 
-    def bad(self, code, where, message):
-        self.add(code, where, message)
+    def bad(self, code, where, msg):
+        self.add(code, where, msg)
 
-    def warn(self, code, where, message):
-        self.add(code, where, message, bucket="warnings")
+    def warn(self, code, where, msg):
+        self.add(code, where, msg, bucket="warnings")
 
     def receipt(self, ok=None):
         if ok is None:
@@ -103,8 +134,8 @@ class Report:
         payload = {
             "ok": ok,
             "command": self.command,
-            "project_root": str(self.project_root),
-            "output_dir": str(self.output_dir),
+            "project_root": self.root_given,
+            "output_dir": self.output_dir.as_posix(),
             "instance": None,
             "violations": self.violations,
             "warnings": self.warnings,
@@ -117,17 +148,50 @@ class Report:
         return 0 if not self.violations else 1
 
 
+def display_path(path: Path, project_root: Path) -> str:
+    """相对 project-root、正斜杠（契约 §3 的 `where` 口径）；越界则绝对路径。"""
+    try:
+        return path.resolve().relative_to(project_root.resolve()).as_posix()
+    except ValueError:
+        return path.resolve().as_posix()
+
+
+def nonempty(value) -> bool:
+    """非空判定（对齐 `wds_brief.nonempty`）：None / 空白串 / 空容器均视为空。"""
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return value.strip() != ""
+    if isinstance(value, (list, dict, tuple)):
+        return len(value) > 0
+    return True
+
+
+def path_in(path: str, prefix: str) -> bool:
+    """路径包含性判据（VA-07）：**拒绝含 `..` 段的形态**。
+
+    裸 `startswith` 可被 `assets/wireframes/../../outside.html` 逃逸（实测 rc=0）；
+    拒绝比 normpath 更严，且与回执文案「须落 <prefix> 内」的声明一致。
+    """
+    if ".." in path.replace("\\", "/").split("/"):
+        return False
+    return path.startswith(prefix)
+
+
 def load_yaml(path: Path, report: Report, bucket="violations", label=None):
     if not path.exists():
-        report.add("MISSING_FILE", str(path), f"{label or path.name} 不存在", bucket)
+        report.add("MISSING_FILE", display_path(path, report.project_root),
+                   f"{label or path.name} 不存在", bucket)
         return None
     try:
         doc = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
-        report.add("UNPARSABLE_YAML", str(path), f"YAML 解析失败：{exc}", bucket)
+        report.add("UNPARSABLE_YAML", display_path(path, report.project_root),
+                   f"YAML 解析失败：{exc}", bucket)
         return None
     if not isinstance(doc, dict):
-        report.add("UNPARSABLE_YAML", str(path), "顶层不是映射", bucket)
+        report.add("UNPARSABLE_YAML", display_path(path, report.project_root),
+                   "顶层不是映射", bucket)
         return None
     return doc
 
@@ -187,7 +251,8 @@ def gate_upstream(report: Report, output_dir: Path):
     if upstream is None:
         return None
     if (upstream.get("project") or {}).get("status") != "已定稿":
-        report.bad("STATUS_MISMATCH", str(output_dir / UPSTREAM), "上游 project.status 不是 已定稿")
+        report.bad("STATUS_MISMATCH", display_path(output_dir / UPSTREAM, report.project_root),
+                   "上游 project.status 不是 已定稿")
         return None
     return upstream
 
@@ -204,20 +269,76 @@ def page_ids(upstream: dict) -> set:
     return ids
 
 
+def coverage_report(doc: dict, pages: set) -> dict:
+    """覆盖差集（V2-02，形状逐字取 `steps/09-finish.md:23-25`）。
+
+    `unassigned` = 上游页清单里未被任何 `items[].pages[]` 引用的页；
+    `orphan` = 引用到上游不存在的页（**与 V2-01 的 `UNKNOWN_ID` 同源判定**：形态合法才入门）。
+    两列都为空也须在场（否则模型取不到键）。
+    """
+    refs = []
+    for act in doc.get("activities") or []:
+        for item in (act or {}).get("items") or []:
+            refs.extend(pid for pid in (item or {}).get("pages") or [] if isinstance(pid, str))
+    used = set(refs)
+    return {
+        "unassigned": sorted(pages - used),
+        "orphan": sorted(pid for pid in used - pages if PAGE_ID_RE.match(pid)),
+    }
+
+
 def read_design_system(report: Report, output_dir: Path):
     path = output_dir / DESIGN_SYSTEM
     if not path.exists():
-        report.warn("MISSING_FILE", str(path), "可选上游 wds-design-system.yaml 缺席：降级为不校验令牌一致性")
+        report.warn("MISSING_FILE", display_path(path, report.project_root),
+                    "可选上游 wds-design-system.yaml 缺席（引擎不做令牌一致性校验——"
+                    "在场时由会话按 steps/09-finish.md 第 1 步「令牌同源」逐条对表）")
         return None
     doc = load_yaml(path, report, bucket="warnings", label="可选上游 wds-design-system.yaml")
     return doc
 
 
-def scan_raw_tokens(text: str, report: Report):
+def template_slots(report: Report) -> set:
+    """模板位清单（裁定 16 ③；C·11 V-A F-1 扩面）：解析 `templates/` 下各模板「要填的位」`{...}`。
+
+    **解析提取、不硬编码**——模板改动后违规判据随之变（这层耦合约已登记，见回报）。
+    逐模板按结构取口径（见 `TEMPLATE_SPECS` 注释）：`prompt-export` 只取**围栏代码块**内；
+    `content-output` 取全文、排除 `>` 引用注记。两处排除都为了「`{output_dir}` 天然放行」成立。
+    """
+    slots: set[str] = set()
+    for name, mode in TEMPLATE_SPECS:
+        path = SKILL_DIR / "templates" / name
+        if not path.exists():
+            report.warn("MISSING_FILE", display_path(path, report.project_root),
+                        f"模板 {name} 缺席：其模板位不计入清单，占位符残留核对其停用")
+            continue
+        fenced = False
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.lstrip().startswith("```"):
+                fenced = not fenced
+                continue
+            if mode == "fenced" and not fenced:
+                continue
+            if mode == "noquote" and line.lstrip().startswith(">"):
+                continue
+            slots.update(TOKEN_RE.findall(line))
+    return slots
+
+
+def scan_raw_tokens(text: str, report: Report, path: Path):
+    """占位符残留核（裁定 16 ③）：`{...}` **∈ 模板位清单 → 违规**（说明该位没被填掉）。
+
+    判据方向与旧版相反：旧的「∉ 白名单（2 token）→ 违规」把无差别正则当成了「模板位填没填」
+    的判据，于是 prompt 里合法的 JSON 示例（`{"breakpoint": "1440"}`）被误杀。改判后
+    模型自创的模板外占位符抓不到（已知漏检面，用户已知悉并接受）。
+    """
+    slots = template_slots(report)
+    shown = display_path(path, report.project_root)
     for line_no, line in enumerate(text.splitlines(), start=1):
         for token in TOKEN_RE.findall(line):
-            if token not in TOKEN_WHITELIST:
-                report.bad("TOKEN_UNRESOLVED", f"line {line_no}", f"未解析令牌 {{{token}}}")
+            if token in slots:
+                report.bad("TOKEN_UNRESOLVED", f"{shown} line {line_no}",
+                           f"占位符未填：{{{token}}} 是模板骨架的模板位，原样残留（填掉或删除该行）")
 
 
 # --------------------------------------------------------------------- init
@@ -311,6 +432,21 @@ def cmd_list(args, report: Report):
 # --------------------------------------------------------------------- show
 
 
+def find_record(doc: dict, ident: str):
+    """按 ID 找记录：活动 / 条目 / 演示记录 / 提示词条目——**与 `check` 同一 ID 空间**（裁定 9）。"""
+    for act in doc.get("activities") or []:
+        if act.get("id") == ident:
+            return act
+        for item in act.get("items") or []:
+            if item.get("id") == ident:
+                return item
+    for key in ("presentation", "prompts"):
+        for entry in doc.get(key) or []:
+            if (entry or {}).get("id") == ident:
+                return entry
+    return None
+
+
 def cmd_show(args, report: Report):
     output_dir = Path(args.output_dir).resolve()
     doc = load_yaml(output_dir / PRODUCT, report)
@@ -321,17 +457,12 @@ def cmd_show(args, report: Report):
         report.extra["doc"] = doc
         report.counts = summarize(doc)
         return report.exit_code()
-    for act in doc.get("activities") or []:
-        if act.get("id") == ident:
-            report.extra["record"] = act
-            report.counts = summarize(doc)
-            return report.exit_code()
-        for item in act.get("items") or []:
-            if item.get("id") == ident:
-                report.extra["record"] = item
-                report.counts = summarize(doc)
-                return report.exit_code()
-    report.bad("UNKNOWN_ID", ident, f"产物里没有 {ident}")
+    record = find_record(doc, ident)
+    if record is None:
+        report.bad("UNKNOWN_ID", ident, f"产物里没有 {ident}")
+        return report.exit_code()
+    report.extra["record"] = record
+    report.counts = summarize(doc)
     return report.exit_code()
 
 
@@ -386,6 +517,7 @@ def check_activities(doc, report: Report, pages: set):
         if not isinstance(items, list):
             report.bad("EMPTY_FIELD", where, "items 不是列表")
             continue
+        sequence: list[tuple[str, int]] = []
         for j, item in enumerate(items):
             iwhere = f"{where}.items[{j}]"
             ident = str(item.get("id") or "")
@@ -394,6 +526,9 @@ def check_activities(doc, report: Report, pages: set):
                 report.bad("SET_MISMATCH", iwhere, f"条目 ID 形态不合 AS-<nn>.<m>：{ident!r}")
             elif f"AS-{match.group(1)}" != act.get("id"):
                 report.bad("SET_MISMATCH", iwhere, f"条目 ID {ident} 与父活动 {act.get('id')} 不同源")
+            else:
+                # 只收形态合法且与父活动同源的 id（裁定 1）：非法形态已判过，不级联刷屏
+                sequence.append((ident, int(match.group(2))))
             if ident in seen_ids:
                 report.bad("DUPLICATE_ID", iwhere, f"条目 ID 重复：{ident}")
             seen_ids.add(ident)
@@ -429,11 +564,19 @@ def check_activities(doc, report: Report, pages: set):
                     report.bad("EMPTY_FIELD", aw, "path 不可空")
                     continue
                 prefix = f"assets/{DIR_OF[act.get('id')]}/" if act.get("id") in DIR_OF else "assets/"
-                if not path.startswith(prefix):
+                if not path_in(path, prefix):
                     report.bad("SET_MISMATCH", aw, f"资产路径须落 {prefix} 内，实为 {path}")
             verdict = ((item.get("review") or {}).get("verdict"))
             if verdict is not None and verdict not in VERDICTS:
                 report.bad("ENUM_INVALID", iwhere, f"非法评审结论：{verdict}")
+        numbers = [n for _ident, n in sequence]
+        if numbers != list(range(1, len(numbers) + 1)):
+            report.bad(
+                "SET_MISMATCH",
+                where,
+                "活动内条目序号须从 1 起连续递增（" + f"{act.get('id')}.1 / {act.get('id')}.2 …），实为 "
+                + " / ".join(ident for ident, _n in sequence),
+            )
     return seen_ids
 
 
@@ -455,7 +598,7 @@ def check_prompts(doc, report: Report, item_ids: set[str], final: bool):
             continue
         path = str((entry or {}).get("file") or "")
         prefix = f"assets/{DIR_OF[activity]}/prompts/"
-        if not path.startswith(prefix):
+        if not path_in(path, prefix):
             report.bad("SET_MISMATCH", where, f"提示词文件须落 {prefix} 内，实为 {path}")
         if not (entry or {}).get("target"):
             report.bad("EMPTY_FIELD", where, "target 不可空（导出通道要写清收件人）")
@@ -470,8 +613,18 @@ def check_presentation(doc, report: Report, final: bool):
     if not isinstance(records, list):
         report.bad("EMPTY_FIELD", "presentation", "presentation 不是列表")
         return
+    seen_ids: set[str] = set()
     for i, rec in enumerate(records):
         where = f"presentation[{i}]"
+        ident = str((rec or {}).get("id") or "")
+        match = ITEM_ID_RE.match(ident)
+        if not match or f"AS-{match.group(1)}" != PRESENTATION_ACTIVITY:
+            report.bad("SET_MISMATCH", where,
+                       f"演示记录 ID 须为 {PRESENTATION_ACTIVITY}.<m>，实为 {ident!r}")
+        elif ident in seen_ids:
+            report.bad("SET_MISMATCH", where, f"演示记录 ID 重复：{ident}")
+        else:
+            seen_ids.add(ident)
         recipe = (rec or {}).get("recipe")
         if recipe not in RECIPES:
             report.bad("ENUM_INVALID", where, f"非法 recipe：{recipe}（七值封闭集）")
@@ -492,7 +645,7 @@ def check_presentation(doc, report: Report, final: bool):
         for k, asset in enumerate((rec or {}).get("assets") or []):
             aw = f"{where}.assets[{k}]"
             path = str((asset or {}).get("path") or "")
-            if not path.startswith("assets/presentation/"):
+            if not path_in(path, "assets/presentation/"):
                 report.bad("SET_MISMATCH", aw, f"演示产物须落 assets/presentation/ 内，实为 {path}")
         principles = ((rec or {}).get("review") or {}).get("principles")
         if not principles or len(principles) != PRINCIPLE_COUNT:
@@ -520,8 +673,8 @@ def cmd_check(args, report: Report):
 
     text = path.read_text(encoding="utf-8")
     if "[假设]" in text:
-        report.bad("ASSUMPTION_PRESENT", str(path), "产物含未决标记 [假设]")
-    scan_raw_tokens(text, report)
+        report.bad("ASSUMPTION_PRESENT", display_path(path, report.project_root), "产物含未决标记 [假设]")
+    scan_raw_tokens(text, report, path)
 
     project = doc.get("project") or {}
     if project.get("status") not in PROJECT_STATUS:
@@ -529,7 +682,10 @@ def cmd_check(args, report: Report):
     if doc.get("stage") not in STAGES:
         report.bad("ENUM_INVALID", "stage", f"非法阶段：{doc.get('stage')}")
 
-    item_ids = check_activities(doc, report, page_ids(upstream))
+    pages = page_ids(upstream)
+    item_ids = check_activities(doc, report, pages)
+    # 覆盖差集（V2-02）：形状逐字取 `steps/09-finish.md:23-25`，与 V2-01 的页面解析同源
+    report.extra["coverage"] = coverage_report(doc, pages)
     check_prompts(doc, report, item_ids, final)
     check_presentation(doc, report, final)
 
@@ -550,13 +706,21 @@ def cmd_check(args, report: Report):
             if not items:
                 report.bad("EMPTY_FIELD", f"activities[{index}]", "非跳过的活动必须至少有一条资产")
             for j, item in enumerate(items):
+                iwhere = f"activities[{index}].items[{j}]"
                 verdict = (item.get("review") or {}).get("verdict")
                 if verdict != "通过":
                     report.bad(
                         "SET_MISMATCH",
-                        f"activities[{index}].items[{j}]",
+                        iwhere,
                         f"已定稿要求评审结论为 通过，实为 {verdict}",
                     )
+                if act.get("id") == CONTENT_ACTIVITY:
+                    # VA-03c（裁定 17 c）：`steps/07-content.md:10` 声称「引擎核六段在场与键齐」
+                    content = item.get("content") if isinstance(item.get("content"), dict) else {}
+                    missing = [key for key in CONTENT_KEYS if not nonempty(content.get(key))]
+                    if missing:
+                        report.bad("EMPTY_FIELD", f"{iwhere}.content",
+                                   f"AS-07 文案条目须落六段，缺：{' / '.join(missing)}")
 
     if final:
         if project.get("status") != "已定稿":
@@ -580,6 +744,8 @@ def cmd_check(args, report: Report):
             )
 
     report.counts = summarize(doc)
+    # §4.1 连带：终门同回「设计系统在场」态（与 init 同语义 = 存在且可解析）
+    report.counts["has_design_system"] = read_design_system(report, output_dir) is not None
     return report.exit_code()
 
 
@@ -587,9 +753,10 @@ def cmd_check(args, report: Report):
 
 
 def _common_flags(parser):
-    """共同旗标：`--project-root` 全部子命令都收；`--output-dir` 由 main 逐命令校验。"""
+    """共同旗标：`--project-root` 全部子命令都收；`--output-dir` 由 main 兜底（仅 init 必填）。"""
     parser.add_argument("--project-root", default=argparse.SUPPRESS, help="项目根（默认 .）")
-    parser.add_argument("--output-dir", default=argparse.SUPPRESS, help="产物目录（写盘 / 读产物必填）")
+    parser.add_argument("--output-dir", default=argparse.SUPPRESS,
+                        help="产物目录（缺省 {project-root}/diy-output；写盘子命令 init 必填）")
     parser.add_argument("--json", action="store_true", default=argparse.SUPPRESS, help="以 JSON 回执输出")
     return parser
 
@@ -614,25 +781,31 @@ def build_parser():
 
 
 def main(argv=None):
+    # 回执是机器读面：stdout/stderr 一律 UTF-8（VA-01；与其余四引擎逐字同款两行）
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     parser = build_parser()
     args = parser.parse_args(argv)
-    project_root = Path(getattr(args, "project_root", ".")).resolve()
+    root_given = str(getattr(args, "project_root", "."))
+    project_root = Path(root_given).resolve()
     raw_output = getattr(args, "output_dir", None)
-    output_dir = Path(raw_output).resolve() if raw_output else project_root
+    # 只读子命令缺省回落 `{project_root}/diy-output`（V3-03；对齐 wds_system / evolution / analyze / reverse）
+    output_dir = Path(raw_output).resolve() if raw_output else project_root / "diy-output"
+    args.output_dir = str(output_dir)          # 各 handler 统一从 args 取（含回落值）
     as_json = bool(getattr(args, "json", False))
 
     if not args.command:
-        report = Report("", project_root, output_dir)
+        report = Report("", project_root, output_dir, root_given)
         report.bad("ENUM_INVALID", "command", "缺少子命令：init / list / show / check / prompts")
         emit(report, as_json, exit_code=2)
         return 2
-    if not raw_output:
-        report = Report(args.command, project_root, output_dir)
-        report.bad("ENUM_INVALID", "--output-dir", "本子命令必填 --output-dir")
+    if args.command == "init" and not raw_output:
+        report = Report(args.command, project_root, output_dir, root_given)
+        report.bad("ENUM_INVALID", "--output-dir", "写盘子命令 init 必填 --output-dir")
         emit(report, as_json, exit_code=2)
         return 2
 
-    report = Report(args.command, project_root, output_dir)
+    report = Report(args.command, project_root, output_dir, root_given)
     handler = {
         "init": cmd_init,
         "list": cmd_list,
@@ -646,16 +819,16 @@ def main(argv=None):
 
 
 def emit(report: Report, as_json: bool, exit_code: int):
+    """回执输出：`--json` = 单行 JSON（契约 §3）；无 `--json` = 每违规一行 `CODE where: msg` + 汇总行。"""
     payload = report.receipt(ok=(exit_code == 0))
     if as_json:
-        print(json.dumps(payload, ensure_ascii=False, indent=2, default=str))
+        print(json.dumps(payload, ensure_ascii=False, default=str))
     else:
-        state = "OK" if exit_code == 0 else "FAIL"
-        print(f"[{state}] {report.command or '(no command)'} → {report.output_dir}")
         for item in report.violations:
-            print(f"  违规 {item['code']} @ {item['where']}: {item['message']}")
+            print(f"{item['code']} {item['where']}: {item['msg']}")
         for item in report.warnings:
-            print(f"  警告 {item['code']} @ {item['where']}: {item['message']}")
+            print(f"WARN {item['code']} {item['where']}: {item['msg']}")
+        print(f"ok={payload['ok']} violations={len(report.violations)} warnings={len(report.warnings)}")
 
 
 if __name__ == "__main__":

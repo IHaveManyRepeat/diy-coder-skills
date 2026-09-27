@@ -1,7 +1,7 @@
 ---
 name: diy-reverse
-description: 'Reverse-engineer an EXTERNAL target (public website, or provided screenshots) into a first design.yaml — the committed design single source — plus one structural wireframe per page. Entry skill; the gate is "the external target is reachable". Own-codebase analysis is routed to diy-analyze. Writes design.yaml only at initial generation: if it already exists, refuse to overwrite and route to diy-design.'
-# ↑ 中文：把**外部**目标（公开网站 / 截图）逆向成一份**初始 `design.yaml`**（设计单一源：方向 / 框架 / token 三段 / 逐页规格与四态）与逐页结构稿。**入口技能**——门禁 = 外部目标可访问；自有代码库改调 `diy-analyze`。**只在初始生成时写 `design.yaml`**：已存在则拒绝覆盖并路由 `diy-design`。
+description: 'Reverse-engineer an EXTERNAL target (public website, or provided screenshots) into a first design.yaml — the committed design single source — plus one structural wireframe per page. Entry skill; the gate is "the target is well-formed, and for the screenshot track the path exists and is readable" (true reachability is confirmed by the session). Own-codebase analysis is routed to diy-analyze. Writes design.yaml only at initial generation: if it already exists, refuse to overwrite and route to diy-design.'
+# ↑ 中文：把**外部**目标（公开网站 / 截图）逆向成一份**初始 `design.yaml`**（设计单一源：方向 / 框架 / token 三段 / 逐页规格与四态）与逐页结构稿。**入口技能**——门禁 = 目标形态合法且（截图轨）路径在场可读（真实可达性由会话确认）；自有代码库改调 `diy-analyze`。**只在初始生成时写 `design.yaml`**：已存在则拒绝覆盖并路由 `diy-design`。
 phase: anytime
 precededBy: []
 followedBy: []
@@ -24,7 +24,7 @@ outputs: design.yaml
 2. 续接检测：跑 `list` 看页面清单——**只回 `id` / `name` / `route` / `states` / `prototype` / `status` 六字段，不读正文**：
    `python "{project-root}/.claude/skills/diy-reverse/scripts/reverse.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
    有记录 → **禁止重跑**：`design.yaml` 在场即已是别人的演进面，转第 3 步的写权分支；无记录 → 进第 3 步。
-3. 门禁（零产出退出）：**外部目标可访问**——两轨（裁定 11：源侧 Internal 模式已裁）：**`url` 轨** = 一个 http(s) 公开目标；**`screenshots` 轨** = 已提供的截图文件（可读）。不可访问 / 截图不在场 → 一行说明并**零产出停止**；**目标是你自己的代码库 → 路由 `diy-analyze`**（`init` 会把门机械兜住：`TARGET_UNREACHABLE`）。
+3. 门禁（零产出退出）：**目标形态合法且（截图轨）路径在场可读**——两轨（裁定 11：源侧 Internal 模式已裁）：**`url` 轨** = 一个 http(s) 公开目标（引擎只核形态）；**`screenshots` 轨** = 已提供的截图文件（在场可读）。**真实可达性由会话在侦察前确认，失败即停手**（打开一次 / 读一次图）——形态非法 / 路径不在场 → 一行说明并**零产出停止**；**目标是你自己的代码库 → 路由 `diy-analyze`**（`init` 会把门机械兜住：`TARGET_UNREACHABLE`）。
 4. **写权边界**：`{output_dir}/design.yaml` **只在初始生成时写**（`init` 铸骨架）。已存在 → `init` 判 `OVERWRITE_REFUSED` 且**零写入**：把差异整理成 `revisions` **建议**在会话里呈出，**路由 `diy-design`**（生成权归本技能、演进权归 `diy-design` / `diy-dev`）。
 5. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
 6. 读 `steps/01-define.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
@@ -73,10 +73,10 @@ revisions: []              # {date, change, reason}
 4. **写权边界（裁定 13）**：`design.yaml` 的初始生成权归本技能、演进权归 `diy-design` / `diy-dev`。已存在即**不覆盖**——`revisions` 建议 + 路由 `diy-design`；本技能**不改** `design.py`、不扩 schema。
 5. **ID 形态**：页 ID 沿用既有 schema 的 `P-<n>`（**不得用 WDS 线的记录 ID 形态**），顺序铸号、不重编不复用；结构稿名与 `id` 同源（引擎核 `SET_MISMATCH`）。
 6. **「不抄像素」判据（复用 `one-off-*` 口径）**：候选值先过 `reverse.py tokens --values …`——**同一值出现 ≥2 次才可作 token，单次值一律不收**（它与 `design.py audit` 的 `one-off-color` / `one-off-font-size` 同判据）。**计数可机械、分组与命名是人工判定**；`status: 待核实` 的推断不写成事实。
-7. **终门（机械）**：先落 `project.status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-reverse/scripts/reverse.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`。随后**交叉核对一次既有设计域引擎**（schema 与易用性权威，只读）：`design.py validate` 与 `design.py check` 都必须 `exit 0`；两者不一致时以它为准修产物。渲染与收尾都等 `exit 0`。
+7. **终门（机械）**：先落 `project.status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-reverse/scripts/reverse.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`。随后**交叉核对一次既有设计域引擎**（schema 与易用性权威，只读）：`design.py validate` 与 `design.py check` 都必须 `exit 0`；两者不一致时以它为准修产物。渲染与收尾都等 `exit 0`。**本技能产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
 8. **违规码**：复用冻结集（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `DUPLICATE_ID` / `UNKNOWN_ID` / `SET_MISMATCH` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT`）+ **本技能新增两码**（`init` 的门与写权边界，docstring 已标注）：`TARGET_UNREACHABLE`（外部目标不可访问）、`OVERWRITE_REFUSED`（既有 `design.yaml` 拒绝覆盖）。warning 码 `ONE_OFF_VALUE`（单次值）不属违规集。
 9. **无 `--previous` 轮**：本产物是**初始生成 + 只增**，无 ID 集合收缩面；改既有内容往 `revisions` 追加（date / change / reason）。副作用面：读外部目标属**只读外访**（联网不可用即中止，不排队不阻塞）；除 `design.yaml` / `prototypes/` 与静默渲染外无任何写面。
-10. **边界（对方侧随 C·3 补）**：vs `diy-analyze`——它扫**你自己的**代码库产 `analysis.yaml`（现状事实），本技能扫**外部**目标产设计契约；自有代码库路由它。vs `diy-design`——**生成权与演进权分离**（规则 4）。vs `diy-openapi` / `diy-project-context`——同属「既有物 → 体系产物」的入口先例，但产物域不同（接口契约 / AI 语境档）。vs `diy-wds-system`——组件编目与 token→组件映射**不在本产物**（schema 无 `components[]`），会话内呈出后由它承接。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
+10. **边界（对方侧随 C·3 补；本技能是 anytime 独立入口——技能本身不进主链 CHAIN，但产物 `design.yaml` 是主线设计单一源，被下游门禁与 `design_ref` 引用）**：vs `diy-analyze`——它扫**你自己的**代码库产 `analysis.yaml`（现状事实），本技能扫**外部**目标产设计契约；自有代码库路由它。vs `diy-design`——**生成权与演进权分离**（规则 4）。vs `diy-openapi` / `diy-project-context`——同属「既有物 → 体系产物」的入口先例，但产物域不同（接口契约 / AI 语境档）。vs `diy-wds-system`——组件编目与 token→组件映射**不在本产物**（schema 无 `components[]`），会话内呈出后由它承接。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

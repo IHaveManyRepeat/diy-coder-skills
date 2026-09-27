@@ -30,15 +30,15 @@ Progress: `[1 载受众与战略] → [2 盘点与选配方] → [3 视觉语言
 
 **先问清**：「这份东西要什么形态？」——**7 个配方就是 7 种交付物形态**，选配方 = 定形态。读 `data/presentation-formats/` 目录，按名列出 7 张卡让用户挑**一张**（一张卡 = 一个 `recipe`）：
 
-| `recipe` | 配方卡 | 交付物形态 |
-| --- | --- | --- |
-| `SD` | `data/presentation-formats/sd-slides.md` | 多页幻灯片（专业版式 + 视觉层级） |
-| `EX` | `data/presentation-formats/ex-explainer.md` | 视频解说版式（视觉脚本 + 留人钩子） |
-| `PD` | `data/presentation-formats/pd-pitch.md` | 投资人路演（数据可视化 + 叙事弧） |
-| `CT` | `data/presentation-formats/ct-talk.md` | 大会演讲 / 工作坊（演讲者备注） |
-| `IN` | `data/presentation-formats/in-infographic.md` | 信息可视化（视觉叙事） |
-| `VM` | `data/presentation-formats/vm-concept-illustration.md` | 概念插画（鲁布·戈德堡 / 旅程地图 / 创意流程） |
-| `CV` | `data/presentation-formats/cv-concept-visual.md` | 单张概念图（3 秒可懂） |
+| `recipe` | 卡 | 交付物形态 | 尺寸基准 | 评审侧重（8 原则里的哪几条） |
+| --- | --- | --- | --- | --- |
+| `SD` | `data/presentation-formats/sd-slides.md` | 多页幻灯片 | 16:9 | 视觉层级 / 3 秒规则 / 每帧有职责 |
+| `EX` | `data/presentation-formats/ex-explainer.md` | 视频解说版式 | 16:9 或 9:16 | 故事结构（钩子节拍） |
+| `PD` | `data/presentation-formats/pd-pitch.md` | 投资人路演 | 16:9 / A4 横 | 故事结构（四拍叙事弧） |
+| `CT` | `data/presentation-formats/ct-talk.md` | 大会演讲 / 工作坊 | 16:9 | 清晰优先（大字号少字）+ `notes` 逐页 |
+| `IN` | `data/presentation-formats/in-infographic.md` | 信息可视化 | 1:1 / 1:3 / 16:9 | 每帧有职责（无冗余像素） |
+| `VM` | `data/presentation-formats/vm-concept-illustration.md` | 概念插画 | 16:9 / 1:1 / 1:4 | 3 秒规则 + 留白 |
+| `CV` | `data/presentation-formats/cv-concept-visual.md` | 单张概念图 | 1:1 / 16:9 / 4:5 | 3 秒规则 + 单一焦点 |
 
 **按配方盘点**（源侧口径的落地）：`SD`/`PD`/`CT` 按**页/帧**盘——写出每一帧要干什么；`EX` 按**拍**盘（0s / 3s / 每 15–30s 一个钩子）；`IN`/`VM`/`CV` 按**张**盘（一张 = 一件）。
 
@@ -71,11 +71,11 @@ Progress: `[1 载受众与战略] → [2 盘点与选配方] → [3 视觉语言
 
 **逐帧落四件**（`frames[]` 的四个键，**这是共享骨架的产物形态**）：`n`（帧号）｜ `job`（**这一帧干什么**——inform / persuade / transition，源原则 4：**没有职责的帧就剪掉**）｜ `headline`（这一帧的那句话——**一句话，不是一段**）｜ `notes`（演讲者备注 / 画面说明 / 数据来源——`CT` 必填、其余按需）。
 
-**逐帧拼提示词**（`presentation[].prompt` 或按帧分条进 `activities[AS-08].items[]`）：配方卡的 `Prompt Recipe`（**源配方全文逐字保留英文**，见配方卡的 `## Prompt Recipe` 段）→ 受众与场合 → 帧结构与每帧职责 → 视觉语言关键词（所选 design-styles 卡的 `Prompt Keywords`）→ 画幅比（配方卡 `Aspect`）→ 密度上限（配方卡 `Density`）→ 输出形态（**HTML 优先**；几张静态图时出 HTML 拼版）。
+**逐帧拼提示词**（`presentation[].prompt` 或按帧分条进 `activities[AS-08].items[]`；**导出必须在 `activities[AS-08].items[]` 落同号条目**——`prompts[].id` 只认 `items[].id`，`presentation[].prompt` 只是呈出副本，缺条目终门判 `SET_MISMATCH`）：配方卡的 `Prompt Recipe`（**源配方全文逐字保留英文**，见配方卡的 `## Prompt Recipe` 段）→ 受众与场合 → 帧结构与每帧职责 → 视觉语言关键词（所选 design-styles 卡的 `Prompt Keywords`）→ 画幅比（配方卡 `Aspect`）→ 密度上限（配方卡 `Density`）→ 输出形态（**HTML 优先**；几张静态图时出 HTML 拼版）。
 
-**`SD` 配方的改机制**（裁定 7）：**保「一帧 = 一页 + 3 秒规则」**，**弃 Excalidraw 帧文件格式**——diy 侧产物是 YAML / HTML，不是 `.excalidraw`。
+**`SD` 配方的改机制**（裁定 7）：**保「一帧 = 一页 + 3 秒规则」**，**弃 Excalidraw 帧文件格式**——diy 侧产物是 YAML / HTML，不是 `.excalidraw`；配方卡 `Prompt Recipe` 里 Excalidraw 那句**逐字保留**（源配方全文不动），**生成物请要求 HTML / 图片，忽略 Excalidraw 文件格式那一句**。
 
-**产出键**：`frames[]`（四键齐）+ `presentation[].prompt` / `items[].prompt`；`prompts[]` 追加（`file: assets/presentation/prompts/<name>.md`）。
+**产出键**：`frames[]`（四键齐）+ `presentation[].prompt` / `items[].prompt`（**导出要在 `activities[AS-08].items[]` 落同号条目**，`prompts[].id` 与 `items[].id` 必须同号）；`prompts[]` 追加（`file: assets/presentation/prompts/<name>.md`）。
 
 **检查点（六拍）**：① 生成逐帧表与提示词 → ② 落盘 `frames[]` / `prompt` / `prompts[]` → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 

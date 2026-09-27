@@ -20,7 +20,11 @@ from pathlib import Path
 import yaml
 
 BADGE_KEYS = {"status", "priority", "state"}
-ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "technique", "gate", "class", "subclass", "source", "augment", "severity"}
+ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "technique", "gate", "class", "subclass", "source", "augment", "severity",
+                          # trace: C·11 W3（§5.1）——B7b 五产物的枚举键补入（12 行 / 11 distinct：
+                          # scope 在 wds-assets 与 wds-evolution 两产物重复登记）。值域见各 SKILL.md 结构节
+                          "design_system_mode", "complexity", "category", "mode", "code",
+                          "scope", "stage", "recipe", "format", "prompt_lang", "entry"}
 # 自由文本字段 (doc, key)：schema 无枚举约束——同名 key 在别的产物可以是枚举。
 # 依据：diy-architecture SKILL.md:43 decision=what was chosen；diy-review SKILL.md:31 type=short tag；
 # diy-design SKILL.md:65 route=/path
@@ -31,7 +35,24 @@ FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design"
                     ("brief", "decision"), ("readiness", "route"),
                     ("change-proposal", "route"), ("test-review", "route"),
                     # test-gate 的 source 含日期（「用户会话 2026-09-21」）——无法静态登记白名单
-                    ("test-gate", "source")}
+                    ("test-gate", "source"),
+                    # trace: C·11 W3（§5.1 连带）——新入 ENUM_KEYS 的键在别处装非枚举内容，
+                    # 不登记就会把诊断打到那些产物上（同键异义，逐条给出产物出处）：
+                    # scope：analysis 的范围边界、augment 的采样实现面、evolution 的本轮增量口径、
+                    # readiness 的实点到文档清单（列表值）、research 的范围与方法学
+                    ("analysis", "scope"), ("mutation-report", "scope"),
+                    ("wds-evolution", "scope"), ("readiness", "scope"), ("research", "scope"),
+                    # stage：prfaq 的 1..5 数字锚点、wds-brief / wds-trigger 各自一套中文锚点
+                    ("prfaq", "stage"), ("wds-brief", "stage"), ("wds-trigger", "stage"),
+                    # code：diyc-baseline 的违规码是冻结集文本，与 wds-assets 的活动码不同义
+                    ("diyc-baseline", "code"),
+                    # entry：wds-scenarios 的 entry 是 Q6 的自由文本答案（wds-trigger 的两值
+                    # 与 wds-evolution 的存量接入|上线后持续走值表）
+                    ("wds-scenarios", "entry"),
+                    # type：wds-design-system 的 prefixes[].type 装的是 26 个组件类型名
+                    # （Button…Spacer），全局 type=类型 在此不是枚举——不登记则每次渲染刷 26 行
+                    # 诊断（R-02），且其中一个类型名恰与 6 分类值同名（Form）会被误标成「表单」
+                    ("wds-design-system", "type")}
 BADGE_CLASSES = {
     "已定稿": "ok", "已完成": "ok", "通过": "ok", "必须": "must",
     "已采纳": "ok",
@@ -234,6 +255,32 @@ KEY_LABELS = {
     "timeline_impact": "时间线影响", "tree": "目录树", "url": "网址", "value": "价值要点", "value_props": "价值主张",
     "verification": "验证记录", "verify": "完成判据", "watch": "观测结果", "who": "用户角色",
     "why_separate": "分离理由", "wins": "亮点", "would_resolve": "解开条件",
+    # trace: C·11 W3（§5.1）——B7b 批产物键补齐（59 条，机械重数见回报：登记源并集 − 假阳性
+    # in/out + 实测补漏 related/pr）。键取自各产物 YAML 实测（骨架 + 富内容）+ 各 SKILL.md
+    # 结构节；同键异义者不在此表（走 DOC_KEY_LABELS）
+    # wds-design-system：11 段组件模板 + 前缀表 / 分类表 / 令牌命名空间
+    "accessibility": "无障碍", "animations": "动效", "aria": "ARIA 标注", "behavior": "行为",
+    "best_practices": "最佳实践", "categories": "分类表", "complexity": "复杂度",
+    "design_system_mode": "设计系统开关", "interactions": "交互", "keyboard": "键盘操作",
+    "layout": "布局", "library_component": "库组件", "namespaces": "令牌命名空间",
+    "prefix": "前缀", "prefixes": "前缀表", "related": "关联组件", "screen_reader": "屏幕阅读器",
+    "styling": "样式", "token_refs": "令牌引用", "usage": "用法", "used_in": "使用页面",
+    "variants": "变体", "version": "版本", "visual_properties": "视觉属性",
+    "when_not_to_use": "不适用场景", "when_to_use": "适用场景",
+    # wds-assets：活动清单 / 资产引用 / 提示词索引 / 演示配方（`design` 与 wds-evolution 共用）
+    "activities": "活动清单", "assets": "资产清单", "design": "设计", "format": "格式",
+    "format_card": "配方卡", "frames": "帧清单", "job": "帧职责", "n": "序号",
+    "presentation": "演示配方", "principles": "原则清单", "prompts": "提示词索引",
+    "recipe": "配方", "style": "风格参数", "prompt_lang": "提示词语言",
+    # wds-evolution：Kaizen 六相段 + 候选清单 + 优先级公式（`test`/`scope` 已有全局标签，
+    # 不改：它们是跨产物共用键）
+    "analysis": "分析", "candidates": "候选清单", "criteria": "判据清单", "delivery": "交付",
+    "entry": "入口", "formula": "优先级公式", "implement": "实现",
+    "kaizen_priority": "Kaizen 优先级", "learning": "学习因子", "pr": "变更请求",
+    # analysis：question 四字段 + architecture 段 + 组件位置
+    "codebase": "代码库路径", "data_flow": "数据流", "layers": "分层", "location": "位置",
+    "mermaid": "Mermaid 图", "output_format": "输出形态", "overview": "总览",
+    "tech_stack": "技术栈", "time_box": "时间盒",
 }
 # 值标签（词表正典来源）：机器层中文化后键=中文值、值=展示标签，多数同名。
 VALUE_LABELS = {
@@ -326,6 +373,48 @@ VALUE_LABELS = {
     # 校验，属机器锚点不可改），展示层给白话译名；判据见 steps/02-analyze.md:29-34
     "CUT": "整段删除", "MERGE": "合并章节", "MOVE": "调整位置",
     "CONDENSE": "显著压缩", "QUESTION": "待作者拍板", "PRESERVE": "显式保留",
+    # trace: C·11 W3（§5.1）——B7b 五产物的值级缺口（此前这些值全部回落纯文本 + 刷
+    # `unmapped enum` 诊断）。采集口径同 R3：逐条取自各引擎的值域常量，不另造词；
+    # 英文机器锚点（值在 YAML 里逐字保留）给展示层译名，中文值取同名标签
+    # wds-design-system：组件终态 / 复杂度（与 wds-brief 并集）/ 6 分类 / 令牌派生模式 / 开关键
+    "在用": "在用", "已废弃": "已废弃",
+    "simple": "简单", "moderate": "中等", "complex": "复杂",
+    "standard": "标准", "complex+mobile": "复杂+移动端",
+    "Interactive": "交互", "Form": "表单", "Layout": "布局",
+    "Content": "内容", "Feedback": "反馈", "Navigation": "导航",
+    # on/off 另收 YAML 1.1 的布尔形态：`design_system_mode: on` 不加引号会被解析成 True
+    # （引擎落盘时加了引号，但该产物允许会话直接编辑，故两形态都要认）
+    "派生": "派生", "独立": "独立", "on": "开", "off": "关", "true": "开", "false": "关",
+    # wds-evolution：轮次状态（分析/范围内已覆盖，补余下 5 值）/ 双轨入口 / test 判据结论
+    "分析": "分析", "设计": "设计", "实现": "实现", "验证": "验证", "已交付": "已交付",
+    "存量接入": "存量接入", "上线后持续": "上线后持续", "未通过": "未通过",
+    # wds-assets：活动状态 / 提示词结论 / 续接锚点 / 选择范围 / 资产形态与提示词语言
+    "已评审": "已评审", "重生": "重生",
+    "线框": "线框", "页面稿": "页面稿", "UI件": "UI件", "图片": "图片", "文案": "文案",
+    "演示": "演示", "收尾": "收尾",
+    "all": "全部", "select": "选定", "missing": "缺失项", "priority": "按优先级",
+    "category": "按类别", "type": "按类型", "story": "故事", "batch": "批量",
+    "SD": "SD", "EX": "EX", "PD": "PD", "CT": "CT", "IN": "IN", "VM": "VM", "CV": "CV",
+    "html": "html", "svg": "svg", "css": "css", "json": "json", "md": "md", "png": "png",
+    # trace: 收口后裁定（2026-09-27，V-C M2）——AS-08 配方卡名 7 值（`style.format` 值域；
+    # 标签取 `data/presentation-formats/*.md` 的 H1 核心词）。值表全局唯一，同值异义由键标签承担
+    "sd-slides": "多页幻灯片", "ex-explainer": "视频解说版式", "pd-pitch": "投资人路演",
+    "ct-talk": "大会演讲", "in-infographic": "信息可视化",
+    "vm-concept-illustration": "概念插画", "cv-concept-visual": "单张概念图",
+    "en": "英文", "zh": "中文",
+    # 单字母码（wds-assets 活动码 W/P/U/I/M/V/C/S · wds-trigger 参与模式 W/S/D）：
+    # 值表全局按值唯一，同一字母在两处语义不同（W=线框 vs W=工作坊）→ 取同名标签
+    # （机器锚点逐字保留），语义由键标签（活动码 / 模式）承担
+    "W": "W", "S": "S", "D": "D", "P": "P", "U": "U", "I": "I", "M": "M", "V": "V", "C": "C",
+    # wds-trigger：参与模式降级码（文案逐字取自 SKILL.md 规则 3）/ 入口两值
+    "CI": "CI", "工作坊": "工作坊", "既有产物": "既有产物",
+    # analysis：分层（引擎 LAYERS 五值）/ 组件取证状态 / 外部依赖类型
+    "展示层": "展示层", "应用层": "应用层", "领域层": "领域层", "基础设施层": "基础设施层",
+    "未分层": "未分层", "已核实": "已核实", "待核实": "待核实", "外部库": "外部库",
+    # brainstorm：技术库的 10 个中文类名（techniques[].category 取值随库，库未变则值不变）
+    "仿生": "仿生", "内省之乐": "内省之乐", "创意": "创意", "协作": "协作",
+    "戏剧化": "戏剧化", "文化": "文化", "深度分析": "深度分析", "狂野": "狂野",
+    "结构化": "结构化", "量子": "量子",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
@@ -347,6 +436,11 @@ DOC_LABELS = {
     "spec-kernel": "SPEC 内核", "editorial-review": "文稿双透镜评审",
     "module-plan": "技能批次计划", "diyc-baseline": "工具基线快照",
     "mutation-report": "变异测试报告",
+    # trace: C·11 W3（§5.1）——B7b 五产物逐个核对后实缺的 4 类（design 已在本文档上方）。
+    # 命名逐字取自各 SKILL.md 的中文自述（设计系统段 / 资产工厂 / 棕地增量·Kaizen 迭代 /
+    # 单问架构分析），不另造词
+    "wds-design-system": "设计系统", "wds-assets": "资产工厂",
+    "wds-evolution": "Kaizen 迭代", "analysis": "单问架构分析",
 }
 # 文档级标签覆盖（B1）：同一 key 在不同文档语义不同——bug-log 的 type 是缺陷三级分类，
 # 其余文档（test-plan/openapi 等）回落全局 type=类型
@@ -421,6 +515,9 @@ DOC_KEY_LABELS = {
     # 全局 critical=致命（NFR「非功能致命」语境），此处是**关键路径**变异体的分列统计
     # {killed, total, score}——渲染成「致命」会把关键路径可见性读成严重度分级
     "mutation-report": {"task": "任务", "total": "变异体总数", "critical": "关键路径"},
+    # wds-assets：全局 code=违规码（diyc-baseline 的豁免台账）在这里是活动的字母码
+    # （W/P/U/I/M/V/C/S）——全局键不动，只覆盖本文档
+    "wds-assets": {"code": "活动码"},
 }
 # 术语表（展示层，FR-4.1 可读性）：标签/徽章/标题命中即挂悬浮解释，YAML 单一源不动。
 # key = 渲染后的展示文本（已 esc，纯中文无 HTML 字符，查找安全）。
@@ -526,6 +623,11 @@ ID_RE = re.compile(r"\b[A-Z]{1,4}-\d+(?:\.\d+)*\b")
 ID_FULL_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
 # trace: S-15 AC-15.1 design_ref（AC 绑定 design.yaml 页面引用）入引用链，悬空即标红
 REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr", "design_ref"}
+# 资产路径字段（doc, key）：diy-wds-assets 的 assets[].path 是 **output_dir 相对**路径
+# （引擎核 `path.startswith("assets/<活动>/")`），渲染成相对链接（裁定 11/12）。
+# 同键 path 在 openapi 是 API 路由（/users）、在 spec-scan 是扫描目标——一律不从全局映射
+ASSET_PATH_FIELDS = {("wds-assets", "path")}
+ASSET_PATH_RE = re.compile(r"^assets/[A-Za-z0-9][A-Za-z0-9._/-]*$")
 # 过程性字段默认折叠（FR-4.1 可读性，D-10 后白话化纪律）：结论常驻、过程按需展开。
 # revisions 依「修订历史留痕」裁定（迁移计划 §已定补充，2026-09-13 用户拍板）：
 # 「viewer 渲染为默认折叠的修订历史卡片（沿用 detail 折叠做法）」
@@ -543,6 +645,9 @@ ORPHAN_IDS: set = set()
 # 当前渲染文档名（B1 文档级标签覆盖的查表上下文）；模板按节点归属文档逐条切换
 _RENDER_DOC = ""
 _UNMAPPED_SEEN: set = set()
+# 资产相对链接前缀（裁定 11）：页面落在 {output_dir}/<view_dir>/，故默认视图目录（一层）即
+# `../`；main 按 view_dir 实际深度覆盖，view_dir 为空（页面与产物同目录）时为 ``
+_ASSET_REL_PREFIX = "../"
 
 
 def _diag_unmapped(value) -> None:
@@ -670,7 +775,7 @@ def render_compact_kv(d: dict) -> str:
     """紧凑 kv 表（字段竖排）：详情面板内的条目渲染。"""
     rows = "".join(
         f'<tr><th>{gloss(esc(key_label(k)))}</th>'
-        f'<td>{badge(k, v) if is_enum_key(k) else cell(v)}</td></tr>'
+        f'<td>{value_html(k, v)}</td></tr>'
         for k, v in d.items()
     )
     return f'<table class="kv compact"><tbody>{rows}</tbody></table>'
@@ -847,6 +952,27 @@ def cell(v) -> str:
     return linkify(text).replace("\n", "<br>")
 
 
+def is_asset_path(k: str) -> bool:
+    # trace: C·11 W3（§5.2）——资产路径按 (文档, 键) 定位，不做全局映射
+    return (_RENDER_DOC, k) in ASSET_PATH_FIELDS
+
+
+def asset_link(v) -> str:
+    """资产路径 → 相对链接（裁定 11：`../` + output_dir 相对路径）。
+    只在值确为 `assets/` 下的相对路径时出链接：绝对路径、越级路径与自由文本一律回落纯文本。"""
+    s = str(v).strip()
+    if ASSET_PATH_RE.match(s) and ".." not in s:
+        return f'<a class="asset" href="{esc(_ASSET_REL_PREFIX + s)}">{esc(s)}</a>'
+    return cell(v)
+
+
+def value_html(k: str, v) -> str:
+    """标量值渲染：资产路径 → 相对链接；枚举键 → 徽章；其余回落 cell() 纯文本。"""
+    if is_asset_path(k):
+        return asset_link(v)
+    return badge(k, v) if is_enum_key(k) else cell(v)
+
+
 def badge(key: str, v) -> str:
     # trace: B3 值感知——值不在词汇表（决策自由文本/route URL 等）→ 回落 cell() 纯文本；
     # None 与非标量同样回落 cell()（「—」/降级），不再输出字面 None
@@ -872,7 +998,7 @@ def render_table(items: list, with_row_ids: bool = True) -> str:
         tds = []
         for h in headers:
             v = item.get(h)
-            tds.append(f"<td>{badge(h, v) if is_enum_key(h) else cell(v)}</td>")
+            tds.append(f"<td>{value_html(h, v)}</td>")
         rid = item.get("id") if with_row_ids else None
         anchor = f' id="{esc(rid)}"' if isinstance(rid, str) and rid else ""
         # trace: S-12 AC-12.2 TC-12.2.1 孤儿 must FR：行标红 + 徽章提示
@@ -889,7 +1015,7 @@ def render_dict_fields(d: dict) -> str:
     def field(k, v):
         if k in REF_KEYS and is_id_string(v):
             return ref_cell(str(v))
-        return badge(k, v) if is_enum_key(k) else cell(v)
+        return value_html(k, v)
 
     rows = "".join(
         f'<tr><th>{gloss(esc(key_label(k)))}</th><td>{field(k, v)}</td></tr>'
@@ -970,6 +1096,8 @@ def _render_value_raw(key: str, v, depth: int) -> str:
         return title + "<ul>" + "".join(lis) + "</ul>"
     if key in REF_KEYS and is_id_string(v):
         return title + ref_cell(v)
+    if is_asset_path(key):
+        return title + f"<p>{asset_link(v)}</p>"
     return title + (badge(key, v) if is_enum_key(key) else f"<p>{cell(v)}</p>")
 
 
@@ -1005,8 +1133,9 @@ color:var(--dim);font-size:.85em;margin-left:6px}
 .dangling{color:var(--bad);font-weight:600}
 .alert-bad{background:#fef2f2;border-color:#f3c1c1;color:var(--bad)}
 tr.orphan td{background:#fef2f2}
-.idl{color:var(--accent);text-decoration:underline dotted;text-underline-offset:3px}
+.idl,.asset{color:var(--accent);text-decoration:underline dotted;text-underline-offset:3px}
 .idl:hover{background:#eef2f7;border-radius:3px}
+.asset:hover{background:#eef2f7;border-radius:3px}
 .reflist{list-style:none;padding-left:0;margin:4px 0}
 .reflist>li{margin:6px 0}
 main{transition:margin-right .25s ease}
@@ -1422,6 +1551,17 @@ def main() -> int:
 
     # ID 链接索引与跨文档导航必须基于全量文档构建，即使本次只渲染子集。
     all_docs, errors = load_docs(sorted(out_dir.glob("*.yaml")))
+    # trace: C·11 W3（§5.2 诊断档 / 裁定 12）——`assets/<活动>/` 下的产物渲染不到（viewer 只扫
+    # 顶层 *.yaml，非递归是防同名互覆的既定口径）→ 有内容就给一行诊断，让「有东西没渲染」可见。
+    # 只报不改：渲染成功仍 rc=0
+    assets_dir = out_dir / "assets"
+    try:
+        has_assets = assets_dir.is_dir() and any(p.is_file() for p in assets_dir.rglob("*"))
+    except OSError:
+        has_assets = False
+    if has_assets:
+        print(f"[diy-viewer] note: {assets_dir} 下有未渲染的资产（viewer 只渲染 output_dir "
+              f"顶层的 YAML）—— 页面里的资产链接可直接点开查看", file=sys.stderr)
     docs = all_docs
     if args.files:
         docs, all_docs = select_explicit_docs(all_docs, args.files, out_dir, errors)
@@ -1434,6 +1574,11 @@ def main() -> int:
 
     view_dir = out_dir / cfg["view_dir"]
     view_dir.mkdir(parents=True, exist_ok=True)
+    # trace: C·11 W3（§5.2 链接档 / 裁定 11）——资产相对链接前缀 = 页面所在目录 → output_dir；
+    # 默认 view_dir=`.view`（一层）即 `../`，配置成多级目录时按级数补足（否则链接打不开）
+    global _ASSET_REL_PREFIX
+    view_depth = [p for p in Path(cfg["view_dir"]).parts if p not in (".", "")]
+    _ASSET_REL_PREFIX = "../" * len(view_depth)
 
     written = []
     build_id_index(all_docs)

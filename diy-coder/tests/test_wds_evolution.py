@@ -212,6 +212,20 @@ class GateTests(Base):
                     self.assertEqual(rc, 0, rec)
                     self.assertTrue(os.path.exists(os.path.join(out, PRODUCT)))
 
+    def test_gate_accepts_yml_extension_too(self):
+        """VA-09：`.yml` 与 `.yaml` 同态放行（门禁面向任意上游产物，不假设扩展名）。"""
+        for name in ("design.yml", "sprint.yml", "wds-scenarios.yml"):
+            with self.subTest(name=name):
+                with tempfile.TemporaryDirectory() as tmp:
+                    out = os.path.join(tmp, "diy-output")
+                    os.makedirs(out)
+                    self.write_artifact_at(out, name)
+                    rc, rec, _, _ = run_cli(
+                        "init", "--entry", "存量接入", "--target", "目标甲",
+                        "--project-root", tmp, "--output-dir", out, "--json")
+                    self.assertEqual(rc, 0, rec)
+                    self.assertTrue(os.path.exists(os.path.join(out, PRODUCT)))
+
     def write_artifact_at(self, out, name):
         with open(os.path.join(out, name), "w", encoding="utf-8") as fh:
             yaml.safe_dump({"project": {"name": "x"}}, fh, allow_unicode=True)
@@ -219,6 +233,13 @@ class GateTests(Base):
     def test_own_product_does_not_satisfy_gate(self):
         """本技能自己的产物不算「既有产物」——否则真门禁会被自己的产物绕开。"""
         self.write_artifact(PRODUCT, {"project": {"name": "x"}})
+        rc, rec, _, _ = self.init_ok()
+        self.assertEqual(rc, 1)
+        self.assertEqual(rec["violations"][0]["code"], "MISSING_FILE")
+
+    def test_own_product_yml_spelling_also_does_not_satisfy_gate(self):
+        """VA-09 连带（C·11 E3）：`.yml` 拼写的自产物同样不算门禁上游。"""
+        self.write_artifact("wds-evolution.yml", {"project": {"name": "x"}})
         rc, rec, _, _ = self.init_ok()
         self.assertEqual(rc, 1)
         self.assertEqual(rec["violations"][0]["code"], "MISSING_FILE")

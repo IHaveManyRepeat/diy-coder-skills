@@ -44,6 +44,8 @@ import yaml
 # —— 冻结常量 ——
 
 PRODUCT = "wds-evolution.yaml"
+# VA-09（.yml 扩面）连带（C·11 V-A E3）：自产物的两种拼写都不算门禁上游
+PRODUCT_STEM = PRODUCT.rsplit(".", 1)[0]
 ROUND_RE = re.compile(r"^EV-(\d{2})$")
 ROUND_STATUS = ("草稿", "分析", "范围", "设计", "实现", "验证", "已交付")
 ENTRIES = ("存量接入", "上线后持续")
@@ -59,8 +61,8 @@ CRITERION_VERDICTS = ("通过", "未通过")
 CRITERION_KINDS = ("HP", "REG", "EC", "A11Y")
 STATUS_VALUES = ("草稿", "已定稿")
 
-# 入口门禁的扫描面：既有产物任一在场即放行（本技能自己的产物不算）
-GATE_FILES = ("design.yaml", "sprint.yaml")
+# 入口门禁的扫描面：既有产物任一在场即放行（本技能自己的产物不算；`.yml` 与 `.yaml` 同态）
+GATE_FILES = ("design.yaml", "design.yml", "sprint.yaml", "sprint.yml")
 GATE_GLOB_PREFIX = "wds-"
 
 
@@ -159,7 +161,9 @@ def gate_present(output_dir):
         if os.path.exists(os.path.join(output_dir, name)):
             hits.append(name)
     for name in sorted(os.listdir(output_dir)):
-        if name.startswith(GATE_GLOB_PREFIX) and name.endswith(".yaml") and name != PRODUCT:
+        if (name.startswith(GATE_GLOB_PREFIX)
+                and name.endswith((".yaml", ".yml"))
+                and name.rsplit(".", 1)[0] != PRODUCT_STEM):
             hits.append(name)
     return hits
 

@@ -374,6 +374,32 @@ class TestCheck(Base):
         rc, out, _ = run("check", *self.base_args(), "--json")
         self.assertEqual(rc, 0, out)
 
+    def test_check_warns_on_orphan_tokens_without_blocking(self):
+        """E1：反向扫零引用令牌 → warning（不阻断，rc 保持 0）。"""
+        self.seed_scenarios()
+        self.init_ok()
+        rc, out, _ = run("check", *self.base_args(), "--json")
+        self.assertEqual(rc, 0, out)
+        orphans = [w for w in receipt(out)["warnings"] if w["code"] == "SET_MISMATCH"]
+        self.assertTrue(orphans)
+        self.assertTrue(all("tokens.namespaces." in w["where"] for w in orphans))
+
+    def test_check_orphan_scan_excludes_referenced_names(self):
+        """E1：被 `token_refs[]` 引用的名字不进孤儿清单。"""
+        self.seed_scenarios()
+        self.init_ok()
+        doc = self.load()
+        doc["components"][0]["token_refs"] = ["color.bg"]
+        self.save(doc)
+        rc, out, _ = run("check", *self.base_args(), "--json")
+        self.assertEqual(rc, 0, out)
+        color = [w for w in receipt(out)["warnings"]
+                 if w["code"] == "SET_MISMATCH"
+                 and w["where"].endswith("tokens.namespaces.color")]
+        self.assertEqual(len(color), 1)
+        self.assertIn("零引用的名字 5 个", color[0]["msg"])
+        self.assertNotIn("bg", color[0]["msg"].split("：", 1)[1])
+
     def test_final_requires_finalized_status(self):
         self.seed_scenarios()
         self.init_ok()
@@ -401,6 +427,19 @@ class TestCheck(Base):
         rec = self.full_component()
         rec.pop("accessibility")
         doc["components"][0] = rec
+        doc["project"]["status"] = "已定稿"
+        self.save(doc)
+        rc, out, _ = run("check", "--final", *self.base_args(), "--json")
+        self.assertEqual(rc, 1)
+        self.assertIn("EMPTY_FIELD", [v["code"] for v in receipt(out)["violations"]])
+
+    def test_final_rejects_empty_variants(self):
+        """VA-03a：`variants[]` 至少 1 条（`--final`）——改前空列表 rc=0（假机械核）。"""
+        self.seed_scenarios()
+        self.seed_design()
+        self.init_ok()
+        doc = self.load()
+        doc["components"][0] = self.full_component(variants=[])
         doc["project"]["status"] = "已定稿"
         self.save(doc)
         rc, out, _ = run("check", "--final", *self.base_args(), "--json")
@@ -513,6 +552,19 @@ class TestTokenDerivation(Base):
         self.save(doc)
         rc, out, _ = run("check", *self.base_args(), "--json")
         self.assertEqual(rc, 0, out)
+
+    def test_spacing_step_beyond_design_scale_is_unresolved(self):
+        """VA-04：spacing 的值按 `step` 下标解析——scale 档数不足即解析不到。"""
+        self.seed_scenarios()
+        self.seed_design(spacing_scale=[4, 6, 8, 12])          # 只 4 档（step 上限 3）
+        self.init_ok()
+        doc = self.load()
+        doc["components"][0] = self.full_component(token_refs=["spacing.space-3xl"])  # step 8
+        doc["project"]["status"] = "已定稿"
+        self.save(doc)
+        rc, out, _ = run("check", "--final", *self.base_args(), "--json")
+        self.assertEqual(rc, 1)
+        self.assertIn("TOKEN_UNRESOLVED", [v["code"] for v in receipt(out)["violations"]])
 
     def test_color_namespace_drift_from_design_is_detected(self):
         self.seed_scenarios()

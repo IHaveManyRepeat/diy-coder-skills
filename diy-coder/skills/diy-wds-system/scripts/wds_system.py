@@ -25,10 +25,11 @@
 `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` /
 `SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ B6 已批码 `TOKEN_UNRESOLVED`。**本批零新增码。**
   ★ 两处**语义复用**（登记）：
-    · `SET_MISMATCH` 承载三类：① 同前缀编号跳号 / 不连续；② 组件 `category` 与
+    · `SET_MISMATCH` 承载四类：① 同前缀编号跳号 / 不连续；② 组件 `category` 与
       前缀表里同前缀那一行的 `category` 不一致；③ `init` 见到既有产物（**约定：不覆盖，
       只刷 `project.updated`，并出 warning** —— 与 B7a `diy-wds-brief` 的
-      `init --project-type 与既有产物不符` 同款用法）。
+      `init --project-type 与既有产物不符` 同款用法）；④ `check` 反向扫零引用令牌
+      （**仅 warning**，不阻断：源侧允许备用令牌）。
     · `TOKEN_UNRESOLVED` 承载：组件 `token_refs` 的 `命名空间.名` 在本产物声明的
       命名空间表（`tokens.namespaces`）里解析不到，**或** `派生` 模式下本产物的名字
       超出了 `design.yaml.tokens` 的键集（引用漂移）。
@@ -134,6 +135,14 @@ def table_spacing_names() -> list:
     if err:
         raise SystemExit("令牌词汇表不可读：%s" % err)
     return [s["name"] for s in data["spacing"]]
+
+
+def table_spacing_steps() -> dict:
+    """`名 → design.yaml.tokens.spacing.scale 的 0 基下标`（`space-0` 为 None：值恒 0）。"""
+    data, err = load_yaml(DATA_DIR / "token-vocabulary.yaml")
+    if err:
+        raise SystemExit("令牌词汇表不可读：%s" % err)
+    return {s["name"]: s.get("step") for s in data["spacing"]}
 
 
 # ───────────────────────────── 上游与产物读取 ─────────────────────────────
@@ -286,6 +295,9 @@ def check_component(rec, idx, prefix_map, categories, page_ids, where_base,
             if isinstance(rec.get(key), dict) and not rec.get(key):
                 bad.append(v("EMPTY_FIELD", "%s[%d].%s" % (where_base, idx, key),
                              "定稿态不许留空段 %r" % key))
+        if not rec.get("variants"):           # VA-03a：列表段，`--final` 要求至少 1 条
+            bad.append(v("EMPTY_FIELD", "%s[%d].variants" % (where_base, idx),
+                         "定稿态不许变体清单为空（源侧「变体齐备」的 diy 判据）"))
     return bad
 
 
@@ -335,6 +347,16 @@ def check_document(doc, project_root, output_dir, page_ids, prefix_table, catego
                                      "%s tokens.namespaces.%s" % (where, ns),
                                      "%s.%s 在 design.yaml.tokens.%s 里解析不到（引用漂移）"
                                      % (ns, name, ns)))
+            # VA-04：spacing 的名字冻结在本表，**值**按 `step` 下标解析到 scale——
+            # 下标越出 scale 档数 = 解析不到（与上两桶的「名字对不上」同码同义）
+            scale = list((design.get("spacing") or {}).get("scale") or [])
+            steps = table_spacing_steps()
+            for name in (doc.get("tokens") or {}).get("namespaces", {}).get("spacing") or []:
+                step = steps.get(name)
+                if scale and step is not None and step >= len(scale):
+                    bad.append(v("TOKEN_UNRESOLVED", "%s tokens.namespaces.spacing" % where,
+                                 "spacing.%s 的 step 下标 %s 越出 design.yaml.tokens.spacing."
+                                 "scale（实测 %d 档，引用漂移）" % (name, step, len(scale))))
 
     # 组件集：唯一性 / 编号连续性 / 逐条判据
     comps = doc.get("components")
@@ -375,6 +397,31 @@ def check_document(doc, project_root, output_dir, page_ids, prefix_table, catego
         bad.append(v("ASSUMPTION_PRESENT", where,
                      "产物含 %s 标记——未决项须写进 revisions 或就地补问" % ASSUMPTION))
     return bad
+
+
+def orphan_token_warnings(doc, project_root, output_dir) -> list:
+    """反向扫「无孤儿令牌」（`steps/02-import.md` 第 4 项）：`tokens.namespaces` 里零引用的名字。
+
+    引用面 = `components[].token_refs[]`（唯一令牌引用机制）；逐命名空间聚合成一条
+    **warning**（不阻断：源侧允许备用令牌）。
+    """
+    referenced = set()
+    for rec in doc.get("components") or []:
+        if not isinstance(rec, dict):
+            continue
+        for ref in rec.get("token_refs") or []:
+            m = TOKEN_REF_RE.match(ref) if isinstance(ref, str) else None
+            if m:
+                referenced.add((m.group(1), m.group(2)))
+    where_base = display_path(output_dir / PRODUCT, project_root) + " tokens.namespaces"
+    out = []
+    for ns, names in ((doc.get("tokens") or {}).get("namespaces") or {}).items():
+        orphans = [str(n) for n in (names or []) if (ns, n) not in referenced]
+        if orphans:
+            out.append(v("SET_MISMATCH", "%s.%s" % (where_base, ns),
+                         "零引用的名字 %d 个：%s（备用令牌允许，不阻断）"
+                         % (len(orphans), ", ".join(orphans))))
+    return out
 
 
 # ───────────────────────────── 子命令 ─────────────────────────────
@@ -574,6 +621,7 @@ def cmd_check(args, project_root: Path) -> dict:
     if not (output_dir / DESIGN).exists():
         warnings.append(v("MISSING_FILE", display_path(output_dir / DESIGN, project_root),
                           "`design.yaml` 不在场——token 按独立定义核（裁定 5 的可选读降级）"))
+    warnings += orphan_token_warnings(doc, project_root, output_dir)
     namespaces = ((doc.get("tokens") or {}).get("namespaces") or {})
     violations = check_document(doc, project_root, output_dir, set(upstream["pages"]),
                                table_prefixes(), table_categories(), namespaces, args.final)

@@ -32,6 +32,15 @@ ACTIVITY_DIRS = {
     "S": "presentation",
 }
 CODES = list(ACTIVITY_DIRS)
+# AS-07 文案条目必须落的六段（`steps/07-content.md:10`；引擎 `--final` 核其在场）
+CONTENT_KEYS = (
+    "content_purpose",
+    "trigger_map_context",
+    "awareness_strategy",
+    "action_filter",
+    "empowerment_frame",
+    "structural_order",
+)
 
 
 def run(args, cwd=None):
@@ -51,6 +60,28 @@ def run(args, cwd=None):
         except json.JSONDecodeError:
             payload = None
     return proc.returncode, payload, proc.stdout, proc.stderr
+
+
+def run_bytes(args, cwd=None):
+    """取**字节**回执（回执面契约的回归：不得只读源码 / 断言已解码串——真跑消费者才现形）。"""
+    return subprocess.run([sys.executable, str(ENGINE), *args], capture_output=True, cwd=cwd)
+
+
+def content_block(keys=CONTENT_KEYS):
+    """AS-07 的六段内容块（夹具用；值的内容不参与机械核）。"""
+    return {key: {"段": key} for key in keys}
+
+
+def make_presentation_record(ident="AS-08.1", recipe="SD", principles=8, verdict="通过"):
+    return {
+        "id": ident,
+        "recipe": recipe,
+        "audience": "投资人",
+        "format_card": "data/presentation-formats/sd-slides.md",
+        "frames": [{"n": 1, "job": "persuade", "headline": "一句话", "notes": "备注"}],
+        "assets": [{"path": "assets/presentation/deck.html", "format": "html"}],
+        "review": {"principles": ["懂受众"] * principles, "verdict": verdict},
+    }
 
 
 def write_scenarios(root: Path, status="已定稿"):
@@ -107,7 +138,10 @@ def make_item(activity_id: str, index: int, code: str, with_asset=True, verdict=
 
 
 def fill_valid(root: Path):
-    """把 init 出来的骨架填成一个可定稿的产物。"""
+    """把 init 出来的骨架填成一个可定稿的产物。
+
+    AS-07 的条目带 `content` 六段——`--final` 机械核其在场（VA-03c），**夹具失真即为红**。
+    """
     path = root / "wds-assets.yaml"
     doc = yaml.safe_load(path.read_text(encoding="utf-8"))
     doc["stage"] = "收尾"
@@ -120,6 +154,9 @@ def fill_valid(root: Path):
         activity["scope"] = "all"
         activity["style"] = {"design": "minimal", "content": None, "format": None}
         activity["items"] = [make_item(activity["id"], 1, code), make_item(activity["id"], 2, code)]
+        if code == "C":
+            for item in activity["items"]:
+                item["content"] = content_block()
     for activity in doc["activities"]:
         for item in activity.get("items") or []:
             doc["prompts"].append(
@@ -295,6 +332,21 @@ class WdsAssetsTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("STATUS_MISMATCH", {v["code"] for v in payload["violations"]})
 
+    def test_check_receipt_reports_design_system_presence(self):
+        """§4.1 连带：终门回执同 init 暴露 has_design_system（在场/缺席两态）。"""
+        self.init_ok()
+        code, payload, _, _ = run(
+            ["check", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, payload)
+        self.assertFalse(payload["counts"]["has_design_system"])
+        write_design_system(self.out)
+        code, payload, _, _ = run(
+            ["check", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload["counts"]["has_design_system"])
+
     def test_check_final_passes_on_complete_product(self):
         self.init_ok()
         fill_valid(self.out)
@@ -369,7 +421,9 @@ class WdsAssetsTest(unittest.TestCase):
         self.init_ok()
         doc = fill_valid(self.out)
         doc["activities"][0]["items"][0]["spec"] = "[假设] 也许首页要三块"
-        doc["activities"][2]["items"][0]["spec"] = "引用 {some_token} 的未知令牌"
+        # 夹具订正（裁定 16 ③ 判据反转）：`{some_token}` 这类**自创**占位符改判后天然放行
+        # （已知漏检面）；判据现在抓的是**模板位残留**，故夹具改用骨架里的真模板位。
+        doc["activities"][2]["items"][0]["spec"] = "文案里 {产品名} 这个模板位没填掉"
         dump(self.out, doc)
         code, payload, _, _ = run(
             ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
@@ -503,6 +557,254 @@ class WdsAssetsTest(unittest.TestCase):
         )
         self.assertEqual(code, 1)
         self.assertEqual(payload["violations"][0]["code"], "MISSING_FILE")
+
+    # ------------------------------------------------- 回执面契约（V3-02 / VA-01）
+
+    def test_json_receipt_is_single_line_utf8_bytes(self):
+        """VA-01：`--json` 回执须是**可 UTF-8 解码的单行**（本机 stdout 走 cp936 时曾吐 GBK 字节）。"""
+        self.init_ok()
+        proc = run_bytes(
+            ["list", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(proc.returncode, 0)
+        text = proc.stdout.decode("utf-8")        # 不是 utf-8 在这里直接抛 UnicodeDecodeError
+        self.assertEqual(len(text.strip().splitlines()), 1)
+        self.assertEqual(text.count("\n"), 1)
+        payload = json.loads(text)
+        self.assertEqual(payload["project_root"], str(self.root))       # as-given，未 resolve
+        self.assertEqual(payload["output_dir"], self.out.resolve().as_posix())
+
+    def test_violation_schema_is_code_where_msg_and_relative_posix(self):
+        """契约 §3：违规项逐字 `{code, where, msg}`；路径型 `where` = 相对 project-root + 正斜杠。"""
+        write_scenarios(self.out)
+        code, payload, _, _ = run(
+            ["list", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        item = payload["violations"][0]
+        self.assertEqual(sorted(item.keys()), ["code", "msg", "where"])
+        self.assertEqual(item["where"], "diy-output/wds-assets.yaml")
+        self.assertNotIn("\\", item["where"])
+
+    def test_human_receipt_is_code_where_msg_plus_summary(self):
+        write_scenarios(self.out)
+        proc = run_bytes(["list", "--project-root", str(self.root), "--output-dir", str(self.out)])
+        self.assertEqual(proc.returncode, 1)
+        lines = proc.stdout.decode("utf-8").strip().splitlines()
+        self.assertTrue(lines[0].startswith("MISSING_FILE diy-output/wds-assets.yaml: "), lines)
+        self.assertNotIn("@", lines[0])
+        self.assertEqual(lines[-1], "ok=False violations=1 warnings=0")
+
+    # -------------------------------------------------- 只读子命令兜底（V3-03）
+
+    def test_read_only_subcommands_fall_back_to_project_root_output_dir(self):
+        """V3-03：只读子命令缺 `--output-dir` → 回落 `{project_root}/diy-output`（改前 rc=2）。"""
+        self.init_ok()
+        code, payload, _, err = run(["list", "--project-root", str(self.root), "--json"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(payload["counts"]["listed"], 8)
+        self.assertEqual(payload["output_dir"], self.out.resolve().as_posix())
+
+    def test_init_without_output_dir_is_still_usage_error(self):
+        code, payload, _, _ = run(["init", "--project-root", str(self.root), "--json"])
+        self.assertEqual(code, 2)
+        self.assertEqual(payload["violations"][0]["code"], "ENUM_INVALID")
+
+    # -------------------------------------------- 活动内递增核 / coverage（V3-04 / V2-02）
+
+    def test_check_flags_non_continuous_item_sequence(self):
+        """V3-04：活动内 `AS-<nn>.<m>` 须从 1 起连续递增（跳号夹具改前 rc=0）。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        doc["activities"][0]["items"][1]["id"] = "AS-01.3"
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        hits = [v for v in payload["violations"] if v["where"] == "activities[0]"]
+        self.assertEqual([v["code"] for v in hits if v["code"] == "SET_MISMATCH"], ["SET_MISMATCH"])
+        self.assertIn("递增", hits[0]["msg"])
+
+    def test_check_accepts_continuous_sequences(self):
+        """对照：合法连续序号不产生活动级违规（不得误伤）。"""
+        self.init_ok()
+        fill_valid(self.out)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, payload)
+        self.assertEqual([v for v in payload["violations"] if v["where"].startswith("activities")], [])
+
+    def test_coverage_reports_unassigned_and_orphan(self):
+        """V2-02：`check` 回执顶层给 `coverage`（形状取 `09-finish.md:23-25`）。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        doc["activities"][0]["items"][0]["pages"] = ["SC-01.P1", "SC-99.P9"]
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["coverage"]["unassigned"], ["SC-01.P2"])
+        self.assertEqual(payload["coverage"]["orphan"], ["SC-99.P9"])
+
+    def test_coverage_key_present_and_empty_when_fully_covered(self):
+        """两列都空也须在场（空列表），否则模型取不到键。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        for activity in doc["activities"]:
+            for item in activity.get("items") or []:
+                item["pages"] = ["SC-01.P1", "SC-01.P2"]
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, payload)
+        self.assertEqual(payload["coverage"], {"unassigned": [], "orphan": []})
+
+    # ------------------------------------------ ID 空间一致（N1 / N2 = 裁定 9 / 10）
+
+    def test_show_reaches_presentation_and_prompts_id_space(self):
+        """N1：`show --id` 须够到 `presentation[]` / `prompts[]`（改前 presentation 记录 rc=1）。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        doc["presentation"] = [make_presentation_record("AS-08.5")]
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["show", "--id", "AS-08.5", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["record"]["recipe"], "SD")
+        code, payload, _, _ = run(
+            ["show", "--id", "AS-01.2", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["record"]["id"], "AS-01.2")
+
+    def test_check_flags_presentation_id_form_and_duplicate(self):
+        """N2：`presentation[].id` 形态 / 唯一性 / 与 AS-08 同源三核（改前零校验）。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        doc["activities"][7]["status"] = "已评审"
+        doc["activities"][7]["items"] = [make_item("AS-08", 1, "S")]
+        doc["presentation"] = [make_presentation_record("AS-07.1")]
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        self.assertIn(("SET_MISMATCH", "presentation[0]"),
+                      {(v["code"], v["where"]) for v in payload["violations"]})
+
+        doc = fill_valid(self.out)
+        doc["activities"][7]["status"] = "已评审"
+        doc["activities"][7]["items"] = [make_item("AS-08", 1, "S")]
+        doc["presentation"] = [make_presentation_record("AS-08.1"), make_presentation_record("AS-08.1")]
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        dups = [v for v in payload["violations"] if v["where"] == "presentation[1]"]
+        self.assertIn("重复", dups[0]["msg"])
+
+    # ---------------------------------- 占位符判据反转（VA-02）/ 六段核（VA-03c）/ 逃逸（VA-07）
+
+    def test_prompt_json_example_is_not_flagged(self):
+        """VA-02 夹具 1：prompt 里的 JSON 示例不再误杀（改前 rc=1）。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        doc["activities"][0]["items"][0]["prompt"] = (
+            '生成落地页 HTML，配置示例 {"breakpoint": "1440"}，占位 {page_name} 留空'
+        )
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, payload)
+        self.assertEqual(payload["violations"], [])
+
+    def test_prompt_template_slot_residue_is_flagged(self):
+        """VA-02 夹具 2（防漏检）：模板位残留照抓——清单**解析自模板骨架**，非硬编码。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        doc["activities"][0]["items"][0]["prompt"] = "产品：{产品名}——{一句话定位}"
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        hits = [v for v in payload["violations"] if v["code"] == "TOKEN_UNRESOLVED"]
+        self.assertTrue(hits, payload["violations"])
+        self.assertIn("wds-assets.yaml line ", hits[0]["where"])   # where 含文件段且正斜杠
+        self.assertIn("占位符未填", hits[0]["msg"])
+
+    def test_content_output_template_slot_residue_is_flagged(self):
+        """V-A F-1（判据反转扩面）：第二模板 `content-output` 的模板位残留同样判 `TOKEN_UNRESOLVED`。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        doc["activities"][6]["items"][0]["content"]["content_purpose"] = "# 文案成稿 — {内容段名}"
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        hits = [v for v in payload["violations"] if v["code"] == "TOKEN_UNRESOLVED"]
+        self.assertTrue(hits, payload["violations"])
+        self.assertIn("占位符未填", hits[0]["msg"])
+
+    def test_project_root_and_output_dir_tokens_pass(self):
+        """`{project-root}` / `{output_dir}` 天然不在模板位清单（`TOKEN_WHITELIST` 已删）。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        doc["activities"][0]["items"][0]["prompt"] = "跑 {project-root}/.claude 与 {output_dir}/assets"
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, payload)
+
+    def test_final_requires_as07_content_six_keys(self):
+        """VA-03c：AS-07 条目缺 `content` 六段 → EMPTY_FIELD（改前 rc=0）。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        del doc["activities"][6]["items"][0]["content"]
+        doc["activities"][6]["items"][1]["content"].pop("action_filter")
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        wheres = {(v["code"], v["where"]) for v in payload["violations"]}
+        self.assertIn(("EMPTY_FIELD", "activities[6].items[0].content"), wheres)
+        self.assertIn(("EMPTY_FIELD", "activities[6].items[1].content"), wheres)
+
+    def test_final_does_not_check_content_for_other_activities(self):
+        """覆盖面纪律：只有 AS-07 要 `content`（其余活动的条目无此键不得判红）。"""
+        self.init_ok()
+        fill_valid(self.out)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, payload)
+
+    def test_dotdot_paths_are_rejected(self):
+        """VA-07：含 `..` 的资产 / 提示词路径逃逸被拒（改前 `assets/<活动>/../../x` rc=0）。"""
+        self.init_ok()
+        doc = fill_valid(self.out)
+        doc["activities"][0]["items"][0]["assets"] = [
+            {"path": "assets/wireframes/../../outside.html", "format": "html"}
+        ]
+        doc["prompts"][0]["file"] = "assets/wireframes/prompts/../../outside.md"
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        hits = {(v["code"], v["where"]) for v in payload["violations"]}
+        self.assertIn(("SET_MISMATCH", "activities[0].items[0].assets[0]"), hits)
+        self.assertIn(("SET_MISMATCH", "prompts[0]"), hits)
 
 
 class WdsAssetsContractTest(unittest.TestCase):

@@ -450,9 +450,13 @@ class SkillShapeTests(unittest.TestCase):
         self.assertIn("diy-analyze", text)
 
     def test_red_line_no_foreign_check_type(self):
+        """红线：不得教 `diyc.py` 的封闭集终门——否定句本身必须在场（照 test_wds_assets 先例）。"""
         text = self.skill_text()
-        self.assertNotIn("check --type", text)
-        self.assertNotIn("diyc.py\" check --type", text)
+        # 照 test_wds_assets.py:549-559 先例：先断言否定句在场，再剔除已知否定句后断言无其它用法。
+        self.assertIn("不得改用 `diyc.py check --type`", text)
+        body = text.replace("不得改用 `diyc.py check --type`", "")
+        self.assertNotIn("check --type", body)
+        self.assertNotIn("diyc.py\" check --type", body)
 
     def test_intellectual_property_rules_present(self):
         text = self.skill_text()

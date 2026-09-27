@@ -383,6 +383,8 @@ def cmd_check(args):
                 vio.append(v("EMPTY_FIELD", key, "定稿门要求非空"))
         if not (arch.get("tech_stack") or []):
             vio.append(v("EMPTY_FIELD", "architecture.tech_stack", "定稿门要求非空"))
+        if not mermaid:
+            vio.append(v("EMPTY_FIELD", "architecture.mermaid", "定稿门要求非空"))
 
     counts = {"components": len(components),
               "data_flow": len(doc.get("data_flow") or []),

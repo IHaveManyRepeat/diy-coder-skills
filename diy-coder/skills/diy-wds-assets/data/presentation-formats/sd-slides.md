@@ -20,7 +20,7 @@
 Design a multi-slide presentation using Excalidraw frame-based layout. Apply audience-appropriate visual hierarchy, enforce the 3-second rule on every frame, and use consistent visual language throughout.
 ```
 
-> **diy 机制的改动（裁定 7）**：保留「逐页版式 + 视觉层级 + 3 秒规则」，**弃 Excalidraw 帧文件格式**——本套件产物是 YAML / HTML，不是 `.excalidraw`。上句可作为提示词的风格段整段粘贴；「一帧 = 一页」由 `frames[]` 的 `n` 承载。
+> **diy 机制的改动（裁定 7）**：保留「逐页版式 + 视觉层级 + 3 秒规则」，**弃 Excalidraw 帧文件格式**——本套件产物是 YAML / HTML，不是 `.excalidraw`。上句可作为提示词的风格段整段粘贴；「一帧 = 一页」由 `frames[]` 的 `n` 承载。生成物请要求 HTML / 图片，忽略 Excalidraw 文件格式那一句。
 
 ## Best For
 - 产品发布 / 方案汇报 / 培训材料等一切「逐页讲」的场合

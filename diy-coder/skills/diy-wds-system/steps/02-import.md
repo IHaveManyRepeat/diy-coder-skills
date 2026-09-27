@@ -108,7 +108,7 @@ python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" chec
 | 源校验项 | 引擎判据 | 违规码 |
 | --- | --- | --- |
 | 组件引用的令牌全部存在 | `components[].token_refs[]` 逐条解析到 `tokens.namespaces` | `TOKEN_UNRESOLVED` |
-| 无孤儿令牌（定义了没人用） | 反向扫：`tokens.namespaces` 里零引用的名字 → **warning**（不阻断：源侧允许备用令牌） | — |
+| 无孤儿令牌（定义了没人用） | 反向扫：`tokens.namespaces` 里零引用的名字，逐命名空间聚合 → **warning**（不阻断：源侧允许备用令牌） | `SET_MISMATCH`（仅 warning） |
 | 命名一致 | 记录 `prefix` / `category` 对 `data/component-prefixes.yaml` · `data/component-categories.yaml` | `ENUM_INVALID` / `SET_MISMATCH` |
 | 变体齐备 | 每条 `variants[]` 至少 1 条（源侧「变体齐备」的 diy 判据） | `EMPTY_FIELD`（`--final` 时） |
 

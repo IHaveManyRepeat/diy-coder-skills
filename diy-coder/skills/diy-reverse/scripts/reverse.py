@@ -2,7 +2,7 @@
 """diy-reverse 确定性引擎：外部目标逆向产物的初始生成与机械核对。
 
 子命令：
-  init   铸 `{output_dir}/design.yaml` **骨架**（唯一写盘）；门禁 = 外部目标可访问
+  init   铸 `{output_dir}/design.yaml` **骨架**（唯一写盘）；门禁 = 目标形态合法且（截图轨）路径在场可读
          **只在初始生成时写**——`design.yaml` 已存在（可解析或损坏）一律拒绝覆盖
   list   页清单六字段（id / name / route / states / prototype / status）+ token 计数
   show   单页（`--id P-n`）/ 整份摘要
@@ -10,6 +10,12 @@
          pages 四态与原型在场）+ 页 ID 纪律与模块名禁用 + `--final` 定稿门
   tokens 「不抄像素」判据的机械面：按出现次数分流——**重复值（≥2）可作 token，
          单次值一律不得作 token**（对齐 `design.py audit` 的 `one-off-*` 口径）
+
+★ **第五子命令 `tokens` 是本批对 §2.2「四子命令」的一处登记性偏离**（W4 回报必答 ④ 已列）：
+  §2.2 冻结「`init` / `list` / `show` / `check` 四子命令」，而裁定 13 要求把「不抄像素」判据
+  落成机械面（**允许重复值作 token、禁止单次值**，复用套件 `one-off-*` 口径）——两条并存的
+  最小满足 = 在四子命令之外加一个**只读、零写盘**的第五子命令。先例：`diy-wds-system` 的
+  `similarity`（本批）与 B7a `diy-wds-trigger` 的 `metrics` 亦为同款登记项。**不写盘**。
 
 违规码：复用 batch3-contract §3 冻结集——`MISSING_FILE` / `UNPARSABLE_YAML` /
 `EMPTY_FIELD` / `ENUM_INVALID` / `DUPLICATE_ID` / `UNKNOWN_ID` / `SET_MISMATCH` /
@@ -178,7 +184,7 @@ def cmd_init(args):
         target = str(args.target or "").strip()
         if not target or not os.path.exists(target) or not os.access(target, os.R_OK):
             violations.append(v("TARGET_UNREACHABLE", "--target",
-                                "截图路径不存在或不可读：%r（门禁 = 外部目标可访问）"
+                                "截图路径不存在或不可读：%r（门禁 = 形态与在场；真实可达性由会话确认）"
                                 % args.target))
     path = design_path(args)
     if os.path.isfile(path):

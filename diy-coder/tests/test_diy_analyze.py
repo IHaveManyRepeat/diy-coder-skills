@@ -349,10 +349,13 @@ class SkillShapeTests(unittest.TestCase):
             self.assertIn(anchor, text, "母本锚串缺席：%s" % anchor[:24])
 
     def test_red_line_no_foreign_check_type(self):
-        """红线：不得教 `diyc.py check --type <WDS 型>`；`--previous` 只准出现在否定的声明里。"""
+        """红线：不得教 `diyc.py` 的封闭集终门——否定句本身必须在场；`--previous` 只准出现在否定的声明里。"""
         text = self.skill_text()
-        self.assertNotIn("check --type", text)
-        self.assertNotIn("diyc.py\" check", text)
+        # 照 test_wds_assets.py:549-559 先例：先断言否定句在场，再剔除已知否定句后断言无其它用法。
+        self.assertIn("不得改用 `diyc.py check --type`", text)
+        body = text.replace("不得改用 `diyc.py check --type`", "")
+        self.assertNotIn("check --type", body)
+        self.assertNotIn("diyc.py\" check", body)
         for line in text.splitlines():
             if "--previous" in line:
                 self.assertIn("无 `--previous`", line, "非声明的 --previous 引用：%s" % line)

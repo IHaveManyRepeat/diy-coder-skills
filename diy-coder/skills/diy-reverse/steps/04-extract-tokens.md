@@ -93,7 +93,7 @@ python "{project-root}/.claude/skills/diy-design/scripts/design.py" check --desi
 
 呈出一页摘要（会话内，不落盘）：**来源**（URL / 截图名 + 采集日）/ 页数与页 ID 清单 / token 三段计数 / 被剔除的单次值条数 / 组件编目条数 / 未决项。随后给路由三句：
 
-- **产物归属**：`design.yaml` 的**生成权在本技能、演进权在 `diy-design` / `diy-dev`**——后续改动走它们的 Update，不要重跑本技能（会撞 `OVERWRITE_REFUSED`）。
+- **产物归属**：`design.yaml` 的**生成权在本技能、演进权在 `diy-design` / `diy-dev`**——后续改动走它们的 Update，不要重跑本技能（会撞 `OVERWRITE_REFUSED`）。**本技能不进主链 CHAIN**；产物 `design.yaml` 是主线设计单一源，下游（`diy-epics-stories` 的 `design_ref`、`diy-wds-evolution` 的入口门禁）会引用它。
 - **能力交接**：组件编目与 token→组件映射 → `diy-wds-system`（`components[]`）；多页流程大纲 → 会话时仅供参考，进主线走 `diy-wds-scenarios` 的场景链。
 - **登记项**：提取来源字段与组件/映射段**无承载位**，已登记为 C·3 的 schema 扩充项。
 
