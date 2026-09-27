@@ -33,7 +33,16 @@
 
 - **6 个步骤文件 / 11 小节**；产物 `wds-trigger.yaml`：`business_goals[]` · `personas[]`(`TG-<n>`，**驱动因素内嵌** `DF-<n>.<m>+|-`) · `driver_patterns` · `priority` · `feature_impact[]` · `effect_map`
 - **裁定 7（Effect Map 两形态）**：`yaml` 是单一源、Mermaid 是派生视图——源 `08a–08h` **8 微步骤的构图纪律收编为唯一定义**（配置 / 节点模板 / emoji 规则 / 连接数校验 = 目标数 + 2×人物数 / 4 类 classDef 逐字），`templates/trigger-map.template.md` **收编而非删除**（92 行可填骨架 + 必守十条）；`data/mermaid-formatting-guide.md`（262 行，无消费方且与步骤正文数字互斥）→ 裁
-- **裁定 9（三模式降级）**：W 为默认完整路径；**S/D 保留 5 层管线的第 2–5 层为自审循环，第 1 层（Learn Form）标为不可用**——源侧该层依赖 **5 条不存在的文档**（幽灵路径）。**不新建方法层**（那是「造」不是「迁」）→ **登记为能力损失**
+- **裁定 9（三模式降级）**：W 为默认完整路径；**S/D 保留 5 层管线的第 2–5 层为自审循环，第 1 层（Learn Form）标为不可用**——源侧该层依赖 **5 条引用路径不可达的文档**。**不新建方法层**（那是「造」不是「迁」）→ **登记为能力损失**
+- **★ 2026-09-27 跨布局复核订正（本报告发布后的回溯核查）**：上述「5 条**不存在**的文档」**表述不实**——其中 **2 条有对应实体**，存于**安装布局** `_bmad/wds/data/agent-guides/saga/`（源仓库引用写 `docs/`/`src/` 前缀，故在源布局下的该路径确实不可达）：
+
+  | 源引用路径 | 实际实体 | 行数 | 性质 |
+  | --- | --- | ---: | --- |
+  | `src/data/agent-guides/saga/trigger-mapping.md` | `_bmad/wds/data/agent-guides/saga/trigger-mapping.md` | **653** | "Saga's Trigger Mapping Guide"（When to load: During Phase 2） |
+  | `docs/method/dream-up-rubric-phase-2.md`（对应物） | `_bmad/wds/data/agent-guides/saga/dream-up-approach.md` | **1,034** | "Saga's Dream Up Approach Guide"——**明写 "Core Architecture: 5 Layers"**，**Layer 1 的方法本体在此** |
+
+  **影响评估**：§2.1 已内联的 `saga/` **5 份 1,433 行**（= content-structure-principles 190 + conversational-followups 372 + discovery-conversation 265 + inspiration-analysis 215 + seo-strategy-guide 391）**不含**上述 2 份核心文档（1,687 行）→ **Layer 1 的输入在源侧真实存在但未迁**。**本条误判影响实质**（不只是台账措辞）：能力损失的判定依据需重估。
+  **处置（用户 2026-09-27 裁定）**：**Layer 1 单独立项**——见 `迁移计划.md` §二十七 立项登记；`diy-wds-trigger/steps/01-mode.md:32` 的「5 条不存在的文档」措辞**留待该项评估时一并订正**（本轮回溯不动已建技能）。
 - **裁定 11（doc-synthesis 改写）**：替代入口从「用户往会话里塞文档」→ **读 diy 既有产物**（七维覆盖图 → `wds-brief.yaml` / `prd.yaml` / `research.yaml` / `prfaq.yaml` / `brainstorm.yaml` 的逐键映射表已落）
 - **裁定 6（口径归一，两处）**：驱动因素 **3–5**（源采集端口径，展示端不再截断到 3）· 人物群 **2–4**（去掉「三级 TG0/1/2 + 5/3/3 加权」假设）
 - **裁定 10（Feature Impact 保留）**：`06a–06e` 五微步骤 + 评分常量（Primary 5/3/1 / 其他 3/1/0 / Must-Have 阈值）全保——**与裁定 6 去掉的 `5/3/3` 是两组不同常量，不冲突**
