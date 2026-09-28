@@ -186,7 +186,11 @@ LANDED_READ_DISCIPLINE = frozenset(["product-brief", "prfaq",
                                     "readiness-check", "quick-dev",
                                     "e2e-tests", "correct-course", "spec-scan",
                                     "project-context", "investigate", "research",
-                                    "retrospective"])
+                                    "retrospective",
+                                    # C·3a 段1/段2 前置登记（2026-09-27，主 agent）：
+                                    # 三名本批拆出 `steps/` 并补 §4 锚串——先登记以免施工中途判红；
+                                    # 未成 stepper 前不进退化面（`_check` 只比对 `_steppers()`）。
+                                    "design", "dev", "review"])
 
 ANCHOR_PRECISE = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
                   "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
@@ -212,6 +216,11 @@ def _steppers():
     test-design）**不拆 steps**，§4 对它永久不适用——§4 的两个成分（「读 `steps/` 下
     当前那一个文件」「以各 step 的 `Read (input)` 为准」）都预设 steps 存在，硬落即写入
     假事实。将来某技能若拆出 `steps/`，自动进入本适用面（缺锚串且未登记即判红）。
+
+    ★ 2026-09-28 C·3a 留痕：**该裁定对 `design` / `dev` 已作废**——本批为吸收 WDS 九活动
+    与原型循环，二者拆出 `steps/` 并补 §4 锚串，已登记进 `LANDED_READ_DISCIPLINE`；
+    `review` **仍未拆**（受 `test_review_contract.py` 的行数上限与「不得含 `Read (input)`」
+    两条硬锁），故对 review 原文裁定仍有效。改裁定已在收口报告与 `迁移计划.md` 登记。
     """
     return [s for s in skills()
             if os.path.isdir(os.path.join(SKILLS_DIR, "diy-" + s, "steps"))]

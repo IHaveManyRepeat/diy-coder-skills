@@ -1,7 +1,7 @@
 ---
 name: diy-review
-description: 'Review a sprint task in 待审查 state with layered audits - L1 correctness, L2 boundary, L3 acceptance-coverage, plus L4 design adoption for UI tasks whose ACs carry design_ref. Every finding routes to exactly one of 意图缺口 / 规格缺陷 / 小修 / 后置. Verdict 通过 moves the task to 已完成 after backfilling stories.yaml and test-plan.yaml; a 失败 with 规格缺陷 blocks the task for upstream spec repair, any other 失败 sends it back to 进行中. Real defects found are also logged into bug-log.yaml (three-level classification) to feed future fault hypotheses. Optional falsification round after 通过 (--falsify <story|all>, accepted on 已完成 targets): attack the finished work with bug-log patterns and non-functional dimensions. Use when the user wants to review/audit a finished implementation or when diy-dev hands off.'
-# ↑ 中文：审查 `待审查` 状态的冲刺任务——分层审计 L1 正确性 / L2 边界 / L3 覆盖审计；AC 带 `design_ref` 的 UI 任务加 L4 设计采用。每条 finding 恰好路由到「意图缺口 / 规格缺陷 / 小修 / 后置」之一。判决 `通过` 时由 `done` 原子写回 `stories.yaml` / `test-plan.yaml` 两个真源并把任务送进 `已完成`；带 `规格缺陷` 的 `失败` 阻塞任务待上游修规格，其余 `失败` 打回 `进行中`。发现的真缺陷另入 bug-log.yaml（三级分类）喂养后续故障假设。`通过` 后可跑可选证伪轮（`--falsify <story|all>`，接受 `已完成` 目标）：用 bug-log 模式与非功能维度攻击已完成的工作。用户想审查/审计完成的实现，或 diy-dev 交棒时使用。
+description: 'Review a sprint task in 待审查 state with layered audits - L1 correctness, L2 boundary, L3 acceptance-coverage, plus L4 design adoption for UI tasks whose ACs carry design_ref. Every finding routes to exactly one of 意图缺口 / 规格缺陷 / 小修 / 后置. Verdict 通过 moves the task to 已完成 after backfilling stories.yaml and test-plan.yaml; a 失败 with 规格缺陷 blocks the task for upstream spec repair, any other 失败 sends it back to 进行中. Real defects found are also logged into bug-log.yaml (three-level classification) to feed future fault hypotheses. Optional falsification round after 通过 (--falsify <story|all>, accepted on 已完成 targets): attack the finished work with bug-log patterns and non-functional dimensions. Also carries the WDS-line review path - pages in 待验收 are re-verified independently against their states[].signals and, when failing, sent back via the repair edge; approval itself stays a user action, never the reviewer. Two optional review lenses (adversarial / edge-case) extend the four layers. Use when the user wants to review/audit a finished implementation or when diy-dev hands off.'
+# ↑ 中文：审查 `待审查` 状态的冲刺任务——分层审计 L1 正确性 / L2 边界 / L3 覆盖审计；AC 带 `design_ref` 的 UI 任务加 L4 设计采用。每条 finding 恰好路由到「意图缺口 / 规格缺陷 / 小修 / 后置」之一。判决 `通过` 时由 `done` 原子写回 `stories.yaml` / `test-plan.yaml` 两个真源并把任务送进 `已完成`；带 `规格缺陷` 的 `失败` 阻塞任务待上游修规格，其余 `失败` 打回 `进行中`。发现的真缺陷另入 bug-log.yaml（三级分类）喂养后续故障假设。`通过` 后可跑可选证伪轮（`--falsify <story|all>`，接受 `已完成` 目标）：用 bug-log 模式与非功能维度攻击已完成的工作。另载 WDS 线审查路径（`待验收` 页按 `states[].signals` 独立复验，失败经回修边退回；批准始终归用户、不由审查者代劳）与两个可选透镜（批判式 / 边界穷举）。用户想审查/审计完成的实现，或 diy-dev 交棒时使用。
 phase: 4-implementation
 precededBy: [diy-dev]
 followedBy: [diy-retrospective, diy-augment]
@@ -23,6 +23,7 @@ outputs: —
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 硬门：`{output_dir}/sprint.yaml` 的 `project.status: 已定稿`；目标任务必须在 `status: 待审查`——其他状态一律拒绝并点明其状态（`待办` → 先走 diy-dev；`进行中` → dev 环未收尾）。例外：`--falsify <story|all>` 也接受 `已完成` 目标——该次运行只跑工作流第 6 步（证伪轮），绝不跑层审查。`已阻塞` 永远拒绝。
 3. 材料：开场行点名的那些输入；实现面的取数口径见规则第 2 条。
+4. WDS 线判定：`{output_dir}/design.yaml` 在场、且**无主线任务上下文**（本次调用未点名 `sprint.yaml` 的任务）→ 走 WDS 线，第 2 条的 `sprint.yaml` 硬门不适用（WDS 门 = `design.yaml` 的 `project.status: 已定稿`；目标 = `pages[].status: 待验收` 的页）；`design.yaml` 与主线任务都点名 → 主线优先，本分支不启用。WDS 线的目标 / 判决 / 落点见工作流 WDS 段与规则第 4 条。
 
 ## 工作流
 
@@ -36,12 +37,18 @@ outputs: —
 - **L1 正确性。** 实现是否恰好做到了 AC 说的——没有漏掉的 then 子句、没有没被要求的多余行为？逐条 AC 对照。trace 纪律是抓手：diff 里每个方法都要带 `# trace:` 注释（见 diy-dev），其 ID 必须能在 stories / test-plan 里解析——跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" trace --src <本任务实现文件/目录> --json`（`--src` 可重复、相对 project-root；不给则扫全项目），把回执 `unresolved` 里的每一条当 finding（路由 `小修`）——该列表是**该扫描面**上的结果；`# trace:` 整行缺席仍属人对 diff 的目读。对被追踪的方法逐条核行为：声明 `AC-9.1` 却没兑现其 then 子句的代码，是一条点名该 trace 行的 L1 finding。
 - **L2 边界。** 走 AC 暗示却没写明的失败模式：坏输入、空/None、并发、错误路径、静默兜底。只报真会咬人的未处理情形。
 - **L3 覆盖审计。** 你不手动重验。跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type review --story <S-x> --json`——机械核对四项台账：每个 `test_refs` 的 TC 都有 `evidence` 条目；红线在绿线之前；证据结论与 test-plan 的 TC `status` 一致；绑定本任务的每个 TC 都带非空 `kill_target` 与对 test-plan schema 枚举合法的 `technique`（缺声明或出枚举 = 用例可能是装饰品——区分不了正确代码与它该杀的故障——点名 TC ID 报出）。本步时点 `review` 块尚未写、**其缺席不是违规**：此处回执里的每条违规都是台账 finding（`EVIDENCE_MISSING` / `STATUS_MISMATCH` / 声明类），按本条处置；块结构校验（verdict / layer / route 枚举、通过-失败一致性）发生在第 3 步写块后跑的**同一条命令**上。重开复审时，`test_refs` 里由 diy-augment 追加的后编码用例若无 `evidence`，`EVIDENCE_MISSING` 就是「该周期未重跑它们」的信号 → 挂 diy-dev 补 red/green，**不当豁免**。仍属目读的：TC 步骤是否真断言了 AC 的 then 子句。任何不一致——脚本报的或目读发现的——是一条点名 TC ID、声明与实际记录的 finding（AC-8.2）；回执 `known[]` 里的条目是用户已认可的基线，不是待修违规。
-- **L4 设计采用（FR-3.7/D-10 —— 仅 UI 任务）。** 任务 AC 带 `design_ref` 时核验**采用**——设计交付（diy-design 写出的框架页）是实现必须在其上生长的基线。像素比对已弃用（不可靠；`compare` 引擎 2026-09-12 已删）。核四件事，每项违规一条 `小修` finding、任务打回 `进行中`（HALT）：(a) 结构对照——实现页面结构须与线框（wireframe/HTML）结构稿（design.yaml 的 `prototype`）一致：小节、层级、landmark 次序；(b) 零重写——实现长在设计稿代码（design.yaml 的 `implementation` 路径）**之上**，不是它的再实现；重写 UI 即使看着像也是一条 finding；(c) token 单一源——`python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src <impl>` 的每条 `one-off-*` 违规即 finding；(d) 无障碍——`python "{project-root}/.claude/skills/diy-design/scripts/design.py" check --design "{output_dir}/design.yaml"` 的违规即 finding。绝不静默跳层——跳过要用户的明确裁断。
+- **L4 设计采用（FR-3.7/D-10 —— 仅 UI 任务）。** 任务 AC 带 `design_ref` 时核验**采用**——设计交付（diy-design 写出的框架页）是实现必须在其上生长的基线。像素比对已弃用（不可靠；`compare` 引擎 2026-09-12 已删）。核四件事，每项违规一条 `小修` finding、任务打回 `进行中`（HALT）：(a) 结构对照——实现页面结构须与线框（wireframe/HTML）结构稿（design.yaml 的 `prototype`）一致：小节、层级、landmark 次序；(b) 零重写——实现长在设计稿代码（design.yaml 的 `implementation` 路径）**之上**，不是它的再实现；重写 UI 即使看着像也是一条 finding；(c) token 单一源——`python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src <impl>` 的每条 `one-off-*` 违规即 finding；(d) 无障碍——`python "{project-root}/.claude/skills/diy-design/scripts/design.py" check --design "{output_dir}/design.yaml"` 的违规即 finding——**含设计系统三维 `ds-token-color` / `ds-token-font-size` / `ds-token-spacing`**（实现稿照抄字面值即违规）；引用回执**按 code 点名、不写维度计数**。绝不静默跳层——跳过要用户的明确裁断。
 
 3. 把 `review` 块写进任务条目；跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type review --story <S-x> --json`——exit 0 确认块结构合法后，再按规则第 5 条落状态与回填（`通过` 走 `done`；`失败` / `已阻塞` 走 `transition`；这些命令都 bump `project.updated`）。
 4. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）；报出审查面（路径）、判决与已路由的 findings。
 5. `失败` 时点名下一步（diy-dev 的返工项；`已阻塞` → 上游改 stories.yaml / test-plan.yaml）；`通过` 时用 JSON 回执的计数收尾（按层 / 按路由的 findings、判决）。
 6. **证伪轮（可选 —— `--falsify <story|all>`，接受 `已完成` 目标；`all` = 本冲刺全部已完成任务）。** 目标：打破已完成的工作——假定它就有 bug。用 `bug-log.yaml` 的模式瞄准本实现，走非功能清单（性能、用户体验、安全、兼容性、可靠性、边界）问「这个会怎么坏」，并跑临时攻击。命中即经 `bug-add` 入库、路由（`意图缺口` / `小修`），任务离开 `已完成` → `进行中`（HALT 写：`transition --story <S-x> --to 进行中 --json`——入口不变，引擎在该边上 `pop("augment")` 清掉旧判定，与 `runner.py --reopen-failed` 同语义）。干净一轮：任务 `note` 记一行（日期 + 「证伪轮通过」）。
+
+### WDS 线（第 2–3 步换成本节，第 6 步证伪轮不适用；第 1 / 4 / 5 步纪律照旧，主线四层与判决规则一条不改）
+
+- **目标与零产出**：`pages[].status: 待验收` 的页（词表从 `diy-design` 接——5 值与 9 条合法边，**不另立词表**；`status` 键缺失即 `未开始`，旧稿兼容、不是待审页）；零页可审 → 一行说明后零产出停止——不写 `review` 块、不动状态、不报「通过」。
+- **独立复验**：判据 = 该页 `states[].signals`（与浏览器强制门同源）＋ `prototype` 结构稿 ＋ 实现面；**不采信 `diy-dev` 的自述**——逐条自己跑，结论只引自己拿到的证据（分工同 L3：你不手动重验，你跑机械核对）；暴露真缺陷另经规则第 3 条入库。
+- **判决与写权**：通过 → 页**保持 `待验收`**，出「可呈用户批准」结论（`待验收 → 已批准` 的触发是**用户批准**——本技能**绝不代用户批准**、不调这条边）；失败 → `python "{project-root}/.claude/skills/diy-design/scripts/design.py" transition --design "{output_dir}/design.yaml" --page <id> --to 结构稿中 --json`（回修边）。状态写入**一律经 `transition`**——不直改 YAML、**不新增 schema 键**；审查结论的落点主线 / WDS 不对称——主线落 `sprint.yaml` 任务条目的既有键（`review.findings[]`），WDS 线**只落审查报告与本轮会话**（无 YAML 载体），按规则第 4 条的 WDS 落点列路由。
 
 ## 结构
 
@@ -64,19 +71,20 @@ outputs: —
    - `class`：`功能型 | 非功能型`
    - `subclass`：功能型 → `逻辑 | 边界 | 数据 | 状态 | 集成`；非功能型 → `性能 | 用户体验 | 安全 | 兼容性 | 可靠性`
    - `source`：`开发 | 审查发现 | 证伪轮 | 用户`（本技能写的多为 `审查发现` / `证伪轮`）
-4. **路由（每条 finding 恰好一个）。**
+4. **路由（每条 finding 恰好一个）。** WDS 线没有 `sprint.yaml` / `stories.yaml` / `test-plan.yaml` 三个落点——四类路由在 WDS 线一律按下表的 WDS 线落点列走，与主线共用同一张路由表、同一套词表。
 
-   | 路由 | 含义 | 处置 |
-   |---|---|---|
-   | `意图缺口` | 实现漏掉或违背了已声明的意图 | 打回 diy-dev |
-   | `规格缺陷` | 规格本身错或含糊——代码没问题 | 改 stories.yaml / test-plan.yaml，不改代码 |
-   | `小修` | 一处局部的修就能解决 | 打回 diy-dev（一行范围） |
-   | `后置` | 真实但当下不值得阻断 | 唯一落点 ＝ 本任务 `sprint.yaml` 的 `review.findings[]`（`route: 后置`）；**不**入 `deferred-actions.yaml`（那是副作用确认队列，语义不同）；消费方是 diy-retrospective 的技术债读面；不阻断 |
+   | 路由 | 含义 | 主线处置 | WDS 线落点 |
+   |---|---|---|---|
+   | `意图缺口` | 实现漏掉或违背了已声明的意图 | 打回 diy-dev | 上游：路由 `diy-wds-scenarios`（场景 / 页面树缺页或偏题） |
+   | `规格缺陷` | 规格本身错或含糊——代码没问题 | 改 stories.yaml / test-plan.yaml，不改代码 | 上游：路由 `diy-design`（`states[].signals` 判据本身不成立） |
+   | `小修` | 一处局部的修就能解决 | 打回 diy-dev（一行范围） | 打回 `diy-dev` WDS 模式（回修边已由 `transition` 落状态） |
+   | `后置` | 真实但当下不值得阻断 | 唯一落点 ＝ 本任务 `sprint.yaml` 的 `review.findings[]`（`route: 后置`）；**不**入 `deferred-actions.yaml`（那是副作用确认队列，语义不同）；消费方是 diy-retrospective 的技术债读面；不阻断 | 留在审查报告与本轮 findings（`route: 后置`）——**不写 `design.yaml`**（无状态边，`transition` 无通道可挂） |
 
 5. **判决规则。** 任一 finding 路由 `意图缺口` / `小修` / `规格缺陷` → `失败`，findings 写进任务条目，处置走 `transition`：有 `规格缺陷` → `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" transition --story <S-x> --to 已阻塞 --reason "<finding 引文>" --json`（规格由上游修，绝不由执行者改——与 diy-build-loop 同口径）；否则 → `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" transition --story <S-x> --to 进行中 --json`（打回 dev 环）。findings 为空或全 `后置` → `通过`：写 `review` 块 + `note`（引审查日期）进任务条目，再 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" done --story <S-x> --json`。
 6. **真源回填（BUG-012）。** `done` 把 `待审查 → 已完成` 与回填当一个原子批次做完：任务 `status: 已完成`、`stories.yaml` 里该故事 `status: 已完成`、`test-plan.yaml` 里本次 L3 确认绿的每个 TC `status: 通过`（TC 行由 `diy-dev` 按绿线写，终态写做对账），并 bump 所有被触及的 `project.updated`。`已阻塞` 两个文件都不写——什么都没交付，什么也不算通过。**为什么：** 2026-09-13 质量分析发现该独立路径报 `已完成` 而真源停在 `待办`（与无头链 BUG-012 同类）。
 7. **任务状态写入权（`sprint.yaml`）。** `待审查 → 已完成`（`通过`——只经 `done`，`transition` 拒绝这条边）、`待审查 → 进行中`（`失败`）、`待审查 → 已阻塞`（`规格缺陷`）、`已完成 → 进行中`（证伪轮命中——第 6 步），后三条经 `transition`，别无其他。重开入口不变：单条证伪命中走 `transition`（引擎在该边上清掉旧判定）；批量的 `runner.py --reopen-failed` 归 diy-sprint。
 8. **经验上行。** 配了 `paths.experience_repo` 且在场时，提醒用户在项目根运行（**由人手动执行**，安装形态 `.claude/skills/diy-tools/scripts/exp-sync.py`）`python "{project-root}/.claude/skills/diy-tools/scripts/exp-sync.py" push`——实例运行加 `--instance <name>`（bug-log 在实例目录里）。经验库是投影；本任务的 `bug-log.yaml` 始终是真源。
+9. **两透镜（可选模式，叠加在四层之上；与证伪轮并列的第二类复核）。** `批判式`（attitude-driven，映射 = **L1 / L3 补强**：假定缺陷存在、专找缺失与未兑现的声明——错的是「没被要求的」和「声明了却没兑现的」）——**零 findings 即 HALT**：停在「重新分析，或问用户要判据」，不得直接进判决（空 findings 的 `通过` 只在复析之后成立）。`边界穷举`（method-driven，映射 = **L2 的机械化路径枚举**：机械走控制流与域边界、只报未处置路径、处置过的静默丢弃；边界类从内容自身推，不套固定清单）——**空数组合法**（零未处置路径是合法结论），不构成 HALT。**归一**：两透镜的 findings 一律落既有 `review.findings{layer,route,note}` ＋ 规则第 4 条四类路由（含 WDS 落点列），**不新增 schema 键**；`layer` 只取既有四值、按 finding 实际所落的层记（批判式常落 L1 / L3；边界穷举的路径缺口记 `边界`）。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

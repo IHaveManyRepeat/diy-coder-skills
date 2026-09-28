@@ -102,7 +102,7 @@ Progress: `[1 质检（13 维去重后 + 源 steps-v 五维）] → 2 定稿、�
    违规按回执 `where` 就地修、重跑，**不得跳过**。定稿时会**复验上游门禁**（`wds-brief.yaml` 仍在场且 `project.status: 已定稿`）——上游被回退就停在这里。随身体检 `metrics`（人物群 2–4 / 每人 3–5 正 + 3–5 负 / 连接数）随时可跑，越界只给 warning。
 3. **渲染（静默旁路）**：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。**不新开交互点、不等查看**。
 4. **交接摘要（源 09d，会话内呈出、不落盘）**：给下游 `diy-wds-scenarios` 的一页——① **主群与转型**（人物名 + role + before → after）；② **必办 / 须办**（主群的 Top 3 正向驱动与 Top 3 负向驱动，**逐条念 ID**）；③ **特征优先级**（必须 / 应该 / 可选各几条、前 3 条是谁）；④ **焦点声明**（`top_group` + `must`）；⑤ **图的读法**（左→右、上→下即优先级、✅ 想要 / ❌ 怕）。
-5. **路由与收尾**：一句话给「触发图已定稿，可进入场景（`diy-wds-scenarios`）」；未决项写进 `revisions`（`change` 点名段名 / 键名，`reason` 写为什么还没定），**不用 `[假设]` 标记**。**WDS 线是自己的短链**（brief → trigger → scenarios），diy 主线的 `diy-design` / `diy-dev` 在 C·3 之前不接这条线。
+5. **路由与收尾**：一句话给「触发图已定稿，可进入场景（`diy-wds-scenarios`）」；未决项写进 `revisions`（`change` 点名段名 / 键名，`reason` 写为什么还没定），**不用 `[假设]` 标记**。**WDS 线是自己的短链**（brief → trigger → scenarios）；主线侧的接续在 `diy-design` 的 WDS 线分支（读本链场景集）。
 
 **落盘**：`project.status: 已定稿` / `stage: 收尾` / `project.updated` / `revisions` 收尾条目。
 

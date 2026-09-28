@@ -675,5 +675,94 @@ class ViewerAssetsNoteTests(_Fixture):
         self.assertNotIn("未渲染", p2.stderr, "空 assets/ 却报了资产诊断")
 
 
+# ---------------------------------------------------------------------------
+# C·3a 收口链④（§2.3：新增键 3 个 + 从属字段 1 个 · 页状态 5 值）
+# ---------------------------------------------------------------------------
+
+# design.yaml 的增量面：token_scope / open_questions（形状同 prd）/ pages[].status 5 值 +
+# 仅 已移除 时写的 removed_reason。改前实测：4 行 `unmapped enum`（结构稿中 / 待验收 /
+# 已移除 / 已解决）+ 两个键名英文直出（token_scope / removed_reason）。
+DESIGN_C3A_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 草稿",
+    "  created: 2026-09-28",
+    "  updated: 2026-09-28",
+    "direction: 一句话方向",
+    "frontend_framework: react",
+    "tokens:",
+    "  color: {bg: '#fff', surface: '#eee', text: '#111', text_muted: '#666',",
+    "          accent: '#06f', accent_text: '#fff'}",
+    "  spacing: {unit: 4, scale: [4, 8]}",
+    "  typography: {family_base: Inter, family_heading: Inter, scale: [12, 16]}",
+    "token_scope: [src/thirdparty]",
+    "open_questions:",
+    "- {id: Q-1, question: 用哪种导航, status: 待办}",
+    "- {id: Q-2, question: 主色是否换, status: 已解决, answer: 不换}",
+    "pages:",
+    "- id: P-1",
+    "  name: 首页",
+    "  route: /",
+    "  status: 未开始",
+    "  states:",
+    "  - {name: 悬停, signals: [图标]}",
+    "- id: P-2",
+    "  name: 列表",
+    "  route: /list",
+    "  status: 结构稿中",
+    "  states:",
+    "  - {name: 悬停, signals: [图标]}",
+    "- id: P-3",
+    "  name: 详情",
+    "  route: /detail",
+    "  status: 待验收",
+    "  states:",
+    "  - {name: 悬停, signals: [图标]}",
+    "- id: P-4",
+    "  name: 设置",
+    "  route: /settings",
+    "  status: 已批准",
+    "  states:",
+    "  - {name: 悬停, signals: [图标]}",
+    "- id: P-5",
+    "  name: 旧页",
+    "  route: /old",
+    "  status: 已移除",
+    "  removed_reason: 被 v2 首页取代",
+    "  states:",
+    "  - {name: 悬停, signals: [图标]}",
+    "revisions: []",
+])
+
+
+class ViewerC3aDesignLabelTests(_Fixture):
+    # trace: C·3a 收口链④——design.yaml 增量面的徽章与键标签（改前：4 行假诊断 + 2 键裸出）
+    def test_page_and_question_statuses_are_badged_without_drift(self):
+        self.write("design.yaml", DESIGN_C3A_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr, "增量值仍报枚举漂移：%s" % p.stderr)
+        html = self.page("design")
+        # 5 页状态 + open_questions[].status 的两值；未开始 / 已批准 / 待办 为既有映射，一并钉住
+        for value, cls in (("未开始", "dim"), ("结构稿中", "warn"), ("待验收", "warn"),
+                           ("已批准", "ok"), ("已移除", "dim"),
+                           ("待办", "dim"), ("已解决", "ok")):
+            self.assertIn('class="badge b-%s">%s</span>' % (cls, value), html,
+                          "值 %s 未按 %s 档出徽章" % (value, cls))
+
+    def test_c3a_new_keys_are_chinese_and_reason_stays_plain(self):
+        self.write("design.yaml", DESIGN_C3A_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = self.page("design")
+        for label in ("令牌豁免路径", "移除原因", "待决问题"):
+            self.assertIn(label, html, "键标签缺失：%s" % label)
+        for leak in (">token_scope<", ">removed_reason<"):
+            self.assertNotIn(leak, html, "英文键名直出：%s" % leak)
+        # removed_reason 是自由文本（不进 ENUM_KEYS）：原句在场，且不得被徽章化
+        self.assertIn("被 v2 首页取代", html, "移除原因内容丢失")
+        self.assertNotIn(">被 v2 首页取代</span>", html, "自由文本被误徽章化")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -19,7 +19,7 @@ diy 侧**只产本 YAML**：逐场景写 `scenarios[]` 记录、其下写 `pages
 这一条由 `check` 机械核对（展示名与引用键漂移是本设计最可能的坏味道）。
 
 **裁定 17 的交接契约（必携三键）**：每条记录含 `design_intent`（`[K|C|S|D|L]`）+
-`design_status`（初值 `not-started`；本技能**只设初值**，后续推进归 C·3 的 `diy-design`，
+`design_status`（初值 `not-started`；本技能**只设初值**，后续推进归 `diy-design` 的 WDS 线分支，
 故 `--final` 要求它**恰为初值**）+ `trigger_map_context`（`target_group: TG-<n>` +
 `drivers[]`：所消费的驱动因素 ID，形态取上游实值 `DF-<人物号>.<条号>+|-`，
 见 `diy-wds-trigger/SKILL.md` 结构段 + `business_goal: BG-<n>`）。
@@ -770,7 +770,7 @@ def check_scenario(record, index, show, ctx):
         if ctx["final"] and text_of(design_status) != DESIGN_STATUS_INITIAL:
             ctx["out"].append(v(
                 "STATUS_MISMATCH", "%s %s.design_status" % (show, ref),
-                "本技能只设初值 %s（实为 %s）——设计期的推进归 C·3 的 `diy-design`"
+                "本技能只设初值 %s（实为 %s）——设计期的推进归 `diy-design` 的 WDS 线分支"
                 % (DESIGN_STATUS_INITIAL, design_status)))
     if ctx["final"]:
         require(record, SCENARIO_REQUIRED, "%s %s" % (show, ref), ctx["out"])

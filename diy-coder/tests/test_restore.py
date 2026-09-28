@@ -92,14 +92,14 @@ class RestoreLoopTests(unittest.TestCase):
         r = run_engine(["audit", "--design", dpath, "--src", bad, "--json"])
         self.assertEqual(r.returncode, 1, r.stdout)
         data = json.loads(r.stdout)
-        self.assertFalse(data["pass"])
-        kinds = {x["kind"] for x in data["violations"]}
+        self.assertFalse(data["ok"])
+        kinds = {x["code"] for x in data["violations"]}
         self.assertIn("one-off-color", kinds)
         self.assertIn("one-off-font-size", kinds)
         good = self.write("impl_good.html", GOOD_HTML)
         g = run_engine(["audit", "--design", dpath, "--src", good, "--json"])
         self.assertEqual(g.returncode, 0, g.stdout)
-        self.assertTrue(json.loads(g.stdout)["pass"])
+        self.assertTrue(json.loads(g.stdout)["ok"])
 
     # trace: S-15 AC-15.3 TC-15.3.1 D-10（2026-09-12 变更：截图对比废弃，改零重写采用）
     def test_adopt_zero_rewrite_terms_and_compare_removed(self):

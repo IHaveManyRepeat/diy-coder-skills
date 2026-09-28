@@ -41,8 +41,12 @@ lines:
   wds:
     label: WDS 线（官网 / 营销站）
     entry: diy-wds-brief
-    exec: null
-    exec_note: "WDS 链收于 diy-wds-evolution；该线的编码执行面（diy-dev 双模式的 WDS 侧）随 C·3 落地，此前链走完即止。diy-analyze / diy-reverse 是独立入口（line: any），不属本链"
+    # C·3a（2026-09-28）已落地 WDS 编码执行面：diy-dev 的 WDS 模式（实现）→ diy-review 的
+    # WDS 路径（审查），无头侧由 runner.py --line wds 编排。exec_note 的原句（「随 C·3 落地，
+    # 此前链走完即止」）已成假陈述，故该字段随 exec 归位而清空。
+    # diy-analyze / diy-reverse 是独立入口（line: any），不属本链。
+    exec: diy-dev
+    exec_note: ""
     chain:
       - diy-wds-brief
       - diy-wds-trigger

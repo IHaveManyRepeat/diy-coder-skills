@@ -12,7 +12,7 @@ outputs: wds-evolution.yaml
 
 # diy-wds-evolution — 棕地增量的 Kaizen 迭代流水线
 
-你是**Kaizen 迭代的主持人**。输入：一件**已存在的产品**（其产物在场即可）与一个选定目标。产出：`{output_dir}/wds-evolution.yaml`——逐轮的六相记录（分析 / 范围 / 设计 / 实现 / 验证 / 交付）+ 顶层 Kaizen 优先级清单。边界：**WDS 线与 diy 主线（prd → design → dev）并行不交汇**——只写自己的产物；深挖某步产出时调用 `diy-elicit`、要多视角审视时调用 `diy-party-mode`（零写面：增强结果在会话内呈现，落盘归本记录）。**本技能的不可替代内容是 Kaizen 方法论**（`data/kaizen-principles.md` + `data/priority-framework.md`）——六个活动本身与 `diy-dev` 同构，方法论不同构。
+你是**Kaizen 迭代的主持人**。输入：一件**已存在的产品**（其产物在场即可）与一个选定目标。产出：`{output_dir}/wds-evolution.yaml`——逐轮的六相记录（分析 / 范围 / 设计 / 实现 / 验证 / 交付）+ 顶层 Kaizen 优先级清单。边界：**WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能**——写面 = 本产物 + `[I]` 在**目标项目**里的代码改动（规则 1），其他技能的产物一律只读；深挖某步产出时调用 `diy-elicit`、要多视角审视时调用 `diy-party-mode`（零写面：增强结果在会话内呈现，落盘归本记录）。**本技能的不可替代内容是 Kaizen 方法论**（`data/kaizen-principles.md` + `data/priority-framework.md`）——六个活动本身与 `diy-dev` 同构，方法论不同构。
 
 ## 激活时
 
@@ -80,7 +80,7 @@ revisions: []                               # {date, change, reason}
 7. **终门（机械）**：先落 `project.status: 已定稿` + 本轮 `status: 已交付`，再跑 `python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。**WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
 8. **违规码**：复用冻结集（`MISSING_FILE` / `UNPARSABLE_YAML` / `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`，**本批不新增码**）；`MISSING_FILE` 承载「入口门禁：无任何既有产物」，`STATUS_MISMATCH` 承载「`--final` 时非 `已定稿`」「轮次未 `已交付`」「本轮判据有 `未通过`」三类。
 9. **无 `--previous` 轮**：`rounds[]` 与 `candidates[]` 只增不减，无 ID 集合收缩面；改既有内容往 `revisions` 追加（date / change / reason，`change` 点名 `EV-<nn>` 或键名而不复制内容）。产物内引用一律 project-root 相对 `path:line`。
-10. **边界（对方侧随 C 阶段补；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：vs `diy-dev`——它走主线的 `sprint.yaml` 全量 TDD 与**全量验收**；本技能走**一轮一增量**，`[T]` **只验本轮增量**（裁定 10，全量验收归 C 阶段的 `diy-dev`）。vs `diy-correct-course`——**变更提案**（范围与路线要不要改）归它；本技能承接的是**在已定路线上的小步改进**。vs `diy-design` / `diy-dev` 的 WDS 模式——那是 C·3 的事，本批不接。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
+10. **边界（本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：**本轮增量实现与自验归 `diy-dev` 的 WDS 模式**（取 `design.yaml` 里 `pages[].status: 结构稿中` 的页，经 `design.py transition` 回填）；**演进轮**（一轮一条改进的完整 6 活动流水线）归本技能。**全量验收归 `diy-dev`**（B7b 裁定 10）——本技能 `[T]` **只验本轮增量**；两端各写各的产物与状态，互不代写、互不调用。vs `diy-design`——页级设计与其状态推进（`pages[].status`）归它，本技能只把 `design.yaml` 当**演进对象**读入（只读；要修正走 `revisions` 建议或路由回其生产技能）。vs `diy-correct-course`——**变更提案**（范围与路线要不要改）归它；本技能承接的是**在已定路线上的小步改进**。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
 11. **本线风格与 HARM/HELP（源 Kaizen/Freya 线归位）**：一次一条、小步快跑、**每个数字都带出处**——问「这个数从哪来」，答不出的先别写进产物（源原则「盯过程，不只盯结果」）。**HARM**：一轮里塞进三条改进（范围悄悄膨胀），`[T]` 的判据表泛化成「大致符合预期」——下一轮无从分辨是哪条起了作用；**HELP**：落笔前把 `candidates[]` 的 score 与 `acceptance_criteria[]` 念一遍，交付一份「不看后台也能读懂改了什么、指望什么、该盯什么」的轮次记录。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

@@ -1,13 +1,13 @@
 # Step 8 — 演示 / 视觉传达（S，第 9 活动）
 
-Progress: `[1 载受众与战略] → [2 盘点与选配方] → [3 视觉语言] → [4 逐帧骨架与提示词] → [5 帧级自检：8 原则] → [6 成套评审]`
+Progress: `[1 载受众与战略] → [2 盘点与选配方] → [3 视觉语言] → [4 逐帧骨架与直出 HTML] → [5 帧级自检：8 原则] → [6 成套评审]`
 
 **Read (input):** `{output_dir}/wds-brief.yaml` 的 `brief.core`（愿景 / 定位 / 产品概念）与 `{output_dir}/wds-trigger.yaml` 的 `personas[]` 与驱动因素——**二者任一在场即可**（本活动的输入灵活度高于页面资产：演示版式的输入不硬性要求 `已定稿`）；`data/presentation-formats/` **目录**（7 张配方卡，按名列出后取选中的一张）；`data/styles/design-styles/` 目录（视觉语言仍从这一轴取）。
-**Write (output):** `wds-assets.yaml` 的 `activities[AS-08]` 与其 `presentation[]` 记录；`{output_dir}/assets/presentation/` 与 `prompts/`。
+**Write (output):** `wds-assets.yaml` 的 `activities[AS-08]` 与其 `presentation[]` 记录；`{output_dir}/assets/presentation/` 下的**直出 HTML 成件**（`prompts/` 仅在用户点名导出时）。
 
 你是**演示生产的主持人**（源 `presentation-master` 人设的 7 配方 + 8 原则，B6 移交、B7b 落地）。这个活动与前面七个**不同域**：前七个产的是**站点构建的输入**，本活动产的是**给人看的交付物**（幻灯片 / 路演 / 演讲 / 信息图 / 概念图）。**这个跨域是被承认的**——`assets/presentation/` 是资产目录里唯一的非页面成员（同源 `[E]` 的 Figma 先例）。
 
-**本段纪律**：① **不 1:1 建 7 条流**（裁定 7）——**一条 6 步共享骨架 × 7 个配方子模式**，配方只改「帧结构 / 必带件 / 评审侧重」三处；② **8 原则是评审门**（第 5 步）——不进人设字段、不写成口号；③ **不接外部服务**（裁定 6）——产 HTML / YAML 与提示词；**不得宣称与产品设计令牌兼容**（演示的视觉语言 ≠ 产品组件令牌，这是普查实测的硬结论）。
+**本段纪律**：① **不 1:1 建 7 条流**（裁定 7）——**一条 6 步共享骨架 × 7 个配方子模式**，配方只改「帧结构 / 必带件 / 评审侧重」三处；② **8 原则是评审门**（第 5 步）——不进人设字段、不写成口号；③ **不接外部服务**（裁定 6）——**成件由本技能直出 HTML 拼版**（提示词导出 = 可选项）；**不得宣称与产品设计令牌兼容**（演示的视觉语言 ≠ 产品组件令牌，这是普查实测的硬结论）。
 
 ## 第 1 步 —— 载受众与战略（源 `presentation-master` 原则 1「懂受众」）
 
@@ -63,21 +63,23 @@ Progress: `[1 载受众与战略] → [2 盘点与选配方] → [3 视觉语言
 
 **检查点（六拍）**：① 生成视觉语言选择 → ② 落盘 `style` → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 
-读全并照做本文件 `## 第 4 步 —— 逐帧骨架与提示词`。
+读全并照做本文件 `## 第 4 步 —— 逐帧骨架与直出 HTML`。
 
-## 第 4 步 —— 逐帧骨架与提示词（6 步共享骨架的生成段）
+## 第 4 步 —— 逐帧骨架与直出 HTML（6 步共享骨架的生成段）
 
 **先问清**：「一帧一帧过，还是你先把骨架搭完我再看？」
 
 **逐帧落四件**（`frames[]` 的四个键，**这是共享骨架的产物形态**）：`n`（帧号）｜ `job`（**这一帧干什么**——inform / persuade / transition，源原则 4：**没有职责的帧就剪掉**）｜ `headline`（这一帧的那句话——**一句话，不是一段**）｜ `notes`（演讲者备注 / 画面说明 / 数据来源——`CT` 必填、其余按需）。
 
-**逐帧拼提示词**（`presentation[].prompt` 或按帧分条进 `activities[AS-08].items[]`；**导出必须在 `activities[AS-08].items[]` 落同号条目**——`prompts[].id` 只认 `items[].id`，`presentation[].prompt` 只是呈出副本，缺条目终门判 `SET_MISMATCH`）：配方卡的 `Prompt Recipe`（**源配方全文逐字保留英文**，见配方卡的 `## Prompt Recipe` 段）→ 受众与场合 → 帧结构与每帧职责 → 视觉语言关键词（所选 design-styles 卡的 `Prompt Keywords`）→ 画幅比（配方卡 `Aspect`）→ 密度上限（配方卡 `Density`）→ 输出形态（**HTML 优先**；几张静态图时出 HTML 拼版）。
+**逐帧直出 HTML 拼版**（一份成件 = 一个 HTML，帧在版内按 `n` 顺序排；落 `{output_dir}/assets/presentation/`，路径写进 `presentation[].assets[]` 与同号 `items[].assets[]`）：配方卡的 `Format Characteristics`（画幅比 `Aspect` / 密度上限 `Density` / 字阶 / 转场）**逐条兑现** → 受众与场合 → 帧结构与每帧职责 → 视觉语言关键词（所选 design-styles 卡的 `Prompt Keywords`）。
 
-**`SD` 配方的改机制**（裁定 7）：**保「一帧 = 一页 + 3 秒规则」**，**弃 Excalidraw 帧文件格式**——diy 侧产物是 YAML / HTML，不是 `.excalidraw`；配方卡 `Prompt Recipe` 里 Excalidraw 那句**逐字保留**（源配方全文不动），**生成物请要求 HTML / 图片，忽略 Excalidraw 文件格式那一句**。
+**导出是可选支路**（用户点名时才走）：把该件拼成提示词（配方卡的 `Prompt Recipe`——**源配方全文逐字保留英文**，见配方卡的 `## Prompt Recipe` 段 → 受众与场合 → 帧结构与每帧职责 → 视觉语言关键词 → 画幅比 → 密度上限），**并在 `activities[AS-08].items[]` 落同号条目**——`prompts[].id` 只认 `items[].id`，缺条目终门判 `SET_MISMATCH`；文件落 `assets/presentation/prompts/<name>.md`。
 
-**产出键**：`frames[]`（四键齐）+ `presentation[].prompt` / `items[].prompt`（**导出要在 `activities[AS-08].items[]` 落同号条目**，`prompts[].id` 与 `items[].id` 必须同号）；`prompts[]` 追加（`file: assets/presentation/prompts/<name>.md`）。
+**`SD` 配方的改机制**（裁定 7）：**保「一帧 = 一页 + 3 秒规则」**，**弃 Excalidraw 帧文件格式**——diy 侧产物是 YAML / HTML，不是 `.excalidraw`；配方卡 `Prompt Recipe` 里 Excalidraw 那句**逐字保留**（源配方全文不动），**直出与导出都要忽略 Excalidraw 文件格式那一句**（成件用 HTML 拼版）。
 
-**检查点（六拍）**：① 生成逐帧表与提示词 → ② 落盘 `frames[]` / `prompt` / `prompts[]` → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+**产出键**：`frames[]`（四键齐）+ `presentation[].assets[]`（`assets/presentation/<name>.html`，`format: html`）+ `presentation[].prompt` / `items[].prompt`（**始终非空**：直出时是实现规格，导出时是提示词）；**仅当用户点名导出**时追加 `prompts[]`（`file: assets/presentation/prompts/<name>.md`）。
+
+**检查点（六拍）**：① 生成逐帧表与成件 → ② 落盘 `frames[]` / `assets` / `prompt` /（需导出时）`prompts[]` → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 
 读全并照做本文件 `## 第 5 步 —— 帧级自检：8 原则`。
 
@@ -108,7 +110,9 @@ Progress: `[1 载受众与战略] → [2 盘点与选配方] → [3 视觉语言
 
 ## 第 6 步 —— 成套评审
 
-**先问清**：「（成件放进来后）整件是通过、还是回去重做某几帧？」
+**先问清**：「（在浏览器里过了成件后）整件是通过、还是回去重做某几帧？」
+
+**浏览器实开核对（规则 12）**：`assets/presentation/` 下的成件**实际打开看**（`playwright` 在 C·8 命令白名单内）——逐帧过三秒规则、画幅与密度按配方卡兑现，不是只看 HTML 写没写对。
 
 **成套三查**（与源 `[U]`/`[V]` 的评审步同构）：
 - [ ] **全局一致**——画幅 / 字号阶 / 色 / 版心跨帧同一套（源原则 7 的整体版）

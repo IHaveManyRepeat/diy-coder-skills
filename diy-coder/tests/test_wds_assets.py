@@ -807,6 +807,203 @@ class WdsAssetsTest(unittest.TestCase):
         self.assertIn(("SET_MISMATCH", "prompts[0]"), hits)
 
 
+class WdsAssetsDirectOutputTest(unittest.TestCase):
+    """W8 产出模型修复的回归：直出产物 + 双向对表 + 提示词通道未回归（C·3a 段2）。"""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.out = self.root / "diy-output"
+        self.out.mkdir()
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    # ------------------------------------------------- 偏移点：全树措辞归零
+
+    def test_offset_wording_purged_across_skill_tree(self):
+        """7+1 处偏移：「唯一生成通道」家族措辞在本技能树内归零（含引擎 docstring）。"""
+        banned = ("唯一生成通道", "唯一的生成通道", "唯一的生成路径", "唯一的生成入口")
+        for path in SKILL.rglob("*"):
+            if path.suffix not in {".md", ".py", ".yaml"} or "__pycache__" in path.parts:
+                continue
+            body = path.read_text(encoding="utf-8")
+            for phrase in banned:
+                self.assertNotIn(phrase, body, f"{path}: {phrase}")
+
+    def test_main_file_declares_direct_output(self):
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("产物由本技能直接产出", text)
+        self.assertIn("照片类通道 + 用户可选项", text)
+        # 英语 description 同步改写（不再是 prompts-only 口径）
+        self.assertIn("produces the artifacts itself", text)
+
+    def test_each_activity_declares_its_artifact_form(self):
+        """8 活动的产出定义：各步写明直出形态与落点。"""
+        expected = {
+            "01-wireframes.md": ("直出 HTML", "assets/wireframes/"),
+            "02-page-designs.md": ("直出 HTML", "assets/page-designs/"),
+            "03-ui-elements.md": ("直出 HTML / CSS", "assets/ui-elements/"),
+            "04-icons.md": ("直写 SVG", "assets/icons/"),
+            "05-images.md": ("两路产出", "assets/images/"),
+            "06-motion.md": ("直出 CSS / SVG 关键帧代码", "assets/motion/"),
+            "07-content.md": ("成稿 `.md`", "assets/content/"),
+            "08-presentation.md": ("直出 HTML 拼版", "assets/presentation/"),
+        }
+        for name, (marker, path_token) in expected.items():
+            body = (SKILL / "steps" / name).read_text(encoding="utf-8")
+            self.assertIn(marker, body, name)
+            self.assertIn(path_token, body, name)
+            self.assertIn("**Write (output):**", body, name)
+            self.assertIn("导出", body, name)     # 提示词通道仍在场（可选项）
+
+    def test_images_two_path_split(self):
+        """M 图片两路：插画 / 示意 / 抽象直出 SVG；照片类走提示词通道。"""
+        body = (SKILL / "steps" / "05-images.md").read_text(encoding="utf-8")
+        self.assertIn("直出路", body)
+        self.assertIn("提示词路", body)
+        self.assertIn("photorealistic", body)
+        self.assertIn("hyper-realistic", body)
+        self.assertIn("矢量 = 文本", body)
+
+    def test_browser_check_discipline_present_for_html_activities(self):
+        """判据 ⑤：直出 HTML 后「浏览器实际打开核对」（规则 12）逐活动可执行。"""
+        for name in (
+            "01-wireframes.md",
+            "02-page-designs.md",
+            "03-ui-elements.md",
+            "08-presentation.md",
+        ):
+            body = (SKILL / "steps" / name).read_text(encoding="utf-8")
+            self.assertIn("浏览器实开核对", body, name)
+            self.assertIn("playwright", body, name)
+        motion = (SKILL / "steps" / "06-motion.md").read_text(encoding="utf-8")
+        self.assertIn("浏览器里跑一遍", motion)
+        self.assertIn("用浏览器实际打开核对", (SKILL / "SKILL.md").read_text(encoding="utf-8"))
+
+    # --------------------------------------------------- 8 活动直出 + 双向核
+
+    # (活动码 → 目录, 产物格式, 产物正文)：一张表覆盖 8 活动的直出形态
+    ARTIFACTS = {
+        "W": ("wireframes", "html", '<!doctype html><html lang="zh"><title>线框</title></html>'),
+        "P": ("page-designs", "html", '<!doctype html><html lang="zh"><title>页面稿</title></html>'),
+        "U": ("ui-elements", "css", ".btn-primary { color: #2563EB; }"),
+        "I": ("icons", "svg", '<svg viewBox="0 0 24 24"><path d="M4 12h16"/></svg>'),
+        "M": ("images", "svg", '<svg viewBox="0 0 16 9"><rect width="16" height="9"/></svg>'),
+        "V": ("motion", "css", "@keyframes fade-in { from { opacity: 0 } }"),
+        "C": ("content", "md", "# 首页文案成稿\n\n第一版正文。"),
+        "S": ("presentation", "html", '<!doctype html><html lang="zh"><title>路演</title></html>'),
+    }
+
+    def init_direct(self):
+        """按新模型填一份**带实体文件**的产物：8 活动直出，仅照片类走提示词。"""
+        write_scenarios(self.out)
+        code, payload, _, err = run(
+            ["init", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, err)
+        path = self.out / "wds-assets.yaml"
+        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+        for activity in doc["activities"]:
+            code_ = activity["code"]
+            directory, fmt, body = self.ARTIFACTS[code_]
+            activity["status"] = "已评审"
+            activity["scope"] = "all"
+            activity["style"] = {"design": "minimal", "content": None, "format": None}
+            item = make_item(activity["id"], 1, code_, with_asset=False)
+            rel = f"assets/{directory}/{item['id']}.{fmt}"
+            target = self.out / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(body, encoding="utf-8")
+            item["assets"] = [{"path": rel, "format": fmt}]
+            activity["items"] = [item]
+            if code_ == "C":
+                item["content"] = content_block()
+        record = make_presentation_record("AS-08.1")
+        record["assets"] = [{"path": "assets/presentation/AS-08.1.html", "format": "html"}]
+        doc["presentation"] = [record]
+        # 照片类（M）走提示词通道：导出文件落在 assets/images/prompts/——双向核须排除该子目录
+        prompt_file = self.out / "assets/images/prompts/AS-05.1.md"
+        prompt_file.parent.mkdir(parents=True, exist_ok=True)
+        prompt_file.write_text("# AS-05.1 照片提示词\nminimal, natural light\n", encoding="utf-8")
+        doc["prompts"] = [
+            {
+                "id": "AS-05.1",
+                "activity": "AS-05",
+                "target": "外部图像服务",
+                "file": "assets/images/prompts/AS-05.1.md",
+                "exported": True,
+            }
+        ]
+        doc["project"]["status"] = "已定稿"
+        doc["stage"] = "收尾"
+        dump(self.out, doc)
+        return doc
+
+    def reconcile(self):
+        """资产双向对表（`prompts/` 子目录除外——它归提示词通道）。"""
+        doc = yaml.safe_load((self.out / "wds-assets.yaml").read_text(encoding="utf-8"))
+        declared: set[str] = set()
+        for activity in doc["activities"]:
+            for item in activity.get("items") or []:
+                for asset in item.get("assets") or []:
+                    declared.add(asset["path"])
+        for record in doc.get("presentation") or []:
+            for asset in record.get("assets") or []:
+                declared.add(asset["path"])
+        on_disk: set[str] = set()
+        for activity_dir in (self.out / "assets").iterdir():
+            if not activity_dir.is_dir():
+                continue
+            for path in activity_dir.rglob("*"):
+                rel = path.relative_to(self.out).as_posix()
+                if path.is_file() and "prompts" not in rel.split("/"):
+                    on_disk.add(rel)
+        return sorted(declared - on_disk), sorted(on_disk - declared)
+
+    def test_direct_artifacts_pass_final_gate_and_reconcile_both_ways(self):
+        self.init_direct()
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, payload)
+        self.assertEqual(payload["counts"]["items"], 8)
+        forward, reverse = self.reconcile()
+        self.assertEqual(forward, [])          # assets[] 每条都有实体文件
+        self.assertEqual(reverse, [])          # 目录下每个产物都有条目（提示词包不算）
+
+        # 负向对照 1：删一份实体文件 → 正向差集现形（这套对表不是「假机械核」）
+        (self.out / "assets/icons/AS-04.1.svg").unlink()
+        self.assertEqual(self.reconcile()[0], ["assets/icons/AS-04.1.svg"])
+
+        # 负向对照 2：散一件无主产物 → 反向差集现形；提示词文件不误判为孤儿
+        stray = self.out / "assets/wireframes/stray.html"
+        stray.write_text("<html></html>", encoding="utf-8")
+        self.assertEqual(self.reconcile()[1], ["assets/wireframes/stray.html"])
+
+    def test_prompt_channel_exported_flip_not_regressed(self):
+        """判据 ③：`prompts[].exported` 翻转机制与终门判定原样保留。"""
+        self.init_direct()
+        code, payload, _, _ = run(
+            ["prompts", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 0, payload)
+        self.assertEqual([p["id"] for p in payload["prompts"]], ["AS-05.1"])
+        self.assertTrue(payload["prompts"][0]["exported"])
+
+        doc = yaml.safe_load((self.out / "wds-assets.yaml").read_text(encoding="utf-8"))
+        doc["prompts"][0]["exported"] = False
+        dump(self.out, doc)
+        code, payload, _, _ = run(
+            ["check", "--final", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1)
+        hits = [v for v in payload["violations"] if v["where"] == "prompts[0]"]
+        self.assertTrue(hits, payload["violations"])
+        self.assertEqual(hits[0]["code"], "SET_MISMATCH")
+        self.assertIn("已导出", hits[0]["msg"])
+
+
 class WdsAssetsContractTest(unittest.TestCase):
     """契约冒烟：母本锚串 / 结构 / 数据资产 / 红线。"""
 

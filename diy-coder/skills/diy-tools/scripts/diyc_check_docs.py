@@ -10,11 +10,17 @@
 - 跨文档 UNKNOWN_ID 限于 team-lead 裁定的三条真链路（architecture.affects /
   openapi x-fr / stories refs）+ 契约钉住的 stories design_ref；
   epics.feature_refs、stories.epic 属同类链路但不在本次裁定范围，暂不查。
+- **第四条真链路（C·3a 裁定 22，2026-09-28）**：architecture.affects 的解析域
+  在主线 FR/NFR 之外并入 WDS 线的 SC-<nn> / SC-<nn>.P<n>（源 wds-scenarios.yaml），
+  使 WDS 线决策不被终门误拒；其余类型不扩散。
 - prd open_questions 未答（answer 为空）在 --final 计 PENDING_DECISION。
 """
 # trace: 2026-09-13 批次 3（统一脚本化）——文档级规则，契约 §4.2
 
 import diyc_lib
+
+# 裁定 22（C·3a · W9）：`affects` 的 SC/P 域须经 `Docs` 读 wds-scenarios——注册项
+# （`DOC_FILES["wds-scenarios"]`）已于 2026-09-28 收口期归位 `diyc_lib.py`，此处不再就地补登记。
 
 # 枚举（逐条对照各 SKILL.md Schema 节的机器锚）
 # rule: diy-test-design/SKILL.md:Schema technique 13 值（前 9 设计期 + 后 4 补测）
@@ -214,6 +220,47 @@ def check_prd(doc, rel, docs, final, report) -> dict:
 
 # ---------------------------------------------------------------- architecture
 
+def _wds_scenario_ids(docs) -> tuple:
+    """wds-scenarios.yaml 的 SC-<nn> / SC-<nn>.P<n> ID 集 → (ids, err)。
+
+    ID 形态由段1 的 W1 定义（`diy-wds-scenarios` 规则 6：场景 `SC-<nn>`、页面
+    `SC-<nn>.P<n>`，废止独立 `P-*` 前缀）——本处只消费、不重定义（裁定 22）。
+    err=None 且 ids 空 = 文件缺席（主线项目常态，调用方不告警）；文件在场但
+    损坏/形状异常 → err 非空（错误经 `Docs.yaml_err` 透出，不静默吞）。
+    """
+    doc = docs.doc("wds-scenarios")
+    if doc is None:
+        return set(), docs.yaml_err("wds-scenarios")
+    ids = set()
+    for s in items(doc, "scenarios"):
+        sid = s.get("id")
+        if is_str(sid) and sid:
+            ids.add(sid)
+        for p in items(s, "pages"):
+            pid = p.get("id")
+            if is_str(pid) and pid:
+                ids.add(pid)
+    return ids, None
+
+
+def _affects_known(docs, report) -> tuple:
+    """affects 的解析域 → (known, resolvable)。
+
+    主线 prd.yaml 的 FR/NFR ∪ WDS 线 wds-scenarios.yaml 的 SC/P（裁定 22：第四条真链路，
+    与既有三条同型）。两源俱不可用 → resolvable=False，跳过该子检查并告警（不虚报通过）。
+    """
+    wds_ids, wds_err = _wds_scenario_ids(docs)
+    if wds_err:
+        report.warn("wds-scenarios.yaml 损坏：architecture affects 的 SC/P 引用无法解析"
+                    "（跳过该子检查）：%s" % wds_err)
+    prd_ok = docs.doc("prd") is not None
+    if not prd_ok and not wds_ids:
+        report.warn("prd.yaml / wds-scenarios.yaml 均缺失或不可用："
+                    "architecture affects 引用无法解析（跳过该子检查）")
+        return set(), False
+    return set(docs.frs()) | set(docs.nfrs()) | wds_ids, True
+
+
 def check_architecture(doc, rel, docs, final, report) -> dict:
     """architecture.yaml：决策形状 + affects 引用解析；--final 禁 待定 决策。"""
     # rule: diy-architecture/SKILL.md:Decision Discipline（every affects entry must be an
@@ -236,11 +283,7 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
     counts["decisions"] = len(decisions)
     if not decisions:
         report.add("EMPTY_FIELD", rel + " decisions", "decisions 缺失或为空")
-    prd_available = docs.doc("prd") is not None
-    if not prd_available:
-        report.warn("prd.yaml 缺失/损坏：architecture affects 引用无法解析（跳过该子检查）")
-    else:
-        known = set(docs.frs()) | set(docs.nfrs())
+    known, affects_resolvable = _affects_known(docs, report)
     dup(report, [(d.get("id"), "%s decisions[%s].id" % (rel, d.get("id") or "?"))
                  for d in decisions], "decision id")
     for d in decisions:
@@ -264,15 +307,18 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
             req(report, "%s.alternatives[%d].why_not" % (w, j), alt.get("why_not"), "why_not")
         affects = d.get("affects")
         if not nonempty(affects) or not isinstance(affects, list):
-            report.add("EMPTY_FIELD", w + ".affects", "affects 缺失或为空（须列出影响的 FR/NFR ID）")
-        elif prd_available:
-            # team-lead 裁定：decisions[].affects[] 必须在 prd.yaml 可解析 → UNKNOWN_ID
+            report.add("EMPTY_FIELD", w + ".affects",
+                       "affects 缺失或为空（须列出影响的 FR/NFR 或 SC/P ID）")
+        elif affects_resolvable:
+            # team-lead 裁定：decisions[].affects[] 必须在主线 prd.yaml（FR/NFR）或
+            # WDS 线 wds-scenarios.yaml（SC-<nn> / SC-<nn>.P<n>，裁定 22）可解析 → UNKNOWN_ID
             for j, ref in enumerate(affects):
                 if not is_str(ref) or not ref:
                     report.add("EMPTY_FIELD", "%s.affects[%d]" % (w, j), "affects 项缺失或非字符串")
                 elif ref not in known:
                     report.add("UNKNOWN_ID", "%s.affects[%d]" % (w, j),
-                               "%s 在 prd.yaml 中不存在（affects 只引用现有 FR/NFR ID，不复制需求文本）"
+                               "%s 在主线 prd.yaml 与 WDS 线 wds-scenarios.yaml 中均不存在"
+                               "（affects 只引用现有 FR/NFR 或 SC-<nn> / SC-<nn>.P<n>，不复制需求文本）"
                                % ref)
 
     for i, c in enumerate(items(doc, "components")):

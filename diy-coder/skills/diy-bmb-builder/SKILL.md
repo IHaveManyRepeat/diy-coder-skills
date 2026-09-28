@@ -57,7 +57,7 @@ outputs: 技能目录树（{project-root}/.claude/skills/<name>/）——零 YAM
 5. **eval 不 fork**：评测一律调 `diy-eval-runner`（**产出归它、施加归本技能**）；本技能不自造评分逻辑、不算分档、不写 run 目录。
 6. **路径基准。** 所有代码引用一律 project-root 相对 `path:line`（基准 = `{project-root}`，不随会话 CWD 变化；正斜杠；越界的文件用绝对路径）。
 7. **渲染静默**：Analyze 的 md / html 由 `render` **脚本**产出——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点。**本技能无 YAML 产物 → 不调用 viewer**（母本 §5 约束的是 viewer 调用；脚本渲染的报告不是 viewer 面），JSON 免渲染。
-8. **三个边界**（对方侧随 C 阶段补）：vs `diy-spec-scan`——**歧义 ≠ 质量**，它预演执行找歧义、零改写；本技能 Analyze 出的是质量 findings + 改造建议。vs `diy-editorial-review`——**提示词工艺 ≠ 行文**，它改文稿行文与结构、最小干预；本技能判的是「这行值不值得留」。vs `diy-spec`——**技能树 ≠ 机器契约**，它产 `spec-kernel.yaml`（多方消费者、稳定 ID）；本技能产技能目录树，不要求先有 spec。
+8. **三个边界**：vs `diy-spec-scan`——**歧义 ≠ 质量**，它预演执行找歧义、零改写；本技能 Analyze 出的是质量 findings + 改造建议。vs `diy-editorial-review`——**提示词工艺 ≠ 行文**，它改文稿行文与结构、最小干预；本技能判的是「这行值不值得留」。vs `diy-spec`——**技能树 ≠ 机器契约**，它产 `spec-kernel.yaml`（多方消费者、稳定 ID）；本技能产技能目录树，不要求先有 spec。
 9. 三意图都不产 YAML → **产物状态口径（母本 §8）不适用**：没有 `project.status` 可写，过程状态在 memlog 与报告里。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

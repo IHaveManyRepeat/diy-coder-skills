@@ -3,7 +3,7 @@
 Progress: `[1 定目的] → [2 载触发图] → [3 认知策略] → [4 行动筛选] → [5 赋能框] → [6 结构序] → [7 成稿]`
 
 **Read (input):** `{output_dir}/wds-scenarios.yaml` 的 `scenarios[].pages[]`（每页要承载的信息）；`{output_dir}/wds-trigger.yaml`（**战略地基**：`business_goals[]` / `personas[]` 及其驱动因素 / `priority`）；`{output_dir}/wds-brief.yaml` 的 `brief.content`（品牌人格 / 语气 / 语言 / SEO 关键词）——**触发图缺则回落简报并标注缺口**（源侧 `steps-c/step-01` 的原口径）；`templates/content-output.template.md`（成稿骨架）。
-**Write (output):** `wds-assets.yaml` 的 `activities[AS-07]`；`{output_dir}/assets/content/` 与 `prompts/`。
+**Write (output):** `wds-assets.yaml` 的 `activities[AS-07]`；`{output_dir}/assets/content/` 下的**成稿 `.md`**（本活动无提示词导出——`items[].prompt` 写的是写作简报）。
 
 你是**文案生产的主持人**（源 `steps-c/` **七步**，本技能唯一非图形的活动）。文案是本技能里**战略含量最高**的一段——它不靠灵感，靠**五个模型**把「说什么」推出来。**本活动不读风格库**（源侧口径）：语气与结构由模型与简报定。
 

@@ -47,7 +47,7 @@ python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" <subcommand> [o
 
 | 脚本 | 用途 |
 | --- | --- |
-| `runner.py` | 无头循环编排器：逐个把 sprint 任务推到终态（`已完成`/`已阻塞`）。可从 HALT 写回的 `sprint.yaml` 状态断点续跑；每任务重试次数有界。 |
+| `runner.py` | 无头循环编排器：逐个把 sprint 任务推到终态（`已完成`/`已阻塞`）。可从 HALT 写回的 `sprint.yaml` 状态断点续跑；每任务重试次数有界。**`--line wds`** = 按 WDS 线编排（读 `design.yaml` 逐页驱动 `diy-dev` 的 WDS 模式 → `diy-review` 的 WDS 路径，终点 = `待验收` 即待用户批准）。 |
 | `exp-sync.py` | 经验库同步：把项目的 `bug-log.yaml` 条目推送进 `paths.experience_repo` 指向的共享仓库（按 subclass 分桶；`taxonomy.yaml` 自动扩展）。 |
 
 ## 回执

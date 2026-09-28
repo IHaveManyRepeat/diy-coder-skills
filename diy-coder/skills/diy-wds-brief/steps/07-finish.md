@@ -114,7 +114,7 @@ Progress: `[1 平台启动] → 2 技术栈 → 3 集成 → 4 联系策略 → 
    python "{project-root}/.claude/skills/diy-wds-brief/scripts/wds_brief.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
    ```
 3. **渲染（静默旁路）**：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
-4. **激活下游**：一句话给「本简报已定稿，可进入触发图（`diy-wds-trigger`）或场景（`diy-wds-scenarios`）」——**WDS 线是自己的短链**，diy 主线的 `diy-design` / `diy-dev` 在 C·3 之前不接这条线。
+4. **激活下游**：一句话给「本简报已定稿，可进入触发图（`diy-wds-trigger`）或场景（`diy-wds-scenarios`）」——**WDS 线是自己的短链**；主线侧的接续在 `diy-design` 的 WDS 线分支（读本链场景集 `wds-scenarios.yaml`），`diy-dev` 的 WDS 模式接在其后读 `design.yaml`。
 5. **交付摘要**：一句话给「项目名 + 愿景 + 定位 + 平台策略 + 视觉主风格 + 待决项」，附未决问题（无则写「无」）。
 
 ## 第 10 步 —— 74 项质量校验（源 steps-v 六步）

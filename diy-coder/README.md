@@ -22,6 +22,8 @@ python install.py
 diy-help → diy-prd → diy-architecture → diy-openapi（有接口面时）→ diy-design（有前端需求时）
 → diy-epics-stories → diy-test-design → diy-sprint
 → diy-build-loop（被 runner.py 无头驱动：编码→审查→修复 循环至全部任务终态）
+  WDS 线（官网/营销站）：runner.py --line wds 读 design.yaml 逐页驱动 diy-dev 的 WDS 模式
+  → diy-review 的 WDS 路径，终点 = 待验收（待用户批准）
   每任务 done 后 runner 自动触发 diy-augment 编码后补测（覆盖率驱动追加 TC 至 test-plan.yaml）
 
 ```

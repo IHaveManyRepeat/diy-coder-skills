@@ -82,6 +82,12 @@ BADGE_CLASSES = {
     "待证据阻塞": "dim", "已反转": "dim", "未知": "dim", "未开始": "dim",
     "格式不支持": "dim", "自动生成": "dim", "超出范围": "dim",
     "可并行": "dim", "锦上添花": "dim",
+    # trace: C·3a 收口链④（任务书 §2.3：页状态收敛为单真源 5 值）——design.yaml 的
+    # `pages[].status` 与 `open_questions[].status` 的增量值；极性照 R3 口径分档
+    # （进行中 / 待审 → warn · 非激活终态 → dim · 终态正向 → ok）。
+    # 未开始 / 已批准 是既有映射，不动（补映射 ≠ 改既有映射）
+    "结构稿中": "warn", "待验收": "warn", "已移除": "dim",
+    "已解决": "ok",
 }
 KEY_RE = re.compile(r"[^a-z0-9]+")
 META_KEYS = ("project", "x-project")
@@ -136,6 +142,12 @@ KEY_LABELS = {
     "unit": "基准单位", "family_base": "正文字体", "family_heading": "标题字体",
     "bg": "背景", "surface": "表面", "text": "文字", "text_muted": "次要文字",
     "accent": "强调色", "accent_text": "强调色文字",
+    # trace: C·3a 收口链④（§2.3：新增 3 键 + 从属字段 1 个）——本批增量键的中文标签。
+    # open_questions 复用既有的「待决问题」（形状同 prd 同名键）；token_scope 取引擎与
+    # SKILL.md 的自述语义「audit 的跳过清单」（design.py:693 / diy-design SKILL.md 规则段），
+    # 不要读成「令牌作用域」；removed_reason 是自由文本（不进 ENUM_KEYS → 不做徽章，
+    # 徽章化会把「被 v2 首页取代」这类原因句误标）
+    "token_scope": "令牌豁免路径", "removed_reason": "移除原因",
     # spec-scan 族（diy-spec-scan schema）：规格预演扫描的歧义清单
     "scans": "扫描记录", "units": "扫描单元", "scanned": "已扫描",
     "quote": "原文摘录", "read_as": "我读到什么", "stuck": "卡在哪",
@@ -415,6 +427,11 @@ VALUE_LABELS = {
     "仿生": "仿生", "内省之乐": "内省之乐", "创意": "创意", "协作": "协作",
     "戏剧化": "戏剧化", "文化": "文化", "深度分析": "深度分析", "狂野": "狂野",
     "结构化": "结构化", "量子": "量子",
+    # trace: C·3a 收口链④——design.yaml 增量值入值域白名单（5 页状态 + `open_questions[].status`
+    # 的 已解决）。两表同源登记：极性在 BADGE_CLASSES、值域在本文档（既有 71 条均如此，
+    # 缺一头会漏：只进 VALUE_LABELS → 中性徽章；只进 BADGE_CLASSES → 值域白名单不准）
+    "结构稿中": "结构稿中", "待验收": "待验收",
+    "已移除": "已移除", "已解决": "已解决",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",

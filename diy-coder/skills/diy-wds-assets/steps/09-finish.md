@@ -1,13 +1,13 @@
 # Step 9 — 全活动质检、提示词导出与定稿（Finish）
 
-Progress: `[1 全活动质检] → [2 提示词导出包] → [3 迭代纪律：3 轮精修与 4 条红旗] → [4 定稿与终门]`
+Progress: `[1 全活动质检] → [2 提示词导出包（需导出者）] → [3 迭代纪律：3 轮精修与 4 条红旗] → [4 定稿与终门]`
 
-**Read (input):** `{output_dir}/wds-assets.yaml` 全部记录（`activities[]` / `prompts[]` / `presentation[]`）；`{output_dir}/wds-scenarios.yaml` 的 `scenarios[].pages[]`（**覆盖率对表**：哪些页一件资产都没有）；`data/iteration-refinement.md`；`data/stop-red-flags.md`；`templates/prompt-export.template.md`；`check` 回执。
-**Write (output):** 质检结论与修复；`prompts[]` 的 `exported` 翻转与导出文件；`project.status: 已定稿`；`project.updated` 刷今天；`revisions`；给用户的交付摘要与路由。
+**Read (input):** `{output_dir}/wds-assets.yaml` 全部记录（`activities[]` / `prompts[]` / `presentation[]`）；`{output_dir}/assets/<活动>/` 下的**实体产物**（双向对表用）；`{output_dir}/wds-scenarios.yaml` 的 `scenarios[].pages[]`（**覆盖率对表**：哪些页一件资产都没有）；`data/iteration-refinement.md`；`data/stop-red-flags.md`；`templates/prompt-export.template.md`；`check` 回执。
+**Write (output):** 质检结论与修复；`prompts[]` 的 `exported` 翻转与导出文件（需导出者）；`project.status: 已定稿`；`project.updated` 刷今天；`revisions`；给用户的交付摘要与路由。
 
-你是**收尾的主持人**（各活动源 workflow 的 AFTER COMPLETION + 源 `workflow.md:98–103` 的提示词导出兜底）。前三步是本技能的质量门槛与**唯一生成通道**，第四步才是定稿与终门。
+你是**收尾的主持人**（各活动源 workflow 的 AFTER COMPLETION + 源 `workflow.md:98–103` 的提示词导出兜底）。前三步是本技能的质量门槛（资产对表 + 需导出提示词的落地），第四步才是定稿与终门。
 
-**本段纪律**：① **不许橡皮图章**——逐条过，不合格回对应步骤文件修；② **提示词导出是本技能唯一的生成路径**（裁定 6：不接任何外部服务），第 2 步不能省；③ **终门唯一放行 = `check --final` 的 `exit 0`**。
+**本段纪律**：① **不许橡皮图章**——逐条过，不合格回对应步骤文件修；② **产物已由各活动直出**（裁定 6：不接任何外部服务）——**只有需导出的条目（照片类等）才走第 2 步**，已存在的 `prompts[]` 条目一样要翻转 `exported`；③ **终门唯一放行 = `check --final` 的 `exit 0`**。
 
 ## 第 1 步 —— 全活动质检（跨活动一致 + 覆盖率）
 
@@ -24,6 +24,10 @@ Progress: `[1 全活动质检] → [2 提示词导出包] → [3 迭代纪律：
 - `unassigned`——有页面但一件资产都没有的页（**要么补、要么在 `revisions` 写出为什么这页不需要**）；
 - `orphan`——挂了不存在的页面 ID 的条目（引用错了，改）。
 
+**资产双向对表**（哪个活动没落文件，这一步就该抓出来；引擎只核路径形态，**实体文件由本步自证**）——逐活动两向过，**`prompts/` 子目录除外**（它归第 2 步的提示词通道）：
+- **正向**：每条 `items[].assets[].path` 在 `{output_dir}/` 下**有实体文件**（缺 → 回对应活动补产，不许留空引用）；
+- **反向**：`assets/<活动>/` 下每个产物实体文件**都有条目认领**（多出来的孤儿件 → 补条目或移走，不许散在目录里）。
+
 **活动级的收口**：未做的活动记 `status: 已跳过` + 一行理由（**不许留 `未开始`**）；做了的画 `已评审`。
 
 **落盘**：质检结论与修复。
@@ -33,16 +37,16 @@ Progress: `[1 全活动质检] → [2 提示词导出包] → [3 迭代纪律：
 
 读全并照做本文件 `## 第 2 步 —— 提示词导出包`。
 
-## 第 2 步 —— 提示词导出包（**本技能唯一的生成通道**）
+## 第 2 步 —— 提示词导出包（**需导出者：照片类通道 + 用户可选**）
 
-**先说清**：本技能**不连任何外部服务**（裁定 6，用户拍板：「我直接出 html 就行了」）。**每条资产的生成 = 把提示词导出去，由用户在外生成后回填**——所以这一步不是收尾杂活，是**出口**。
+**先说清**：本技能**不连任何外部服务**（裁定 6，用户拍板：「我直接出 html 就行了」）。**产物已由各活动直接产出**（HTML / SVG / CSS 等文本形态）；**需要导出的只有本技能产不出的那类**——照片类图片、`G` 级 AI 视频、用户点名要带走提示词的条目。**导出 = 由用户在外生成后回填**，这一步是那些条目的**出口**，不是所有条目的必经路。
 
 **逐条导成可粘贴文件**：按 `templates/prompt-export.template.md` 的骨架（改造自源 `stitch-prompt.template.md`，**已去 Stitch 服务绑定与配额段**），把每条 `prompts[]` 条目落成一份 `.md`：
 - **落点**：`{output_dir}/assets/<活动>/prompts/<条目名>.md`（与 `prompts[].file` 一致）；
 - **内容**：资产名 / 服务目标 / 规格锚（页面 ID / 尺寸 / 令牌）→ 正文提示词整段 → 交付回填说明；
 - **回填约定**：用户在外生成后的产物放回 **`{output_dir}/assets/<活动>/`**（子目录、不入库，裁定 12），并把路径写进对应条目的 `items[].assets[].path`——**YAML 只存路径引用，不嵌二进制**。
 
-**翻转导出状态**：全部条目 `prompts[].exported` 从 `false` 翻 `true`（**已导出的才是可交付状态**）；回填完成的条目在 `items[].assets[]` 补路径。
+**翻转导出状态**（机制不变）：**所有已存在的 `prompts[]` 条目**从 `false` 翻 `true`（**已导出的才是可交付状态**，终门对所有条目核这一条）；回填完成的条目在 `items[].assets[]` 补路径。**注意别漏对齐**：`prompts[].id` 必须与来源 `items[].id` 同号（第 4 步落同号条目），否则终门判 `SET_MISMATCH`。
 
 **导出包清单**（会话内呈出一页，供用户带走）：条目 ID / 资产名 / 目标服务 / 文件路径 / 是否已回填——**四条都要有具体值**。
 
@@ -58,7 +62,7 @@ Progress: `[1 全活动质检] → [2 提示词导出包] → [3 迭代纪律：
 
 ### 3.1 三 轮 迭 代 精 修（源 `prototype-to-figma-workflow.md` 的迭代环，摘留全文见 `data/iteration-refinement.md`）
 
-迭代三拍（**外部的 Figma 那一拍换成「用户在外生成 / 本地改 HTML」**，语义不变）：
+迭代三拍（**外部的 Figma 那一拍换成「本地直出并改 HTML（照片类在外生成）」**，语义不变）：
 1. **基本版**——先出能用但不精致的件（功能对、样子糙）。**评估**：功能对吗？精致吗？
 2. **视觉精修**——补字阶 / 色板 / 间距 / 阴影 / 变体 / 态，**并把改出来的值记下来**（记的是**值**，不是截图）。
 3. **用增强后的设计系统重渲**——把第 2 拍得到的新令牌值回填到设计系统（**归 `diy-wds-system`，本技能只提 `revisions` 建议**），再用新令牌重出。
@@ -99,9 +103,9 @@ python "{project-root}/.claude/skills/diy-wds-assets/scripts/wds_assets.py" chec
 
 ### 4.4 交付摘要与路由
 
-**交付摘要**（会话内，不落盘）：项目名 / 各活动条目数 / 已导出提示词数 / 已回填资产数 / 覆盖率 / 未做的活动与理由 / **红灯记录**（有则点名）。
+**交付摘要**（会话内，不落盘）：项目名 / 各活动条目数 / **直出产物数（双向对表结果）** / 已导出提示词数 / 已回填资产数 / 覆盖率 / 未做的活动与理由 / **红灯记录**（有则点名）。
 
-**路由一句话**：本技能是 **WDS 线的链条终点**——源侧 `E-Assets` 的消费者为零（普查实测），diy 侧的回填口随 C·3（`diy-design` 的 WDS 模式）接线；本线此前四个产物（`wds-brief` / `wds-trigger` / `wds-scenarios` / `wds-design-system`）与本产物一起等下一位消费者。
+**路由一句话**：本技能是 **WDS 线的链条终点**——源侧 `E-Assets` 的消费者为零（普查实测），diy 侧无回填口（`diy-design` 的 WDS 线分支读 `wds-scenarios.yaml` 与 `wds-design-system.yaml`，不读本产物）；本线此前四个产物（`wds-brief` / `wds-trigger` / `wds-scenarios` / `wds-design-system`）与本产物一起等下一位消费者。
 
 **本文件到此结束**——不再读任何 `steps/` 文件。
 

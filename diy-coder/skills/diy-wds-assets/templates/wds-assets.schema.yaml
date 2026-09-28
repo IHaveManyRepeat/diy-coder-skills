@@ -28,7 +28,7 @@ activities:                 # **恒 8 条**（W P U I M V C S）；init 铸壳�
       design: <design-styles 卡名>      # 6 选 1：brutalist/corporate/editorial/minimal/organic/playful
       content: <content-styles 卡名>    # 10 选 1（按批，可不同批不同卡）；不适用留 null
       format: <presentation-formats 卡名>   # 仅 AS-08：sd-slides / ex-explainer / …/ cv-concept-visual
-    items:                  # 每条 = 一个可粘贴的提示词 + 它的产出位
+    items:                  # 每条 = 一个直接产出的产物（`assets[]`）+ 它的实现规格 / 可选提示词
       - id: AS-01.1         # `AS-<活动两位>.<条目两位>`；递增铸号，不重编不复用
         name: <string>
         pages: [SC-01.P1]   # 服务的页面 ID；**上游硬契约，不许编造**
@@ -37,7 +37,7 @@ activities:                 # **恒 8 条**（W P U I M V C S）；init 铸壳�
         state: [default, hover, focus, active, disabled]   # 仅 AS-03（5 态固定）；其余可空
         size: "1440x900"    # 尺寸或比例（"16:9"）/ "css" / "lottie"
         token_ref: <设计系统令牌键>   # 可空：无设计系统降级时**全留空**，不许一半一半
-        prompt: <整段可粘贴提示词>    # **唯一生成通道**（裁定 6）——非空
+        prompt: <该条的实现规格 / 提示词>   # 直出条目的实现规格；照片类等导出条目的可粘贴提示词——**非空**（导出时最严：逐词英文关键词）
         prompt_lang: en|zh
         content:            # **仅 AS-07**：五模型六段块（见 steps/07-content.md）
           content_purpose: {content_type, statement, audience, success_test, model_priority, review_question}
@@ -49,13 +49,13 @@ activities:                 # **恒 8 条**（W P U I M V C S）；init 铸壳�
           empowerment_frame: {current, badass, aha_moment, capability_reframe, cognitive_load}
           structural_order: {section_why, section_how, section_what, flow_validation}
           final: {versions, chosen, rationale, traceability}
-        assets:             # **路径引用**（裁定 12）——不嵌二进制
-          - {path: assets/wireframes/home-desktop.html, format: html|svg|css|json|md|png}   # 路径必须落在 assets/<本活动目录>/
+        assets:             # **路径引用**（裁定 12）——不嵌二进制；**直出产物为主**（W/P/S→html · U→html/css · I→svg · M 插画→svg）
+          - {path: assets/wireframes/home-desktop.html, format: html|svg|css|json|md|png}   # 路径必须落在 assets/<本活动目录>/；有路径 = 该文件真实存在（收尾双向对表核，见 steps/09-finish.md）
         review:             # 各活动的检查表结论（见各 step 文件）
           checks: [<逐条结论>]   # 一致性 / 合规 / 无障碍 / 隐喻 等（按活动）
           verdict: 通过|重生|待定  # 已评审的活动里不允许留 待定
 
-prompts:                    # **派生索引**（不复制正文）：每条 = 一个可粘贴提示词包
+prompts:                    # **派生索引**（不复制正文）：**需导出的条目**（照片类 / `G` 级视频 / 用户点名）各一条
   - id: AS-01.1             # **复用来源条目的 ID**（不另铸号）
     activity: AS-01
     target: <外部服务的提示词目标>   # 用户说的收件人；不连它也照样记

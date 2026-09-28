@@ -3,7 +3,7 @@
 - **源**：`wds-4-ux-design/data/object-types/COMPLEXITY-ROUTER.md`（842 行，独占资产）
 - **引用方**：`wds-4/steps-m/step-02-define-component.md:77`（「Reference `../data/object-types/COMPLEXITY-ROUTER.md`」）
 - **本批归属（自检打回后裁定）**：**归 `diy-wds-system`**——它是 `[M]` 活动的复杂度路由，且是 842 行独占资产（丢了即净损失）。
-  **只落 `[M]` 一侧**；`[K]`（`data/object-types/workflow.md`）/`[P]` 侧的引用在 **C·3 按需回接**，本批不建那两侧。
+  **只落 `[M]` 一侧**；`[K]`（`data/object-types/workflow.md`）/`[P]` 两侧引用**未建**（本收编版不含）。
 - **收编口径**：源是「单组件定义过程中」的教练对话流；diy 侧**去掉对话壳与三文件扇出**（那三份文件是 [P] 的模块化产物位，属 C·3），**保留判定表、三条路由与内容放置规则**——它们是可执行的能力本体。
 
 ## 1. 复杂度判定（源 STEP 2 的指标表；[M] step-02 收成三级）
@@ -61,4 +61,4 @@
 
 - **不接外部服务**：源该文件内的 Figma 引用（Mode B）随裁定 6 裁掉，本收编版不含。
 - **不落三文件扇出**：`Pages/` / `Components/` / `Features/` 目录树是 `[P]` 的产物位，**归 C·3 的 `diy-design`**。
-- **[K]/[P] 侧的引用**（`data/object-types/workflow.md` 与 `workflow-sketch.md`）：**C·3 按需回接**，本批只落 `[M]` 一侧。
+- **[K]/[P] 侧的引用**（`data/object-types/workflow.md` 与 `workflow-sketch.md`）：**未建**——本收编版只落 `[M]` 一侧。

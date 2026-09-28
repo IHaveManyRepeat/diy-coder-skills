@@ -70,7 +70,7 @@ Mermaid 图住在 `architecture.mermaid` 的**字符串字段**里（不落散�
 6. **终门（机械）**：先落 `project.status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-analyze/scripts/analyze.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。**本技能产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
 7. **违规码**：复用冻结集（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `DUPLICATE_ID` / `UNKNOWN_ID` / `SET_MISMATCH` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT`）；**本技能零新增码**。
 8. **无 `--previous` 轮**：`components[]` 只增不减，无 ID 集合收缩面；改既有记录往 `revisions` 追加（date / change / reason，`change` 点名 `AN-<nn>` 而不复制内容）。副作用面：除产物与静默渲染外无任何外部动作；产物内引用一律 project-root 相对 `path:line`。
-9. **边界（对方侧随 C 阶段补；本技能产 anytime 独立产物——不进主链 CHAIN、不被任何门禁引用）**：vs `diy-architecture`——**方向相反**：它是决策式（逐条 `affects` 引 FR ID、`status: 已定稿`），面向「要做什么」；本技能是文献式，面向「现状是什么」。vs 用户级 `arch-analyze`——见激活段第 3 步的边界句。vs `diy-spec-scan`——它扫**规格文本**的执行歧义，本技能扫**代码库结构**（≈0 重叠）。vs `diy-project-context`——它产项目语境档供 AI 上下文，本技能回答一个**具体问题**。vs `diy-investigate`——它是缺陷取证，本技能是架构取证。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
+9. **边界（本技能产 anytime 独立产物——不进主链 CHAIN、不被任何门禁引用）**：vs `diy-architecture`——**方向相反**：它是决策式（逐条 `affects` 引 FR ID、`status: 已定稿`），面向「要做什么」；本技能是文献式，面向「现状是什么」。vs 用户级 `arch-analyze`——见激活段第 3 步的边界句。vs `diy-spec-scan`——它扫**规格文本**的执行歧义，本技能扫**代码库结构**（≈0 重叠）。vs `diy-project-context`——它产项目语境档供 AI 上下文，本技能回答一个**具体问题**。vs `diy-investigate`——它是缺陷取证，本技能是架构取证。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
 10. **不可机械的部分写明**：技术取舍、风险定级、建议排序**是人工判定**——引擎只核枚举、必填与顺序；凡推断一律记 `待核实`，不得与事实混写。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

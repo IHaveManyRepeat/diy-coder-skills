@@ -13,7 +13,7 @@ outputs: wds-trigger.yaml
 
 # diy-wds-trigger — 触发图（业务目标 ↔ 用户心理的 Effect Mapping）
 
-你是**触发图的主持人**（源 Saga 的战略分析线）。输入：一份已定稿的 `{output_dir}/wds-brief.yaml` 与一个参与模式。产出：`{output_dir}/wds-trigger.yaml` 的单记录——业务目标 / 人物群与其驱动因素 / 跨群模式 / 优先级与焦点声明 / 特征影响 / Effect Map。边界：**WDS 线与 diy 主线（prd → design → dev）并行不交汇**——只写自己的产物，不读也不写 `prd.yaml` / `design.yaml` 等主线产物；深挖某步产出时调用 `diy-elicit`、要多视角审视时调用 `diy-party-mode`（零写面：增强结果在会话内呈现，落盘归本记录）。
+你是**触发图的主持人**（源 Saga 的战略分析线）。输入：一份已定稿的 `{output_dir}/wds-brief.yaml` 与一个参与模式。产出：`{output_dir}/wds-trigger.yaml` 的单记录——业务目标 / 人物群与其驱动因素 / 跨群模式 / 优先级与焦点声明 / 特征影响 / Effect Map。边界：**WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能**——本技能只写自己的产物，不读也不写 `prd.yaml` / `design.yaml` 等主线产物；深挖某步产出时调用 `diy-elicit`、要多视角审视时调用 `diy-party-mode`（零写面：增强结果在会话内呈现，落盘归本记录）。
 
 ## 激活时
 
@@ -78,7 +78,7 @@ revisions: []                               # {date, change, reason}——改既
 2. **检查点四选项**（每步产出后，六拍不得省）：① 生成本步产出 → ② 落盘（编辑对应段 + 推进 `stage`）→ ③ 显示检查点分隔 → ④ 呈出本步产出 → ⑤ 出四选项 → ⑥ 等响应。
 3. **选项落点**：`[a] Advanced Elicitation` → 调用 `diy-elicit`；`[p] Party-Mode` → 调用 `diy-party-mode`（两者**零写面**：增强 / 多视角产出的内容并入对应段，调用返回后回到第 ② 拍重落盘）；`[c] Continue` → 直接进下一步；`[y] YOLO` → 后续步骤跳过 ⑤⑥（不停等），**②③④ 照旧**——落盘与呈出不因 YOLO 而省，首次选中时一行明示。无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
 4. **模式与降级**（裁定 9）：**W（工作坊）是默认且能力完整的路径**；S / D 降级为「自审循环」——保留 5 层管线的**第 2–5 层**（项目上下文 → 领域研究 → 生成 → 自审），**第 1 层「Learn WDS Form」标为不可用**（源侧依赖 5 条不存在的文档，属源侧缺陷、已登记为能力损失），**不得伪造方法层文档**；S 每步呈出自审结果待复核、D 连续推进到末步再复核。
-5. **边界（对方侧随 C 阶段补；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：vs `diy-research`——它是**联网三维度调研**（每条断言带已核来源），本技能是**从上游简报结构化出驱动力**（含负向驱动力），不联网、不产来源。vs `diy-wds-brief`——简报是上游（本技能只读它的 `brief` 四段），触发图是它的下一环。vs `diy-wds-scenarios`——它读本技能的图起场景，本技能不向下游写。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
+5. **边界（WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：vs `diy-research`——它是**联网三维度调研**（每条断言带已核来源），本技能是**从上游简报结构化出驱动力**（含负向驱动力），不联网、不产来源。vs `diy-wds-brief`——简报是上游（本技能只读它的 `brief` 四段），触发图是它的下一环。vs `diy-wds-scenarios`——它读本技能的图起场景，本技能不向下游写。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
 6. **终门（机械）**：先落 `project.status: 已定稿` + `stage: 收尾`，再跑 `python "{project-root}/.claude/skills/diy-wds-trigger/scripts/wds_trigger.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions`）。渲染与收尾都等 exit 0。**WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。随身体检用 `metrics`（越界只给 warning，不阻断）。
 7. **违规码**：复用冻结集（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `UNKNOWN_ID` / `DUPLICATE_ID` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ B6 的已批码 `TOKEN_UNRESOLVED`（**本批不新增码**）；`SET_MISMATCH` 兼作「`init --mode` 与既有产物不符」「评分重算不符」「驱动因素 ID 序号与所属人物不符」。
 8. **无 `--previous` 轮**：单记录多段、段与记录只增不减，无 ID 集合收缩面；改既有内容往 `revisions` 追加（date / change / reason），`change` 引用 ID 而不复制内容。副作用面：除产物与静默渲染外无任何外部动作（`[a]` / `[p]` 调的是零写面技能）；产物内引用一律 project-root 相对 `path:line`。

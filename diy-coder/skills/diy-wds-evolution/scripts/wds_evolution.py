@@ -10,7 +10,7 @@
   记录 ID `EV-<nn>`）。
 - 门禁（任务书裁定 9）：本技能是**入口技能**（`precededBy: []`）——门禁 = **既有产物任一在场**
   （`design.yaml` / `sprint.yaml` / `wds-*.yaml`，**本技能自己的产物除外**——它是要被演进的对象之外的东西）。
-- 裁定 10：[T] 只验**本轮增量**（全量验收归 C 阶段的 `diy-dev`）→ `rounds[].test.scope` 冻结值
+- 裁定 10：[T] 只验**本轮增量**（全量验收归 `diy-dev` 的 WDS 模式）→ `rounds[].test.scope` 冻结值
   `本轮增量`，`check --final` 机械核对。
 - Kaizen 优先级框架（本技能相对 `diy-dev` 的不可替代内容）：`Priority = Impact × Effort × Learning`，
   三因子各取 `high|medium|low`（权重 5/3/1），`score` 必须等于三因子权重之积——

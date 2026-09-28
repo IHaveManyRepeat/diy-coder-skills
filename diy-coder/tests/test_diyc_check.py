@@ -702,5 +702,86 @@ class MutationReportTest(CheckBase):
         self.assertIn("ENUM_INVALID", codes(r))
 
 
+# ------------------------------------------- architecture.affects 的 SC/P 域（C·3a 裁定 22）
+
+def scenarios_doc(scenarios=None, **over):
+    """wds-scenarios.yaml 迷你夹具（ID 形态照 diy-wds-scenarios 规则 6）。"""
+    doc = {
+        "project": {"name": "demo", "created": "2026-09-21",
+                    "updated": "2026-09-21", "status": "已定稿"},
+        "scenarios": list(scenarios or [{
+            "id": "SC-01", "name": "张伟的订购", "priority": 1, "status": "已大纲",
+            "pages": [{"id": "SC-01.P1", "slug": "01.1-首页", "name": "首页"}]}]),
+    }
+    doc.update(over)
+    return doc
+
+
+class WdsAffectsDomainTest(CheckBase):
+    """裁定 22：architecture.affects 的解析域并入 WDS 线 SC-<nn> / SC-<nn>.P<n>。
+
+    第四条真链路（同 architecture.affects / openapi x-fr / stories refs / design_ref
+    三条既有链路）——接入前 SC/P 一律 UNKNOWN_ID 真拒，接入后真解析。
+    """
+
+    # trace: C·3a 裁定 22 —— 接入后真过：纯 WDS 线（无 prd.yaml）不再走「跳过子检查」
+    def test_wds_line_ids_resolve_without_prd(self):
+        fx.write_doc(self.root, "wds-scenarios", scenarios_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(decisions=[{
+            "id": "D-1", "title": "决策", "decision": "A", "rationale": "r",
+            "alternatives": [{"option": "B", "why_not": "w"}],
+            "affects": ["SC-01", "SC-01.P1"], "status": "已采纳"}]))
+        r = check(self.root, "architecture")
+        self.assertTrue(r["ok"], msgs(r))
+        self.assertEqual([], r["warnings"], "SC/P 域在场时不应再报「无法解析，跳过子检查」")
+
+    # trace: C·3a 裁定 22 —— 两域共存（双源俱在时用户选 WDS 线，而 prd 也在场）
+    def test_prd_and_wds_domains_coexist(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "wds-scenarios", scenarios_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(decisions=[{
+            "id": "D-1", "title": "决策", "decision": "A", "rationale": "r",
+            "alternatives": [{"option": "B", "why_not": "w"}],
+            "affects": ["FR-1.1", "NFR-1", "SC-01", "SC-01.P1"], "status": "已采纳"}]))
+        r = check(self.root, "architecture")
+        self.assertTrue(r["ok"], msgs(r))
+
+    # trace: C·3a 裁定 22 —— 反证：新域是真解析，不是橡皮章（域内不存在的 ID 仍真拒）
+    def test_dangling_wds_id_still_rejected(self):
+        fx.write_doc(self.root, "wds-scenarios", scenarios_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(decisions=[{
+            "id": "D-1", "title": "决策", "decision": "A", "rationale": "r",
+            "alternatives": [{"option": "B", "why_not": "w"}],
+            "affects": ["SC-99.P9"], "status": "已采纳"}]))
+        r = check(self.root, "architecture")
+        self.assertFalse(r["ok"])
+        self.assertIn("UNKNOWN_ID", codes(r))
+        self.assertIn("SC-99.P9", msgs(r))
+
+    # trace: C·3a 裁定 22 —— 域不静默放宽：wds-scenarios.yaml 缺席时 SC/P 仍判 UNKNOWN_ID
+    #        （即接入前的真拒行为，作为新域的边界守卫：只增数据源，不增通配）
+    def test_wds_domain_absent_keeps_rejection(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(decisions=[{
+            "id": "D-1", "title": "决策", "decision": "A", "rationale": "r",
+            "alternatives": [{"option": "B", "why_not": "w"}],
+            "affects": ["SC-01.P1"], "status": "已采纳"}]))
+        r = check(self.root, "architecture")
+        self.assertIn("UNKNOWN_ID", codes(r))
+
+    # trace: C·3a 裁定 22 —— wds-scenarios.yaml 损坏 → 告警可见（不静默吞），子检查不虚报通过
+    def test_broken_wds_scenarios_warns(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "wds-scenarios", "scenarios: [未闭合\n")
+        fx.write_doc(self.root, "architecture", arch_doc(decisions=[{
+            "id": "D-1", "title": "决策", "decision": "A", "rationale": "r",
+            "alternatives": [{"option": "B", "why_not": "w"}],
+            "affects": ["SC-01.P1"], "status": "已采纳"}]))
+        r = check(self.root, "architecture")
+        self.assertIn("UNKNOWN_ID", codes(r))
+        self.assertTrue(any("wds-scenarios.yaml 损坏" in w for w in r["warnings"]),
+                        "损坏输入未告警：%s" % r["warnings"])
+
+
 if __name__ == "__main__":
     unittest.main()

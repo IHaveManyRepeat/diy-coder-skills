@@ -12,7 +12,7 @@ outputs: wds-brief.yaml
 
 # diy-wds-brief — WDS 线入口（分诊 → 对齐 → 签核 → 战略简报）
 
-你是**WDS 线的入口引导者**。输入：一个待启动的站点/产品项目（新建或存量）。产出：`{output_dir}/wds-brief.yaml` 的单记录——分诊结论 / 客户画像四域 / 战略简报四段 / 对齐文档 / 签核文档。边界：**WDS 线与 diy 主线（prd → design → dev）并行不交汇**——只写自己的产物，不读也不写 `prd.yaml` 等主线产物；深挖某步产出时调用 `diy-elicit`、要多视角审视时调用 `diy-party-mode`（零写面：增强结果在会话内呈现，落盘归本记录）。
+你是**WDS 线的入口引导者**。输入：一个待启动的站点/产品项目（新建或存量）。产出：`{output_dir}/wds-brief.yaml` 的单记录——分诊结论 / 客户画像四域 / 战略简报四段 / 对齐文档 / 签核文档。边界：**WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能**——本技能只写自己的产物，不读也不写 `prd.yaml` 等主线产物；深挖某步产出时调用 `diy-elicit`、要多视角审视时调用 `diy-party-mode`（零写面：增强结果在会话内呈现，落盘归本记录）。
 
 ## 激活时
 
@@ -75,7 +75,7 @@ revisions: []                               # {date, change, reason}
 2. **检查点四选项**（每步产出后，六拍不得省）：① 生成本步产出 → ② 落盘（编辑对应段 + 推进 `intake.stage`）→ ③ 显示检查点分隔 → ④ 呈出本步产出 → ⑤ 出四选项 → ⑥ 等响应。
 3. **选项落点**：`[a] Advanced Elicitation` → 调用 `diy-elicit`；`[p] Party-Mode` → 调用 `diy-party-mode`（两者**零写面**：增强 / 多视角产出的内容并入对应段，调用返回后回到第 ② 拍重落盘）；`[c] Continue` → 直接进下一步；`[y] YOLO` → 后续步骤跳过 ⑤⑥（不停等），**②③④ 照旧**——落盘与呈出不因 YOLO 而省，首次选中时一行明示。无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
 4. **跳过标注**（单入口 + 每步可跳过）：`brief_level: simplified` 时简报四段按收窄键表走（核心 vision/target_users/constraints、内容 languages、视觉 design_style、平台 tech_stack），步文件标〔可跳过〕的小节由用户点头后整节跳过——**档位决定键表、键表由 `check --final` 机械核对**。
-5. **边界（对方侧随 C 阶段补；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：vs `diy-product-brief`——它供产品/应用主线（产 `brief.yaml`，下游 `prd.yaml`），本技能供官网/营销站线（产 `wds-brief.yaml`，下游 `diy-wds-trigger`），两线在 `diy-design` 交汇。vs `diy-prd`——起手分叉：产品/应用走它，官网/营销站走本技能。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。vs `diy-design` / `diy-dev`——它们吃主线产物（`prd.yaml` / `sprint.yaml` 的 `已定稿`），在 C·3 之前不接 WDS 线，故本批是一条 brief → trigger → scenarios 的独立短链。
+5. **边界（WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：vs `diy-product-brief`——它供产品/应用主线（产 `brief.yaml`，下游 `prd.yaml`），本技能供官网/营销站线（产 `wds-brief.yaml`，下游 `diy-wds-trigger`），两线在 `diy-design` 交汇。vs `diy-prd`——起手分叉：产品/应用走它，官网/营销站走本技能。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。vs `diy-design` / `diy-dev`——**双源**：`diy-design` 吃主线 `prd.yaml` 或 WDS 线 `wds-scenarios.yaml`（本链第三环产物），`diy-dev` 的 WDS 模式吃 `design.yaml`（页 `SC-<nn>.P<n>`）；本链是 brief → trigger → scenarios 的独立短链。
 6. **终门（机械）**：先落 `project.status: 已定稿` + `intake.stage: 收尾`，再跑 `python "{project-root}/.claude/skills/diy-wds-brief/scripts/wds_brief.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。**WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
 7. **违规码**：复用冻结集（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT` / `SET_MISMATCH`）+ B6 的已批码 `TOKEN_UNRESOLVED`（**本批不新增码**）；`SET_MISMATCH` 承载「`init` 的 `--project-type` 与既有产物不符」——分诊结论是整链路由的根，改判走 `revisions` 并经用户确认。
 8. **无 `--previous` 轮**：单记录多段、段只增不减，无 ID 集合收缩面；改既有内容往 `revisions` 追加（date / change / reason），`change` 引用受影响段名而不复制内容。副作用面：除产物与静默渲染外无任何外部动作（`[a]` / `[p]` 调的是零写面技能）；产物内引用一律 project-root 相对 `path:line`。

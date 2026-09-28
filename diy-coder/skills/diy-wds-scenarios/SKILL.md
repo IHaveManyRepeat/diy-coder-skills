@@ -12,7 +12,7 @@ outputs: wds-scenarios.yaml
 
 # diy-wds-scenarios — WDS 线第三环（触发图 → 场景大纲与页面树）
 
-你是**场景大纲的主持人**。输入：一份已定稿的触发图（每条场景 = 一条战略链：业务目标 → 人物 → 驱动因素 → 交易）。产出：`{output_dir}/wds-scenarios.yaml`——逐场景的 8 问大纲 / 线性阳光路径 / 页面记录 / 页面覆盖矩阵。边界：**WDS 线与 diy 主线（prd → design → dev）并行不交汇**——只写自己的产物，不读也不写 `prd.yaml` 等主线产物；深挖某条场景时调用 `diy-elicit`、要多视角审视时调用 `diy-party-mode`（零写面：增强结果在会话内呈现，落盘归本记录）。
+你是**场景大纲的主持人**。输入：一份已定稿的触发图（每条场景 = 一条战略链：业务目标 → 人物 → 驱动因素 → 交易）。产出：`{output_dir}/wds-scenarios.yaml`——逐场景的 8 问大纲 / 线性阳光路径 / 页面记录 / 页面覆盖矩阵。边界：**WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能**——本技能只写自己的产物，不读也不写 `prd.yaml` 等主线产物；深挖某条场景时调用 `diy-elicit`、要多视角审视时调用 `diy-party-mode`（零写面：增强结果在会话内呈现，落盘归本记录）。
 
 ## 激活时
 
@@ -80,7 +80,7 @@ revisions: []                               # {date, change, reason}
 7. **终门（机械）**：先落 `project.status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。**WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
 8. **违规码**：复用冻结集（`MISSING_FILE` / `UNPARSABLE_YAML` / `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ B6 的已批码 `TOKEN_UNRESOLVED`（**本批不新增码**）；`SET_MISMATCH` 承载 ID 跳号 / 页号不连续 / slug 与 ID 不同源 / 覆盖矩阵违规四类。
 9. **无 `--previous` 轮**：`scenarios[]` 与 `pages[]` 只增不减，无 ID 集合收缩面；改既有记录往 `revisions` 追加（date / change / reason，`change` 点名 `SC-<nn>` 而不复制内容）。副作用面：除产物与静默渲染外无任何外部动作；产物内引用一律 project-root 相对 `path:line`。
-10. **边界（对方侧随 C 阶段补；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：vs `diy-design`——它吃主线 `prd.yaml` 的 `已定稿` 并产 `design.yaml`，**WDS 线止于本技能**（`diy-design` 接本线是 **C·3** 的事）。vs `diy-epics-stories`——`SC-*`（场景 / 页面树）与 `S-*` / `AC-*`（主线故事）**不互译、不互替**。vs `diy-wds-brief` / `diy-wds-trigger`——它们是本技能的上游（触发图那份是硬门禁，只读）。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
+10. **边界（本技能产 WDS 线产物——不进 diy 主链 CHAIN；本产物是 `diy-design` WDS 线分支的硬门禁）**：vs `diy-design`——**双源**：主线 `prd.yaml` 的 `已定稿` 或本产物 `wds-scenarios.yaml` 的 `已定稿`，产 `design.yaml`（页 ID 取 `SC-<nn>.P<n>`；`design_status` 的推进写权归它，本技能只设初值）。vs `diy-epics-stories`——`SC-*`（场景 / 页面树）与 `S-*` / `AC-*`（主线故事）**不互译、不互替**。vs `diy-wds-brief` / `diy-wds-trigger`——它们是本技能的上游（触发图那份是硬门禁，只读）。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
 11. **本线风格与 HARM/HELP（源 Freya 线归位）**：把页面当成要被设计审视的对象摆出来——**规格必须完整**（源原则：不完整的规格到设计阶段一定要返工）、**先原型后生产**、**设计系统从实际使用中长出**。**HARM**：场景读起来顺、但页面上没有一页能承接这条交易（页清单与交易脱节，下游只能重做）；**HELP**：每条场景落盘前把「人物 → 驱动 → 交易 → 页」串一遍，交付一份不按键表也能读懂的记录。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

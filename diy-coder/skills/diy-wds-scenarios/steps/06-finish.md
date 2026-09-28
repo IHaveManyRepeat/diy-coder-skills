@@ -137,7 +137,7 @@ Progress: `[1 质检四维] → [2 五维校验并入] → [3 交接与设计意
 
 呈出**一页交接包**（会话内，不落盘）：① 完成摘要（项目名 / 场景数 / 逐条摘要表 / 覆盖率 / 质检结论）；② 各场景的 `design_intent` 与本线止点说明：
 
-> **WDS 线止于本步。** 下游设计（源侧 Phase 4）在 diy 侧是 **C·3 的 `diy-design`**——它接手时要吃的是主线 `prd.yaml` 与页面规格**两路输入**，在 C·3 之前**不接本线**。本技能的交付物 `wds-scenarios.yaml` 与该链的两个上游产物一起，等 C·3 接线后由它消费。
+> **WDS 线止于本步。** 下游设计（源侧 Phase 4）在 diy 侧是 **`diy-design` 的 WDS 线分支**——它接手时吃的是主线 `prd.yaml` 与页面规格**两路输入**，本产物定稿（`project.status: 已定稿`）后即由它消费（页 ID `SC-<nn>.P<n>`、`design_intent`、`trigger_map_context` 三键是交接锚）。
 
 ③ 未决项（写进 `revisions`，一条一句；无则写「无」）。
 
@@ -204,4 +204,4 @@ python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py
 | 31 | `design-status-set` | 引擎必填键 `scenarios[].design_status`（初值 `not-started`） |
 | 32 | `user-confirms`（完成摘要） | 六拍检查点（06-finish 3.3 交接包） |
 
-**收尾与路由**：`check --final` 回 `exit 0` 后，一句话给「本场景集已定稿，WDS 前置三段（简报 → 触发图 → 场景）到此跑通；设计线 `diy-design` 的接线排在 C·3」。**本文件到此结束**——不再读任何 `steps/` 文件。
+**收尾与路由**：`check --final` 回 `exit 0` 后，一句话给「本场景集已定稿，WDS 前置三段（简报 → 触发图 → 场景）到此跑通；设计线的接续归 `diy-design` 的 WDS 线分支（本产物是其硬门禁）」。**本文件到此结束**——不再读任何 `steps/` 文件。

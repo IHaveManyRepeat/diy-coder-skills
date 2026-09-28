@@ -5,7 +5,8 @@
 SKILL.md 的 frontmatter 六字段**——两处不重复任何一条事实）：
   mainline：prd → architecture → openapi(可选) → design(可选) → epics+stories
             → test-plan → sprint → <exec>
-  wds     ：wds-brief → wds-trigger → wds-scenarios →（余下节点随 B7 批次登记）
+  wds     ：wds-brief → wds-trigger → wds-scenarios → wds-system(可选)
+            → wds-assets(可选) → wds-evolution(可选) → <exec>
 
 规则：
 - 第一个非「已定稿」节点即当前位置：文件缺失=未开始（推荐该节点 skill）；

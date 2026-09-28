@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C·3a 批保真度报告 —— WDS 全链可用 ＋ 架构技能升级（6 技能改造 + runner 分线编排）</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+      --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+     font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:.01em}
+h2{font-size:1.25rem;margin:34px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h3{font-size:1.05rem;margin:22px 0 8px;color:var(--accent)}
+p{margin:10px 0}
+ul,ol{margin:8px 0 8px 22px;padding:0}
+li{margin:4px 0}
+code{background:var(--code);border:1px solid var(--line);border-radius:4px;
+     padding:1px 5px;font-family:Consolas,"Courier New",monospace;font-size:.9em}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:var(--panel);
+      font-size:.94em}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#eef2f8;font-weight:600}
+tbody tr:nth-child(even){background:#fafbfe}
+strong{color:#0f172a}
+</style>
+</head>
+<body>
+<main>
+<h1>C·3a 批保真度报告 —— WDS 全链可用 ＋ 架构技能升级（6 技能改造 + runner 分线编排）</h1>
+<ul>
+<li>批次：C 阶段第 3 项（<strong>C·3b 已并入本批</strong>：两透镜 → W4 · <code>diy-architecture</code> → W9）｜ 完成日期：2026-09-28 ｜ 编制：主 agent</li>
+<li>任务书：<code>diy-coder/.analysis/2026-09-22-migration-c3/taskbook-c3a.md</code>（<strong>22 裁定 / 6 技能 / W1–W9 / 验收 20 项 / 三段串行</strong>；第六轮修正版，含 §0.2d 用户全修授权）</li>
+<li>基线：HEAD <code>a1c0469</code>（C·11 收口，<strong>1397 passed / 173 subtests</strong>）→ 段1 <strong>1442 / 192</strong> → 段2 <strong>1522 / 192</strong> → 段3 <strong>1568 / 231</strong> → 跨轮补丁 <strong>1573 / 235</strong>（V-H）→ <strong>收口态 1575</strong></li>
+<li>取数：段1 <code>v-reports-seg1-rework.md:22</code> · 段2 <code>v-reports-seg2-rework.md:279</code> · 段3 <code>v-reports-seg3-rework.md:252</code> · 补丁后 <code>v-reports-seg3-final.md:24/:158</code> · 收口态本报告实测 <code>pytest tests/ --collect-only -q</code> = <strong>1575 tests collected</strong>（差额 +2 = 收口链④ 的 viewer 标签用例：<code>tests/test_viewer_labels.py</code> <strong>+89 行 / 2 用例</strong>，mtime 09-28 04:46，<code>git diff -U0 | grep -c "^+    def test_"</code> = 2）</li>
+<li>本批改动：<strong>55 tracked 文件 +3171 / −559 ＋ 10 未跟踪</strong>（3 新目录 + 7 新测试文件；<code>git status --short</code> = 65 项 = 55 <code>M</code> + 10 <code>??</code>）——工作树<strong>未提交</strong></li>
+<li>改造对象：<code>diy-design</code> · <code>diy-dev</code> · <code>diy-review</code> · <code>diy-wds-evolution</code> · <code>diy-wds-assets</code> · <code>diy-architecture</code> ＋ <strong><code>runner.py</code>（非技能）</strong> ＋ 收口面 <code>viewer.py</code> / <code>registry.yaml</code> / <code>help.py</code> / <code>diyc_lib.py</code></li>
+<li>三处特殊：① <strong>三段串行 · 十工位</strong>（段1 W1/W2 → 段2 W3/W4/W5/W8/W9 → 段3 W6/W7，段间硬依赖）——与 B 阶段「新建技能」批形态不同，本批重心是<strong>「增补什么 + 保住什么」</strong>（任务书开篇）；② <strong>「不得静默降级」是贯穿全批红线</strong>（裁定 21 / §5b #3b），而独立 V 在<strong>同一族失效</strong>上三次命中（§八）；③ <strong>多工位并行写同一工作树</strong> → 收口链③ 全量测试必须等全部停笔后串行跑（机制见 §七.2①）</li>
+</ul>
+<h2>一、批次结果总览</h2>
+<table>
+<thead><tr><th>段</th><th>工位</th><th>面</th><th>交付（<strong>现测取数</strong>）</th><th>自测</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>W1</td><td><code>diy-design</code> 主文件 / 步骤层 / 数据层</td><td><code>SKILL.md</code> 93→<strong>104</strong> · <code>steps/</code> <strong>10 件 619 行</strong> · <code>data/object-types/</code> <strong>5 件 532 行</strong>（源 1,689 行改写）· <code>test_design_skill.py</code> <strong>296 行 / 26 用例</strong></td><td>面内 72 passed / 19 subtests</td></tr>
+<tr><td>1</td><td>W2</td><td><code>diy-design/scripts/design.py</code> 引擎</td><td><strong>473 → 1162</strong> 行 · <code>test_design.py</code> 347→<strong>523</strong>（18 用例）· <code>test_design_transition.py</code> <strong>474</strong>（20 用例）</td><td>面内 31 passed</td></tr>
+<tr><td>2</td><td>W3</td><td><code>diy-dev</code> WDS 模式</td><td><code>SKILL.md</code> 73→<strong>88</strong>（贴线）· 新增 <code>steps/wds-*.md</code> × <strong>5 件 221 行 / 19 小节</strong> · <code>test_diy_dev_wds.py</code> <strong>426 行 / 22 用例</strong></td><td>22 passed</td></tr>
+<tr><td>2</td><td>W4</td><td><code>diy-review</code> WDS 审查 + 两透镜</td><td><code>SKILL.md</code> 83→<strong>91</strong>（硬锁 93）· <code>test_diy_review_wds.py</code> <strong>415 行 / 24 用例</strong></td><td>24 passed</td></tr>
+<tr><td>2</td><td>W5</td><td><code>diy-wds-evolution</code> 边界改写</td><td><strong>+5 / −5 行（3 文件）</strong>，<code>SKILL.md</code> 88 · 引擎 625 行 · 46 用例<strong>改前=改后</strong></td><td>46 passed</td></tr>
+<tr><td>2</td><td>W8</td><td><code>diy-wds-assets</code> 产出直出</td><td>16 文件 · <code>SKILL.md</code> 89（未变）· 引擎 <strong>836 行</strong>（+3/−2，仅 docstring）· 测试 <strong>+197/−0</strong>（61 既有零删改 + 7 新增 = 68 用例）</td><td>68 passed</td></tr>
+<tr><td>2</td><td>W9</td><td><code>diy-architecture</code> 升级 + 引擎 SC/P 域</td><td><code>SKILL.md</code> 87→<strong>93</strong> · <code>diyc_check_docs.py</code> 705→<strong>751</strong> · <code>test_diyc_check.py</code> <strong>+81/−0</strong>（42→47 用例）· <code>test_diy_architecture.py</code> <strong>265 行 / 20 用例</strong></td><td>67 passed</td></tr>
+<tr><td>3</td><td>W6</td><td><code>runner.py</code> 分线编排</td><td><strong>428 → 848</strong> 行（+462/−42）· <code>test_runner.py</code> <strong>1563 行 / 57 用例</strong>（既有 27 条零删改 + 新增 30 = 21 + 返工 4 + 跨轮补丁 5）</td><td>48 passed / 36 subtests</td></tr>
+<tr><td>3</td><td>W7</td><td>跨工位测试</td><td><code>test_design_wds.py</code> <strong>675 行 / 14 用例</strong> · <code>test_design_open_questions.py</code> <strong>382 行 / 6 用例</strong></td><td>20 passed / 33 subtests</td></tr>
+<tr><td>3</td><td>补漏</td><td><code>design_intent: L</code> 落点 + 守卫</td><td><code>SKILL.md:34</code> 同行补 <code>L</code> 处置（<code>SKILL.md</code> 仍 104）· <code>test_design_skill.py:142</code> 新守卫</td><td>变异 → RED</td></tr>
+<tr><td>收口</td><td>主 agent</td><td>④ viewer / ⑦ registry / ⑨ diy-help / <code>diyc_lib.py</code></td><td><code>viewer.py</code> 1631→<strong>1648</strong>（+17 行）· <code>registry.yaml</code> <code>exec: diy-dev</code> + <code>exec_note: ""</code> · <code>help.py</code> +2/−1 · <code>diyc_lib.py</code> 并入 <code>wds-scenarios</code>（+5 行）</td><td>见 §五</td></tr>
+</tbody></table>
+<p><strong>全批既有断言改动面</strong>：<code>test_restore.py</code> <strong>3 行</strong>（越界，已裁定接受，§七.5）· <code>test_design.py</code> 断言改名 14 行（§2.4 授权）· <code>test_runner.py</code> 1 处用例 <strong>3 处</strong>改写（V-H 反演核验，§四）· <code>test_suite_texts.py</code> +10/−1（登记面）——其余全部为本批新增用例。</p>
+<p><strong>红线</strong>：<code>0wds-</code> 本批文件面 <strong>0 命中</strong>（V-G 实测 6 物理行 / 5 逻辑位置全在源侧与 B7a 面）· <code>compare</code> 未复活 · 无技能教 <code>check --type design --previous</code> · 平台耦合词 <code>runner.py</code> / <code>test_runner.py</code> <strong>0 命中</strong>。</p>
+<h2>二、逐段销账</h2>
+<h3>2.1 段1 · W1（<code>diy-design</code> 主文件 + 步骤层 + 数据层）</h3>
+<p><strong>核心交付</strong>：双源输入判定（<code>SKILL.md:24-25</code>，缺源零产出）· 九活动吸收（<code>steps/</code> 10 件）· 原型循环 <code>steps/prototype-loop.md</code> · 场景桥 <code>steps/scenario-bridge.md</code> · <code>bmad-ux</code> 并入 · <code>pages[].status</code> + <code>open_questions</code> + <code>token_scope</code> · 源侧缺陷台账 47 条逐条落定（<code>w1-defect-ledger.md</code>：断链 13 / 幽灵 8 / 冗余 12 / 孤儿 14）。</p>
+<p><strong>关键实测</strong>：§4 锚串（<code>ANCHOR_READ_DISCIPLINE</code>）为本批<strong>唯一新增锚串</strong>，段1/段2 前置登记进 <code>LANDED_READ_DISCIPLINE</code>（<code>test_suite_texts.py:184-193</code>，含 <code>design</code>/<code>dev</code>/<code>review</code> 三名预登记注释）；主文件点名的 <code>steps/*.md</code> 集合 == 磁盘实况（10/10，机械断言 <code>test_design_skill.py</code>）。</p>
+<p><strong>台账定性纪律</strong>：裁定 12 的 8 条幽灵判定中 <strong>3 条经跨技能复核改判为误判（3/8）</strong>——误判只影响定性、不影响落点（<code>w1-defect-ledger.md:50</code>）。</p>
+<h3>2.2 段1 · W2（<code>design.py</code> 引擎）</h3>
+<p><strong>销账</strong>：四命令回执归一为 <code>{ok,command,violations[{code,where,msg}],warnings,counts,file}</code>（单行 JSON，exit 0/1/2）· <code>transition</code> 9 合法边 + 4 非法边 + 6 复用码 + 新建 <code>GATE_FAILED</code> · <code>--previous</code> 双挂 <code>validate</code>/<code>check</code> · <code>.prev</code> 快照 + <code>ID_UNSTABLE</code> 对账 · <code>token_scope</code> · <code>open_questions</code> · <code>check</code> 维度 3 → <strong>8</strong>。</p>
+<p><strong>保真实测</strong>：既有三维（<code>contrast</code> / <code>color-only-signal</code> / <code>semantic-html</code>）<strong>code 与 msg 逐字不变</strong>（V2 对拍 9/9 SAME + V4 复验重跑）· 命令专有键全保（<code>checked.contrast_pairs</code> 5 对 / <code>has_frontend</code> / <code>skipped</code> / <code>audited</code>）。</p>
+<p><strong>有意偏离 5 条</strong>（<code>malformed</code>→<code>UNPARSABLE_YAML</code> · <code>--previous</code> 双挂 · 越界改 <code>test_restore.py</code> · <code>--instance</code> 非法值 1→2 · <code>--to</code> 表外值走 argparse exit 2）+ <strong>1 条未申报偏离</strong>（破坏性边实为 4 条 vs §2.5 冻结表 2 条，V3 M2）。M2 <strong>未返工</strong>（V4 复核：实现判据 <code>design.py:1093</code> = <code>dst == "已移除" or (src,dst)==("已批准","结构稿中")</code> = 4 条，与 <code>SKILL.md:86</code> 自洽）——<strong>由本报告按裁定 14 口径登记为 4 条，并注明 §2.5 表注不全</strong>（V4 建议，见 §三.1）。</p>
+<h3>2.3 段2 · W3（<code>diy-dev</code> WDS 模式）</h3>
+<p>双模式分支（门禁 <code>design.yaml</code> 的 <code>project.status: 已定稿</code> 单一判据，无「或」）· 目标页 = <code>结构稿中</code> 首条 · 回填<strong>一律经 <code>transition</code></strong> · <strong>浏览器强制门 good↔bad 两轮实跑</strong>（9/9 判据命中；删两变体 → 3 条未过 → 回修 → 3/3 通过）· 裁定 21 三情形（安装后重跑 / 用户同意跳过 / 未问即跳过=违规）。</p>
+<p><strong>偏离 5 条</strong>（新增第 5 个 step 文件 <code>wds-fix.md</code> · <code># trace:</code> 的 WDS 形态 · <code>[T]</code> 判据分类取 <code>HP/REG/EC/A11Y</code> · 门禁路由细化 · 浏览器门改用本地 HTTP（<code>file://</code> 被 Playwright 策略拦截））——最后一条 V-A 判为<strong>文档未提示</strong>的 steer 缺失（中-4），<strong>R2 返工已补进两处门文档</strong>（<code>diy-dev/steps/wds-self-verify.md:12</code> + <code>diy-design/steps/prototype-loop.md:50</code>，均写明「须起本地静态服务；该拦截不算环境不可用」），V-D 复核「双向点名且同向」。</p>
+<h3>2.4 段2 · W4（<code>diy-review</code> WDS 审查 + 两透镜）</h3>
+<p><strong>不拆 <code>steps/</code></strong>（91 ≤ 93 硬锁，见 §七.7）· 两透镜三项接口事逐条落（映射表 / 格式归一 / HALT 对齐）· <strong>判决不代用户批准三重机制</strong>（文本禁令 + 全文不教 <code>--to 已批准</code> 的 <code>assertNotIn</code> 机械锁 + 说明引擎不辨触发者）· <code>ds-token-*</code> 三维纳入 L4 (d)（实跑三码真报）· #4b WDS 路由落点表四类齐。</p>
+<p><strong>保真</strong>：主线入口 <code>MISSING_FILE</code> 拒绝 / WDS 入口 rc=0 对照实跑；同一 <code>design.yaml</code> 双入口行为分离。</p>
+<h3>2.5 段2 · W5（<code>diy-wds-evolution</code> 边界改写）</h3>
+<p><strong>行为零变化</strong>：引擎 625 行 / 46 用例 / 小节数 4-5-5-5-5-3 全未变（<code>git diff</code> 为空）· 失效条件句一律<strong>替换为现状陈述</strong>，不新增承诺 · 对端句清单 5 行（sha1 快照）。</p>
+<p><strong>★ 诊断（本批最有价值的机制发现之一）</strong>：并发假红的成因 = <code>diyc_mutate.py:56-66</code> 的 <code>_git_dirty</code> 在 fixture 目录里跑 <code>git status --porcelain</code>，<strong>拿到全仓脏度</strong>（实测 32 行 = 全仓）→「未提交 + 多工位并行写」必随机红（§七.2①）。</p>
+<h3>2.6 段2 · W8（<code>diy-wds-assets</code> 产出直出）</h3>
+<p><strong>8 处「提示词导出 = 唯一生成通道」假陈述连根拔</strong>（§5.8 列 7 处 + 自查扩面第 8 处 = 引擎 <code>:15</code> docstring），全树断言固化（该类措辞技能树内 0 命中）· <strong>零行为改动</strong>（<code>exported</code> 翻转机制与终门判定原样，模板位清单 94 条与 HEAD 集合相等）· 8 活动直出实跑（<code>counts={activities:8, items:9, prompts:1, exported:1, presentation:1}</code>，<code>check --final</code> rc=0）· <strong>M 图片两路</strong>实测（插画 → SVG 直出；照片 → <code>prompts/AS-05.2.md</code>，<code>assets[]</code> 留空 = 合法）。</p>
+<p><strong>C 文案定为直出成稿 <code>.md</code></strong>（超出 §5.8 表「维持现状」字面，属<strong>加项/收敛</strong>，登记）</p>
+<h3>2.7 段2 · W9（<code>diy-architecture</code> 升级 + 引擎 SC/P 域）</h3>
+<p><strong>裁定 22</strong>：<code>affects</code> 值域扩 <code>SC-&lt;nn&gt;</code> / <code>SC-&lt;nn&gt;.P&lt;n&gt;</code>（<strong>扩展非替换</strong>，<code>FR-x.y | NFR-x</code> 保留）；<strong>接入前后对照</strong>：接入前该域<strong>要么误拒（prd 可解析）要么漏检（prd 缺席时伪造 <code>SC-99</code> 可过终门 = 假过）</strong>，接入后两方向都正确 · 双源<strong>四情形</strong>实跑（含两源俱缺 → 无产物 + <code>MISSING_FILE</code>）· 可测性 / 运维两维落规则 7（<strong>零新增产物键</strong>，结构段顶层键集合改前改后 diff 为空）。</p>
+<p><strong>偏离</strong>：<code>DOC_FILES</code> 就地 <code>setdefault("wds-scenarios")</code> → <strong>收口期正式并入 <code>diyc_lib.py:50</code> 并删本地注册</strong>（本报告实测已落地：<code>diyc_lib.py</code> +5 行，注释含「两处真相 → 归位」）。</p>
+<h3>2.8 段3 · W6（<code>runner.py</code> 分线编排 + 无头集成）</h3>
+<p><strong>主线保真五面逐字节</strong>（对同构夹具 12 场景 × rc/stdout/stderr/桩调用序列/写回文件 md5 全同；两条主线提示词 10 组参数逐字节相同）· <strong>WDS 线</strong>：<code>--line {mainline,wds}</code>（缺省 mainline，<strong>不做自动探测</strong>）· 链 = <code>diy-dev</code> WDS 模式 → <code>diy-review</code> WDS 路径（两次 spawn 真点名，不沿用 <code>diy-build-loop</code>）· 审查通过后页<strong>仍 <code>待验收</code></strong>、只报「待用户批准」· runner 对 <code>design.yaml</code>/<code>sprint.yaml</code> <strong>零写</strong> · 三个「不做」显式拒绝（<code>--skip-augment</code> / <code>--augment-only</code> / <code>--reopen-failed</code> = rc=1 + 零 spawn + 教学句）· 并发锁 <code>O_EXCL</code>（24 进程竞争恰 1 胜者）。</p>
+<p><strong>返工 2 轮</strong>（F-1 阻断级 + F-2 + 三条低项 + 跨轮盲区高-1/中-1）——见 §四.2。</p>
+<h3>2.9 段3 · W7（跨工位测试）</h3>
+<p>§6 八条「需两工位以上合力」断言面全覆盖 · <strong>去重是机械做的</strong>（<code>ast</code>/<code>tokenize</code> 提取断言内字符串字面量，对 <strong>15 个既有测试文件</strong>子串比对）→ 删 1 条真重复、改写 2 条撞字面、点名 3 条「同字面异对象」保留理由 · 面 7 直接 <code>import test_suite_texts</code> 取锚串常量与台账（不复制第二份母本文本）· 6 条变异全部转红并逐字节还原。</p>
+<p><strong>定位越界 8/20 条</strong>（单工位可自测）→ <strong>保留 + 登记</strong>（主 agent 裁定：断言有效、经机械去重确认不重复，删则覆盖真空、移位要动 8 个已定稿测试文件）。</p>
+<h3>2.10 段3 · 补漏与段间订正</h3>
+<ul>
+<li><strong><code>design_intent: L</code> 落点</strong>（收尾补漏）：<code>SKILL.md:34</code> 同行补处置（问用户一次，未指定缺省 <code>[C]</code>）+ 新守卫 <code>test_design_skill.py:142</code>（变异：整行回退 → RED）</li>
+<li><strong>段2 期间三处跨段订正</strong>（主 agent 裁定后派单，属段1 面）：<code>design.py:999</code> <code>next_hint</code> 的「待验收 → 进入实现」与 §5.1/§5b 链互斥 → 改「用户批准（人裁，无自动后续步）」· <code>steps/prototype-loop.md:71</code> 设计侧抢 <code>待验收</code> 写权 → 改会话门 + 点名写者 · <code>steps/c-discuss.md:47</code> 笼统句收严点名写者</li>
+<li><strong>段1 微修轮</strong>：值域守卫<strong>补成双向</strong>（从 <code>SKILL.md</code> 规则 1 机械提取反引号值 → 断言 ⊆ 上游枚举；变异注入 <code>in-progress</code> → FAILED）——<strong>闭合 H1 的原始失效模式</strong></li>
+</ul>
+<h2>三、批级裁定与有意收严</h2>
+<h3>3.1 裁定与拍板执行摘要</h3>
+<p><strong>§0.3 的 22 条裁定 + §0.2/§0.2b/§0.2c/§0.2d 的 13 项用户拍板全部执行，无静默降级</strong>（取数：V-C 段2 逐条判 <code>v-reports-seg2-global.md:520-548</code> + V-F 全批 20 项汇总 <code>v-reports-seg3-global.md:278-309</code>）。点名五条影响面最大者：</p>
+<ul>
+<li><strong>裁定 4（2026-09-27 用户改判）</strong>：<code>object-types</code> 由「全裁」改「部分保留」——五件模板 1,689 行改写后落 <code>data/object-types/</code>（其余 5 件裁），是本批 W1 体量由 700–1,000 扩至 1,300–2,000 行的原因</li>
+<li><strong>裁定 9</strong>：P0 全并；P1 #8/#9 已升 P0；#11 判「并」；<strong>#7（形态/默认主题）不并 → 进能力损失台账</strong>（§七.1①）；#10 不并本技能（承载方 <code>diy-wds-system</code> 实证在场，再持一份即双源）</li>
+<li><strong>裁定 14/15</strong>：<code>revisions[]</code> 只在<strong>两条破坏性边</strong>追加——<strong>实现实测 4 条</strong>（<code>结构稿中→已移除</code> / <code>待验收→已移除</code> / <code>已批准→结构稿中</code> / <code>已批准→已移除</code>），V3 M2 判「超集、方向安全、属未申报偏离」、V4 建议收口报告按 4 条登记并注明 §2.5 表注不全（<strong>本报告已登记</strong>，§2.2）+ <code>.prev</code> 快照 + <code>ID_UNSTABLE</code> 对账</li>
+<li><strong>裁定 21/16</strong>：浏览器强制门的环境不可用分支 = <strong>停下如实上报 → 用户决定「安装」或「跳过」</strong>（既不静默降级，也不无条件硬停）</li>
+<li><strong>裁定 22</strong>：<code>affects</code> SC/P 域接入 + 引擎 <code>known</code> 域扩展（原「回报主 agent」作废，因承接步不存在 = 阻断）</li>
+</ul>
+<h3>3.2 ★ 有意收严 + 迁移口径（<strong>存量 <code>design.yaml</code> 可能由绿转红</strong>）</h3>
+<p><code>check</code> 新增 5 维（<code>a11y-touch-target</code> / <code>a11y-keyboard</code> / <code>ds-token-color</code> / <code>ds-token-font-size</code> / <code>ds-token-spacing</code>，源 <code>steps-h/step-03:96-108</code> 的 3+4 项）——<strong>这是本批对存量产物影响最大的一处</strong>（V2 M-4 判「可能一夜变红」）：</p>
+<ul>
+<li><strong>实测（HEAD 版既有夹具对跑）</strong>：原型里字面色值 <code>#1a1a1a</code> 不在 <code>tokens.color</code> 归一集内 → HEAD <code>check</code> exit 0，NEW <code>exit 1</code> + <code>ds-token-color</code>；W2 为让既有用例通过<strong>改写了既有夹具</strong>，该收严<strong>未在回报偏离清单点名</strong>（V4 复验确认「真收严」）</li>
+<li><strong>达标路径（本报告实测三态复现，取数 <code>design.py</code> 现测）</strong>：① 原型走 <code>var(--*)</code> → 三码零报（<code>collect_ds_violations</code> 对 <code>var(</code> 显式放行）；② 字面值**已在 <code>tokens.*</code> 登记** → 零报（<code>collect_token_hexes:735</code> / <code>collect_font_sizes:746</code> / <code>collect_spacing_values:484</code> 归一集命中）；③ 未登记字面值 → <code>ds-token-color</code> + <code>ds-token-font-size</code> + <code>ds-token-spacing</code> 三码齐报</li>
+<li><strong>★ 豁免面边界</strong>：<code>token_scope</code> <strong>只豁免 <code>audit</code>、不豁免 <code>check</code> 新维度</strong>——<code>token_scope</code> 仅在 <code>cmd_audit</code> 消费（<code>design.py:867</code> 定义 / <code>:882</code> <code>resolve_token_scope</code> / <code>:893/:902/:907</code> 跳过判定），<code>cmd_check</code>（<code>:542</code>）无 scopes 分支。<strong>「继承外部 UI 系统」的出口对 <code>check</code> 不生效</strong>——原型从外部系统照抄字面值时，出口是「把值登记进 <code>tokens.*</code>」或「改走 <code>var(--*)</code>」，不是 <code>token_scope</code></li>
+<li><strong>落地提醒</strong>：段2 <code>diy-review</code> L4 已纳入 <code>ds-token-*</code> 三维（<code>SKILL.md:40</code>，实跑三码真报）——否则会出现「实现稿照抄字面色值被 <code>check</code> 拦、<code>review</code> 却判过」的错配（V2 M-4 建议已落实）</li>
+</ul>
+<h3>3.3 改裁定留痕：2026-09-19「12 个单文件技能不拆 steps」</h3>
+<p><strong>本批对 <code>design</code> / <code>dev</code> 作废</strong>（为吸收 WDS 九活动与原型循环，二者拆出 <code>steps/</code> 并补 §4 锚串，已登记进 <code>LANDED_READ_DISCIPLINE</code>）；<strong>对 <code>review</code> 仍有效</strong>（受 <code>test_review_contract.py:103/108</code> 两条硬锁，见 §七.7）。留痕落点 = <code>tests/test_suite_texts.py:211</code> <code>_steppers()</code> docstring 的「★ 2026-09-28 C·3a 留痕」段（<code>:220-223</code>）——<strong>不留痕则后人读 docstring 会误判</strong>。</p>
+<h2>四、独立验证结论（口径「不采信施工方自述」）</h2>
+<h3>4.1 V 报告清单与分级</h3>
+<p><strong>十二份独立报告</strong>（同目录 <code>diy-coder/.analysis/2026-09-22-migration-c3/</code>），<strong>分段命名</strong>：段1 = V1–V4 · 段2 = V-A–V-D · 段3 = V-E–V-H。</p>
+<table>
+<thead><tr><th>段</th><th>报告（轴）</th><th>阻断 / 高 / 中 / 低</th><th>关键证据</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><code>v-reports-seg1-doc.md</code>（V1 文档面）</td><td>0 / 0 / <strong>5</strong> / 9</td><td>锚串逐字 · 路由 10/10 · 保真面七条实证 · 裁定 4 四条逐件落地</td></tr>
+<tr><td>1</td><td><code>v-reports-seg1-engine.md</code>（V2 引擎面）</td><td>0 / 0 / <strong>4</strong> / 6</td><td>冻结契约逐条实跑成立；既有三维 code+msg 逐字；M-4 = 有意收严</td></tr>
+<tr><td>1</td><td><code>v-reports-seg1-cross.md</code>（V3 交叉账目）</td><td>0 / <strong>1</strong> / 2 / 5</td><td>全量复跑 1435/192 逐字一致；<strong>H1 = <code>design_status</code> 值域无值可写</strong></td></tr>
+<tr><td>1</td><td><code>v-reports-seg1-rework.md</code>（V4 返工复验）</td><td>0 / 0 / 0 / 7</td><td>五次变异全转红/绿并还原；HEAD vs 现引擎对跑「既有行为 SAME」</td></tr>
+<tr><td>2</td><td><code>v-reports-seg2-chain.md</code>（V-A 交互链）</td><td>0 / <strong>1</strong> / 4 / 6</td><td>主线保真成立；高-1 = <code>已移除</code> 双写者</td></tr>
+<tr><td>2</td><td><code>v-reports-seg2-assets.md</code>（V-B 资产+演进）</td><td>0 / 0 / 4 / 5</td><td>零行为改动 + 8 处假陈述连根拔<strong>独立复现</strong>；<strong>V-B-03 = W8 报告引文失真</strong></td></tr>
+<tr><td>2</td><td><code>v-reports-seg2-global.md</code>（V-C 全局账目）</td><td>0 / <strong>3</strong> / 7 / 5</td><td>全量 1521/192 亲跑复现（唯一全量路）；<strong>高-3 = 上游终门与推进权互斥</strong></td></tr>
+<tr><td>2</td><td><code>v-reports-seg2-rework.md</code>（V-D 返工复验）</td><td>0 / 0 / 0 / 4</td><td>8 项返工逐条真落地；全量 1522/192；两处独立变异证明有牙</td></tr>
+<tr><td>3</td><td><code>v-reports-seg3-runner.md</code>（V-E runner 面）</td><td>0 / <strong>1</strong> / 2 / 4</td><td>12 场景 × 5 面逐字节全同；<strong>F-1 = 审查环静默降级</strong></td></tr>
+<tr><td>3</td><td><code>v-reports-seg3-global.md</code>（V-F W7+全局）</td><td>0 / <strong>2</strong> / 4 / 5</td><td>全量 R1 撞偶发红（9 failed）/ R2·R3 连续全绿 1564/228；W7 越界 8/20</td></tr>
+<tr><td>3</td><td><code>v-reports-seg3-rework.md</code>（V-G 返工复验）</td><td>0 / <strong>1</strong> / <strong>1</strong> / 3</td><td>F-1/F-2 真落地 + 8 变异全还原；<strong>高-1 / 中-1 = 跨轮盲区</strong></td></tr>
+<tr><td>3</td><td><code>v-reports-seg3-final.md</code>（V-H 极聚焦复验）</td><td><strong>0 / 0 / 0 / 0</strong></td><td>四点全过且每条判据有「对上一轮版本转红」的鉴别力自检；全量一次跑绿 1573/235</td></tr>
+</tbody></table>
+<h3>4.2 返工四轮 ＋ 微修轮（每一轮均带「改坏 → 转红 → 逐字节还原」自证）</h3>
+<table>
+<thead><tr><th>轮</th><th>范围</th><th>触发</th><th>复验</th></tr></thead>
+<tbody>
+<tr><td>R1 段1 返工（W1-R / W2-R）</td><td>全部中项 + 三条真缺口（<code>design_status</code> 值域 / <code>--previous</code> 文档面零出现 / 路径基址二制并立）</td><td>V1/V2/V3</td><td>V4：0/0/0/7，判「段1 可收口」</td></tr>
+<tr><td>R1′ 段1 微修轮</td><td>值域守卫补双向 + <code>k-sketch.md</code> 补 <code>design_status</code> 写句 + 反向相对引用归一</td><td>V4 低项</td><td>面内 72 passed / 19 subtests</td></tr>
+<tr><td>R2 段2 返工</td><td>8 项（<code>已移除</code> 写权 / findings 落点 / 跳过留名 / <code>file://</code> steer / dev 零目标页 / 软线固化 …）</td><td>V-A/V-B/V-C</td><td>V-D：0/0/0/4，全量 1522/192</td></tr>
+<tr><td>R3 段3 返工</td><td>F-1（按阻断级）+ F-2 + 三条低项</td><td>V-E</td><td>V-G：F-1/F-2 真落地、8 次变异全还原、全量 1568/231</td></tr>
+<tr><td>R4 段3 跨轮补丁</td><td><strong>高-1</strong>（未复验页分列 + rc≠0）+ <strong>中-1</strong>（dev 落点对称收紧）</td><td>V-G §9</td><td>V-H：四点全过、0/0/0/0、<strong>全量 1573/235 一次跑绿</strong></td></tr>
+</tbody></table>
+<p><strong>R4 的相关性</strong>：V-G 明确指出「跨轮区分需不需要加键」是<strong>两件事</strong>——「持久的审查判决」确需加键（撞 §2.3 冻结），但「<strong>不得把审查结论未知的页与真通过页同列呈为可批准</strong>」<strong>零新键、约 5 行可解</strong>；同理 dev 侧越界停手「不是能力边界，本轮可廉价解决」（<code>v-reports-seg3-rework.md:319-335</code>）→ 主 agent 由此派单，两条均落地。</p>
+<h3>4.3 收口后状态</h3>
+<p>V-H 复核三点：① 未复验页<strong>只在待批准行剔除 + 单列警示 + rc=1 + 零 spawn</strong>（对上一轮 runner 同夹具转红，鉴别力成立）；② dev 越界<strong>恰 1 次 dev / 0 次 review</strong> + stderr 点名实际落点；③ <code>test_runner.py</code> 3 行改写经<strong>反演申报编辑 → md5 与 V-G 快照逐字节一致</strong>证明「无未申报改动」，且原用途断言逐字仍在。<strong>信息级 1 条</strong>：施工方临时副本（仓库外）差 1 字节/1 行，非施工文件差异。</p>
+<h2>五、主 agent 集成验证（收口链 ①~⑨，<strong>本报告落笔时实测</strong>）</h2>
+<table>
+<thead><tr><th>步</th><th>项</th><th>本报告实测状态</th></tr></thead>
+<tbody>
+<tr><td>①</td><td><code>test_suite_texts.py</code> 台账</td><td>✓ <strong>本报告亲跑 <code>tests/test_suite_texts.py + tests/test_viewer_labels.py</code> = 33 passed</strong>（2026-09-28 05:0x）；49 名全在册（本批无新增技能），<code>design</code>/<code>dev</code>/<code>review</code> 三名前置登记在 <code>:184-193</code></td></tr>
+<tr><td>②</td><td><code>sync.sh</code></td><td>收口期执行（本报告不跑——<code>install.py</code>/<code>sync.sh</code> 属禁改面，且会写安装镜像）；<code>.claude/skills</code> 镜像待同步</td></tr>
+<tr><td>③</td><td>全量测试</td><td>⚠ <strong>时序前提</strong>：必须等全部工位停笔后<strong>串行</strong>跑（V-F R1 撞 9 failed 假红）；本报告只做 <code>--collect-only</code> = <strong>1575</strong>；末次全量亲跑 = V-H <strong>1573 passed / 235 subtests</strong></td></tr>
+<tr><td>④</td><td><code>viewer.py</code> 标签登记</td><td>✓ <strong>已执行</strong>（<code>viewer.py:89</code> 五状态值徽章 · <code>:148/:150</code> <code>token_scope</code>/<code>removed_reason</code> 中文标签 · <code>:433-434</code> 值标签；<code>tests/test_viewer_labels.py</code> +89 行 / 2 用例）；文件 1631→<strong>1648</strong> 行（+17）</td></tr>
+<tr><td>⑤</td><td>保真度报告</td><td>✓ 本文件</td></tr>
+<tr><td>⑥</td><td><code>迁移计划.md</code> §二十八</td><td>由另一路执行（<strong>本报告不越界</strong>；§二十七 为末节，实测 :1032 行）</td></tr>
+<tr><td>⑦</td><td><code>registry.yaml</code></td><td>✓ <strong>已执行</strong>：<code>exec: diy-dev</code> + <code>exec_note: ""</code>（原「随 C·3 落地，此前链走完即止」已清，注释留痕）；<code>line: mainline</code> <strong>未动</strong>（<code>test_help_registry.py:93-101</code> 的逐字约束保持）</td></tr>
+<tr><td>⑧</td><td>过期边界句统一订正</td><td>收口期<strong>执行中</strong>：<code>diy-wds-brief/SKILL.md:78</code> 已改写为现状陈述；<code>diy-wds-scenarios/SKILL.md:4/:42/:61/:70</code> 与 <code>diy-wds-system/SKILL.md:71</code> 仍带「C·3 的 <code>diy-design</code>」阶段标记（C·3a 落地后所指技能已存在，非假陈述，但仍是旧标记）</td></tr>
+<tr><td>⑨</td><td><code>diy-help</code> WDS 读面</td><td>✓ <strong>已执行</strong>：<code>help.py</code> +2/−1（<code>wds</code> 链补 <code>wds-system(可选) → wds-assets(可选) → wds-evolution(可选) → &lt;exec&gt;</code>），与 ⑦ 同批</td></tr>
+</tbody></table>
+<h2>六、验收对照（任务书 §9，<strong>20 项</strong>）</h2>
+<table>
+<thead><tr><th>判</th><th>项</th><th>证据</th></tr></thead>
+<tbody>
+<tr><td><strong>过 16</strong></td><td>#1–#4 · #7 · #9–#16 · #18–#20</td><td>V-F 全批汇总（<code>v-reports-seg3-global.md:282-303</code>，逐行判）+ V-C 段2 逐条判（<code>v-reports-seg2-global.md:520-548</code>）逐项实测；#18 的「双向外加面无技能侧机械门」见 §七.1④</td></tr>
+<tr><td><strong>留后续 4</strong></td><td>#5 注册 · #6 viewer · #8 registry · #17 <code>diy-help</code></td><td>全属主 agent 收口面；<strong>#6/#8/#17 已于收口期执行</strong>（§五 ④⑦⑨），#5 待 <code>sync.sh</code>（V-F 实测：<code>.claude/skills</code> 的 <code>diy-*</code> = 49，但<strong>镜像 STALE</strong>——<code>diy-design/SKILL.md</code> src <code>2b3f9e78</code> vs mirror <code>5d86ce34</code>）</td></tr>
+<tr><td><strong>无不过</strong></td><td>—</td><td>无一项判「不过」</td></tr>
+</tbody></table>
+<p><strong>★ 口径订正（本报告核对发现）</strong>：V-F 的<strong>合计行写「过 15」</strong>（<code>v-reports-seg3-global.md:305</code>，<code>:366</code> 与 <code>w-reports-seg3.md:56</code> 沿用），但其<strong>自查表逐行判为 16 个「过」</strong>（15 个「<strong>过</strong>」+ #14 一个「<strong>过（本路亲验）</strong>」）+ 4 个「留后续」= 20。<strong>逐行口径正确，合计行低算 1</strong>——后续引用一律按 <strong>过 16 / 留后续 4 / 无不过</strong>。</p>
+<p><strong>V 阶段未实跑面（如实登记）</strong>：裁定 21 两情形（安装后重跑 / 用户同意跳过）与 WDS 线端到端<strong>无真实实例</strong>（全仓零 <code>wds-scenarios.yaml</code>，W7 用合成夹具覆盖）——W3 偏离 ⑤ 已登记；<code>diy-wds-assets</code> 的「浏览器实开 3 份 HTML」<strong>无留痕可核物</strong>（V-B-02，V 已独立复现该纪律链路，缺的是留档）。</p>
+<h2>七、能力损失与欠账台账（★ 本批必须点名的条目）</h2>
+<h3>7.1 能力损失台账（6 条，逐条 + 现处置）</h3>
+<table>
+<thead><tr><th>#</th><th>条目</th><th>性质</th><th>现处置</th></tr></thead>
+<tbody>
+<tr><td>①</td><td><strong>裁定 9 P1 #7「形态 / 默认主题模式」</strong></td><td>源侧 census P1 #7 的能力在 diy <strong>无承载位</strong>（<code>direction</code> 是自由串，落它无机械抓手）；理由句已订正（非「无键可载」）</td><td><strong>维持「不并」+ 进台账</strong>；<strong>备选（落 <code>direction</code> 一句）留用户裁定</strong>（<code>w-reports-seg1.md:68</code> / <code>w1-defect-ledger.md:122</code>）</td></tr>
+<tr><td>②</td><td><strong>WDS 线审查 findings 无持久化载体</strong></td><td>主线落 <code>sprint.yaml</code> 任务条目的 <code>review.findings[]</code>；WDS 线<strong>无 <code>sprint.yaml</code></strong> + 裁定 14 禁新增键 → 审查结论<strong>只落会话报告</strong>（技术债读面在 WDS 线缺失）</td><td><strong>已裁定维持、登记能力边界</strong>（<code>w-reports-seg2.md:34</code>）；文本面已补显式不对称句（<code>diy-review/SKILL.md:51</code>：「主线/WDS 不对称……WDS 线只落审查报告与本轮会话（无 YAML 载体）」）——V 中-2 的「假落点」印象已关闭</td></tr>
+<tr><td>③</td><td><strong>照片类提示词已导出未回填时 <code>assets[]</code> 为空</strong></td><td>照片是「提示词通道」：产物在外部生成后回填，中间态磁盘无实体</td><td><strong>维持合法</strong>（<code>w-reports-seg2.md:48</code>；V-B 实测 <code>assets/images/prompts/</code> + <code>assets[]</code> 留空 = 合法，<code>v-reports-seg2-assets.md:123</code>）</td></tr>
+<tr><td>④</td><td><strong>§5.8 判据②「双向核」无机械门</strong></td><td>引擎只核路径<strong>形态</strong>、不核文件存在（<code>assets[]</code> 指向不存在文件 → <code>check --final</code> rc=0）；判据的「牙」只在 <code>test_wds_assets.py</code> 的 helper 内 → 对<strong>交付物</strong>的回归保护 ≈ 0</td><td><strong>接受为「散文纪律 + 能力边界」并登记</strong>（V-B-04 建议 (a)，主 agent 未选改引擎）；<code>SKILL.md:79</code> 规则 6 <strong>已诚实声明</strong>「注意（引擎不核的）……由会话双向对表自证」</td></tr>
+<tr><td>⑤</td><td><strong>runner 的「未复验」区分只在本轮内有效</strong></td><td>R4 的修复把「本轮走完整审查环且通过」与「本轮未复验」<strong>分列</strong>（<code>wds_summary</code> 与 <code>wds_unverified_pages</code> 的 <code>unreviewed</code>/<code>verified</code> 双集合，<code>runner.py:497-542</code>；V-H 实测 stdout 两行），但<strong>跨轮不可持久区分</strong>：上一轮真通过的页与上一轮崩掉的页同被标「未复验」</td><td><strong>接受（保守高报，非误报）</strong>：提示语写「未复验」而非「未通过」；持久化需加键、撞 §2.3 冻结 → 登记</td></tr>
+<tr><td>⑥</td><td><strong>失败页无持久标记（与主线 <code>已阻塞</code> 不对称）</strong></td><td>WDS 页状态机（裁定 5 的 5 值 9 边）<strong>无「已阻塞」态</strong> → 重试用尽只 exit 1，<code>skipped</code> 仅本进程有效；重跑 = 再烧 1+max_retries 轮（V-E 实测累计 6 次 dev）</td><td><strong>登记</strong>（V-E F-3；<code>v-reports-seg3-runner.md:276-283</code>）。<strong>不建议</strong>为 runner 造「已阻塞」（会动冻结词表）；备选出口 = 页级选择器，留后续批</td></tr>
+</tbody></table>
+<p>&gt; <strong>§11-1 的裁定 7 条目（源侧 Object Registry 对象级双向核对 = 净损失）</strong>另计：本批处置见任务书裁定 13/裁定 4（五件模板改写为参考层 + 全树断言），<strong>非本表六条</strong>；<code>w1-defect-ledger.md §4</code> 逐件给落点与证据命令。</p>
+<h3>7.2 跨批欠账（不在本批修）</h3>
+<table>
+<thead><tr><th>#</th><th>条目</th><th>机制</th><th>取数</th></tr></thead>
+<tbody>
+<tr><td>①</td><td><strong><code>diyc_mutate.py:56-66</code> <code>_git_dirty</code> 量错对象</strong></td><td><code>subprocess.run(["git","status","--porcelain"], cwd=fixture 目录)</code>——git 自动<strong>上溯到仓库根</strong>，故<strong>拿到全仓脏度</strong>（实测 32 行 = 全仓）→「未提交 + 多工位并行写」<strong>必随机红</strong>。<strong>收口链③ 因此要求停笔后串行跑</strong>（与「<code>test_diyc_mutate</code> 的 <code>WORKSPACE_TOUCHED</code>」并列的两条「并发/脏树假红」）</td><td>V-F 高-2（<code>v-reports-seg3-global.md:197</code>）· W5 诊断（<code>w-reports-seg2.md:40</code>）</td></tr>
+<tr><td>②</td><td><strong>上游 <code>wds_scenarios.py check --final</code> 与 <code>diy-design</code> 推进权互斥</strong></td><td><code>:770</code> 要求 <code>design_status</code> <strong>恰为初值</strong> <code>not-started</code>（<code>:132</code>），而 C·3a 把推进写权交给 <code>diy-design</code>；一旦推进任一档，重跑上游终门必 <code>STATUS_MISMATCH</code>（<code>:772</code>），且 <code>:22/:55/:773</code> 三处文案仍写「归 C·3 的 <code>diy-design</code>」</td><td><strong>一次性门、非活不变式</strong> → <strong>无流程阻断</strong>（V-C 高-3，<code>:390-404</code>）；<code>wds_scenarios.py</code> 属 B7a 交付面（本批禁改）→ 跨批欠账</td></tr>
+<tr><td>③</td><td><strong><code>wds_assets.py</code> 在 <code>activities</code> 非列表时崩栈</strong></td><td><code>activities: "nope"</code> → <code>init</code>/<code>list</code>/<code>show</code>/<code>prompts</code>/<code>check</code> 全抛 <code>AttributeError</code>，rc=1 且 <strong>stdout 空</strong>（违反自订回执契约）</td><td><strong>预存在缺陷</strong>（HEAD 与工作树逐字同款）→ 跨批欠账（V-B-09）</td></tr>
+<tr><td>④</td><td><strong><code>diy-wds-trigger/steps/01-mode.md:32</code> 的「5 条不存在的文档」措辞</strong></td><td>其中 2 条在<strong>安装布局</strong> <code>_bmad/wds/data/agent-guides/saga/</code> 真实存在（Layer 1 方法本体）</td><td>已由用户 2026-09-27 裁定<strong>单独立项</strong>（<code>迁移计划.md</code> §二十七），归 C·7 同批订正</td></tr>
+<tr><td>⑤</td><td><strong>B7b 遗留中低项</strong>（22 条）</td><td>承 B7a 先例留档、不返工</td><td>本批<strong>不碰</strong>，收口报告重申即可（§11-5）</td></tr>
+</tbody></table>
+<h3>7.3 viewer 欠账（2 条；<strong>均只入欠账，不登记为设计边界</strong>）</h3>
+<ol>
+<li><strong><code>assets/&lt;活动&gt;/</code> 产物渲染不到</strong>：viewer 只渲染 <code>output_dir</code> <strong>顶层 YAML</strong>（V-B 实测 <code>.view/</code> 仅 3 件，9 份产物零渲染；stderr 已有 C·11 W3 加的一行诊断，<code>viewer.py</code> 的 <code>note</code> 档）。<strong>口径</strong>：按 C·11 用户裁定（<code>taskbook-c11.md:60/:154</code>——viewer 的渲染扩展面转「<strong>需求 ②，另排批</strong>」，<strong>不得</strong>写成「设计边界」销账）→ 本条<strong>只入欠账</strong>，收口④ 的动作面限于标签登记（已执行，§五④）</li>
+<li><strong><code>pages[].prototype</code> / <code>implementation</code> 渲染成纯文本且被 ID 链接截断 → 不可点</strong>（<strong>既存缺陷，本批新发现</strong>）：二者不在 <code>ASSET_PATH_FIELDS</code>（该集合只有 <code>("wds-assets","path")</code>，<code>viewer.py:646</code>）→ 走 <code>cell()</code> → <code>linkify()</code> 的 <code>ID_RE</code>（<code>:639</code> <code>\b[A-Z]{1,4}-\d+(?:\.\d+)*\b</code>）在路径串<strong>中间</strong>命中页 ID 并插入链接。<strong>本报告实证</strong>（临时夹具渲染后 HTML 原文）：<code>prototypes/P-1.html</code> → <code>prototypes/&lt;a class="idl" href="design.html#P-1"&gt;P-1&lt;/a&gt;.html</code>——路径被 ID 链接截断、指向页锚而非文件，<strong>不可点开产物</strong>；<code>implementation: src/pages/home.tsx</code> 无 ID 匹配 → 纯文本。<strong>处置</strong>：登记（不属本批文件面；修法 = 扩 <code>ASSET_PATH_FIELDS</code> 或对路径型值跳过 <code>linkify</code>）</li>
+</ol>
+<h3>7.4 报告失真点名（纪律案例，<strong>不得被后续文档转引</strong>）</h3>
+<p><strong>W8 报告「★ 开工取数」引「任务书 §5.8 口径 = 引擎 820 / 测试 969」——任务书全 5 个版本均无此数</strong>（<code>grep</code> + <code>git log -S</code> 双证零命中；任务书真实记载引擎 <strong>662</strong> = C·11 前的值）。<strong>结论对</strong>（实测 HEAD 确为 835 / 998，须重测的纪律成立），<strong>引文虚构</strong>——V-B-03 判「中」，处置：<strong>该句不得被后续文档转引；本批行数一律以 <code>wc -l</code> 现测为准</strong>。</p>
+<p>（同族纪律见 §八：这是「以『没有变化』反推『成功』」的<strong>报告面变体</strong>——「结论对了」不等于「引文为真」。）</p>
+<h3>7.5 越界与登记（3 项）</h3>
+<table>
+<thead><tr><th>#</th><th>事项</th><th>裁定</th></tr></thead>
+<tbody>
+<tr><td>①</td><td><strong>W2 越界改 <code>tests/test_restore.py</code> 3 行</strong>（自报 4 行，W2-R 实测 <code>git diff --stat</code> = 3+/3− 订正）</td><td><strong>接受 + 登记</strong>（该文件无工位认领且不在禁改清单；不改则段1 验收必红）。V-F 复核「仍是同 3 行、无扩大」（<code>v-reports-seg3-global.md:215</code>）</td></tr>
+<tr><td>②</td><td><strong>W7 定位越界 8/20 条</strong>（单工位可自测）</td><td><strong>保留 + 登记</strong>（断言有效、经机械去重确认不重复；删则覆盖真空、移位要动 8 个已定稿测试文件）</td></tr>
+<tr><td>③</td><td><strong>W2-R 改过 <code>v-reports-seg1-doc.md:251</code> 一处订正句</strong>（「4 行 → 3 行」）</td><td><strong>不构成越界</strong>：该文件在 <code>diy-coder/.analysis/<strong></code>，被外层 <code>.gitignore:19</code> 排除 → </strong>属报告面、非施工面**；核对证实订正内容为真（<code>v-reports-seg1-rework.md:236</code>）</td></tr>
+</tbody></table>
+<h3>7.6 口径差登记</h3>
+<ol>
+<li><strong>任务书 §2.5 的 <code>结构稿中 → 待验收</code> 描述</strong>：「结构稿完成、呈测前」（<code>:427</code>）<strong>与 §5.1/§5b 把 <code>待验收</code> 放在实现之后不同</strong>（§5.1 的 dev 回填目标 = <code>pages[].status</code>；§5b #3b 的链 = dev 实现 → review 审查，审查通过后页仍 <code>待验收</code>）。<strong>任务书不回改，本报告即为点名处</strong>（段2 主 agent 裁定 1；<code>w-reports-seg2.md:61</code>）</li>
+<li><strong><code>diy-dev/SKILL.md</code> 88 行 = 控制线 88，零余量</strong>，且 <code>test_diy_dev_wds.py:184</code> 把<strong>软线固化成硬断言</strong>（今后任何一行新增都会红，修测试即等于改验收口径）——登记（V-F 中-1 同族 / V-A 低-4）</li>
+<li><strong><code>diyc_check_docs.py</code> 行数口径</strong>：W9 回报写「705→<strong>753</strong>」，现测 = <strong>751</strong>（<code>wc -l</code>；<code>git diff --numstat</code> = +55/−9，705+55−9 = 751）→ <strong>回报值高 2 行</strong>，本报告按 751</li>
+<li><strong><code>diy-design/steps/</code> 行数口径</strong>：段1 终值 605 行（<code>w-reports-seg1.md:94</code>）→ <strong>现测 619</strong>（段2/段3 跨段订正与补漏触及 <code>prototype-loop.md</code> / <code>h-delivery.md</code> / <code>k-sketch.md</code>）——引用一律取现测</li>
+<li><strong><code>0wds-</code> 计数口径</strong>：5 = <strong>逻辑位置数</strong>（diy 文件与其 <code>.claude</code> 镜像合并计一行）、<strong>6 = 物理行数</strong>（V4 L-2 判定「口径差异，非虚报」）</li>
+<li><strong>W7 回报的书面载体缺失（V-F 高-1）</strong>：<code>w-reports-seg3.md</code> 系<strong>事后补写</strong>（V-F 发现 W7 无落盘回报 → 主 agent 依两工位回报原文补录，口径 = 原样转述声称、不作背书）</li>
+</ol>
+<h3>7.7 关键闸门事实（<strong>后续批的前置</strong>，本批物理不可行面）</h3>
+<ul>
+<li><strong><code>tests/test_review_contract.py:103</code></strong> 硬锁 <code>assertLessEqual(len(raw.splitlines()), 93)</code>（<code>diy-review</code> 薄主文件 ≤93 行）· <strong><code>:108</code></strong> 硬锁 <code>assertNotIn("Read (input)", raw)</code>（无 <code>steps/</code> 的技能不得出现 §4 步骤锚串）。两条合起来使 <strong><code>diy-review</code> 拆 <code>steps/</code> 在本批物理不可行</strong>——该文件是 W4 的禁改面（<code>SKILL.md</code> 现 91 行 = <strong>2 行余量</strong>）。</li>
+</ul>
+<p>→ <strong>后续批若要把 WDS / 两透镜细节下沉 <code>steps/</code>，前置 = 先放宽这两条</strong>（连带 <code>test_suite_texts.py</code> 的 <code>_steppers()</code> 适用面与 §4 锚串登记，见 §3.3）。登记，不返工。</p>
+<ul>
+<li>关联事实：<code>diy-dev</code> <strong>88 = 控制线 88（零余量）</strong> 且软线已被固化成硬断言（§7.6②）——两条共同构成「<strong>主文件扩容面已封顶</strong>」的现状。</li>
+</ul>
+<h2>八、本批提炼的方法论判据 —— 「产物没变」不等于「一切正常」</h2>
+<h3>8.1 四处同源失效（独立 V 三次发现、施工自测三次遗漏）</h3>
+<table>
+<thead><tr><th>处</th><th>失效</th><th>为什么「无变化」被当成了「成功」</th><th>取数</th></tr></thead>
+<tbody>
+<tr><td><strong>H1</strong></td><td><code>design_status</code> <strong>值域无值可写</strong></td><td>文档只写「推到<strong>进行中值</strong>」（占位符），从无值可写；既有测试只断言字符串 <code>"design_status"</code> <strong>在场</strong>，不校验值域 → <strong>不写值也不报错</strong></td><td><code>v-reports-seg1-cross.md:225-233</code>；段1 面内 47 passed 未发现</td></tr>
+<tr><td><strong>F-1</strong></td><td>审查环<strong>静默降级</strong></td><td>「审查通过」在产物上的表现<strong>就是不写</strong> → <code>drive_page</code> 丢弃 <code>spawn_wds_review</code> 的退出码后，「审查崩了/没跑成」与「审查通过」<strong>不可区分</strong>（实测 review <code>exit(7)</code> 零写回 → runner 报「→ 待用户批准（审查通过…）」且 <strong>rc=0</strong>）</td><td><code>v-reports-seg3-runner.md:260</code>；W6 自测 48 passed、<strong>21 条新用例零覆盖</strong></td></tr>
+<tr><td><strong>高-1</strong></td><td>未复验页<strong>混进待批准</strong></td><td>上一轮崩掉留在 <code>待验收</code> 的页，与「本轮真通过」的页<strong>产物状态完全相同</strong>（都不变）→ 直接进「待用户批准」名单、rc=0，四词探测（上一轮/未经审查/遗留/审查结论未知）全 False</td><td><code>v-reports-seg3-rework.md:342-351</code>；W6-R 返工自测 1568/231 绿未发现</td></tr>
+<tr><td><strong>中-1</strong></td><td>dev 越界<strong>仍重试</strong></td><td><code>drive_page</code> 只对<strong>审查后</strong>的回读做落点收紧，<strong>dev 后没有</strong> → 任何落点都 <code>continue</code> 重试（页已 <code>已移除</code> 仍在上面重复 spawn dev）；「没推进 = 正常」的结果被反推为「继续」</td><td><code>v-reports-seg3-rework.md:352-364</code>；同上</td></tr>
+</tbody></table>
+<p><strong>根因（一句话）</strong>：这四处都是<strong>以「没有变化」反推「成功」</strong>——判据读的是「产物的当前状态」，而当「成功」与「没成功」在产物上<strong>同为无变化</strong>时，判据就退化成恒真。</p>
+<h3>8.2 可复用判据（建议写入后续各批的验收面）</h3>
+<p>&gt; <strong>凡是「成功」在产物上的表现是「无变化」的环节，必须另有显式的成功信号（退出码 / 回执 / 计数 / 显式名单），否则不得判成功。</strong></p>
+<p>三条推论（本批的落地形态）：</p>
+<ol>
+<li><strong>判据不许只读产物状态</strong>——必须读<strong>动作方的显式回执</strong>（F-1 的修法 = 接住子进程 rc）</li>
+<li><strong>测试只断言「键名/字面量在场」不构成值域守卫</strong>——须有<strong>双向断言</strong>（写入值 ⊆ 上游枚举 + 枚举值 ⊆ 文档在场；H1 的微修轮形态）</li>
+<li><strong>状态集合的作用域必须显式分列</strong>——「本轮通过」与「本轮未复验」不得同列呈为可批准（高-1 的修法）；只在会话内有效的集合必须在输出里点名其作用域（§七.1⑤⑥ 的残余）</li>
+</ol>
+<h2>九、审阅指引</h2>
+<ul>
+<li><strong>必读</strong>：§三.2（有意收严 + 迁移口径，<strong>直接关系存量产物</strong>）· §七（能力损失与欠账 6+5+2 条）· §八（方法论判据）</li>
+<li><strong>可跳过</strong>：§二（逐段销账，与任务书 §3–§9 对应，已在 <code>w-reports-seg{1,2,3}.md</code> 完整报备）</li>
+<li><strong>须与另一路对齐</strong>：§五 的 ⑥ <code>迁移计划.md</code> §二十八（本报告不越界；⑧ 的收尾状态以该节为准）</li>
+<li>十二份 V 报告原文在 <code>diy-coder/.analysis/2026-09-22-migration-c3/</code>，含逐条实跑证据（命令 + 输出摘要）；源侧缺陷台账 <code>w1-defect-ledger.md</code> 含逐条可复现 <code>grep</code> 命令</li>
+</ul>
+</main>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 > **出处**：改造自源 `wds-6-asset-generation/templates/stitch-prompt.template.md`（174 行，随 `[E]` 与那家服务一并裁撤的孤岛文件）。**改造点（裁定 6）**：① 去 **Stitch** 服务绑定（模板头、服务名字样、平台专属字段全去）；② 去**免费额度**段（那是某家服务的计费口径，与本技能无关）；③ 通用化为**任何外部生成服务的落地页**。
 >
-> **用法**：`steps/09-finish.md` 第 2 步逐条把 `prompts[]` 条目渲染成一份 `.md`，落 `{output_dir}/assets/<活动>/prompts/<条目名>.md`。用户拿这份文件去任意服务生成，产物回填到 `{output_dir}/assets/<活动>/`。
+> **用法**：`steps/09-finish.md` 第 2 步逐条把 `prompts[]` 条目渲染成一份 `.md`，落 `{output_dir}/assets/<活动>/prompts/<条目名>.md`。**只对需导出的条目用**——照片类图片、`G` 级 AI 视频、用户点名要带走提示词的条目；其余产物（HTML / SVG / CSS / 成稿）已由各活动**直接产出**，不走这份骨架。用户拿这份文件去任意服务生成，产物回填到 `{output_dir}/assets/<活动>/`。
 
 ---
 
