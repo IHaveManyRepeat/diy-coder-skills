@@ -70,6 +70,8 @@ def tokens_doc(**over):
                     "updated": "2026-09-21", "status": "草稿"},
         "direction": "克制的编辑风格\n- 不用大面积投影\n- 不用圆角卡片堆叠",
         "frontend_framework": "html",
+        "form_factor": "响应式 Web",
+        "modes": "亮",
         "tokens": {
             "color": {"bg": "#ffffff", "surface": "#f5f5f5", "text": "#111111",
                       "text_muted": "#595959", "accent": "#1a5fb4",

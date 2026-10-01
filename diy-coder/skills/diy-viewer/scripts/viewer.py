@@ -24,7 +24,10 @@ ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "tech
                           # trace: C·11 W3（§5.1）——B7b 五产物的枚举键补入（12 行 / 11 distinct：
                           # scope 在 wds-assets 与 wds-evolution 两产物重复登记）。值域见各 SKILL.md 结构节
                           "design_system_mode", "complexity", "category", "mode", "code",
-                          "scope", "stage", "recipe", "format", "prompt_lang", "entry"}
+                          "scope", "stage", "recipe", "format", "prompt_lang", "entry",
+                          # trace: C·12 W2（裁定 C12-2 ③）——design 族新增顶层两键（值域四值/三值，
+                          # 见 diy-design 引擎 validate）；进枚举表 = 值域白名单 + 徽章判定
+                          "form_factor", "modes"}
 # 自由文本字段 (doc, key)：schema 无枚举约束——同名 key 在别的产物可以是枚举。
 # 依据：diy-architecture SKILL.md:43 decision=what was chosen；diy-review SKILL.md:31 type=short tag；
 # diy-design SKILL.md:65 route=/path
@@ -148,6 +151,12 @@ KEY_LABELS = {
     # 不要读成「令牌作用域」；removed_reason 是自由文本（不进 ENUM_KEYS → 不做徽章，
     # 徽章化会把「被 v2 首页取代」这类原因句误标）
     "token_scope": "令牌豁免路径", "removed_reason": "移除原因",
+    # trace: C·12 W2（裁定 C12-1/C12-2 ③）——design 族新增顶层两键的中文标签。
+    # 语义照任务书 §0 表：form_factor = 目标表面（「写在什么上」）；modes = 默认主题模式。
+    # dark 是 tokens.color 下的暗色覆盖子块（§7-5① 明暗对形状）——零裸键纪律（用户裁定
+    # 2026-10-01 收严）：dark 自身 + 六角色（bg/surface/text/text_muted/accent/accent_text，
+    # 六者既有标签在上方 design 族区）共七键必须全部中文，漏登记直出英文键名 = 显示缺陷
+    "form_factor": "目标形态", "modes": "主题模式", "dark": "暗色",
     # spec-scan 族（diy-spec-scan schema）：规格预演扫描的歧义清单
     "scans": "扫描记录", "units": "扫描单元", "scanned": "已扫描",
     "quote": "原文摘录", "read_as": "我读到什么", "stuck": "卡在哪",
@@ -432,6 +441,11 @@ VALUE_LABELS = {
     # 缺一头会漏：只进 VALUE_LABELS → 中性徽章；只进 BADGE_CLASSES → 值域白名单不准）
     "结构稿中": "结构稿中", "待验收": "待验收",
     "已移除": "已移除", "已解决": "已解决",
+    # trace: C·12 W2（裁定 C12-1 值域表逐字）——form_factor 四值 / modes 三值入值域白名单。
+    # 「移动端」已在类型/模式区（R3）；「桌面端」是 brief 的项目类型值，与本处「桌面」不同词，
+    # 两不互扰。归类语义（非结论）→ 中性徽章，不进 BADGE_CLASSES（同 :65 口径）
+    "响应式 Web": "响应式 Web", "桌面": "桌面", "多端": "多端",
+    "亮": "亮", "暗": "暗", "双模": "双模",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
@@ -645,6 +659,12 @@ REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs
 # 同键 path 在 openapi 是 API 路由（/users）、在 spec-scan 是扫描目标——一律不从全局映射
 ASSET_PATH_FIELDS = {("wds-assets", "path")}
 ASSET_PATH_RE = re.compile(r"^assets/[A-Za-z0-9][A-Za-z0-9._/-]*$")
+# trace: C·12 W2（裁定 C12-2 ②）——design 族两键装 output_dir 相对文件路径（结构稿 HTML /
+# 实现文件）。与 wds-assets 的 assets/<活动>/ 前缀不同，路径根不定型（prototypes/、src/），
+# ASSET_PATH_RE 罩不住，故独立判定（判据见 doc_path_value）：文件确在 output_dir 下 → 直链；
+# 其余纯文本。两分支一律跳过 ID linkify——cell() → linkify() 的 ID_RE 会在路径中段命中
+# 页 ID 形态（P-1）把 prototypes/P-1.html 腰斩成指向页锚的错链（c3a-fidelity §7.3 第 2 条）
+DOC_PATH_FIELDS = {("design", "prototype"), ("design", "implementation")}
 # 过程性字段默认折叠（FR-4.1 可读性，D-10 后白话化纪律）：结论常驻、过程按需展开。
 # revisions 依「修订历史留痕」裁定（迁移计划 §已定补充，2026-09-13 用户拍板）：
 # 「viewer 渲染为默认折叠的修订历史卡片（沿用 detail 折叠做法）」
@@ -665,6 +685,8 @@ _UNMAPPED_SEEN: set = set()
 # 资产相对链接前缀（裁定 11）：页面落在 {output_dir}/<view_dir>/，故默认视图目录（一层）即
 # `../`；main 按 view_dir 实际深度覆盖，view_dir 为空（页面与产物同目录）时为 ``
 _ASSET_REL_PREFIX = "../"
+# 当前解析根 output_dir（C·12 W2）：doc_path_value 的文件存在性判定基准，main 赋值
+_OUT_DIR: Path = Path()
 
 
 def _diag_unmapped(value) -> None:
@@ -983,10 +1005,33 @@ def asset_link(v) -> str:
     return cell(v)
 
 
+def is_doc_path(k: str) -> bool:
+    # trace: C·12 W2（裁定 C12-2 ②）——design 族路径键按 (文档, 键) 定位，同 ASSET_PATH_FIELDS
+    return (_RENDER_DOC, k) in DOC_PATH_FIELDS
+
+
+def doc_path_value(v) -> str:
+    """design 族路径值（裁定 C12-2 ②）：output_dir 下真实存在的文件 → 相对直链；
+    其余 → 纯文本。两条路径都**不经 linkify**（见 DOC_PATH_FIELDS 注释的截断缺陷）；
+    绝对路径 / URL / 越级显式回落纯文本（Path 的 / 拼接对 Windows 绝对路径会整体替换，
+    必须先拒，否则 output_dir 外的文件也会被链出去）。"""
+    if v is None or isinstance(v, (dict, list)):
+        return cell(v)
+    s = str(v).strip()
+    looks_rel = (s and ".." not in s
+                 and not s.startswith(("/", "\\", "http:", "https:", "file:"))
+                 and re.match(r"^[A-Za-z]:[\\/]", s) is None)
+    if looks_rel and (_OUT_DIR / s).is_file():
+        return f'<a class="asset" href="{esc(_ASSET_REL_PREFIX + s)}">{esc(s)}</a>'
+    return esc(s).replace("\n", "<br>")
+
+
 def value_html(k: str, v) -> str:
-    """标量值渲染：资产路径 → 相对链接；枚举键 → 徽章；其余回落 cell() 纯文本。"""
+    """标量值渲染：资产/文档路径 → 相对链接；枚举键 → 徽章；其余回落 cell() 纯文本。"""
     if is_asset_path(k):
         return asset_link(v)
+    if is_doc_path(k):
+        return doc_path_value(v)
     return badge(k, v) if is_enum_key(k) else cell(v)
 
 
@@ -1115,6 +1160,8 @@ def _render_value_raw(key: str, v, depth: int) -> str:
         return title + ref_cell(v)
     if is_asset_path(key):
         return title + f"<p>{asset_link(v)}</p>"
+    if is_doc_path(key):
+        return title + f"<p>{doc_path_value(v)}</p>"
     return title + (badge(key, v) if is_enum_key(key) else f"<p>{cell(v)}</p>")
 
 
@@ -1430,7 +1477,7 @@ def render_doc_page(name: str, data, others: list, source: str = "") -> str:
     return page(DOC_LABELS.get(name, name), body, " · ".join(links), source)
 
 
-def build_index(docs: list, errors=None, source: str = "") -> str:
+def build_index(docs: list, errors=None, source: str = "", extra_cards=()) -> str:
     cards = []
     for name, data in docs:
         meta = get_meta(data)
@@ -1450,6 +1497,8 @@ def build_index(docs: list, errors=None, source: str = "") -> str:
             f'<span class="sub"> {esc(name)}.yaml</span></div>'
             f'<div class="sub">{status_html} {open_html} {esc(meta.get("updated", ""))}</div></a>'
         )
+    # trace: C·12 W2——清单页/时间轴页的索引卡片（只在对应页面渲染时由 main 传入，只增不改）
+    cards.extend(extra_cards)
     if not cards:
         body = '<p class="dim">未找到 YAML 文档。</p>'
     else:
@@ -1460,6 +1509,67 @@ def build_index(docs: list, errors=None, source: str = "") -> str:
                  f'（形状异常、语法损坏或渲染失败）</div>'
                  + "<ul>" + "".join(f"<li>{esc(e)}</li>" for e in errors) + "</ul>")
     return page("diy-coder 文档索引", body, source=source)
+
+
+def collect_asset_files(assets_dir: Path) -> dict:
+    """assets/ 下全部文件按一级子目录（活动）分组：{活动: [相对路径...]}。
+    目录缺失/为空/不可读 → {}（调用方据此不渲染清单页，不报错）。"""
+    groups: dict = {}
+    try:
+        files = sorted(p for p in assets_dir.rglob("*") if p.is_file())
+    except OSError:
+        return {}
+    for p in files:
+        rel = p.relative_to(assets_dir)
+        group = rel.parts[0] if len(rel.parts) > 1 else "（未分组）"
+        groups.setdefault(group, []).append(rel.as_posix())
+    return groups
+
+
+def build_assets_page(groups: dict, source: str = "") -> str:
+    """assets 产物清单页（裁定 C12-2 ①）：wds-assets 直出的 HTML/SVG/CSS 落在
+    assets/<活动>/ 子目录，不在顶层 YAML 扫描面（8 活动全盲的根因）——此页按活动
+    分组列出，逐文件给 output_dir 相对直链。"""
+    sections = []
+    for group in sorted(groups):
+        items = "".join(
+            f'<li><a class="asset" href="{esc(_ASSET_REL_PREFIX + "assets/" + rel)}">'
+            f'{esc("assets/" + rel)}</a></li>'
+            for rel in groups[group])
+        sections.append(
+            f'<h2 id="assets-{esc(slugify(group))}">{esc(group)}'
+            f'（{len(groups[group])} 件）</h2><ul>{items}</ul>')
+    return page("资产产物清单", "".join(sections),
+                '<a href="index.html">⌂ 首页</a>', source)
+
+
+def collect_timeline(docs: list) -> list:
+    """跨产物决策时间轴数据（Layer 1 裁定归入 C·12）：聚合全部产物的 revisions
+    为 (date, 产物名, 条目) 并按 date 升序（ISO 日期字典序即时间序；缺 date 排最前）。
+    与单产物页内的修订历史折叠块（render_value 的 revisions 分支）互不影响。"""
+    items = []
+    for name, data in docs:
+        revs = data.get("revisions") if isinstance(data, dict) else None
+        for r in revs or []:
+            if isinstance(r, dict):
+                items.append((str(r.get("date") or ""), name, r))
+    items.sort(key=lambda t: t[0])
+    return items
+
+
+def build_timeline_page(items: list, source: str = "") -> str:
+    """跨产物决策时间轴页：条目 = 日期 / 变更 / 原因 + 产物名锚（链到该产物页）。"""
+    rows = []
+    for _, name, r in items:
+        doc_label = gloss(esc(DOC_LABELS.get(name, name)))
+        rows.append(
+            f'<tr><td>{cell(r.get("date"))}</td>'
+            f'<td><a class="asset" href="{esc(name)}.html">{doc_label}</a></td>'
+            f'<td>{cell(r.get("change"))}</td><td>{cell(r.get("reason"))}</td></tr>')
+    body = ('<div class="table-scroll"><table class="data"><thead><tr>'
+            '<th>日期</th><th>产物</th><th>变更</th><th>原因</th></tr></thead>'
+            f'<tbody>{"".join(rows)}</tbody></table></div>')
+    return page("决策时间轴", body, '<a href="index.html">⌂ 首页</a>', source)
 
 
 def load_docs(paths) -> tuple:
@@ -1577,8 +1687,10 @@ def main() -> int:
     except OSError:
         has_assets = False
     if has_assets:
-        print(f"[diy-viewer] note: {assets_dir} 下有未渲染的资产（viewer 只渲染 output_dir "
-              f"顶层的 YAML）—— 页面里的资产链接可直接点开查看", file=sys.stderr)
+        # C·12 收口订正（用户裁定 A）：清单页落地后「未渲染」成假事实——HTML 产物不进
+        # YAML 渲染管线，但已列入 assets 清单页；「点开查看」锚保留（断言同步改）
+        print(f"[diy-viewer] note: {assets_dir} 下有已列入清单页的资产（HTML 产物不进 YAML "
+              f"渲染管线）—— 见 assets 清单页，页面里的资产链接可直接点开查看", file=sys.stderr)
     docs = all_docs
     if args.files:
         docs, all_docs = select_explicit_docs(all_docs, args.files, out_dir, errors)
@@ -1593,9 +1705,11 @@ def main() -> int:
     view_dir.mkdir(parents=True, exist_ok=True)
     # trace: C·11 W3（§5.2 链接档 / 裁定 11）——资产相对链接前缀 = 页面所在目录 → output_dir；
     # 默认 view_dir=`.view`（一层）即 `../`，配置成多级目录时按级数补足（否则链接打不开）
-    global _ASSET_REL_PREFIX
+    # trace: C·12 W2——_OUT_DIR 同步赋值（doc_path_value 的 design 族路径存在性基准）
+    global _ASSET_REL_PREFIX, _OUT_DIR
     view_depth = [p for p in Path(cfg["view_dir"]).parts if p not in (".", "")]
     _ASSET_REL_PREFIX = "../" * len(view_depth)
+    _OUT_DIR = out_dir
 
     written = []
     build_id_index(all_docs)
@@ -1628,8 +1742,27 @@ def main() -> int:
                         source=source_disp)
         f.write_text(body, encoding="utf-8")
         written.append(f)
+    # trace: C·12 W2（裁定 C12-2 ①）——assets 产物清单页：assets/ 有文件才渲染（空/缺失静默）；
+    # 时间轴页（Layer 1 裁定）：全部产物 revisions 皆空不渲染。两页均只增不改既有页面
+    extra_cards = []
+    asset_groups = collect_asset_files(out_dir / "assets")
+    if asset_groups:
+        (view_dir / "assets.html").write_text(
+            build_assets_page(asset_groups, source_disp), encoding="utf-8")
+        n_files = sum(len(v) for v in asset_groups.values())
+        extra_cards.append(
+            '<a class="doc-card" href="assets.html"><div class="name">资产产物清单</div>'
+            f'<div class="sub">{n_files} 个文件 · {len(asset_groups)} 个活动</div></a>')
+    timeline = collect_timeline(all_docs)
+    if timeline:
+        (view_dir / "timeline.html").write_text(
+            build_timeline_page(timeline, source_disp), encoding="utf-8")
+        extra_cards.append(
+            '<a class="doc-card" href="timeline.html"><div class="name">决策时间轴</div>'
+            f'<div class="sub">{len(timeline)} 条修订</div></a>')
     index = view_dir / "index.html"
-    index.write_text(build_index(all_docs, errors, source_disp), encoding="utf-8")
+    index.write_text(build_index(all_docs, errors, source_disp, extra_cards),
+                     encoding="utf-8")
     for e in errors:
         print(f"[diy-viewer] skipped — {e}", file=sys.stderr)
 

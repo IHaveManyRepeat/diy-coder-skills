@@ -12,6 +12,12 @@
 2026-09-19 中文化轮（B-14）：正文转中文，分节锚随之改为 `## 激活时` / `## 工作流` / `## 结构` /
 `## 规则`；同时把 B-14 的 8 条裁定固化成断言（实现面口径 / `trace --src` / `design.py` 全路径 /
 L3 时点差 / `后置` 唯一落点 / 重开入口不变 / `EVIDENCE_MISSING` 不当豁免 / exp-sync 安装形态路径）。
+
+2026-10-01 C·12（裁定 C12-3）：review 拆 `steps/` 七件——锚随内容下沉的断言读源改指
+对应 steps 文件（trace --src ×2 → l1 / L3 台账 ×4 → l3 / design.py 全路径 ×2 → l4 /
+`pop("augment")` ×1 → falsify，逐条申报见 `.analysis/2026-09-28-c12/w3-report.md`）；
+行数预算 ≤93 放宽为拆后实测 ×1.2（裁定 3 同口径）；「不得含 `Read (input)`」硬锁改判
+必须在场（有 steps/ 后母本 §4 读取纪律适用，与 test_suite_texts 的 `_steppers()` 同步）。
 """
 import io
 import os
@@ -19,6 +25,11 @@ import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_REVIEW = os.path.join(HERE, "..", "skills", "diy-review", "SKILL.md")
+# C·12 拆 steps 七件——锚下沉内容的读源指向（申报 vs 实改对照见 w3-report.md）
+STEP_L1 = os.path.join(HERE, "..", "skills", "diy-review", "steps", "l1-correctness.md")
+STEP_L3 = os.path.join(HERE, "..", "skills", "diy-review", "steps", "l3-coverage.md")
+STEP_L4 = os.path.join(HERE, "..", "skills", "diy-review", "steps", "l4-design-adoption.md")
+STEP_FALSIFY = os.path.join(HERE, "..", "skills", "diy-review", "steps", "falsify.md")
 SKILL_LOOP = os.path.join(HERE, "..", "skills", "diy-build-loop", "SKILL.md")
 VIEWER = os.path.join(HERE, "..", "skills", "diy-viewer", "scripts", "viewer.py")
 HELP = os.path.join(HERE, "..", "skills", "diy-help", "scripts", "help.py")
@@ -97,15 +108,17 @@ class VerdictRoutingTests(unittest.TestCase):
 class ZhConversionTests(unittest.TestCase):
     """2026-09-19 中文化轮（B-14）：四段中文标题 + 母本锚串 + B-14 八条落点。"""
 
-    # trace: 中文化政策（四段中文标题 + description 中文注释 + ≤93 行预算）
+    # trace: 中文化政策（四段中文标题 + description 中文注释 + 行数预算）
+    # trace: C·12 裁定 C12-3 / 裁定 3——预算线 = 拆后实测 ×1.2 取 ceil
+    #        （2026-10-01 拆后实测 79 行 → 95；C·3a 同口径 93→112）
     def test_four_chinese_sections_and_budget(self):
         raw = read(SKILL_REVIEW)
-        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 95, "薄主文件超出 95 行预算（拆后实测×1.2）")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, raw, "缺四段结构：%s" % section)
         self.assertIn("# ↑ 中文：", raw, "description 缺中文注释")
-        # 无 steps/ —— 母本 §4 读取纪律永久不适用（2026-09-19 裁定），不得写成假事实
-        self.assertNotIn("Read (input)", raw, "无 steps/ 的技能不得出现 §4 的步骤锚串")
+        # C·12（裁定 C12-3）：review 已拆 steps/ —— 母本 §4 读取纪律适用，锚串必须在场
+        self.assertIn("Read (input)", raw, "有 steps/ 的技能须含 §4 的步骤锚串")
 
     # trace: 母本 §1 / §2 / §3 / §5 / §6（逐字定稿由 test_suite_texts.py 强校，此处只锚存在性）
     def test_mother_texts_landed(self):
@@ -129,35 +142,40 @@ class ZhConversionTests(unittest.TestCase):
         self.assertIn("开场一行声明本次采样的实现面", raw, "实现面采样未要求声明")
 
     # trace: B-14 SS-012-02（trace --src 指向本任务实现面，unresolved 限该扫描面）
+    # trace: C·12 读源改——L1 段下沉 steps/l1-correctness.md（原 :134/:136 两锚）
     def test_trace_src_points_at_task_surface(self):
-        raw = read(SKILL_REVIEW)
+        raw = read(STEP_L1)
         self.assertIn('diyc.py" trace --src <本任务实现文件/目录> --json', raw,
                       "trace 未用 --src 收窄到本任务实现面")
         self.assertIn("该扫描面", raw, "unresolved 未声明为扫描面内结果")
 
     # trace: B-14 SS-012-07 / A-11（design.py 全路径）
+    # trace: C·12 读源改——L4 段下沉 steps/l4-design-adoption.md（原 :141/:143 两锚）
     def test_design_py_full_paths(self):
-        raw = read(SKILL_REVIEW)
+        raw = read(STEP_L4)
         self.assertIn('.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src',
                       raw, "L4 audit 未写 design.py 全路径")
         self.assertIn('.claude/skills/diy-design/scripts/design.py" check --design "{output_dir}/design.yaml"',
                       raw, "L4 check 未写 design.py 全路径")
 
     # trace: B-14 SS-012-03（L3 时点差：块缺席非违规）+ SS-019-09 侧（追加件无 evidence 不当豁免）
+    # trace: C·12 读源改——L3 段下沉 steps/l3-coverage.md（原 :149–:152 四锚）
     def test_l3_time_point_and_evidence_missing_signal(self):
-        raw = read(SKILL_REVIEW)
+        raw = read(STEP_L3)
         self.assertIn("其缺席不是违规", raw, "L3 未写 review 块缺席不是违规")
         self.assertIn("同一条命令", raw, "L3 未写与第 3 步块校验是同一条命令")
         self.assertIn("`EVIDENCE_MISSING`", raw, "缺台账违规码")
         self.assertIn("不当豁免", raw, "追加件无 evidence 未声明不当豁免")
 
     # trace: B-14 SS-012-05（后置唯一落点）+ SS-012-04（重开入口不变）
+    # trace: C·12 读源改——`pop("augment")` 随第 6 步下沉 steps/falsify.md（原 :160）；
+    #        其余三锚在主文件保留面（路由表 / 规则 7），读源不动
     def test_defer_landing_and_reopen_entry(self):
         raw = read(SKILL_REVIEW)
         self.assertIn("`deferred-actions.yaml`", raw, "未切断与 deferred-actions.yaml 的错误联想")
         self.assertIn("review.findings[]", raw, "后置未写唯一落点")
         self.assertIn("重开入口不变", raw, "重开未声明入口不变")
-        self.assertIn('pop("augment")', raw, "重开未写清旧判定")
+        self.assertIn('pop("augment")', read(STEP_FALSIFY), "重开未写清旧判定")
 
     # trace: B-14 SS-012-06 / A-9（exp-sync 安装形态路径，由人手动执行）
     def test_exp_sync_installed_path(self):

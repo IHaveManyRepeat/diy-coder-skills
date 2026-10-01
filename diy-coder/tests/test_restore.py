@@ -19,6 +19,7 @@ SKILL_EPICS = os.path.join(HERE, "..", "skills", "diy-epics-stories", "SKILL.md"
 SKILL_DESIGN = os.path.join(HERE, "..", "skills", "diy-design", "SKILL.md")
 SKILL_DEV = os.path.join(HERE, "..", "skills", "diy-dev", "SKILL.md")
 SKILL_REVIEW = os.path.join(HERE, "..", "skills", "diy-review", "SKILL.md")
+REVIEW_STEPS = os.path.join(HERE, "..", "skills", "diy-review", "steps")
 from test_design import GOOD_DESIGN, GOOD_HTML  # noqa: E402
 
 NL = chr(10)
@@ -102,14 +103,23 @@ class RestoreLoopTests(unittest.TestCase):
         self.assertTrue(json.loads(g.stdout)["ok"])
 
     # trace: S-15 AC-15.3 TC-15.3.1 D-10（2026-09-12 变更：截图对比废弃，改零重写采用）
+    # trace: C·12 回派 W3-R1 读源改——「结构对照」/「线框」随 L4 段下沉
+    #        steps/l4-design-adoption.md（assertIn 改读该文件）；「截图对比」的 NotIn
+    #        面随拆分扩为「主文件 + steps 拼接」（文档面 = 教学面，与 test_diy_review_wds
+    #        的 `--to 已批准` 同口径）。断言本体（锚串/失败消息）零改动。
     def test_adopt_zero_rewrite_terms_and_compare_removed(self):
         dev = io.open(SKILL_DEV, encoding="utf-8").read()
         self.assertIn("零重写", dev, "diy-dev 缺零重写采用条款")
         self.assertIn("设计稿代码", dev, "diy-dev 缺「在设计稿代码上叠加逻辑」条款")
         review = io.open(SKILL_REVIEW, encoding="utf-8").read()
-        self.assertIn("结构对照", review, "diy-review L4 缺结构对照条款")
-        self.assertIn("线框", review, "diy-review L4 缺线框对照对象")
-        self.assertNotIn("截图对比", review, "废弃的截图对比条款仍残留")
+        l4 = io.open(os.path.join(REVIEW_STEPS, "l4-design-adoption.md"),
+                     encoding="utf-8").read()
+        self.assertIn("结构对照", l4, "diy-review L4 缺结构对照条款")
+        self.assertIn("线框", l4, "diy-review L4 缺线框对照对象")
+        steps_all = NL.join(
+            io.open(os.path.join(REVIEW_STEPS, name), encoding="utf-8").read()
+            for name in sorted(os.listdir(REVIEW_STEPS)) if name.endswith(".md"))
+        self.assertNotIn("截图对比", review + NL + steps_all, "废弃的截图对比条款仍残留")
         h = run_engine(["--help"])
         self.assertNotIn("compare", h.stdout, "design.py compare 子命令未删除")
 

@@ -28,27 +28,16 @@ outputs: —
 ## 工作流
 
 全局步骤纪律：一次给全（front-load）——本轮输出整块给出，不在步骤中间提问；要停下时一行说明原因。
+读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
 
 1. 载入材料，一行复述审查范围。（带 `--falsify` 且目标是 `已完成` → 直接跳到第 6 步。）
-2. 按序跑 L1 → L2 → L3 → L4；L4 只有任务 AC 带 `design_ref` 时才跑——跳过要在报告里点名，绝不静默。收集 findings；逐条对照规则第 4 条的表格核验——每条恰好一个路由。
-
-### 四层（L1–L4）
-
-- **L1 正确性。** 实现是否恰好做到了 AC 说的——没有漏掉的 then 子句、没有没被要求的多余行为？逐条 AC 对照。trace 纪律是抓手：diff 里每个方法都要带 `# trace:` 注释（见 diy-dev），其 ID 必须能在 stories / test-plan 里解析——跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" trace --src <本任务实现文件/目录> --json`（`--src` 可重复、相对 project-root；不给则扫全项目），把回执 `unresolved` 里的每一条当 finding（路由 `小修`）——该列表是**该扫描面**上的结果；`# trace:` 整行缺席仍属人对 diff 的目读。对被追踪的方法逐条核行为：声明 `AC-9.1` 却没兑现其 then 子句的代码，是一条点名该 trace 行的 L1 finding。
-- **L2 边界。** 走 AC 暗示却没写明的失败模式：坏输入、空/None、并发、错误路径、静默兜底。只报真会咬人的未处理情形。
-- **L3 覆盖审计。** 你不手动重验。跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type review --story <S-x> --json`——机械核对四项台账：每个 `test_refs` 的 TC 都有 `evidence` 条目；红线在绿线之前；证据结论与 test-plan 的 TC `status` 一致；绑定本任务的每个 TC 都带非空 `kill_target` 与对 test-plan schema 枚举合法的 `technique`（缺声明或出枚举 = 用例可能是装饰品——区分不了正确代码与它该杀的故障——点名 TC ID 报出）。本步时点 `review` 块尚未写、**其缺席不是违规**：此处回执里的每条违规都是台账 finding（`EVIDENCE_MISSING` / `STATUS_MISMATCH` / 声明类），按本条处置；块结构校验（verdict / layer / route 枚举、通过-失败一致性）发生在第 3 步写块后跑的**同一条命令**上。重开复审时，`test_refs` 里由 diy-augment 追加的后编码用例若无 `evidence`，`EVIDENCE_MISSING` 就是「该周期未重跑它们」的信号 → 挂 diy-dev 补 red/green，**不当豁免**。仍属目读的：TC 步骤是否真断言了 AC 的 then 子句。任何不一致——脚本报的或目读发现的——是一条点名 TC ID、声明与实际记录的 finding（AC-8.2）；回执 `known[]` 里的条目是用户已认可的基线，不是待修违规。
-- **L4 设计采用（FR-3.7/D-10 —— 仅 UI 任务）。** 任务 AC 带 `design_ref` 时核验**采用**——设计交付（diy-design 写出的框架页）是实现必须在其上生长的基线。像素比对已弃用（不可靠；`compare` 引擎 2026-09-12 已删）。核四件事，每项违规一条 `小修` finding、任务打回 `进行中`（HALT）：(a) 结构对照——实现页面结构须与线框（wireframe/HTML）结构稿（design.yaml 的 `prototype`）一致：小节、层级、landmark 次序；(b) 零重写——实现长在设计稿代码（design.yaml 的 `implementation` 路径）**之上**，不是它的再实现；重写 UI 即使看着像也是一条 finding；(c) token 单一源——`python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src <impl>` 的每条 `one-off-*` 违规即 finding；(d) 无障碍——`python "{project-root}/.claude/skills/diy-design/scripts/design.py" check --design "{output_dir}/design.yaml"` 的违规即 finding——**含设计系统三维 `ds-token-color` / `ds-token-font-size` / `ds-token-spacing`**（实现稿照抄字面值即违规）；引用回执**按 code 点名、不写维度计数**。绝不静默跳层——跳过要用户的明确裁断。
-
+2. 按序跑 L1 → L2 → L3 → L4，每层的做法读 `steps/` 下当前层文件：L1 正确性（`steps/l1-correctness.md`）· L2 边界（`steps/l2-boundary.md`）· L3 覆盖审计（`steps/l3-coverage.md`）· L4 设计采用（`steps/l4-design-adoption.md`）。L4 只有任务 AC 带 `design_ref` 时才跑——跳过要在报告里点名，绝不静默。收集 findings；逐条对照规则第 4 条的表格核验——每条恰好一个路由。可选透镜（批判式 / 边界穷举）叠加在四层之上：`steps/lenses.md`。
 3. 把 `review` 块写进任务条目；跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type review --story <S-x> --json`——exit 0 确认块结构合法后，再按规则第 5 条落状态与回填（`通过` 走 `done`；`失败` / `已阻塞` 走 `transition`；这些命令都 bump `project.updated`）。
 4. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）；报出审查面（路径）、判决与已路由的 findings。
 5. `失败` 时点名下一步（diy-dev 的返工项；`已阻塞` → 上游改 stories.yaml / test-plan.yaml）；`通过` 时用 JSON 回执的计数收尾（按层 / 按路由的 findings、判决）。
-6. **证伪轮（可选 —— `--falsify <story|all>`，接受 `已完成` 目标；`all` = 本冲刺全部已完成任务）。** 目标：打破已完成的工作——假定它就有 bug。用 `bug-log.yaml` 的模式瞄准本实现，走非功能清单（性能、用户体验、安全、兼容性、可靠性、边界）问「这个会怎么坏」，并跑临时攻击。命中即经 `bug-add` 入库、路由（`意图缺口` / `小修`），任务离开 `已完成` → `进行中`（HALT 写：`transition --story <S-x> --to 进行中 --json`——入口不变，引擎在该边上 `pop("augment")` 清掉旧判定，与 `runner.py --reopen-failed` 同语义）。干净一轮：任务 `note` 记一行（日期 + 「证伪轮通过」）。
+6. **证伪轮（可选 —— `--falsify <story|all>`，接受 `已完成` 目标）。** 目标与打法：`steps/falsify.md`。
 
-### WDS 线（第 2–3 步换成本节，第 6 步证伪轮不适用；第 1 / 4 / 5 步纪律照旧，主线四层与判决规则一条不改）
-
-- **目标与零产出**：`pages[].status: 待验收` 的页（词表从 `diy-design` 接——5 值与 9 条合法边，**不另立词表**；`status` 键缺失即 `未开始`，旧稿兼容、不是待审页）；零页可审 → 一行说明后零产出停止——不写 `review` 块、不动状态、不报「通过」。
-- **独立复验**：判据 = 该页 `states[].signals`（与浏览器强制门同源）＋ `prototype` 结构稿 ＋ 实现面；**不采信 `diy-dev` 的自述**——逐条自己跑，结论只引自己拿到的证据（分工同 L3：你不手动重验，你跑机械核对）；暴露真缺陷另经规则第 3 条入库。
-- **判决与写权**：通过 → 页**保持 `待验收`**，出「可呈用户批准」结论（`待验收 → 已批准` 的触发是**用户批准**——本技能**绝不代用户批准**、不调这条边）；失败 → `python "{project-root}/.claude/skills/diy-design/scripts/design.py" transition --design "{output_dir}/design.yaml" --page <id> --to 结构稿中 --json`（回修边）。状态写入**一律经 `transition`**——不直改 YAML、**不新增 schema 键**；审查结论的落点主线 / WDS 不对称——主线落 `sprint.yaml` 任务条目的既有键（`review.findings[]`），WDS 线**只落审查报告与本轮会话**（无 YAML 载体），按规则第 4 条的 WDS 落点列路由。
+### WDS 线（第 2–3 步换成 `steps/wds-review.md`，第 6 步证伪轮不适用；第 1 / 4 / 5 步纪律照旧，主线四层与判决规则一条不改）
 
 ## 结构
 
@@ -84,7 +73,6 @@ outputs: —
 6. **真源回填（BUG-012）。** `done` 把 `待审查 → 已完成` 与回填当一个原子批次做完：任务 `status: 已完成`、`stories.yaml` 里该故事 `status: 已完成`、`test-plan.yaml` 里本次 L3 确认绿的每个 TC `status: 通过`（TC 行由 `diy-dev` 按绿线写，终态写做对账），并 bump 所有被触及的 `project.updated`。`已阻塞` 两个文件都不写——什么都没交付，什么也不算通过。**为什么：** 2026-09-13 质量分析发现该独立路径报 `已完成` 而真源停在 `待办`（与无头链 BUG-012 同类）。
 7. **任务状态写入权（`sprint.yaml`）。** `待审查 → 已完成`（`通过`——只经 `done`，`transition` 拒绝这条边）、`待审查 → 进行中`（`失败`）、`待审查 → 已阻塞`（`规格缺陷`）、`已完成 → 进行中`（证伪轮命中——第 6 步），后三条经 `transition`，别无其他。重开入口不变：单条证伪命中走 `transition`（引擎在该边上清掉旧判定）；批量的 `runner.py --reopen-failed` 归 diy-sprint。
 8. **经验上行。** 配了 `paths.experience_repo` 且在场时，提醒用户在项目根运行（**由人手动执行**，安装形态 `.claude/skills/diy-tools/scripts/exp-sync.py`）`python "{project-root}/.claude/skills/diy-tools/scripts/exp-sync.py" push`——实例运行加 `--instance <name>`（bug-log 在实例目录里）。经验库是投影；本任务的 `bug-log.yaml` 始终是真源。
-9. **两透镜（可选模式，叠加在四层之上；与证伪轮并列的第二类复核）。** `批判式`（attitude-driven，映射 = **L1 / L3 补强**：假定缺陷存在、专找缺失与未兑现的声明——错的是「没被要求的」和「声明了却没兑现的」）——**零 findings 即 HALT**：停在「重新分析，或问用户要判据」，不得直接进判决（空 findings 的 `通过` 只在复析之后成立）。`边界穷举`（method-driven，映射 = **L2 的机械化路径枚举**：机械走控制流与域边界、只报未处置路径、处置过的静默丢弃；边界类从内容自身推，不套固定清单）——**空数组合法**（零未处置路径是合法结论），不构成 HALT。**归一**：两透镜的 findings 一律落既有 `review.findings{layer,route,note}` ＋ 规则第 4 条四类路由（含 WDS 落点列），**不新增 schema 键**；`layer` 只取既有四值、按 finding 实际所落的层记（批判式常落 L1 / L3；边界穷举的路径缺口记 `边界`）。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

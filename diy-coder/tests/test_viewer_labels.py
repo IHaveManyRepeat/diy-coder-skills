@@ -661,18 +661,19 @@ class ViewerAssetsNoteTests(_Fixture):
         self.assertEqual(p.returncode, 0, p.stderr)  # 诊断不改 rc
         notes = [ln for ln in p.stderr.splitlines() if "assets" in ln]
         self.assertEqual(len(notes), 1, "诊断不是一行：%r" % p.stderr)
-        self.assertIn("未渲染", notes[0])
+        # C·12 收口订正（用户裁定 A）：清单页落地后「未渲染」成假事实，锚改「已列入清单页」
+        self.assertIn("已列入清单页", notes[0])
         self.assertIn("点开查看", notes[0])
 
     def test_no_note_when_assets_dir_absent_or_empty(self):
         self.write("wds-assets.yaml", WDS_ASSETS_DOC)
         p = self.render()
         self.assertEqual(p.returncode, 0, p.stderr)
-        self.assertNotIn("未渲染", p.stderr, "无 assets/ 却报了资产诊断")
+        self.assertNotIn("已列入清单页", p.stderr, "无 assets/ 却报了资产诊断")
         os.makedirs(os.path.join(self.out, "assets", "wireframes"))
         p2 = self.render()
         self.assertEqual(p2.returncode, 0, p2.stderr)
-        self.assertNotIn("未渲染", p2.stderr, "空 assets/ 却报了资产诊断")
+        self.assertNotIn("已列入清单页", p2.stderr, "空 assets/ 却报了资产诊断")
 
 
 # ---------------------------------------------------------------------------
@@ -762,6 +763,297 @@ class ViewerC3aDesignLabelTests(_Fixture):
         # removed_reason 是自由文本（不进 ENUM_KEYS）：原句在场，且不得被徽章化
         self.assertIn("被 v2 首页取代", html, "移除原因内容丢失")
         self.assertNotIn(">被 v2 首页取代</span>", html, "自由文本被误徽章化")
+
+
+# ---------------------------------------------------------------------------
+# C·12 W2（裁定 C12-2：渲染通道修复 + 两键标签；Layer 1 增补：决策时间轴页）
+# ---------------------------------------------------------------------------
+
+# 双模 design 夹具：form_factor / modes 两键（值照任务书 §0 表）+ tokens.color.dark
+# 六角色（§7-5① 明暗对形状）+ 带 ID 形态路径的 prototype / implementation（§7.3 第 2 条场景）
+DESIGN_C12_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 草稿",
+    "form_factor: 响应式 Web",
+    "modes: 双模",
+    "tokens:",
+    "  color:",
+    "    bg: '#f6f8fa'",
+    "    surface: '#ffffff'",
+    "    text: '#1a2333'",
+    "    text_muted: '#6b7280'",
+    "    accent: '#1d4ed8'",
+    "    accent_text: '#ffffff'",
+    "    dark:",
+    "      bg: '#0b1220'",
+    "      surface: '#111a2c'",
+    "      text: '#e6ecf5'",
+    "      text_muted: '#8a93a5'",
+    "      accent: '#5b8cff'",
+    "      accent_text: '#0b1220'",
+    "pages:",
+    "- id: P-1",
+    "  name: 首页",
+    "  route: /",
+    "  status: 未开始",
+    "  prototype: prototypes/P-1.html",
+    "- id: P-2",
+    "  name: 列表",
+    "  route: /list",
+    "  status: 未开始",
+    "  implementation: src/pages/list.tsx",
+    "- id: P-3",
+    "  name: 详情",
+    "  route: /detail",
+    "  status: 未开始",
+    "  prototype: prototypes/P-3.html",
+    "revisions:",
+    "- date: 2026-10-01",
+    "  change: 首页结构稿落位",
+    "  reason: 首页先行",
+])
+
+
+class ViewerC12DesignLabelTests(_Fixture):
+    # trace: C·12 W2（裁定 C12-1/C12-2 ③）——两键标签 + 值标签 + dark 子块零裸键
+    def test_form_factor_and_modes_labels_and_badges(self):
+        self.write("design.yaml", DESIGN_C12_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr, "两键值仍报枚举漂移：%s" % p.stderr)
+        html = self.page("design")
+        for label in ("目标形态", "主题模式"):
+            self.assertIn(label, html, "键标签缺失：%s" % label)
+        for leak in (">form_factor<", ">modes<"):
+            self.assertNotIn(leak, html, "英文键名直出：%s" % leak)
+        for value in ("响应式 Web", "双模"):
+            self.assertIn('class="badge b-neutral">%s</span>' % value, html,
+                          "值 %s 未出中性徽章" % value)
+
+    def test_form_factor_and_modes_value_tables_complete(self):
+        # §0 表逐字：四值/三值全在值表（「移动端」为 R3 既有值，一并钉住），
+        # 且不进 BADGE_CLASSES（归类语义 → 中性徽章，同 2026-09-19 口径）
+        for value in ("响应式 Web", "移动端", "桌面", "多端", "亮", "暗", "双模"):
+            self.assertIn(value, viewer.VALUE_LABELS, "值标签缺失：%s" % value)
+            self.assertNotIn(value, viewer.BADGE_CLASSES, "归类值不得带极性：%s" % value)
+
+    def test_dark_subblock_all_seven_keys_are_chinese(self):
+        # ★零裸键纪律（2026-10-01 用户裁定收严）：dark 自身 + 六角色七键全部中文标签，
+        # 裸英文键名零在场——漏登记 = 显示缺陷而非可接受态
+        self.write("design.yaml", DESIGN_C12_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = self.page("design")
+        for label in ("暗色", "背景", "表面", "文字", "次要文字", "强调色", "强调色文字"):
+            self.assertIn(label, html, "dark 子块键标签缺失：%s" % label)
+        for leak in (">dark<", ">bg<", ">surface<", ">text<", ">text_muted<",
+                     ">accent<", ">accent_text<"):
+            self.assertNotIn(leak, html, "dark 子块英文键名直出：%s" % leak)
+        # 暗色 hex 值不因渲染丢失（six 角色在场即可证）
+        self.assertIn("#0b1220", html, "暗色 token 值丢失")
+
+
+class ViewerC12PathLinkTests(_Fixture):
+    # trace: C·12 W2（裁定 C12-2 ②）——prototype/implementation 链接化 + 跳过 ID linkify
+    def write_output_file(self, rel, body="x"):
+        path = os.path.join(self.out, *rel.split("/"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(body)
+        return path
+
+    def test_existing_files_render_as_relative_links(self):
+        proto = self.write_output_file("prototypes/P-1.html", "<html>P1</html>")
+        impl = self.write_output_file("src/pages/list.tsx", "export {}")
+        self.write("design.yaml", DESIGN_C12_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = self.page("design")
+        # §7.3 第 2 条场景回归：prototypes/P-1.html 渲染为文件相对链接
+        self.assertIn('href="../prototypes/P-1.html"', html, "prototype 未出文件直链")
+        self.assertIn('href="../src/pages/list.tsx"', html, "implementation 未出文件直链")
+        self.assertIn(">prototypes/P-1.html</a>", html, "prototype 链接文本不完整（截断）")
+        # 无 ID 截断：不得出现 prototypes/<a…（腰斩）与指向页锚的错链
+        self.assertNotIn("prototypes/<a", html, "prototype 被 ID 链接腰斩（§7.3 第 2 条回归）")
+        # 链接落点真实存在（从页面目录出发解析 href）
+        page_dir = os.path.dirname(os.path.join(self.out, ".view", "design.html"))
+        for rel, want in (("prototypes/P-1.html", proto), ("src/pages/list.tsx", impl)):
+            got = os.path.normpath(os.path.join(page_dir, "..", rel))
+            self.assertTrue(os.path.isfile(got), "链接落点不是真实文件：%s" % got)
+            self.assertEqual(got, os.path.normpath(want), "链接落点错位：%s" % rel)
+
+    def test_missing_file_path_stays_plain_without_id_truncation(self):
+        # prototypes/P-3.html 在产物里但文件不存在 → 纯文本，且仍不得被 linkify 截断
+        self.write("design.yaml", DESIGN_C12_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = self.page("design")
+        self.assertIn("prototypes/P-3.html", html, "路径文本丢失")
+        self.assertNotIn("prototypes/<a", html, "不存在的文件路径仍被 ID 链接腰斩")
+        self.assertNotIn('href="../prototypes/P-3.html"', html, "不存在的文件被造成死链")
+
+    def test_absolute_and_url_paths_stay_plain(self):
+        doc = NL.join([
+            "project:", "  name: fx", "  status: 草稿",
+            "form_factor: 桌面", "modes: 亮",
+            "pages:",
+            "- id: P-1",
+            "  name: 首页",
+            "  prototype: https://example.com/P-1.html",
+            "- id: P-2",
+            "  name: 列表",
+            "  implementation: /abs/P-2.tsx",
+        ])
+        self.write("design.yaml", doc)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = self.page("design")
+        self.assertNotIn('href="https://example.com', html, "URL 值被链接化")
+        self.assertNotIn('href="/abs/', html, "绝对路径被链接化")
+        self.assertNotIn("example.com/<a", html, "URL 中的 ID 形态被腰斩")
+        # 顺带钉住：桌面 / 亮 两值照常出徽章（§0 表另两值）
+        self.assertIn('class="badge b-neutral">桌面</span>', html)
+        self.assertIn('class="badge b-neutral">亮</span>', html)
+
+
+class ViewerC12AssetsPageTests(_Fixture):
+    # trace: C·12 W2（裁定 C12-2 ①）——assets 产物清单页：按活动分组 + 相对路径直链
+    NINE_DOCS = ("prd", "architecture", "epics", "stories", "test-plan", "design",
+                 "wds-brief", "wds-assets", "wds-design-system")
+
+    def write_asset_file(self, rel):
+        path = os.path.join(self.out, *rel.split("/"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("<html>ok</html>")
+        return path
+
+    def test_assets_page_groups_by_activity_with_direct_links(self):
+        # 夹具产物树：9 产物 + assets/ 多活动子目录（裁定原文「8 活动全盲」的回归面）
+        for name in self.NINE_DOCS:
+            self.write(name + ".yaml", "project:" + NL + "  name: fx" + NL)
+        files = [self.write_asset_file(r) for r in (
+            "assets/wireframes/home-desktop.html",
+            "assets/wireframes/home-mobile.html",
+            "assets/presentation/deck.html",
+            "assets/icons/logo.svg")]
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        page_path = os.path.join(self.out, ".view", "assets.html")
+        self.assertTrue(os.path.isfile(page_path), "assets 产物清单页缺失")
+        html = open(page_path, encoding="utf-8").read()
+        # 按活动分组：四个一级子目录各成组
+        for group in ("wireframes", "presentation", "icons"):
+            self.assertIn(group, html, "活动分组缺失：%s" % group)
+        # 逐文件相对路径直链
+        for rel in ("assets/wireframes/home-desktop.html",
+                    "assets/wireframes/home-mobile.html",
+                    "assets/presentation/deck.html",
+                    "assets/icons/logo.svg"):
+            self.assertIn('href="../%s"' % rel, html, "文件未出直链：%s" % rel)
+        # 链接落点真实存在
+        page_dir = os.path.dirname(page_path)
+        for rel, want in zip(("assets/wireframes/home-desktop.html",
+                              "assets/wireframes/home-mobile.html",
+                              "assets/presentation/deck.html",
+                              "assets/icons/logo.svg"), files):
+            got = os.path.normpath(os.path.join(page_dir, "..", rel))
+            self.assertTrue(os.path.isfile(got), "链接落点不存在：%s" % got)
+        # 索引页有清单卡片（只增不改：产物卡片不受影响）
+        index = open(os.path.join(self.out, ".view", "index.html"),
+                     encoding="utf-8").read()
+        self.assertIn('href="assets.html"', index, "索引缺清单页卡片")
+        for name in self.NINE_DOCS:
+            self.assertIn('href="%s.html"' % name, index, "产物卡片丢失：%s" % name)
+
+    def test_no_assets_page_when_dir_absent_or_empty(self):
+        self.write("wds-assets.yaml", WDS_ASSETS_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertFalse(os.path.exists(os.path.join(self.out, ".view", "assets.html")),
+                         "无 assets/ 却渲染了清单页")
+        os.makedirs(os.path.join(self.out, "assets", "wireframes"))
+        p2 = self.render()
+        self.assertEqual(p2.returncode, 0, p2.stderr)
+        self.assertFalse(os.path.exists(os.path.join(self.out, ".view", "assets.html")),
+                         "空 assets/ 却渲染了清单页")
+
+    def test_ungrouped_toplevel_files_have_their_own_group(self):
+        # assets/ 顶层散文件（无活动子目录）不丢失，归「（未分组）」
+        self.write("wds-assets.yaml", WDS_ASSETS_DOC)
+        self.write_asset_file("assets/loose.html")
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = open(os.path.join(self.out, ".view", "assets.html"),
+                    encoding="utf-8").read()
+        self.assertIn("（未分组）", html)
+        self.assertIn('href="../assets/loose.html"', html)
+
+
+class ViewerC12TimelineTests(_Fixture):
+    # trace: C·12 W2（Layer 1 裁定归入）——跨产物决策时间轴页
+    def _two_docs_with_revisions(self):
+        self.write("brainstorm.yaml", BRAINSTORM_DOC)  # 1 条：2026-09-19
+        self.write("prd.yaml", NL.join([
+            "project:", "  name: fx", "  status: 已定稿",
+            "revisions:",
+            "- date: 2026-09-21",
+            "  change: FR-1.1 拆分",
+            "  reason: 范围过大",
+        ]))
+        self.write("design.yaml", NL.join([
+            "project:", "  name: fx", "  status: 草稿",
+            "revisions:",
+            "- date: 2026-09-25",
+            "  change: tokens 定稿",
+            "  reason: 双模落地",
+        ]))
+
+    def test_timeline_page_aggregates_and_sorts_revisions(self):
+        self._two_docs_with_revisions()
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        page_path = os.path.join(self.out, ".view", "timeline.html")
+        self.assertTrue(os.path.isfile(page_path), "决策时间轴页缺失")
+        html = open(page_path, encoding="utf-8").read()
+        # 表头四列（date/change/reason + 产物名锚）
+        for th in ("日期", "产物", "变更", "原因"):
+            self.assertIn("<th>%s</th>" % th, html, "表头缺失：%s" % th)
+        # 条目 = date/change/reason + 产物名锚（链到产物页）
+        self.assertIn('href="brainstorm.html"', html, "产物名锚缺失：brainstorm")
+        self.assertIn('href="prd.html"', html, "产物名锚缺失：prd")
+        self.assertIn('href="design.html"', html, "产物名锚缺失：design")
+        for text in ("标题改名", "FR-1.1 拆分", "tokens 定稿"):
+            self.assertIn(text, html, "change 内容丢失：%s" % text)
+        for text in ("用户要求更短", "范围过大", "双模落地"):
+            self.assertIn(text, html, "reason 内容丢失：%s" % text)
+        # 按时间排序（旧 → 新）：三条日期在 HTML 中的出现顺序单调
+        i1, i2, i3 = (html.index(d) for d in ("2026-09-19", "2026-09-21", "2026-09-25"))
+        self.assertTrue(i1 < i2 < i3, "时间轴未按时间排序")
+        # 索引有卡片
+        index = open(os.path.join(self.out, ".view", "index.html"),
+                     encoding="utf-8").read()
+        self.assertIn('href="timeline.html"', index, "索引缺时间轴卡片")
+
+    def test_no_timeline_page_when_all_revisions_empty(self):
+        self.write("module-plan.yaml", MODULE_PLAN_DOC)  # revisions: []
+        self.write("prd.yaml", DANGLING_DOC)             # 无 revisions 键
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertFalse(os.path.exists(os.path.join(self.out, ".view", "timeline.html")),
+                         "revisions 全空却渲染了时间轴页")
+
+    def test_single_doc_revision_block_unchanged(self):
+        # 只增不改：产物页内的「修订历史」折叠块仍在（既有渲染路径不受聚合页影响）
+        self._two_docs_with_revisions()
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        bs = self.page("brainstorm")
+        self.assertIsNotNone(
+            re.search(r"<details[^>]*>\s*<summary>[^<]*修订历史", bs),
+            "单产物修订历史折叠块丢失")
+        self.assertIn("标题改名", bs, "单产物修订内容丢失")
 
 
 if __name__ == "__main__":

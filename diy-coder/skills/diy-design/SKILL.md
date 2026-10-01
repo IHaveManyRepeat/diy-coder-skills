@@ -63,6 +63,8 @@ project: {name, status: 草稿 | 已定稿, created: YYYY-MM-DD, updated: YYYY-M
                           # created 建文件时设、此后不改；updated 每次写回刷今天；三命令全过 + 假设清零才写 已定稿
 direction: <string>       # 第一行一句话方向，换行后 2–3 行反模式禁令（每行以 "- " 起头）；不是列表/映射（引擎只校验非空）
 frontend_framework: react|vue|svelte|…|html   # 纯 HTML 项目写 html（取值路径见规则）
+form_factor: 响应式 Web|移动端|桌面|多端   # 目标表面（写在什么上，与 frontend_framework 互补）；开工先定，表外值 validate 即拒
+modes: 亮|暗|双模   # 默认主题模式；双模 必带 tokens.color.dark 六角色明暗对（亮基暗覆盖），亮/暗 单模携 dark 即拒
 tokens:
   color: {bg, surface, text, text_muted, accent, accent_text}   # 配对集合由 check 回执枚举，见规则
   spacing: {unit, scale: [...]}
@@ -92,8 +94,8 @@ revisions: []             # {date, change, reason} —— 改既有条目时追�
    **`design_status` 只写本表的值**（上游 `DESIGN_STATUS_ENUM` 九值，写表外值即上游 `ENUM_INVALID`）：讨论定稿（`[C]`/`[K]`/`[S]`/`[D]`）写 `discussed` → 结构稿首版写 `wireframed` → 规格落定（`[P]`）写 `specified` → 逐段探索/回修写 `explored` → 框架实现开工（`[H]`）写 `building` → 实现完毕写 `built` → 用户批准写 `approved` → 该场景废弃写 `removed`（`not-started` 是上游初值，本技能不写）。**该键是场景级**（与 `pages[]` 同级，页级进度仍住 `pages[].status`）：该场景**全部页**走到某阶段才写那一档，重开/恢复回 `wireframed`。
 2. **单一源与多版本（D-10）**：结构稿从 design.yaml 再生；框架页在 `src` 里长（既是设计也是实现），多版本设计同样住在 `src`、落选即废弃/删除——不留隔离副本。**删/改名/合并页面 id 前**先扫 `{output_dir}/stories.yaml` 的 `AC[].design_ref`，列出会悬空的 AC，收尾摘要**路由 `diy-epics-stories`**（`stories.yaml` 写权在它，本技能只读）。改写既有页 / 方向 / token、或废弃落选版本时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `P-*` / `SC-<nn>.P<n>` 或字段名、不复制内容）。
 3. **配对集合以引擎回执为准**：配色配对由 `design.py check` 枚举、原样列在回执 `checked.contrast_pairs`；创作期按回执**逐对**保证 ≥4.5:1，**不自拟子集**。token 是唯一风格源，之后不得出现一次性色值/字号。**逐 token 使用规则**（色 / 间距 / 字阶各自「用在哪、不用在哪」）写进 `direction` 的禁令行与结构稿注释；组件的三档成熟度（首用内联 → 二次成模式 → 三次进设计系统）与复杂度启发式**归 `diy-wds-system`**（`components[]` 与 `data/complexity-router.md`），本技能只引用不复述。
-4. **四态不许省**：每页必带 `悬停` / `空态` / `加载中` / `错误`——`validate` 缺一即 FAIL，不设省略出口；每态至少一条**非色彩**信号（图标/文字/形状/动效），颜色不单独承载语义。确属不适用也给**最小真实信号**并注明（例：纯静态内容页 `加载中: {signals: [文字]}`，正文写「无异步加载，保留占位」）——绝不编造该页不会发生的行为；收尾点名哪些态是占位。**四态是下限不是上限**：产品真有多端/权限/离线面时追加 `离线` / `权限拒绝` / `冷启动` 等状态（`validate` 是子集判定，零 schema 改动即合法），追加项同样要 ≥1 条非色彩信号。**每态的文案与降级策略就写在 `states[].signals` 的文字信号里**（空态说什么字、离线挂什么提示），微文案同理——**不另立 treatment / voice 键**。
-5. **方向先于 token，token 先于页面**：动手前定一个**具名**方向 + 一行理由 + 2–3 条反模式禁令（本项目绝不长什么样），两者都写进 `direction`（**字符串**，形状见「结构」）。绝不默认「干净极简」；**绝不代用户选方向或配色**。正向硬规则（「什么必须这样」）与逐 token 的使用规则同写进 `direction` 与结构稿注释——**不新增 schema 键**。
+4. **四态不许省**：每页必带 `悬停` / `空态` / `加载中` / `错误`——`validate` 缺一即 FAIL，不设省略出口；每态至少一条**非色彩**信号（图标/文字/形状/动效），颜色不单独承载语义。`form_factor: 移动端` 时必填态的 `悬停` 换 `按压`（移动端无 hover、触控用按压，`validate` 判据随 form_factor 切换），其余形态四态逐字同上。确属不适用也给**最小真实信号**并注明（例：纯静态内容页 `加载中: {signals: [文字]}`，正文写「无异步加载，保留占位」）——绝不编造该页不会发生的行为；收尾点名哪些态是占位。**四态是下限不是上限**：产品真有多端/权限/离线面时追加 `离线` / `权限拒绝` / `冷启动` 等状态（`validate` 是子集判定，零 schema 改动即合法），追加项同样要 ≥1 条非色彩信号。**每态的文案与降级策略就写在 `states[].signals` 的文字信号里**（空态说什么字、离线挂什么提示），微文案同理——**不另立 treatment / voice 键**。
+5. **方向先于 token，token 先于页面**：动手前定一个**具名**方向 + 一行理由 + 2–3 条反模式禁令（本项目绝不长什么样），两者都写进 `direction`（**字符串**，形状见「结构」）。**两键开工先定**：`form_factor`（目标表面）与 `modes`（默认主题）在起草 design.yaml 时即落定（值域与 `dark` 明暗对形状见「结构」），表外值 `validate` 即拒。绝不默认「干净极简」；**绝不代用户选方向或配色**。正向硬规则（「什么必须这样」）与逐 token 的使用规则同写进 `direction` 与结构稿注释——**不新增 schema 键**。
 6. **B9 · `frontend_framework` 取值路径**：从 `{output_dir}/architecture.yaml` 的 `stack[].choice` 里找前端框架/UI 库那一项，逐字取该值写入。文件缺席或 `stack[]` 无该类选择 → **停下问用户一次**（给两个走法：用户点名框架 / 用户确认纯静态 → 写 `html`），不猜。
 7. **不编造页面**：主线每页至少追溯到 `prd.yaml` 里一条前端面 FR（收尾引用 FR ID）；WDS 线每页追溯到 `wds-scenarios.yaml` 的页面记录（`SC-<nn>.P<n>`），页树取数口径与覆盖矩阵**不重核**（已由上游终门机械核过）。**导航模型与断点响应式不另立键**：导航容器 / 模态层级 / 「谁链接到谁」写进 `pages[].route` 与结构稿的 landmark，跨页连接取上游的 `entry_context` / `exit_action`；断点行为写进结构稿 CSS（`prototypes/*.html` 本就是响应式载体）。
 8. **对象级规格清单**：`[P]` 与 `[M]` 活动的步骤文件显式引用 `data/object-types/<类型>.md`（button / heading-text / text-input / image / link 五件：作对象级规格的参考层）；**对象级不产独立产物、不铸三级 ID**（载体是 `src` 的框架代码 + `states[].signals`）。

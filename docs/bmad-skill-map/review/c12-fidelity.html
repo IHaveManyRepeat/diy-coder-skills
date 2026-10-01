@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C·12 批保真度报告 —— 三裁定落地（form_factor/modes 承载 + viewer 渲染通道 + diy-review 拆 steps）</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+      --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+     font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+h1{font-size:1.9rem;margin:0 0 6px;letter-spacing:.01em}
+h2{font-size:1.25rem;margin:34px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+h3{font-size:1.05rem;margin:22px 0 8px;color:var(--accent)}
+p{margin:10px 0}
+ul,ol{margin:8px 0 8px 22px;padding:0}
+li{margin:4px 0}
+code{background:var(--code);border:1px solid var(--line);border-radius:4px;
+     padding:1px 5px;font-family:Consolas,"Courier New",monospace;font-size:.9em}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:var(--panel);
+      font-size:.94em}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#eef2f8;font-weight:600}
+tbody tr:nth-child(even){background:#fafbfe}
+strong{color:#0f172a}
+</style>
+</head>
+<body>
+<main>
+<h1>C·12 批保真度报告 —— 三裁定落地（form_factor/modes 承载 + viewer 渲染通道 + diy-review 拆 steps）</h1>
+<ul>
+<li>批次：C 阶段第 12 项（三合一小批）｜ 完成日期：2026-10-01 ｜ 编制：主 agent（team-lead）</li>
+<li>任务书：<code>diy-coder/.analysis/2026-09-28-c12/taskbook-c12.md</code>（158 行修订版，2026-10-01 四项裁定 + §7-5 三裁定 + Layer 1 时间轴归入 + W2 交付 3 收严）</li>
+<li>施工形态：<strong>agent team（c12-batch）三工位并行</strong>（w1-design / w2-viewer / w3-review）+ lead 回派 2 轮（W3-R1 / W1-R1）+ lead 收口面（A 案订正）</li>
+<li>基线：HEAD <code>15d9401</code>（C·3a 收口，<strong>1575 passed / 235 subtests</strong>）→ 收口态 <strong>1603 passed / 243 subtests</strong>（净增 +28 用例 / +8 subtests，与三工位新增精确闭合：W1 10 + W2 12 + W3 6）</li>
+<li>本批改动：<strong>15 M（+947 / −58）＋ 2 未跟踪</strong>（<code>skills/diy-review/steps/</code> 七件 44 行 · <code>tests/test_review_skill.py</code> 91 行）——工作树<strong>未提交</strong>（待用户授权）</li>
+<li>收口链：① suite_texts 复跑 11 绿 → ② sync.sh 49 技能冒烟过 + 源↔镜 diy 面 md5 <strong>0 不匹配</strong>（568 = 559 基线 + 7 steps + 镜像特有 2，数字闭合）→ ③ 全量<strong>停笔串行 367.64s 零红</strong> → ④ viewer 标签（并入 W2 + A 案）→ ⑤ 本报告 → ⑥ <code>迁移计划.md</code> §二十九 → ⑦ <code>registry.yaml</code> 零改动（链不变）</li>
+</ul>
+
+<h2>一、三工位交付总览（行数为收口态现测）</h2>
+<table>
+<thead><tr><th>工位</th><th>面</th><th>交付</th><th>行数变化</th><th>自测</th></tr></thead>
+<tbody>
+<tr><td>W1</td><td>design 面承载（裁定 C12-1 + §7-5）</td><td>顶层两键 + validate 五专项码 + audit 双模联动（dark 六角色判据 validate/audit 同源）+ <code>collect_token_hexes</code> 展开 dark（修「audit 打自己」盲点）+ check 暗色同款 5 组（4.5:1）+ 移动端按压态（<code>REQUIRED_STATES</code> 按 form_factor 取值，非移动端逐字不动）+ SKILL.md 规则两句 + 值域双向守卫</td><td>design.py 1162→<strong>1257</strong> · SKILL.md 104→<strong>106</strong>（锁 112）· test_design.py 523→<strong>774</strong> · test_design_skill.py 296→<strong>350</strong></td><td>面内 54 passed / 11 subtests</td></tr>
+<tr><td>W2</td><td>viewer 渲染通道（裁定 C12-2 + Layer 1 时间轴）</td><td>assets 清单页（按活动分组+直链，空/缺静默）· prototype/implementation 独立路径判定（修 §7.3-2 腰斩缺陷，存在即直链否则纯文本、两分支绕 linkify）· form_factor/modes 键值标签 + dark 子块<strong>零裸键</strong>（七键中文、裸英文断言零在场）· 时间轴页（聚合 revisions，单产物渲染只增不改）· 回归 12 用例</td><td>viewer.py 1648→<strong>1781</strong>（含 A 案订正 +2）· test_viewer_labels.py 769→<strong>1060</strong></td><td>面内 34 passed；viewer 六文件 81 passed / 8 subtests</td></tr>
+<tr><td>W3</td><td>diy-review 拆 steps（裁定 C12-3）</td><td>steps/ 七件（l1/l2/l3/l4/lenses/wds-review/falsify，原文逐字下沉+文件头三件套）；主文件保留激活时/工作流骨架/schema/<strong>路由表</strong>/规则 1–8/写作纪律；契约改（≤93→≤95、<code>assertNotIn("Read (input)")</code>→<code>assertIn</code>）；<code>test_suite_texts</code> 留痕（旧裁定对 review 作废）+ 新 <code>test_review_skill.py</code></td><td>SKILL.md 91→<strong>79</strong>（线 = 79×1.2 = <strong>95</strong>，裁定 3 口径）· steps 七件 <strong>44</strong> 行 · test_review_contract 171→<strong>189</strong> · test_diy_review_wds 415→<strong>442</strong> · test_suite_texts 468→<strong>469</strong></td><td>面内 59 passed（回派后 63）</td></tr>
+<tr><td>回派</td><td>W3-R1（lead 裁定扩权）</td><td><code>test_restore.py</code> 拆分连带红：两 assertIn 读源改指 l4 + 「截图对比」NotIn 扩「主文件+steps」面</td><td>118→<strong>128</strong></td><td>4 passed</td></tr>
+<tr><td>回派</td><td>W1-R1（lead 裁定扩权）</td><td>两键必填跨面波及 9 红：四文件五构造点补 <code>响应式 Web</code>+<code>亮</code>；<code>:177</code> 键集合断言授权<strong>未动用</strong>（assertIn 宽松循环）；EdgeOwnership 读源扩面（W3 漏项代修）</td><td>跨面四文件（open_questions 392 · transition 478 · wds 677 · diy_reverse 500）</td><td>73 passed / 49 subtests</td></tr>
+<tr><td>收口</td><td>lead（用户裁定 A）</td><td>viewer.py:1690 C·11 诊断行「未渲染」假事实订正（清单页落地后部分失真）+ 两条断言锚同步（<code>已列入清单页</code>）</td><td>viewer.py +2 · test_viewer_labels +1</td><td>57 passed</td></tr>
+</tbody></table>
+
+<h2>二、V 验证总账（§5 五项，lead 亲跑）</h2>
+<ol>
+<li><strong>验收 14 项实跑</strong>：C·12 全触面 12 测试文件一次 <strong>224 passed / 60 subtests</strong></li>
+<li><strong>保真对拍</strong>：<code>git show HEAD</code> 基线引擎 vs 新引擎双跑两稿（干净稿/畸形稿）——<strong>剔除新增码（FORM_FACTOR_MISSING/MODES_MISSING）后回执逐字 SAME</strong>，既有 EMPTY_FIELD msg 保留；非移动端四态行为逐字同 HEAD</li>
+<li><strong>例外通道逐条复核</strong>：申报 vs 实改 vs git diff 全吻合（见 §三）</li>
+<li><strong>行数/计数</strong>：16 文件 wc -l 现测全部与工位底稿一致</li>
+<li><strong>变异验证</strong>：三工位自证 10 条 + <strong>lead 亲验 4 条</strong>（l3 EVIDENCE_MISSING · FORM_FACTORS 去「多端」· 删 dark 标签 · page_targets 扩面回退）全 RED→md5 逐字节还原→GREEN</li>
+</ol>
+<p>事故留痕（无残留）：lead 首次跑 W1 变异时 pytest 失败输出 GBK 解码崩溃致 design.py 短暂滞留变异态——即时发现、精确还原、复绿核对；后续改 bytes 捕获。</p>
+
+<h2>三、既有测试改动面全登记（任务书 §3-5 例外通道，本批共 5 类）</h2>
+<table>
+<thead><tr><th>#</th><th>改动</th><th>授权</th><th>实况</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>W3 读源调整：test_review_contract 9 锚 + test_diy_review_wds 12 用例（<code>review_steps_text()</code> 拼接 + raw/docs 扩面）</td><td>§3-5 唯一例外通道（任务书预判 9 条内 + ★风险条款首查 12 例）</td><td>断言本体零删改；NotIn 面扩到全部文档面（教学面=扫描面）</td></tr>
+<tr><td>2</td><td>W3-R1：test_restore.py 读源（2 assertIn 改指 l4 + 1 NotIn 扩面）</td><td>lead 裁定（任务书预判漏项，lead 全库 grep 兜底后扩权）</td><td>4 passed</td></tr>
+<tr><td>3</td><td>W1-B1：test_design.py <code>GOOD_DESIGN</code> 夹具 +2 行</td><td>lead 裁定（验收 #1「补两键后 rc=0」∩ 验收 #9「零删改绿」联立 → 唯一调和路径 = 夹具随 schema 演进）</td><td>6 用例恢复绿；test 函数与断言零改动</td></tr>
+<tr><td>4</td><td>W1-R1：四文件五构造点补两键 + EdgeOwnership 读源扩面</td><td>lead 裁定（两键必填跨面连带；<code>:177</code> 授权未动用）</td><td>73 passed / 49 subtests</td></tr>
+<tr><td>5</td><td>收口 A 案：viewer.py 诊断行文案 + test_viewer_labels 3 处断言锚（<code>未渲染</code>→<code>已列入清单页</code>，<code>点开查看</code> 保留）</td><td><strong>用户裁定 A（2026-10-01）</strong>——不留假事实先例（同裁定 C12-3 注释改写）</td><td>57 passed</td></tr>
+</tbody></table>
+
+<h2>四、任务书预判面漏项 2 处（经验登记）</h2>
+<p>§2.3「已知必红断言 9 条」清单漏了两个<strong>扫描 diy-review 主文件内容</strong>型断言（预判时只列了 assertIn 锚型）：</p>
+<ol>
+<li><code>test_restore.py::RestoreLoopTests</code>（「结构对照」「线框」）→ W3-R1 处置</li>
+<li><code>test_design_open_questions.py::EdgeOwnershipTests</code>（<code>page_targets()</code> 扫 design.py 调用行 <code>--to</code>）→ W1-R1③ 代修（单写面优先）</li>
+</ol>
+<p><strong>教训</strong>：拆分类批次开工首查的 grep 面应覆盖<strong>全部引用该技能文档的测试</strong>（含按路径硬读与内容扫描两类），不止任务书点名的文件。</p>
+
+<h2>五、欠账登记（1 条）</h2>
+<ul>
+<li><strong>diy-reverse 引擎 <code>init</code> 产物不含两键</strong>（W1-R1 申报）：现无用例对 init 产物跑 design.py validate（不红）；后续批把两键接进 diy-reverse 产物面时须同步引擎。</li>
+</ul>
+
+<h2>六、裁定与口径留痕（本批新增）</h2>
+<ol>
+<li>五专项码逐字：<code>FORM_FACTOR_MISSING</code>/<code>FORM_FACTOR_INVALID</code>/<code>MODES_MISSING</code>/<code>MODES_INVALID</code>/<code>MODES_TOKEN_PAIR_MISSING</code>（案 A，开顶层 schema 键专项码首例）</li>
+<li><code>diy-review</code> 拆后行数线口径 = <strong>拆后实测 ×1.2 取 ceil</strong>（79→95，C·3a 同口径）</li>
+<li>2026-09-19「12 个单文件技能不拆 steps」旧裁定对 <code>review</code> 作废（<code>test_suite_texts</code> docstring 留痕）</li>
+<li>§3-2 部分解冻留痕：check 对比度维双模暗色扩展放行，余 7 维仍冻</li>
+<li>欠账两条归宿（任务书 §7-4）：dev/review 消费句 → C·7；form_factor↔touch-target 联动 → census #9 批（C·13）</li>
+</ol>
+<p><strong>下一步</strong>：<strong>C·7</strong>（读取成本纪律 + Layer 1 微处置 5 项 + 消费句 + dev 88 线放宽；任务书已立待审，节号 §三十）→ census #9 / C·13 立项 → <strong>C·10</strong>（版本发布，须最后）。基数仍 <strong>49 技能</strong>（本批零新增）。</p>
+</main>
+</body>
+</html>

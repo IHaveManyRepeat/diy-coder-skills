@@ -291,6 +291,60 @@ class SkillContractTests(unittest.TestCase):
                          "主文件路由与 steps/ 实况不符——缺文件 %s；未路由 %s"
                          % (sorted(routed - on_disk), sorted(on_disk - routed)))
 
+    # ------------------------------------------------------- C·12 裁定 C12-1（W1 新增）
+
+    # trace: C·12 §2.1 交付 5（值域双向守卫，C·3a H1 教训：SKILL.md 文档枚举 ==
+    #        design.py 实现枚举，双向逐字一致——单侧断言查不出另一侧自造枚举外值）
+    def test_form_factor_and_modes_enums_match_engine(self):
+        import re
+        engine = os.path.join(SKILLS, "diy-design", "scripts", "design.py")
+        with open(engine, encoding="utf-8") as fh:
+            source = fh.read()
+        for const, key in (("FORM_FACTORS", "form_factor"), ("MODES", "modes")):
+            m = re.search(r"%s\s*=\s*\(([^)]*)\)" % const, source)
+            self.assertIsNotNone(m, "design.py 不再定义 %s——值域守卫前提消失，须重裁" % const)
+            py_values = re.findall(r'"([^"]+)"', m.group(1))
+            self.assertTrue(py_values, "%s 枚举提取失败——提取规则与实现脱钩" % const)
+            skill = re.search(r"^%s: ([^#\n]+)" % key, self.raw, re.MULTILINE)
+            self.assertIsNotNone(skill, "结构段缺 %s 枚举行" % key)
+            skill_values = [x.strip() for x in skill.group(1).strip().split("|")]
+            # 双向：文档 ⊆ 实现 且 实现 ⊆ 文档（顺序+内容逐字）
+            self.assertEqual(skill_values, py_values,
+                             "%s 值域文档与实现不一致：SKILL=%s py=%s"
+                             % (key, skill_values, py_values))
+            for val in py_values:
+                self.assertIn(val, skill_values,
+                              "design.py 枚举 %s=%s 未落进 SKILL.md" % (key, val))
+            for val in skill_values:
+                self.assertIn(val, py_values,
+                              "SKILL.md 枚举 %s=%s 不在 design.py 实现内（自造表外值）" % (key, val))
+
+    # trace: C·12 §7-5①（dark 六角色 = 亮色六角色同款——守卫两角色集不脱钩）
+    def test_dark_roles_match_color_roles(self):
+        import re
+        engine = os.path.join(SKILLS, "diy-design", "scripts", "design.py")
+        with open(engine, encoding="utf-8") as fh:
+            source = fh.read()
+        m = re.search(r"DARK_ROLES\s*=\s*\(([^)]*)\)", source)
+        self.assertIsNotNone(m, "design.py 不再定义 DARK_ROLES——dark 形状守卫前提消失")
+        dark_roles = re.findall(r'"([^"]+)"', m.group(1))
+        color = re.search(r"color: \{([^}]+)\}", self.raw)
+        self.assertIsNotNone(color, "结构段缺 tokens.color 角色行")
+        color_roles = [x.strip() for x in color.group(1).split(",")]
+        self.assertEqual(dark_roles, color_roles,
+                         "dark 六角色与亮色角色集脱钩：dark=%s color=%s"
+                         % (dark_roles, color_roles))
+
+    # trace: C·12 §2.1 交付 1/4/9（结构段两键 + 规则区两键句与移动端按压态句在场）
+    def test_two_keys_and_mobile_press_documented(self):
+        self.assertIn("form_factor: 响应式 Web|移动端|桌面|多端", self.raw,
+                      "结构段缺 form_factor 键行（值域逐字按裁定 C12-1 表）")
+        self.assertIn("modes: 亮|暗|双模", self.raw, "结构段缺 modes 键行")
+        self.assertIn("tokens.color.dark", self.raw, "dark 明暗对形状未声明")
+        self.assertIn("两键开工先定", self.raw, "规则区缺两键开工先定句")
+        self.assertIn("`悬停` 换 `按压`", self.raw, "四态规则段缺移动端按压态同步句")
+        self.assertIn("移动端无 hover", self.raw, "按压态句缺理由锚（触控面互斥的修法说明）")
+
 
 if __name__ == "__main__":
     unittest.main()

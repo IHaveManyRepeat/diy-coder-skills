@@ -130,6 +130,8 @@ def design_text(project_status="草稿", page_status="待验收",
         "  updated: 2026-01-01",
         "direction: 瑞士编辑风——大字阶对比、留白节奏、单强调色",
         "frontend_framework: html",
+        "form_factor: 响应式 Web",
+        "modes: 亮",
         "tokens:",
         "  color:",
         "    bg: '#ffffff'",
@@ -242,8 +244,16 @@ class EdgeOwnershipTests(unittest.TestCase):
                 self.assertIn(quote, doc, "%s 的写权声明缺逐字句：%s" % (owner, quote))
         # review 侧：从它自己教的**页级**命令里机械提取边目标（不引命令全文——
         # W4 已钉死那一句）；只取 design.py 调用行，避免混入主线任务态
+        # trace: C·12 W1-R1 读源扩面（lead 裁定 2026-10-01，W3-R1 同款）——diy-review 拆
+        #        steps 后 design.py 调用行下沉，读源从主文件扩为「主文件 + steps/ 拼接」
+        #        （文档面 = 教学面，与 test_diy_review_wds 同口径）；断言本体零改动
         def page_targets(skill):
             body = read(os.path.join(SKILLS, skill, "SKILL.md"))
+            steps_dir = os.path.join(SKILLS, skill, "steps")
+            if os.path.isdir(steps_dir):
+                body += NL + NL.join(
+                    read(os.path.join(steps_dir, name))
+                    for name in sorted(os.listdir(steps_dir)) if name.endswith(".md"))
             return set(target for line in body.splitlines() if "design.py" in line
                        for target in re.findall(r"--to\s+([^\s\"`]+)", line))
 

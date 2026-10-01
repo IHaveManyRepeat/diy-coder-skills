@@ -22,6 +22,8 @@ GOOD_DESIGN = NL.join([
     "  status: 已定稿",
     "direction: 瑞士编辑风——大字阶对比、留白节奏、单强调色；禁默认卡片网格与居中英雄区",
     "frontend_framework: html",
+    "form_factor: 响应式 Web",
+    "modes: 亮",
     "tokens:",
     "  color:",
     "    bg: '#ffffff'",
@@ -517,6 +519,255 @@ class DesignEngineTests(unittest.TestCase):
         self.assertIn("UNPARSABLE_YAML",
                       [x["code"] for x in json.loads(c2.stdout)["violations"]],
                       "形状问题须以 UNPARSABLE_YAML 上报")
+
+
+    # ------------------------------------------------------- C·12 裁定 C12-1（W1 新增）
+
+    # trace: C·12 §0 裁定 C12-1 / §7 裁定 2（五专项码首例：顶层键错误与条目字段错误不同层级）
+    def test_top_level_two_keys_missing_invalid_and_legacy_ok(self):
+        import re
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        stripped = re.sub(r"^form_factor: .*" + NL, "", GOOD_DESIGN, flags=re.MULTILINE)
+        stripped = re.sub(r"^modes: .*" + NL, "", stripped, flags=re.MULTILINE)
+        dpath = self.write("diy-output/design.yaml", stripped)
+        v = run_engine(["validate", "--design", dpath, "--json"])
+        codes = [x["code"] for x in json.loads(v.stdout)["violations"]]
+        self.assertEqual(codes, ["FORM_FACTOR_MISSING", "MODES_MISSING"], v.stdout)
+        # 表外值 → *_INVALID；msg 值域逐字按裁定 C12-1 §0 表
+        bad = stripped.replace("frontend_framework: html", NL.join([
+            "frontend_framework: html", "form_factor: 平板", "modes: 夜间"]))
+        self.write("diy-output/design.yaml", bad)
+        v2 = run_engine(["validate", "--design", dpath, "--json"])
+        data2 = json.loads(v2.stdout)
+        self.assertEqual([x["code"] for x in data2["violations"]],
+                         ["FORM_FACTOR_INVALID", "MODES_INVALID"], v2.stdout)
+        msgs = " ".join(x["msg"] for x in data2["violations"])
+        self.assertIn("响应式 Web/移动端/桌面/多端", msgs, "form_factor 值域未按 §0 表逐字")
+        self.assertIn("亮/暗/双模", msgs, "modes 值域未按 §0 表逐字")
+        # 合法旧稿（补两键后）rc=0（§4 验收 #1）
+        fixed = stripped.replace("frontend_framework: html", NL.join([
+            "frontend_framework: html", "form_factor: 响应式 Web", "modes: 亮"]))
+        self.write("diy-output/design.yaml", fixed)
+        v3 = run_engine(["validate", "--design", dpath, "--json"])
+        self.assertEqual(v3.returncode, 0, v3.stdout)
+        self.assertTrue(json.loads(v3.stdout)["ok"])
+
+    # trace: C·12 §7-5① / §4 验收 #12（dark 子块形状：仅双模合法且必填，六角色全合法 hex）
+    def test_dual_mode_dark_pair_shape(self):
+        import re
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        stripped = re.sub(r"^form_factor: .*" + NL, "", GOOD_DESIGN, flags=re.MULTILINE)
+        stripped = re.sub(r"^modes: .*" + NL, "", stripped, flags=re.MULTILINE)
+        base = stripped.replace("frontend_framework: html", NL.join([
+            "frontend_framework: html", "form_factor: 响应式 Web"]))
+        dark_full = NL.join([
+            "    dark:", "      bg: '#0f1115'", "      surface: '#1a1d24'",
+            "      text: '#f2f4f8'", "      text_muted: '#a8b0bd'",
+            "      accent: '#7cc4ff'", "      accent_text: '#0f1115'",
+        ])
+        with_dark = base.replace("    accent_text: '#ffffff'",
+                                 "    accent_text: '#ffffff'" + NL + dark_full)
+        dpath = self.write("diy-output/design.yaml",
+                           base.replace("frontend_framework: html",
+                                        "frontend_framework: html" + NL + "modes: 双模"))
+        for label, body in (
+                ("缺 dark", base + NL + "modes: 双模"),
+                ("角色残（缺 text_muted）",
+                 base.replace("    accent_text: '#ffffff'",
+                              "    accent_text: '#ffffff'" + NL + dark_full)
+                     .replace("      text_muted: '#a8b0bd'" + NL, "")
+                     + NL + "modes: 双模" + NL),
+                ("值非 hex",
+                 base.replace("frontend_framework: html",
+                              "frontend_framework: html" + NL + "modes: 双模")
+                     .replace("    accent_text: '#ffffff'",
+                              "    accent_text: '#ffffff'" + NL +
+                              dark_full.replace("'#f2f4f8'", "雾白")))):
+            with self.subTest(shape=label):
+                self.write("diy-output/design.yaml", body)
+                v = run_engine(["validate", "--design", dpath, "--json"])
+                self.assertEqual([x["code"] for x in json.loads(v.stdout)["violations"]],
+                                 ["MODES_TOKEN_PAIR_MISSING"], v.stdout)
+                a = run_engine(["audit", "--design", dpath, "--json",
+                                "--src", os.path.join(self.root, "diy-output", "prototypes")])
+                self.assertIn("MODES_TOKEN_PAIR_MISSING",
+                              [x["code"] for x in json.loads(a.stdout)["violations"]],
+                              "audit 未联动：%s" % label)
+        # 双模 + 六角色全合法 hex → validate 与 audit 双过
+        ok_doc = with_dark.replace("frontend_framework: html",
+                                   "frontend_framework: html" + NL + "modes: 双模")
+        self.write("diy-output/design.yaml", ok_doc)
+        v2 = run_engine(["validate", "--design", dpath, "--json"])
+        self.assertEqual(v2.returncode, 0, v2.stdout)
+        a2 = run_engine(["audit", "--design", dpath, "--json",
+                         "--src", os.path.join(self.root, "diy-output", "prototypes")])
+        self.assertEqual(a2.returncode, 0, a2.stdout)
+
+    # trace: C·12 §7-5①（亮/暗 单模携 dark → MODES_INVALID，msg 注明「dark 仅 双模 可有」）
+    def test_single_mode_with_dark_rejected(self):
+        import re
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        stripped = re.sub(r"^form_factor: .*" + NL, "", GOOD_DESIGN, flags=re.MULTILINE)
+        stripped = re.sub(r"^modes: .*" + NL, "", stripped, flags=re.MULTILINE)
+        dark_full = NL.join([
+            "    dark:", "      bg: '#0f1115'", "      surface: '#1a1d24'",
+            "      text: '#f2f4f8'", "      text_muted: '#a8b0bd'",
+            "      accent: '#7cc4ff'", "      accent_text: '#0f1115'",
+        ])
+        with_dark = stripped.replace(
+            "frontend_framework: html",
+            "frontend_framework: html" + NL + "form_factor: 响应式 Web").replace(
+            "    accent_text: '#ffffff'",
+            "    accent_text: '#ffffff'" + NL + dark_full)
+        dpath = self.write("diy-output/design.yaml", with_dark + NL + "modes: 亮" + NL)
+        v = run_engine(["validate", "--design", dpath, "--json"])
+        data = json.loads(v.stdout)
+        self.assertEqual([x["code"] for x in data["violations"]], ["MODES_INVALID"], v.stdout)
+        self.assertIn("dark 仅 双模 可有", data["violations"][0]["msg"])
+        self.assertEqual(data["violations"][0]["where"], "design.yaml tokens.color.dark")
+        # 暗单模同判
+        self.write("diy-output/design.yaml", with_dark + NL + "modes: 暗" + NL)
+        v2 = run_engine(["validate", "--design", dpath, "--json"])
+        self.assertEqual([x["code"] for x in json.loads(v2.stdout)["violations"]],
+                         ["MODES_INVALID"], v2.stdout)
+
+    # trace: C·12 §7-5② / §4 验收 #13（双模暗色同款 5 组配对；单模零暗色对）
+    def test_check_dual_mode_dark_contrast_pairs(self):
+        import re
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        stripped = re.sub(r"^form_factor: .*" + NL, "", GOOD_DESIGN, flags=re.MULTILINE)
+        stripped = re.sub(r"^modes: .*" + NL, "", stripped, flags=re.MULTILINE)
+        dark_full = NL.join([
+            "    dark:", "      bg: '#0f1115'", "      surface: '#1a1d24'",
+            "      text: '#f2f4f8'", "      text_muted: '#a8b0bd'",
+            "      accent: '#7cc4ff'", "      accent_text: '#0f1115'",
+        ])
+        with_dark = stripped.replace(
+            "    accent_text: '#ffffff'",
+            "    accent_text: '#ffffff'" + NL + dark_full)
+        dpath = self.write("diy-output/design.yaml",
+                           with_dark + NL + "modes: 双模" + NL)
+        c = run_engine(["check", "--design", dpath, "--json"])
+        data = json.loads(c.stdout)
+        self.assertEqual(c.returncode, 0, c.stdout)
+        pairs = [list(p) for p in data["checked"]["contrast_pairs"]]
+        self.assertEqual(pairs, [["text", "bg"], ["text", "surface"],
+                                 ["text_muted", "bg"], ["text_muted", "surface"],
+                                 ["accent_text", "accent"],
+                                 ["dark.text", "dark.bg"], ["dark.text", "dark.surface"],
+                                 ["dark.text_muted", "dark.bg"],
+                                 ["dark.text_muted", "dark.surface"],
+                                 ["dark.accent_text", "dark.accent"]],
+                         "暗色对未以 dark.<role> 形态原样枚举")
+        self.assertEqual(data["counts"]["contrast_pairs"], 10)
+        # 暗色对 <4.5:1 → contrast 违规（where 带 dark. 前缀）
+        broken = self.write("diy-output/design.yaml",
+                            with_dark.replace("      text: '#f2f4f8'", "      text: '#666666'")
+                                     + NL + "modes: 双模" + NL)
+        c2 = run_engine(["check", "--design", broken, "--json"])
+        dark_vs = [x for x in json.loads(c2.stdout)["violations"]
+                   if x["code"] == "contrast" and "dark." in x["where"]]
+        self.assertTrue(dark_vs, "暗色对比度违规未被守（audit 只判存在性）")
+        self.assertIn("dark.text(#666666) on dark.bg(#0f1115)", dark_vs[0]["msg"])
+        # 单模（亮，即使误携 dark）→ 零暗色对（对拍：仍 5 组）
+        single = self.write("diy-output/design.yaml", with_dark + NL + "modes: 亮" + NL)
+        c3 = run_engine(["check", "--design", single, "--json"])
+        data3 = json.loads(c3.stdout)
+        self.assertEqual(len(data3["checked"]["contrast_pairs"]), 5, c3.stdout)
+        self.assertEqual(data3["counts"]["contrast_pairs"], 5)
+
+    # trace: C·12 §7-5①（collect_token_hexes 展开 dark——「audit 打自己」盲点回归）
+    def test_audit_dark_hexes_whitelisted(self):
+        import re
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        stripped = re.sub(r"^form_factor: .*" + NL, "", GOOD_DESIGN, flags=re.MULTILINE)
+        stripped = re.sub(r"^modes: .*" + NL, "", stripped, flags=re.MULTILINE)
+        dark_full = NL.join([
+            "    dark:", "      bg: '#0f1115'", "      surface: '#1a1d24'",
+            "      text: '#f2f4f8'", "      text_muted: '#a8b0bd'",
+            "      accent: '#7cc4ff'", "      accent_text: '#0f1115'",
+        ])
+        doc = stripped.replace(
+            "    accent_text: '#ffffff'",
+            "    accent_text: '#ffffff'" + NL + dark_full) + NL + "modes: 双模" + NL
+        dpath = self.write("diy-output/design.yaml", doc)
+        # 暗色 token 在实现源码的真实色值位使用 → 不得自判 one-off-color
+        src = self.write("diy-output/src/dark.css",
+                         "body.dark { background: #0f1115; color: #f2f4f8; }" + NL)
+        a = run_engine(["audit", "--design", dpath, "--src", src, "--json"])
+        self.assertEqual(a.returncode, 0, a.stdout)
+        self.assertEqual(json.loads(a.stdout)["violations"], [], a.stdout)
+        # 对照：非 token 色仍报（展开是增量，白名单没放松）
+        src2 = self.write("diy-output/src/bad.css", "a { color: #123456; }" + NL)
+        a2 = run_engine(["audit", "--design", dpath, "--src", src2, "--json"])
+        self.assertEqual([x["code"] for x in json.loads(a2.stdout)["violations"]],
+                         ["one-off-color"], a2.stdout)
+
+    # trace: C·12 §7-5③ / §4 验收 #14（移动端按压态；非移动端四态逐字不动）
+    def test_mobile_press_state_required(self):
+        import re
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        stripped = re.sub(r"^form_factor: .*" + NL, "", GOOD_DESIGN, flags=re.MULTILINE)
+        stripped = re.sub(r"^modes: .*" + NL, "", stripped, flags=re.MULTILINE)
+        with_ff = lambda ff: stripped.replace(
+            "frontend_framework: html",
+            "frontend_framework: html" + NL + "form_factor: " + ff + NL + "modes: 亮")
+        dpath = self.write("diy-output/design.yaml", with_ff("移动端"))
+        v = run_engine(["validate", "--design", dpath, "--json"])
+        data = json.loads(v.stdout)
+        self.assertEqual([x["code"] for x in data["violations"]], ["EMPTY_FIELD"], v.stdout)
+        self.assertIn("P-1 缺交互状态 按压",
+                      [x["msg"] for x in data["violations"]], v.stdout)
+        # 按压在而悬停缺 → rc=0（移动端不要求悬停）
+        pressed = stripped.replace("  - name: 悬停", "  - name: 按压").replace(
+            "frontend_framework: html",
+            "frontend_framework: html" + NL + "form_factor: 移动端" + NL + "modes: 亮")
+        self.write("diy-output/design.yaml", pressed)
+        v2 = run_engine(["validate", "--design", dpath, "--json"])
+        self.assertEqual(v2.returncode, 0, v2.stdout)
+        self.assertTrue(json.loads(v2.stdout)["ok"])
+        # 非移动端四态逐字不动：悬停缺 → 报「悬停」（报错文本与 HEAD 逐字一致）
+        for ff in ("响应式 Web", "桌面", "多端", None):
+            with self.subTest(form_factor=ff or "（缺键）"):
+                body = with_ff(ff) if ff else stripped + NL + "modes: 亮" + NL
+                hoverless = body.replace(
+                    "  - name: 悬停" + NL + "    signals: [图标, 动效]" + NL, "")
+                self.write("diy-output/design.yaml", hoverless)
+                v3 = run_engine(["validate", "--design", dpath, "--json"])
+                msgs = [x["msg"] for x in json.loads(v3.stdout)["violations"]]
+                self.assertIn("P-1 缺交互状态 悬停", msgs,
+                              "非移动端四态判据漂移（form_factor=%r）" % ff)
+                self.assertNotIn("P-1 缺交互状态 按压", msgs)
+
+    # trace: C·12 §7-5③（transition 页级门同口径：移动端按按压判，非移动端按悬停判）
+    def test_transition_gate_uses_press_state_on_mobile(self):
+        import re
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        stripped = re.sub(r"^form_factor: .*" + NL, "", GOOD_DESIGN, flags=re.MULTILINE)
+        stripped = re.sub(r"^modes: .*" + NL, "", stripped, flags=re.MULTILINE)
+        staged = stripped.replace("  route: /todos",
+                                  "  route: /todos" + NL + "  status: 结构稿中")
+        dpath = self.write("diy-output/design.yaml", staged.replace(
+            "frontend_framework: html",
+            "frontend_framework: html" + NL +
+            "form_factor: 移动端" + NL + "modes: 亮"))
+        # 悬停在、按压缺 → 结构稿中 → 待验收 被页级门拦（GATE_FAILED）
+        t = run_engine(["transition", "--design", dpath, "--page", "P-1",
+                        "--to", "待验收", "--json"])
+        self.assertEqual(t.returncode, 1, t.stdout)
+        self.assertIn("GATE_FAILED", [x["code"] for x in json.loads(t.stdout)["violations"]])
+        self.assertIn("P-1 缺交互状态 按压",
+                      [x["msg"] for x in json.loads(t.stdout)["violations"]])
+        # 按压在、悬停缺 → 门过
+        self.write("diy-output/design.yaml", staged.replace(
+            "  - name: 悬停", "  - name: 按压").replace(
+            "frontend_framework: html",
+            "frontend_framework: html" + NL +
+            "form_factor: 移动端" + NL + "modes: 亮"))
+        t2 = run_engine(["transition", "--design", dpath, "--page", "P-1",
+                         "--to", "待验收", "--json"])
+        self.assertEqual(t2.returncode, 0, t2.stdout)
+        self.assertTrue(json.loads(t2.stdout)["ok"])
 
 
 if __name__ == "__main__":

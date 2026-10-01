@@ -138,6 +138,8 @@ def design_text(project_status="草稿", page_status="未开始", page_id="SC-01
         "  updated: 2026-01-01",
         "direction: 瑞士编辑风——大字阶对比、留白节奏、单强调色",
         "frontend_framework: html",
+        "form_factor: 响应式 Web",
+        "modes: 亮",
         "tokens:",
         "  color:",
         "    bg: '#ffffff'",

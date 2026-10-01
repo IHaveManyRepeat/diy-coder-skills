@@ -218,9 +218,10 @@ def _steppers():
     假事实。将来某技能若拆出 `steps/`，自动进入本适用面（缺锚串且未登记即判红）。
 
     ★ 2026-09-28 C·3a 留痕：**该裁定对 `design` / `dev` 已作废**——本批为吸收 WDS 九活动
-    与原型循环，二者拆出 `steps/` 并补 §4 锚串，已登记进 `LANDED_READ_DISCIPLINE`；
-    `review` **仍未拆**（受 `test_review_contract.py` 的行数上限与「不得含 `Read (input)`」
-    两条硬锁），故对 review 原文裁定仍有效。改裁定已在收口报告与 `迁移计划.md` 登记。
+    与原型循环，二者拆出 `steps/` 并补 §4 锚串，已登记进 `LANDED_READ_DISCIPLINE`。
+    ★ 2026-10-01 C·12 留痕（裁定 C12-3）：**该裁定对 `review` 亦作废**——review 拆出
+    `steps/` 七件并补 §4 锚串；`test_review_contract.py` 的「不得含 `Read (input)`」
+    硬锁同步改为「必须在场」。改裁定已在收口报告与 `迁移计划.md` §二十九 登记。
     """
     return [s for s in skills()
             if os.path.isdir(os.path.join(SKILLS_DIR, "diy-" + s, "steps"))]

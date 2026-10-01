@@ -73,6 +73,23 @@ def read(path):
         return fh.read()
 
 
+def review_steps_text():
+    """C·12（裁定 C12-3）拆 steps 七件后的锚下沉面：`steps/*.md` 全文按名拼接。
+
+    读源调整申报（12 用例，逐条对照见 `.analysis/2026-09-28-c12/w3-report.md`）：
+    WDS 三小节 → `wds-review.md`、L4 段 → `l4-design-adoption.md`、两透镜 →
+    `lenses.md`、回修边 transition 命令 → `wds-review.md`——受影响断言的读源由
+    主文件扩为「主文件相关段 + 本拼接面」，锚串与断言本体零删改。
+    """
+    steps_dir = os.path.join(HERE, "..", "skills", "diy-review", "steps")
+    parts = []
+    for name in sorted(os.listdir(steps_dir)):
+        if name.endswith(".md"):
+            with io.open(os.path.join(steps_dir, name), encoding="utf-8") as fh:
+                parts.append(fh.read())
+    return NL.join(parts)
+
+
 def run(script, args):
     return subprocess.run([sys.executable, script] + args,
                           capture_output=True, text=True, encoding="utf-8")
@@ -156,7 +173,11 @@ class WdsBranchTextTests(unittest.TestCase):
     def setUpClass(cls):
         cls.raw = read(SKILL_REVIEW)
         cls.activation = cls.raw.split("## 激活时", 1)[1].split("## 工作流", 1)[0]
-        cls.workflow = cls.raw.split("## 工作流", 1)[1].split("## 结构", 1)[0]
+        # C·12 读源改（WDS 三小节 / L4 段锚随内容下沉 steps/）：工作流定位面在主文件
+        # 骨架段之后拼接 steps 全文；激活时两用例与行数线仍读主文件（锚在保留面）。
+        cls.workflow = (cls.raw.split("## 工作流", 1)[1].split("## 结构", 1)[0]
+                        + NL + review_steps_text())
+        cls.docs = cls.raw + NL + review_steps_text()
 
     # trace: §5.6 #1（WDS 模式判定句须显式、可机械核）
     def test_activation_declares_wds_branch(self):
@@ -198,7 +219,8 @@ class WdsBranchTextTests(unittest.TestCase):
         self.assertIn("页**保持 `待验收`**", self.workflow, "通过后未保持 待验收")
         self.assertIn("可呈用户批准", self.workflow, "通过未产出「可呈用户批准」结论")
         self.assertIn("**绝不代用户批准**", self.workflow, "缺不代用户批准的声明")
-        self.assertNotIn("--to 已批准", self.raw,
+        # C·12 读源改：NotIn 面随拆分扩到主文件 + steps（教学面即全部文档面）
+        self.assertNotIn("--to 已批准", self.docs,
                          "文本教了 `待验收 → 已批准` 这条用户边（审查者代批准）")
 
     # trace: §5.6 #4（失败 → 回修边，经 transition）
@@ -220,8 +242,9 @@ class WdsBranchTextTests(unittest.TestCase):
         self.assertIn("按 code 点名、不写维度计数", l4, "回执引用未按 code 点名")
 
     # trace: §5.6 #6（回执键同步：引用的是码族，不是键名）
+    # trace: C·12 读源改——`one-off-*` 随 L4 段下沉 steps/l4-design-adoption.md
     def test_receipt_reference_uses_code_family(self):
-        self.assertIn("one-off-*", self.raw, "L4 的 audit 引用句丢了码族")
+        self.assertIn("one-off-*", self.docs, "L4 的 audit 引用句丢了码族")
 
     # trace: §9 #1（软控制线 ≤120；现状 83）
     def test_line_budget(self):
@@ -292,7 +315,9 @@ class LensTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.raw = read(SKILL_REVIEW)
+        # C·12 读源改：两透镜下沉 steps/lenses.md——读源扩为「主文件 + steps 拼接」，
+        # 断言本体零删改（申报见 w3-report.md）
+        cls.raw = read(SKILL_REVIEW) + NL + review_steps_text()
 
     # trace: §5.6 #7①（映射表：两透镜 ↔ 既有 L1–L4）
     def test_lens_layer_mapping(self):
@@ -331,9 +356,11 @@ def legal_edges():
 class EngineContractRunTests(WdsReviewHarness):
 
     # trace: EngineContractGuardTests 同型盲区——文档不得教引擎会拒的状态边
+    # trace: C·12 读源改——回修边命令随 WDS 三小节下沉 steps/wds-review.md，
+    #        扫描面扩为「主文件 + steps」（守卫空转检查同步覆盖下沉面）
     def test_taught_design_edges_are_engine_legal(self):
         targets = {dst for (_src, dst) in legal_edges()}
-        taught = set(TRANSITION_TO_RE.findall(read(SKILL_REVIEW)))
+        taught = set(TRANSITION_TO_RE.findall(read(SKILL_REVIEW) + NL + review_steps_text()))
         self.assertTrue(taught, "守卫空转：未从 diy-review 扫到 design.py transition 的 --to 值")
         self.assertEqual(taught - targets, set(),
                          "diy-review 教了 design.py 会拒的状态：%s" % sorted(taught - targets))

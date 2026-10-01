@@ -47,11 +47,18 @@ MACHINE_VETO_RE = re.compile(
     re.IGNORECASE)
 
 REQUIRED_STATES = ("悬停", "空态", "加载中", "错误")
+REQUIRED_STATES_TOUCH = ("按压", "空态", "加载中", "错误")  # 移动端四态：悬停 → 按压（无 hover，触控用按压）
 CONTRAST_PAIRS = (
     ("text", "bg"), ("text", "surface"), ("text_muted", "bg"),
     ("text_muted", "surface"), ("accent_text", "accent"),
 )
 TEXT_CONTRAST_MIN = 4.5
+
+# ---- 裁定 C12-1（2026-09-28）：design.yaml 顶层两键——形态/默认主题由「不并」改判「有承载」 ----
+FORM_FACTORS = ("响应式 Web", "移动端", "桌面", "多端")  # 目标表面（写在什么上），与 frontend_framework 互补
+MODES = ("亮", "暗", "双模")  # 默认主题模式；双模 触发 tokens 明暗对审计联动
+# §7-5①：双模的明暗对 = tokens.color.dark 子块六角色（亮基暗覆盖），判据见 dark_pair_violation
+DARK_ROLES = ("bg", "surface", "text", "text_muted", "accent", "accent_text")
 
 # ---- 页状态机（裁定 5/6/14）：5 值收敛 + 9 条合法边 ----
 PAGE_STATUSES = ("未开始", "结构稿中", "待验收", "已批准", "已移除")
@@ -524,11 +531,44 @@ def collect_ds_violations(design, where, text):
     return out
 
 
-def page_gate_violations(base, page, rel, states_code, file_code):
-    """页级门（同 validate 判据）：四态缺一 / 结构稿缺失。transition 的 GATE_FAILED 复用本函数。"""
+def required_states(form_factor):
+    """必填四态按 form_factor 取值（§7-5③）：移动端 无 hover、触控用 按压；其余形态四态逐字不动。"""
+    return REQUIRED_STATES_TOUCH if form_factor == "移动端" else REQUIRED_STATES
+
+
+def dark_pair_violation(design, base_name):
+    """双模明暗对判据（§7-5①）：tokens.color.dark 六角色全合法 hex 才算成对。
+
+    双模缺 dark / dark 非映射 / 角色残 / 值非 hex → MODES_TOKEN_PAIR_MISSING
+    （validate 与 audit 同判据——audit 是 modes 的核心消费价值）；单模不触发
+    （亮/暗 携 dark 归 validate 的 MODES_INVALID 管）。
+    """
+    if str(design.get("modes") or "").strip() != "双模":
+        return None
+    dark = ((design.get("tokens") or {}).get("color") or {}).get("dark")
+    ok = isinstance(dark, dict)
+    if ok:
+        for role in DARK_ROLES:
+            try:
+                normalize_hex(dark.get(role))
+            except ValueError:
+                ok = False
+                break
+    if ok:
+        return None
+    return v("MODES_TOKEN_PAIR_MISSING", "%s tokens.color.dark" % base_name,
+             "modes=双模 须带明暗对：tokens.color.dark 六角色（%s）全为合法 hex（亮基暗覆盖）"
+             % "/".join(DARK_ROLES))
+
+
+def page_gate_violations(base, page, rel, states_code, file_code, required=None):
+    """页级门（同 validate 判据）：四态缺一 / 结构稿缺失。transition 的 GATE_FAILED 复用本函数。
+
+    required = 必填态集，按 form_factor 取值（§7-5③）；缺省 REQUIRED_STATES（非移动端既有行为逐字不动）。
+    """
     out = []
     names = {s.get("name") for s in page.get("states") or [] if isinstance(s, dict)}
-    missing = [s for s in REQUIRED_STATES if s not in names]
+    missing = [s for s in (required or REQUIRED_STATES) if s not in names]
     if missing:
         out.append(v(states_code, "%s pages[%s].states" % (rel, page.get("id")),
                      "%s 缺交互状态 %s" % (page.get("id"), "/".join(missing))))
@@ -563,6 +603,28 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail �
                 violations.append(v("contrast", "%s tokens.color.%s/%s" % (base_name, fg, bg),
                                     "%s(%s) on %s(%s) = %.2f:1 < %.1f:1" % (
                                         fg, tokens[fg], bg, tokens[bg], ratio, TEXT_CONTRAST_MIN)))
+    # 维度一（续）·双模暗色配对（§7-5② 部分解冻）：对 dark 六角色算同款 5 组，阈值同 4.5:1；
+    # 回执 contrast_pairs 以 dark.<role> 形态原样枚举暗色对（checked/counts 计数含）；单模零暗色对
+    dark_pairs = []
+    dark = tokens.get("dark")
+    if str(design.get("modes") or "").strip() == "双模" and isinstance(dark, dict):
+        dark_pairs = [("dark." + fg, "dark." + bg) for fg, bg in CONTRAST_PAIRS]
+        for fg, bg in CONTRAST_PAIRS:
+            if fg in dark and bg in dark:
+                try:
+                    ratio = contrast(dark[fg], dark[bg])
+                except ValueError:
+                    violations.append(v("contrast",
+                                        "%s tokens.color.dark.%s/%s" % (base_name, fg, bg),
+                                        "dark.%s(%s)/dark.%s(%s) 不是合法 hex 色值" % (
+                                            fg, dark[fg], bg, dark[bg])))
+                    continue
+                if ratio < TEXT_CONTRAST_MIN:
+                    violations.append(v("contrast",
+                                        "%s tokens.color.dark.%s/%s" % (base_name, fg, bg),
+                                        "dark.%s(%s) on dark.%s(%s) = %.2f:1 < %.1f:1" % (
+                                            fg, dark[fg], bg, dark[bg], ratio, TEXT_CONTRAST_MIN)))
+    contrast_pairs_checked = list(CONTRAST_PAIRS) + dark_pairs
     n_proto = 0
     n_states = 0
     for page in pages:
@@ -606,7 +668,7 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail �
         violations += collect_ds_violations(design, where, text)
     if getattr(args, "previous", None):
         violations += check_previous(design, args.previous, base_name)
-    checked = {"contrast_pairs": list(CONTRAST_PAIRS),
+    checked = {"contrast_pairs": contrast_pairs_checked,
                "signals": "states.signals 非色彩",
                "semantic_html": ["h1 唯一", "input 带 label", "img 带 alt"],
                "a11y_extras": ["触控目标 ≥%dpx" % TOUCH_TARGET_MIN,
@@ -614,7 +676,8 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail �
                "design_system": ["色值走 token", "字阶走 token", "间距走 token"]}
     result = receipt("check", not violations, file=rel, violations=violations,
                      counts={"pages": len(pages), "prototypes": n_proto,
-                             "states": n_states, "contrast_pairs": len(CONTRAST_PAIRS)},
+                             "states": n_states,
+                             "contrast_pairs": len(contrast_pairs_checked)},
                      checked=checked)
     return emit(result, args.json, ["check：%d 页 / %d 原型" % (len(pages), n_proto)])
 
@@ -678,6 +741,29 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 TC-14.3.3 design.yaml �
     if not str(design.get("frontend_framework") or "").strip():
         violations.append(v("EMPTY_FIELD", base_name + " frontend_framework",
                             "frontend_framework 为空（从 architecture stack 选定；纯 HTML 项目写 html）"))
+    # 裁定 C12-1：顶层两键在场 + 值域（专项码首例——顶层键错误与条目字段错误不同层级，
+    # 下游需要可 grep 的稳定锚）；§7-5①：dark 子块仅 双模 可有且必填
+    form_factor = design.get("form_factor")
+    if form_factor is None or (isinstance(form_factor, str) and not form_factor.strip()):
+        violations.append(v("FORM_FACTOR_MISSING", base_name + " form_factor",
+                            "form_factor 缺失（目标表面：响应式 Web/移动端/桌面/多端——开工先定，写在什么上）"))
+    elif form_factor not in FORM_FACTORS:
+        violations.append(v("FORM_FACTOR_INVALID", base_name + " form_factor",
+                            "form_factor=%r 不在 %s" % (form_factor, "/".join(FORM_FACTORS))))
+    modes = design.get("modes")
+    if modes is None or (isinstance(modes, str) and not modes.strip()):
+        violations.append(v("MODES_MISSING", base_name + " modes",
+                            "modes 缺失（默认主题模式：亮/暗/双模）"))
+    elif modes not in MODES:
+        violations.append(v("MODES_INVALID", base_name + " modes",
+                            "modes=%r 不在 %s" % (modes, "/".join(MODES))))
+    elif modes in ("亮", "暗") and \
+            ((design.get("tokens") or {}).get("color") or {}).get("dark") is not None:
+        violations.append(v("MODES_INVALID", "%s tokens.color.dark" % base_name,
+                            "dark 仅 双模 可有（%s 单模不携明暗对）" % modes))
+    dark_pair = dark_pair_violation(design, base_name)
+    if dark_pair:
+        violations.append(dark_pair)
     tokens = design.get("tokens") or {}
     for family, keys in (("color", ("bg", "text", "accent")),
                          ("spacing", ("unit", "scale")),
@@ -696,11 +782,13 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 TC-14.3.3 design.yaml �
     if not pages:
         violations.append(v("EMPTY_FIELD", base_name + " pages", "pages 为空"))
     violations += page_id_violations(pages, base_name)
+    required = required_states(design.get("form_factor"))  # §7-5③：移动端 悬停 → 按压
     for page in pages:
         pid = page.get("id")
         states = page.get("states") or []
         n_states += len(states)
-        violations += page_gate_violations(base, page, base_name, "EMPTY_FIELD", "MISSING_FILE")
+        violations += page_gate_violations(base, page, base_name, "EMPTY_FIELD",
+                                           "MISSING_FILE", required)
         for i, st in enumerate(states):
             if not st.get("name"):
                 violations.append(v("EMPTY_FIELD",
@@ -736,10 +824,13 @@ def collect_token_hexes(design):  # trace: S-15 AC-15.2 TC-14.3.2 token 色值�
     colors = (design.get("tokens") or {}).get("color") or {}
     hexes = set()
     for value in colors.values():
-        try:
-            hexes.add(normalize_hex(value))
-        except ValueError:
-            continue
+        # §7-5① dark 子块展开：嵌套 dict（dark 六角色）不再被静默跳过——暗色 hex 进白名单，
+        # 否则 audit 会把暗色 token 自判 one-off-color（打自己）
+        for item in (value.values() if isinstance(value, dict) else (value,)):
+            try:
+                hexes.add(normalize_hex(item))
+            except ValueError:
+                continue
     return hexes
 
 
@@ -879,6 +970,9 @@ def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 TC-14.3.2 one-off 色值/�
                     args.json)
     hex_ok = collect_token_hexes(design)
     fs_ok = collect_font_sizes(design)
+    dark_pair = dark_pair_violation(design, os.path.basename(args.design))  # 裁定 C12-1：modes 核心消费价值
+    if dark_pair:
+        violations.append(dark_pair)
     scopes = resolve_token_scope(design, args.src)
     warnings = []
     skipped = 0
@@ -1076,7 +1170,8 @@ def cmd_transition(args):  # trace: S-14 AC-14.1 页状态迁移写回（9 条�
                                 counts)
     if dst in GATED_TARGETS:
         gate = page_gate_violations(os.path.dirname(os.path.abspath(path)), page, base_name,
-                                    "GATE_FAILED", "GATE_FAILED")
+                                    "GATE_FAILED", "GATE_FAILED",
+                                    required_states(doc.get("form_factor")))
         if gate:
             return _transition_fail(args, gate, counts)
     project = doc.get("project")
