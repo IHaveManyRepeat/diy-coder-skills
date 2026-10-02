@@ -25,7 +25,7 @@ outputs: wds-evolution.yaml
    `python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
    有记录 → 播报四字段并问「① 接着做 / ② 开新的一轮 / ③ 复审调整」，**HALT 等选择**；无记录 → 进第 3 步。
 3. 门禁（零产出退出）：**本技能是入口技能**（`precededBy: []`，裁定 9）——门禁 = `{output_dir}` 下**既有产物任一在场**（`design.yaml` / `sprint.yaml` / `wds-*.yaml`，**本技能自己的产物不算**）。一个都没有 → 一行说明并**零产出停止**（新建项目走 `diy-wds-brief` / `diy-prd`）；`init` 把它机械兜住（`MISSING_FILE`）。门禁过 → 按 `entry` 分轨读取（`存量接入` = 首次接手，`上线后持续` = 线上迭代）。读 `steps/01-analyze.md` 并照做（裸 `steps/*.md` 与 `data/` 路径从本技能安装目录解析；每步结尾点名下一个要读的文件）。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/wds-evolution.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 

@@ -27,6 +27,7 @@ outputs: test-plan.yaml
    - **Create** —— 文件缺席 → 从零推导。
    - **Update** —— 文件在场 → 变更信号就地写死：`stories.yaml` 的 AC 集合与既有 `test_cases[].ac` 集合之差（有 AC 缺 TC → 补面；`ac` 悬空 → 走 `--previous` 的 ID 稳定门）；`stories.yaml` 的 `project.updated` 晚于 `test-plan.yaml` 的 `project.updated` → 提示可能有漂移；用户显式要求重设计 → 一律 Update。TC ID 保持稳定。
    - 二者都说不通 → 问用户一次，别猜。
+`{output_dir}/test-plan.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 

@@ -31,7 +31,7 @@ outputs: learning-progress.yaml
    - 存在、`sessions_completed == 7` 且 `summary.generated == false` → `steps/05-completion.md`。
    - 存在、`summary.generated == true` → `steps/03-hub.md`（完成态展示；可重进任一节或回 session 7 继续探索）。
    中断恢复一律先进 `03-hub.md`（Hub-and-spoke：任何一节的入口都在 Hub 选择），进行中 节在仪表盘标示，**不直接跳节**。进度文件已存在 → 强制走 resume：不得跳过 `status` 检查直接开会话，也不得覆盖重建。
-3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/curriculum.yaml / learning-progress.yaml / quiz-questions.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 4. 读 `steps/01-init.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

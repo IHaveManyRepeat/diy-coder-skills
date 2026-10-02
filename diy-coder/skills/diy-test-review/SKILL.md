@@ -27,7 +27,7 @@ outputs: test-review.yaml
 3. `scan` 发现文件并跑机械面（评审集之外取样惯例语料）：
    `python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" scan --paths <P> --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--paths` 可重复）
    exit 1 = 拒绝（scope 内无测试文件），零产出，**一行拒绝 + 路由**（给路径，或先跑 diy-test-author），然后停。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/test-review.yaml / criteria.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-preflight.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

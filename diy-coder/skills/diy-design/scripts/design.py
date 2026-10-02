@@ -57,6 +57,8 @@ TEXT_CONTRAST_MIN = 4.5
 # ---- 裁定 C12-1（2026-09-28）：design.yaml 顶层两键——形态/默认主题由「不并」改判「有承载」 ----
 FORM_FACTORS = ("响应式 Web", "移动端", "桌面", "多端")  # 目标表面（写在什么上），与 frontend_framework 互补
 MODES = ("亮", "暗", "双模")  # 默认主题模式；双模 触发 tokens 明暗对审计联动
+# ---- C·7 裁定 2（2026-10-02）：pages[].meta 可选内容键（meta-content 判据级承载）----
+META_KEYS = ("title", "description", "og_image")  # 三子键全可选；在场则须非空字符串
 # §7-5①：双模的明暗对 = tokens.color.dark 子块六角色（亮基暗覆盖），判据见 dark_pair_violation
 DARK_ROLES = ("bg", "surface", "text", "text_muted", "accent", "accent_text")
 
@@ -808,6 +810,27 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 TC-14.3.3 design.yaml �
         if impl and not os.path.isfile(os.path.join(base, str(impl))):
             violations.append(v("MISSING_FILE", "%s pages[%s].implementation" % (base_name, pid),
                                 "%s 实现稿缺失：%s" % (pid, impl)))
+        # C·7 裁定 2 / SS-030-06：meta 可选——在场才判，机械判仅一层
+        # （子键在场须非空字符串；空串与非字符串均 EMPTY_FIELD、msg 区分两态；
+        #  不用 UNPARSABLE_YAML——那是 YAML 解析层。缺失不违规：「公开站点应填」
+        #  是引导判据（p-specify 两层分写），不进 validate——防把文学判断伪装成机械判定）
+        meta = page.get("meta")
+        if isinstance(meta, dict):
+            for key in META_KEYS:
+                val = meta.get(key)
+                if val is None:
+                    continue
+                if not isinstance(val, str):
+                    violations.append(v("EMPTY_FIELD",
+                                        "%s pages[%s].meta.%s" % (base_name, pid, key),
+                                        "pages[%s].meta.%s=%r 不是字符串" % (pid, key, val)))
+                elif not val.strip():
+                    violations.append(v("EMPTY_FIELD",
+                                        "%s pages[%s].meta.%s" % (base_name, pid, key),
+                                        "pages[%s].meta.%s 为空（在场则必写非空字符串）" % (pid, key)))
+        elif meta is not None:
+            violations.append(v("EMPTY_FIELD", "%s pages[%s].meta" % (base_name, pid),
+                                "pages[%s].meta 不是映射（三子键 %s）" % (pid, "/".join(META_KEYS))))
     _validate_open_questions(design, base_name, violations)
     _validate_final_gate(design, base_name, violations)
     if getattr(args, "previous", None):

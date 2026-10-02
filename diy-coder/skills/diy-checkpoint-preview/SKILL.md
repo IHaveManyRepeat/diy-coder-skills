@@ -26,7 +26,7 @@ outputs: checkpoint.yaml
 2. 定位变更。你的层在先：扫本会话找 commit、range、分支、PR 线索或对变更的描述——**PR 线索由你先解析成本地 ref**（`gh` 可用时走 `gh pr view`；解析不了就问用户要 SHA 或分支），引擎只吃本地 `commit|range|branch`。单有规格路径不是引擎 ref，带进 `steps/01` 的规格配对即可。引擎随后跑 3 层级联（`--ref` → `sprint.yaml` 中 `status: 待审查` 的任务 → git 工作区 / HEAD diff）：
    `python "{project-root}/.claude/skills/diy-checkpoint-preview/scripts/checkpoint.py" target --project-root "{project-root}" --output-dir "{output_dir}" [--ref <commit|range|branch>] --json`
    回执带 `candidates` / `source` / `mode` / `diff_stat`。命中 `冲刺任务` 时：恰好一个候选 → 建议它并请用户确认；多个 → 编号列出供选；零个 → 引擎已落到 git 层。三层全空 → exit 1 + 一行拒绝：转述拒绝理由与它的路由（给一个显式 ref，或先跑 diy-dev / diy-review），**零写入**退出——线索是 PR 时先自行解析成 commit / 分支再传 `--ref`。
-3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/checkpoint.yaml` 只在铸造下一个 `CK-###`、或按 `id:` 行改某条记录时打开；校验结论取引擎 JSON 回执，不靠重读规则。本 schema 不定义 `detail` 字段——没有可跳过的内容。
+3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/checkpoint.yaml` 只在铸造下一个 `CK-###`、或按 `id:` 行改某条记录时打开；校验结论取引擎 JSON 回执，不靠重读规则。本 schema 不定义 `detail` 字段——没有可跳过的内容。`{output_dir}/checkpoint.yaml / sprint.yaml / test-plan.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 4. 读 `steps/01-orientation.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

@@ -31,6 +31,7 @@ outputs: architecture.yaml
    - **Create** —— 文件缺席 → 从零走决策批次。
    - **Update** —— 文件在场 → 先 `cp {output_dir}/architecture.yaml {output_dir}/architecture.yaml.prev`，载入既有稿同用户的变更信号对账：`D-*` / `C-*` / `R-*` ID 保持稳定、永不重编号，`updated` 刷今天；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type architecture --previous {output_dir}/architecture.yaml.prev --json`（exit 0 = 无记录丢失）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev` 文件。
    - 二者都说不通 → 问用户一次，别猜。
+`{output_dir}/architecture.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 

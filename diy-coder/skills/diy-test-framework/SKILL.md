@@ -25,7 +25,7 @@ outputs: test-framework.yaml
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 模式与目标：`框架` / `CI` / `两者`（判据在 step 1）；目标 `{output_dir}/test-framework.yaml`——Create（文件缺席）或 Update（在场：追加 `TF-###` 记录；改既有记录时补 `revisions`）。
 3. 硬门：项目清单存在（**五清单为示例代表、非封闭枚举**，判据 = 引擎清单表命中）；CI 模式附加门 = 就绪凭据（台账 `setups[].files[]` 的 脚手架/配置 文件在场，或 detect 报出既有框架配置）。不满足 → 一行拒绝 + 路由，**零产出**；栈无模板覆盖 → HALT + 一行报告 + 登记（禁手写冒充）。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/test-framework.yaml / pipeline.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-preflight.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

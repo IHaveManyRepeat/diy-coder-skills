@@ -25,7 +25,7 @@ outputs: cis-method.yaml
    `python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
    有记录 → 播报最近一条并问「[1] 继续 / [2] 新建 / [3] 看全部」，**HALT 等选择**；无记录 → 直接进第 3 步。
 3. 门禁（零产出退出）：新会话必须先有议题——由会话询问收集（**不代拟议题**）；拒答，或「无议题也无素材」→ 一行说明并**零产出停止**（可路由 `diy-prfaq` 点火）。指向既有 `CM-###` → 按 `status` 路由：`已完成` 的记录只读回看、不再写入。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/cis-method.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-route.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

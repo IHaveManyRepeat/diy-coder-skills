@@ -25,7 +25,7 @@ outputs: analysis.yaml
    `python "{project-root}/.claude/skills/diy-analyze/scripts/analyze.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
    有记录 → 播报六字段并问「① 接着做 / ② 复审调整 / ③ 推倒重来」，**HALT 等选择**；无记录 → 进第 3 步。
 3. 门禁（零产出退出）：**代码库可读**——默认 `{project-root}`，用户可点名别的路径（`init --codebase <path>`）。路径不存在 / 不是目录 / 不可读 → 一行说明并**零产出停止**（`init` 会把门机械兜住：`MISSING_FILE`）。**要体检任意项目的代码库架构 → 用你的 `arch-analyze`（用户级全局技能）；要在本套件内回答一个架构问题并进产物链 → 用本技能**。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/analysis.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-define.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

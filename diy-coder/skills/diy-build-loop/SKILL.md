@@ -24,6 +24,7 @@ outputs: —
 2. 硬门：`{output_dir}/sprint.yaml` 的 `project.status: 已定稿`。不满足 → 停下，一行说明缺什么，路由 `diy-sprint`。
 3. 定目标：显式 story ID（本次调用的参数——交互侧由用户给出，无头侧由 runner 的提示词给出）；没有就取第一条非终态任务。`已完成` / `已阻塞` 的目标一律拒绝并点明其状态——终态即无活可干。
 4. TDD 门（继承自 diy-dev）：`test_refs` 每一条都要在 test-plan.yaml 里解析得到；解析不到 → 置 `已阻塞`，`blocked_reason` 点名那些缺失/损坏的 TC ID（AC-9.2：歧义转阻塞，不靠猜）——HALT 写 `transition --to 已阻塞 --reason`（见 HALT 协议），零实现产出。`test_refs` 为空只有在该 story 于 test-plan.yaml 中确有 TC 时才算违规（引用集未同步）；AC 缺口全部裁 `已豁免` / `接受缺口` 的故事没有 TC，`test_refs: []` 是合法记录。
+`{output_dir}/sprint.yaml / stories.yaml / test-plan.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 

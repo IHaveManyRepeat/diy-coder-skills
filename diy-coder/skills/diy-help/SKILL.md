@@ -22,6 +22,7 @@ outputs: —
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 实例名取自上一行 `diyc.py resolve` 回执的 `instance` 键；该键为空（本次未传实例）就一律不带 `--instance`，键非空则带同一实例名——绝不自行回落到主线平铺根。
+大产物（`{output_dir}/sprint.yaml` / `stories.yaml` / `epics.yaml` / `prd.yaml` / `test-plan.yaml`）按 `id:` 定位读取、不整读大集合——只在用户点名某产物的某条记录时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 

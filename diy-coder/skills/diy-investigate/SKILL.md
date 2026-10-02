@@ -26,7 +26,7 @@ outputs: investigation.yaml
 2. 先按引用形态确认输入（登记位置、范围、时间窗——大批量读取等第 3 步），再跑确定性采集器：
    `python "{project-root}/.claude/skills/diy-investigate/scripts/investigation.py" collect [--area <path>|--since <commit>] --project-root "{project-root}" --output-dir "{output_dir}" --json`
    回执给 VCS 情报（近期提交 + 涉及文件；git 不可用 → `NO_VCS` warning 降级、绝不致命）、目标区域文件清单（含行数 = 委派子代理的成本依据）、候选面（同名族并行实现、测试文件）。它不下任何结论。输入形态 → 旗标的映射见 `steps/01-acknowledge.md` 的表。
-3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/investigation.yaml` 只在铸下一个 ID（`IV-###` 文件级唯一；`EV-###` / `H-###` 本 case 内计数——作用域见 `steps/02-stronghold.md`）、试 slug 冲突、或按 `id:` 行改一条记录时才打开。本 schema 不定义 `detail` 字段——没有可跳过的内容。
+3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/investigation.yaml` 只在铸下一个 ID（`IV-###` 文件级唯一；`EV-###` / `H-###` 本 case 内计数——作用域见 `steps/02-stronghold.md`）、试 slug 冲突、或按 `id:` 定位改一条记录时才打开；登记与校验判词取 `diyc.py` 回执，绝不重读规则原文。本 schema 不定义 `detail` 字段——没有可跳过的内容。
 4. 读 `steps/01-acknowledge.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

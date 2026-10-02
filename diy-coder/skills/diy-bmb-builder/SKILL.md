@@ -25,7 +25,7 @@ outputs: 技能目录树（{project-root}/.claude/skills/<name>/）——零 YAM
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 续接检测：目标技能已定 → 看 `{output_dir}/build-logs/<skill-name>.md` 在不在；在则**整读一次**重建状态，此后只经引擎 `mlog` 追加（绝不批量回读）。
 3. 硬门（三条，全部零产出）：无意图——既没说造什么、也无目标技能 → 一行拒绝；Build 的输入过薄（无真专家知识可扎根）→ 停并问，**硬化优先于生成**；Analyze 的 target 不存在 / 无 `SKILL.md` → 引擎拒（`MISSING_FILE`）。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/module-plan.yaml / spec-kernel.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-intent.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

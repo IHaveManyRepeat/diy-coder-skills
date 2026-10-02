@@ -21,7 +21,7 @@ outputs: readiness.yaml
    缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
-2. 目标文件 `{output_dir}/readiness.yaml`：只在铸下一个 `IR-###`、或按 `id:` 行修订一条记录时才打开；需求计数与覆盖一律取 `collect` 回执，绝不重读 `prd.yaml` 手数。本 schema 不定义 `detail` 字段——没有可跳过的内容。
+2. 目标文件 `{output_dir}/readiness.yaml`：只在铸下一个 `IR-###`、或按 `id:` 定位修订一条记录时才打开；需求计数与覆盖一律取 `collect` 回执，绝不重读 `prd.yaml` 手数。本 schema 不定义 `detail` 字段——没有可跳过的内容。
 3. 硬门（`collect` 机械判定）：`{output_dir}/prd.yaml` 必须在场，且 `{output_dir}/epics.yaml` / `{output_dir}/stories.yaml` 的 `project.status: 已定稿`。
    - 满足 → 继续第 4 步。
    - 不满足 → `collect` exit 1、**零产出**：转述它的一行理由与 `gate.route`，然后停下——拒绝永不成为记录。

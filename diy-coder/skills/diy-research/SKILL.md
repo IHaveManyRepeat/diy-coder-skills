@@ -23,7 +23,7 @@ outputs: research.yaml
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 目标文件：`{output_dir}/research.yaml`。在场 → **Update**，缺席 → **Create**。记录 ID 铸为既有最大 `RS-###` + 1、三位零填充；永不重编号、永不复用。追加新记录 = 文件追加（不触发 `.prev`）；改写既有记录的字段 = 记录级重写（规则 5 的触发条件）。
 3. 改写既有记录前，先把该记录 `status` 回退 `草稿`；改完按规则 6 重新置 `已定稿` 并重跑终门（`check --final --id RS-xxx`）。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/research.yaml` 只在铸下一个 `RS-###`、按 `id:` 行改一条记录、或判 Create/Update 时才打开；校验判词取引擎的 JSON 回执，绝不重读规则。本 schema 不定义 `detail` 字段——没有可跳过的内容。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/research.yaml` 只在铸下一个 `RS-###`、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验判词取引擎的 JSON 回执，绝不重读规则。本 schema 不定义 `detail` 字段——没有可跳过的内容。
 5. 读 `steps/01-scope.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

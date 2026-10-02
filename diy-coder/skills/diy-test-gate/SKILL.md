@@ -23,7 +23,7 @@ outputs: test-gate.yaml
 2. 跑确定性采集（门禁 + 矩阵 join + 软指标 + NFR / mutation 证据面，全只读）：
    `python "{project-root}/.claude/skills/diy-test-gate/scripts/gate.py" collect --project-root "{project-root}" --output-dir "{output_dir}" [--story S-x] --json`
    exit 1 是拒绝且零产出：转述一行理由与 `gate.route`（`diy-epics-stories` / `diy-test-design` / `diy-prd`），然后停止——拒绝永不成为一条门记录。`diyc` 子进程的 violations 是上游实况，进 `gate.blockers`，不是失败。
-3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/test-gate.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
    读 `steps/01-preflight.md` 并照做（`steps/*.md` 裸路径从本技能安装目录解析），每步结尾点名下一份要读的文件。
 ## 工作流
 

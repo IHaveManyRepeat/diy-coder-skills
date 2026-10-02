@@ -26,7 +26,7 @@ outputs: wds-trigger.yaml
    `python "{project-root}/.claude/skills/diy-wds-trigger/scripts/wds_trigger.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
    有记录 → 播报八字段，按 `stage` 续接（`模式`→01 / `目标`→02 / `驱动`·`优先级`→03 / `特征`→04 / `成品`→05 / `收尾`→06），**HALT 等确认**；无记录 → 进第 3 步。
 3. 门禁（零产出退出）：读 `{output_dir}/wds-brief.yaml`——**缺席或 `project.status ≠ 已定稿` → 一行说明并零产出停止**（路由 `diy-wds-brief`）。**模式必须由用户显式选择**（W 工作坊 / S 建议降级 / D 代做降级；源侧禁止代选），`init` 的 `--mode` 空值由引擎判 `EMPTY_FIELD` 兜底。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/wds-trigger.yaml` 只在续接检测、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验判词取 `wds_trigger.py check` 的 JSON 回执，绝不重读规则原文。
 5. 读 `steps/01-mode.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流
@@ -77,7 +77,7 @@ revisions: []                               # {date, change, reason}——改既
 1. 写范围：只写 `{output_dir}/wds-trigger.yaml`（各段与 `revisions`）；不碰 `wds-brief.yaml`（上游只读）、`prd.yaml` / `design.yaml` / `sprint.yaml` / 源码，也不建任何状态散文件。
 2. **检查点四选项**（每步产出后，六拍不得省）：① 生成本步产出 → ② 落盘（编辑对应段 + 推进 `stage`）→ ③ 显示检查点分隔 → ④ 呈出本步产出 → ⑤ 出四选项 → ⑥ 等响应。
 3. **选项落点**：`[a] Advanced Elicitation` → 调用 `diy-elicit`；`[p] Party-Mode` → 调用 `diy-party-mode`（两者**零写面**：增强 / 多视角产出的内容并入对应段，调用返回后回到第 ② 拍重落盘）；`[c] Continue` → 直接进下一步；`[y] YOLO` → 后续步骤跳过 ⑤⑥（不停等），**②③④ 照旧**——落盘与呈出不因 YOLO 而省，首次选中时一行明示。无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
-4. **模式与降级**（裁定 9）：**W（工作坊）是默认且能力完整的路径**；S / D 降级为「自审循环」——保留 5 层管线的**第 2–5 层**（项目上下文 → 领域研究 → 生成 → 自审），**第 1 层「Learn WDS Form」标为不可用**（源侧依赖 5 条不存在的文档，属源侧缺陷、已登记为能力损失），**不得伪造方法层文档**；S 每步呈出自审结果待复核、D 连续推进到末步再复核。
+4. **模式与降级**（裁定 9）：**W（工作坊）是默认且能力完整的路径**；S / D 降级为「自审循环」——保留 5 层管线的**第 2–5 层**（项目上下文 → 领域研究 → 生成 → 自审），**第 1 层「Learn WDS Form」标为不可用**（源侧 5 条学习材料**引用路径失效**——其中 2 条实存于安装布局（`_bmad/wds/data/agent-guides/saga/`：trigger-mapping 653 行 + dream-up-approach 1,034 行，Layer 1 方法本体），3 条确不存在；方法基准已由本技能键表 + `06-finish.md` 质检承载；属源侧缺陷、已登记为能力损失），**不得伪造方法层文档**；S 每步呈出自审结果待复核、D 连续推进到末步再复核。
 5. **边界（WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：vs `diy-research`——它是**联网三维度调研**（每条断言带已核来源），本技能是**从上游简报结构化出驱动力**（含负向驱动力），不联网、不产来源。vs `diy-wds-brief`——简报是上游（本技能只读它的 `brief` 四段），触发图是它的下一环。vs `diy-wds-scenarios`——它读本技能的图起场景，本技能不向下游写。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
 6. **终门（机械）**：先落 `project.status: 已定稿` + `stage: 收尾`，再跑 `python "{project-root}/.claude/skills/diy-wds-trigger/scripts/wds_trigger.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions`）。渲染与收尾都等 exit 0。**WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。随身体检用 `metrics`（越界只给 warning，不阻断）。
 7. **违规码**：复用冻结集（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `UNKNOWN_ID` / `DUPLICATE_ID` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ B6 的已批码 `TOKEN_UNRESOLVED`（**本批不新增码**）；`SET_MISMATCH` 兼作「`init --mode` 与既有产物不符」「评分重算不符」「驱动因素 ID 序号与所属人物不符」。

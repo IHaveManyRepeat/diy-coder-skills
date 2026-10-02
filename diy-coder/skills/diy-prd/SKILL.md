@@ -24,6 +24,7 @@ outputs: prd.yaml
 2. 目标文件：`{output_dir}/prd.yaml`。
 3. 判定意图：**Create**（文件不存在）或 **Update**（文件已存在）。含糊时直接问。
 4. anytime 声明：交互式时提一句——任意时点都可调 `diy-elicit`（对某一节做深挖增强）或 `diy-party-mode`（换多视角会审）；两者零写面，增强结果交回本技能落盘并记 `revisions`（无头不提）。
+`{output_dir}/prd.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 

@@ -42,7 +42,7 @@
   | `docs/method/dream-up-rubric-phase-2.md`（对应物） | `_bmad/wds/data/agent-guides/saga/dream-up-approach.md` | **1,034** | "Saga's Dream Up Approach Guide"——**明写 "Core Architecture: 5 Layers"**，**Layer 1 的方法本体在此** |
 
   **影响评估**：§2.1 已内联的 `saga/` **5 份 1,433 行**（= content-structure-principles 190 + conversational-followups 372 + discovery-conversation 265 + inspiration-analysis 215 + seo-strategy-guide 391）**不含**上述 2 份核心文档（1,687 行）→ **Layer 1 的输入在源侧真实存在但未迁**。**本条误判影响实质**（不只是台账措辞）：能力损失的判定依据需重估。
-  **处置（用户 2026-09-27 裁定）**：**Layer 1 单独立项**——见 `迁移计划.md` §二十七 立项登记；`diy-wds-trigger/steps/01-mode.md:32` 的「5 条不存在的文档」措辞**留待该项评估时一并订正**（本轮回溯不动已建技能）。
+  **处置（用户 2026-09-27 裁定；C·7 收口更新 2026-10-02）**：**Layer 1 单独立项**——见 `迁移计划.md` §二十七 立项登记、评估结论与落地见 §三十；`diy-wds-trigger/steps/01-mode.md:32` 的「5 条不存在的文档」措辞**已由 C·7 订正**——两处（01-mode.md ★ 段 + SKILL.md 规则 4）改写为「5 条学习材料**引用路径失效**——其中 2 条实存于安装布局（trigger-mapping 653 行 + dream-up-approach 1,034 行，Layer 1 方法本体），3 条确不存在；方法基准已由本技能键表 + `06-finish.md` 质检承载」口径；Layer 1 判据级补全 5 项随批落地（不整体补建）。
 - **裁定 11（doc-synthesis 改写）**：替代入口从「用户往会话里塞文档」→ **读 diy 既有产物**（七维覆盖图 → `wds-brief.yaml` / `prd.yaml` / `research.yaml` / `prfaq.yaml` / `brainstorm.yaml` 的逐键映射表已落）
 - **裁定 6（口径归一，两处）**：驱动因素 **3–5**（源采集端口径，展示端不再截断到 3）· 人物群 **2–4**（去掉「三级 TG0/1/2 + 5/3/3 加权」假设）
 - **裁定 10（Feature Impact 保留）**：`06a–06e` 五微步骤 + 评分常量（Primary 5/3/1 / 其他 3/1/0 / Must-Have 阈值）全保——**与裁定 6 去掉的 `5/3/3` 是两组不同常量，不冲突**

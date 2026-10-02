@@ -180,8 +180,11 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn(READ_DISCIPLINE, self.raw, "缺母本 §4 读取纪律锚串（steps/ 已落地）")
 
     # trace: C·3a §2.1（四段结构不变 + 软控制线 = 现状 73 + 20% = ≤88；超线须回报理由）
+    # trace: C·7 任务书 §0 裁定 4（承 C·12 裁定 4-②）：旧 88 线随 C·3a 收口失效——
+    #   本批补 WDS form_factor/modes 消费句后按「加句后实测 ×1.2」一次裁到位（SS-030-03 时序）。
+    #   加句后实测 = 88 行（消费句行内追加、未增行），88 × 1.2 = 105.6 → 106（向上取整，照 C·3a 73×1.2=87.6→88 先例）
     def test_four_sections_and_line_budget(self):
-        self.assertLessEqual(len(self.raw.splitlines()), 88, "薄主文件超出 88 行控制线")
+        self.assertLessEqual(len(self.raw.splitlines()), 106, "薄主文件超出 106 行控制线（C·7 裁定 4：实测 88 × 1.2）")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, self.raw, "缺四段结构：%s" % section)
         self.assertIn("# ↑ 中文：", self.raw, "description 缺中文注释")

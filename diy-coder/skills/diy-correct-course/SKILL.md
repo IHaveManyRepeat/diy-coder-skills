@@ -30,7 +30,7 @@ outputs: change-proposal.yaml
 3. 跑确定性开场（门 + 六文档影响面摘要 + 委派 diyc 跨文档核对 + 引用链）：
    `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" collect --project-root "{project-root}" --output-dir "{output_dir}" [--target <ID>] --json`
    硬门 = `{output_dir}/prd.yaml`、`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml` 三件套在场且各自的 `project.status: 已定稿`。exit 1 是零产出的拒绝：转述它的一行理由与 `gate.route`，然后停下——拒绝永不变成记录。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/change-proposal.yaml` 只在铸造下一个 `CP-###`、或按某条记录的 `id:` 行改它时才打开；文档摘要、`diyc.check.violations` 与 `chain` 取回执，绝不靠重读产物。本 schema 不定义 `detail` 字段——没有可跳过的内容。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/change-proposal.yaml` 只在铸造下一个 `CP-###`、或按 `id:` 定位改某条记录时才打开；文档摘要、`diyc.check.violations` 与 `chain` 取回执，绝不重读产物。本 schema 不定义 `detail` 字段——没有可跳过的内容。
 5. 读 `steps/01-init.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

@@ -25,7 +25,7 @@ outputs: wds-brief.yaml
    `python "{project-root}/.claude/skills/diy-wds-brief/scripts/wds_brief.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
    有记录 → 播报五字段，按 `stage` 续接（`分诊`→01 / `对齐`·`签核`→02–03 / `核心`→04 / `内容`→05 / `视觉`→06 / `收尾`→07），**HALT 等确认**；无记录 → 进第 3 步。
 3. 门禁（零产出退出）：**本技能是 WDS 链的起点，无上游产物门禁**——门禁 = 分诊问答完成（项目类型非空）。拒答「新建还是存量」→ 一行说明并**零产出停止**（可路由 `diy-prfaq` 点火）；`init` 的 `--project-type` 空值由引擎判 `EMPTY_FIELD` 兜底。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/wds-brief.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-intake.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

@@ -24,7 +24,7 @@ outputs: wds-design-system.yaml
 2. 续接检测：跑 `list` 看有没有已在做的组件库——**只回 `id` / `name` / `category` / `prefix` / `complexity` / `status` 六字段，不读正文**；有记录 → 播报六字段并问「接着做哪个活动（C / I / V / E）」，**HALT 等选择**；无记录 → 进第 3 步走 `[C]` 建库。
    `python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
 3. 门禁（零产出退出）：读 `{output_dir}/wds-scenarios.yaml`——**缺失 → 一行说明并零产出停止，路由 `diy-wds-scenarios`**；其 `project.status: 已定稿` 不成立 → 同样零产出停止（`init` 会把两者机械兜住：`MISSING_FILE` / `STATUS_MISMATCH`）。门禁过 → 读 `scenarios[].pages[].id`（组件 `used_in[]` 的合法值域）。`design.yaml` **可选读**：在场 → token 走派生；缺席 → 降级为独立定义并记 warning（不阻断）。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/wds-design-system.yaml / token-vocabulary.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-create.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流

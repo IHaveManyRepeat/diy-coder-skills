@@ -29,12 +29,15 @@ Progress: `[1 模式选择、门禁与铸骨架] → 2 从既有产物起步（�
 | **S**（降级） | **自审循环**：保留 5 层管线的**第 2–5 层**（项目上下文 → 领域研究 → 生成 → 自审），每步呈出自审结果待复核 | 同上，但每步是「出稿 + 自审报告」而非问答 |
 | **D**（降级） | 同 S，但**连续推进到末步**再一次性复核 | 同上，检查点全程等价 `[y]` |
 
-**★ 第 1 层「Learn WDS Form」标为不可用（裁定 9）**：源侧该层的唯一输入是 5 条**不存在的**文档（`docs/method/phase-wds-2-trigger-mapping-guide.md`、`docs/quick-start/0wds-2-trigger-mapping.md`、`src/data/agent-guides/saga/trigger-mapping.md`、`docs/models/impact-effect-mapping.md`、`docs/method/dream-up-rubric-phase-2.md`——全仓 `find` 实测不存在）。**本技能不新建方法层文档、也不假装它存在**：S / D 的自审基准改由**本技能自带的键表与 `06-finish.md` 的质检查表**充当（它们是可核对的机械基准）。**这条源侧缺陷登记为能力损失，不登记为偏离。**
+**S/D 自审降级出口**：同一处产出**连续 5 轮**不过质检阈值 → 建议转 **W 工作坊**（材料不足时，问出来比反复自审更有效；「5 轮」= 源 `dream-up-approach.md:893-916` 的硬数「5 iterations on ANY step」，SS-030-05 定案）。
+
+**★ 第 1 层「Learn WDS Form」标为不可用（裁定 9；措辞订正 C·7）**：源侧该层的唯一输入是 5 条学习材料**引用路径失效**——其中 2 条实存于安装布局（`_bmad/wds/data/agent-guides/saga/`：trigger-mapping 653 行 + dream-up-approach 1,034 行，Layer 1 方法本体），3 条确不存在；方法基准已由本技能键表 + `06-finish.md` 质检承载（对照见 layer1 调研报告）。原 5 条引用：`docs/method/phase-wds-2-trigger-mapping-guide.md`、`docs/quick-start/0wds-2-trigger-mapping.md`、`src/data/agent-guides/saga/trigger-mapping.md`、`docs/models/impact-effect-mapping.md`、`docs/method/dream-up-rubric-phase-2.md`。**本技能不新建方法层文档、也不假装它存在**：S / D 的自审基准改由**本技能自带的键表与 `06-finish.md` 的质检查表**充当（它们是可核对的机械基准）。**这条源侧缺陷登记为能力损失，不登记为偏离。**
 
 **二、选入口**（源 `workflow.md:57-62` 的分支，第三个 `validate` 分支见文首的裁撤说明）：
 
 - **默认**：从零工作坊——直接进「三、门禁」。
 - **从既有产物起步**（源侧叫 "existing" / from docs）：用户手里已经有 diy 既有产物（简报 / PRD / 调研 / 头脑风暴…）→ 选 `entry: 既有产物`，铸骨架后读 `./01-mode.md` 的 `## 第 2 步`。
+- **上游材料不足**（简报无研究结论 / 无 `research.yaml`）→ **建议先跑 `diy-research`**：本技能消费其 `findings[]` 与 `RS-###`（接口见下文 `## 第 2 步` 覆盖图的 research.yaml 各行）。
 
 **W 模式的二次菜单**（源 `:80-86`）：问一句「四个工作坊**一次跑完** [A]，还是**一个一个来** [O]？」——选 `[O]` 时每走完一个工作坊就停下来问「继续下一个 / 存着下次接着来」。
 

@@ -49,6 +49,13 @@ Progress: `[1 页面基础] → [2 区块与排序] → [3 对象与类型] → 
 - **token 是唯一风格源**：本步新增的任何色值/字号都要先登记进 `tokens.*`，再在结构稿里引用（`var(--color-*)`）；不然 `audit` 的 `one-off-*` 会在收尾拦住你——**在这里改便宜，在收尾改贵**。
 - **继承外部 UI 系统**时：把第三方库的默认色值**显式登记**进 `tokens.color`，或把库目录写进 `token_scope` 让 `audit` 跳过（两条出口二选一，写清选了哪条）。
 
+## meta 内容键（C·7 · 两层判据）
+
+- **机械层（`validate` 判）**：`pages[].meta` 三子键 `title` / `description` / `og_image` **全可选**；在场则必须非空字符串（空串与非字符串 → `EMPTY_FIELD`）；缺失不违规——内部工具可整体省略。
+- **引导层（模型判，不进 validate）**：公开站点应填齐三子键——`title` 简练（建议 ≤60 字符）、`description` 一句价值主张（≤160 字符）、`og_image` 指向项目内可访问的图片资源路径（WDS 线项目常见于 `assets/`，**不限死该目录**——主线项目无 assets 时指向实际资源位置）。
+
+判据值定案（SS-030-08）：以本三条为准（60 / 160 / 图片路径）；源 `_bmad/wds/data/agent-guides/freya/meta-content-guide.md`（495 行）仅作对照登记、不逐字迁。
+
 ## 收尾与路由
 
 规格落盘 → 读 `./prototype-loop.md`（结构稿按段建）或 `./h-delivery.md`（规格已够、直接进框架实现）。

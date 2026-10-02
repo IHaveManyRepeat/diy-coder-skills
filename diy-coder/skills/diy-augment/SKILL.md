@@ -24,6 +24,7 @@ outputs: —
 2. 载入 `{output_dir}/sprint.yaml`，定位激活提示点名的任务。硬门：该任务在 `tasks[]` 里的 `status` 必须是 `已完成`（任务级字段——`project.status` 是文件水位线，不是本门的读取层）；补测只在编码后发生，其他状态 → 一行说明并停下，零产出。任务 `augment` 字段若在场（`通过` / `失败` / `已跳过`）＝ 既往判定：本轮与它对账，不重复造用例。
 3. 输入：`{output_dir}/test-plan.yaml`（用例、`static_checks` 链、覆盖证据的落点）与 `{output_dir}/stories.yaml`（AC 索引）；解析该故事的 AC 集合与既有每-AC TC 序列（每个 AC 当前的最大 seq）。
 4. 写范围恰为四个面（`test-plan.yaml` 的追加用例及其 `status`、改既有用例时的顶层 `revisions` 追加条、本任务的 `augment`、本任务的 `test_refs`、`mutation-report.yaml`）；任务的 `status` 与 `evidence` 都不在写面——细则见规则第 1、9、10 条。
+`{output_dir}/test-plan.yaml / mutation-report.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 

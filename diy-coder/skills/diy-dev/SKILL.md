@@ -29,7 +29,7 @@ outputs: —
    - `已阻塞` —— 先读 `blocked_reason` 分流：缺用例类（无用例 / `decision: 待办`）才走第 4 条的 TDD 门回 `diy-test-design`；依赖/故障类不得按缺用例处置——障碍解除后由 `diy-sprint` 的 `reconcile` 重算回 `待办`，不经本技能。
    - `待审查` —— 归 `diy-review`，本技能不碰。
    TDD 门（AC-7.2）：`test_refs` 每一条都要在 test-plan.yaml 里解析得到；解析不到，或该 story 于 test-plan.yaml 中确有 TC 而 `test_refs` 为空 → 拒绝编码，说「测试用例缺失，先运行 diy-test-design」，零实现产出；拒绝是停下，不是绕道。AC 缺口全部裁 `已豁免` / `接受缺口` 的故事没有 TC，`test_refs: []` 是合法记录——照常实现，无红绿行可记。
-5. **WDS 模式**：取 `design.yaml` 里第一条 `pages[].status: 结构稿中` 的页（页 ID = `SC-<nn>.P<n>`，上游定死、不得另铸 `P-*`；缺该键的页按 `未开始` 读，不取），读该页记录（`states[].signals` 是判据唯一真源）+ 其 `prototype` / `implementation`，然后读 `steps/wds-implement.md`；此后**一次只读一个** `steps/` 文件（裸路径从本技能安装目录解析；每步结尾点名下一个要读的文件）。**不跑主线 TDD 门**（`test_refs` / `test-plan.yaml` 是主线概念）；WDS 模式的页状态推进一律经 `design.py transition`。
+5. **WDS 模式**：开工先读 `{output_dir}/design.yaml` 顶层两键——`form_factor`（目标表面：「写在什么上」，值域 `响应式 Web` / `移动端` / `桌面` / `多端`）与 `modes`（默认主题，值域 `亮` / `暗` / `双模`；`双模` 的 tokens 明暗对已由 `audit` 判——dev **不重复判、只遵守**）；两键语义以 `diy-design` 键表为唯一权威，施工不得自造。然后取 `design.yaml` 里第一条 `pages[].status: 结构稿中` 的页（页 ID = `SC-<nn>.P<n>`，上游定死、不得另铸 `P-*`；缺该键的页按 `未开始` 读，不取），读该页记录（`states[].signals` 是判据唯一真源）+ 其 `prototype` / `implementation`，然后读 `steps/wds-implement.md`；此后**一次只读一个** `steps/` 文件（裸路径从本技能安装目录解析；每步结尾点名下一个要读的文件）。**不跑主线 TDD 门**（`test_refs` / `test-plan.yaml` 是主线概念）；WDS 模式的页状态推进一律经 `design.py transition`。
 
 ## 工作流
 

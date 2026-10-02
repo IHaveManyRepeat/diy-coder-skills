@@ -26,6 +26,7 @@ outputs: sprint.yaml
    - **Create** —— 文件缺席 → 从工作流第 1 步走，任务集由 `reconcile --apply` 落盘。
    - **Update** —— 文件在场 → 按工作流第 2 步对账，进度照保。
    - 二者都说不通 → 问用户一次，别猜。
+`{output_dir}/sprint.yaml / stories.yaml / test-plan.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 

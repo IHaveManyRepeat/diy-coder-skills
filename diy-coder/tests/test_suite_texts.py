@@ -465,5 +465,46 @@ class EngineContractGuardTests(unittest.TestCase):
         self.assertTrue(seen, "守卫空转：全库未扫到任何 `check --type X --previous`")
 
 
+# ------------------------------------------- C·7 W3（读取成本纪律三锚，2026-10-02）
+# 三枚固定短锚（SS-030-04 阻断级定案：检查器 = 固定短锚逐字匹配；每技能「点名产物 +
+# 触发条件」的完整句属引导层、不进守卫——防「每技能文本不同导致母串机制不成立」）：
+#   ① 时才打开       —— 激活读清单：大产物只在触发条件下打开。与 §4 锚（ANCHOR_READ_
+#                        DISCIPLINE = 预载预算纪律）分工并存、语义不重叠、禁止同句两锚
+#   ② 按 `id:` 定位  —— 大集合按 ID 定位读取，不整读大集合
+#   ③ 绝不重读       —— 校验/统计走 diyc.py 回执，模型只读结论简报，绝不重读规则原文
+W3_ANCHORS = ("时才打开", "按 `id:` 定位", "绝不重读")
+
+# W3 核定名单（2026-10-02 机械核定，report-w3-census.md §2；用户裁定方案甲 = 全量 33+1）：
+# 「有 YAML 大产物消费面 或 有 diyc.py 回执调用」− design/dev/review（C·3a §4 面已覆盖）
+# − 薄技能 13（核定报告 §3 逐条理由）；wds-trigger 句归 W1 交付 6 落地、在本守卫面内锁定。
+# 名单核定依据与偏差登记见 .analysis/2026-10-01-c7/report-w3-census.md（+24 后批盲区 / −2 功能型）
+W3_ROSTER = frozenset("""
+analyze architecture augment bmb-builder bmb-module build-loop
+checkpoint-preview cis-method correct-course create-story e2e-tests
+epics-stories help investigate openapi prd quick-dev readiness-check
+research retrospective reverse sprint teach-me-testing test-author
+test-design test-framework test-gate test-review
+wds-assets wds-brief wds-evolution wds-scenarios wds-system wds-trigger
+""".split())
+
+
+class W3ReadDisciplineTests(unittest.TestCase):
+    """C·7 三短锚守卫：核定名单全量逐字匹配三锚（PENDING 已清零的终态形态，照 B 组
+    『台账清空后转为全部适用技能必须含锚串』先例；落守卫时 33 缺口红相 = 判据自证，
+    补句后清零——report-w3.md 留痕）。"""
+
+    def test_three_short_anchors_on_full_roster(self):
+        lacking = []
+        for s in sorted(W3_ROSTER):
+            text = read(s)
+            self.assertIsNotNone(text, "名单技能 %s 无 SKILL.md——名单与库不符" % s)
+            for anchor in W3_ANCHORS:
+                if anchor not in text:
+                    lacking.append("%s 缺短锚 %r" % (s, anchor))
+        self.assertEqual(lacking, [],
+                         "读取成本纪律三短锚缺口（名单元 = report-w3-census.md §2）：\n%s"
+                         % NL.join(lacking))
+
+
 if __name__ == "__main__":
     unittest.main()

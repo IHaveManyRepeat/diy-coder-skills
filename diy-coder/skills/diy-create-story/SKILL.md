@@ -28,7 +28,7 @@ outputs: story-context.yaml
    exit 1 是零产出拒绝：转述它的一行理由与其 `gate.route`（diy-epics-stories）或 `suggestions` 列表，然后停下——拒绝永不变成记录。
 3. 上游调查（可选）：读 `{output_dir}/investigation.yaml` 的 `cases[]`——用户点名或按 `slug` / `id` 命中的那一条，取值键 `handoff_brief` / `conclusion`（`text` / `confidence` / `fix_direction`）/ `evidence[]`（`grade` / `ref`）；引用它、绝不转抄，证据分级口径归 diy-investigate。
 4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
-   `{output_dir}/story-context.yaml` 只在铸下一个 `SC-###`、或按某条记录的 `story:` 行改它时才打开；AC / TC / 决策 / 前序事实一律取回执，绝不手工回读 `stories.yaml` / `test-plan.yaml` / `architecture.yaml`——唯一例外是第 4 步判据取材时读 `{output_dir}/test-plan.yaml` 的 `static_checks` 段。本 schema 不定义 `detail` 字段——无内容可跳。
+   `{output_dir}/story-context.yaml` 只在铸下一个 `SC-###`、或按 `id:` 定位（`story:` 行）改某条记录时才打开；AC / TC / 决策 / 前序事实一律取回执，绝不重读 `stories.yaml` / `test-plan.yaml` / `architecture.yaml`——唯一例外是第 4 步判据取材时读 `{output_dir}/test-plan.yaml` 的 `static_checks` 段。本 schema 不定义 `detail` 字段——无内容可跳。
 5. 读 `steps/01-target.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每个步骤结尾点名下一个要读的文件。
 
 ## 工作流

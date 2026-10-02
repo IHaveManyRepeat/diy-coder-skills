@@ -24,6 +24,7 @@ outputs: openapi.yaml
 2. 读 `{output_dir}/prd.yaml` 与 `{output_dir}/architecture.yaml`。任一份缺席、或其 `project.status` 不是 `已定稿` → 向用户预警并问是否照样继续。
 3. 接口面判定：由 architecture 的 components/decisions 加 FR 集合推导。项目没有接口面（纯 CLI、库、技能集）→ 说明并停止——没有接口的 openapi.yaml 是虚构。
 4. 目标文件：`{output_dir}/openapi.yaml`。判意图：**Create**（文件缺席）或 **Update**（文件在场）。含糊时直接问。
+`{output_dir}/openapi.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 

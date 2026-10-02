@@ -319,6 +319,22 @@ class SkillContractTests(unittest.TestCase):
                 self.assertIn(val, py_values,
                               "SKILL.md 枚举 %s=%s 不在 design.py 实现内（自造表外值）" % (key, val))
 
+    # trace: C·7 任务书 §2 W4 交付 4（meta 子键集双向守卫——照 C·12 W1 交付 5 形态，键名集比对）
+    def test_meta_subkeys_match_engine(self):
+        import re
+        engine = os.path.join(SKILLS, "diy-design", "scripts", "design.py")
+        with open(engine, encoding="utf-8") as fh:
+            source = fh.read()
+        m = re.search(r"META_KEYS\s*=\s*\(([^)]*)\)", source)
+        self.assertIsNotNone(m, "design.py 不再定义 META_KEYS——meta 守卫前提消失，须重裁")
+        py_keys = re.findall(r'"([^"]+)"', m.group(1))
+        self.assertEqual(len(py_keys), 3, "META_KEYS 应恰三子键：%s" % py_keys)
+        doc = re.search(r"meta`?（((?:`[^`]+` / )+`[^`]+`)）", self.raw)
+        self.assertIsNotNone(doc, "SKILL.md 缺 meta 子键点名（守卫提取锚消失）")
+        doc_keys = re.findall(r"`([^`]+)`", doc.group(1))
+        self.assertEqual(doc_keys, py_keys,
+                         "meta 子键集文档与实现不一致：SKILL=%s py=%s" % (doc_keys, py_keys))
+
     # trace: C·12 §7-5①（dark 六角色 = 亮色六角色同款——守卫两角色集不脱钩）
     def test_dark_roles_match_color_roles(self):
         import re

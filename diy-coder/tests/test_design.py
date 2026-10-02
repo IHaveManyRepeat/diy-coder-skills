@@ -552,6 +552,54 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual(v3.returncode, 0, v3.stdout)
         self.assertTrue(json.loads(v3.stdout)["ok"])
 
+    # ------------------------------------------------------- C·7 W4（meta 可选键）
+
+    # trace: C·7 任务书 §2 W4 交付 1/4（meta 三态：缺失/合法 rc=0；空串与非字符串 →
+    #        EMPTY_FIELD 且 msg 区分两态；SS-030-06：不用 UNPARSABLE_YAML——那是解析层）
+    def test_pages_meta_optional_three_states(self):
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        # 态一：缺失（GOOD_DESIGN 无 meta）→ rc=0
+        dpath = self.write("diy-output/design.yaml", GOOD_DESIGN)
+        v0 = run_engine(["validate", "--design", dpath, "--json"])
+        self.assertEqual(v0.returncode, 0, v0.stdout)
+        # 态二：三子键合法 → rc=0；部分子键在场（description 缺席）同样 rc=0（各自可选）
+        for extra in ("    title: 待办列表\n    description: 一句价值主张\n    og_image: assets/og-todos.png",
+                      "    title: 待办列表"):
+            legal = GOOD_DESIGN.replace(
+                "  prototype: prototypes/P-1.html",
+                "  prototype: prototypes/P-1.html\n  meta:\n" + extra)
+            self.write("diy-output/design.yaml", legal)
+            v1 = run_engine(["validate", "--design", dpath, "--json"])
+            self.assertEqual(v1.returncode, 0, v1.stdout)
+            self.assertTrue(json.loads(v1.stdout)["ok"], v1.stdout)
+        # 态三：空串与非字符串 → EMPTY_FIELD 两枚、msg 区分两态
+        bad = GOOD_DESIGN.replace(
+            "  prototype: prototypes/P-1.html",
+            "  prototype: prototypes/P-1.html\n  meta:\n    title: ''\n    og_image: 42")
+        self.write("diy-output/design.yaml", bad)
+        v2 = run_engine(["validate", "--design", dpath, "--json"])
+        vios = [x for x in json.loads(v2.stdout)["violations"] if ".meta." in x["where"]]
+        self.assertEqual([x["code"] for x in vios], ["EMPTY_FIELD", "EMPTY_FIELD"], v2.stdout)
+        msgs = " | ".join(x["msg"] for x in vios)
+        self.assertIn("为空", msgs, "空串态 msg 未区分：%s" % msgs)
+        self.assertIn("不是字符串", msgs, "非字符串态 msg 未区分：%s" % msgs)
+        # meta 整体非映射 → EMPTY_FIELD（非 UNPARSABLE_YAML）
+        worse = GOOD_DESIGN.replace(
+            "  prototype: prototypes/P-1.html",
+            "  prototype: prototypes/P-1.html\n  meta: 首页标题")
+        self.write("diy-output/design.yaml", worse)
+        v3 = run_engine(["validate", "--design", dpath, "--json"])
+        vios3 = [x for x in json.loads(v3.stdout)["violations"] if x["where"].endswith(".meta")]
+        self.assertEqual([x["code"] for x in vios3], ["EMPTY_FIELD"], v3.stdout)
+        self.assertIn("不是映射", vios3[0]["msg"], v3.stdout)
+        # check 对带合法 meta 的夹具零扰动（验收 #8：新增键不扰动既有面）
+        legal_full = GOOD_DESIGN.replace(
+            "  prototype: prototypes/P-1.html",
+            "  prototype: prototypes/P-1.html\n  meta:\n    title: 待办列表")
+        self.write("diy-output/design.yaml", legal_full)
+        c1 = run_engine(["check", "--design", dpath, "--json"])
+        self.assertEqual(c1.returncode, 0, c1.stdout)
+
     # trace: C·12 §7-5① / §4 验收 #12（dark 子块形状：仅双模合法且必填，六角色全合法 hex）
     def test_dual_mode_dark_pair_shape(self):
         import re
