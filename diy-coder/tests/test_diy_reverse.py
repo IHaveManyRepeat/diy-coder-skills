@@ -204,6 +204,37 @@ class WriteBoundaryTests(ReverseCase):
         self.assertEqual(rc, 1)
         self.assertEqual(doc["violations"][0]["code"], "OVERWRITE_REFUSED")
 
+    def test_init_skeleton_carries_form_factor_and_modes_keys(self):
+        """C·15（清偿 C·12 欠账）：init 骨架含两键（存在性断言——键序非 schema 约束）。"""
+        rc, doc, _, _ = run_cli("init", "--track", "url", "--target",
+                                "https://example.com", "--project-root",
+                                self.tmp, "--output-dir", self.out, "--json")
+        self.assertEqual(rc, 0, doc)
+        got = yaml.safe_load(io.open(os.path.join(self.out, "design.yaml"),
+                                     encoding="utf-8"))
+        self.assertIn("form_factor", got)
+        self.assertIn("modes", got)
+
+    def test_init_skeleton_flunks_design_validate_on_two_codes(self):
+        """C·15 链路级（裁 2=B）：init 产物 → design.py validate，空串≡缺失同码
+        （design.py:747/:754）；码集合断言（EMPTY_FIELD 在场，禁首位断言）。"""
+        if not os.path.isfile(DESIGN_PY):
+            self.skipTest("diy-design 引擎缺席")
+        rc, doc, _, _ = run_cli("init", "--track", "url", "--target",
+                                "https://example.com", "--project-root",
+                                self.tmp, "--output-dir", self.out, "--json")
+        self.assertEqual(rc, 0, doc)
+        proc = subprocess.run(
+            [sys.executable, DESIGN_PY, "validate",
+             "--design", os.path.join(self.out, "design.yaml"), "--json"],
+            capture_output=True, text=True, encoding="utf-8",
+            env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        out = json.loads(proc.stdout)
+        self.assertIs(out["ok"], False)
+        self.assertGreaterEqual({v["code"] for v in out["violations"]},
+                                {"FORM_FACTOR_MISSING", "MODES_MISSING"})
+
 
 # ---- 3 check：既有 schema 三道（裁定 13） ----------------------------------
 

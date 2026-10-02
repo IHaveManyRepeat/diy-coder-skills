@@ -158,6 +158,10 @@ def skeleton(name):
                     "status": "草稿"},
         "direction": "",
         "frontend_framework": "",
+        # C·15（清偿 C·12 欠账）：两键空串——逆向形态 init 时未知不预设默认值；
+        # design.py:747/:754 空串≡缺失同码，键位拓扑同 tokens_doc()
+        "form_factor": "",
+        "modes": "",
         "tokens": {
             "color": {k: "" for k in COLOR_ALL},
             "spacing": {"unit": "", "scale": []},

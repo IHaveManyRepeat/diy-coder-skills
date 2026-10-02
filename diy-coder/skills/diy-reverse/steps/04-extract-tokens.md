@@ -3,7 +3,7 @@
 Progress: `[1 token 三段成形（重复值入 token）] → [2 组件编目与 token→组件映射] → [3 定稿、终门与渲染]`
 
 **Read (input):** `{output_dir}/design.yaml` 的 `pages[]`（第 3 步已落）与 `tokens` 空壳；`steps/02-explore.md` 的色板 / 字阶 / 间距三张清单与 `reverse.py tokens` 的分流回执；`check` 回执。
-**Write (output):** `direction`（具名方向 + 反模式禁令）/ `frontend_framework` / `tokens` 三段；`project.status: 已定稿` + `project.updated` 刷今天；`revisions`（未决项与来源登记）；给用户的交付摘要与路由。
+**Write (output):** `direction`（具名方向 + 反模式禁令）/ `frontend_framework` / `form_factor` / `modes` / `tokens` 五段；`project.status: 已定稿` + `project.updated` 刷今天；`revisions`（未决项与来源登记）；给用户的交付摘要与路由。
 
 你是**设计系统的提取者**（源 step-04 Extract Design System）。这一段把散开的原始值收成**有结构、可复用**的 token 三段，再走终门。
 
@@ -24,14 +24,15 @@ Progress: `[1 token 三段成形（重复值入 token）] → [2 组件编目与
 
 **取值纪律**：**只收 `02-explore` 3.3 判为「重复值」的**（单次值一律不收）；色值写 `#rrggbb` 形态，非法 hex 判 `ENUM_INVALID`。三键 `bg` / `text` / `accent` 为 `validate` 的必填（引擎同判 `EMPTY_FIELD`）。
 
-### 1.2 方向与框架（既有 schema 的另两项必填）
+### 1.2 方向、框架与两键（既有 schema 的另四项顶层必填）
 
 - `direction`：**第一行**一句话具名方向，换行后 **2–3 行反模式禁令**（每行以 `- ` 起头）——逆向出来的方向同样要**具名**，不许写「干净极简」。
 - `frontend_framework`：逆向一个网站时写 `html`（纯 HTML 项目止于结构稿，省略 `implementation`）。
+- `form_factor` / `modes`：两键的**填写时点在本步**（`init` 骨架铸空串，见 `01-define.md`）——逆向形态此时已知：`form_factor` 填 `响应式 Web` / `移动端` / `桌面` / `多端` 之一，`modes` 填 `亮` / `暗` / `双模` 之一（值域 = `design.py validate` 判据；`双模` 触发 tokens 明暗对审计联动）。
 
-**落盘**：`direction` / `frontend_framework` / `tokens` 三段。
+**落盘**：`direction` / `frontend_framework` / `form_factor` / `modes` / `tokens` 五段。
 
-**检查点（六拍）**：① 生成 → ② 落盘 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。本步：② 落盘（`direction` / `frontend_framework` / `tokens`）；④ 呈出 token 三段与分流清单。
+**检查点（六拍）**：① 生成 → ② 落盘 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。本步：② 落盘（`direction` / `frontend_framework` / `form_factor` / `modes` / `tokens`）；④ 呈出 token 三段与分流清单。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 2 步 —— 组件编目与 token→组件映射（源 step-04 第 2–4 指令）`。
@@ -72,11 +73,11 @@ Progress: `[1 token 三段成形（重复值入 token）] → [2 组件编目与
 python "{project-root}/.claude/skills/diy-reverse/scripts/reverse.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`--final` 核：`project.status: 已定稿` + `direction` / `frontend_framework` 非空 + `tokens` 三段必填键齐（色值合法 hex）+ `pages[]` 非空 + 每页四态齐且各有非色彩信号 + 每页结构稿在场且与 `id` 同源 + `P-<n>` 唯一且顺序 + **零 `[假设]`**。**按回执 `where` 就地修、重跑，不得跳过**。
+`--final` 核：`project.status: 已定稿` + `direction` / `frontend_framework` 非空 + `tokens` 三段必填键齐（色值合法 hex）+ `pages[]` 非空 + 每页四态齐且各有非色彩信号 + 每页结构稿在场且与 `id` 同源 + `P-<n>` 唯一且顺序 + **零 `[假设]`**。**按回执 `where` 就地修、重跑，不得跳过**。（`form_factor` / `modes` 的必填与值域判据**不在本引擎**，由 3.3 的 `design.py validate` 核。）
 
 ### 3.3 交叉核对既有设计域引擎（**裁定 13 的实测面**）
 
-本引擎的判据是既有 schema 的复述；**权威仍是 `diy-design` 的两个只读命令**，各跑一次，**都必须 `exit 0`**：
+本引擎的判据是既有 schema 的复述；**权威仍是 `diy-design` 的两个只读命令**，各跑一次，**都必须 `exit 0`**。两键（`form_factor` / `modes`）的必填与值域（响应式 Web/移动端/桌面/多端；亮/暗/双模）**只在 `validate` 核**——1.2 落盘的两键若空或越值域，此处 `validate` 判 `FORM_FACTOR_MISSING` / `MODES_MISSING`（空串≡缺失同码）：
 
 ```
 python "{project-root}/.claude/skills/diy-design/scripts/design.py" validate --design "{output_dir}/design.yaml" --json

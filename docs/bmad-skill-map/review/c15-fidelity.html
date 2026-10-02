@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C·15 批保真度报告 —— diy-reverse init 骨架补两键（C·12 欠账清偿）</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+      --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+     font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+h1{font-size:1.7rem;margin:0 0 6px}
+h2{font-size:1.2rem;margin:32px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+p{margin:10px 0}
+ul,ol{margin:8px 0 8px 22px;padding:0}
+li{margin:4px 0}
+code{background:var(--code);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:.92em}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:var(--panel);font-size:.95rem}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--code);font-weight:600}
+.meta{color:var(--dim);font-size:.95rem;margin:4px 0 0}
+.ok{color:var(--ok);font-weight:600}
+.warn{color:var(--warn);font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>C·15 批保真度报告 —— diy-reverse init 骨架补两键（C·12 欠账清偿）</h1>
+<p class="meta">批次：C 阶段第 15 项（小批）｜ 完成日期：2026-10-02 ｜ 施工形态：agent team（c15-batch）八工位任务列表序贯（环境无子代理派发，lead 兼全工位，如实登记）</p>
+<p class="meta">任务书：<code>diy-coder/.analysis/2026-10-02-c15/taskbook-c15.md</code>（两裁定 2026-10-02 用户定案：裁 1 = A 空串、裁 2 = B 链路级；呈核 1 项已裁随批）</p>
+<p class="meta">基线：HEAD <code>aa3b204</code>（1603 passed / 243 subtests）→ 收口 <b>1608 passed / 243 subtests</b>（C·15 +2 两锚；另 +3 = C·7 未提交工作区改动，逐文件计数归因闭合）</p>
+
+<h2>一、两裁定落地</h2>
+<table>
+<tr><th>裁定</th><th>落地</th><th>证据</th></tr>
+<tr><td>裁 1 = A 空串</td><td><code>skeleton()</code>（reverse.py:163-164）两键空串，位置 = <code>frontend_framework</code> 后、<code>tokens</code> 前（<code>tokens_doc()</code> 同拓扑）</td><td>实跑骨架 YAML <code>form_factor: ''</code> 在场；键级锚断言两键在盘</td></tr>
+<tr><td>裁 2 = B 链路级</td><td>链路锚：init 产物 → <code>design.py validate</code>（:366 同款形态：subprocess + PYTHONIOENCODING + skipTest 护栏）；主锚 = 码集合 ⊇ {FORM_FACTOR_MISSING, MODES_MISSING}</td><td>RED 阶段事实登记：链路锚补键前即绿（缺键≡MISSING 同码）——行为锁定锚，与裁 2 依据自洽；键级锚亲见红后转绿</td></tr>
+</table>
+
+<h2>二、对拍锚（硬判据，lead 亲跑）</h2>
+<p>补键前后「init → design validate」violations 各 <b>8 条</b>（6×EMPTY_FIELD + 两 MISSING），<b>code / where / msg 及顺序逐字 SAME</b>；两轮间 design.py md5 <code>fc94b1f6…</code> 零漂移（C·7 窗口活跃，特记）。结论：键缺失 → 空串<b>零行为漂移</b>。</p>
+
+<h2>三、steps 文档面（随批；三处执行偏离登记）</h2>
+<ul>
+<li>01-define.md：:6「三段空壳→五段」；:68「三段置空→五段」+「不新增字段→<b>不新增 schema 外字段</b>」（D-5 矛盾句）。</li>
+<li>04-extract-tokens.md：:6 Write 五段；1.2 节标题「另两项→另四项」+ <b>两键填写时点 bullet</b>（D-6 时序缺口闭合，值域 = design.py 判据）；:32/:34 落盘与检查点列举；3.2 终门括注；3.3 两键判据归属句。</li>
+<li><b>偏离 ①</b>：任务书「三段→四段」系计数笔误（3+2=5），实改「五段」。<b>偏离 ②</b>：3.2 终门句初稿曾列两键，即时核查证伪——<code>reverse.py check --final</code> 不核两键（全脚本 grep 亲测），判据改由 3.3 <code>design.py validate</code> 承载，防虚报引擎判据。<b>偏离 ③</b>：04 实改五处 vs 任务书列三处（+检查点句 + 标题计数句，均同批矛盾面）。</li>
+</ul>
+
+<h2>四、B6 复扫两轮</h2>
+<p>第一轮机械扫（三段空壳/三段置空/旧三键并列）全库<b>零命中</b>；第二轮语义扫：面内泛称句 9 处逐一判无矛盾（SKILL.md:41 随 schema 演进自动涵盖），外技能 4 文件「init 骨架」确认语境无关。</p>
+
+<h2>五、多窗口实况</h2>
+<p>开工两项重测过（节号 §三十二 可用 + 基线 8 条零漂移）；施工中 C·7 落 §三十 登记段（迁移计划 1108→1112 行），其 design.py 改动（pages[].meta）与本批两键判据不相交，对拍锚逐字一致为行为级实证；本批<b>先收口锁 §三十二</b>（C·13 taskbook 明文认可）。</p>
+
+<h2>六、验收清单对账（§2 八项）</h2>
+<table>
+<tr><th>#</th><th>验收</th><th>实况</th></tr>
+<tr><td>1</td><td>面内绿（两锚在场）</td><td class="ok">✓ 35 passed</td></tr>
+<tr><td>2</td><td>对拍锚逐字 SAME</td><td class="ok">✓ 8 条 code/where/msg 及顺序</td></tr>
+<tr><td>3</td><td>既有测试零改动</td><td class="ok">✓ :171 宽松循环未动、键元组未扩</td></tr>
+<tr><td>4</td><td>sync 源镜零不匹配</td><td class="ok">✓ 49 技能冒烟 + 3/3 MATCH</td></tr>
+<tr><td>5</td><td>全量停笔串行零红</td><td class="ok">✓ 1608 passed / 243 subtests / 374.02s</td></tr>
+<tr><td>6</td><td>viewer 零改动</td><td class="ok">✓ 未触</td></tr>
+<tr><td>7</td><td>文档面零自相矛盾</td><td class="ok">✓ B6 两轮 + 两码消解路径在场</td></tr>
+<tr><td>8</td><td>steps 零测试波及</td><td class="ok">✓ 61 passed（reverse + analyze 面）</td></tr>
+</table>
+
+<p class="meta">收口链：① 面内 35 绿 → ② 对拍 SAME → ③ sync 3/3 → ④ 全量 1608 零红 → ⑤ 本报告 → ⑥ 迁移计划 §三十二 → ⑦ registry 零改动。工作树未提交（待授权）。</p>
+</main>
+</body>
+</html>

@@ -3,7 +3,7 @@
 Progress: `[1 定目标与访问轨（两轨 + 路由）] → 2 提取目标、门禁与铸骨架（用户关卡） → ./02-explore.md`
 
 **Read (input):** 用户口述的目标（URL / 截图 / 一句「我想照着谁做」）；`{project-root}/diy-coder.yaml` 的 `document_output_language` 与 `paths.output_dir`；`list` 回执（续接检测）；**既有 `{output_dir}/design.yaml` 是否在场**（写权分支的判据）。
-**Write (output):** `{output_dir}/design.yaml` 的顶层骨架（经 `init` 铸造，**仅初始生成**）——`project` + `direction` / `frontend_framework` / `tokens` 三段空壳 + 空 `pages[]` + `revisions`；给用户的目标定义与提取目标呈批。
+**Write (output):** `{output_dir}/design.yaml` 的顶层骨架（经 `init` 铸造，**仅初始生成**）——`project` + `direction` / `frontend_framework` / `form_factor` / `modes` / `tokens` 五段空壳 + 空 `pages[]` + `revisions`；给用户的目标定义与提取目标呈批。
 
 你是**逆向的目标定义者**（源 [R] Reverse Engineering 的活动主持）。这一段只做两件事：**把目标与访问方式说清并验过**、**把提取目标摆到桌面上**。源侧把这一步列为硬前置：`Access method must be verified before proceeding`。
 
@@ -65,7 +65,7 @@ Progress: `[1 定目标与访问轨（两轨 + 路由）] → 2 提取目标、�
 python "{project-root}/.claude/skills/diy-reverse/scripts/reverse.py" init --track "<url|screenshots>" --target "<URL 或截图路径>" --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-- 铸出的是**既有 schema 的空壳**（`project.status: 草稿`、`direction` / `frontend_framework` / `tokens` 三段置空、`pages: []`）——**不新增字段、不自造 ID 形态**。
+- 铸出的是**既有 schema 的空壳**（`project.status: 草稿`、`direction` / `frontend_framework` / `form_factor` / `modes` / `tokens` 五段置空、`pages: []`）——**不新增 schema 外字段、不自造 ID 形态**（`form_factor` / `modes` 是 C·12 起的 schema 内顶层键，骨架置空串——逆向形态未知不预设默认值，空串≡缺失同码）。
 - `project.name` / `created` 由 `init` 铸造后**不再由你改**；页 ID 到 `03-specs` 才顺序铸。
 - **「提取来源」写哪**：骨架阶段就把它记进**本批的会话上下文**——收尾时落在每份结构稿的头部注释（`<!-- 提取来源: <url> / <截图名> · 采集日 YYYY-MM-DD -->`）与会话呈出；`design.yaml` 无来源字段，本批**不新增**（登记为 C·3 的 schema 扩充项）。
 
