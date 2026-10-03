@@ -263,6 +263,107 @@ class DesignEngineTests(unittest.TestCase):
                                             ("text_muted", "bg"), ("text_muted", "surface"),
                                             ("accent_text", "accent"))])
 
+    # trace: C·13 §2 W1（form_factor↔触控下限联动分档：桌面 24；移动端/响应式 Web/多端/
+    #                    缺键/表外值 44；边界口径 = 现行 < 判据下恰值通过）
+    def test_touch_target_min_by_form_factor(self):
+        def touch_violations(design_text, html):
+            dpath = self.write("diy-output/design.yaml", design_text)
+            self.write("diy-output/prototypes/P-1.html", html)
+            data = json.loads(run_engine(
+                ["check", "--design", dpath, "--json"]).stdout)
+            return (data,
+                    [x for x in data["violations"] if x["code"] == "a11y-touch-target"])
+
+        def html_button(height):
+            return GOOD_HTML.replace(
+                "button { background: var(--color-accent); }",
+                "button { background: var(--color-accent); height: %dpx; }" % height)
+
+        # 边界六枚（恰值通过 / −1 违规 / +1 通过）：移动端 44 档、桌面 24 档
+        for form_factor, edge in (("移动端", 44), ("桌面", 24)):
+            design = GOOD_DESIGN.replace("form_factor: 响应式 Web",
+                                         "form_factor: " + form_factor)
+            for height, should_violate in ((edge, False), (edge - 1, True),
+                                           (edge + 1, False)):
+                data, touches = touch_violations(design, html_button(height))
+                self.assertEqual(bool(touches), should_violate,
+                                 "%s %dpx 触控判定不符：%s" % (form_factor, height,
+                                                              data["violations"]))
+                self.assertEqual(data["checked"]["a11y_extras"][0],
+                                 "触控目标 ≥%dpx" % edge)
+                if should_violate:
+                    self.assertIn("< %dpx——触控目标最小 %d×%dpx"
+                                  % (edge, edge, edge), touches[0]["msg"])
+                else:
+                    self.assertTrue(data["ok"], data["violations"])
+        # 桌面档变宽行为锚：43px 于 44 档违规、于 24 档通过（红转绿方向仅此通道）
+        _, desktop_touches = touch_violations(
+            GOOD_DESIGN.replace("form_factor: 响应式 Web", "form_factor: 桌面"),
+            html_button(43))
+        self.assertEqual(desktop_touches, [])
+        # 内联 style 通道同分档：桌面 23px 违规且渲染值随档（24）
+        inline = GOOD_HTML.replace(
+            '<button type="button">新增</button>',
+            '<button type="button" style="height: 23px">新增</button>')
+        data, touches = touch_violations(
+            GOOD_DESIGN.replace("form_factor: 响应式 Web", "form_factor: 桌面"),
+            inline)
+        self.assertEqual(len(touches), 1)
+        self.assertIn("23px < 24px", touches[0]["msg"])
+        # 响应式 Web/多端 = 44 最严端（呈核 3 改判）；缺键/表外值 = 44 缺省档（呈核 8）
+        missing_key = GOOD_DESIGN.replace("form_factor: 响应式 Web" + NL, "")
+        for design in (GOOD_DESIGN,
+                       GOOD_DESIGN.replace("form_factor: 响应式 Web",
+                                           "form_factor: 多端"),
+                       missing_key,
+                       GOOD_DESIGN.replace("form_factor: 响应式 Web",
+                                           "form_factor: 平板")):
+            data, touches = touch_violations(design, html_button(43))
+            self.assertEqual(len(touches), 1,
+                             "43px 须按 44 档违规：%s" % data["violations"])
+            self.assertIn("< 44px", touches[0]["msg"])
+            self.assertEqual(data["checked"]["a11y_extras"][0], "触控目标 ≥44px")
+        # 缺省档恰 44 通过（44 档双向闭环）
+        data, touches = touch_violations(missing_key, html_button(44))
+        self.assertEqual(touches, [])
+        self.assertTrue(data["ok"], data["violations"])
+
+    # trace: C·13 §2 W1（floor 余项两新码 a11y-reduced-motion / a11y-focus-order；
+    #                    承上例先例形态——新码必判 + 修正路径转绿）
+    def test_check_reduced_motion_and_focus_order_codes(self):
+        bad_html = GOOD_HTML.replace(
+            "button { background: var(--color-accent); }",
+            "button { background: var(--color-accent);"
+            " transition: background .2s ease; }").replace(
+            '<button type="button">新增</button>',
+            '<button type="button" tabindex="2">新增</button>')
+        dpath = self.write("diy-output/design.yaml", GOOD_DESIGN)
+        self.write("diy-output/prototypes/P-1.html", bad_html)
+        c = run_engine(["check", "--design", dpath, "--json"])
+        self.assertEqual(c.returncode, 1, c.stdout)
+        violations = json.loads(c.stdout)["violations"]
+        codes = [x["code"] for x in violations]
+        for code in ("a11y-reduced-motion", "a11y-focus-order"):
+            self.assertIn(code, codes, "新码未判：%s" % code)
+        self.assertIn("prefers-reduced-motion",
+                      [x for x in violations
+                       if x["code"] == "a11y-reduced-motion"][0]["msg"])
+        self.assertIn("阅读顺序",
+                      [x for x in violations
+                       if x["code"] == "a11y-focus-order"][0]["msg"])
+        # 修正路径（判据可满足）：补 prefers-reduced-motion 降级块 + tabindex 归 0 → 全绿
+        fixed = bad_html.replace(
+            "</style>",
+            "@media (prefers-reduced-motion: reduce)"
+            " { button { transition: none; } }</style>").replace(
+            'tabindex="2"', 'tabindex="0"')
+        self.write("diy-output/prototypes/P-1.html", fixed)
+        c2 = run_engine(["check", "--design", dpath, "--json"])
+        data = json.loads(c2.stdout)
+        self.assertEqual(c2.returncode, 0, c2.stdout)
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["violations"], [])
+
     # trace: S-14 AC-14.3 TC-14.3.2
     def test_three_digit_hex_parity_across_check_and_audit(self):
         # token 侧写成三位 #000、源码侧写成六位 #000000（反向：bg 写六位、原型写三位）。

@@ -43,7 +43,7 @@ outputs: design.yaml
 1. 起草 `{output_dir}/design.yaml`（`status: 草稿`），形状见「结构」；`frontend_framework` 按「规则」的取值路径落定。
 2. 结构段：每页一份 `{output_dir}/prototypes/<页 id>.html`——布局、区块、landmark、四条交互状态；在这一段便宜地迭代。
 3. 框架段：在选定框架里实现每页，代码落在 `src`；每页路径记进该页的 `implementation`。纯 HTML 项目止于结构稿，省略 `implementation`。
-4. 自检：三条命令全过才算可用（a11y 判定来自 `check` 回执的 `violations[].code`——语义面 `contrast` / `color-only-signal` / `semantic-html`，行为面 `a11y-touch-target` / `a11y-keyboard`；`ds-token-*` 族是设计系统校验，不属 a11y 面）：
+4. 自检：三条命令全过才算可用（a11y 判定来自 `check` 回执的 `violations[].code`——语义面 `contrast` / `color-only-signal` / `semantic-html`，行为面 `a11y-touch-target` / `a11y-keyboard` / `a11y-focus-order` / `a11y-reduced-motion`；`a11y-touch-target` 触控下限按 `form_factor` 分档——移动端 44 / 桌面 24 / 响应式 Web 与多端按最严端 44 / 缺键或表外值 44，其余判据与播报、动态字号两条写作判据见 `steps/p-specify.md`；`ds-token-*` 族是设计系统校验，不属 a11y 面）：
 
 ```bash
 python "{project-root}/.claude/skills/diy-design/scripts/design.py" validate --design "{output_dir}/design.yaml"

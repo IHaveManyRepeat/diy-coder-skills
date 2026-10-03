@@ -56,6 +56,13 @@ Progress: `[1 页面基础] → [2 区块与排序] → [3 对象与类型] → 
 
 判据值定案（SS-030-08）：以本三条为准（60 / 160 / 图片路径）；源 `_bmad/wds/data/agent-guides/freya/meta-content-guide.md`（495 行）仅作对照登记、不逐字迁。
 
+## 无障碍判据（C·13 · 两层分写）
+
+- **机械层（`check` 判）**：`a11y-touch-target` 触控下限按 `form_factor` 分档——移动端 44 / 桌面 24 / 响应式 Web 与多端按最严端 44 / 缺键或表外值 44；`a11y-keyboard`——交互元素须可 Tab 到达（`tabindex="-1"` 移出 Tab 序、挂 `onclick` 而无 `role` 即违规）；`a11y-focus-order`——不得用正 `tabindex` 强改焦点序（`tabindex="0"` 自然序合法不报）；`a11y-reduced-motion`——动效声明（`animation`/`transition`）在场则全文须带 `prefers-reduced-motion` 降级。
+- **引导层（模型判，不进 check）**：①**播报**——每个交互元素带可播报文案/语义（`role` + 状态，屏幕阅读器能念出「是什么、处于什么态」）；②**动态字号**——字号按 `tokens.typography.scale` 可放大到最大档，不截断、不塌控件（最大字号设置下 UI 仍可用）。
+
+判据源对照（不逐字迁）：源 `experience-example-mobile.md` Accessibility Floor 五条——①播报、②动态字号落本条引导层；③Reduce Motion 进 check 机械层；④点击目标已由 C·3a 落 `a11y-touch-target`（本批分档化）；⑤焦点遍历的键盘可达面已由 C·3a 落 `a11y-keyboard`，正 tabindex 强改序为本批判据增强（`a11y-focus-order`，非五条原项）。
+
 ## 收尾与路由
 
 规格落盘 → 读 `./prototype-loop.md`（结构稿按段建）或 `./h-delivery.md`（规格已够、直接进框架实现）。

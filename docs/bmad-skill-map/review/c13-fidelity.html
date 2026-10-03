@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C·13 批保真度报告 —— check 无障碍语义域 form_factor 联动 + census #9（无障碍 floor）收口</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--ink:#1a2333;--dim:#5b6b82;--line:#dfe6ef;
+      --accent:#1d4ed8;--ok:#15803d;--warn:#b45309;--bad:#b91c1c;--code:#f0f3f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+     font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+h1{font-size:1.7rem;margin:0 0 6px}
+h2{font-size:1.2rem;margin:32px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+p{margin:10px 0}
+ul,ol{margin:8px 0 8px 22px;padding:0}
+li{margin:4px 0}
+code{background:var(--code);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:.92em}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:var(--panel);font-size:.95rem}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--code);font-weight:600}
+.meta{color:var(--dim);font-size:.95rem;margin:4px 0 0}
+.ok{color:var(--ok);font-weight:600}
+.warn{color:var(--warn);font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>C·13 批保真度报告 —— check 无障碍语义域 form_factor 联动 + census #9（无障碍 floor）收口</h1>
+<p class="meta">批次：C 阶段第 13 项（小批，census #9 承载批）｜ 完成日期：2026-10-03 ｜ 编制：lead</p>
+
+<h2>卷首</h2>
+<ul>
+<li><strong>施工形态</strong>：agent team（c13）真并行双工位 + 独立 V 零返工——<code>w1-engine</code>（引擎面）与 <code>w2-docs</code>（文档面）文件面零重叠并行；<code>v-verifier</code> 独立六项（不采信施工自述）；双同步点纪律生效（同步点一 = 三分类首查复核放行；同步点二 = 新码终集放行码点名）。</li>
+<li><strong>任务书</strong>：<code>diy-coder/.analysis/2026-10-02-c13/taskbook-c13.md</code>（呈核 8/8 全裁 2026-10-02；③ 响应式 Web/多端 = 44 严端为改判、回写 13 处〔影子 <code>91c36f7</code>〕；自检三片 dogfood 39 findings + 复扫封口）。</li>
+<li><strong>基线</strong>：HEAD <code>595ee33</code>（§三十二，1608 passed / 243 subtests）→ 收口态 <strong>1611 passed / 243 subtests</strong>（+3 = test_design.py +2 / test_design_skill.py +1，归因闭合）。</li>
+<li><strong>本批改动</strong>：6 文件——<code>design.py</code> 1280→1315（W1 +34 分档/两新码/联动；lead 收口 +1 help 补两新码）｜ <code>test_design.py</code> 822→923（+101 两函数，既有 26 用例零删改）｜ <code>SKILL.md</code> 106 行内改零增行 ｜ <code>p-specify.md</code> 69→76（两层分写 +7）｜ <code>test_design_skill.py</code> 366→390（码集一致锁 +24）｜ <code>l4-design-adoption.md</code> 7→8（消费句 +1）＋ .claude 源镜（sync.sh 49 技能同步冒烟过）。</li>
+<li><strong>收口链</strong>：① 双测试文件复跑 59 passed → ② sync.sh 49 技能冒烟 → ③ 全量停笔串行 ≥1608 → ④ 本报告 → ⑤ 迁移计划.md §三十一（顶位；C·14 顺延 §三十三）→ ⑥ registry.yaml 零改动。</li>
+</ul>
+
+<h2>一、呈核裁定落地（8/8）</h2>
+<table>
+<tr><th>#</th><th>裁定</th><th>落地</th></tr>
+<tr><td>①</td><td>主案三件套</td><td>全落地（§二/§三/§五）</td></tr>
+<tr><td>②</td><td>桌面端 24（WCAG 2.5.8 AA，唯一新外部判据）</td><td><code>TOUCH_TARGET_MIN_DESKTOP = 24</code>（:89）+ <code>touch_target_min_for</code>（:434）</td></tr>
+<tr><td>③</td><td><strong>响应式 Web/多端 = 44 严端（改判）</strong></td><td>五场景回执与 HEAD 逐字 SAME（V-② 实证零差异通道）</td></tr>
+<tr><td>④</td><td>两新码独立（不并入既有码）</td><td>:471-474 / :514-518；并入反对理由成立（msg 模板冻结 + 语义不同族）</td></tr>
+<tr><td>⑤</td><td>review 消费句随批</td><td>l4 +1 行，C·7 句零扰动</td></tr>
+<tr><td>⑥</td><td>顶位 §三十一、C·14 顺延 §三十三</td><td>落笔前再测顺延链 ✓；C·14 任务书 :118 节号行随批订正（欠账留痕）</td></tr>
+<tr><td>⑦</td><td>批号维持；硬前置已满足</td><td>§1 ★ 重测全过（1608 零漂移 + 五行数锚 + form_factor 于 cmd_check 零命中）</td></tr>
+<tr><td>⑧</td><td>分档缺省 = 44</td><td>缺键夹具回执逐字 SAME（V-②），存量零漂移保住</td></tr>
+</table>
+
+<h2>二、引擎面（W1）</h2>
+<ul>
+<li><strong>联动</strong>：<code>cmd_check :627</code> 读 form_factor → 分档 → <code>:703</code> 传入 <code>collect_a11y_extras</code>（签名扩展 touch_min，全库唯一调用点）。四值：移动 44 / 桌面 24 / 响应式 Web 与多端 44（最严端）/ 缺键表外 44。</li>
+<li><strong>两新码</strong>：<code>a11y-reduced-motion</code>（CSS 动效声明〔带冒号〕在场且无 prefers-reduced-motion 字样；-webkit-/子属性不收——宁漏不误报）；<code>a11y-focus-order</code>（交互元素正 tabindex；"0"/"-1" 不报）。</li>
+<li><strong>测试</strong>（+101）：边界六枚（恰值通过口径）+ 缺省双向 + 表外值 + 新码维度集测试（照 :235-264 先例）；既有 26 用例零删改。</li>
+<li><strong>回执兼容</strong>：checked 两串除档位渲染值外逐字不动；新码只进 violations[]；msg 模板逐字未动（V-④ diff 核符）。变异自证 3 条字节还原。</li>
+</ul>
+
+<h2>三、文档面（W2）</h2>
+<table>
+<tr><th>文件</th><th>交付</th><th>实况</th></tr>
+<tr><td>SKILL.md:46</td><td>判定句分档 + 码点名</td><td>行内追加零增行（106 ≤ 112）；四码 + 四值 + 「来自 check 回执」短语保留 + 指路 p-specify</td></tr>
+<tr><td>p-specify.md</td><td>两层分写</td><td>+7：机械层（四值 + 四码判据）+ 引导层（播报 / 动态字号）+ 源对照五条去向；既有段零触碰</td></tr>
+<tr><td>test_design_skill.py</td><td>a11y 码集一致锁</td><td>+24 双向集合相等 + 两守卫；三处既有锁未触（31 passed）</td></tr>
+<tr><td>l4-design-adoption.md</td><td>review 消费句（呈核 ⑤）</td><td>+1 行触控分档消费；以 diy-design 引擎为唯一权威；C·7 句零扰动</td></tr>
+</table>
+<p>W2 变异自证 2 条（码集锁双向）。</p>
+
+<h2>四、V 六项独立验证（零阻断零返工）</h2>
+<table>
+<tr><th>#</th><th>项</th><th>结果</th></tr>
+<tr><td>①</td><td>§4 #1–#9 逐项实跑</td><td class="ok">9/9 PASS（分档锚全中；魔数扫描净）</td></tr>
+<tr><td>②</td><td>联动对拍（六场景 × 双引擎，先自建预期集）</td><td class="ok">五场景逐字 SAME；仅桌面差异恰两类通道；与 W1 清单双向集合相等；validate/audit 六场景 SAME</td></tr>
+<tr><td>③</td><td>回执保真</td><td class="ok">坏夹具 check 逐字 SAME；contrast_pairs 恰 5 对</td></tr>
+<tr><td>④</td><td>断言申报复核</td><td class="ok">六文件零未申报改动；红转绿通道=零核证</td></tr>
+<tr><td>⑤</td><td>三分类源侧抽查</td><td class="ok">五条 + shadcn 侧逐条在场吻合</td></tr>
+<tr><td>⑥</td><td>变异抽验 + 全量</td><td class="ok">2 条闭环字节还原；全量 1611 / 243（= 1608 + 3，归因闭合）</td></tr>
+</table>
+
+<h2>五、census #9 收口登记（§4#10 要件）</h2>
+<ul>
+<li><strong>五条去向</strong>：① 播报 → p-specify 引导层（子集 semantic-html 已承载）② 动态字号 → 引导层（子集 ds-token-font-size 已承载）③ Reduce Motion → <code>a11y-reduced-motion</code> ④ 触控目标 → C·3a 已落地，本批分档化 ⑤ 焦点遍历 → C·3a 可达面 + 正 tabindex 增强单列 <code>a11y-focus-order</code>（非五条原项，留痕）。</li>
+<li><strong>a11y 顶层键作废登记</strong>：原建议由 C·3a 后裁覆盖（行为项走 check 码承载）；翻案须用户明示。</li>
+<li><strong>授权链</strong> = §0 裁定 1/2/3/4/6 五条（裁定 5 批次归属不入链）。</li>
+<li><strong>shadcn 余项</strong>：WCAG 2.2 AA 等级 → 裁+登记；快捷键 / Esc / 焦点环 → 不收+登记理由。</li>
+</ul>
+
+<h2>六、裁量项与欠账</h2>
+<table>
+<tr><th>项</th><th>处置</th></tr>
+<tr><td>design.py help 文案未列两新码（V 裁非阻断）</td><td>收口链顺手补齐（+1 行），① 复跑 59 绿覆盖</td></tr>
+<tr><td>W1「兄弟面 70 绿」与 V 实测 40 计数口径差</td><td>报备：W1 跑 4 文件（30+40），V 只跑三兄弟 40（skill 31 另计）——互补吻合，全绿成立</td></tr>
+<tr><td>C·14 任务书 :118 节号行候 §三十一</td><td>欠账留痕：随 C·14 开工重锚时订正为 §三十三</td></tr>
+</table>
+
+<h2>七、多窗口实况</h2>
+<ul>
+<li>开工前主仓干净 @ <code>595ee33</code>；施工中 untracked 出现 <code>docs/bmad-skill-map/BMAD产物名词与关系.md</code>（2026-10-03，C·14 窗口产物）——本批未触碰。</li>
+<li>影子仓（<code>diy-coder/.analysis</code> 嵌套 git）：任务书提交 <code>91c36f7</code>；W/V 回报与 v-report.md 留档随批待提交；C·14 窗口影子 HEAD <code>657dfba</code>，文件面零重叠。</li>
+</ul>
+
+<h2>八、验收清单对账（§4 十项）</h2>
+<table>
+<tr><th>#</th><th>验收</th><th>实况</th></tr>
+<tr><td>1</td><td>联动实现（四值全测）</td><td class="ok">✓ V-② 双向集合相等</td></tr>
+<tr><td>2</td><td>分档值 + 边界六枚 + 魔数净</td><td class="ok">✓ V-① #2</td></tr>
+<tr><td>3</td><td>三分类判据 + 引导句在场</td><td class="ok">✓ V-① #3 + V-⑤</td></tr>
+<tr><td>4</td><td>新码 ≤2 + 维度集测试</td><td class="ok">✓ 码恰 2</td></tr>
+<tr><td>5</td><td>SKILL/p-specify/码集锁</td><td class="ok">✓ V-① #5</td></tr>
+<tr><td>6</td><td>review 消费句</td><td class="ok">✓ V-① #6</td></tr>
+<tr><td>7</td><td>回执保真</td><td class="ok">✓ V-②/③</td></tr>
+<tr><td>8</td><td>既有用例零删改 + 全量 ≥ 基线</td><td class="ok">✓ 1611</td></tr>
+<tr><td>9</td><td>变异自证 ≥2/工位</td><td class="ok">✓ W1 3 + W2 2 + V 抽验 2</td></tr>
+<tr><td>10</td><td>census #9 收口登记</td><td class="ok">✓ §五 + 迁移计划 §三十一</td></tr>
+</table>
+</main>
+</body>
+</html>

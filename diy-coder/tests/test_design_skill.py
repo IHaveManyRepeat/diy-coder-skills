@@ -335,6 +335,30 @@ class SkillContractTests(unittest.TestCase):
         self.assertEqual(doc_keys, py_keys,
                          "meta 子键集文档与实现不一致：SKILL=%s py=%s" % (doc_keys, py_keys))
 
+    # trace: C·13 任务书 §2 W2 交付 3（a11y 码集一致锁——SKILL.md 判定句点名的码集 ==
+    #        design.py check 实际产出的码集，双向集合相等；照 C·12 W1 交付 5 /
+    #        C·7 W4 交付 4 双向守卫形态，把码点名一致性从 V 人工面变机械锁。
+    #        提取锚 = SKILL.md 含「来自 `check` 回执」的恰一行（= a11y 判定句，
+    #        行定位口径同 test_design_intent_l_has_disposition，不扫全文反引号串））
+    def test_a11y_code_set_matches_engine(self):
+        import re
+        engine = os.path.join(SKILLS, "diy-design", "scripts", "design.py")
+        with open(engine, encoding="utf-8") as fh:
+            source = fh.read()
+        py_codes = set(re.findall(r'"(a11y-[a-z-]+)"', source))
+        self.assertTrue(
+            py_codes, "design.py 不再产出 a11y-* 码——码集守卫前提消失，须重裁")
+        lines = [ln for ln in self.raw.splitlines() if "来自 `check` 回执" in ln]
+        self.assertEqual(
+            len(lines), 1,
+            "a11y 判定句定位失败（含「来自 `check` 回执」的行命中 %d 行）" % len(lines))
+        doc_codes = set(re.findall(r"`(a11y-[a-z-]+)`", lines[0]))
+        self.assertTrue(doc_codes, "判定句未点名 a11y-* 码——提取锚已与主文件写法脱钩")
+        self.assertEqual(
+            doc_codes, py_codes,
+            "a11y 码集文档与实现不一致：SKILL=%s py=%s"
+            % (sorted(doc_codes), sorted(py_codes)))
+
     # trace: C·12 §7-5①（dark 六角色 = 亮色六角色同款——守卫两角色集不脱钩）
     def test_dark_roles_match_color_roles(self):
         import re

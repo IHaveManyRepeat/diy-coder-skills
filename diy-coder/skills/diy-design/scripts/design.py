@@ -10,7 +10,8 @@ warnings[], counts{}, file}；退出码 0 成功 / 1 拒绝 / 2 用法错误）�
               token_scope 形状；
               --previous <旧稿> 追加 ID 稳定对账（ID_UNSTABLE / MISSING_FILE / UNPARSABLE_YAML）
   check       design.yaml + 原型自检（判据面 = 回执 violations[].code）：易用性 contrast /
-              color-only-signal / semantic-html · 无障碍 a11y-touch-target / a11y-keyboard ·
+              color-only-signal / semantic-html · 无障碍 a11y-touch-target / a11y-keyboard /
+              a11y-focus-order / a11y-reduced-motion ·
               设计系统 ds-token-color / ds-token-font-size / ds-token-spacing
   audit       扫 src 实现源码的 one-off 色值/字号（hex 按语法位置判定：只判声明值/内联 style
               等真实色值位，var() fallback 与选择器/注释不算）；token_scope 内的路径跳过
@@ -83,6 +84,10 @@ OPEN_QUESTION_STATUSES = ("待办", "已解决")
 
 # 无障碍：触控目标下限（源 steps-h/step-03「Minimum 44x44px interactive areas」）
 TOUCH_TARGET_MIN = 44
+# C·13 裁定（呈核 2/3/8）：触控下限按 form_factor 分档——桌面 24（WCAG 2.5.8 AA Target
+# Size Minimum，本批唯一新外部判据）；移动端 44（源硬数 44pt/48dp）；响应式 Web/多端 44
+# （最严端——静态扫描不模拟媒体查询，双档并判等价按 44 判）；缺键/表外值 44（存量零漂移）
+TOUCH_TARGET_MIN_DESKTOP = 24
 
 NL = "\n"
 
@@ -394,6 +399,9 @@ _RULE_RE = re.compile(r"(?P<sel>[^{}]+)\{(?P<body>[^{}]*)\}", re.DOTALL)
 _BOX_DECL_RE = re.compile(
     r"(?P<prop>min-width|min-height|width|height)\s*:\s*(?P<val>\d+(?:\.\d+)?)px",
     re.IGNORECASE)
+# C·13：动效声明（CSS 属性形态，带冒号；-webkit- 前缀不收——宁漏不误报）与动效降级字样
+_MOTION_DECL_RE = re.compile(r"(?<!-)(?:animation|transition)\s*:", re.IGNORECASE)
+_REDUCED_MOTION_RE = re.compile(r"prefers-reduced-motion")
 _FONT_SIZE_RE = re.compile(r"font-size:\s*([^;{}]+)")
 # 间距声明（自定义属性 --* 的定义位不算：那是 token 自身，不是使用位）
 _SPACING_DECL_RE = re.compile(
@@ -414,28 +422,36 @@ def is_interactive(tag, attrs):
     return attrs.get("tabindex") is not None
 
 
-def small_box_decls(text):
-    """产出显式声明且 <44px 的盒模型尺寸 [(prop, px)]。"""
+def small_box_decls(text, minimum=TOUCH_TARGET_MIN):
+    """产出显式声明且 < 触控下限（分档）的盒模型尺寸 [(prop, px)]。"""
     out = []
     for m in _BOX_DECL_RE.finditer(text or ""):
         px = float(m.group("val"))
-        if px < TOUCH_TARGET_MIN:
+        if px < minimum:
             out.append((m.group("prop").lower(), px))
     return out
 
 
-def _touch_violation(where, target, prop, px):
+def touch_target_min_for(form_factor):
+    """触控下限分档（C·13 呈核 2/3/8）：桌面 = 24；其余（含缺键/表外值）= 44。"""
+    if form_factor == "桌面":
+        return TOUCH_TARGET_MIN_DESKTOP
+    return TOUCH_TARGET_MIN
+
+
+def _touch_violation(where, target, prop, px, minimum):
     return v("a11y-touch-target", where,
              "%s 的 %s: %gpx < %dpx——触控目标最小 %d×%dpx"
-             % (target, prop, px, TOUCH_TARGET_MIN, TOUCH_TARGET_MIN, TOUCH_TARGET_MIN))
+             % (target, prop, px, minimum, minimum, minimum))
 
 
 class A11yChecker(HTMLParser):
-    """无障碍扩展扫描：触控目标（内联 style + <style> 规则）与键盘可达。"""
+    """无障碍扩展扫描：触控目标（内联 style + <style> 规则，下限分档）与键盘可达/焦点序。"""
 
-    def __init__(self, where):
+    def __init__(self, where, touch_min=TOUCH_TARGET_MIN):
         super().__init__()
         self.where = where
+        self.touch_min = touch_min
         self.violations = []
         self._style_text = []
         self._in_style = False
@@ -446,13 +462,21 @@ class A11yChecker(HTMLParser):
             self._in_style = True
             return
         if is_interactive(tag, a):
-            for prop, px in small_box_decls(a.get("style") or ""):
-                self.violations.append(_touch_violation(self.where, tag, prop, px))
-            if str(a.get("tabindex") or "").strip() == "-1":
+            for prop, px in small_box_decls(a.get("style") or "", self.touch_min):
+                self.violations.append(
+                    _touch_violation(self.where, tag, prop, px, self.touch_min))
+            tabindex = str(a.get("tabindex") or "").strip()
+            if tabindex == "-1":
                 self.violations.append(v(
                     "a11y-keyboard", self.where,
                     "%s 的 tabindex=\"-1\" 移出 Tab 序——键盘不可达（源判据：交互元素均可 Tab 到达）"
                     % tag))
+            elif tabindex.isascii() and tabindex.isdigit() and int(tabindex) > 0:
+                # C·13：正 tabindex 强改 Tab 序（tabindex="0" 自然序合法不报）
+                self.violations.append(v(
+                    "a11y-focus-order", self.where,
+                    "%s 的 tabindex=\"%s\" 为正值——正 tabindex 强改 Tab 序，应以 DOM 阅读顺序为准"
+                    "（源判据：焦点遍历遵循阅读顺序）" % (tag, tabindex)))
         elif a.get("onclick") is not None and not a.get("role"):
             self.violations.append(v(
                 "a11y-keyboard", self.where,
@@ -476,16 +500,25 @@ class A11yChecker(HTMLParser):
             if not _INTERACTIVE_SELECTOR_RE.search(m.group("sel")):
                 continue
             selector = m.group("sel").strip()
-            for prop, px in small_box_decls(m.group("body")):
-                self.violations.append(_touch_violation(self.where, selector, prop, px))
+            for prop, px in small_box_decls(m.group("body"), self.touch_min):
+                self.violations.append(
+                    _touch_violation(self.where, selector, prop, px, self.touch_min))
         return self.violations
 
 
-def collect_a11y_extras(where, text):
-    sc = A11yChecker(where)
+def collect_a11y_extras(where, text, touch_min=TOUCH_TARGET_MIN):
+    """无障碍扩展入口（C·13：touch_min 由 cmd_check 按 form_factor 分档后传入）。"""
+    sc = A11yChecker(where, touch_min)
     sc.feed(text)
     sc.close()
-    return sc.finish()
+    out = sc.finish()
+    # C·13 floor ③（Reduce Motion）：动效声明在场且全文无降级字样（宁漏不误报：
+    # -webkit- 前缀与 transition-* 子属性不收；降级块不解析结构、字样在场即认可）
+    if _MOTION_DECL_RE.search(text) and not _REDUCED_MOTION_RE.search(text):
+        out.append(v("a11y-reduced-motion", where,
+                     "动效声明（animation/transition）在场但全文无 prefers-reduced-motion 降级"
+                     "——Reduce Motion 用户无法跳过动效（源判据：动效须可跳过）"))
+    return out
 
 
 # ---- 设计系统校验 ds-token-*（源 steps-h/step-03「Define token verification」：色值 / 字阶 / 间距走 token）----
@@ -591,6 +624,8 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail �
     base_name = os.path.basename(args.design)
     tokens = (design.get("tokens") or {}).get("color") or {}
     pages = design.get("pages") or []
+    # C·13 联动（裁定 2/3）：触控下限按 form_factor 分档（桌面 24，其余/缺省 44）
+    touch_min = touch_target_min_for(design.get("form_factor"))
     # 维度一：对比度（既有，不得删改/降级）
     for fg, bg in CONTRAST_PAIRS:
         if fg in tokens and bg in tokens:
@@ -666,14 +701,14 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail �
             violations.append(v("semantic-html", where,
                                 "%s 原型 %d 个 input 无 label/aria-label" % (pid, sc.input_unlabeled)))
         # 维度四/五：无障碍扩展 + 设计系统（新增，code 走新命名空间）
-        violations += collect_a11y_extras(where, text)
+        violations += collect_a11y_extras(where, text, touch_min)
         violations += collect_ds_violations(design, where, text)
     if getattr(args, "previous", None):
         violations += check_previous(design, args.previous, base_name)
     checked = {"contrast_pairs": contrast_pairs_checked,
                "signals": "states.signals 非色彩",
                "semantic_html": ["h1 唯一", "input 带 label", "img 带 alt"],
-               "a11y_extras": ["触控目标 ≥%dpx" % TOUCH_TARGET_MIN,
+               "a11y_extras": ["触控目标 ≥%dpx" % touch_min,
                                "键盘可达（tabindex/onclick）"],
                "design_system": ["色值走 token", "字阶走 token", "间距走 token"]}
     result = receipt("check", not violations, file=rel, violations=violations,
