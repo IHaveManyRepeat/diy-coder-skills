@@ -6,6 +6,7 @@
 ## 链序
 
 ```
+前置  [research] → [product-brief] → [prfaq]（1-analysis，可选，无依赖边，不入链）
 主线  prd ★ → architecture ★ → [openapi] → [design·双源] → epics-stories ★ → test-design ★
       → sprint ★ → create-story → test-author → dev → review → retrospective
 分叉  dev → e2e-tests ｜ review → augment → test-review → test-gate
@@ -20,6 +21,9 @@ WDS   wds-brief ★ → wds-trigger ★ → wds-scenarios ★ → [system] → [
 
 | 审 | 用 | 技能 | 行 | 依赖 |
 | --- | --- | --- | --- | --- |
+| ☐ | ☐ | diy-research | 80 | — |
+| ☐ | ☐ | diy-product-brief | 89 | — |
+| ☐ | ☐ | diy-prfaq | 81 | — |
 | ☐ | ☐ | diy-prd ★ | 121 | — |
 | ☐ | ☐ | diy-architecture ★ | 94 | prd |
 | ☐ | ☐ | diy-openapi | 77 | architecture |
@@ -39,9 +43,6 @@ WDS   wds-brief ★ → wds-trigger ★ → wds-scenarios ★ → [system] → [
 | ☐ | ☐ | diy-test-gate | 92 | augment |
 | ☐ | ☐ | diy-build-loop | 91 | sprint |
 | ☐ | ☐ | diy-retrospective | 93 | review |
-| ☐ | ☐ | diy-research | 80 | — |
-| ☐ | ☐ | diy-product-brief | 89 | — |
-| ☐ | ☐ | diy-prfaq | 81 | — |
 
 ## B WDS 线（6）
 
