@@ -32,7 +32,7 @@ SKILLS_SRC = os.path.join(ROOT, "skills")
 INSTALLED_REL = os.path.join(".claude", "skills")
 TOOLS = ("runner.py", "exp-sync.py")               # 仓库根 → 安装侧 diy-tools/scripts/（:37-41）
 # 现役技能数（B7b 收口后 49）：新增/删除技能时同步更新——install.py 漏拷即红
-EXPECTED_SKILL_COUNT = 49
+EXPECTED_SKILL_COUNT = 50
 # 植进冻结副本的探针：源侧不该被分发的三类路径（install.py:28-29 / :34）
 PROBES = {
     "skills/diy-viewer/scripts/__pycache__/probe.pyc": "",        # :34 ignore_patterns("__pycache__")
