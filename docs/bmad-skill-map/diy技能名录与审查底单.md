@@ -113,6 +113,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | --- | --- | --- |
 | 全库级（旧技能都要改） | 去 `.claude` 路径硬编码（安装器待办·①） | 155 文件近全员 |
 | 全库级 | 50 技能正文逐项化 | 50 SKILL.md＋steps/ |
+| 全库级 | 去源路径锚（正文「源 `X`」180+ 处悬空引用迁 dev-only 台账） | 72 文件（扩口径后更多） |
 | 新机制 | 安装器向导化（安装器待办·②） | install.py＋diy-coder.yaml |
 | 新机制 | 公共句式母本注入（方案 A 已拍板，discover 先行） | discover_texts.py＋sync_texts.py＋suite-texts.yaml＋test 改造 |
 | 新机制 | prd 前置机制化（判据：下游认源 ID；brainstorm 细化至条目级三级锚） | registry＋7 技能 frontmatter＋prd 喂入面＋brainstorm.py |
@@ -298,3 +299,14 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 排期：随攒批一起处理，与逐项化/母本批同面协调先后（两技能均在 50 文件面内，避免同文件改两遍）。
 
 改动面：diy-architecture SKILL.md（触发落点＋评审面）＋ diy-openapi SKILL.md（结构段 `responses`/`securitySchemes`/`tags`＋工作流走查单位＋DRY 规则扩 `components/responses`）＋ diyc_lib.py 校验面（通用错误 `$ref`·`F-x` tag 解析）＋ viewer 展示层词汇＋相关 tests。
+
+## 待办：全库去源路径锚（2026-10-04 用户裁定，专批，现在不动）
+
+登记来源：用户实测——安装后的 diy 体系内 `p-specify.md` 表格引用的 `steps-p/` 9 文件找不到（源在 BMAD wds-4-ux-design，dev 仓 `.claude/skills/` 可解析，1,323 行核对吻合）。裁定：技能文件受众是 AI，正文路径即行为输入——读到即可能去开文件，终端环境（不装 BMAD）读不到 → 轻则空转工具调用，重则困惑后即兴补「源内容」；悬空锚全库清理。
+
+- 普查：精确口径「源 `含路径串`」180 处/72 文件（steps/SKILL/data/templates＋scripts docstring；diy-design、diy-wds-* 全族、diy-test-review、diy-cis-method 等）。抽样 40 条全为注释性溯源（改写说明/裁撤登记/判据源对照），显式读取指令未见；180 是下界，落地批首步扩口径重扫（无反引号裸路径、「收编自/出处」引导式）。
+- 方案（已裁）：正文去锚自包含——引文/判据值留、路径删；扩查出的显式读取指令改指 diy 自带文件。不随附源文件（第二份源违单一源；AI 回读 BMAD 原文＝迁移改写白做）；不发布时机械剥离（锚多嵌句中，剥不成句）。
+- 溯源落点（已裁 dev-only）：行级锚（路径＋行号＋裁定号）集中迁 `docs/bmad-skill-map/` 新台账（文件名落地时定），发布包正文彻底无源路径；dev 仓 BMAD/wds 源文件本体不动。
+- 范围（已裁）：整个技能包。排期（已裁）：专批；与逐项化/母本批协调先后（同为 50 文件级正文改动，避免同文件改两遍）。
+
+改动面：diy-coder/skills 72+ 文件正文＋docs/bmad-skill-map 溯源台账新建＋批尾保真走查（b*/c*-fidelity 惯例）。
