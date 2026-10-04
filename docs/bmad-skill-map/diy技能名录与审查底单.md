@@ -123,7 +123,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | diy-help 聚合导航·版本演进 | help.py＋SKILL.md＋tests |
 | 单独技能 | diy-help 游离「精准简练」句＋§3 零产物变体 | SKILL.md:79/:20，随母本注入批 |
 | 单独技能 | diy-lab 实测缺陷修复批（①~⑥ 全定档：①走母本·②重·③root归一·④入本批·⑤检测·⑥轻） | cis-method/brief/research/prfaq/viewer/prd＋各引擎脚本 |
-| 单独技能 | 接口契约通用设计与架构鉴权面（重档·RFC 9457·前后端分离三层联动触发·无鉴权显式留痕） | architecture/openapi SKILL＋diyc 校验面＋viewer＋tests |
+| 单独技能 | 接口契约通用设计与架构鉴权面（重档·RFC 9457·前后端分离三层联动触发·无鉴权显式留痕·功能tags分组重档） | architecture/openapi SKILL＋diyc 校验面＋viewer＋tests |
 
 ## 待办：prd 前置机制化（攒批，审查出结论后一并处理，现在不动）
 
@@ -294,6 +294,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - **错误结构（已裁）**：统一错误响应 schema 用 **RFC 9457 problem details**。
 - **触发机制（已裁，三层联动）**：前后端分离（接口面存在）→ architecture **必答**鉴权类安全决策（触发落点：规则 4 改写 / 评审维度 / 新规则，随批拟）→ openapi **必须**设计 `securitySchemes`＋`security`，引用架构侧 `D-*` 决策 ID（下游认源 ID 判据）。
 - **无鉴权显式留痕（已裁）**：鉴权选「无」＝显式决策落盘（照 BMAD `None` 选项先例），不裸奔。
+- **功能分组（2026-10-04 已裁，组合＋重档）**：现状按资源平铺、prd `F-x` 零消费（工作流「逐资源推导」；`paths` 无功能维度锚）。裁：① operation **必挂**功能 `tags`（tag 名含锚，`F-x 功能名` 形态）＋顶层 `tags:` 声明——生态工具原生按 tag 分组；② 引擎校验每个 tag 的 `F-x` 须在 prd.yaml 解析到（同 `x-fr` 校验模式）；③ 推导流同改——走查批次单位从资源改**功能**（一功能内全部端点一批走查）；④ 跨功能共享资源**单归属**（归主功能，他功能仅经 `x-fr` 关联）。
 - 排期：随攒批一起处理，与逐项化/母本批同面协调先后（两技能均在 50 文件面内，避免同文件改两遍）。
 
-改动面：diy-architecture SKILL.md（触发落点＋评审面）＋ diy-openapi SKILL.md（结构段 `responses`/`securitySchemes`＋DRY 规则扩 `components/responses`）＋ diyc_lib.py 校验面＋ viewer 展示层词汇＋相关 tests。
+改动面：diy-architecture SKILL.md（触发落点＋评审面）＋ diy-openapi SKILL.md（结构段 `responses`/`securitySchemes`/`tags`＋工作流走查单位＋DRY 规则扩 `components/responses`）＋ diyc_lib.py 校验面（通用错误 `$ref`·`F-x` tag 解析）＋ viewer 展示层词汇＋相关 tests。
