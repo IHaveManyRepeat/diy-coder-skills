@@ -122,6 +122,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | diy-help 聚合导航·版本演进 | help.py＋SKILL.md＋tests |
 | 单独技能 | diy-help 游离「精准简练」句＋§3 零产物变体 | SKILL.md:79/:20，随母本注入批 |
 | 单独技能 | diy-lab 实测缺陷修复批（①~⑥ 全定档：①走母本·②重·③root归一·④入本批·⑤检测·⑥轻） | cis-method/brief/research/prfaq/viewer/prd＋各引擎脚本 |
+| 单独技能 | 接口契约通用设计与架构鉴权面（重档·RFC 9457·前后端分离三层联动触发·无鉴权显式留痕） | architecture/openapi SKILL＋diyc 校验面＋viewer＋tests |
 
 ## 待办：prd 前置机制化（攒批，审查出结论后一并处理，现在不动）
 
@@ -279,3 +280,15 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | ⑧ | diy-viewer | cis-method 键标签漏网：四分支 deliverable 键＋`sessions`/`deliverable` 顶层键未注册 `KEY_LABELS`，渲染直出英文键名（实测问题求解分支至少 13 键缺，创新策略/设计思维/叙事三分支待普查）——零裸键纪律漏网，与 ④ 同族 | 补注册四分支全键（键表逐条取自 steps/02~05「本分支结构」节）＋顶层键；键名是 schema 机器锚点，产物保留英文、仅展示层译名（C·11 W3 先例）；随批核：零裸键验收断言面为何未覆盖 cis-method／brainstorm（④ 同问） |
 
 另（实测通过项，不立待办）：安装器 install.py 冒烟过；brief→prfaq→prd 链路 stakes 消歧有效、constraints 被拒项两跳传播完整；editorial-review 嵌套调用走通（调用无标准命令属别扭级，未登）。
+
+## 待办：接口契约通用设计与架构鉴权面（2026-10-04 用户裁定，攒批随既有批次一起处理，现在不动）
+
+登记来源：审 diy-openapi 时用户提出；跨技能双查属实——两技能正式面对 security/鉴权/通用错误结构零提及，BMAD 源均有先例（`bmad-generate-openapi` step-02 `securitySchemes`＋step-03b Error Response Format；`bmad-create-architecture` step-04 Category 2 Authentication & Security），属迁移瘦身丢面。
+
+- **通用状态码（重档已裁）**：`components/responses` 定义通用状态码；**每个 operation 必挂通用错误 `$ref`**——`check --type openapi` 门校验面联动扩，测试面先裁后动。
+- **错误结构（已裁）**：统一错误响应 schema 用 **RFC 9457 problem details**。
+- **触发机制（已裁，三层联动）**：前后端分离（接口面存在）→ architecture **必答**鉴权类安全决策（触发落点：规则 4 改写 / 评审维度 / 新规则，随批拟）→ openapi **必须**设计 `securitySchemes`＋`security`，引用架构侧 `D-*` 决策 ID（下游认源 ID 判据）。
+- **无鉴权显式留痕（已裁）**：鉴权选「无」＝显式决策落盘（照 BMAD `None` 选项先例），不裸奔。
+- 排期：随攒批一起处理，与逐项化/母本批同面协调先后（两技能均在 50 文件面内，避免同文件改两遍）。
+
+改动面：diy-architecture SKILL.md（触发落点＋评审面）＋ diy-openapi SKILL.md（结构段 `responses`/`securitySchemes`＋DRY 规则扩 `components/responses`）＋ diyc_lib.py 校验面＋ viewer 展示层词汇＋相关 tests。
