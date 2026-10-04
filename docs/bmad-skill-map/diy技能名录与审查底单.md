@@ -408,6 +408,24 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面：①③＝diy-review `steps/l2-boundary.md`·`falsify.md`；②＝diy-tools diyc.py＋tests。协调：与逐项化批同文件（diy-review SKILL.md 正文），排先后避免改两遍；本条发现属 diy-review 一审范围（技能逐个审查行动线），一审行待审完由用户勾。
 
+## 待办：diy-e2e-tests 关联 openapi 契约认 ID（2026-10-04 用户裁定，攒批待执行，现在不动）
+
+登记来源：用户点名 diy-e2e-tests 要关联 openapi 文档、用里面的 ID。
+
+事实（2026-10-04 核实）：
+- diy-e2e-tests 全目录（SKILL.md＋steps/）零提及 openapi.yaml / operationId / api_refs；diy-augment 同族零提及（grep 证实）。
+- `steps/03-generate-api.md:5` 输入面只有「API 实现（路由、处理器、schema）」；`:30` 契约不清（无 schema、无成文错误码）→ 报出来跳过——openapi.yaml 在场（成文契约）未被消费。
+- ID 形态已有裁定根基：operationId 即接口唯一身份（见「openapi 接口总览行锚」段）；五轴批已裁 AC 侧 `api_refs` 复合锚（operationId＋path+method），但本技能不在五轴批改动面（批 2 仅补 dimension 写入义务）。
+
+裁定（2026-10-04 四项全闭合）：
+- **通路＝A＋B 双源**：A＝直接读 openapi.yaml，按 operationId 取契约做 oracle（状态码/响应结构/错误码——契约在场不再按「契约不清」跳过）；B＝步骤 2 绑 AC 时顺带取 AC `api_refs` 锚定端点。
+- **TC 落锚＝新字段落复合锚**：TC 加可选 `api_refs`（照五轴段 create-story 同名先例；形态＝operationId＋path+method 复合锚，path 即 URL 路径、method 即 get/post）；schema 动 → e2e.py record 校验（锚可解析）＋viewer 渲染联动。
+- **在场口径照五轴先例**：openapi.yaml 在场 → API 用例锚定必做；缺席零提及（不加硬门）。
+- **openapi 在场＝第三件上游产物（补裁·同日）**：`steps/01-detect.md` 硬门段「上游产物优先」清单加可选第三件——openapi.yaml 在场才算上游产物，随门禁段识别并交接后续步消费；缺席不阻塞、不加硬门（硬门仍只 test-plan.yaml＋stories.yaml 两件）。
+- **diy-augment 并入本条**：同族义务同款——API 补测用例同锚定、同在场口径。
+
+改动面：diy-e2e-tests SKILL.md＋steps/01-detect.md·02-targets.md·03-generate-api.md＋diy-augment SKILL.md（＋steps·引擎面，执行时核实）＋TC schema 新字段＋scripts/e2e.py（record 校验）＋viewer＋tests。协调：B 通路依赖五轴批的 AC `api_refs` 字段先行（A 通路不依赖）；与五轴批 2 同文件（两技能 SKILL.md），排先后避免改两遍。
+
 ## 升级事项（可选·不排期·需要才做）
 
 ### object-types 参考层类型扩展（2026-10-04 登记）
