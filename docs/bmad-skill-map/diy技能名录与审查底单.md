@@ -129,6 +129,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | diy-help 游离「精准简练」句＋§3 零产物变体 | SKILL.md:79/:20，随母本注入批 |
 | 单独技能 | diy-lab 实测缺陷修复批（①~⑥ 全定档：①走母本·②重·③root归一·④入本批·⑤检测·⑥轻） | cis-method/brief/research/prfaq/viewer/prd＋各引擎脚本 |
 | 单独技能 | 接口契约通用设计与架构鉴权面（重档·RFC 9457·前后端分离三层联动触发·无鉴权显式留痕·功能tags分组重档） | architecture/openapi SKILL＋diyc 校验面＋viewer＋tests |
+| 单独技能 | test-author「未建」滞后表述清理（2 处条件分支；wds-system 三处真未建归去源锚批） | diy-test-framework SKILL＋steps |
 
 ## 待办：prd 前置机制化（攒批，审查出结论后一并处理，现在不动）
 
@@ -344,6 +345,14 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 改动面：diy-test-design SKILL.md＋diy-tools/scripts/diyc_check_docs.py（含 `.claude` 装副本）＋tests/diyc_fixture.py＋9 测试文件（test_diyc_check/test_augment/test_e2e/test_author/test_gate/test_test_review/test_story_context/test_retrospective/test_change_proposal）＋diy-augment·diy-e2e-tests SKILL.md＋diy-viewer/scripts/viewer.py＋（执行时核实）diy-test-author·diy-test-gate scripts/steps。
 
 协调：与逐项化/母本/去源路径锚批同为 SKILL.md 正文改动面（test-design 在逐项化超限名单：102 行），实施定先后，避免同文件改两遍。
+
+## 待办：test-author「未建」滞后表述清理（2026-10-04 审 diy-test-framework 发现，随批，现在不动）
+
+登记：diy-test-author 已建成（A 表在列、B3 早已收口），test-framework 两处「未建」条件分支系批次期滞后文本——
+- `diy-test-framework/SKILL.md:83` 规则 8「路由与未建技能」：「下游 `diy-test-author` 属 B3 同批（未建成前只在摘要给路由行，不当作可调用技能）」例子过期；修法随批拟（删例子句保留通用纪律「只把已建的 diy 技能当可调用对象」vs 整条改写）。
+- `diy-test-framework/steps/06-finish.md:35`：「下一步读 `diy-test-author/SKILL.md`（若已建；未建则以摘要中的路由行交接）」——条件分支删，改直连。
+
+普查分流（全库 grep「未建」5 处/4 文件）：diy-wds-system 三处（SKILL.md:80＋`complexity-router.md:6/:64`）系 `object-types/workflow.md` 真未建的事实登记（非滞后），归「去源路径锚·迁移痕迹零正文」批处置；diy-bmb-module `03-validate.md:29` 是引擎 warning 违规码语义说明（活机制文本），不动。
 
 ## 升级事项（可选·不排期·需要才做）
 
