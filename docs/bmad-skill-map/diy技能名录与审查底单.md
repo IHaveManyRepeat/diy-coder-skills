@@ -101,6 +101,9 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | diy-cis-method | 完毕 | 2026-10-04 | 纪律块逐字同构（§6/:79·§2/:81，全库 48 技能同款）→ 随 YAML 迁移整体收编；SKILL.md:73「无下游 ID 消费」字面属实、语义误导（「产物可喂 prd」＋04-design.md:210 概念路由 diy-design 均纯内容喂入）→ 已裁「下游认 ID」判据，prd 前置批＋cis-method→design 两待办段；四分支收尾「交付摘要」句 4 处近似变体 → 母本批预发现样本②，统一与否后面裁断 |
 | diy-prd | 完毕 | 2026-10-04 | 激活头与已审技能逐字同构、纪律块 §6/§2 同款在场 → 随 YAML 迁移整体收编；diy-lab 实测发现三项：① Create 首跑门必失败（PENDING_DECISION×映射强制追加 open_questions）无提示 → 修复批⑥轻档；② 三源摄取为内容复制——out_of_scope 10 条中 8 条逐字抄 prfaq constraints，违反「不复述上游（引用 ID）」＋out_of_scope 无 ID、architecture/design 输入面零提及无下游通道 → 判据细化②⑤（两形态纯引用＋`OS-###`＋architecture/design 摄取声明）；③ brief/prfaq distillate 高度重叠无去重规则、research problem/value_props 选型形状与定位口径冲突无裁决规则 → 随前置批核 |
 | diy-architecture | 完毕 | 2026-10-04 | 激活头逐字同构、纪律块同款在场 → 随 YAML 迁移整体收编；输入面零提及 prd `out_of_scope`（grep 证实）→ 已裁判据细化②（新增按 `OS-###` 摄取＋ADR 关联禁做项）；`affects` 只引 ID 绝不复制需求文本＝下游认 ID 正面样板；`stack[].choice` 被下游按值消费（SKILL.md:56 自证 diy-design 取前端框架 / diy-readiness-check 取脚手架）但无锚——值即锚够用 or 铸 `ST-###`，随判据家族批核 |
+| diy-design | 完毕 | 2026-10-04 | 激活头逐字同构、纪律块 §6/§2 同款在场 → 随 YAML 迁移整体收编；三输入面缺陷均已对待办：① 零摄取 prd `out_of_scope` → 判据细化②（按 `OS-###` 守实现类禁做）；② cis-method 概念路由纯内容喂入（04-design.md:210）→ cis-method→design 认 ID 待办段；③ `frontend_framework` 按值消费 `stack[].choice`（B9·SKILL.md:99 逐字取值）→ ST-### 已裁改按 ID 引用；迁移痕迹全族最重（去源路径锚批：13 处＋D12 笔误／D13 幽灵＋dev 仓引用 prototype-loop:12）；object-types「五件」写死 4 处正文 → 升级事项段（使用触发）；WDS 源面（design_status 九值写回／SC 锚／九活动预选）无新发现 |
+| diy-epics-stories | 完毕 | 2026-10-04 | 激活头逐字同构、纪律块 §6/§2 同款在场 → 随 YAML 迁移整体收编；ID 锚全在场（`feature_refs: [F-x]`／AC `refs` 引 FR/NFR／`design_ref` 引 P-x，终门机械复核解析）＝下游认 ID 正面样板；① frontmatter `precededBy: [diy-architecture]` 但正文零消费 architecture（硬门只读 prd，`D-*`/`C-*` 零引用，决策到 create-story 层才接入）——补摄取（story 按 `D-*` 认 ID）or 澄清依赖语义（仅链序非输入）→ 待裁；逐项化存量超限（99 行）→ 上限放宽批一并合规 |
+| diy-readiness-check | 完毕 | 2026-10-04 | 激活头同构（含预载预算三段变体）、纪律块 §6/§2 同款在场 → 随 YAML 迁移整体收编；§5 指涉式变体（规则 5 指涉工作流静默旁路句）属全库 8 处样本 → 已记母本批预发现；确定性开场＋counts/coverage 照抄 collect 回执＋终门机械＝「保证=引擎关卡」正面样板；ST 待办段已含（输入面按 `ST-###` 取脚手架）；IR-### 自铸稳定、evidence 锚点纪律在场，无新发现 |
 
 ### 二审
 
@@ -119,7 +122,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 新机制 | prd 前置机制化（判据：下游认源 ID；brainstorm 细化至条目级三级锚） | registry＋7 技能 frontmatter＋prd 喂入面＋brainstorm.py |
 | 单独技能 | cis-method→design 喂入认 ID（判据同 prd 前置） | 04-design.md:210＋diy-design 输入面 |
 | 单独技能 | architecture stack 铸 ST-###（判据同：下游认源 ID） | diyc.py＋diy-architecture 结构段＋design/readiness-check 输入面 |
-| 单独技能 | 新增 bug 分析技能（cis-method 问题求解编排·五段产物） | 新技能全套＋衔接 investigate/retrospective/bug-log |
+| 单独技能 | 新增 bug 分析技能（cis-method 问题求解编排·五段产物·review 自动调用衔接） | 新技能全套＋衔接 investigate/retrospective/bug-log＋diy-review 调用面 |
 | 单独技能 | 新增 prd→开发前编排工作流 | bmb-module＋bmb-builder 造＋链上各技能交互面 |
 | 单独技能 | diy-help 聚合导航·版本演进 | help.py＋SKILL.md＋tests |
 | 单独技能 | diy-help 游离「精准简练」句＋§3 零产物变体 | SKILL.md:79/:20，随母本注入批 |
@@ -172,8 +175,12 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 登记（2026-10-04 用户裁定立项；查证无对口技能）：现有面 = diy-investigate（取证调查，止于诊断报告，无机制消灭与经验沉淀）/ cis-method 问题求解（通用 9 步含根因·方案·经验教训，不面向 bug、无代码取证）/ retrospective（epic 级复盘）；BMAD 源 `bmad-analyze-bug` 未迁。
 
 - 规格：调用 diy-cis-method **问题求解分支**分析 bug 成因；产物五段——**表面原因 / 复现办法 / 根本原因 / 机制性消灭根本原因的方案 / 经验教训**。
-- 判据（下游认 ID，2026-10-04）：产物铸稳定 ID（如 `BG-###`），喂 `bug-log.yaml` / experience_repo 时按 ID 关联。
-- 待裁：技能名与产物文件名；挂法 A（独立 bug 专有产物，cis-method 当方法引擎）vs B（薄模板特化走 cis-method 记录）；与 diy-investigate 分工（代码取证 vs 方法流分析，是否吃 `IV-###`）；phase / line。
+- 判据（下游认 ID，2026-10-04）：产物铸稳定 ID——**前缀已裁（2026-10-04）：`BUG-A-0xx`**（原示例 `BG-###` 被 diy-wds-trigger 占用、`BA-###` 被 brainstorm 占用，查证后弃）；喂 `bug-log.yaml` / experience_repo 时按 ID 关联。
+- 输入面（2026-10-04 用户裁定）：照 diy-test-design:90 同款经验源挖法——experience_repo `taxonomy.yaml` 骨架＋`bugs/<subclass>.yaml` 逐桶全读＋本项目 `bug-log.yaml`；相关性判据同款（`trigger`/`prevention` 能否落在分析对象上）。
+- **写面（2026-10-04 用户裁定）：能写输出文件**——① 分析结果经 `bug-add` 入 `bug-log.yaml`（五段→字段映射：表面→`symptom`／复现→`trigger`／根因→`root_cause`／机制消灭→`fix`＋`prevention`；`source` 值域现四值 `开发|审查发现|证伪轮|用户`，扩「bug 分析」类值随批核）——直写非「给命令」（有异于 investigate 零写面先例）；② experience_repo 投影（`bugs/<subclass>.yaml`＋`taxonomy.yaml`）——补 diy 体系零写方缺口（查证：diyc 无投影命令、retro 仅提醒不同步），直写 vs 新引擎命令待裁。
+- **衔接机制（2026-10-04 用户裁定）：diy-review 发现真缺陷 → 自动调用本技能**——bug 分析技能做好后，review 经 `bug-add` 入库的真缺陷自动触发本技能生成分析内容（预填 `BUG-0xx` 上下文）＝BMAD 机制 (a) 的 diy 化；调用形态（挂载式内部调用照 elicit/party-mode 先例 vs 收尾路由移交）随批核。
+- **BMAD 源阶段参考（2026-10-04，`bmad-analyze-bug`）**：五阶段＝① 信息收集 ② 代码图生成（调用图＋依赖可视化）③ 根因分析（**工作流级＋实现级两层**）④ 修复提案（**双产物**：自动化验证方案＋工作流变更提案）⑤ 完备校验＋归档——报告增量构建（每步 verify 前步＋append 本节，零占位符）。四个可借鉴机制：(a) review 自动衔接——**已裁 diy 化（见上条）**；(b) 代码图阶段（diy 对应物：`diyc trace` 分析面，是否独立阶段待裁）；(c) ④的双产物面——validation plan（防复发测试）与 diy「机制性消灭方案」的测试面交集待定；(d) **⑤引擎自动归档**（源用 `bug-archive.js` 归档 bug registry＋commit＋distribute）——经验库投影「引擎化」的 BMAD 先例，支持写面②选新引擎命令。
+- 待裁：技能名与产物文件名；挂法 A（独立 bug 专有产物，cis-method 当方法引擎）vs B（薄模板特化走 cis-method 记录）；与 diy-investigate 分工（代码取证 vs 方法流分析，是否吃 `IV-###`）；BMAD 机制 (b)(c)(d) 取舍；phase / line。
 
 ## 待办：新增 prd→开发前编排工作流技能
 
