@@ -339,12 +339,16 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - **FH 删除权在用户（已裁·2026-10-04 补）**：AI 不得自行删 FH。杀不掉的 FH 照 coverage_gaps 模式记 `[FH-GAP]` reason、`decision: 待办` 交用户当轮裁决——裁「删」→ 删 FH＋`revisions` 留痕（change 引 FH-x.y.z，revisions 用法自 TC 扩及 FH）；裁「不删」→ **必须补 TC**（无「不杀也不删」第三态）；两出口均删 gap 条目；`--final` 禁 `[FH-GAP]` 待办（复用现有禁令）。
 - **「砍掉」处置权统一归用户（已裁·2026-10-04 两轮补）**：SKILL.md 三处同族——① :92 逐对体检两层无净关系→重排或砍；② :92 末无独立 kill 的工具→砍；③ :90 装饰品用例→砍或重新瞄准。三处 AI 均只摆证据交用户裁决，不自行删改产物。
 - **Update 迁移**：存量自由文本 kill_target 逐条转 FH 条目；kill_target 不入 ID 稳定门（SKILL.md:98），存量 TC 原样保留可对账。
+- **openapi 在场→接口用例设计必做（2026-10-04 补裁·当轮闭合）**：`{output_dir}/openapi.yaml` 在场（已定稿）时接口面纳入设计；缺席照旧零提及。登记来源：审 test-design 输入面（SKILL.md:25 不含 openapi.yaml）发现接口用例无据可推、契约↔用例无机械桥。
+- **锚定＝AC 侧复合锚（已裁·C 方案）**：epics-stories 铸 AC 时挂 `api_refs`——**operationId＋path+method 复合锚**；与 `design_ref` 同构（同级产物锚·可选·须可解析），合「下游认源 ID」判据（operationId 在 diy-openapi 已按稳定 ID 管理）。多对多归属在铸造期走查落盘、非推导期解链——A（FR 链不可机判）、B（openapi 侧挂 x-ac 时序倒挂：主线 openapi 先于 epics+stories）均否；diy-openapi 零改动。
+- **门联动（已裁·强门）**：带 api_refs 的 AC → 接口用例（`type: 集成`、点名锚）必做、照五轴审；被引 operation ≥1 TC；反向悬空 operation（契约有端点、无 AC 引）→ **skip line 式显式登记**（照 epics-stories SKILL.md:70 `<FR-x.y>: <为什么>` 先例），不静默。
+- **漂移同步（已裁）**：openapi.updated 晚于 stories.updated → 漂移提示（照 test-design SKILL.md:28 同款）；悬空锚照 UNKNOWN_ID 报。排批：入本段待办（改动面见下）。
 - 分批：批 1（核心）＝SKILL.md＋diyc_check_docs.py（`tc_declarations` kill_target 改引 ID＋`check_test_plan` 加 dimension/audit/FH 三组规则）＋源↔装两份 sync＋夹具与 9 测试文件 → 全量绿；批 2（下游）＝augment/e2e SKILL.md 补 dimension 写入义务＋viewer.py 渲染两新段（新字段全带中文标签·零裸键）＋author/gate 轻引面核实；批 3（登记）＝底单补行＋教学材料同步（已裁·2026-10-04：curriculum:23/:38 与 quiz:32 三处条目微调至 FH 引用口径，quiz:55 题保留、可加 1 道 FH 门规则新题——不同步则学员按旧口径填自由文字、入门即被 kill_target 引用不可解析拦下）。
 - 测试面报备：夹具/测试改动系本裁定直接后果（同源）、git 可逆——按「测试面改动先裁后动」三条件登记。
 
-待裁：无（2026-10-04 全闭合）。
+待裁：无（2026-10-04 openapi 输入面当轮全闭合：锚定 C 方案复合锚／强门联动＋skip line 登记／漂移提示／排批入本段）。
 
-改动面：diy-test-design SKILL.md＋diy-tools/scripts/diyc_check_docs.py（含 `.claude` 装副本）＋tests/diyc_fixture.py＋9 测试文件（test_diyc_check/test_augment/test_e2e/test_author/test_gate/test_test_review/test_story_context/test_retrospective/test_change_proposal）＋diy-augment·diy-e2e-tests SKILL.md＋diy-viewer/scripts/viewer.py＋（执行时核实）diy-test-author·diy-test-gate scripts/steps。
+改动面：diy-test-design SKILL.md＋**diy-epics-stories SKILL.md（api_refs schema＋输入面扩 openapi＋悬空 operation 登记）**＋diy-tools/scripts/diyc_check_docs.py（含 `.claude` 装副本）＋**diyc 校验面（api_refs 可解析·operation 覆盖门，落点执行时核实）**＋tests/diyc_fixture.py＋9 测试文件（test_diyc_check/test_augment/test_e2e/test_author/test_gate/test_test_review/test_story_context/test_retrospective/test_change_proposal）＋diy-augment·diy-e2e-tests SKILL.md＋diy-viewer/scripts/viewer.py＋（执行时核实）diy-test-author·diy-test-gate scripts/steps。
 
 协调：与逐项化/母本/去源路径锚批同为 SKILL.md 正文改动面（test-design 在逐项化超限名单：102 行），实施定先后，避免同文件改两遍。
 
