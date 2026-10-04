@@ -316,6 +316,34 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面：diy-architecture SKILL.md（触发落点＋评审面）＋ diy-openapi SKILL.md（结构段 `responses`/`securitySchemes`/`tags`＋工作流走查单位＋DRY 规则扩 `components/responses`）＋ diyc_lib.py 校验面（通用错误 `$ref`·`F-x` tag 解析）＋ viewer 展示层词汇＋相关 tests。
 
+## 待办：openapi 接口总览行锚（2026-10-04 用户裁定，待执行）
+
+登记来源：用户看 diy-lab 实测渲染的 openapi.html 接口总览提出「接口没有 id，要增加 id」。
+
+事实（2026-10-04 核实）：
+- viewer 接口总览已有「操作 ID」列且值在（viewer.py `render_openapi_section`）；引擎已校验 operationId 必填＋查重（diyc_check_docs.py:396/:412）。
+- 全体系实体均有「前缀-编号」锚 ID（FR-x.y / D-x / BS-### / TC-x.y.z / FH-x.y.z），唯接口无——现行接口身份＝operationId＋path＋method 复合锚（五轴段已裁 C 方案）。
+- viewer 接口总览行无 HTML 行锚（render_table 行锚取 `item["id"]`，openapi 行字典无该键）——跨页无法深链到具体接口行。
+
+裁定（2026-10-04）：**不铸新 ID**——operationId 即接口唯一身份（复合锚裁定不变、零下游联动）；仅补 viewer 展示：接口总览行加 HTML 行锚（锚值＝operationId，引擎查重保证唯一），供跨页深链（如将来 stories 页 `api_refs` 渲染跳转）。
+
+改动面：viewer.py `render_openapi_section`（行锚；注意 `render_table` 行锚机制取 `item["id"]` 会同步渲染成列——实施时避免「操作 ID」列重复，row-id 参数或本函数自拼，实施时定）＋viewer tests（新增断言，本裁定直接后果同源可逆，按三条件报备）。与「接口契约通用设计与架构鉴权面」批同文件（viewer.py），排先后实施避免改两遍。
+
+## 待办：viewer index 产物卡片按生成时间排序（2026-10-04 用户提出，登记待裁，现在不动）
+
+登记来源：用户看 diy-lab 实测 index.html 提出「产物按生成时间排，不然眼睛看花了」。
+
+事实（2026-10-04 核实）：
+- 现状卡片按**文件名字母序**（viewer.py main: `sorted(out_dir.glob("*.yaml"))` 原序进 `build_index`）——diy-lab 实测 17 份产物，字母序与生成序完全对不上。
+- 排序键可用性：全部产物均有 `created`（project/x-project 块，实测 17/17 在场）；但**粒度止于日期**（YYYY-MM-DD）无时分——同日跑完多产物并列分不出先后；产物内无更细时间源；文件 mtime 不可靠（clone/同步刷新）。`created` 无引擎强制校验（diyc_check_docs.py 零提及），漏写可能存在。
+
+裁定（2026-10-04 用户三项）：
+- **排序键扩时分秒**：`created` 从 `YYYY-MM-DD` 扩为带时分秒——根治「粒度止于日期、同日并列分不出先后」；落库面随批核（全库产物 schema 结构段 `created:` 行＋diyc 校验是否新增格式断言＋viewer 展示），存量旧值（纯日期）不回填、按当日零点参与排序。
+- **兜底次序＝链序（逻辑生成序）**：时分秒仍并列（或值不可比）时按链序排；链序表**来源仍待裁**（viewer 内置照 `DOC_LABELS` 硬编码先例 vs 读 registry 跨包依赖，倾向前者）；非链产物链序表无位 → 排链产物之后（机械推论，不另裁）。
+- **缺 `created` 的产物排最后**。
+
+改动面：viewer.py（排序落点：main 渲染序或 build_index 内排序——注意渲染文件循环也用同一序，页内「其他产物」导航链接顺序随之变，属同题一并动）＋viewer tests＋**created 时分秒的 schema 面（随批核）**。与「openapi 接口总览行锚」「接口契约」批同文件（viewer.py），可同批施工。
+
 ## 待办：全库去源路径锚（2026-10-04 用户裁定，专批，现在不动）
 
 登记来源：用户实测——安装后的 diy 体系内 `p-specify.md` 表格引用的 `steps-p/` 9 文件找不到（源在 BMAD wds-4-ux-design，dev 仓 `.claude/skills/` 可解析，1,323 行核对吻合）。裁定：技能文件受众是 AI，正文路径即行为输入——读到即可能去开文件，终端环境（不装 BMAD）读不到 → 轻则空转工具调用，重则困惑后即兴补「源内容」；悬空锚全库清理。
