@@ -392,6 +392,22 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 普查分流（全库 grep「未建」5 处/4 文件）：diy-wds-system 三处（SKILL.md:80＋`complexity-router.md:6/:64`）系 `object-types/workflow.md` 真未建的事实登记（非滞后），归「去源路径锚·迁移痕迹零正文」批处置；diy-bmb-module `03-validate.md:29` 是引擎 warning 违规码语义说明（活机制文本），不动。
 
+## 待办：diy-review steps 步骤深化（2026-10-04 用户提出，登记待裁，现在不动）
+
+登记来源：用户看 `diy-review/steps/` 觉单薄，问补充可能。
+
+事实（2026-10-04 核实）：
+- 抓手盘点：L1/L3/L4 各有机械抓手（`diyc.py trace`／`check --type review`／`design.py audit+check`），**L2 零抓手**——仅一句口诀（坏输入/空None/并发/错误路径/静默兜底＋「真会咬人」），无推导方法无判据；falsify 非功能六维只有名字、「跑临时攻击」零打法；lenses（HALT/空数组合法/归一）与 wds-review（零产出/不采信自述/写权）纪律齐备，不补。
+- 规模对比：兄弟技能 steps 单文件 20~82 行（dev 32~50／test-author 20~52／investigate 29~57／retrospective 27~82），diy-review 全部 6~9 行——steps/ 系单文件 SKILL.md 拆分产物，未按步骤展开规程。
+- `diyc.py trace` 只解析已有 trace 行 ID（diyc.py:45 `TRACE_LINE_RE`→references/unresolved），不报「方法定义缺 trace 行」——l1 正文自认「整行缺席仍属目读」；旧分析（.analysis/2026-09-13 determinism-1）建议的 untraced 类半截未落。
+
+候选（①方向自洽，②③待裁）：
+- ① **L2 补推导规程**：AC→边界怎么推（输入等价类/域边界／状态字段非法迁移／错误路径静默兜底识别）＋「真会咬人」判据——补推导方法而非固定清单（守 lenses「边界类从内容自身推，不套固定清单」）；须写明与边界穷举透镜分层：L2＝必跑层高危快扫、透镜＝可选全量枚举（防透镜被架空）。
+- ② **L1 untraced 机械检测**：`diyc.py trace` 扩「扫面内方法定义缺 trace 行」报告——方法定义识别有误报面（lambda/嵌套函数/扫面口径），先裁后动（测试面纪律）。
+- ③ **falsify 六维最小探针**（每维一行打法）：与旧分析 leanness-4「证伪轮向更简」方向相抵、无产出差实证——待裁。
+
+改动面：①③＝diy-review `steps/l2-boundary.md`·`falsify.md`；②＝diy-tools diyc.py＋tests。协调：与逐项化批同文件（diy-review SKILL.md 正文），排先后避免改两遍；本条发现属 diy-review 一审范围（技能逐个审查行动线），一审行待审完由用户勾。
+
 ## 升级事项（可选·不排期·需要才做）
 
 ### object-types 参考层类型扩展（2026-10-04 登记）
