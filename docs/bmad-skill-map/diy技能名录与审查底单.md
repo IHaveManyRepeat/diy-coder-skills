@@ -117,6 +117,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 新机制 | 公共句式母本注入（方案 A 已拍板，discover 先行） | discover_texts.py＋sync_texts.py＋suite-texts.yaml＋test 改造 |
 | 新机制 | prd 前置机制化（判据：下游认源 ID；brainstorm 细化至条目级三级锚） | registry＋7 技能 frontmatter＋prd 喂入面＋brainstorm.py |
 | 单独技能 | cis-method→design 喂入认 ID（判据同 prd 前置） | 04-design.md:210＋diy-design 输入面 |
+| 单独技能 | architecture stack 铸 ST-###（判据同：下游认源 ID） | diyc.py＋diy-architecture 结构段＋design/readiness-check 输入面 |
 | 单独技能 | 新增 bug 分析技能（cis-method 问题求解编排·五段产物） | 新技能全套＋衔接 investigate/retrospective/bug-log |
 | 单独技能 | 新增 prd→开发前编排工作流 | bmb-module＋bmb-builder 造＋链上各技能交互面 |
 | 单独技能 | diy-help 聚合导航·版本演进 | help.py＋SKILL.md＋tests |
@@ -160,6 +161,10 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 ## 待办：cis-method→design 喂入认 ID（同判据：下游认源 ID）
 
 登记（2026-10-04 用户裁定）：`diy-cis-method/steps/04-design.md:210` 路由句「要把验证过的概念落成 UI / 接口契约 → `diy-design`」现为纯内容喂入（概念不带 `CM-###`）；机制化时改为 **ID 关联**——diy-design 消费设计思维分支产物须按源 `CM-###` 引用（design.yaml 引用位 / 输入面具体挂法待裁）。与 prd 前置批同判据（下游认 ID），是否同批实施待裁；现不动。
+
+## 待办：architecture stack 铸 ST-###（同判据：下游认源 ID）
+
+登记（2026-10-04 用户裁定，一审 diy-architecture 牵出）：`stack[].choice` 被 diy-design（取前端框架）/ diy-readiness-check（取脚手架）**按值消费**（diy-architecture SKILL.md:56 自证），值为自由字符串、无锚——技术名写法漂移即断链。机制化（**已裁铸 ID**）：`stack[]` 条目铸稳定 ID **`ST-###`**（文件内全局唯一，前缀已查全库零冲突；`choice`/`why` 保持字段形态）；消费方 diy-design / diy-readiness-check 输入面改按 `ST-###` 引用取值，不再按值匹配。与 prd 前置批 / cis-method→design 同判据（下游认 ID）；是否同批实施随批核。改动面：diyc.py check（architecture 类型加 ST 域校验）＋ diy-architecture SKILL.md 结构段＋ diy-design / diy-readiness-check 输入面＋ viewer 展示。
 
 ## 待办：新增 bug 分析技能（编排 cis-method 问题求解）
 
