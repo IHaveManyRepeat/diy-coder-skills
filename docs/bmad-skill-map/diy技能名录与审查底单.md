@@ -111,6 +111,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | diy-test-author | 完毕 | 2026-10-04 | 激活头同构（含预载预算变体）、纪律块 §6/§2 同款在场 → 随 YAML 迁移整体收编；零 YAML 写面技能（产物＝测试代码，:43/:54 明写「无渲染步骤、母本 §5 不适用」）——零产物/零 YAML 形态变体又一面（与 diy-help:20 同族）→ 随母本批一并裁定条款注记；TC 锚设计好（每用例上方 `TC:` 锚、C 族 `//` 与 dev `# trace:` 形态区分＝认锚纪律）；author.py audit 终门＋全 skip 交付门＋无待处理 TC 不静默空跑＝引擎关卡正面样板；「消费 TC vs 三者生产 TC（test-design/augment/e2e）」边界完备；五轴段改动面已含（执行时核实 scripts/steps）；行数 59 不超限，无新发现 |
 | diy-dev | 完毕 | 2026-10-04 | 激活头同构（含预载预算＋模式判定门禁/零产出变体）、纪律块 §6/§2 同款在场 → 随 YAML 迁移整体收编；TDD 门（test_refs 逐条解析＋双向拒绝＋零 TC 合法口径）＋规则 6 真源回填（`green` 原子双写 sprint evidence＋test-plan 状态·BUG-012 机制化）＋规则 2 先摘 skip 骨架（与 test-author 红相脚手架精确衔接·「激活是 dev 的第一动作不是作者的」）＝引擎关卡正面样板；浏览器门裁定 21 双禁（不静默降级/不无条件硬停）＋副作用①②档分层＋跳过留名不另立键；「门不过不许写待验收（写了=假事实）」＋已移除 `--reason` 必填＋悬空 AC 只读路由＋不代批＝写权边界完备；`# trace:` 双形态（主线 S/AC/TC vs WDS 页ID+态名、C 族 `//`）＝认锚纪律；三处「裁撤与归位（源侧台账）」块（wds-implement:39/wds-accept:44/wds-fix:33）→ 随去源路径锚专批迁 dev-only 台账（§326 已补登 18 处/16 文件）；行数 89 不超限，无其他新发现 |
 | diy-e2e-tests | 完毕 | 2026-10-04 | 激活头同构（含预载预算变体）、纪律块 §6/§2 同款在场（:73/:75）→ 随 YAML 迁移整体收编；核心发现＝openapi 契约零关联（全目录零提及 openapi.yaml/operationId/api_refs；`03-generate-api.md:5` 输入面只有「API 实现」、`:30` 契约不清即跳过；augment 同族零提及）→ 已裁四项＋补裁（A＋B 双源·TC 新字段 `api_refs` 复合锚·在场必做/缺席零提及·01 步第三上游产物·augment 并入），专段待执行；BMAD 溯源注记 6 处/4 文件（steps/02:10·03:14·04:10/:15/:17/:29·05:48）→ 归去源路径锚批（旁形态）；「只追加从不建文件/从不改写既有条目」＋record 终门 exit 0 唯一放行＋层轴（api\|e2e）与 `type` 脱钩＝引擎关卡/边界正面样板；行数 75 不超限 |
+| diy-augment | 完毕 | 2026-10-04 | 激活头同构、纪律块 §6/§2 同款在场 → 随 YAML 迁移整体收编；核心发现＝变异借位配置（寄生 static_checks＋会话确认、无显式配置面、默认关）→ 已登「变异配置显式化」待办段（`mutation:{enabled,tool?}` 段·默认开日常任务级·任务级/发版级 override·借位条款退役）；`diyc mutate` 沙箱建销＋永不跑在工作区＋score 保守口径（等价体不白送分、裁定唯一落点 gate waivers）＝引擎关卡正面样板；「判定必落」＋「失败只出判定不重开」（重开=用户裁断 runner --reopen-failed）＋证据交接点（evidence 归下一周期 green 写、EVIDENCE_MISSING 是信号非豁免）＝写权边界完备；重跑对账永不重复追加；五轴批 2 与 e2e 认 ID 批已含本技能（dimension 义务＋API 补测锚定）；行数 79 不超限 |
 
 ### 二审
 
@@ -136,6 +137,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | diy-lab 实测缺陷修复批（①~⑥ 全定档：①走母本·②重·③root归一·④入本批·⑤检测·⑥轻） | cis-method/brief/research/prfaq/viewer/prd＋各引擎脚本 |
 | 单独技能 | 接口契约通用设计与架构鉴权面（重档·RFC 9457·前后端分离三层联动触发·无鉴权显式留痕·功能tags分组重档） | architecture/openapi SKILL＋diyc 校验面＋viewer＋tests |
 | 单独技能 | test-author「未建」滞后表述清理（2 处条件分支；wds-system 三处真未建归去源锚批） | diy-test-framework SKILL＋steps |
+| 单独技能 | 变异配置显式化（test-plan `mutation:{enabled,tool?}` 段·默认开日常任务级·任务级/发版级 override·借位条款退役） | test-design/augment SKILL＋diyc 校验＋tests |
 
 ## 待办：prd 前置机制化（攒批，审查出结论后一并处理，现在不动）
 
@@ -426,6 +428,18 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - **diy-augment 并入本条**：同族义务同款——API 补测用例同锚定、同在场口径。
 
 改动面：diy-e2e-tests SKILL.md＋steps/01-detect.md·02-targets.md·03-generate-api.md＋diy-augment SKILL.md（＋steps·引擎面，执行时核实）＋TC schema 新字段＋scripts/e2e.py（record 校验）＋viewer＋tests。协调：B 通路依赖五轴批的 AC `api_refs` 字段先行（A 通路不依赖）；与五轴批 2 同文件（两技能 SKILL.md），排先后避免改两遍。
+
+## 待办：变异配置显式化——默认开＋可关（2026-10-04 审 diy-augment 用户裁定，攒批，现在不动）
+
+登记来源：审 diy-augment 规则 5 发现变异系**借位配置**——无自己的配置面：载体＝① test-plan `static_checks[].tool` 中用户会话确认为变异工具的条目（寄生在静态检查滤网上、靠人肉确认）② 会话临时命令；皆无＝未配置＝不跑（**默认关**）。test-design 侧无变异开/关设计位。
+
+裁定（2026-10-04 三项）：
+- **配置段形态**：test-plan 顶层加 **`mutation: {enabled: true, tool?}`** 段（schema 归 diy-test-design 唯一出处，augment 只消费——合既有分工；enabled 默认 true，tool 可选缺省走既有「按栈选」：Python→cosmic-ray、JS→stryker）。
+- **默认开＝日常任务级**：每任务 done 后 `--scope` 档默认跑变异（接受 runner 循环成本上升；发版 `--full` 档不变）。
+- **关闭粒度**：全局开关＋**任务级/发版级 override**（关默认、单任务开；开默认、单任务关——override 落点随批核）。
+- 借位条款退役：augment 规则 5 的①②载体删除，改读 `mutation` 段。
+
+改动面：diy-test-design SKILL.md（schema 段）＋diy-augment SKILL.md（规则 5 改写）＋diyc 校验面（mutation 段格式/枚举，随批核）＋tests。协调：augment SKILL 已在五轴批 2 与 e2e 认 ID 批改动面——三批同文件，排先后或并面施工。
 
 ## 升级事项（可选·不排期·需要才做）
 
