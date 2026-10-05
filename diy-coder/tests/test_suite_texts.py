@@ -201,11 +201,17 @@ LANDED_PRECISE = frozenset(["prd", "teach-me-testing", "test-author",
                             "product-brief", "prfaq", "openapi", "epics-stories",
                             "create-story", "checkpoint-preview", "sprint",
                             "build-loop", "readiness-check", "test-design",
-                            "quick-dev", "help", "augment", "e2e-tests",
+                            "quick-dev", "augment", "e2e-tests",
                             "correct-course", "spec-scan", "project-context",
                             "investigate", "research", "retrospective",
                             "architecture", "design", "dev", "review",
-                            "tools", "viewer"])
+                            "tools"])
+
+# §6 非适用成员（2026-10-05 用户裁定：精准简练=产物纪律，只有有产物的技能才需要；
+# 全库盘点后删句——viewer/elicit/help/party-mode 四家零产物，判据=正文零写回自述，
+# frontmatter outputs:— 不作判据〔selfcheck 同为 — 但产 dogfood 报告故保留〕）。
+# tools 待裁（借 baseline-add 写 reason、自身零散文产出）。裁定与连带面登底单待办段。
+PRECISE_NON_MEMBERS = frozenset(["viewer", "elicit", "help", "party-mode"])
 
 
 def _steppers():
@@ -249,8 +255,9 @@ class PendingLandingTests(unittest.TestCase):
 
     PENDING_RESOLVE_KEYS = frozenset(set(_CONFIG_SKILLS) - NEW_SKILLS - LANDED_RESOLVE_KEYS)
     PENDING_READ_DISCIPLINE = frozenset(set(_steppers()) - NEW_SKILLS - LANDED_READ_DISCIPLINE)
-    # §6 适用面 = 全部技能（母本明示「不设非成员」）
-    PENDING_PRECISE = frozenset(set(skills()) - NEW_SKILLS - LANDED_PRECISE)
+    # §6 适用面 = 有产物的技能（2026-10-05 改判；旧「全部技能不设非成员」作废）
+    PENDING_PRECISE = frozenset(set(skills()) - NEW_SKILLS - LANDED_PRECISE
+                                - PRECISE_NON_MEMBERS)
     PENDING_RENDER_SILENT = frozenset("""
 viewer
 """.split())
@@ -283,9 +290,12 @@ viewer
                      if (read(s) or "").find("diy-viewer/scripts/viewer.py") >= 0]
         self._check(ANCHOR_RENDER_SILENT, renderers, self.PENDING_RENDER_SILENT)
 
-    # trace: 母本 §6（精准简练）——2026-09-19 用户立为母本；适用面 = 全部技能，不设非成员
+    # trace: 母本 §6（精准简练）——2026-09-19 用户立为母本；2026-10-05 改判适用面 =
+    # 有产物的技能（PRECISE_NON_MEMBERS 豁免，首例 viewer；范围盘点登底单待办）
     def test_pending_precise_brief(self):
-        self._check(ANCHOR_PRECISE, skills(), self.PENDING_PRECISE)
+        self._check(ANCHOR_PRECISE,
+                    [s for s in skills() if s not in PRECISE_NON_MEMBERS],
+                    self.PENDING_PRECISE)
 
 
 # ------------------------------------------------ D 引擎契约守卫（2026-09-20）

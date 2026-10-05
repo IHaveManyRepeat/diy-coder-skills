@@ -39,4 +39,3 @@ python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-ro
 - 只在用户明确要求打开浏览器时才传 `--open`；`--no-open` 一票否决（即使同时给了 `--open`）。
 - 渲染完，用 `project.communication_language`（取自 `diy-coder.yaml`）回一行摘要：渲染了哪些文档、HTML 落在哪里。例外——自动化/无头渲染（另一个技能流程里的渲染步骤、runner 驱动的会话）保持静默：不报路径，直接继续；渲染只是旁路一步，绝不阻塞流程。
 - 本技能不写任何 YAML 散文；HTML 投影的外壳标签按设计固定为中文（展示层的选择——`document_output_language` 管的是源产物里的散文，不是 viewer 外壳）。
-- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
