@@ -25,6 +25,9 @@ diy-help → diy-prd → diy-architecture → diy-openapi（有接口面时）�
   WDS 线（官网/营销站）：runner.py --line wds 读 design.yaml 逐页驱动 diy-dev 的 WDS 模式
   → diy-review 的 WDS 路径，终点 = 待验收（待用户批准）
   每任务 done 后 runner 自动触发 diy-augment 编码后补测（覆盖率驱动追加 TC 至 test-plan.yaml）
+  全部任务终态后 runner 自动跑冲刺末三连：diy-e2e-tests → diy-test-review → diy-test-gate
+  （全 report-only：结论落各自产物、不重开任务；review/gate 记录落草稿待人核定稿；
+  补跑/复核用 --post-only，关掉用 --skip-post）
 
 ```
 

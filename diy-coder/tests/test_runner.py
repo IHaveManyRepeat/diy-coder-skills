@@ -70,10 +70,18 @@ def make_fixture(statuses, instance=None):
     return root, sprint
 
 
-def run_runner(root, env_extra, timeout=60, runner_args=(), stub=None):
+def run_runner(root, env_extra, timeout=60, runner_args=(), stub=None, post=False):
     # 编码确定性：PYTHONUTF8=1 让 runner（及孙进程桩）stdio 走 UTF-8，
     # 父端显式 utf-8 解码——不依赖宿主 code page（Windows 中文默认 GBK，
     # 父/子解码器偶发不一致会击穿中文断言，2026-09-13 实撞 flaky）
+    # post=False（缺省）：注入 --skip-post 隔离冲刺末三连——既有测试只测主循环/augment
+    # 语义；--line wds 时不注入（WDS 线拒绝该旗标，post 面是主线概念；显式
+    # --line mainline 与缺省同路径，照注入——不破坏「显式=缺省」对照测试）
+    args = list(runner_args)
+    is_wds = any(a == "--line" and i + 1 < len(args) and args[i + 1] == "wds"
+                 for i, a in enumerate(args))
+    if not post and not is_wds:
+        args.append("--skip-post")
     env = {**os.environ, **env_extra, "PYTHONUTF8": "1"}
     return subprocess.run(
         [
@@ -81,7 +89,7 @@ def run_runner(root, env_extra, timeout=60, runner_args=(), stub=None):
             str(RUNNER),
             "--project-root",
             str(root),
-            *runner_args,
+            *args,
             "--claude-cmd",
             sys.executable,
             str(stub or STUB),
@@ -570,6 +578,120 @@ class TC_Reopen_Failed(unittest.TestCase):
         tasks = read_tasks(self.sprint)
         self.assertEqual(tasks["S-1"]["status"], "已完成")
         self.assertNotIn("augment", tasks["S-1"], "重开后旧失败结论应被清除")
+
+
+class TC_Post_Face(unittest.TestCase):
+    # trace: 2026-10-05 裁定——冲刺末三连：主循环全终态后自动连跑
+    # diy-e2e-tests → diy-test-review → diy-test-gate（顺序使 e2e 落的测试代码与
+    # TC 进后两者的审计面）；三技能 report-only——不重开任务、不阻塞退出；
+    # review/gate 记录落草稿待人核定稿。旗标面：--skip-post 关 / --post-only 独占
+    # （要求全终态）/ 互斥拒 / WDS 线拒
+    def setUp(self):
+        self.root, self.sprint = make_fixture({"S-1": "待办"})
+        self.log = self.root / "calls.log"
+        self.outdir = self.root / "diy-output"
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def env(self):
+        return {
+            "DIY_STUB_ROUTING": "S-1:已完成",
+            "DIY_STUB_LOG": str(self.log),
+            "DIY_STUB_SPRINT": str(self.sprint),
+            "DIY_STUB_OUTDIR": str(self.outdir),
+        }
+
+    def test_post_face_runs_after_loop_in_order(self):
+        # 生产默认（不传 skip）：任务 → 补测 → 三连，顺序固定
+        result = run_runner(self.root, self.env(), post=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(read_log(self.log), [
+            "S-1 已完成",
+            "S-1 augment",
+            "post diy-e2e-tests",
+            "post diy-test-review",
+            "post diy-test-gate",
+        ], "三连应在主循环全终态后按 e2e → review → gate 顺序连跑")
+        self.assertIn("[runner] e2e 2 通过 / 0 失败（夹具默认）", result.stdout)
+        self.assertIn(
+            "[runner] test-review RV-001 草稿（grade B，要求修改）——待人核定稿",
+            result.stdout)
+        self.assertIn(
+            "[runner] test-gate TG-001 草稿（decision CONCERNS）——待人核定稿",
+            result.stdout)
+        tasks = read_tasks(self.sprint)
+        self.assertEqual(tasks["S-1"]["status"], "已完成", "三连篡改了任务状态")
+
+    def test_review_gate_note_reads_artifact_not_self_report(self):
+        # note 以产物最新记录为准（自报≠已处置）：会话异常退出（桩不写产物）时降级为未留痕行
+        env = {**self.env(), "DIY_STUB_OUTDIR": str(self.root / "no-such-dir")}
+        result = run_runner(self.root, env, post=True, runner_args=("--skip-augment",))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("test-review 未留痕", result.stdout)
+        self.assertIn("test-gate 未留痕", result.stdout)
+        self.assertIn("全部任务已到终态", result.stdout, "未留痕只降级提示，不阻塞退出")
+
+    def test_skip_post_flag_disables_face(self):
+        result = run_runner(
+            self.root, self.env(), post=True, runner_args=("--skip-augment", "--skip-post")
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(read_log(self.log), ["S-1 已完成"], "--skip-post 后仍 spawn 了三连")
+
+    def test_post_only_runs_face_without_loop(self):
+        # --post-only：只跑三连不驱动主循环（任务已全终态 = 零任务 spawn）
+        self.root2, self.sprint2 = make_fixture({"S-1": "已完成", "S-2": "已阻塞"})
+        self.log2 = self.root2 / "calls.log"
+        result = run_runner(
+            self.root2,
+            {
+                "DIY_STUB_LOG": str(self.log2),
+                "DIY_STUB_SPRINT": str(self.sprint2),
+                "DIY_STUB_OUTDIR": str(self.root2 / "diy-output"),
+            },
+            post=True,
+            runner_args=("--post-only",),
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(read_log(self.log2), [
+            "post diy-e2e-tests",
+            "post diy-test-review",
+            "post diy-test-gate",
+        ], "--post-only 不应驱动主循环")
+        self.assertIn("冲刺末三连完成（--post-only）", result.stdout)
+        shutil.rmtree(self.root2, ignore_errors=True)
+
+    def test_post_only_rejects_pending_tasks(self):
+        # 有非终态任务时三连吃的是半程面（矩阵分母不完整），一行报错零 spawn
+        result = run_runner(self.root, self.env(), post=True, runner_args=("--post-only",))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("要求任务全终态", result.stderr)
+        self.assertIn("S-1", result.stderr)
+        self.assertEqual(read_log(self.log), [], "非全终态下不应 spawn 三连")
+
+    def test_post_only_mutually_exclusive(self):
+        for extra in (("--skip-post",), ("--augment-only",), ("--reopen-failed",)):
+            with self.subTest(flags=extra):
+                result = run_runner(
+                    self.root, self.env(), post=True,
+                    runner_args=("--post-only", *extra),
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("互斥", result.stderr)
+                self.assertFalse(self.log.exists(), "互斥参数下不应 spawn")
+
+    def test_wds_line_rejects_post_flags(self):
+        # post 面是主线概念（依赖 sprint 终态），WDS 线给了即拒、不静默忽略
+        for flag in ("--skip-post", "--post-only"):
+            with self.subTest(flag=flag):
+                result = run_runner(
+                    self.root, self.env(), post=True,
+                    runner_args=("--line", "wds", flag),
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("在 WDS 线未定义", result.stderr)
+                self.assertFalse(self.log.exists(), "WDS 拒绝后不应 spawn")
 
 
 class TC_10_1_2_MissingClaudeCmd(unittest.TestCase):

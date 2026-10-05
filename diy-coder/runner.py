@@ -6,7 +6,11 @@
 # 用法：python runner.py [--project-root DIR] [--claude-cmd claude ...] [--max-retries N]
 #       [--line {mainline,wds}] [--instance NAME]
 #       [--skip-augment | --augment-only | --reopen-failed]（augment 面仅主线，WDS 线显式拒绝）
+#       [--skip-post | --post-only]（post 面仅主线：主循环全终态后连跑
+#       diy-e2e-tests → diy-test-review → diy-test-gate，结论落各自产物不重开任务，
+#       review/gate 记录落草稿待人核定稿；WDS 线显式拒绝）
 import argparse
+import json
 import os
 import re
 import shutil
@@ -115,7 +119,8 @@ def spawn_iteration(claude_cmd: list, project_root: Path, story_id: str,
         f"提示：本会话的命令执行工具（PowerShell）是核心工具、不进入 ToolSearch 索引，"
         f"直接调用即可；先用 ToolSearch 搜索来确认其存在会得到假阴性。"
     )
-    return _spawn(claude_cmd, project_root, prompt, allow, deny)
+    rc, _ = _spawn(claude_cmd, project_root, prompt, allow, deny)
+    return rc
 
 
 def _instance_clause(instance: str) -> str:
@@ -128,12 +133,14 @@ def _instance_clause(instance: str) -> str:
 
 
 def _spawn(claude_cmd: list, project_root: Path, prompt: str,
-           allow: list, deny: list) -> int:
-    # diy-build-loop / diy-augment 共用的 spawn 机制：--permission-mode acceptEdits +
-    # --allowedTools 白名单 + --disallowedTools 拒止表（前者放行构建/测试链条，
-    # 后者兜破坏性 git——deny 与 allow 求值序 deny → ask → allow，前者永远赢）
+           allow: list, deny: list) -> tuple:
+    # diy-build-loop / diy-augment / post 面三连共用的 spawn 机制：--permission-mode
+    # acceptEdits + --allowedTools 白名单 + --disallowedTools 拒止表（前者放行构建/测试
+    # 链条，后者兜破坏性 git——deny 与 allow 求值序 deny → ask → allow，前者永远赢）
     # errors="replace"：子会话（或桩）stderr 跟随宿主 locale（Windows 中文 = GBK），
-    # 其增量输出若非 UTF-8 不应打断 runner——本函数只取退出码，decode 失败无信息价值
+    # 其增量输出若非 UTF-8 不应打断 runner——本函数只取退出码与 result，decode 失败无信息价值
+    # 返回 (退出码, result 文本)：result 抽自 --output-format json 的 stdout（桩/异常
+    # 输出非 JSON 时容错为空串——post 面 note 行降级为「未给摘要行」，不阻断）
     cmd = claude_cmd + ["-p", prompt,
                         "--output-format", "json",
                         "--permission-mode", "acceptEdits",
@@ -149,7 +156,14 @@ def _spawn(claude_cmd: list, project_root: Path, prompt: str,
         encoding="utf-8",
         errors="replace",
     )
-    return proc.returncode
+    result = ""
+    try:
+        payload = json.loads(proc.stdout or "")
+        if isinstance(payload, dict):
+            result = str(payload.get("result") or "")
+    except ValueError:
+        result = ""
+    return proc.returncode, result
 
 
 def spawn_augment(claude_cmd: list, project_root: Path, story_id: str,
@@ -168,7 +182,8 @@ def spawn_augment(claude_cmd: list, project_root: Path, story_id: str,
         f"提示：本会话的命令执行工具（PowerShell）是核心工具、不进入 ToolSearch 索引，"
         f"直接调用即可；先用 ToolSearch 搜索来确认其存在会得到假阴性。"
     )
-    return _spawn(claude_cmd, project_root, prompt, allow, deny)
+    rc, _ = _spawn(claude_cmd, project_root, prompt, allow, deny)
+    return rc
 
 
 def augment_note(sprint_path: Path, story_id: str, rc: int) -> str:
@@ -183,6 +198,109 @@ def augment_note(sprint_path: Path, story_id: str, rc: int) -> str:
     if verdict == "已跳过":
         return "补测轮跳过（缺工具）"
     return f"补测轮未留痕（退出码 {rc}，不阻塞）"
+
+
+# ---------------------------------------------------------------- post 面（冲刺末三连）
+
+# trace: 2026-10-05 裁定——主循环全终态后自动连跑 e2e → test-review → test-gate（顺序
+# 使 e2e 落的测试代码与 TC 进后两者的审计面）；三技能全 report-only：结论落各自产物、
+# 不重开任务、不阻塞退出；test-review / test-gate 记录落草稿待人核定稿（定稿=人审，
+# 与 sprint「已定稿」硬门同哲学）；e2e 跑不起来时先查 test-plan 前层 TC status 鉴别
+# 归属，e2e 面问题按技能「失败当场修」处理，修不动（含无框架——技能硬门绝不安装
+# 任何东西）零用例收场给诊断行，人装框架后 --post-only 补跑
+
+_POST_TAIL = (
+    "无人值守模式：不要提问、不要等待人工确认。"
+    "提示：本会话的命令执行工具（PowerShell）是核心工具、不进入 ToolSearch 索引，"
+    "直接调用即可；先用 ToolSearch 搜索来确认其存在会得到假阴性。"
+)
+
+E2E_TESTS_INSTRUCTION = (
+    "运行 diy-e2e-tests skill 为本冲刺已实现的特性生成端到端测试：读取本项目 diy-coder.yaml "
+    "解析 output_dir，读取 stories.yaml 与 test-plan.yaml 锁定已实现特性，按技能步骤探测测试"
+    "框架、生成 API 与 E2E 用例并对真实系统实跑，把跑过的用例追加进 test-plan.yaml"
+    "（type: 端到端 / technique: 场景 / status 通过|失败），测试代码落项目测试目录；"
+    "任务状态零写回。跑不起来时的处置：先查 test-plan.yaml 既有单元/集成层 TC 的 status——"
+    "前层已通过而 e2e 层起不来，属 e2e 面自身问题，按技能「失败当场修」处理用例与环境可达"
+    "问题；修不动（含无测试框架——技能硬门绝不安装任何东西）则零用例收场，"
+    "最后给出一行诊断结论（缺什么、建议人做什么）作为会话收尾输出。"
+)
+
+TEST_REVIEW_INSTRUCTION = (
+    "运行 diy-test-review skill 审计本项目测试代码质量：读取本项目 diy-coder.yaml 解析 "
+    "output_dir，按技能步骤对项目测试目录全量执行规则审计与 AC↔源码↔测试三向走查"
+    "（含刚由 diy-e2e-tests 落进测试目录的端到端代码），结论写入 test-review.yaml"
+    "（追加式台账，本次记录落 status: 草稿，待人核定稿）；不改测试代码、"
+    "不碰 stories.yaml / test-plan.yaml / sprint.yaml。"
+)
+
+TEST_GATE_INSTRUCTION = (
+    "运行 diy-test-gate skill 做冲刺质量门裁决：读取本项目 diy-coder.yaml 解析 output_dir，"
+    "按技能步骤把 stories.yaml 的 AC × test-plan.yaml 的 TC（含端到端条目）× sprint.yaml "
+    "证据台账 join 成追溯矩阵，走盲区启发式与 NFR 审计，裁决写入 test-gate.yaml"
+    "（本次记录落 status: 草稿，待人核定稿）；上游产物零写入。"
+)
+
+
+def spawn_post(claude_cmd: list, project_root: Path, instruction: str,
+               allow: list, deny: list, instance: str = None) -> tuple:
+    # post 面三连通用 spawn：instruction（技能任务指令）+ 无人值守尾巴；返回 (退出码, result)
+    prompt = _instance_clause(instance) + instruction + _POST_TAIL
+    return _spawn(claude_cmd, project_root, prompt, allow, deny)
+
+
+def e2e_note(rc: int, result: str) -> str:
+    # e2e 权威结论在 test-plan.yaml 端到端条目（status 通过|失败），runner 行只作提示：
+    # 退出码 + result 首行（截 80 字）——零用例收场的诊断行由子会话收尾输出承载
+    if rc != 0:
+        return f"e2e 会话异常（退出码 {rc}），不阻塞——详见 test-plan.yaml 端到端条目"
+    first = next((ln for ln in (result or "").splitlines() if ln.strip()), "")
+    brief = first[:80] + ("…" if len(first) > 80 else "")
+    return f"e2e {brief or '完成（会话未给摘要行）'}——详见 test-plan.yaml 端到端条目"
+
+
+def _post_record_note(prefix: str, path: Path, list_key: str, rc: int, render) -> str:
+    # test-review / test-gate note 通用件：以产物最新一条记录为准（自报≠已处置），
+    # 文件缺失/形状异常/无记录 → 未留痕提示；render(记录) 出结论短语
+    try:
+        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+        last = doc[list_key][-1]
+        return render(last)
+    except (OSError, ValueError, TypeError, KeyError, IndexError):
+        return f"{prefix} 未留痕（退出码 {rc}）——人核其产物"
+
+
+def test_review_note(output_dir: Path, rc: int) -> str:
+    def render(last: dict) -> str:
+        score = last.get("score") or {}
+        return (f"test-review {last.get('id')} {last.get('status')}"
+                f"（grade {score.get('grade')}，{score.get('recommendation')}）——待人核定稿")
+    return _post_record_note("test-review", output_dir / "test-review.yaml",
+                             "reviews", rc, render)
+
+
+def test_gate_note(output_dir: Path, rc: int) -> str:
+    def render(last: dict) -> str:
+        gate = last.get("gate") or {}
+        return (f"test-gate {last.get('id')} {last.get('status')}"
+                f"（decision {gate.get('decision')}）——待人核定稿")
+    return _post_record_note("test-gate", output_dir / "test-gate.yaml",
+                             "gates", rc, render)
+
+
+def run_post_face(claude_cmd: list, root: Path, output_dir: Path,
+                  allow: list, deny: list, instance: str = None) -> None:
+    # 冲刺末三连（顺序裁定 2026-10-05）：e2e → test-review → test-gate；
+    # 任一环异常只降级为一行提示，绝不阻塞、绝不重开任务
+    rc, result = spawn_post(claude_cmd, root, E2E_TESTS_INSTRUCTION,
+                            allow, deny, instance)
+    print(f"[runner] {e2e_note(rc, result)}", flush=True)
+    rc, result = spawn_post(claude_cmd, root, TEST_REVIEW_INSTRUCTION,
+                            allow, deny, instance)
+    print(f"[runner] {test_review_note(output_dir, rc)}", flush=True)
+    rc, result = spawn_post(claude_cmd, root, TEST_GATE_INSTRUCTION,
+                            allow, deny, instance)
+    print(f"[runner] {test_gate_note(output_dir, rc)}", flush=True)
 
 
 def augment_summary(doc: dict) -> list:
@@ -386,7 +504,8 @@ def spawn_wds_dev(claude_cmd: list, project_root: Path, page_id: str,
         f"提示：本会话的命令执行工具（PowerShell）是核心工具、不进入 ToolSearch 索引，"
         f"直接调用即可；先用 ToolSearch 搜索来确认其存在会得到假阴性。"
     )
-    return _spawn(claude_cmd, project_root, prompt, allow, deny)
+    rc, _ = _spawn(claude_cmd, project_root, prompt, allow, deny)
+    return rc
 
 
 def spawn_wds_review(claude_cmd: list, project_root: Path, page_id: str,
@@ -403,7 +522,8 @@ def spawn_wds_review(claude_cmd: list, project_root: Path, page_id: str,
         f"提示：本会话的命令执行工具（PowerShell）是核心工具、不进入 ToolSearch 索引，"
         f"直接调用即可；先用 ToolSearch 搜索来确认其存在会得到假阴性。"
     )
-    return _spawn(claude_cmd, project_root, prompt, allow, deny)
+    rc, _ = _spawn(claude_cmd, project_root, prompt, allow, deny)
+    return rc
 
 
 class WdsPageOffTrack(Exception):
@@ -743,6 +863,12 @@ def main(argv=None) -> int:
     parser.add_argument("--reopen-failed", action="store_true",
                         help="批量重开补测未通过（augment:失败）的任务（已完成→进行中、清旧结论），"
                              "随后主循环修复并重新补测")
+    parser.add_argument("--skip-post", action="store_true",
+                        help="主循环全终态后不跑冲刺末三连（e2e → test-review → test-gate），"
+                             "之后可用 --post-only 补跑")
+    parser.add_argument("--post-only", action="store_true",
+                        help="只跑冲刺末三连（e2e → test-review → test-gate），不驱动主循环——"
+                             "服务人装完 e2e 框架后补跑 / 裁断修复后复核；要求任务已全终态")
     args = parser.parse_args(argv)
 
     # trace: 2026-09-13 裁定——--augment-only 与另两开关互斥（补跑不驱动主循环；
@@ -752,16 +878,26 @@ def main(argv=None) -> int:
               "（补跑不驱动主循环，重开需主循环修复），拒绝启动", file=sys.stderr)
         return 1
 
+    # trace: 2026-10-05 裁定——--post-only 是独占模式（只跑三连不驱动主循环），与
+    # 矛盾的 --skip-post 及同为独占模式的 --augment-only / --reopen-failed 互斥，一行报错零 spawn
+    if args.post_only and (args.skip_post or args.augment_only or args.reopen_failed):
+        print("[runner] --post-only 与 --skip-post/--augment-only/--reopen-failed 互斥"
+              "（三连不驱动主循环，skip 与其语义矛盾），拒绝启动", file=sys.stderr)
+        return 1
+
     # trace: §5b #7② augment 面 = 不做（显式拒绝，不静默忽略）——WDS 线无 sprint.yaml /
     # augment 字段，三开关在 WDS 线未定义；给了即拒（含同族的 --reopen-failed：它只对
     # sprint.yaml 的 augment:失败 有意义），绝不静默忽略
     if args.line == "wds":
         wds_void = [flag for flag, on in (("--skip-augment", args.skip_augment),
                                           ("--augment-only", args.augment_only),
-                                          ("--reopen-failed", args.reopen_failed)) if on]
+                                          ("--reopen-failed", args.reopen_failed),
+                                          ("--skip-post", args.skip_post),
+                                          ("--post-only", args.post_only)) if on]
         if wds_void:
-            print(f"[runner] {'、'.join(wds_void)} 在 WDS 线未定义（augment 面是主线概念："
-                  f"sprint.yaml 的 augment 字段），拒绝启动——去掉该旗标后重跑", file=sys.stderr)
+            print(f"[runner] {'、'.join(wds_void)} 在 WDS 线未定义（augment / post 面是主线概念："
+                  f"依赖 sprint.yaml 的 augment 字段与冲刺终态），拒绝启动——去掉该旗标后重跑",
+                  file=sys.stderr)
             return 1
 
     # trace: FR-4.5 D-9（finding: diy-sprint/enhancement-2）白名单校验：非法实例名不落 spawn，
@@ -820,6 +956,24 @@ def main(argv=None) -> int:
         print("[runner] 补测补跑完成（--augment-only），退出", flush=True)
         return 0
 
+    # trace: 2026-10-05 裁定——--post-only：只跑冲刺末三连，不驱动主循环；有非终态任务时
+    # 三连吃的是半程面（覆盖矩阵/评分分母不完整，结论误导），一行报错零 spawn
+    if args.post_only:
+        doc = load_sprint(sprint_path)
+        pending = [t["story"] for t in doc.get("tasks", [])
+                   if t.get("status") not in TERMINAL]
+        if pending:
+            print(f"[runner] --post-only 要求任务全终态，仍有 {len(pending)} 个非终态"
+                  f"（{'、'.join(pending)}）——先跑主循环（去掉 --post-only）", file=sys.stderr)
+            return 1
+        run_post_face(args.claude_cmd, root, output_dir, allow, deny, args.instance)
+        for line in augment_summary(load_sprint(sprint_path)):
+            print(line, flush=True)
+        for line in deferred_summary(output_dir):
+            print(line, flush=True)
+        print("[runner] 冲刺末三连完成（--post-only），退出", flush=True)
+        return 0
+
     while True:
         doc = load_sprint(sprint_path)
         task = pick_next(doc)
@@ -835,6 +989,11 @@ def main(argv=None) -> int:
             # 不阻塞主循环、不回退任务状态
             rc = spawn_augment(args.claude_cmd, root, story_id, allow, deny, args.instance)
             print(f"[runner] {story_id} {augment_note(sprint_path, story_id, rc)}", flush=True)
+
+    if not args.skip_post:
+        # trace: 2026-10-05 裁定——主循环全终态后自动连跑三连（e2e → test-review →
+        # test-gate）；三技能全 report-only，不阻塞、不重开任务，review/gate 落草稿待人核
+        run_post_face(args.claude_cmd, root, output_dir, allow, deny, args.instance)
 
     for line in augment_summary(load_sprint(sprint_path)):
         print(line, flush=True)

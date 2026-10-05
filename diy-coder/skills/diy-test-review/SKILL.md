@@ -1,7 +1,7 @@
 ---
 name: diy-test-review
-description: 'Review test quality using best practices validation. Use when the user says "lets review tests" or "I want to evaluate test quality".'
-# ↑ 中文：审计测试代码质量——32 条有效规则（severity 由引擎复算）→ 0-100 评分账本，外加 AC ↔ 源码 ↔ 测试三向走查的覆盖缺口；产物 {output_dir}/test-review.yaml（RV-###）。只看测试代码，不审实现代码（那是 diy-review），不做覆盖率门（那是 diy-test-gate）。用户说 "lets review tests" / "I want to evaluate test quality" 时触发。
+description: 'Review test quality using best practices validation. Use when the user says "lets review tests" or "I want to evaluate test quality". Invoked by runner.py at sprint end (after diy-e2e-tests, before diy-test-gate; rerun via --post-only); headless runs leave the record as 草稿 pending human sign-off. Standalone invocation equivalent.'
+# ↑ 中文：审计测试代码质量——32 条有效规则（severity 由引擎复算）→ 0-100 评分账本，外加 AC ↔ 源码 ↔ 测试三向走查的覆盖缺口；产物 {output_dir}/test-review.yaml（RV-###）。只看测试代码，不审实现代码（那是 diy-review），不做覆盖率门（那是 diy-test-gate）。用户说 "lets review tests" / "I want to evaluate test quality" 时触发。runner.py 在冲刺末（diy-e2e-tests 之后、diy-test-gate 之前，补跑走 --post-only）自动调用；无头运行的记录落 `草稿` 待人核定稿；独立调用等价。
 phase: 4-implementation
 precededBy: [diy-augment]
 followedBy: [diy-test-gate]

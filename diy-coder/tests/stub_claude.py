@@ -5,11 +5,18 @@ DIY_STUB_ROUTING  "S-1:已完成,S-2:失败,S-3:已阻塞"（未注册任务默�
 含 "diy-augment" 的调用视为补测会话：log 记 "<story> augment" 后按 DIY_STUB_AUGMENT
 （通过 默认 / 失败 / 已跳过 / none=不留痕）写 augment 字段退出 0；任务状态零写回
 DIY_STUB_AUGMENT  补测会话结论（模拟 diy-augment 窄写权留痕）
-DIY_STUB_LOG      每次调用追加一行 "<story> <action>"（调用计数）
+DIY_STUB_LOG      每次调用追加一行 "<story> <action>"（调用计数；post 会话记 "post <技能名>"）
 DIY_STUB_SPRINT   桩要写回的 sprint.yaml 路径
 DIY_STUB_SENTINEL 若 stdin 读到非空内容则写入该文件（无头断言）
 DIY_STUB_SLEEP    已完成 两段写回之间的停留秒数（并发扫描窗口）
+含 "diy-e2e-tests" / "diy-test-review" / "diy-test-gate" 的调用视为冲刺末三连会话
+（2026-10-05）：不进任务状态机——log 记 "post <技能名>"，review/gate 往
+DIY_STUB_OUTDIR 写一条草稿记录（模拟技能窄写权产物），stdout 输出一行 JSON
+result（模拟 --output-format json，供 runner 的 e2e note 抽摘要）
+DIY_STUB_OUTDIR   post 会话产物写入根（test-review.yaml / test-gate.yaml 落此）
+DIY_STUB_E2E_RESULT e2e 会话的 result 摘要行（默认给一条通过计数）
 """
+import json
 import os
 import re
 import sys
@@ -47,6 +54,33 @@ def write_augment(sprint_path: str, story: str, value: str) -> None:
     atomic_write(path, yaml.safe_dump(doc, allow_unicode=True, sort_keys=False))
 
 
+def handle_post(skill: str) -> int:
+    # 冲刺末三连会话：log 记行 → 按技能留痕 → JSON result 退出
+    log = os.environ.get("DIY_STUB_LOG")
+    if log:
+        with open(log, "a", encoding="utf-8") as fh:
+            fh.write(f"post {skill}\n")
+    outdir = os.environ.get("DIY_STUB_OUTDIR")
+    if skill == "diy-e2e-tests":
+        summary = os.environ.get("DIY_STUB_E2E_RESULT",
+                                 "2 通过 / 0 失败（夹具默认）")
+        print(json.dumps({"result": summary}, ensure_ascii=False))
+        return 0
+    if skill == "diy-test-review":
+        path = Path(outdir) / "test-review.yaml"
+        doc = {"reviews": [{"id": "RV-001", "status": "草稿",
+                            "score": {"grade": "B", "recommendation": "要求修改"}}]}
+        atomic_write(path, yaml.safe_dump(doc, allow_unicode=True, sort_keys=False))
+        print(json.dumps({"result": "test-review：RV-001 草稿"}, ensure_ascii=False))
+        return 0
+    path = Path(outdir) / "test-gate.yaml"
+    doc = {"gates": [{"id": "TG-001", "status": "草稿",
+                      "gate": {"decision": "CONCERNS"}}]}
+    atomic_write(path, yaml.safe_dump(doc, allow_unicode=True, sort_keys=False))
+    print(json.dumps({"result": "test-gate：TG-001 草稿"}, ensure_ascii=False))
+    return 0
+
+
 def main() -> int:
     stdin_data = sys.stdin.read()
     sentinel = os.environ.get("DIY_STUB_SENTINEL")
@@ -54,6 +88,14 @@ def main() -> int:
         Path(sentinel).write_text(stdin_data, encoding="utf-8")
 
     joined = " ".join(sys.argv)
+    # 三连 prompt 无 story ID——路由须先于 S-\d+ 判定，否则误退退出码 2。
+    # 按「运行 diy-X skill」首句模式提取技能名（spawn prompt 统一开头）：正文提及
+    # 其他技能名（如 review prompt 里的 diy-e2e-tests）不误路由
+    post_match = re.search(r"运行 (diy-[a-z0-9-]+) skill", joined)
+    if post_match and post_match.group(1) in ("diy-e2e-tests", "diy-test-review",
+                                              "diy-test-gate"):
+        return handle_post(post_match.group(1))
+
     match = re.search(r"S-\d+", joined)
     if not match:
         return 2

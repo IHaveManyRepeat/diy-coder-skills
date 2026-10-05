@@ -445,6 +445,34 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面：diy-test-design SKILL.md（schema 段）＋diy-augment SKILL.md（规则 5 改写）＋diyc 校验面（mutation 段格式/枚举，随批核）＋tests。协调：augment SKILL 已在五轴批 2 与 e2e 认 ID 批改动面——三批同文件，排先后或并面施工。
 
+## 待办：§6「精准简练」适用面收窄——只有有产物的技能（2026-10-05 用户裁定，攒批，现在不动）
+
+裁定（2026-10-05）：「精准简练」是**产物纪律**，只有有产物的技能才需要；「适用面=全部技能不设非成员」（2026-09-19 旧裁定）作废。
+
+- 已动（用户点名先行）：diy-viewer SKILL.md 该句已删（薄启动器·outputs: —·不写产物散文，首例豁免）；`tests/test_suite_texts.py` 增 `PRECISE_NON_MEMBERS` 豁免台账（viewer 首员）。
+- 待办主体：全库盘点**零产物技能**实际范围（test_suite_texts.py 台账随盘点收敛）；其余零产物技能统一删句＋登台账；母本 §6 适用面句同步改判。
+- 联动：diy-help 游离句条（上文 2026-10-03 段）同属零产物豁免，届时并入本批；待办③ suite-texts.yaml 的 members 字段即本批裁定结果，两批合一施工。
+
+## 已执行：runner 冲刺末三连——e2e → test-review → test-gate 自动调用（2026-10-05 用户裁定，当批已施工）
+
+裁定（2026-10-05 用户四点＋两裁点）：
+- **自动连跑**：主循环全终态后依次 spawn diy-e2e-tests → diy-test-review → diy-test-gate（顺序使 e2e 落的测试代码与 TC 进后两者审计面）；三技能全 report-only——结论落各自产物、不重开任务、不阻塞退出，汇入收尾汇总由人裁断。
+- **旗标**：`--skip-post` 关三连／`--post-only` 只跑三连不驱动主循环（服务人装完 e2e 框架后补跑与裁断修复后复核）；`--post-only` 要求任务全终态（半程面的矩阵分母不完整）；与 `--skip-post`/`--augment-only`/`--reopen-failed` 互斥；WDS 线对两旗标显式拒绝（与 augment 面同款）。
+- **e2e 无头处置（不破硬门）**：跑不起来先查 test-plan 前层 TC status 鉴别归属——前层已过而 e2e 层起不来＝e2e 面问题，按技能「失败当场修」处理；修不动（含无框架——技能硬门「绝不安装任何东西」）零用例收场给一行诊断，人装框架后 `--post-only` 补跑。
+- **review/gate 无头落草稿**：记录 `status: 草稿` 待人核定稿（定稿＝人审，与 sprint「已定稿」硬门同哲学）；runner note 行以产物最新记录为准（自报≠已处置），e2e note＝退出码＋会话摘要首行。
+
+改动面（已落）：`diy-coder/runner.py`（三 spawn＋note 判读＋旗标＋`_spawn` 增返 result）／三技能 SKILL.md description 补自动调用声明／diy-build-loop 规则 9 签名行／README 工作流链条／`tests/stub_claude.py`（post 会话路由）＋`tests/test_runner.py`（TC_Post_Face 七用例；`run_runner` 缺省注入 `--skip-post` 隔离既有测试，`--line wds` 不注入）；install.py 已同步安装形态。
+
+遗留待办（YAGNI 后补）：`--reopen-failed` 现只认 `augment:失败`；e2e/gate 发现的实现缺陷重开＝人手改 sprint.yaml 对应任务回 `进行中` 后重跑 runner。若实际冲刺中 e2e 失败量大，再裁扩展 reopen 认「关联端到端失败 TC 的任务」（需 TC→AC→story 映射解析）。
+
+## 待办：test_pending_precise_brief 跨窗口中间态红——检查任务（2026-10-05 发现并查明，现在不动）
+
+现象：2026-10-05 三连批全量跑时 `tests/test_suite_texts.py::PendingLandingTests::test_pending_precise_brief` 间歇红一次（单跑过、复跑全绿，当时误判 flaky）。
+
+查明：非 flaky——§6 批两半（`PRECISE_NON_MEMBERS` 台账改判 vs elicit/help/party-mode 删句）在两个窗口非原子落盘，对账断言跨越中间态窗口即红；两半齐后稳定绿。
+
+检查任务（随 §6 批闭合执行，不动手改）：§6 批收口时确认该测试在全量下稳定绿即可；若再红，先查是否又是并行批中间态（台账先行/正文后至），不要直接改断言。
+
 ## 升级事项（可选·不排期·需要才做）
 
 ### object-types 参考层类型扩展（2026-10-04 登记）
