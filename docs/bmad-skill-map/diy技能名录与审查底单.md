@@ -132,7 +132,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 全库级（旧技能都要改） | 去 `.claude` 路径硬编码（安装器待办·①） | 155 文件近全员 |
 | 全库级 | 50 技能正文逐项化 | 50 SKILL.md＋steps/ |
 | 全库级 | 去源路径锚（正文「源 `X`」180+ 处悬空引用迁 dev-only 台账） | 72 文件（扩口径后更多） |
-| 全库级 | 零产物技能删「精准简练」块——§6 适用面＝写产物散文的技能（2026-10-05 用户点名全库级；适用面批已删 viewer/help/elicit/party-mode，**余 diy-tools:66**；dev/review/augment/build-loop/selfcheck 虽 `outputs: —` 但写产物内容＝适用保留——判据「是否写产物散文」，范围随批终核） | 零产物 SKILL.md＋对应 test 断言 |
+| 全库级 | 零产物技能删「精准简练」块——§6 适用面＝写产物散文的技能（2026-10-05 用户点名全库级；适用面批已删 viewer/help/elicit/party-mode＋diy-tools:66 同批收口·断言退役 58 绿——**零产物带 §6 清零**；dev/review/augment/build-loop/selfcheck 虽 `outputs: —` 但写产物内容＝适用保留——判据「是否写产物散文」，范围随批终核） | 零产物 SKILL.md＋对应 test 断言 |
 | 新机制 | 安装器向导化（安装器待办·②） | install.py＋diy-coder.yaml |
 | 新机制 | 公共句式母本注入（方案 A 已拍板，discover 先行） | discover_texts.py＋sync_texts.py＋suite-texts.yaml＋test 改造 |
 | 新机制 | prd 前置机制化（判据：下游认源 ID；brainstorm 细化至条目级三级锚） | registry＋7 技能 frontmatter＋prd 喂入面＋brainstorm.py |

@@ -160,8 +160,7 @@ DEFAULT_CHAIN_ZH = ("缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 
 INSTANCE_FLAG_ZH = ("实例名只在本次激活参数出现 `--instance <name>` 时才传"
                     "（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；"
                     "未传时回执的 `output_dir` 即主线平铺根。")
-PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
-              "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
+# §6 精准简练已移除（2026-10-05 elicit 零产物豁免，登底单待办段）——PRECISE_ZH 常量随之退役
 DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
                  "机器语法（命令/旗标/路径）进括号；机器锚点逐字保留"
                  "（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 "
@@ -200,13 +199,11 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn(DEFAULT_CHAIN_ZH, raw, "缺母本 §3 缺省链")
         self.assertIn(INSTANCE_FLAG_ZH, raw, "缺母本 §3 实例触发条款")
 
-    # trace: 母本 §6 + §2（Rules 末尾，§6 在前）+ 四段中文标题 + ≤90 行 + §5/§4 非成员
+    # trace: 母本 §2（Rules 末尾）+ 四段中文标题 + ≤90 行 + §5/§4 非成员
+    # （§6 精准简练断言已退役 2026-10-05：elicit 零产物豁免，登底单待办段）
     def test_skill_shape_and_discipline_blocks(self):
         raw = self.skill()
-        self.assertIn(PRECISE_ZH, raw, "缺母本 §6 中文定稿")
         self.assertIn(DISCIPLINE_ZH, raw, "缺母本 §2 中文定稿")
-        self.assertLess(raw.index(PRECISE_ZH), raw.index(DISCIPLINE_ZH),
-                        "Rules 末尾顺序须为：§6 精准简练 → §2 写作纪律块")
         self.assertTrue(raw.rstrip("\n").endswith(DISCIPLINE_ZH), "写作纪律块须置文件收尾行")
         self.assertLessEqual(len(raw.splitlines()), 90, "薄主文件超出 90 行预算")
         for section in SECTIONS_ZH:

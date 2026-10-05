@@ -26,7 +26,6 @@ INSTANCE_ZH = ("实例解析（FR-4.5/D-9）由工具脚本执行：运行 "
 INSTANCE_EN_MARK = "Instance resolution (FR-4.5/D-9)"
 RESOLVE_KEYS_ANCHOR = ("解析 `project.communication_language` / "
                        "`project.document_output_language` / `paths.output_dir`")
-PRECISE_ANCHOR = "- **精准简练。**"
 
 
 def run_help(root, *extra):
@@ -382,13 +381,13 @@ class HelpSkillContractTests(unittest.TestCase):
         with open(HELP_SKILL_MD, encoding="utf-8") as f:
             return f.read()
 
-    # trace: 中文化轮（母本 §1 中文定稿 / §3 配置解析键含 project. 前缀 / §6 精准简练逐字）
+    # trace: 中文化轮（母本 §1 中文定稿 / §3 配置解析键含 project. 前缀）
+    # （§6 精准简练断言已退役 2026-10-05：help 零产物豁免，登底单待办段）
     def test_mother_texts_verbatim(self):
         raw = self.read_skill()
         self.assertIn(INSTANCE_ZH, raw, "缺母本 §1 中文定稿实例解析句")
         self.assertNotIn(INSTANCE_EN_MARK, raw, "已转中文定稿，仍残留 §1 英文原形")
         self.assertIn(RESOLVE_KEYS_ANCHOR, raw, "缺母本 §3 配置解析键（A-3：project. 前缀）")
-        self.assertIn(PRECISE_ANCHOR, raw, "缺母本 §6 精准简练条款")
 
     # trace: 2026-09-19 中文化政策（四段中文标题 + description 中文注释 + ≤93 行预算）
     def test_four_chinese_sections_and_budget(self):

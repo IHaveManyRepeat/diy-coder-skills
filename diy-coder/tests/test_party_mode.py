@@ -7,7 +7,7 @@
   1. 四段中文标题在场 + 薄主文件行数预算 + 标题含技能名
   2. 母本 §1 实例解析句中文定稿逐字（英文原形不得残留）
   3. 母本 §3 配置键全路径锚串 + 缺省链 + 实例触发条款
-  4. 母本 §2 写作纪律块逐字且置文件末尾；母本 §6 精准简练在场且在其前
+  4. 母本 §2 写作纪律块逐字且置文件末尾（§6 精准简练已移除 2026-10-05：零产物豁免）
   5. 关键纪律句在场（真子代理 / 逐字呈现 / 不合成 / 视角动态派生 / 零写面声明）
   6. 无渲染理由句在场（零 YAML 产物 → 母本 §5 不适用；不得出现 viewer 调用）
   7. 无 `steps/` → 母本 §4 不适用理由句在场；无 `scripts/` 引擎（禁造无意义引擎）
@@ -50,9 +50,7 @@ INSTANCE_FLAG_ZH = ("实例名只在本次激活参数出现 `--instance <name>`
                     "（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；"
                     "未传时回执的 `output_dir` 即主线平铺根。")
 
-# 母本 §6 精准简练（Rules 末尾、§2 之前）
-PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；"
-              "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。")
+# §6 精准简练已移除（2026-10-05 零产物豁免，登底单待办段）——PRECISE_ZH 常量随之退役
 
 # 母本 §2 写作纪律块（Rules 段末尾）
 DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；"
@@ -104,13 +102,10 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn(DEFAULT_CHAIN_ZH, raw, "缺母本 §3 缺省链")
         self.assertIn(INSTANCE_FLAG_ZH, raw, "缺母本 §3 实例触发条款")
 
-    # trace: 任务书 §2.1（母本 §2 置 Rules 末尾、母本 §6 在其前）
-    def test_precise_brief_then_writing_discipline_at_end(self):
+    # trace: 任务书 §2.1（母本 §2 置 Rules 末尾）；§6 已移除 2026-10-05 零产物豁免
+    def test_writing_discipline_at_end(self):
         raw = self.skill()
-        self.assertIn(PRECISE_ZH, raw, "缺母本 §6 精准简练")
         self.assertIn(DISCIPLINE_ZH, raw, "缺母本 §2 写作纪律块（逐字）")
-        self.assertLess(raw.index(PRECISE_ZH), raw.index(DISCIPLINE_ZH),
-                        "Rules 末尾顺序须为：§6 精准简练 → §2 写作纪律块")
         self.assertTrue(raw.rstrip(NL).endswith(DISCIPLINE_ZH),
                         "写作纪律块须置文件收尾行")
 

@@ -63,4 +63,3 @@ python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" <subcommand> [o
 3. `scripts/` 下的文件是各道门的唯一定义源（例如 `Docs.story_covered` 同时驱动 TDD 门与 reconcile）。绝不在提示词里内联重新实现规则——调命令、读回执。
 4. 基线条目只在用户明确批准后才写进台账——宿主技能提 `(code, where, reason)`、用户拍板、`baseline-add` 是唯一写入者；绝不为了过门把违规自行入册。
 
-- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

@@ -205,13 +205,14 @@ LANDED_PRECISE = frozenset(["prd", "teach-me-testing", "test-author",
                             "correct-course", "spec-scan", "project-context",
                             "investigate", "research", "retrospective",
                             "architecture", "design", "dev", "review",
-                            "tools"])
+                            ])
 
 # §6 非适用成员（2026-10-05 用户裁定：精准简练=产物纪律，只有有产物的技能才需要；
-# 全库盘点后删句——viewer/elicit/help/party-mode 四家零产物，判据=正文零写回自述，
-# frontmatter outputs:— 不作判据〔selfcheck 同为 — 但产 dogfood 报告故保留〕）。
-# tools 待裁（借 baseline-add 写 reason、自身零散文产出）。裁定与连带面登底单待办段。
-PRECISE_NON_MEMBERS = frozenset(["viewer", "elicit", "help", "party-mode"])
+# 判据=正文零写回自述，frontmatter outputs:— 不作判据〔selfcheck 同为 — 但产
+# dogfood 报告故保留；dev/augment/build-loop/review 写代码/写回均保留〕）。
+# 五家全裁删（tools 2026-10-05 用户裁定：借 baseline-add 写 reason 但自身零散文产出）。
+PRECISE_NON_MEMBERS = frozenset(["viewer", "elicit", "help",
+                                  "party-mode", "tools"])
 
 
 def _steppers():
