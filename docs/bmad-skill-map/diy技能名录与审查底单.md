@@ -151,7 +151,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | --- | --- | --- |
 | 全库级（旧技能都要改） | 去 `.claude` 路径硬编码（安装器待办·①） | 155 文件近全员 |
 | 全库级 | 50 技能正文逐项化 | 50 SKILL.md＋steps/ |
-| 全库级 | 去源路径锚（正文「源 `X`」180+ 处悬空引用迁 dev-only 台账） | 72 文件（扩口径后更多） |
+| 全库级 | 去源路径锚＋任务批名词（「源 `X`」悬空锚＋批次码/裁定号/「本批·已批」句等出处注迁 dev-only 台账·**技能正文不放**〔2026-10-05 用户裁定整类禁入〕） | 72 文件＋预扫 99 文件 314 处（扩口径后更多） |
 | 全库级 | 零产物技能删「精准简练」块——§6 适用面＝写产物散文的技能（2026-10-05 用户点名全库级；适用面批已删 viewer/help/elicit/party-mode＋diy-tools:66 同批收口·断言退役 58 绿——**零产物带 §6 清零**；dev/review/augment/build-loop/selfcheck 虽 `outputs: —` 但写产物内容＝适用保留——判据「是否写产物散文」，范围随批终核） | 零产物 SKILL.md＋对应 test 断言 |
 | 新机制 | 安装器向导化（安装器待办·②） | install.py＋diy-coder.yaml |
 | 新机制 | 公共句式母本注入（方案 A 已拍板，discover 先行） | discover_texts.py＋sync_texts.py＋suite-texts.yaml＋test 改造 |
@@ -173,6 +173,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | 爆炸半径分析注入 diy-review＋测试设计族（四项全闭合：1b 独立面/2b FH 排序/三技能范围/定制标签＋漂移防治已核·**未开工·待用户点头**） | diy-review＋test-design/e2e/augment＋引擎＋viewer＋tests |
 | 单独技能 | diy-analyze 吸收 arch-analyze 职能（方向已裁：arch-analyze 退役不装·套件内 4 处路由句改写·取代形态/产物面待裁·**未开工·待用户点头**） | diy-analyze SKILL＋steps＋引擎＋viewer＋tests＋底单 C 表 |
 | 单独技能 | diy-reverse 补「参考用法」引导（2026-10-05 会话实测：用户想先逆向别站做参考再做自己的 design.yaml——instance 隔离机制在场可解（`--instance` 落 `<output_dir>/<instance>/` 不占主线位）但 SKILL.md 只有「初始设计单源」一种叙事，参考用法入口不显性；拟补引导：参考目的→带 `--instance` 跑＋主线生成权不受扰＋design `[C]`/`[K]` 只读消费参考；挂法/文案/是否动 diy-design 输入面待裁，预期零引擎改动·**未开工·待用户点头**） | diy-reverse SKILL.md（或＋diy-design 输入面） |
+| 单独技能 | diy-wds-trigger Layer 1 方法本体迁入（2026-10-05 用户裁定「要迁移就都迁移完」：2 份实存 saga 文档 1,687 行（trigger-mapping 653＋dream-up-approach 1,034）迁入 diy——**安装 diy 不装 bmad·技能不得依赖 `_bmad` 路径**·裁定 9「不可用」随之解封；迁入形态/落点待裁·**开工先普查全库同类**（运行时输入依赖安装布局外路径·功能依赖型）·**未开工·待用户点头**） | diy-wds-trigger SKILL＋steps＋新迁文件 |
 
 ## 待办：prd 前置机制化（攒批，审查出结论后一并处理，现在不动）
 
@@ -394,6 +395,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 溯源落点（已裁 dev-only）：行级锚（路径＋行号＋裁定号）集中迁 `docs/bmad-skill-map/` 新台账（文件名落地时定），发布包正文彻底无源路径；dev 仓 BMAD/wds 源文件本体不动。
 - 源侧缺陷登记保留条件（已裁·2026-10-04 补）：**正确路径可寻得**（缺陷＝源笔误、文件本体在）→ 错误登记**不保留**；**真幽灵**（正确路径亦不存在）→ 保留「裁/改道」处置事实，源路径细节进 dev-only 台账。实测两例：D12 `object-router.md` 实存于源 `data/object-types/`（笔误，登记可删）；D13 `design-system-router.md` 全库未寻得（幽灵，保留裁的事实）。
 - 迁移痕迹零正文（已裁·2026-10-04 补）：裁撤登记/改写说明/净损失登记/归属裁定等**迁移决策记录整块迁 dev-only 台账专门记录，技能正文不留**——不只去路径锚，记录块本身退出正文。技能正文是可执行内容，迁移决策记录属变更台账，载体分离。台账载体可与 迁移计划.md「能力损失台账」合并，落地时定。普查（标记词口径）：真 16 处/14 文件（diy-design 13 处全族＋`diy-dev/steps/wds-accept.md:44` 整节＋`diy-wds-system/data/complexity-router.md:5`；party-mode 2 处系误报——「缺陷台账」指 diy-review 产物非迁移记录）；2026-10-04 用户点名补登 `diy-dev/steps/wds-implement.md:39` / `wds-fix.md:33` 两整节（同族「裁撤与归位（源侧台账）」，原普查时点后新增）→ 计 18 处/16 文件；一审 party-mode 预发现（2026-10-05）：`diy-party-mode/SKILL.md:15`「裁自源技能：…」句＝裁剪说明嵌入正文段（非独立块），「裁自」形态不在标记词口径 → 计 19 处/17 文件；一审 quick-dev 预发现（2026-10-05）：「源技能做法 vs diy 做法」裁改对照注记 6 处/4 文件（SKILL.md:58/:86＋steps/01:21/:22·03:18·06:31——同「裁自」族嵌入正文段）→ 计 25 处/21 文件；「收编自/出处/按裁定 N/普查编号」等旁形态随逐技能实测覆盖（一审 e2e 预发现：BMAD 溯源注记 6 处/4 文件——steps/02-targets:10·03-generate-api:14·04-generate-e2e:10/:15/:17/:29·05-record:48，归本批；一审 test-review 预发现：criteria.yaml 头部迁移裁定注释块＋`source:` 键＋steps 泛指 3 处（02:10·03:24/:33）——数据资产面非 SKILL 正文，归本批、处置随批核；一审 test-gate 预发现：adr-checklist.yaml 路径与源注（:3/:4/:39）＋steps 源泛指约 8 处（02:15 源四级·03:47 源时效线·04:52/:61/:67·05:16/:46/:50/:51），同归本批；一审 retrospective 预发现：泛指形态最重一族——「源技能/源 step-N/源主持纪律」遍布 7 个 steps 文件＋引擎头注约 20 处/8 文件（无路径锚），同归本批；一审 viewer 预发现：viewer.py `# trace:`/批次码出处注约 70 处（C·2/B3/W2/R-x——出处类旁形态，处置面随批核）；口径补记（2026-10-05）：任务书编号（AC-9.x/FR-3.x/R-x/§五 C·N 等）散见 build-loop SKILL.md（4 处）、test-review steps/引擎（R-3/R-4）等——同归「普查编号」旁形态，此前一审未单列，此处补口径；一审 teach-me-testing 预发现：curriculum.yaml 头部迁移裁定注释块＋逐行「源: 英文名」留档注——数据资产面，同 criteria.yaml 先例，归本批；一审 party-mode 预发现（2026-10-05 用户裁定）：SKILL.md:15 尾句「裁自源技能：BMAD 的 agent 名册与人设剧本整段不迁，留的是『多视角独立推理』的方法本体」＝迁移归属裁定正文化——信息搬日志（dev-only 台账）、正文删句，归本批；selfcheck 讲解时用户裁定（2026-10-05·一审前点名）：`diy-selfcheck/SKILL.md:17`「底子」整句（B3 §13 固化的编排＋融合 B4 机器台账/B6 旧值复扫/B7 片间交叉置信度/C·7 单执行者降级形态）＝批次码出处说明——出处类旁形态，正文删句（已裁可去·待本批执行，信息进台账）→ 计 20 处/18 文件）。
+- **任务批名词整类禁入正文（2026-10-05 用户裁定·WDS 线一审点名）**：「B6 的已批码 `TOKEN_UNRESOLVED`（本批不新增码）」同款句在 WDS 四技能 SKILL.md 违规码段在场（`diy-wds-brief/SKILL.md:80`·`diy-wds-scenarios/SKILL.md:81`·`diy-wds-system/SKILL.md:82`·`diy-wds-assets/SKILL.md:81`）＝批次码出处注嵌规则正文。裁定：任务批名词（批次码 B3/B6/B7b·裁定号·C·N·SS-###·§N·「本批/同批/移交/已批」句）**全面普查、全量迁 dev-only 台账，技能正文不放**；行为内容（码表、承载语义、判据值）改写自包含留正文，出处句删。预扫（2026-10-05·grep 已批码/本批/`B\d`/`C·\d`/裁定 \d/`SS-###`·.analysis 外）：约 **314 处/99 文件**，遍布 SKILL/steps/scripts 注释/data 资产头注/templates——远超窄口径已计数（20 处/18 文件系标记词口径）；精确清单随批逐技能实测出（正则预扫只作参考·本批既有纪律）。
 - **dev 仓内部文档引用同属迁移痕迹**（已裁·2026-10-04 补）：`迁移计划.md:行号`、`*-fidelity.md §节`、`docs/bmad-skill-map/` 路径等 dev 私有管理文档引用**不得出现在技能正文**——发布包必无该文件，且行号/章节号随文档漂移，比 BMAD 源锚更不可解析（例：`prototype-loop.md:12` 的「源侧 `迁移计划.md:210`」）。普查：真 4 处/4 文件（`diy-design/steps/prototype-loop.md:12`、`diy-wds-brief/steps/03-signoff.md:144`、`diy-viewer/scripts/viewer.py:666`、`diy-wds-assets/data/presentation-formats/index.md:25`；`c-discuss.md:6` 系「讨论结论」产物字段名误报）。处置同总则：行为事实改写自包含留正文，出处/行号/编号进台账。一审 test-gate 补登（2026-10-05，原普查漏网）：6 处/4 文件——`diy-test-gate/SKILL.md:67`（裸节号 §十三:459）＋`steps/05-gate.md:17`＋`scripts/gate.py:60/:73`（§十三:459／§二验收 #3·#4·#12）＋`scripts/gate_check.py:13/:665`，皆「迁移计划 §节」形 → 计真 10 处/8 文件；一审 viewer 再补 +2（2026-10-05）：viewer.py:669（迁移计划 §已定补充）＋:165（§五 C·8 裸节号——原普查仅记 :666）→ 计真 12 处/8 文件；一审 diy-tools 补 +4（2026-10-05）：`diyc_mutate.py:2`（迁移计划 §五 阶段 C 第 9 项）＋`diyc_writeback.py:67/:563/:629`（§五 C·8②·迁移计划 §十三）→ 计真 16 处/10 文件（`diyc.py:302` 系 FR-4.5/D-9 全族模板句，归母本批不在此计）。
 - 范围（已裁）：整个技能包。排期（已裁）：专批；与逐项化/母本批协调先后（同为 50 文件级正文改动，避免同文件改两遍）。
 
@@ -556,6 +558,26 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 底单联动：C 表 diy-analyze 用途列与一审行边界描述随批对齐。
 
 改动面：diy-analyze SKILL.md（:27/:73）＋steps/01-define.md:55＋analyze.py（若模式/字段变）＋viewer（若产物扩）＋tests（:365 断言＋新面）＋底单 C 表行。协调：与逐项化批同文件（现 76 行不超限·冲突小）。
+
+## 待办：diy-wds-trigger Layer 1 方法本体迁入（2026-10-05 用户裁定，未开工·待用户点头，现在不动）
+
+登记来源：用户审 diy-wds-trigger 发现并裁定——裁定 9 称「源侧 5 条学习材料引用路径失效」并把 Layer 1「Learn WDS Form」标为不可用，但其中 2 条的方法本体实存于本仓 `_bmad/wds/data/agent-guides/saga/`；**安装 diy 不会安装 bmad**，技能不得依赖 `_bmad` 路径——「要迁移就都迁移完」。
+
+事实（2026-10-05 核实）：
+- 裁定 9 落点两处：`diy-wds-trigger/SKILL.md:80`＋`steps/01-mode.md:34`（含原 5 条引用清单、「不伪造方法层文档」「能力损失不登记为偏离」口径）。
+- 两份文件实存且行数已核：`saga/trigger-mapping.md` 653 行＋`saga/dream-up-approach.md` 1,034 行＝1,687 行（Layer 1 方法本体）；其余 3 条原引用确不存在（无源可迁）。
+- 同目录共享面已有两先例、体量级不同：wds-brief `05-content.md:75/:89` 将 `seo-strategy-guide.md`／`content-structure-principles.md` **内联进步骤正文**（口径「该文件在 diy 侧不存在→本批内联」·条目级精要）；diy-design `p-specify.md:57` 将 freya `meta-content-guide` 判据值定案内联（SS-030-08）。本件是第三例但是**整层方法本体**（1,687 行），内联＝方法折损，故用户裁向整迁。
+- 测试面无钉住裁定 9 措辞的断言（test_wds_trigger.py 零命中「第 1 层/不可用/Learn WDS」·已核）。
+
+待裁（开工前须点头）：
+- 迁入形态与落点：A. 整文件迁入技能目录（如 `references/`·保 1,687 行方法本体·Layer 1 学习材料完整复活）vs B. 内联精要（wds-brief 先例·正文预算压力小）。用户裁定句「都迁移完」倾向 A，落点目录名待定。
+- 裁定 9 解封范围：Layer 1 从「不可用」改「可用」后，S/D 降级模式第 1 层是否随之恢复；「不得伪造方法层文档」句随迁入失效回改两处。
+- 权威双轨：迁入文档 vs 既有自审基准（键表＋06-finish 质检）谁为 Layer 1 权威；01-mode.md:34「对照见 layer1 调研报告」注记随改。
+- 3 条确不存在材料维持「能力损失」口径不变（无源可迁）。
+
+改动面：diy-wds-trigger SKILL.md:80＋steps/01-mode.md:34（＋02~06 若第 1 层贯通）＋新迁文件＋tests（回归）。协调：与逐项化批同文件；属 WDS 线一审范围（45/50·trigger 审查中）——一审完毕行随批引用本段。
+
+开工时先普查全库同类（用户点名 2026-10-05）：判据＝技能正文引用 **diy 安装布局外路径**（`_bmad/`·源仓 `docs/`/`src/`）作**运行时输入**，非纯溯源注记。已核在案三处：本件（功能依赖·真缺）；wds-brief `05-content.md:75/:89`（内容已内联·`_bmad` 句面残留＝溯源注记型·归去源锚批）；diy-design `p-specify.md:57`（判据已内联·同前）。普查找「功能依赖型」漏网——`_bmad|agent-guides` 全库 grep 已跑（.analysis 外仅上述命中），源仓 `docs/`/`src/` 形态需借去源锚批普查台账交叉分类（两批判据分工：功能依赖归本批·溯源注记归去源锚批）。
 
 ## 升级事项（可选·不排期·需要才做）
 
