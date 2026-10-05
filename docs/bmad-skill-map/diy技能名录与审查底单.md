@@ -133,6 +133,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | diy-investigate | 完毕 | 2026-10-05 | 激活头同构（含预载预算＋`collect` 采集器变体——NO_VCS warning 降级绝不致命·行数即子代理成本依据）、纪律块 §6/§2 同款在场（:91/:93）→ 随 YAML 迁移整体收编；**证据三级分级是核心纪律**（已确证引 path:line/时间戳/commit·已推断给链·假设中写证伪条件·「级永不注水——诚实的级就是交付物」）＝诚实面正面样板；据点先行（先锚一条已确证再外扩·绝不从理论出发找支持·**用户描述是假设不是事实**——problem_statement 原话永保、证据可反驳不改写）；**假设永不删除**（status＋resolution·错路留在案卷·无 resolution 终门拒放行）＋每次向已确证移动**先跑证伪轮**（主动找反证记进 resolution）；缺失证据也是发现（`missing_evidence` 三键·`availability: 缺失` 只标已有条目跑丢·`evidence_light` 案件合法不静默）；委派闸值单一定义源（>10K 单文件/≥5 文件/类别 >10K→派·子代理只返 JSON 父上下文不重读）；边界：调查止于诊断不修不成故事不写冲刺＋缺陷入库「给命令」而非「写文件」（bug-add·source: 用户·确认后就地执行）；**下游消费双边合同**（quick-dev:29 引用式消费 handoff_brief/conclusion/evidence·绝不转抄）；slug 续案键＋follow_ups 同日多条也照记；ID 三层作用域（IV 文件级/EV/H case 内）；side_findings 切向观察三态区分（≠backlog≠evidence）；19 测试绿＋viewer investigation 专项；零源锚零 dev 引用（唯 FR-4.5/D-9 模板句）；行数 93 不超限，无新发现 |
 | diy-checkpoint-preview | 完毕 | 2026-10-05 | 激活头同构（含预载预算＋`target` 三层级联定位变体——显式 ref→`待审查` 任务→git diff·PR 线索由会话层先解析成本地 ref·三层全空 exit 1 零写入）、纪律块 §6/§2 同款在场（:84/:86）→ 随 YAML 迁移整体收编；边界（vs diy-review：人的理解与拍板 vs 机器分诊与状态迁移——不补丁不动状态不写 stories）；**按关注点带看不按文件排布**（连贯设计意图·理解顺序·`path:line` 停靠点）；风险点 2-5 个**按爆炸半径排序＋枚举标签**——「绝不按 diff 顺序·绝不用数值严重度」＝今日爆炸半径批判据（④纪律句）的本源样板；亲手验证 2-5 条纯体验面·绝不复述 CI/测试套件；**人的话就是证据**（`reason`/`next` 引述或贴近转述·绝不替人编结论）；`讨论` 永不收口（回决策点循环）；`target.inferred` 只为 true 而写（缺席是常态绝不无中生有）；mode 死值诚实标注（:57「全程轨迹——本生态不适用」）；无风险明说不编造；「在此批准不发版＝记录一次人工拍板」；22 测试绿＋viewer checkpoint 专项（7 处）；零源锚零 dev 引用（唯 FR-4.5/D-9 模板句）；行数 86 不超限，无新发现 |
 | diy-correct-course | 完毕 | 2026-10-05 | 激活头同构（含预载预算＋`collect` 确定性开场变体——硬门三件套已定稿·exit 1 拒绝永不变成记录）、纪律块 §6/§2 同款在场（:88/:90）→ 随 YAML 迁移整体收编；**只出提案不改真源**（八产物逐一点名·`handoff.route` 点名谁执行·「整篇改写是产物所有者技能的活」）＝写权边界正面样板；输入面两路＋上游调查（retro 交接**一条 proposal 承载整批**·trigger 写 RT-id＋change 摘句——retro 双边合同对侧；investigation.yaml 引用式消费绝不转抄——第二个消费方）；**只引用不复制**（`impacts`/`edits` target 带稳定 ID 或 `path:<relative>`·`old`/`new` 最小决定性取值绝不粘贴整段）；**scope×route 门强制配对**且真判据＝被改产物唯一所有者（`轻微`→所有者落实/`中等`→重组 backlog/`重大`→规划层重规划·allow-list 只是粗筛）＝认源纪律；「已驳回」终门永不放行的例外（改跑不带 `--final` 的 check 收口——终门变体诚实处理）；批准先于路由（未批准绝不交接）；触发不清就停·绝不虚构影响；25 测试绿＋viewer proposal 专项；零源锚零 dev 引用（唯 FR-4.5/D-9 模板句）；行数 90 不超限，无新发现 |
+| diy-reverse | 完毕 | 2026-10-05 | 激活头同构（含预载预算＋`list` 六字段续接＋门禁两轨零产出＋写权分支变体）、纪律块 §6/§2 同款在场（:81/:83）→ 随 YAML 迁移整体收编；**生成权/演进权分离（裁定 13）**＝`design.yaml` 只在初始生成时写·已存在 `init` 判 `OVERWRITE_REFUSED` 零写入·`revisions` 建议＋路由 `diy-design`——写权边界正面样板；纪律三条（先观察后提取/尊重知识产权/抓规则不抄像素）＋**「不抄像素」判据机械化**（同值 ≥2 次才可作 token·与 `design.py audit` 的 `one-off-*` 同判据＝跨引擎判据复用）；既有 schema 逐字沿用（不新增字段不自造 ID·`P-<n>` 不用 WDS 记录形态·`SET_MISMATCH` 核结构稿名）；**双终门交叉核对**（本引擎 `check --final` ＋ `design.py validate/check` 双 exit 0·不一致以设计域引擎为准「schema 与易用性权威」）＝跨域权威让渡正面；新增两码（`TARGET_UNREACHABLE`/`OVERWRITE_REFUSED`）；提取来源无承载位→结构稿头部注释承载＋登记 C·3 schema 扩充项（债有主）；检查点四选项六拍（同 analyze 族）＋「路由≠技能间调用：调用先例只给零写面增强技能」纪律澄清；只读外访（联网不可用即中止不排队）；边界六对；C·12 欠账两键（form_factor/modes）在场核验✓；35 测试绿；旁形态：批次码与裁定号注记约 8 处（C·3×5·C·12×1·裁定 11/13——归普查编号口径）；行数 83 不超限，无其他新发现 |
 
 ### 二审
 
@@ -165,6 +166,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | diy-spec-scan 加方法驱动分支穷举（ECH 化·2026-10-05 用户裁定「卡点法还不够」＋**方案全定 1A+3B·无待裁项**：①穷举独立成 step（如 02b-exhaustive）不并入 03——与 diy-review 双透镜并列同构·两法 findings 去重复用 02「同一处只报一次」·判据参考 diy-review lenses.md「边界类从内容自身推·不套固定清单」；②**穷举默认跑（opt-out·2026-10-05 裁）**——除非用户明示不用穷举·对齐 editorial-review 两透镜默认全跑 `--lens` 收窄先例；③**载体已裁＝`source: 卡点\|穷举` 字段**——type 保持八类·引擎 FINDING_TYPES 零改·summary 分法计数（selfcheck B 部分机制评价原料）。**未开工·待用户点头**） | diy-spec-scan SKILL＋steps＋引擎＋tests |
 | 单独技能 | diy-selfcheck 硬门放开「要照做的事」→ 任意文档可审（2026-10-05 用户点名 prd/架构/epic/story/任意文档；BMAD AR/ECH 文档面能力补缺·Story 2.1 实用过 AR 定稿兜底；**方案已裁 2A+4a**：spec-scan 硬门同步放开为「可读非空」·两技能形态统一·selfcheck 预演片对纯文档不降级；纯文档时 spec-scan 跳过 02 预演只跑穷举+03+04（依赖 1A）；kind 扩「任务书\|技能\|规格\|文档」——引擎不校验语义 kind·仅改 SKILL.md 文案零引擎改动。**未开工·待用户点头**） | diy-selfcheck SKILL＋steps＋diy-spec-scan SKILL＋steps＋引擎＋tests |
 | 单独技能 | 爆炸半径分析注入 diy-review＋测试设计族（四项全闭合：1b 独立面/2b FH 排序/三技能范围/定制标签＋漂移防治已核·**未开工·待用户点头**） | diy-review＋test-design/e2e/augment＋引擎＋viewer＋tests |
+| 单独技能 | diy-analyze 吸收 arch-analyze 职能（方向已裁：arch-analyze 退役不装·套件内 4 处路由句改写·取代形态/产物面待裁·**未开工·待用户点头**） | diy-analyze SKILL＋steps＋引擎＋viewer＋tests＋底单 C 表 |
+| 单独技能 | diy-reverse 补「参考用法」引导（2026-10-05 会话实测：用户想先逆向别站做参考再做自己的 design.yaml——instance 隔离机制在场可解（`--instance` 落 `<output_dir>/<instance>/` 不占主线位）但 SKILL.md 只有「初始设计单源」一种叙事，参考用法入口不显性；拟补引导：参考目的→带 `--instance` 跑＋主线生成权不受扰＋design `[C]`/`[K]` 只读消费参考；挂法/文案/是否动 diy-design 输入面待裁，预期零引擎改动·**未开工·待用户点头**） | diy-reverse SKILL.md（或＋diy-design 输入面） |
 
 ## 待办：prd 前置机制化（攒批，审查出结论后一并处理，现在不动）
 
@@ -531,6 +534,23 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - **4 各技能定制标签＋词汇漂移防治**（已核·2026-10-05 用户同意）：①结构统一——跨技能字段形态统一（字段名一致·具体名随批拟）；②值域收口引擎——各技能标签枚举活在各自引擎终门校验（改标签须过引擎·漂移被机械拦住）；③viewer 照值域注册中文标签（C·11 W3 先例·零裸键）；④「按半径排序＋禁数值严重度」纪律句若判公共，随 discover 普查归 suite-texts 家族裁，不提前单建。
 
 协调：diy-review 与「steps 深化」批＋逐项化批同文件；test-design 与五轴批＋逐项化批同文件；e2e/augment 与五轴批 2＋e2e 认 ID 批同文件——多批同文件，施工前统一排期。改动面：diy-review SKILL.md（findings 半径标注/排序）＋test-design/e2e/augment SKILL.md＋各自引擎校验面（FH/TC 半径字段·枚举）＋viewer＋tests。
+
+## 待办：diy-analyze 吸收 arch-analyze 职能（2026-10-05 用户提出，方向已裁·实施待裁，现在不动）
+
+登记来源：用户裁定——用户级全局技能 `arch-analyze` 将不再安装，职能由 diy-analyze 取代；套件内不得再路由到套件外技能。
+
+事实（2026-10-05 核实）：
+- 套件内 arch-analyze 引用 4 处/3 文件：`diy-analyze/SKILL.md:27`（门禁边界句「要体检任意项目的代码库架构 → 用你的 arch-analyze」）＋`:73`（规则 9 vs 边界条）＋`steps/01-define.md:55`（--codebase 不可读时路由句）＋`tests/test_diy_analyze.py:365`（断言边界句在场）。
+- 技术面 diy-analyze 已支持任意路径（`init --codebase <path>`，无 diy 限定）——缺的是定位与路由句，不是能力。
+- 形态差异（取代的实质缺口）：arch-analyze＝全维度体检（结构/质量/模式/依赖/扩展性/安全/性能）＋markdown 文档集落 `docs/arch/`（架构化文件清单＋工程级概述＋文件夹级文档）；diy-analyze＝单问取证＋`analysis.yaml` 单文件＋AN 锚＋引擎终门。
+
+待裁：
+- 取代形态：A. diy-analyze 加「全库体检」模式分支（question 合法形态放宽 or 新模式）vs B. 保持单问形态、多条单问覆盖体检（零模式改动）vs C. 其他。
+- 产物面：体检规模是否撑爆 analysis.yaml 单文件；arch-analyze 的「文件夹级文档集」形态是否还有需求（保留进产物 vs 弃——弃则功能净损失要留痕）。
+- 边界句改写：4 处引用处置（删路由句/改「套件内自理」口径）；:365 测试断言随改——测试面先裁后动。
+- 底单联动：C 表 diy-analyze 用途列与一审行边界描述随批对齐。
+
+改动面：diy-analyze SKILL.md（:27/:73）＋steps/01-define.md:55＋analyze.py（若模式/字段变）＋viewer（若产物扩）＋tests（:365 断言＋新面）＋底单 C 表行。协调：与逐项化批同文件（现 76 行不超限·冲突小）。
 
 ## 升级事项（可选·不排期·需要才做）
 
