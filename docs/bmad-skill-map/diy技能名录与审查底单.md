@@ -162,6 +162,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | 变异配置显式化（test-plan `mutation:{enabled,tool?}` 段·默认开日常任务级·任务级/发版级 override·借位条款退役） | test-design/augment SKILL＋diyc 校验＋tests |
 | 单独技能 | diy-spec-scan 加方法驱动分支穷举（ECH 化·2026-10-05 用户裁定「卡点法还不够」＋**方案全定 1A+3B·无待裁项**：①穷举独立成 step（如 02b-exhaustive）不并入 03——与 diy-review 双透镜并列同构·两法 findings 去重复用 02「同一处只报一次」·判据参考 diy-review lenses.md「边界类从内容自身推·不套固定清单」；②**穷举默认跑（opt-out·2026-10-05 裁）**——除非用户明示不用穷举·对齐 editorial-review 两透镜默认全跑 `--lens` 收窄先例；③**载体已裁＝`source: 卡点\|穷举` 字段**——type 保持八类·引擎 FINDING_TYPES 零改·summary 分法计数（selfcheck B 部分机制评价原料）。**未开工·待用户点头**） | diy-spec-scan SKILL＋steps＋引擎＋tests |
 | 单独技能 | diy-selfcheck 硬门放开「要照做的事」→ 任意文档可审（2026-10-05 用户点名 prd/架构/epic/story/任意文档；BMAD AR/ECH 文档面能力补缺·Story 2.1 实用过 AR 定稿兜底；**方案已裁 2A+4a**：spec-scan 硬门同步放开为「可读非空」·两技能形态统一·selfcheck 预演片对纯文档不降级；纯文档时 spec-scan 跳过 02 预演只跑穷举+03+04（依赖 1A）；kind 扩「任务书\|技能\|规格\|文档」——引擎不校验语义 kind·仅改 SKILL.md 文案零引擎改动。**未开工·待用户点头**） | diy-selfcheck SKILL＋steps＋diy-spec-scan SKILL＋steps＋引擎＋tests |
+| 单独技能 | 爆炸半径分析注入 diy-review＋测试设计族（四项全闭合：1b 独立面/2b FH 排序/三技能范围/定制标签＋漂移防治已核·**未开工·待用户点头**） | diy-review＋test-design/e2e/augment＋引擎＋viewer＋tests |
 
 ## 待办：prd 前置机制化（攒批，审查出结论后一并处理，现在不动）
 
@@ -511,6 +512,23 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 连锁：frontmatter `outputs` 改 `selfcheck.yaml`；SKILL.md:23「不解析实例目录、不碰 {output_dir}」条款改写；**§6 加回**（YAML 化后重新成为写产物技能——今日适用面清零后的回流首例，`PRECISE_NON_MEMBERS` 台账同步退出）；测试面新断言。
 
 改动面：diy-selfcheck SKILL.md＋steps×5＋新 `scripts/selfcheck.py`＋viewer 标签＋tests。协调：与逐项化批同为 SKILL.md 改动面（现 55 行距上限远，冲突小）。
+
+## 待办：爆炸半径分析注入 diy-review 与测试用例设计技能族（2026-10-05 用户提出，登记待裁，现在不动）
+
+登记来源：用户问爆炸半径分析能否用于测试用例设计堵漏，结论可（覆盖优先级判据＋故障假设排序轴·非用例生成方法），点名 diy-review 与其他测试用例设计技能增加此类内容。
+
+事实（2026-10-05 核实）：
+- 全库「爆炸半径」仅在 4 技能且均为改动影响评估：checkpoint-preview（SKILL.md:77＋steps/03——风险按半径排序＋禁数值严重度＋枚举标签）、quick-dev（SKILL.md＋steps/01·06）、create-story（steps/03）、correct-course（steps/02）。
+- diy-review 全目录零提及爆炸半径/风险/影响面——findings 只按路由（意图缺口/规格缺陷/小修/后置）分类，无影响排序维度。
+- 测试用例设计面零提及：test-design 五轴枚举（正向/边界/异常/安全/性能）无此轴；e2e-tests、augment 同零。
+
+裁定（2026-10-05 四项）：
+- **1b 独立面**：diy-review findings 加影响标注/排序（不动「steps 深化」批·两批独立）；判决规则不联动——维持「后置永不阻断」纪律，要联动另裁。
+- **2b FH 排序判据**：不动五轴枚举与 audit 门；FH 条目标半径、按半径排序——先为炸得最广的假设设计攻击用例。**依赖五轴批先行**（FH 段系其新增），排期随之。
+- **3 范围＝test-design＋e2e＋augment 三技能**；test-author/review/gate 不动。与五轴批 2（同动 e2e/augment SKILL）**同批施工一并排期**，避免同文件改两遍。
+- **4 各技能定制标签＋词汇漂移防治**（已核·2026-10-05 用户同意）：①结构统一——跨技能字段形态统一（字段名一致·具体名随批拟）；②值域收口引擎——各技能标签枚举活在各自引擎终门校验（改标签须过引擎·漂移被机械拦住）；③viewer 照值域注册中文标签（C·11 W3 先例·零裸键）；④「按半径排序＋禁数值严重度」纪律句若判公共，随 discover 普查归 suite-texts 家族裁，不提前单建。
+
+协调：diy-review 与「steps 深化」批＋逐项化批同文件；test-design 与五轴批＋逐项化批同文件；e2e/augment 与五轴批 2＋e2e 认 ID 批同文件——多批同文件，施工前统一排期。改动面：diy-review SKILL.md（findings 半径标注/排序）＋test-design/e2e/augment SKILL.md＋各自引擎校验面（FH/TC 半径字段·枚举）＋viewer＋tests。
 
 ## 升级事项（可选·不排期·需要才做）
 
