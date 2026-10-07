@@ -290,7 +290,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 裁定（2026-10-03）：SKILL.md 正文＋steps/ 厚子文件**全部**逐项化——编号列表、一条一个步骤（最小语义单元）、连续行不空行、机器锚点（ID/枚举值/文件名）逐字保留；四段结构与 frontmatter 不动；行数上限 90 → 250。样例＝diy-help「激活时」10 条版（用户认可）。
 
-- 上限落点：`bmb_builder.py:102` SKILL_MD_MAX_LINES（源/装两份）＋:52/:1438 帮助文本＋bmb-builder SKILL.md:47/:54 范式句；测试面无行数断言；fidelity 报告的 ≤90 为历史留档不改。存量超限 5 技能（prd 121／design 106／test-design 102／epics-stories 99／sprint 97）放宽后一并合规。
+- 上限落点：`bmb_builder.py:102` SKILL_MD_MAX_LINES（源/装两份）＋:52/:1438 帮助文本＋bmb-builder SKILL.md:47/:54 范式句＋steps 三处（`03-analyze.md:41`·`04-gate.md:18/:20`·`05-finish.md:24`——2026-10-07 滞后表述普查补登）；测试面无行数断言；fidelity 报告的 ≤90 为历史留档不改。存量超限 5 技能（prd 121／design 106／test-design 102／epics-stories 99／sprint 97）放宽后一并合规。
 - 分批（#1 裁定已完成）：批 0＝上限放宽＋逐项化规范句固化进 bmb-builder P1 范式＋bmb-builder 自身改写（规范载体先自洽）→ 批 1＝prd＋help 样板呈核（须含 steps/ 文件实改）→ 批 2/3/4＝A 主线／B WDS／C 横向铺开（批内并行、逐技能用户过目）→ 每批收尾＝底单补行＋全量测试（基线 1621 绿）＋渲染自证＋sync 同步＋迁移计划登记。
 - 协调：与「安装器向导化」①路径硬编码（155 文件近全员）同为全库级文本改动，实施时定先后或并面，避免同一文件改两遍。
 
@@ -440,6 +440,10 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - `diy-test-framework/steps/06-finish.md:35`：「下一步读 `diy-test-author/SKILL.md`（若已建；未建则以摘要中的路由行交接）」——条件分支删，改直连。
 
 普查分流（全库 grep「未建」5 处/4 文件）：diy-wds-system 三处（SKILL.md:80＋`complexity-router.md:6/:64`）系 `object-types/workflow.md` 真未建的事实登记（非滞后），归「去源路径锚·迁移痕迹零正文」批处置；diy-bmb-module `03-validate.md:29` 是引擎 warning 违规码语义说明（活机制文本），不动。
+
+## 已执行：滞后表述全库普查（2026-10-07，用户点名「语句有问题/多余文字」类跨技能普查，只读）
+
+词族四组：`未建|若已建`·`待登记|下游待`·`≤90/90 行/上限 90`·`标签缺口|降级渲染|通用降级`。**净新增仅 1 处**：diy-bmb-builder steps 三处「≤90 行」（`03-analyze.md:41`·`04-gate.md:18/:20`·`05-finish.md:24`）→ 已补登逐项化批上限落点行。其余命中均在案或活机制：help.py:387「下游待登记」＝链走完分支的运行时枚举（活机制非滞后）；bmb_module.py:388 与 wds_brief/scenarios/trigger 三引擎「尚未建立」＝MISSING_FILE warning 语义（活机制）；wds-brief `03-signoff.md:146`「缺口 2」句面滞后已在一审行裁定归去源锚批（标签实落 viewer.py:48/:400）；wds_brief.py:90 / wds_scenarios.py:101 头注释「viewer 标签缺口登记」＝出处注旁形态（去源锚批口径内）。
 
 ## 待办：diy-review steps 步骤深化（2026-10-04 用户提出，登记待裁，现在不动）
 
