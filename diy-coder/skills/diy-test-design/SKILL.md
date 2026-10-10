@@ -22,7 +22,7 @@ outputs: test-plan.yaml
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 硬门：`{output_dir}/stories.yaml` 的 `project.status` 必须是 `已定稿`；不满足 → 一行说明缺什么、零产出，路由 `diy-epics-stories`。
-3. 输入清单：`{output_dir}/stories.yaml` 的 AC 集合（`test_cases[].ac` 只能引用这里已有的 ID）；`{output_dir}/prd.yaml` 的 requirements `priority`（`必须` / `应该` / `可选`）与 `nfrs[]`——priority 与 NFR 映射的取值来源；经验库（`diy-coder.yaml` 的 `paths.experience_repo`，已配置且在场时）与 `{output_dir}/bug-log.yaml`（取数口径见「先列故障假设」）。
+3. 输入清单：`{output_dir}/stories.yaml` 的 AC 集合（`test_cases[].ac` 只能引用这里已有的 ID）；`{output_dir}/prd.yaml` 的 requirements `priority`（`必须` / `应该` / `可选`）与 `nfrs[]`——priority 与 NFR 映射的取值来源；`{output_dir}/openapi.yaml`（可选：在场且已定稿时接口面纳入设计，AC 带 `api_refs` 复合锚——锚铸造归 diy-epics-stories）；经验库（`diy-coder.yaml` 的 `paths.experience_repo`，已配置且在场时）与 `{output_dir}/bug-log.yaml`（取数口径见「先列故障假设」）。
 4. 目标文件：`{output_dir}/test-plan.yaml`。判意图：
    - **Create** —— 文件缺席 → 从零推导。
    - **Update** —— 文件在场 → 变更信号就地写死：`stories.yaml` 的 AC 集合与既有 `test_cases[].ac` 集合之差（有 AC 缺 TC → 补面；`ac` 悬空 → 走 `--previous` 的 ID 稳定门）；`stories.yaml` 的 `project.updated` 晚于 `test-plan.yaml` 的 `project.updated` → 提示可能有漂移；用户显式要求重设计 → 一律 Update。TC ID 保持稳定。
@@ -37,7 +37,7 @@ outputs: test-plan.yaml
 2. 按「规则」的**先列故障假设**逐条非 `已完成` 故事的 AC 推导用例；写 `{output_dir}/test-plan.yaml`，`project.status: 草稿`；把路径告诉用户。
 3. 立即渲染供审阅。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。评审在 HTML 里进行。
 4. 按用户反馈迭代；`stories.yaml` 有任何改动后按第 4 条激活项的变更信号重新对账。Update 时先 `cp {output_dir}/test-plan.yaml {output_dir}/test-plan.yaml.prev`，载入既有稿对账——**重写＝对账不是重建**：既有 TC（含 `diy-augment` / `diy-e2e-tests` 追加的后四值 `technique` 用例与其 `note`）原 ID 原样保留，只补面、不改绑。新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type test-plan --previous {output_dir}/test-plan.yaml.prev --json`，按回执走分支：`MISSING_FILE` / `UNPARSABLE_YAML`（违规的 `where` 指向 `.prev` 本体、无被报 TC）→ 快照不可用、安全网失效，停手告知用户，确认前不得删也不得再写；`exit 0` → 直接删 `.prev`；`exit≠0` 且被报 TC 的 AC 仍在 `stories.yaml` → 判机械丢失，**按原 ID 改回**后重跑至 `exit 0`；`exit≠0` 且该 TC 的 AC 已从 `stories.yaml` 消失（合法退役）→ 允许带此违规删 `.prev`，但收尾摘要必须逐条登记「退役 TC ID + 对应 AC + 上游依据」，该 TC 只删、不改绑。
-5. 终门（机械判定）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type test-plan --final --json`；`exit 0` 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户批过的基线，不是待修违规）；JSON 回执（含计数）即收尾证据。**门失败 → `project.status` 回退 `草稿`**，修完重走本步。说人话的机械门槛：零 `[假设]`、零 `decision: 待办` 缺口、每个 `ac` 都能解析、每条用例都带 schema 枚举内的 `technique` 与非空 `kill_target`。
+5. 终门（机械判定）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type test-plan --final --json`；`exit 0` 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户批过的基线，不是待修违规）；JSON 回执（含计数）即收尾证据。**门失败 → `project.status` 回退 `草稿`**，修完重走本步。说人话的机械门槛：零 `[假设]`、零 `decision: 待办` 缺口（含 `[FH-GAP]`）、每个 `ac` 都能解析、每条用例都带 schema 枚举内的 `technique` / `dimension` 与引用可解析 FH 的 `kill_target`、五轴 audit 每格在且双向一致、每条 FH 被 ≥1 TC 杀、带 `api_refs` 的 AC 有 `type: 集成` 用例点名其每个锚。
 6. 重新渲染（同一条命令），收尾一行用 JSON 回执里的计数：用例数 / 覆盖的 AC 数 / 按决策分档的缺口数。
 
 ## 结构
@@ -45,6 +45,11 @@ outputs: test-plan.yaml
 `{output_dir}/test-plan.yaml`:
 ```yaml
 project: {name, status: 草稿|已定稿, created: YYYY-MM-DD, updated: YYYY-MM-DD}   # created 建文件时设、此后不改；updated 每次写回刷今天
+fault_hypotheses:         # 先列故障假设：每条 AC 的具体错误实现，先落 FH 才有可引的 kill_target
+  - id: FH-5.1.1          # 稳定：FH-{ac 数字段}.{seq}；永不复用（删除走用户裁决 + revisions 留痕）
+    ac: AC-5.1            # 必填：stories.yaml 中已存在的 AC ID
+    text: string          # 具体错误实现的描述（非空）
+    radius: 局部|模块|跨模块|系统|外部   # 可选：爆炸半径标注——攻击用例先为炸得最广的假设设计
 test_cases:
   - id: TC-5.1.1          # 稳定不变：AC ID 去前缀 + .{seq}；永不复用
     title: string
@@ -52,10 +57,19 @@ test_cases:
     type: 单元|集成|端到端
     priority: P0|P1|P2    # 映射见「规则」——唯一权威出处就是本技能
     technique: 等价类|边界|决策表|状态迁移|成对组合|错误猜测|蜕变测试|属性测试|场景|覆盖分支|MC-DC 覆盖|白盒路径|变异杀伤   # 前 9 值编码前设计；后 4 值编码后补测，由 diy-augment 写入
-    kill_target: string   # 本条用例要暴露的故障假设（必填）
+    dimension: 正向|边界|异常|安全|性能   # 五轴之一；一条用例一个轴（跨轴拆用例——矩阵可判前提）
+    kill_target: FH-5.1.1|[FH-5.1.1, ...]   # 本条用例杀掉的故障假设——引用 FH ID（允许列表＝一杀多）
+    radius: 局部|模块|跨模块|系统|外部       # 可选：爆炸半径标注（与 FH 同族枚举）
+    api_refs: [{operationId, path, method}] # 可选：点名 AC 锚定的接口端点（复合锚·须可解析；接口用例必填）
     status: 待办|通过|失败   # 通过/失败 由 diy-dev / diy-build-loop 写回
     steps: [string]       # 具体验证步骤；写明预期结果（非空）
     note: string          # 可选：diy-augment 为追加用例记录的覆盖证据
+dimension_audit:          # 五轴审计：每条非「已完成」AC × 5 轴逐轴审过，每格二选一
+  - ac: AC-5.1
+    axis: 正向|边界|异常|安全|性能
+    tcs: [TC-5.1.1]       # 适用 → 该轴用例列表（非空）
+    not_applicable: string  # 不产出该轴用例 → 一行理由（含「适用但缺口已裁决」类理由）
+mutation: {enabled: true, tool?: string}   # 变异配置（唯一出处在本技能）：enabled 默认 true；tool 缺省按栈选（Python→cosmic-ray、JS→stryker）
 static_checks:            # 有序滤网，先于任何用例执行；链的定义源就在本文件
   - order: 1              # 滤网：硬前置在前；每层给下一层降噪（不是按速度/成本）
     tool: string          # 具体命令全文——逐字执行（`diyc.py static` 用 shell 跑），不得带标记/前缀
@@ -64,10 +78,10 @@ static_checks:            # 有序滤网，先于任何用例执行；链的定�
 coverage_gaps:
   - ac: AC-x.y
     story: S-x
-    reason: string
+    reason: string        # 杀不掉的故障假设走 [FH-GAP] 前缀 reason + decision: 待办 交用户裁决
     decision: 待办|已豁免|接受缺口   # 判据轴 ＝ 这次要不要问用户：已豁免＝依据先前的用户确认；接受缺口＝本轮裁决接受不补；待办＝还没裁决
     note: string          # 已豁免 必填（留空即 EMPTY_FIELD）：引先前确认写日期 + 确认了什么；已完成 故事的自动豁免写依据
-revisions: []             # {date, change, reason} —— 改既有条目时追加
+revisions: []             # {date, change, reason} —— 改既有条目时追加（change 可引 TC-x.y.z 或 FH-x.y.z）
 ```
 
 技法按故障假设挑，不按习惯挑；在 `technique` 里声明。下表是编码前技法（9 值）；编码后技法——`覆盖分支` / `MC-DC 覆盖` / `白盒路径` / `变异杀伤`——归 `diy-augment` 所有，实现之后才写入，设计期不挑：
@@ -86,16 +100,17 @@ revisions: []             # {date, change, reason} —— 改既有条目时追�
 
 ## 规则
 
-- **一个 AC 至少一条用例（五态穷举）。** 每条**非 `已完成`** 故事的 AC 都要拿到 ≥1 条用例——`待办` / `进行中` / `待审查` 三级同级（`待审查` 不豁免）；`已阻塞` 不例外：当前确实设计不了的 AC 记进 `coverage_gaps`、`decision: 待办` 留用户当轮裁决，**不得替用户写 `已豁免`**，更不许静默省略；只有 `已完成` 故事的 AC 豁免——照下面 gaps 规则记在 `coverage_gaps` 在案。
-- **先列故障假设。** 为某条 AC 写任何用例之前，先穷举可能的故障假设——代码有可能真实包含的具体错误实现（如 off-by-one、吞掉的异常）。按顺序挖经验来源：(1) 全局经验库（`diy-coder.yaml` 的 `paths.experience_repo`，已配置且在场时——跨项目模式按 `subclass` 分桶存放在 `bugs/` 下，`type` 标签登记在 `taxonomy.yaml`）——先读 `taxonomy.yaml` 的 class→subclass→type 骨架，再**逐桶全读** `bugs/<subclass>.yaml`（投影文件、体量小，不做抽样）；(2) 本项目的 `{output_dir}/bug-log.yaml`。**相关性判据** ＝ 该 `type` 的 `trigger`（复现方法）/ `prevention`（根除机制）能否落在本故事任一 AC 的实现面上——能则成一条故障假设，不能则跳过并在 `note` 记一行；**不按关键词匹配**。两处来源里每一条相关历史模式都必须变成一条故障假设——既往缺陷是未来缺陷最强的预测器。每条用例声明自己的 `kill_target`：它要暴露的那条故障假设。失败也无法把正确代码与任一已列故障区分开的用例是装饰品——砍掉，或重新瞄准。
+- **五轴矩阵逐轴审过（下限：每条非 `已完成` AC 至少一条用例）。** 每条**非 `已完成`** 故事的 AC × {正向, 边界, 异常, 安全, 性能} 五轴逐轴审过：适用 → ≥1 条该轴用例；不适用 → `dimension_audit` 一行理由。**审过 ≠ 每轴全用例**（硬铺必造装饰品）。适用判据（机械可判）：正向恒适用；边界＝AC 含数值/长度/次数/枚举约束；异常＝含拒绝/失败语义或实现面碰外部资源（含环境故障注入子类：文件缺席 / 依赖回执异常 / exit≠0 / YAML 损坏——不单独立轴）；安全＝涉及输入解析 / 跨产物引用 / 证据声明（锚 :82「伪造证据类」）；性能＝AC 或 nfrs 含时限/量级声明（性能用例 `type` 限 `集成|端到端`，单元层不出现）。幂等 / 重入并进属性测试挖掘提示（不立轴）。一条用例一个轴（`dimension`）——跨轴拆用例，涨量主要来源；每格落 `dimension_audit`（tcs 或 not_applicable 二选一，门判双向一致）。`待办` / `进行中` / `待审查` 三级同级（`待审查` 不豁免）；`已阻塞` 不例外：当前确实设计不了的 AC 记进 `coverage_gaps`、`decision: 待办` 留用户当轮裁决，**不得替用户写 `已豁免`**；只有 `已完成` 故事的 AC 整段豁免（audit 同免）——照下面 gaps 规则记在 `coverage_gaps` 在案。
+- **先列故障假设（落 FH）。** 为某条 AC 写任何用例之前，先穷举可能的故障假设——代码有可能真实包含的具体错误实现（如 off-by-one、吞掉的异常），逐条落 `fault_hypotheses`（`FH-{ac 数字段}.{seq}`）；`kill_target` 引用 FH ID（允许列表＝一杀多）——先落 FH 再写 TC。按顺序挖经验来源：(1) 全局经验库（`diy-coder.yaml` 的 `paths.experience_repo`，已配置且在场时——跨项目模式按 `subclass` 分桶存放在 `bugs/` 下，`type` 标签登记在 `taxonomy.yaml`）——先读 `taxonomy.yaml` 的 class→subclass→type 骨架，再**逐桶全读** `bugs/<subclass>.yaml`（投影文件、体量小，不做抽样）；(2) 本项目的 `{output_dir}/bug-log.yaml`。**相关性判据** ＝ 该 `type` 的 `trigger`（复现方法）/ `prevention`（根除机制）能否落在本故事任一 AC 的实现面上——能则成一条故障假设，不能则跳过并在 `note` 记一行；**不按关键词匹配**。两处来源里每一条相关历史模式都必须变成一条故障假设——既往缺陷是未来缺陷最强的预测器。**FH 删除权在用户**：AI 不得自行删 FH；杀不掉的 FH 照缺口模式记 `coverage_gaps`（`reason` 以 `[FH-GAP]` 开头、`decision: 待办`）交用户当轮裁决——裁「删」→ 删 FH ＋ `revisions` 留痕（`change` 引 FH-x.y.z）；裁「不删」→ **必须补 TC**（无「不杀也不删」第三态）；两出口均删该 gap 条目；`--final` 禁 `[FH-GAP]` 待办（复用既有禁令）。失败也无法把正确代码与任一已列故障区分开的用例是装饰品——**摆证据交用户裁决**（砍或重新瞄准），不自行删改。`diy-augment` / `diy-e2e-tests` 获得 FH 追加权：编码后发现新故障先落 FH 再写 TC。
 - **Oracle 纪律。** 用例必须给出从 AC 推导出的预期结果。AC 太含糊、推不出预期时，绝不要伪造 oracle——按 gaps 规则把该 AC 记进 `coverage_gaps`，`reason` 以 `[SPEC-GAP]` 开头；由用户把它打回 PRD/故事修订。AC 支持时，蜕变测试用例可以验证输出之间的关系，而不是绝对值。
-- **静态检查是第一道滤网。** 按目标项目的技术栈（`architecture.yaml`）设计一条有序的 `static_checks` 链。取值路径 = 从 `architecture.yaml` 的 `stack[].choice` 里找语言与检查工具链（编译器 / linter / 类型检查器 / 测试运行器等）的那几项，逐字取技术名；文件缺席或 `stack[]` 无该类选择 → **停下问用户一次**（点名技术栈），不猜。排序原则是滤网关系，不是速度/成本：每一层存在的意义是 (a) 让下一层跑得起来——硬依赖在前（语法、导入、依赖、环境）；某层失败，它下面的一切要么跑不了、要么产出垃圾；以及 (b) 给下一层降噪——杀掉那些会污染下一层失败信号的问题类别。逐对相邻层做体检：某层失败要么挡住下一层，要么污染它的信号——两者皆无，说明两层之间没有净关系，重排或砍掉。`gate: 阻断` 失败即停链（并挡下 `diy-dev` 的绿灯声明）；`gate: 记录不阻断` 只记录不阻断。每个工具必须声明 `kills`——它杀掉哪些前序层杀不掉的东西；没有独立 kill 的工具砍掉，不许工具堆叠（与用例同一套 `kill_target` 纪律）。
+- **静态检查是第一道滤网。** 按目标项目的技术栈（`architecture.yaml`）设计一条有序的 `static_checks` 链。取值路径 = 从 `architecture.yaml` 的 `stack[].choice` 里找语言与检查工具链（编译器 / linter / 类型检查器 / 测试运行器等）的那几项，逐字取技术名；文件缺席或 `stack[]` 无该类选择 → **停下问用户一次**（点名技术栈），不猜。排序原则是滤网关系，不是速度/成本：每一层存在的意义是 (a) 让下一层跑得起来——硬依赖在前（语法、导入、依赖、环境）；某层失败，它下面的一切要么跑不了、要么产出垃圾；以及 (b) 给下一层降噪——杀掉那些会污染下一层失败信号的问题类别。逐对相邻层做体检：某层失败要么挡住下一层，要么污染它的信号——两者皆无，说明两层之间没有净关系——**摆证据交用户裁决**（重排或砍），不自行删改。`gate: 阻断` 失败即停链（并挡下 `diy-dev` 的绿灯声明）；`gate: 记录不阻断` 只记录不阻断。每个工具必须声明 `kills`——它杀掉哪些前序层杀不掉的东西；没有独立 kill 的工具——**摆证据交用户裁决**（砍），不许工具堆叠（与用例同一套 `kill_target` 纪律）。
+- **openapi 在场 → 接口用例设计必做。** `{output_dir}/openapi.yaml` 在场（`project.status: 已定稿`）时接口面纳入设计：带 `api_refs` 的 AC → 接口用例（`type: 集成`、TC 点名同一复合锚）必做、照五轴审；被引 operation ≥1 TC。`openapi.yaml` 缺席照旧零提及（不加硬门）。`openapi.updated` 晚于 `stories.updated` → 提示可能有漂移（照第 4 条激活项同款）；悬空锚照 `UNKNOWN_ID` 报。变异配置见 schema `mutation` 段——**enabled 默认开（日常任务级）**：每任务 done 后 `--scope` 档默认跑变异；`--full` 发版档不变。关闭粒度＝全局开关（`mutation.enabled`）＋任务级/发版级 override（会话显式指令按次开关；持久改写走 Update 改 `mutation` 段＋`revisions` 留痕）——`diy-augment` 只消费本段、不重定义。
 - **与技术栈无关、可补缺；自造检查器三条。** 链从目标项目的技术栈推导——绝不预设某门语言的工具链。某个必需的滤网层在该技术栈下没有现成工具时，自己造：自定义检查器是**合法交付物**，以**可直接执行的**具体命令全文登记进 `tool`（供下游直接跑；`diyc.py static` 逐字执行它）；要标明「这层是自造」就写进 `kills` 的文字（如 `kills: "自造检查器：杀 <X>"`）——**不留 `[custom]` 标签**（标签会被当成命令的一部分，该层跑成 command not found）。三条边界：① **设计期只登记命令，不写脚本**——脚本写权归实现期，由 `diy-dev` 交付（其写面含项目代码）；② 自造检查器是**工具**不是**用例**——它的 trace 注释指向它服务的 AC（`# trace: S-x AC-x.y`），**不带 `TC-x.y.z`**（TC 正是本技能正在设计的东西，循环依赖由此消解）；③ 脚本交付状态由实现期回报，本技能不追。
 - **用例可执行。** 用例写明具体验证方式（schema 断言、夹具渲染、命令 + 预期输出），不是 AC 散文的复述。说不出怎么验证，那就是覆盖缺口或坏 AC——标出来，别伪造用例。
 - **type 映射到层**：`单元`（单组件代码检查，如 `viewer.py` / `runner.py` 的函数配夹具）、`集成`（跨产物检查，不靠 agent 也能脚本化跑）、`端到端`（由 agent 或操作者驱动的完整技能/工作流运行）。
 - **priority 映射到风险（唯一权威出处就是本技能）。** `prd.yaml` 的 FR `priority` 决定其 AC 的用例档位：`必须`→P0 / `应该`→P1 / `可选`→P2；**NFR 引用的 AC→P0**（NFR 是必须满足的横切约束）；AC 最低要求之外的补充用例亦记 P2。`diy-augment` / `diy-e2e-tests` 只引用本映射，不重定义。
 - **缺口是决策，不是遗漏。** 任何没有用例的 AC 都要出现在 `coverage_gaps` 里，带 `reason` 与 `decision: 待办`——由用户当轮裁决（补一条用例 / 接受缺口）。判据轴是「这次要不要问用户」：`已豁免` ＝ 依据**先前**的用户确认，`note` 写日期 + 确认了什么；`接受缺口` ＝ **本轮**用户裁决接受不补。`已完成` 故事的自动豁免是**另一类** `已豁免`——`note` 必须写明其**依据**而非用户确认（如「story S-x 已 `已完成`（源：`stories.yaml` `status: 已完成`）——用例缺席系历史交付，非本轮决定」），因为 `note` 留空的 `已豁免` 条目会被门拒（`EMPTY_FIELD`）。推导不出 oracle 的 AC 拿 `[SPEC-GAP]` reason。用户选「补一条用例」这一出口的归宿 ＝ **删掉该 gap 条目**（补了就没有缺口；`已豁免` 要引先前确认、`接受缺口` 意为「接受不补」，都不合用）。任何推断出来的豁免或优先级判断，都在 YAML 值里带 `[假设]` 前缀；未决事项落在文件里，绝不只存在于对话中。
-- **重写对账、改绑留痕。** Update 是对账不是重建：既有 TC（含 `diy-augment` / `diy-e2e-tests` 追加的用例与其 `note`）原 ID 原样保留、只补面；确需改既有 TC 的字段时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `TC-x.y.z`、不复制内容）。引擎写回（`diyc.py green` 改 TC `status`）是机械迁移，不进 `revisions`；该键不入 ID 稳定门（门只比对 `test_cases[].id`）。
+- **重写对账、改绑留痕。** Update 是对账不是重建：既有 TC（含 `diy-augment` / `diy-e2e-tests` 追加的用例与其 `note`）原 ID 原样保留、只补面；确需改既有 TC 的字段时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `TC-x.y.z` 或 `FH-x.y.z`、不复制内容）。**存量迁移（Update 首跑）**：既有自由文本 `kill_target` 逐条转 `fault_hypotheses` 条目（text 存原文、`kill_target` 回填 FH ID）；缺 `dimension` 的既有 TC 补轴判定；`kill_target` 不入 ID 稳定门（门只比对 `test_cases[].id`），存量 TC 原样保留可对账。引擎写回（`diyc.py green` 改 TC `status`）与 `e2e.py record` 的 FH/audit 联动维护是机械迁移，不进 `revisions`。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 
