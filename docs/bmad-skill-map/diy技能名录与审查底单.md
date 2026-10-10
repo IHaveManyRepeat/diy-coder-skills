@@ -340,7 +340,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 | # | 面 | 缺陷 | 修法（档位） |
 | --- | --- | --- | --- |
-| ① | cis-method `steps/03-problem.md` | 类目指错：「问题陈述精炼」「是/不是分析」指为`分析`类，库实在`诊断`类，按字面 `--category` 过滤找不到 | 一行改（已裁）。**steps 文本在母本面内**：改走母本机制；母本未落地前不动，须提前则报备直改并纳入 discover 普查面 |
+| ① | cis-method `steps/03-problem.md` | 类目指错：「问题陈述精炼」「是/不是分析」指为`分析`类，库实在`诊断`类，按字面 `--category` 过滤找不到 | 一行改（已裁）。**steps 文本在母本面内**：改走母本机制；母本未落地前不动，须提前则报备直改并纳入 discover 普查面。2026-10-08 用户裁定 C·14 不会提前→报备直改分支不触发，①定走挂序 9 随母本批 |
 | ② | diy-product-brief / diy-research | distillate 交出面无落点无校验：brief.py＋steps/01~03＋check 全零提（research 06-synthesis 同），按「步骤 Read/Write 唯一权威」执行会产无交出面定稿且门放行 | **重档（已裁）**：brief.py / research.py `check --final` 加 distillate 存在＋五字段非空校验；prfaq steps/05 已有指令，校验对称补否随批核；steps 补 Write 指令与否随批核 |
 | ③ | diy-prfaq `prfaq.py` | `check --output-dir` 相对路径按进程 cwd 解析非 project-root（实测误报 MISSING_FILE 指向源码仓；有同名文件时静默校验错文档） | root 归一，照 `--previous` 分支既有先例（已裁） |
 | ④ | diy-viewer | brainstorm 61 技术枚举（brain-methods.csv）未注册进值标签表，渲染报 unmapped——零裸键纪律漏网 | **入本批（已裁）**：照 C·11 W3 §5.1 先例逐条取引擎值域注册（采集口径同 R3，中文值同名标签）；测试面枚举断言若动先报备 |
@@ -409,6 +409,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 ## 待办：diy-test-design 五轴矩阵＋故障假设落盘（2026-10-04 用户裁定，攒批，现在不动）
 
+**〔v4·批1 已销 2026-10-10〕**：dimension/dimension_audit/fault_hypotheses 段＋kill_target 引 FH ID＋api_refs 铸造面（epics-stories·create-story·story_context）＋diyc 三组规则＋e2e.py record 联动＋viewer 标签＋教学材料三处同步——全量 1648 绿。
+
 登记来源：用户裁定现行「一个 AC 至少一条用例（五态穷举）」（SKILL.md:89）只是完备性下限、标准太小；提高为五轴矩阵＋故障假设（FH）双向闭合；用例量涨 3~5 倍属预期。
 
 - **五轴矩阵（已裁）**：每条非 `已完成` AC × {正向, 边界, 异常, 安全, 性能} 逐轴审过——适用→≥1 TC，不适用→一行理由登记；**审过≠每轴全用例**（硬铺必造装饰品，违 kill_target 纪律）。适用判据（机械可判）：正向恒适用；边界＝AC 含数值/长度/次数/枚举约束；异常＝含拒绝/失败语义或实现面碰外部资源；安全＝涉及输入解析/跨产物引用/证据声明（锚 :82「伪造证据类」）；性能＝AC 或 nfrs 含时限/量级声明。**性能轴限层**：性能用例 `type∈{集成,端到端}`，单元层不出现。
@@ -463,6 +465,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 ## 待办：diy-e2e-tests 关联 openapi 契约认 ID（2026-10-04 用户裁定，攒批待执行，现在不动）
 
+**〔v4·批1 已销 2026-10-10〕**：A+B 双源＋01-detect 第三上游产物＋TC api_refs 复合锚（record 实核）＋augment 并入同款义务。
+
 登记来源：用户点名 diy-e2e-tests 要关联 openapi 文档、用里面的 ID。
 
 事实（2026-10-04 核实）：
@@ -480,6 +484,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 改动面：diy-e2e-tests SKILL.md＋steps/01-detect.md·02-targets.md·03-generate-api.md＋diy-augment SKILL.md（＋steps·引擎面，执行时核实）＋TC schema 新字段＋scripts/e2e.py（record 校验）＋viewer＋tests。协调：B 通路依赖五轴批的 AC `api_refs` 字段先行（A 通路不依赖）；与五轴批 2 同文件（两技能 SKILL.md），排先后避免改两遍。
 
 ## 待办：变异配置显式化——默认开＋可关（2026-10-04 审 diy-augment 用户裁定，攒批，现在不动）
+
+**〔v4·批1 已销 2026-10-10〕**：mutation 段落 schema（唯一出处 diy-test-design）＋借位载体退役＋diyc 形状校验；「随批核」override 落点已定＝会话显式指令按次开关＋持久改写走 Update 改段＋revisions 留痕。
 
 登记来源：审 diy-augment 规则 5 发现变异系**借位配置**——无自己的配置面：载体＝① test-plan `static_checks[].tool` 中用户会话确认为变异工具的条目（寄生在静态检查滤网上、靠人肉确认）② 会话临时命令；皆无＝未配置＝不跑（**默认关**）。test-design 侧无变异开/关设计位。
 
@@ -513,6 +519,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 ## 待办：test_pending_precise_brief 跨窗口中间态红——检查任务（2026-10-05 发现并查明，现在不动）
 
+**〔v4·批0 已销 2026-10-09〕**：全量 1628 passed＋248 subtests（含本测试）零红，检查任务完结。
+
 现象：2026-10-05 三连批全量跑时 `tests/test_suite_texts.py::PendingLandingTests::test_pending_precise_brief` 间歇红一次（单跑过、复跑全绿，当时误判 flaky）。
 
 查明：非 flaky——§6 批两半（`PRECISE_NON_MEMBERS` 台账改判 vs elicit/help/party-mode 删句）在两个窗口非原子落盘，对账断言跨越中间态窗口即红；两半齐后稳定绿。
@@ -536,6 +544,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 改动面：diy-selfcheck SKILL.md＋steps×5＋新 `scripts/selfcheck.py`＋viewer 标签＋tests。协调：与逐项化批同为 SKILL.md 改动面（现 55 行距上限远，冲突小）。
 
 ## 待办：爆炸半径分析注入 diy-review 与测试用例设计技能族（2026-10-05 用户提出，登记待裁，现在不动）
+
+**〔v4·批1 已销 2026-10-10〕**：review findings radius 标注/按半径排序（禁数值严重度）＋FH/TC radius 字段（枚举 局部|模块|跨模块|系统|外部）＋test-design/e2e/augment 三技能定制标签＋值域收口引擎校验＋viewer 中文标签注册。
 
 登记来源：用户问爆炸半径分析能否用于测试用例设计堵漏，结论可（覆盖优先级判据＋故障假设排序轴·非用例生成方法），点名 diy-review 与其他测试用例设计技能增加此类内容。
 
@@ -610,6 +620,25 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 执行门（两道·均须用户点头）：① 逐处去留清单先呈审；② 删除＋改写后的句面效果呈审，过目后才动手改文件。
 
 改动面：随去源锚批（其台账新建＋正文清理一体执行）；tests 无钉住已核。
+
+## 第二批待办（2026-10-10 起·v4 批 1 审核中发现，与上方第一批待办〔2026-10-03~05 登记〕区分）
+
+### 待办：test-plan 终门「FH 被杀」口径——引用与实测结果脱钩（2026-10-10 v4 批 1 审核发现，登记待裁，现在不动）
+
+登记来源：用户审核批 1 产物（diy-test-design/SKILL.md，提交 `5183546`）时问「新故障先落 FH 再写 TC，是否有编码/测试/结果回写字段」——核实回写机制后点出终门缺口。
+
+事实（2026-10-10 核实）：
+- 回写机制已闭环、非缺口：`TC.status: 待办|通过|失败` 由 diy-dev / diy-build-loop 经 `diyc.py green` 机械写回；diy-augment / diy-e2e-tests 只追加跑过的用例（天生带实测 status）。FH 不存「已杀」字段＝设计选择（派生状态：被 ≥1 条 `status: 通过` TC 引用即被杀——单一事实源，避免在 FH 上维护第二份状态）。
+- 缺口本体：`diyc_check_docs.py` `check_test_plan` final 段「每条 FH 被 ≥1 TC 杀」（:944-958·批 1 工作树版）只收 `kill_target` 引用、不看 `TC.status`——引用某 FH 的 TC `status: 失败`（故障为真未修完）甚至 `待办`（未跑），门照样判「被杀」。
+- 时点分裂：设计期跑 `--final` 全待办，核引用是唯一可行口径（自洽）；实现期（green 回写 / augment·e2e 追加后）再跑 `--final`，「被杀」与实测结果脱钩。
+
+待裁（三选项）：
+①维持现状——「被杀」＝被引用；实测结果归 diy-test-gate 管。
+②收紧——final 时 FH 须被 ≥1 条 `status: 通过` 的 TC 引用。
+③折中——`status: 失败` TC 的 kill_target 引用不计数（`待办` 仍计）。
+②③须区分「设计定稿门」与「实现后门」两个时点，涉及门行为改动＋设计期门兼容口径。
+
+改动面：`diyc_check_docs.py` final 段＋`tests/test_diyc_check.py`（测试面系本裁定直接后果·同源）；②③另动 diy-test-design SKILL.md 终门口径句。
 
 ## 升级事项（可选·不排期·需要才做）
 
