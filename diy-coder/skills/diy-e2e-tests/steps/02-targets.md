@@ -20,6 +20,7 @@ Progress: `探测 → [目标] → 生成 API → 生成 E2E → 记录`
 对每个目标，在 `stories.yaml` 里定位该特性所实现的故事与验收准则：
 
 - 按 ID 读——在 AC 文本里搜该特性的行为；绝不把 AC 散文粘进用例标题或 `steps`。用例引用 `AC-x.y`；它的 `steps` 写具体验证动作，不是 AC 的复述。
+- **B 通路（openapi 在场时）**：绑定的 AC 带 `api_refs` → 顺带取其复合锚（`operationId` ＋ `path` ＋ `method`）锚定被测端点，API 用例的 `api_refs` 点名同一锚（锚可解析，`record` 实核）。
 - 追加的 TC 承载的是**那条绑定的 AC**——绝不发明 AC，也绝不写范围。
 
 **无 AC 可绑** → 该特性要么没被规划、要么早于 AC。绝不静默挂到最像的那条 AC 上。**交互态**当场问用户裁定：绑到某条已存在的 AC、丢弃、还是把缺口退回 diy-epics-stories——拿到裁定即继续。**headless 或未获裁定** → 经 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" defer-add --entry '{"skill": "diy-e2e-tests", "action": "裁定未绑定 AC 的候选特性 <feature>：绑定到现有 AC / 丢弃 / 退回 diy-epics-stories", "reason": "仅人工可做"}' --project-root "{project-root}" --json`（resolved 实例时附 `--instance <name>`）入队，收尾摘要必列该 `DA-###`。绑定未决期间不得追加用例——`record` 会把整批 `ac` 对 `stories.yaml` 解析，有一条悬空即整批拒绝。写权归命令本体（单写者 ＝ `diyc.py defer-add`），本技能只调用。

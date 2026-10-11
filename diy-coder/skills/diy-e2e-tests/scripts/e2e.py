@@ -11,7 +11,11 @@
           追加进 {output_dir}/test-plan.yaml（diy-augment 窄写权先例：只追加，不改
           既有条目、不新增产物类型）。校验：id 规则 TC-{ac}.{seq} 且前缀与 ac 一致、
           续号不重号、ac 解析（stories.yaml）、type == 端到端、technique == 场景、
-          kill_target/title/steps 非空、status ∈ {通过, 失败}、priority ∈ {P0,P1,P2}。
+          dimension 五轴枚举、kill_target 引用 FH ID（新故障带 fault_hypothesis
+          {id, ac, text} 联动落盘）、api_refs 可选复合锚（operationId/path/method）、
+          title/steps 非空、status ∈ {通过, 失败}、priority ∈ {P0,P1,P2}。
+          写回联动维护 schema：新 FH 追加进 fault_hypotheses、(ac, dimension) 审计格
+          补录本 TC（not_applicable 格被实际用例推翻即转 tcs 型）。
           全部通过才写（原子：同目录临时文件 + os.replace）。随后委派
           `diyc.py check --type test-plan --json` 交叉验证追加后的全链——其违规并入
           回执 `diyc` 键（warning 面），不阻塞本命令的写权结论。
@@ -46,8 +50,10 @@ E2E_TYPE = "端到端"
 E2E_TECHNIQUE = "场景"              # diy-test-design Schema：九技法在册值，端到端用户旅程
 RECORD_STATUSES = ("通过", "失败")  # 实测结果：本技能只记已跑过的用例
 PRIORITIES = ("P0", "P1", "P2")
+DIMENSIONS = ("正向", "边界", "异常", "安全", "性能")  # diy-test-design Schema：五轴·一条用例一个轴
 TC_RE = re.compile(r"TC-\d+(?:\.\d+)+")
 AC_RE = re.compile(r"AC-\d+(?:\.\d+)+")
+FH_RE = re.compile(r"FH-\d+(?:\.\d+){2}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 # 探测面（语言无关：清单存在即读；顺序即 project_type 判定优先级）
@@ -355,7 +361,9 @@ def enum(violations, where, value, allowed, label):
     return True
 
 
-def check_case(case, index, show, known_ids, seen_new, known_acs, stories_available):
+def check_case(case, index, show, known_ids, seen_new, known_acs, stories_available,
+               known_fh=None):
+    known_fh = known_fh if known_fh is not None else set()
     """单条 TC 校验；where 相对 project-root、正斜杠。"""
     where = "%s test_cases[%d]" % (show, index)
     violations = []
@@ -396,7 +404,52 @@ def check_case(case, index, show, known_ids, seen_new, known_acs, stories_availa
     enum(violations, "%s.priority" % where, case.get("priority"), PRIORITIES, "priority")
     enum(violations, "%s.technique" % where, case.get("technique"),
          (E2E_TECHNIQUE,), "technique")
-    req(violations, "%s.kill_target" % where, case.get("kill_target"), "kill_target（故障假设）")
+    enum(violations, "%s.dimension" % where, case.get("dimension"),
+         DIMENSIONS, "dimension（五轴）")
+    kt = case.get("kill_target")
+    if req(violations, "%s.kill_target" % where, kt, "kill_target（引用 FH ID）"):
+        refs = kt if isinstance(kt, list) else [kt]
+        for j, ref in enumerate(refs):
+            if isinstance(ref, str) and FH_RE.fullmatch(ref) and ref not in known_fh:
+                fh = case.get("fault_hypothesis")
+                if not (isinstance(fh, dict) and fh.get("id") == ref):
+                    violations.append(v(
+                        "UNKNOWN_ID",
+                        "%s.kill_target[%d]" % (where, j)
+                        if isinstance(kt, list) else "%s.kill_target" % where,
+                        "%s 不在既有 FH 中——新故障先落 FH：同条目带 "
+                        "fault_hypothesis: {id: %s, ac, text}（id 与 kill_target 一致）"
+                        % (ref, ref)))
+    fh = case.get("fault_hypothesis")
+    if fh is not None:
+        fhw = "%s.fault_hypothesis" % where
+        if not isinstance(fh, dict):
+            violations.append(v("ENTRY_INVALID", fhw,
+                                "fault_hypothesis 须为映射 {id, ac, text}"))
+        else:
+            req(violations, fhw + ".id", fh.get("id"), "FH id")
+            req(violations, fhw + ".ac", fh.get("ac"), "FH ac")
+            req(violations, fhw + ".text", fh.get("text"), "FH text")
+            if isinstance(fh.get("id"), str) and not FH_RE.fullmatch(fh["id"]):
+                violations.append(v("ENUM_INVALID", fhw + ".id",
+                                    "FH id 须为 FH-x.y.z 形态，实为 %s" % fh["id"]))
+            fh_ac, tc_ac = fh.get("ac"), case.get("ac")
+            if isinstance(fh_ac, str) and isinstance(tc_ac, str) and fh_ac != tc_ac:
+                violations.append(v("ENUM_INVALID", fhw + ".ac",
+                                    "fault_hypothesis.ac 须与用例 ac 一致：%s vs %s"
+                                    % (fh_ac, tc_ac)))
+    api_refs = case.get("api_refs")
+    if api_refs is not None:
+        if not (isinstance(api_refs, list) and api_refs):
+            violations.append(v("EMPTY_FIELD", "%s.api_refs" % where,
+                                "api_refs 形状异常（非空列表；缺席即整键省略）"))
+        else:
+            for j, anchor in enumerate(api_refs):
+                if not (isinstance(anchor, dict)
+                        and all(isinstance(anchor.get(k), str) and anchor.get(k).strip()
+                                for k in ("operationId", "path", "method"))):
+                    violations.append(v("EMPTY_FIELD", "%s.api_refs[%d]" % (where, j),
+                                        "复合锚形状异常（须含 operationId/path/method 三键）"))
     enum(violations, "%s.status" % where, case.get("status"), RECORD_STATUSES, "status")
     steps = case.get("steps")
     if not (isinstance(steps, list) and any(nonempty(x) for x in steps)):
@@ -532,24 +585,59 @@ def cmd_record(args):
             out, show, violations, warnings)
 
     if cases is not None and plan is not None:
+        known_fh = {str(h.get("id")) for h in
+                    (plan.get("fault_hypotheses") or [])
+                    if isinstance(h, dict) and nonempty(h.get("id"))} \
+            if isinstance(plan, dict) else set()
         seen_new = set()
         for i, case in enumerate(cases):
             violations += check_case(case, i, show, known_ids, seen_new,
-                                     known_acs, stories_available)
+                                     known_acs, stories_available, known_fh)
             if isinstance(case, dict) and nonempty(case.get("id")):
                 seen_new.add(str(case["id"]))
+            if isinstance(case, dict) and isinstance(case.get("fault_hypothesis"), dict):
+                known_fh.add(str(case["fault_hypothesis"].get("id")))
 
     appended = [str(c["id"]) for c in cases
                 if isinstance(c, dict) and nonempty(c.get("id"))] if cases else []
     if not violations:
+        # FH 联动追加：kill_target 引的新 FH 随 TC 落盘（先落 FH 再写 TC——追加权裁定）
+        merged_fhs = [dict(h) for h in (plan.get("fault_hypotheses") or [])
+                      if isinstance(h, dict)]
+        fh_seen = {h.get("id") for h in merged_fhs}
+        for c in cases:
+            fh = c.get("fault_hypothesis")
+            if isinstance(fh, dict) and fh.get("id") not in fh_seen:
+                fh_seen.add(fh.get("id"))
+                merged_fhs.append({"id": fh.get("id"), "ac": fh.get("ac"),
+                                   "text": fh.get("text")})
+        # 五轴 audit 维护：(ac, dimension) 格补录本 TC；not_applicable 格被实际用例推翻即转 tcs 型
+        audit = [dict(e) for e in (plan.get("dimension_audit") or [])]
+        for c in cases:
+            ac_id, dim, tid = c.get("ac"), c.get("dimension"), c.get("id")
+            if not (isinstance(ac_id, str) and isinstance(dim, str) and nonempty(tid)):
+                continue
+            hit = next((e for e in audit if isinstance(e, dict)
+                        and e.get("ac") == ac_id and e.get("axis") == dim), None)
+            if hit is None:
+                audit.append({"ac": ac_id, "axis": dim, "tcs": [tid]})
+            elif isinstance(hit.get("tcs"), list):
+                if tid not in hit["tcs"]:
+                    hit["tcs"] = list(hit["tcs"]) + [tid]
+            else:
+                hit.pop("not_applicable", None)
+                hit["tcs"] = [tid]
         merged = list(plan.get("test_cases"))
-        merged += [dict(c) for c in cases]
+        merged += [{k: x for k, x in c.items() if k != "fault_hypothesis"}
+                   for c in cases]
         project = plan.get("project")
         new_project = dict(project) if isinstance(project, dict) else {}
         new_project["updated"] = today()
         updated_plan = dict(plan)
         updated_plan["project"] = new_project
         updated_plan["test_cases"] = merged
+        updated_plan["fault_hypotheses"] = merged_fhs
+        updated_plan["dimension_audit"] = audit
         try:
             save_yaml_atomic(plan_path, updated_plan)
         except OSError as e:

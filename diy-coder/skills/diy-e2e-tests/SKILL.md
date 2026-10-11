@@ -54,7 +54,9 @@ test_cases:
     type: 端到端             # 本技能恒为此值（`e2e.py` 实核）
     priority: P0|P1|P2      # 档位映射唯一权威出处 = diy-test-design「priority 映射到风险」；本技能只引用，不重定义
     technique: 场景          # 本技能恒为此值：端到端旅程那一种技法
-    kill_target: string     # 本条用例要暴露的故障假设
+    dimension: 正向|边界|异常|安全|性能   # 五轴之一——本技能常为 正向（主旅程）/异常（错误路径）
+    kill_target: FH-5.1.2   # 引用 FH ID；编码后发现的新故障先落 FH：同条目带 fault_hypothesis {id, ac, text} 随 record 联动落盘
+    api_refs: [{operationId, path, method}]   # 可选：被测端点复合锚（AC 带 api_refs 或读 openapi.yaml 时锚定——锚可解析）
     status: 通过|失败         # 实测结果——只有真正跑过的用例才被追加
     steps: [string]         # 具体验证步骤，含预期结果
 ```
@@ -64,7 +66,7 @@ test_cases:
 ## 规则
 
 1. 写范围恰好三个面：`{output_dir}/test-plan.yaml` 的追加用例；项目测试目录里的测试代码；收尾会话摘要（不另写 YAML）。`sprint.yaml`、`stories.yaml`、其它产物与既有的 `test_cases` 条目零写入；任务状态绝不移动。
-2. 每条追加用例都是 `type: 端到端` + `technique: 场景`，绑一条已存在的 AC，且 `kill_target` 非空；只追加跑过的用例，带实测 `status`。`api | e2e` 是生成层轴，只决定走第 3 步还是第 4 步与收尾摘要的分层计数，**不写进 `type` 字段**（`type` 恒为 `端到端`）——层信息落用例 `title`。`priority` 按 diy-test-design 的「priority 映射到风险」取值，本技能只引用、不重定义。
+2. 每条追加用例都是 `type: 端到端` + `technique: 场景` + 五轴 `dimension`，绑一条已存在的 AC，`kill_target` 引用 FH ID（新故障带 `fault_hypothesis` 随 record 联动落盘）；只追加跑过的用例，带实测 `status`。**接口契约双源**：`{output_dir}/openapi.yaml` 在场时——A 通路＝直接读契约，按 `operationId` 取状态码 / 响应结构 / 错误码做 oracle（契约在场不再按「契约不清」跳过）；B 通路＝步骤 2 绑 AC 时顺带取其 `api_refs` 锚定端点；API 用例的 `api_refs` 点名被测端点复合锚。openapi 缺席照旧零提及（不加硬门）。`api | e2e` 是生成层轴，只决定走第 3 步还是第 4 步与收尾摘要的分层计数，**不写进 `type` 字段**（`type` 恒为 `端到端`）——层信息落用例 `title`。`priority` 按 diy-test-design 的「priority 映射到风险」取值，本技能只引用、不重定义。
 3. 终门（机械）：跑 `python "{project-root}/.claude/skills/diy-e2e-tests/scripts/e2e.py" record --tc-file <cases.json> --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 是唯一放行；逐条修完上报的违规再重跑；回执（含计数与 `diyc` 交叉核对块）即收口证据。`diyc` 块带违规是**要转述的 warning**（可能早于本次运行），不是写权失败。
 4. 边界声明：编码前设计 → diy-test-design；编码后按覆盖补缺 → diy-augment；编码前红相脚手架（只消费既有 TC、从不执行）→ diy-test-author。
 5. 渲染命令要求宿主 Python 有 PyYAML。它以 `ModuleNotFoundError` 失败时，报出该错并建议 `pip install pyyaml`——绝不静默回落。
