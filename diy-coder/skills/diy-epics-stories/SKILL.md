@@ -38,6 +38,7 @@ outputs: epics.yaml + stories.yaml
 - **AC 一律 given/when/then**，在**最外层可观测面**断言（行为，不是内部实现）。每条 AC 的 `refs` 引用 `prd.yaml` 里既有的 FR/NFR ID，**绝不复制需求原文**。
 - **覆盖率必须完整**：每条必须级 FR 至少被一条 AC 引用；应该级 FR 要么被覆盖，要么在 `stories.yaml` 顶层 `notes:` 里逐行写 skip line（`<FR-x.y>: <为什么故意不覆盖>`）——**绝不只在对话里带过**。
 - **设计绑定（FR-2.4）**：AC 实现前端面 FR 的 story，其每条这类 AC 带 `design_ref: P-x`，引用 `design.yaml` 的 `pages` 里的页 ID——该页是实现基线，不是装饰。仅在 `{output_dir}/design.yaml` 在场且其 `project.status: 已定稿` 时才绑（diy-design 被跳过的项目没有绑定）；每条 `design_ref` 都必须可解析（viewer 把悬空的标红，stories 终门机械复核解析）。design 若**晚于本技能**产出，重跑本技能 Update 路径回填 `design_ref`——写范围仍只在 `stories.yaml` 的 AC 绑定上；主线顺序 design 在本技能之前，按主线走不会落空。
+- **接口绑定（api_refs）**：`{output_dir}/openapi.yaml` 在场（`project.status: 已定稿`）时，铸 AC 走查接口归属——实现面落在接口端点上的 AC 挂 `api_refs: [{operationId, path, method}]` 复合锚（operationId 即接口唯一身份）；多对多归属在**铸造期**走查落盘（一对多＝AC 挂多锚；多对一＝多 AC 共锚），非推导期解链。与 `design_ref` 同构：同级产物锚、可选、须可解析（stories 终门机械复核：悬空锚照 `UNKNOWN_ID` 报）。反向悬空 operation（契约有端点、无任何 AC 引）→ `stories.yaml` 顶层 `notes:` 逐行写 skip line（`<operationId>: <为什么>`，照应该级 FR skip line 先例），不静默。`openapi.updated` 晚于 `stories.updated` → 提示可能有漂移（重跑 Update 走查锚归属）；openapi 缺席零提及。
 - **Story 状态照实写。** 已经交付的工作可以回填 `已完成`——回填先在顶层 `notes:` 里带 `[假设]` 前缀，等用户确认后再去掉。
 - 任何推断的颗粒度、次序或拆分，都在 YAML **值**上带 `[假设]` 前缀；未决项一律落在文件里，绝不只在对话里。
 
@@ -46,7 +47,7 @@ outputs: epics.yaml + stories.yaml
 1. 两份文件都以 `project.status: 草稿` 写出，story 状态照实；把路径告诉用户。
 2. 立即渲染两稿供审阅。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 3. 按用户反馈迭代；ID 始终保持稳定；任何改动后重新核一遍覆盖率。
-4. 终门（机械判定）：先写两份文件的 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --final --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `project.status` 回退 `草稿`**，修完重走本步——离开本次运行前，文档不得停在未过门的 `已定稿`。大白话的门槛：零未确认假设、每条 AC 的 ref 都能在 `prd.yaml` 里解析、每条必须级 FR 都被至少一条 AC 覆盖、每条在场的 `design_ref` 都能在 `design.yaml` 里解析。
+4. 终门（机械判定）：先写两份文件的 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --final --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `project.status` 回退 `草稿`**，修完重走本步——离开本次运行前，文档不得停在未过门的 `已定稿`。大白话的门槛：零未确认假设、每条 AC 的 ref 都能在 `prd.yaml` 里解析、每条必须级 FR 都被至少一条 AC 覆盖、每条在场的 `design_ref` 都能在 `design.yaml` 里解析、每条在场的 `api_refs` 锚都与 `openapi.yaml` 一致、悬空 operation 在 `notes:` 有 skip line。
 5. 过门之后才收口：重渲染一次，用 JSON 回执里的计数做收尾一行摘要。
 
 ## 结构
@@ -80,6 +81,7 @@ stories:
         then: string
         refs: [FR-x.y | NFR-x]   # 引用 prd.yaml 既有 ID，必须可解析
         design_ref: P-x       # 可选；必须在 design.yaml 的 pages 里解析
+        api_refs: [{operationId, path, method}]   # 可选；openapi.yaml 在场时铸——复合锚须与 openapi 一致
     status: 待办|进行中|待审查|已完成|已阻塞
 revisions: []                # {date, change, reason} —— 改既有条目时追加
 ```
