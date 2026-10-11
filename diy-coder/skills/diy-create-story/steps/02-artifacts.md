@@ -17,6 +17,8 @@ Progress: `Target → [Artifacts] → Code Survey → Compose → Finish`
 
 本故事的 AC，只取 ID，全部取（回执的 `acs` 块就是这份清单）。当某条 AC 带 `design_ref` 时，记录的 `design_ref` 指向服务本故事主界面的那个页面——多条 AC 绑了不同页面时取绑定最密的那一个。完整绑定集留在 `stories.yaml` 的 AC 上；此处不复制。
 
+AC 带 `api_refs` 时，记录的 `api_refs` 聚合**该故事全部 AC** 的复合锚、去重平铺（照 `design_ref` / `tc_refs` 引用面平铺先例——dev 一跳可达端点清单）；`stories.yaml` 的 AC 上是完整绑定集，此处不复制文本。
+
 ## TC 引用
 
 `tc_refs` = 回执 `tcs` 的 ID：`ac` 属于本故事 AC 集的每个用例。diy-dev 跑之前 `status: 待办` 是正常的——不是要上报的问题。`tcs` 为空**才是**：没有测试验证本故事的 AC，sprint 的 TDD 门会扣住该任务。记进 `open_questions`（**不是** `risks`）——它必须在 final 前关上：解决后删行，或带 `[CLOSED]` 与所采取的决定；并把用户路由去 diy-test-design。
