@@ -1,6 +1,6 @@
 # Step 1 — 定位与切分（Collect）
 
-Progress: `[定位与切分] → 预演执行 → 交叉验证 → 落盘与交付`
+Progress: `[定位与切分] → 预演执行 → 穷举 → 交叉验证 → 落盘与交付`
 
 **Read (input):** 目标路径（激活段定下的）；引擎 `collect` 的回执。
 **Write (output):** `{output_dir}/spec-scan.yaml` 的草稿记录（`id` / `date` / `target` / `units`）；给用户的进度播报。

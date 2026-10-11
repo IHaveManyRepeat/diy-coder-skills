@@ -14,7 +14,7 @@ SS-### 与终门走 diy-spec-scan 引擎）——不得为凑测试造无意义�
   4. 关键机制锚串（三机制边界 / 禁共写 / 报总数 / 交叉置信 / D 表闭环 / 复扫两轮 /
      B 部分必出 / 拍板贯通三问 / SS-### 永不复用 / 锚点冻结）
   5. 与 diy-spec-scan 的边界声明双向一致（selfcheck=编排者 / spec-scan=预演片，
-     对侧 04-report 路由段有归位句）
+     对侧 05-report 路由段有归位句）
 
 夹具：无（纯文本断言，不落 tempfile、不读写本仓库 `diy-output/`）。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_selfcheck.py" -v
@@ -33,7 +33,7 @@ SKILLS_DIR = os.path.join(HERE, "..", "skills")
 SKILL_DIR = os.path.join(SKILLS_DIR, "diy-selfcheck")
 SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
 STEPS_DIR = os.path.join(SKILL_DIR, "steps")
-SPEC_SCAN_ROUTE = os.path.join(SKILLS_DIR, "diy-spec-scan", "steps", "04-report.md")
+SPEC_SCAN_ROUTE = os.path.join(SKILLS_DIR, "diy-spec-scan", "steps", "05-report.md")
 SPEC_SCAN_MD = os.path.join(SKILLS_DIR, "diy-spec-scan", "SKILL.md")
 
 H1_RE = re.compile(r"^# Step (\d+) — .*[一-鿿]")
@@ -151,7 +151,7 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn(phrase, raw, "边界声明缺要素：%s" % phrase)
         route = read(SPEC_SCAN_ROUTE)
         self.assertIn("diy-selfcheck", route,
-                      "diy-spec-scan 04-report 路由段缺 diy-selfcheck 归位句")
+                      "diy-spec-scan 05-report 路由段缺 diy-selfcheck 归位句")
         spec_scan = read(SPEC_SCAN_MD)
         self.assertNotIn("编排者", spec_scan,
                           "diy-spec-scan 不得自称编排者（边界互斥）")

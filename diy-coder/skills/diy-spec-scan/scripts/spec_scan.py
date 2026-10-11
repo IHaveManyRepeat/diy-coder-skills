@@ -25,8 +25,14 @@
            输出不明 / 时序不明 / 直接矛盾 / 隐含假设）、where 非空
            且形如 <path> 或 <path>:<行号>、quote / read_as / stuck / would_guess 四字段全非空
            （EMPTY_FIELD；would_guess = 若我是实现者我会猜成什么——没有它这条 finding 不成立）、
-           severity ∈ 阻断|建议|观察；scans[].summary 的 total/blocker/major/minor 与
-           findings 真值一致、units_total/units_scanned 与 units 数组一致（SET_MISMATCH）。
+           severity ∈ 阻断|建议|观察、source 为数组且元素 ∈ 卡点|穷举|交叉认证（越界
+           ENUM_INVALID；schema 分层：顶层 schema ≥2 时 source 缺失或空数组 → EMPTY_FIELD，
+           无 schema 的存量文件缺 source 缺省当 [卡点] 不报错）；scans[].summary 的
+           total/blocker/major/minor 与 findings 真值一致、units_total/units_scanned 与
+           units 数组一致、by_source 三键映射（卡点/穷举/交叉认证）与 source 分法计数一致
+           （按元素各计，存量缺 source 按 [卡点] 计；by_source 同享 schema 分层——
+           schema ≥2 缺失报 EMPTY_FIELD，无 schema 存量缺 summary.by_source 键缺省
+           兼容不报，SET_MISMATCH）。
            --final 附加：全部 units[].scanned 为 true（未扫完 → SET_MISMATCH）、findings 的
            字符串字段零 [假设] 字面量（命中 → ASSUMPTION_PRESENT）——**`quote` 字段豁免**
            （2026-09-16 裁定）：该禁令管的是「扫描器自己未落定的推断」，而 quote 是**引文证据**，
@@ -69,7 +75,8 @@ FINDING_TYPES = ("分支无定义", "术语冲突", "接口缺口", "输入不�
                  "输出不明", "时序不明", "直接矛盾", "隐含假设")
 FINDING_TEXT_FIELDS = ("quote", "read_as", "stuck", "would_guess")
 SEVERITIES = ("阻断", "建议", "观察")
-SUMMARY_KEYS = ("total", "blocker", "major", "minor", "units_total", "units_scanned")
+FINDING_SOURCES = ("卡点", "穷举", "交叉认证")
+SUMMARY_KEYS = ("total", "blocker", "major", "minor", "units_total", "by_source", "units_scanned")
 PROJECT_KEYS = ("name", "created", "updated")
 ASSUMPTION = "[假设]"
 
@@ -299,6 +306,13 @@ def check_top_level(data, show):
     return violations
 
 
+# trace: diy-spec-scan 顶层 schema 分层判定（schema ≥2 走新字段必填；缺失/非整数按存量
+# 兼容——旧文件无 schema 键，新字段缺省生效）
+def is_schema_v2(data):
+    value = data.get("schema") if isinstance(data, dict) else None
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 2
+
+
 # trace: diy-spec-scan scans[].id 形态（SS-0nn）与全局唯一校验
 def check_scan_id(sid, where, seen):
     if not nonempty(sid):
@@ -377,15 +391,16 @@ def is_where(value):
     return bool(head) and bool(LINE_RE.fullmatch(tail))
 
 
-# trace: diy-spec-scan findings[] 五要素校验（id / type 八值 / where 形态 / 四字段非空 / severity 三值）
-def check_findings(where, findings, seen):
+# trace: diy-spec-scan findings[] 六要素校验（id / type 八值 / where 形态 / 四字段非空 /
+# severity 三值 / source 三值数组·schema 分层）
+def check_findings(where, findings, seen, schema2):
     violations = []
     for i, finding in enumerate(findings):
         fw = "%s.findings[%d]" % (where, i)
         if not isinstance(finding, dict):
             violations.append(v("EMPTY_FIELD", fw,
                                 "finding 不是映射（id/type/where/quote/read_as/stuck/"
-                                "would_guess/severity 八件套）"))
+                                "would_guess/severity/source 九件套）"))
             continue
         violations += check_finding_id(finding.get("id"), fw + ".id", i, seen)
         label = finding_label(i, finding)
@@ -416,21 +431,59 @@ def check_findings(where, findings, seen):
             violations.append(v("ENUM_INVALID", fw + ".severity",
                                 "%s 的 severity 越界：%s（合法集 %s）"
                                 % (label, severity, "|".join(SEVERITIES))))
+        source = finding.get("source")
+        if source is None:
+            if schema2:
+                violations.append(v("EMPTY_FIELD", fw + ".source",
+                                    "%s 的 source 缺失（schema ≥2 须为非空数组，"
+                                    "元素 ∈ %s）" % (label, "|".join(FINDING_SOURCES))))
+            # 无 schema 的存量文件：缺 source 缺省当 [卡点]，不报错（向后兼容）
+        elif not isinstance(source, list):
+            violations.append(v("EMPTY_FIELD", fw + ".source",
+                                "%s 的 source 须为数组，实为 %s（元素 ∈ %s）"
+                                % (label, source, "|".join(FINDING_SOURCES))))
+        elif not source:
+            violations.append(v("EMPTY_FIELD", fw + ".source",
+                                "%s 的 source 为空数组（须含至少一个元素 ∈ %s）"
+                                % (label, "|".join(FINDING_SOURCES))))
+        else:
+            for item in source:
+                if str(item) not in FINDING_SOURCES:
+                    violations.append(v("ENUM_INVALID", fw + ".source",
+                                        "%s 的 source 越界：%s（合法集 %s）"
+                                        % (label, item, "|".join(FINDING_SOURCES))))
     return violations
 
 
-# trace: diy-spec-scan summary 真值计算（findings 计数 + units 计数）
+# trace: diy-spec-scan findings[].source 计数取值（summary 真值与回执计数同口径）：
+# 数组合法元素逐个；缺失/非数组/空/全越界 → 缺省 [卡点]（存量兼容）
+def source_values(finding):
+    source = finding.get("source")
+    if isinstance(source, list):
+        valid = [str(name) for name in source if str(name) in FINDING_SOURCES]
+        if valid:
+            return valid
+    return [FINDING_SOURCES[0]]
+
+
+# trace: diy-spec-scan summary 真值计算（findings 计数 + source 分法按元素计 + units 计数）
 def real_summary(units, findings):
     severity = {name: 0 for name in SEVERITIES}
+    by_source = {name: 0 for name in FINDING_SOURCES}
     for finding in findings:
-        if isinstance(finding, dict) and str(finding.get("severity")) in severity:
+        if not isinstance(finding, dict):
+            continue
+        if str(finding.get("severity")) in severity:
             severity[str(finding["severity"])] += 1
+        for name in source_values(finding):
+            by_source[name] += 1
     return {
         "total": len(findings),
         "blocker": severity["阻断"],
         "major": severity["建议"],
         "minor": severity["观察"],
         "units_total": len(units),
+        "by_source": by_source,
         "units_scanned": sum(1 for unit in units
                              if isinstance(unit, dict) and unit.get("scanned") is True),
     }
@@ -441,19 +494,34 @@ def count_matches(value, real):
     return isinstance(value, int) and not isinstance(value, bool) and value == real
 
 
-# trace: diy-spec-scan summary 计数与真值一致性校验（不符 → SET_MISMATCH）
-def check_summary(scan, where, units, findings):
+# trace: diy-spec-scan by_source 映射比对（三键齐且各键计数与真值一致）
+def source_counts_match(value, real):
+    if not isinstance(value, dict) or set(value) != set(real):
+        return False
+    return all(count_matches(value.get(key), real[key]) for key in real)
+
+
+# trace: diy-spec-scan summary 计数与真值一致性校验（不符 → SET_MISMATCH）；
+# by_source 同享 schema 分层：schema ≥2 缺失报 EMPTY_FIELD，无 schema 存量缺省兼容不报
+def check_summary(scan, where, units, findings, schema2):
     sw = where + ".summary"
     summary = scan.get("summary")
     if not isinstance(summary, dict):
         return [v("EMPTY_FIELD", sw,
                   "summary 缺失或不是映射（total/blocker/major/minor/units_total/"
-                  "units_scanned）")]
+                  "by_source/units_scanned）")]
     real = real_summary(units, findings)
     violations = []
     for key in SUMMARY_KEYS:
         if key not in summary:
+            if key == "by_source" and not schema2:
+                continue  # 无 schema 的存量文件：summary 无 by_source 键，缺省兼容
             violations.append(v("EMPTY_FIELD", "%s.%s" % (sw, key), "summary.%s 缺失" % key))
+        elif key == "by_source":
+            if not source_counts_match(summary.get(key), real[key]):
+                violations.append(v("SET_MISMATCH", "%s.by_source" % (sw),
+                                    "summary.by_source=%s 与实际计数 %s 不符"
+                                    % (summary.get(key), real[key])))
         elif not count_matches(summary.get(key), real[key]):
             violations.append(v("SET_MISMATCH", "%s.%s" % (sw, key),
                                 "summary.%s=%s 与实际计数 %d 不符"
@@ -483,7 +551,7 @@ def check_final_duties(where, units, findings):
 
 
 # trace: diy-spec-scan 单条 scan 全量校验（id/target/units/findings/summary + --final 义务）
-def check_scan(index, scan, show, final, seen_scan_ids, seen_finding_ids):
+def check_scan(index, scan, show, final, schema2, seen_scan_ids, seen_finding_ids):
     where = "%s.scans[%d]" % (show, index)
     if not isinstance(scan, dict):
         return [v("EMPTY_FIELD", where, "scan 不是映射")]
@@ -501,18 +569,19 @@ def check_scan(index, scan, show, final, seen_scan_ids, seen_finding_ids):
                             "findings 缺失或不是列表（无歧义写空列表）"))
         findings = []
     else:
-        violations += check_findings(where, findings, seen_finding_ids)
-    violations += check_summary(scan, where, units, findings)
+        violations += check_findings(where, findings, seen_finding_ids, schema2)
+    violations += check_summary(scan, where, units, findings, schema2)
     if final:
         violations += check_final_duties(where, units, findings)
     return violations
 
 
-# trace: diy-spec-scan check 回执计数（scan / 单元 / finding + 分档分型）
+# trace: diy-spec-scan check 回执计数（scan / 单元 / finding + 分档分型分法）
 def scan_counts(scans):
     units = findings = scanned = 0
     by_severity = {}
     by_type = {}
+    by_source = {name: 0 for name in FINDING_SOURCES}
     for scan in scans:
         if not isinstance(scan, dict):
             continue
@@ -534,8 +603,11 @@ def scan_counts(scans):
             ftype = finding.get("type")
             if nonempty(ftype):
                 by_type[str(ftype)] = by_type.get(str(ftype), 0) + 1
+            for name in source_values(finding):
+                by_source[name] += 1
     return {"scans": len(scans), "units": units, "units_scanned": scanned,
-            "findings": findings, "by_severity": by_severity, "by_type": by_type}
+            "findings": findings, "by_severity": by_severity, "by_type": by_type,
+            "by_source": by_source}
 
 
 # trace: diy-spec-scan check 子命令（spec-scan.yaml 校验；exit 0 唯一放行）
@@ -557,12 +629,14 @@ def cmd_check(args):
                             "顶层不是映射（须为 project + scans + revisions）"))
     else:
         violations += check_top_level(data, show)
+        schema2 = is_schema_v2(data)
         raw = data.get("scans")
         scans = raw if isinstance(raw, list) else []
         seen_scan_ids = set()
         seen_finding_ids = set()
         for i, scan in enumerate(scans):
-            violations += check_scan(i, scan, show, args.final, seen_scan_ids, seen_finding_ids)
+            violations += check_scan(i, scan, show, args.final, schema2,
+                                     seen_scan_ids, seen_finding_ids)
     counts = scan_counts(scans)
     payload = {
         "ok": not violations,

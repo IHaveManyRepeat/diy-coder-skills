@@ -1,8 +1,8 @@
-# Step 3 — 交叉验证（Cross Check）
+# Step 4 — 交叉验证（Cross Check）
 
-Progress: `定位与切分 → 预演执行 → [交叉验证] → 落盘与交付`
+Progress: `定位与切分 → 预演执行 → 穷举 → [交叉验证] → 落盘与交付`
 
-**Read (input):** 草稿记录里的全部 findings 与单元清单。
+**Read (input):** 草稿记录里的全部 findings（两法产出：卡点 ＋ 穷举）与单元清单。
 **Write (output):** 新增 / 合并 / 删除后的 findings；重算后的 `summary`。
 
 ## 为什么要这一步
@@ -31,6 +31,11 @@ Progress: `定位与切分 → 预演执行 → [交叉验证] → 落盘与交�
 
 看 `units` 清单：有没有"扫了但零 finding"的单元？零 finding 要么真的写得干净，要么是你滑过去了——挑其中 1-2 个用反推法快速过一遍。
 
+## source 标注与合并（两法 findings）
+
+- 本步复扫 / 补漏**自产**的 finding 标 `source: [交叉认证]`。
+- 与已有条目同处（`where` / `quote` 核对命中）→ 不新建，一条合并，`source` 取**并集**追加（如 `[卡点, 穷举]` → `[卡点, 穷举, 交叉认证]`），本视角有新信息就往 `stuck` 补一句「另见 <位置>」。
+
 ## 收口
 
 重算 `summary`（`total` / `blocker` / `major` / `minor` 与 findings 一致），确认所有 `units[].scanned` 为 `true`。
@@ -39,4 +44,4 @@ Progress: `定位与切分 → 预演执行 → [交叉验证] → 落盘与交�
 
 给用户一句话：复扫了几个单元、补了几条、移除几条、余下 blocker 几条。
 
-读全并照做 `./04-report.md`。
+读全并照做 `./05-report.md`。

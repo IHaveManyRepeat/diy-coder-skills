@@ -40,10 +40,13 @@ outputs: spec-scan.yaml
 
 1. `steps/01-collect.md` — 目标定位与切分：跑 `collect` 建立**扫描单元清单**，落草稿记录，给用户一句进度播报。
 2. `steps/02-dry-run.md` — **预演执行**（核心）：逐单元扮演实现者，产出执行计划；每个"必须猜"的决策点记一条 finding。
-3. `steps/03-cross-check.md` — 交叉验证：换视角复扫高风险单元，补漏 + 去误报。
-4. `steps/04-report.md` — 落盘 + `check --final` 终门 + 渲染 + 摘要（计数 / 阻断清单 / 路由）。
+3. `steps/03-exhaustive.md` — **穷举执行**：方法驱动枚举路径与边界，零命中合法；finding 标 `source: [穷举]`。
+4. `steps/04-cross-check.md` — 交叉验证：换视角复扫高风险单元，补漏 + 去误报。
+5. `steps/05-report.md` — 落盘 + `check --final` 终门 + 渲染 + 摘要（计数 / 阻断清单 / 路由）。
 
-写回纪律：记录在 step 1 建为 `草稿`，各步填充，step 4 定稿。
+穷举默认跑（opt-out）：关闭走旗标 `--no-exhaustive`（规范形式）或自然语言明示「不用穷举 / 跳过穷举」（等效兜底），两通道同规则。
+
+写回纪律：记录在 step 1 建为 `草稿`，各步填充，step 5 定稿。
 
 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
@@ -53,6 +56,7 @@ outputs: spec-scan.yaml
 
 ```yaml
 project: {name, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天
+schema: 2                           # 顶层版本戳；旧文件无戳按 [卡点] 兼容
 scans:
   - id: SS-001                     # 顺序递增、稳定，永不重编号、永不复用
     date: YYYY-MM-DD               # 本次扫描的日子，不随 updated 变
@@ -71,7 +75,8 @@ scans:
         impact: <猜错的后果>
         suggestion: <建议怎么裁定>
         severity: 阻断|建议|观察
-    summary: {total: N, blocker: N, major: N, minor: N, units_total: N, units_scanned: N}
+        source: [卡点]              # 数组，元素∈卡点|穷举|交叉认证；两法同报取并集
+    summary: {total: N, blocker: N, major: N, minor: N, units_total: N, units_scanned: N, by_source: {卡点: N, 穷举: N, 交叉认证: N}}
     open_questions: [<string>]
 revisions: []                      # {date, change, reason} —— 改既有条目时追加
 ```
@@ -84,7 +89,5 @@ revisions: []                      # {date, change, reason} —— 改既有条�
 - **零改写。** 本技能不改任何被扫文件——只出清单。裁定归用户。
 - **不评论质量。** 不挑风格、不评好坏、不提"建议改为"。只报"照这份规格执行，会卡在哪"。
 - **不确定就标 `建议`，别升 `阻断`。** `阻断` 只留给"两种理解会导致完全不同的实现"这一档。
-
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
-
 - **写作纪律。** findings 散文用 `document_output_language`；`quote` 里机器锚点（ID / 枚举值 / 命令 / 路径）逐字保留原文，不翻译。引文里可能出现 `[假设]` 等被禁字面量——照抄，终门对 `quote` 豁免。

@@ -1116,5 +1116,82 @@ class FiveAxisLabelTests(_Fixture):
             self.assertNotIn(leak, html, "批 1 英文键名直出：%s" % leak)
 
 
+# ---------------------------------------------------------------------------
+# v4 批 2a（diy-spec-scan source 数组 + summary by_source 分法计数的渲染面）
+# ---------------------------------------------------------------------------
+
+# schema: 2 稿：findings.source 三值样例（[卡点] + 多值 [卡点, 穷举, 交叉认证]）+
+# summary.by_source 按元素各计（卡点 2 / 穷举 1 / 交叉认证 1）
+SPEC_SCAN_SOURCE_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "schema: 2",
+    "scans:",
+    "- id: SS-001",
+    "  target: {kind: file, path: docs/spec.md}",
+    "  units:",
+    "  - {unit: 激活段, path: docs/spec.md, scanned: true}",
+    "  findings:",
+    "  - id: SS-001-01",
+    "    type: 分支无定义",
+    "    where: docs/spec.md:3",
+    "    quote: 按需选择",
+    "    read_as: 作者默认实现者会选",
+    "    stuck: 不知道走哪条分支",
+    "    would_guess: 我会走默认路径",
+    "    severity: 阻断",
+    "    source: [卡点]",
+    "  - id: SS-001-02",
+    "    type: 术语冲突",
+    "    where: docs/spec.md",
+    "    quote: 优先级高的先做",
+    "    read_as: 排序规则未定义",
+    "    stuck: 无法判断先后",
+    "    would_guess: 我会按出现顺序执行",
+    "    severity: 观察",
+    "    source: [卡点, 穷举, 交叉认证]",
+    ("  summary: {total: 2, blocker: 1, major: 0, minor: 1, units_total: 1, "
+     "by_source: {卡点: 2, 穷举: 1, 交叉认证: 1}, units_scanned: 1}"),
+    "revisions: []",
+])
+
+
+class SpecScanSourceLabelTests(_Fixture):
+    """批 2a ⑥甲：by_source 键标签 + source 三值（卡点/穷举/交叉认证）值域与渲染面。"""
+
+    # trace: 批 2a ⑥甲（表层）——键进 KEY_LABELS、三值进值域白名单（徽章判定依据），
+    # 且归类语义不带极性 → 中性徽章（对 form_factor/modes 值表先例）
+    def test_by_source_key_and_three_source_values_registered(self):
+        self.assertEqual(viewer.KEY_LABELS.get("by_source"), "分法计数",
+                         "by_source 键标签未登记")
+        for value in ("卡点", "穷举", "交叉认证"):
+            self.assertIn(value, viewer.VALUE_LABELS, "source 三值未入值域：%s" % value)
+            self.assertNotIn(value, viewer.BADGE_CLASSES,
+                             "分法值须中性徽章（不带极性）：%s" % value)
+
+    # trace: 批 2a ⑥甲（渲染面·用户裁补徽章）——schema: 2 稿落页：零裸键 + by_source 键标签 +
+    # 三值中性徽章（source 列表项 + by_source 映射行头）+ 零枚举漂移
+    def test_spec_scan_by_source_renders_chinese_without_drift(self):
+        self.write("spec-scan.yaml", SPEC_SCAN_SOURCE_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr, "source/by_source 值域漂移：%s" % p.stderr)
+        html = self.page("spec-scan")
+        self.assertIn("分法计数", html, "by_source 键标签未落页")
+        # by_source 映射：三键以中文行头入 kv 表（值词表命中 → 中性徽章），计数为按元素各计的真值
+        seg = html.split("分法计数", 1)[1][:500]
+        for value, count in (("卡点", 2), ("穷举", 1), ("交叉认证", 1)):
+            self.assertIn(
+                '<th><span class="badge b-neutral">%s</span></th><td>%d</td>' % (value, count),
+                seg,
+                          "by_source 行 %s:%d 未按分法落页" % (value, count))
+        # findings.source 数组三值在场且逐元素出中性徽章（枚举键列表标量走徽章路径）
+        for value in ("卡点", "穷举", "交叉认证"):
+            self.assertIn('<li><span class="badge b-neutral">%s</span></li>' % value, html,
+                          "source 值 %s 未出徽章" % value)
+        for leak in (">by_source<", ">source<"):
+            self.assertNotIn(leak, html, "spec-scan 英文键名直出：%s" % leak)
+
+
 if __name__ == "__main__":
     unittest.main()

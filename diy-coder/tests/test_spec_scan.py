@@ -24,6 +24,9 @@
 - 用例 15：--output-dir 与 collect --target 必填（用法错误 exit 2）
 - 用例 16：SKILL.md / steps 契约冒烟（中文化轮 2026-09-19——母本 §1/§3/§4/§6 逐字 +
           §2 自定短块（母本 §8 登记的非成员变体）+ 四段中文标题 ≤93 行 + B-24 语义条目）
+- 用例 17：check source 数组 / schema 分层（元素越界 → ENUM_INVALID；schema≥2 缺 source
+           或空数组 → EMPTY_FIELD；无 schema 存量缺 source 缺省 [卡点] 兼容不报错；
+           顶层 schema: 2 写入面在场；counts.by_source 按元素各计与夹具分法一致）
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_spec_scan.py" -v
 """
@@ -73,6 +76,7 @@ SPEC_SCAN_YAML = NL.join([
     "  name: mini",
     "  created: '2026-09-15'",
     "  updated: '2026-09-15'",
+    "schema: 2",
     "scans:",
     "- id: SS-001",
     "  target: {kind: dir, path: skills/diy-dev}",
@@ -88,6 +92,7 @@ SPEC_SCAN_YAML = NL.join([
     "    stuck: 不知道何时走哪条分支",
     "    would_guess: 我会一律走默认路径，忽略另一分支",
     "    severity: 阻断",
+    "    source: [卡点]",
     "  - id: SS-001-02",
     "    type: 术语冲突",
     "    where: skills/diy-dev/steps/01-init.md",
@@ -96,7 +101,9 @@ SPEC_SCAN_YAML = NL.join([
     "    stuck: 无法判断先后",
     "    would_guess: 我会按文件出现顺序执行",
     "    severity: 观察",
-    "  summary: {total: 2, blocker: 1, major: 0, minor: 1, units_total: 2, units_scanned: 2}",
+    "    source: [卡点, 穷举, 交叉认证]",
+    ("  summary: {total: 2, blocker: 1, major: 0, minor: 1, units_total: 2, "
+     "by_source: {卡点: 2, 穷举: 1, 交叉认证: 1}, units_scanned: 2}"),
     "revisions: []",
 ]) + NL
 
@@ -352,6 +359,73 @@ class CheckTests(EngineCase):
         self.assertIn("spec-scan.yaml", data["violations"][0]["where"])
         self.assertEqual(data["counts"]["scans"], 0)
 
+    # trace: 批 2a §5.4 ①——source 元素越界 → ENUM_INVALID（schema 分层不豁免枚举值域）
+    def test_check_source_element_out_of_enum_rejected(self):
+        self.write_spec_scan(SPEC_SCAN_YAML.replace("source: [卡点]", "source: [外部]"))
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertEqual(self.codes(r), ["ENUM_INVALID"])
+        violation = json.loads(r.stdout)["violations"][0]
+        self.assertIn("外部", violation["msg"])
+        self.assertIn("卡点|穷举|交叉认证", violation["msg"])
+        self.assertTrue(violation["where"].endswith("findings[0].source"),
+                        violation["where"])
+
+    # trace: 批 2a §5.4 ②——schema≥2 时 source 缺失 / 空数组 → EMPTY_FIELD
+    def test_check_schema_v2_requires_nonempty_source(self):
+        self.write_spec_scan(SPEC_SCAN_YAML.replace("    source: [卡点]" + NL, ""))
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertEqual(self.codes(r), ["EMPTY_FIELD"])
+        violation = json.loads(r.stdout)["violations"][0]
+        self.assertIn("source", violation["msg"])
+        self.assertTrue(violation["where"].endswith("findings[0].source"),
+                        violation["where"])
+
+        self.write_spec_scan(SPEC_SCAN_YAML.replace("source: [卡点]", "source: []"))
+        r2 = self.check()
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertEqual(self.codes(r2), ["EMPTY_FIELD"])
+        self.assertIn("空数组", json.loads(r2.stdout)["violations"][0]["msg"])
+
+    # trace: 批 2a §5.4 ③——无 schema 存量文件缺 source → 缺省 [卡点] 兼容不报错，计数同口径
+    def test_check_legacy_without_schema_defaults_source_to_kadian(self):
+        text = SPEC_SCAN_YAML.replace("schema: 2" + NL, "")
+        text = text.replace("    source: [卡点]" + NL, "")
+        text = text.replace("    source: [卡点, 穷举, 交叉认证]" + NL, "")
+        # 真实存量文件连 summary.by_source 键都没有——schema 分层下缺省兼容不报，
+        # 回执 counts.by_source 仍按缺省 [卡点] 口径产出
+        text = text.replace(", by_source: {卡点: 2, 穷举: 1, 交叉认证: 1}", "")
+        self.write_spec_scan(text)
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        data = json.loads(r.stdout)
+        self.assertEqual(data["violations"], [])
+        self.assertEqual(data["counts"]["by_source"],
+                         {"卡点": 2, "穷举": 0, "交叉认证": 0})
+
+    # trace: 批 2a §5.4 ④——顶层 schema: 2 写入面（SKILL.md 结构段登记）＋在场时 check 放行
+    def test_check_schema_v2_stamp_declared_and_accepted(self):
+        with io.open(SKILL_MD_PATH, encoding="utf-8") as f:
+            skill = f.read()
+        self.assertIn("schema: 2", skill, "SKILL.md 结构段缺顶层 schema: 2 版本戳")
+        self.assertIn("顶层版本戳", skill, "schema: 2 缺版本戳语义注释")
+        self.write_spec_scan(SPEC_SCAN_YAML)
+        r = self.check()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(self.codes(r), [])
+
+    # trace: 批 2a §5.4 ⑤——counts.by_source 按元素各计（多值 source 样例逐元素入账）
+    def test_check_by_source_counts_each_element(self):
+        self.write_spec_scan(SPEC_SCAN_YAML)
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        data = json.loads(r.stdout)
+        self.assertEqual(data["counts"]["findings"], 2)
+        # findings 两件：[卡点] + [卡点, 穷举, 交叉认证] → 元素四枚，卡点 2 各计
+        self.assertEqual(data["counts"]["by_source"],
+                         {"卡点": 2, "穷举": 1, "交叉认证": 1})
+
 
 class ContractTests(EngineCase):
 
@@ -503,30 +577,31 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("不引入分片文件", step2, "SS-026-04 缺「不引入分片文件」")
         self.assertIn("绝不重编号", step2, "SS-026-05 缺号段规则（绝不重编号）")
         self.assertNotIn("连续不跳号", step2, "SS-026-05 旧口径「连续不跳号」残留")
-        step3 = self.read(os.path.join(STEPS_DIR, "03-cross-check.md"))
-        self.assertIn("空缺号不回收、不重排", step3, "SS-026-05 ② 未在去误报处同口径")
+        step4 = self.read(os.path.join(STEPS_DIR, "04-cross-check.md"))
+        self.assertIn("空缺号不回收、不重排", step4, "SS-026-05 ② 未在去误报处同口径")
 
-    # trace: B-24 · SS-026-06（quote 豁免措辞补齐：SKILL.md 半句 + steps/04 扫描面收窄）
+    # trace: B-24 · SS-026-06（quote 豁免措辞补齐：SKILL.md 半句 + steps/05 扫描面收窄）
     def test_quote_exemption_wording(self):
         self.assertIn("终门对 `quote` 豁免", self.read_skill(),
                       "SS-026-06 SKILL.md 侧豁免半句缺失")
-        step4 = self.read(os.path.join(STEPS_DIR, "04-report.md"))
-        self.assertIn("**`quote` 豁免**", step4, "SS-026-06 steps/04 缺 quote 豁免")
-        self.assertIn("非 `quote` 字段", step4, "SS-026-06 steps/04 未点名扫描面")
-        self.assertIn("全角", step4, "SS-026-06 缺全角 ［假设］ 出口")
-        self.assertNotIn("全文档", step4, "SS-026-06 旧口径「全文档」残留")
+        step5 = self.read(os.path.join(STEPS_DIR, "05-report.md"))
+        self.assertIn("**`quote` 豁免**", step5, "SS-026-06 steps/05 缺 quote 豁免")
+        self.assertIn("非 `quote` 字段", step5, "SS-026-06 steps/05 未点名扫描面")
+        self.assertIn("全角", step5, "SS-026-06 缺全角 ［假设］ 出口")
+        self.assertNotIn("全文档", step5, "SS-026-06 旧口径「全文档」残留")
 
     # trace: B-24 · SS-026-07（复核回路：删「可进入建设批次」，修订后同目标可重扫一次）
     def test_recheck_loop_replaces_build_batch(self):
-        step4 = self.read(os.path.join(STEPS_DIR, "04-report.md"))
-        self.assertIn("重扫一次", step4, "SS-026-07 缺复核回路")
-        self.assertIn("SS-002", step4, "SS-026-07 缺机器锚点 SS-002")
-        self.assertIn("本技能不改规格", step4, "缺零改写纪律（本技能不改规格）")
-        self.assertNotIn("可进入建设批次", step4, "SS-026-07 的「可进入建设批次」未删")
+        step5 = self.read(os.path.join(STEPS_DIR, "05-report.md"))
+        self.assertIn("重扫一次", step5, "SS-026-07 缺复核回路")
+        self.assertIn("SS-002", step5, "SS-026-07 缺机器锚点 SS-002")
+        self.assertIn("本技能不改规格", step5, "缺零改写纪律（本技能不改规格）")
+        self.assertNotIn("可进入建设批次", step5, "SS-026-07 的「可进入建设批次」未删")
 
     # trace: steps 形态（H1 中文步名 + 步号与文件序一致 + Read/Write 行逐字英文 + 末段）
     def test_steps_shape(self):
-        names = ["01-collect.md", "02-dry-run.md", "03-cross-check.md", "04-report.md"]
+        names = ["01-collect.md", "02-dry-run.md", "03-exhaustive.md",
+                 "04-cross-check.md", "05-report.md"]
         for i, name in enumerate(names, start=1):
             text = self.read(os.path.join(STEPS_DIR, name))
             lines = text.replace("\r\n", NL).split(NL)

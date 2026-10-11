@@ -1,6 +1,6 @@
-# Step 4 — 落盘与交付（Report）
+# Step 5 — 落盘与交付（Report）
 
-Progress: `定位与切分 → 预演执行 → 交叉验证 → [落盘与交付]`
+Progress: `定位与切分 → 预演执行 → 穷举 → 交叉验证 → [落盘与交付]`
 
 **Read (input):** 定稿的 findings；引擎 `check` 回执。
 **Write (output):** `{output_dir}/spec-scan.yaml` 定稿（`status: 已定稿`）；渲染；交付摘要。
@@ -35,6 +35,7 @@ python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-ro
 扫描完成：<目标名>
 - 单元 N 个全部扫完（M 行）
 - findings 共 K 条：阻断 X / 建议 Y / 观察 Z
+- 分法计数 by_source（按元素各计，一条多法则各键各计）：卡点 N ／ 穷举 N ／ 交叉认证 N
 
 Blocker（必须裁定）：
 1. SS-001-03 <类型> <path:line> — <一句话：卡在哪 / 会猜成什么>

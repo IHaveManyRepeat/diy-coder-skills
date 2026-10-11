@@ -167,6 +167,7 @@ KEY_LABELS = {
     "quote": "原文摘录", "read_as": "我读到什么", "stuck": "卡在哪",
     "would_guess": "会猜成什么", "impact": "猜错后果", "suggestion": "建议裁定",
     "severity": "严重度", "units_total": "单元总数", "units_scanned": "已扫描单元数",
+    "by_source": "分法计数", "卡点": "卡点", "穷举": "穷举", "交叉认证": "交叉认证",
     # deferred-actions 族（副作用纪律保留确认队列，§五 C·8）；
     # actions 是顶层列表键，渲染成 h2 标题（与 tasks / bugs 同款）
     "action": "动作", "command": "命令", "skill": "技能", "actions": "动作清单",
@@ -340,6 +341,8 @@ VALUE_LABELS = {
     "输出不明": "输出不明", "时序不明": "时序不明",
     "直接矛盾": "直接矛盾", "隐含假设": "隐含假设",
     "建议": "建议", "观察": "观察",
+    # spec-scan：source 三值（卡点|穷举|交叉认证）——findings 来源分法，渲染中性徽章
+    "卡点": "卡点", "穷举": "穷举", "交叉认证": "交叉认证",
     # R3 补全（2026-09-19 机器层中文化收口）：引擎值域常量里 viewer 未登记的中文取值。
     # 采集口径：AST 扫描 skills/*/scripts/*.py 的值域常量（含函数内联比较），剔除
     # 「不改清单」（P0-P3 / 大写档 / 产物名 / QA / [假设] 令牌）。下列值多为同一词跨语境共用。
@@ -1084,8 +1087,17 @@ def render_dict_fields(d: dict) -> str:
             return ref_cell(str(v))
         return value_html(k, v)
 
+    # trace: 批 2a ⑥甲（用户裁补）——行头键原文本身就是值词且渲染不换词（如 by_source 的
+    # 卡点/穷举/交叉认证）→ 中性徽章；英文键名（type/priority 值词表也收英文）键标签异文，
+    # 不符合同文条件，维持纯文本表头
+    def head(k):
+        label = key_label(k)
+        if k in VALUE_LABELS and label == k:
+            return f'<span class="badge b-neutral">{gloss(esc(label))}</span>'
+        return gloss(esc(label))
+
     rows = "".join(
-        f'<tr><th>{gloss(esc(key_label(k)))}</th><td>{field(k, v)}</td></tr>'
+        f'<tr><th>{head(k)}</th><td>{field(k, v)}</td></tr>'
         for k, v in d.items()
     )
     return f'<table class="kv"><tbody>{rows}</tbody></table>'
@@ -1155,9 +1167,15 @@ def _render_value_raw(key: str, v, depth: int) -> str:
                 anchor = f' id="{esc(cid)}"' if isinstance(cid, str) and cid else ""
                 cards.append(f'<div class="card"{anchor}>{render_value("", x, depth + 1)}</div>')
             return title + "".join(cards)
-        # trace: 对抗审查修复——列表标量命中值词表（signals: icon/motion 等）时中文化，未命中原样
+        # trace: 对抗审查修复——列表标量命中值词表（signals: icon/motion 等）时中文化，未命中原样；
+        # 批 2a ⑥甲（用户裁补）——枚举键（如 spec-scan source）的列表元素逐个出中性徽章，
+        # 与标量 badge 路径同规则：值命中词表 → 徽章，未命中 → 维持中文化纯文本
         lis = []
         for x in v:
+            if is_enum_key(key) and x is not None and not isinstance(x, (dict, list)) \
+                    and str(x).strip().lower() in BADGE_VALUES:
+                lis.append(f"<li>{badge(key, x)}</li>")
+                continue
             label = _VALUE_LABELS_CI.get(str(x).strip().lower()) if isinstance(x, str) else None
             lis.append(f"<li>{cell(label or x)}</li>")
         return title + "<ul>" + "".join(lis) + "</ul>"
