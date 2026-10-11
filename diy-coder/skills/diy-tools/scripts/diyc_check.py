@@ -36,6 +36,7 @@ TYPE_FILES = {
 
 VERDICT_ROUTES = ("意图缺口", "规格缺陷", "小修", "后置")   # rule: diy-review/SKILL.md:Routing
 FINDING_LAYERS = ("正确性", "边界", "覆盖审计", "设计采用")  # rule: diy-review/SKILL.md:Schema review.findings.layer
+FINDING_RADII = d.RADII  # rule: diy-review/SKILL.md:Schema review.findings.radius（爆炸半径标注·与 test-plan 同族枚举）
 TASK_STATUSES = d.STORY_STATUSES  # rule: diy-sprint/SKILL.md:Schema tasks.status（五态与 story 同集）
 AUGMENT_VERDICTS = ("通过", "失败", "已跳过")  # rule: diy-sprint/SKILL.md:Schema tasks.augment
 
@@ -299,6 +300,8 @@ def _review_block(review, w, report) -> tuple:
         if d.enum(report, fw + ".route", f.get("route"), VERDICT_ROUTES, "route",
                   code="ROUTE_INVALID"):
             routes.append(f["route"])
+        if f.get("radius") is not None:
+            d.enum(report, fw + ".radius", f.get("radius"), FINDING_RADII, "radius")
     if verdict_ok and review.get("verdict") == "通过":
         bad = [r for r in routes if r != "后置"]
         if bad:
