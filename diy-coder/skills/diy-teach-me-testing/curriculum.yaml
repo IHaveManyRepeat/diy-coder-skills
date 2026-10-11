@@ -20,7 +20,7 @@ sessions:
     objective: 一次最小闭环里看见 diy 测试链怎么跑：从故事 AC 到可运行的红相测试，再到质量门
     outline:
       - diy 测试链全景：diy-test-design → diy-test-framework → diy-test-author → diy-test-review → diy-test-gate
-      - 用例单一源 `test-plan.yaml`：TC 绑 AC、声明 kill_target，其余技能只引用 ID
+      - 用例单一源 `test-plan.yaml`：TC 绑 AC、带五轴 dimension、kill_target 引用 FH ID（故障假设先落 fault_hypotheses 段），其余技能只引用 ID
       - 一次走通的顺序：AC → 用例 → 红相脚手架 → 绿灯 → 覆盖证据 → 门
       - 什么时候用哪个技能：diy-e2e-tests（无 TC 的探索式生成）/ diy-augment（覆盖率缺口补测）
       - 五种投入档位（从小到大）：单点（一条最小闭环，如 diy-test-author 把已设计的 TC 变成红相脚手架）→ 按需（缺哪环调哪个技能）→ 全链（design → framework → author → review → gate）→ 全链 + CI/NFR（diy-test-framework 生成 CI、diy-test-gate 审 NFR 证据）→ 存量接入（既有测试套件先 diy-test-review 定基线，再决定补哪一环）
@@ -35,7 +35,7 @@ sessions:
     objective: 弄懂「为什么这么测」——风险驱动、故障假设先行、证据链思维
     outline:
       - 风险 = 概率 × 影响：P0-P3 优先级怎么定，为什么先测登录而不是 tooltip
-      - 故障假设先行：写用例前先列「代码可能怎么错」，每条用例声明它要杀哪条（kill_target）
+      - 故障假设先行：写用例前先列「代码可能怎么错」、逐条落 fault_hypotheses 铸 FH-x.y.z，kill_target 引用 FH ID（终门查每条 FH 被 ≥1 用例杀）
       - 测试即工程：确定性（不用固定 sleep）、隔离（可并行）、自清理（用例删掉自己造的数据）
       - 完成定义：红有红的证据、绿有绿的证据；测试代码也是代码，同样受质量标准约束
       - 完成定义的第 6、7 条：**测试就近源码**（`x.ts` ↔ `x.spec.ts` 同目录，改代码时顺手改测试）；**低维护**（不绑脆弱选择器、用 API 造状态而不是点 UI、不复刻 UI 动作）

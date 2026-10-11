@@ -29,7 +29,16 @@ sessions:
           C: 一次提交哈希
           D: 一个缺陷 ID
         correct: A
-        explanation: 用例从 AC 推导：绑定一个 AC、声明要杀的故障假设（kill_target）。绑定不了 AC 的用例就是虚构覆盖。
+        explanation: 用例从 AC 推导：绑定一个 AC、kill_target 引用 fault_hypotheses 里的 FH ID。绑定不了 AC 的用例就是虚构覆盖。
+      - id: q-fh-gate
+        question: test-plan 终门对故障假设（FH）的机械要求是什么？
+        options:
+          A: 每条 FH 至少被一条用例的 kill_target 引用（被杀）
+          B: FH 只要在对话里列过就行，不必落盘
+          C: kill_target 可以写自由文本描述
+          D: AI 可以自行删掉杀不掉的 FH
+        correct: A
+        explanation: 门判「每条 FH 被 ≥1 TC 杀」：kill_target 引用 FH ID、悬空即拦；杀不掉的 FH 走 [FH-GAP] 缺口交用户裁决，删除权在用户。
       - id: q3-author-skill
         question: 编码前把已设计的 TC 变成红相脚手架，归哪个技能？
         options:
