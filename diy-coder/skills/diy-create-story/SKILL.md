@@ -60,6 +60,7 @@ contexts:
     ac_refs: [AC-x.y]           # 该故事的 AC，按 ID 引用——正文留在 stories.yaml
     tc_refs: [TC-x.y.z]         # 绑定这些 AC 的用例（test-plan.yaml）
     design_ref: P-x             # 可选：该故事 AC 带 design_ref 时的主页面
+    api_refs: [{operationId, path, method}]   # 可选：全部 AC 的 api_refs 复合锚去重平铺（dev 一跳可达端点清单）
     decisions: [D-x]            # 适用的架构决策，按 ID
     files:                      # 本故事将触碰的文件（勘察所得，绝不猜）
       - path: <relative>        # project-root 相对，正斜杠

@@ -515,6 +515,41 @@ def check_test_refs(record, where, ctx, acs):
     return violations
 
 
+def check_api_refs(record, where, story_entry):
+    """api_refs 归属校验：记录的复合锚 ⊆ 该故事全部 AC 的 api_refs 并集（三键全等）。"""
+    violations = []
+    api_refs = record.get("api_refs")
+    if api_refs is None:
+        return violations
+    if not (isinstance(api_refs, list) and api_refs):
+        violations.append(v("EMPTY_FIELD", where + ".api_refs",
+                            "api_refs 形状异常（非空列表；缺席即省略）"))
+        return violations
+    if story_entry is None:
+        return violations
+    known = set()
+    for ac in items(story_entry, "acceptance_criteria"):
+        for anchor in (ac.get("api_refs") or []):
+            if isinstance(anchor, dict):
+                known.add((anchor.get("operationId"), anchor.get("path"),
+                           anchor.get("method")))
+    for i, anchor in enumerate(api_refs):
+        aw = "%s.api_refs[%d]" % (where, i)
+        if not isinstance(anchor, dict) or not all(
+                isinstance(anchor.get(k), str) and anchor.get(k).strip()
+                for k in ("operationId", "path", "method")):
+            violations.append(v("EMPTY_FIELD", aw,
+                                "复合锚形状异常（须含 operationId/path/method 三键）"))
+            continue
+        if (anchor.get("operationId"), anchor.get("path"),
+                anchor.get("method")) not in known:
+            violations.append(v("UNKNOWN_ID", aw,
+                                "锚 %s %s（%s）不属于 %s 任一 AC 的 api_refs"
+                                % (anchor.get("method"), anchor.get("path"),
+                                   anchor.get("operationId"), record.get("story"))))
+    return violations
+
+
 def check_decisions(record, where, ctx):
     violations = []
     refs, ref_violations = ref_list(record, "decisions", where)
@@ -620,6 +655,7 @@ def check_record(index, record, ctx, final, where_base):
     if story_entry is not None:
         acs = ac_ids(story_entry)
     violations += check_test_refs(record, where, ctx, acs)
+    violations += check_api_refs(record, where, story_entry)
     violations += check_decisions(record, where, ctx)
     violations += check_files(record, where, ctx, final)
     violations += text_list(record, "risks", where)

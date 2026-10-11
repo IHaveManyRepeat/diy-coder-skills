@@ -25,7 +25,7 @@ Progress: `[Target] → Artifacts → Code Survey → Compose → Finish`
 python "{project-root}/.claude/skills/diy-create-story/scripts/story_context.py" collect --story <S-x> --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-回执是本次会话的证据基座：`acs`（该故事的 AC——**完整 AC 对象**，子字段 `id` / `given` / `when` / `then` / `refs` / `design_ref`）、`epic`（该故事的 epic）、`tcs`（绑定这些 AC 的用例）、`prior`（前序故事的 sprint 任务）、`decisions`（架构决策，摘要级）、`git`（最近 5 次提交）、`warnings`。机器锚点一律从回执复制——绝不凭记忆重打。
+回执是本次会话的证据基座：`acs`（该故事的 AC——**完整 AC 对象**，子字段 `id` / `given` / `when` / `then` / `refs` / `design_ref` / `api_refs`）、`epic`（该故事的 epic）、`tcs`（绑定这些 AC 的用例）、`prior`（前序故事的 sprint 任务）、`decisions`（架构决策，摘要级）、`git`（最近 5 次提交）、`warnings`。机器锚点一律从回执复制——绝不凭记忆重打。
 
 ## 起草记录
 
