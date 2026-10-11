@@ -444,6 +444,196 @@ class TestPlanCheckTest(CheckBase):
         self.assertIn("EMPTY_FIELD", codes(check(self.root, "test-plan")))
 
 
+class FiveAxisCheckTest(CheckBase):
+    """五轴矩阵＋FH 落盘＋audit 双向一致（底单五轴批裁定）。"""
+
+    def _env(self, cases, fhs=None, audit=None, mutation=None, **kw):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "stories", stories_doc([simple_story()]))
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
+            cases, fault_hypotheses=fhs, dimension_audit=audit,
+            mutation=mutation, normalize=False, **kw))
+
+    def _clean_env(self):
+        anchor = {"operationId": "opA", "path": "/a", "method": "get"}
+        tc = fx.tc("TC-1.1.1", "AC-1.1", technique="边界", dimension="正向",
+                   kill_target="FH-1.1.1")
+        fhs = [{"id": "FH-1.1.1", "ac": "AC-1.1", "text": "夹具故障假设"}]
+        audit = [{"ac": "AC-1.1", "axis": "正向", "tcs": ["TC-1.1.1"]}] + [
+            {"ac": "AC-1.1", "axis": ax, "not_applicable": "夹具不适用"}
+            for ax in ("边界", "异常", "安全", "性能")]
+        return tc, fhs, audit, anchor
+
+    def test_missing_fh_section_and_dimension(self):
+        self._env([fx.tc("TC-1.1.1", "AC-1.1", technique="边界",
+                         kill_target="自由文本")])
+        r = check(self.root, "test-plan")
+        got = codes(r)
+        self.assertIn("EMPTY_FIELD", got, "FH 段缺失未拦")
+        self.assertIn("ENUM_INVALID", got, "dimension 缺失未拦")
+
+    def test_kill_target_must_reference_fh(self):
+        tc, fhs, audit, _ = self._clean_env()
+        bad = dict(tc)
+        bad["kill_target"] = "FH-9.9.9"
+        self._env([bad], fhs=fhs, audit=audit)
+        self.assertIn("UNKNOWN_ID", codes(check(self.root, "test-plan")))
+
+    def test_fh_id_must_match_ac(self):
+        tc, fhs, audit, _ = self._clean_env()
+        bad_fhs = [{"id": "FH-2.1.1", "ac": "AC-1.1", "text": "数字段错位"}]
+        self._env([tc], fhs=bad_fhs, audit=audit)
+        r = check(self.root, "test-plan")
+        self.assertIn("ENUM_INVALID", codes(r), "FH id 与 ac 数字段不对应未拦")
+
+    def test_fh_shape_and_radius(self):
+        _, _, audit, _ = self._clean_env()
+        self._env([], fhs=[{"id": "FH-1.1.1", "ac": "AC-9.9", "text": "",
+                            "radius": "超大"}], audit=audit)
+        r = check(self.root, "test-plan")
+        got = codes(r)
+        self.assertIn("UNKNOWN_ID", got)
+        self.assertIn("EMPTY_FIELD", got)
+        self.assertIn("ENUM_INVALID", got, "radius 越界未拦")
+
+    def test_audit_missing_cell(self):
+        tc, fhs, audit, _ = self._clean_env()
+        holey = [e for e in audit if e.get("axis") != "边界"]
+        self._env([tc], fhs=fhs, audit=holey)
+        r = check(self.root, "test-plan")
+        self.assertIn("SET_MISMATCH", codes(r), "缺审计格未拦")
+        self.assertIn("AC-1.1/边界", msgs(r))
+
+    def test_audit_tc_not_on_axis(self):
+        tc, fhs, _, _ = self._clean_env()
+        wrong_dim = dict(tc)
+        wrong_dim["dimension"] = "边界"
+        audit = [{"ac": "AC-1.1", "axis": "正向", "tcs": ["TC-1.1.1"]}] + [
+            {"ac": "AC-1.1", "axis": ax, "not_applicable": "夹具不适用"}
+            for ax in ("边界", "异常", "安全", "性能")]
+        self._env([wrong_dim], fhs=fhs, audit=audit)
+        r = check(self.root, "test-plan")
+        self.assertIn("SET_MISMATCH", codes(r), "TC.dimension 与轴不对应未拦")
+
+    def test_audit_reverse_tc_absent_from_axis(self):
+        tc, fhs, _, _ = self._clean_env()
+        audit = [{"ac": "AC-1.1", "axis": ax, "not_applicable": "夹具不适用"}
+                 for ax in ("正向", "边界", "异常", "安全", "性能")]
+        self._env([tc], fhs=fhs, audit=audit)
+        r = check(self.root, "test-plan")
+        self.assertIn("SET_MISMATCH", codes(r), "TC 未被其轴收录未拦")
+
+    def test_done_story_exempts_audit(self):
+        tc, fhs, _, _ = self._clean_env()
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "stories", stories_doc(
+            [simple_story(status="已完成")]))
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
+            [tc], fault_hypotheses=fhs, dimension_audit=[], normalize=False))
+        r = check(self.root, "test-plan", final=True)
+        self.assertTrue(r["ok"], msgs(r))
+
+    def test_final_requires_every_fh_killed(self):
+        tc, fhs, _, _ = self._clean_env()
+        fhs = fhs + [{"id": "FH-1.1.2", "ac": "AC-1.1", "text": "无人杀我"}]
+        audit = [{"ac": "AC-1.1", "axis": "正向", "tcs": ["TC-1.1.1"]}] + [
+            {"ac": "AC-1.1", "axis": ax, "not_applicable": "夹具不适用"}
+            for ax in ("边界", "异常", "安全", "性能")]
+        self._env([tc], fhs=fhs, audit=audit)
+        r = check(self.root, "test-plan", final=True)
+        self.assertIn("SET_MISMATCH", codes(r), "FH 未被杀未拦")
+        self.assertIn("FH-1.1.2", msgs(r))
+
+    def test_mutation_section_shape(self):
+        tc, fhs, audit, _ = self._clean_env()
+        self._env([tc], fhs=fhs, audit=audit, mutation={"enabled": "yes"})
+        self.assertIn("ENUM_INVALID", codes(check(self.root, "test-plan")))
+        self._env([tc], fhs=fhs, audit=audit, mutation={"enabled": True, "tool": " "})
+        self.assertIn("EMPTY_FIELD", codes(check(self.root, "test-plan")))
+        self._env([tc], fhs=fhs, audit=audit,
+                  mutation={"enabled": True, "tool": "cosmic-ray"})
+        self.assertTrue(check(self.root, "test-plan")["ok"], "合法 mutation 段被拦")
+
+
+class ApiRefCheckTest(CheckBase):
+    """AC/TC api_refs 复合锚＋接口门＋悬空 operation 登记（底单五轴批·e2e 认 ID 裁定）。"""
+
+    ANCHOR = {"operationId": "listUsers", "path": "/users", "method": "get"}
+
+    def _stories_with_anchor(self):
+        ac = {"id": "AC-1.1", "given": "g", "when": "w", "then": "t",
+              "refs": ["FR-1.1"], "api_refs": [self.ANCHOR]}
+        return stories_doc([simple_story(acs=[ac])])
+
+    def _plan_covering_anchor(self):
+        tc = fx.tc("TC-1.1.1", "AC-1.1", technique="决策表", type_="集成",
+                   dimension="正向", kill_target="FH-1.1.1",
+                   api_refs=[self.ANCHOR])
+        fhs = [{"id": "FH-1.1.1", "ac": "AC-1.1", "text": "夹具故障假设"}]
+        audit = [{"ac": "AC-1.1", "axis": "正向", "tcs": ["TC-1.1.1"]}] + [
+            {"ac": "AC-1.1", "axis": ax, "not_applicable": "夹具不适用"}
+            for ax in ("边界", "异常", "安全", "性能")]
+        return tc, fhs, audit
+
+    def test_ac_anchor_shape_and_resolution(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        bad = {"operationId": "ghost", "path": "/x", "method": "get"}
+        ac = {"id": "AC-1.1", "given": "g", "when": "w", "then": "t",
+              "refs": ["FR-1.1"], "api_refs": [bad, {"path": "/users"}]}
+        fx.write_doc(self.root, "stories", stories_doc([simple_story(acs=[ac])]))
+        fx.write_doc(self.root, "openapi", openapi_doc())
+        r = check(self.root, "stories")
+        got = codes(r)
+        self.assertIn("UNKNOWN_ID", got, "悬空 operationId 未拦")
+        self.assertIn("EMPTY_FIELD", got, "复合锚缺键未拦")
+
+    def test_ac_anchor_resolves_when_openapi_present(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "stories", self._stories_with_anchor())
+        fx.write_doc(self.root, "openapi", openapi_doc())
+        self.assertTrue(check(self.root, "stories")["ok"])
+
+    def test_dangling_operation_requires_skip_line(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "stories", stories_doc([simple_story()]))  # 无锚
+        doc = openapi_doc(paths={
+            "/users": {"get": {"operationId": "listUsers",
+                               "responses": {"200": {"description": "OK"}}}},
+            "/health": {"get": {"operationId": "health",
+                                "responses": {"200": {"description": "OK"}}}}})
+        fx.write_doc(self.root, "openapi", doc)
+        r = check(self.root, "stories", final=True)
+        self.assertIn("SET_MISMATCH", codes(r), "悬空 operation 未拦")
+        self.assertIn("health", msgs(r))
+        # notes 登记后放行
+        fixed = stories_doc([simple_story()])
+        fixed["notes"] = "listUsers: 既有覆盖\nhealth: 无对应需求"
+        fx.write_doc(self.root, "stories", fixed)
+        self.assertTrue(check(self.root, "stories", final=True)["ok"])
+
+    def test_final_requires_integration_tc_for_anchored_ac(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "stories", self._stories_with_anchor())
+        fx.write_doc(self.root, "openapi", openapi_doc())
+        tc, fhs, audit = self._plan_covering_anchor()
+        # 门红：无任何 TC 点名该锚
+        bare = {k: x for k, x in tc.items() if k != "api_refs"}
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
+            [bare], fault_hypotheses=fhs, dimension_audit=audit, normalize=False))
+        r = check(self.root, "test-plan", final=True)
+        self.assertIn("SET_MISMATCH", codes(r), "接口用例缺席未拦")
+        # 门绿：type 集成＋点名锚
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
+            [tc], fault_hypotheses=fhs, dimension_audit=audit, normalize=False))
+        self.assertTrue(check(self.root, "test-plan", final=True)["ok"])
+        # 门红：点名锚但 type 非集成
+        wrong = dict(tc)
+        wrong["type"] = "单元"
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
+            [wrong], fault_hypotheses=fhs, dimension_audit=audit, normalize=False))
+        self.assertIn("SET_MISMATCH", codes(check(self.root, "test-plan", final=True)))
+
+
 # ---------------------------------------------------------------- sprint
 
 class SprintCheckTest(CheckBase):
@@ -608,6 +798,19 @@ class ReviewCheckTest(CheckBase):
         got = codes(check(self.root, "review"))
         self.assertIn("ENUM_INVALID", got)
         self.assertIn("EMPTY_FIELD", got)
+
+    def test_finding_radius_enum(self):
+        # 爆炸半径标注（底单爆炸半径批 1b）：合法枚举过、越界拦
+        base = fx.task("S-1", status="待审查", test_refs=["TC-1.1.1"], evidence=[
+            {"tc": "TC-1.1.1", "red": "r", "green": "g"}])
+        base["review"] = {"at": "2026-01-01", "verdict": "失败", "findings": [
+            {"layer": "正确性", "route": "小修", "radius": "系统", "note": "x"}]}
+        self._env(base, tc_status="通过")
+        self.assertTrue(check(self.root, "review")["ok"], msgs(check(self.root, "review")))
+        base["review"] = {"at": "2026-01-01", "verdict": "失败", "findings": [
+            {"layer": "正确性", "route": "小修", "radius": "致命", "note": "x"}]}
+        self._env(base, tc_status="通过")
+        self.assertIn("ENUM_INVALID", codes(check(self.root, "review")))
 
     def test_story_scope_and_counts(self):
         self._env(fx.task("S-1", status="已完成", test_refs=["TC-1.1.1"], evidence=[

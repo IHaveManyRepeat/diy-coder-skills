@@ -96,10 +96,18 @@ def doc_stories(items, name="diy-coder-skill", status="已定稿"):
 
 
 def tc(tc_id, ac_id, status="待办", type_="单元", priority="P0",
-       technique="example", kill_target="夹具 kill target", steps=None):
-    return {"id": tc_id, "title": "夹具用例 %s" % tc_id, "ac": ac_id, "type": type_,
-            "priority": priority, "technique": technique, "kill_target": kill_target,
-            "status": status, "steps": list(steps or ["夹具步骤"])}
+       technique="example", kill_target="夹具 kill target", steps=None,
+       dimension=None, api_refs=None, radius=None):
+    entry = {"id": tc_id, "title": "夹具用例 %s" % tc_id, "ac": ac_id, "type": type_,
+             "priority": priority, "technique": technique, "kill_target": kill_target,
+             "status": status, "steps": list(steps or ["夹具步骤"])}
+    if dimension is not None:
+        entry["dimension"] = dimension
+    if api_refs is not None:
+        entry["api_refs"] = list(api_refs)
+    if radius is not None:
+        entry["radius"] = radius
+    return entry
 
 
 def gap(ac_id, sid, decision="待办", reason="夹具缺口", note=None):
@@ -113,12 +121,79 @@ def static_check(order, tool, gate="阻断", kills="夹具层"):
     return {"order": order, "tool": tool, "kills": kills, "gate": gate}
 
 
-def doc_test_plan(cases, gaps=None, static_checks=None, name="diy-coder-skill", status="已定稿"):
-    doc = {"project": project_meta(name, status), "test_cases": list(cases)}
+def _is_fh_id(value):
+    """FH-x.y.z 形态判定（归一化只对自由文本 kill_target 铸 FH）。"""
+    if not isinstance(value, str) or not value.startswith("FH-"):
+        return False
+    parts = value[3:].split(".")
+    return len(parts) == 3 and all(p.isdigit() for p in parts)
+
+
+DIMENSION_AXES = ("正向", "边界", "异常", "安全", "性能")
+
+
+def doc_test_plan(cases, gaps=None, static_checks=None, name="diy-coder-skill",
+                  status="已定稿", fault_hypotheses=None, dimension_audit=None,
+                  mutation=None, normalize=True):
+    """normalize=True（缺省）＝把旧式夹具升到新 schema：自由文本 kill_target 逐条
+    转 FH 条目并回填引用、缺 dimension 的 TC 补「正向」、自动铸五轴 audit——
+    存量测试零改动即绿。显式传段或 normalize=False 时原样落盘（红案例用）。"""
+    entries = []
+    for c in cases:
+        entries.append(dict(c))
+    if normalize:
+        fhs = []
+        seq = {}
+        for c in entries:
+            kt = c.get("kill_target")
+            if isinstance(kt, str) and kt.strip() and not _is_fh_id(kt):
+                ac_id = c.get("ac")
+                ac_key = ac_id if isinstance(ac_id, str) else str(ac_id)
+                ac_num = ac_key.split("-", 1)[-1] if "-" in ac_key else ac_key
+                z = seq.get(ac_num, 0) + 1
+                seq[ac_num] = z
+                fh_id = "FH-%s.%d" % (ac_num, z)
+                fhs.append({"id": fh_id, "ac": ac_key, "text": kt})
+                c["kill_target"] = fh_id
+            c.setdefault("dimension", "正向")
+        if fault_hypotheses is None and fhs:
+            fault_hypotheses = fhs
+        if dimension_audit is None:
+            ac_order = []
+            for c in entries:
+                for a in (c["ac"] if isinstance(c.get("ac"), list) else [c.get("ac")]):
+                    if a not in ac_order:
+                        ac_order.append(a)
+            for g in (gaps or []):
+                if isinstance(g, dict) and g.get("ac") not in ac_order:
+                    ac_order.append(g.get("ac"))
+            dimension_audit = []
+            for a in ac_order:
+                for axis in DIMENSION_AXES:
+                    if axis == "正向":
+                        ids = [c["id"] for c in entries
+                               if a in (c["ac"] if isinstance(c.get("ac"), list)
+                                        else [c.get("ac")])]
+                        if ids:
+                            dimension_audit.append({"ac": a, "axis": axis, "tcs": ids})
+                        else:
+                            dimension_audit.append(
+                                {"ac": a, "axis": axis,
+                                 "not_applicable": "夹具缺口轴（无 TC）"})
+                    else:
+                        dimension_audit.append(
+                            {"ac": a, "axis": axis, "not_applicable": "夹具不适用"})
+    doc = {"project": project_meta(name, status), "test_cases": entries}
     if static_checks is not None:
         doc["static_checks"] = list(static_checks)
     if gaps is not None:
         doc["coverage_gaps"] = list(gaps)
+    if fault_hypotheses is not None:
+        doc["fault_hypotheses"] = list(fault_hypotheses)
+    if dimension_audit is not None:
+        doc["dimension_audit"] = list(dimension_audit)
+    if mutation is not None:
+        doc["mutation"] = dict(mutation)
     return doc
 
 

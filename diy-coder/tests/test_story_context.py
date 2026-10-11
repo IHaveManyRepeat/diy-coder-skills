@@ -461,6 +461,31 @@ class CheckTests(EngineCase):
         data = json.loads(r.stdout)
         self.assertIn("DUPLICATE_ID", [v["code"] for v in data["violations"]])
 
+    # api_refs 归属校验（底单五轴批·create-story 上下文包提升裁定）
+    def _env_with_anchor(self, record_anchor):
+        stories = STORIES_YAML.replace(
+            "    refs: [FR-1.1]" + NL + "    design_ref: P-1",
+            "    refs: [FR-1.1]" + NL + "    design_ref: P-1" + NL
+            + "    api_refs:" + NL
+            + "    - {operationId: getUser, path: '/users/{id}', method: get}")
+        self.write("diy-output/stories.yaml", stories)
+        self.write_context(CONTEXT_YAML.replace(
+            "  tc_refs: [TC-3.1.1]",
+            "  tc_refs: [TC-3.1.1]" + NL + "  api_refs:" + NL + record_anchor))
+
+    def test_api_refs_flattening_passes_when_owned(self):
+        self._env_with_anchor(
+            "  - {operationId: getUser, path: '/users/{id}', method: get}")
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_api_refs_must_belong_to_story_acs(self):
+        self._env_with_anchor("  - {operationId: ghost, path: /x, method: get}")
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        data = json.loads(r.stdout)
+        self.assertIn("UNKNOWN_ID", [v["code"] for v in data["violations"]])
+
 
 class SkillContractTests(unittest.TestCase):
     """用例 12/13：SKILL.md 契约冒烟 + steps 形态（交付物同批落盘，缺席即失败）。"""

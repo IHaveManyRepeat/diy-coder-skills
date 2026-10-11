@@ -1056,5 +1056,65 @@ class ViewerC12TimelineTests(_Fixture):
         self.assertIn("标题改名", bs, "单产物修订内容丢失")
 
 
+# ---------------------------------------------------------------------------
+# v4 批 1（五轴/FH/api_refs/radius/mutation——diy-test-design schema 升级的渲染面）
+# ---------------------------------------------------------------------------
+
+FIVE_AXIS_PLAN_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 已定稿",
+    "  created: 2026-10-09",
+    "  updated: 2026-10-09",
+    "fault_hypotheses:",
+    "- id: FH-1.1.1",
+    "  ac: AC-1.1",
+    "  text: 边界值未被拦截",
+    "  radius: 跨模块",
+    "test_cases:",
+    "- id: TC-1.1.1",
+    "  title: 边界用例",
+    "  ac: AC-1.1",
+    "  type: 单元",
+    "  priority: P0",
+    "  technique: 边界",
+    "  dimension: 边界",
+    "  kill_target: FH-1.1.1",
+    "  radius: 模块",
+    "  api_refs:",
+    "  - {operationId: listUsers, path: /users, method: get}",
+    "  status: 待办",
+    "  steps: [一]",
+    "dimension_audit:",
+    "- ac: AC-1.1",
+    "  axis: 边界",
+    "  tcs: [TC-1.1.1]",
+    "- ac: AC-1.1",
+    "  axis: 正向",
+    "  not_applicable: 夹具不适用",
+    "mutation: {enabled: true}",
+    "static_checks: []",
+    "coverage_gaps: []",
+    "revisions: []",
+])
+
+
+class FiveAxisLabelTests(_Fixture):
+    """批 1 新段新键零裸键（故障假设/五轴审计/变异配置/维度/半径/接口锚）。"""
+
+    def test_five_axis_sections_are_chinese(self):
+        self.write("test-plan.yaml", FIVE_AXIS_PLAN_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = self.page("test-plan")
+        for label in ("故障假设", "五轴审计", "变异配置", "维度",
+                      "爆炸半径", "接口锚", "审计轴", "不适用理由", "是否启用"):
+            self.assertIn(label, html, "批 1 新键 %s 未映射中文标签" % label)
+        for leak in (">fault_hypotheses<", ">dimension_audit<", ">mutation<",
+                     ">dimension<", ">radius<", ">api_refs<", ">axis<",
+                     ">not_applicable<", ">enabled<"):
+            self.assertNotIn(leak, html, "批 1 英文键名直出：%s" % leak)
+
+
 if __name__ == "__main__":
     unittest.main()

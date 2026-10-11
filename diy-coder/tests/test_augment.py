@@ -215,12 +215,15 @@ class AugmentSkillContractTests(unittest.TestCase):
     # trace: B-16 SS-019-05（mutation 取值路径 + 「未配置」兜底 + 沙箱基线）
     # C·9（2026-09-22）：SS-019-05 当时点出的「最坏路径无任何机械拦截」已补——沙箱从
     # 「技能手留 git 基线」升级为 `diyc.py mutate` 机械建/销 + 脏度前后对比，断言随之升级。
+    # trace: v4 批 1·变异显式化（2026-10-09 裁定：借位载体退役，配置读 test-plan mutation 段）
     def test_mutation_config_path_fallback_and_sandbox(self):
         raw = self.read_skill()
-        self.assertIn("`static_checks[].tool` 中用户确认为变异工具的条目", raw,
-                      "mutation 配置载体未点名取值路径")
-        self.assertIn("按「未配置」处置", raw, "mutation 缺「未配置」兜底")
-        self.assertIn("不写 `mutation-report.yaml`、不设判定", raw, "未配置的处置不完整")
+        self.assertIn("配置载体 ＝ `{output_dir}/test-plan.yaml` 顶层 **`mutation` 段**", raw,
+                      "mutation 配置载体未点名 mutation 段")
+        self.assertIn("`enabled: false` → 不跑", raw, "mutation 缺关闭兜底")
+        self.assertIn("`enabled` 缺席视同 `true`", raw, "默认开口径未写死")
+        self.assertIn("**按次 override**", raw, "任务级/发版级 override 通道未写")
+        self.assertIn("不写 `mutation-report.yaml`、不设判定", raw, "关闭的处置不完整")
         self.assertIn("本技能不复制工作树", raw, "沙箱基线未声明由命令自建")
         self.assertIn("沙箱由 `diyc.py mutate` 建与销毁", raw, "沙箱未接机械执行面")
         self.assertIn("`workspace.dirty_before` → `dirty_after` 上升即停并报", raw,

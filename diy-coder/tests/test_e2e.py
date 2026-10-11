@@ -91,10 +91,32 @@ TEST_PLAN_YAML = NL.join([
     "  type: 单元",
     "  priority: P0",
     "  technique: 边界",
-    "  kill_target: 边界值未被拦截",
+    "  dimension: 边界",
+    "  kill_target: FH-1.1.1",
     "  status: 通过",
     "  steps:",
     "  - 跑夹具断言",
+    "fault_hypotheses:",
+    "- id: FH-1.1.1",
+    "  ac: AC-1.1",
+    "  text: 边界值未被拦截",
+    "dimension_audit:",
+    "- ac: AC-1.1",
+    "  axis: 正向",
+    "  not_applicable: 夹具不适用",
+    "- ac: AC-1.1",
+    "  axis: 边界",
+    "  tcs:",
+    "  - TC-1.1.1",
+    "- ac: AC-1.1",
+    "  axis: 异常",
+    "  not_applicable: 夹具不适用",
+    "- ac: AC-1.1",
+    "  axis: 安全",
+    "  not_applicable: 夹具不适用",
+    "- ac: AC-1.1",
+    "  axis: 性能",
+    "  not_applicable: 夹具不适用",
     "coverage_gaps: []",
     "static_checks: []",
 ]) + NL
@@ -119,7 +141,13 @@ def tc_json(tc_id="TC-1.1.2", technique="场景", ac="AC-1.1", status="通过",
         "type": type_name,
         "priority": "P0",
         "technique": technique,
-        "kill_target": "用户旅程在中途静默中断（页面已跳转但状态未持久化）",
+        "dimension": "正向",
+        "kill_target": "FH-1.1.2",
+        "fault_hypothesis": {
+            "id": "FH-1.1.2",
+            "ac": ac,
+            "text": "用户旅程在中途静默中断（页面已跳转但状态未持久化）",
+        },
         "status": status,
         "steps": ["打开 /login", "填写表单并提交", "断言跳转且会话可复用"],
     }], ensure_ascii=False)
@@ -241,6 +269,33 @@ class RecordTests(EngineCase):
         self.assertIn("diyc", data)
         self.assertTrue(data["diyc"]["available"])
         self.assertEqual(data["diyc"]["check"]["violations"], [], data["diyc"])
+        # FH 联动落盘：新故障假设随 TC 追加进 fault_hypotheses；audit 正向格转 tcs 型
+        plan = self.read("diy-output/test-plan.yaml")
+        self.assertIn("id: FH-1.1.2", plan)
+        self.assertNotIn("fault_hypothesis: TC", plan, "输入载体键不得残留在 TC 记录里")
+        self.assertIn("axis: 正向", plan)
+        self.assertIn("- TC-1.1.2", plan)
+
+    # 五轴/FH 新校验（底单五轴批裁定：dimension 必填、kill_target 引 FH）
+    def test_record_rejects_missing_dimension_with_zero_write(self):
+        case = json.loads(tc_json())[0]
+        del case["dimension"]
+        r = self.record(self.write("new-tc.json", json.dumps([case])))
+        self.assertEqual(r.returncode, 1, r.stdout)
+        data = json.loads(r.stdout)
+        self.assertFalse(data["ok"])
+        self.assertIn("EMPTY_FIELD", {x["code"] for x in data["violations"]})
+        self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
+
+    def test_record_rejects_orphan_fh_reference_with_zero_write(self):
+        case = json.loads(tc_json())[0]
+        del case["fault_hypothesis"]  # kill_target 引 FH-1.1.2 但不带联动条目
+        r = self.record(self.write("new-tc.json", json.dumps([case])))
+        self.assertEqual(r.returncode, 1, r.stdout)
+        data = json.loads(r.stdout)
+        self.assertFalse(data["ok"])
+        self.assertIn("UNKNOWN_ID", {x["code"] for x in data["violations"]})
+        self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
 
     # trace: 任务书 §8（重号拒绝：DUPLICATE_ID，零写入）
     def test_record_rejects_duplicate_id_with_zero_write(self):
