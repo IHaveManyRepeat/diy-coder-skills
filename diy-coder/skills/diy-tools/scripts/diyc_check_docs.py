@@ -31,6 +31,8 @@ CASE_TYPES = ("单元", "集成", "端到端")              # rule: diy-test-des
 PRIORITIES = ("P0", "P1", "P2")                      # rule: diy-test-design/SKILL.md:Design Discipline（Priority maps to risk）
 TC_STATUSES = ("待办", "通过", "失败")               # rule: diy-test-design/SKILL.md:Schema status
 GAP_DECISIONS = ("待办", "已豁免", "接受缺口")       # rule: diy-test-design/SKILL.md:Schema coverage_gaps.decision
+DIMENSIONS = ("正向", "边界", "异常", "安全", "性能")  # rule: diy-test-design/SKILL.md:Schema dimension（五轴·一条用例一个轴）
+RADII = ("局部", "模块", "跨模块", "系统", "外部")    # rule: diy-test-design/SKILL.md:Schema radius（爆炸半径标注·FH/TC 同族）
 FR_PRIORITIES = ("必须", "应该", "可选")             # rule: diy-prd/SKILL.md:Schema requirements.priority
 DEC_STATUSES = ("待定", "已采纳")                    # rule: diy-architecture/SKILL.md:Schema decisions.status
 EPIC_STATUSES = ("待办", "进行中", "已完成")         # rule: diy-epics-stories/SKILL.md:Schema epics.status
@@ -127,14 +129,86 @@ def scan_assumptions(doc, rel) -> list:
     return hits
 
 
-def tc_declarations(entry, where, report):
-    """L3 kill-target 纪律（diy-review L3 / diy-test-design Schema）：technique 枚举 + kill_target 非空。"""
+def tc_declarations(entry, where, report, fh_ids=None):
+    """L3 kill-target 纪律（diy-review L3 / diy-test-design Schema）：technique/dimension 枚举
+    + kill_target 非空且引用 FH ID（fh_ids 为 None 时退回非空校验——review L3 等旁路调用）。"""
     # rule: diy-review/SKILL.md:L3（every TC bound to the task carries non-empty kill_target
     #       and a technique valid against the test-plan schema enum）
     # rule: diy-test-design/SKILL.md:Final requires（every case carrying a schema-enum technique
     #       and non-empty kill_target）
     enum(report, where + ".technique", entry.get("technique"), TECHNIQUES, "technique")
-    req(report, where + ".kill_target", entry.get("kill_target"), "kill_target（故障假设）")
+    kt = entry.get("kill_target")
+    if req(report, where + ".kill_target", kt, "kill_target（引用 FH ID）") and fh_ids is not None:
+        # rule: diy-test-design/SKILL.md:Schema（kill_target 引用 fault_hypotheses[].id；一杀多允许列表）
+        refs = kt if isinstance(kt, list) else [kt]
+        for j, ref in enumerate(refs):
+            if not (is_str(ref) and ref in fh_ids):
+                report.add("UNKNOWN_ID",
+                           "%s.kill_target[%d]" % (where, j) if isinstance(kt, list)
+                           else where + ".kill_target",
+                           "%r 不是 fault_hypotheses 里的 FH ID（须先落 FH 再引）" % (ref,))
+    # rule: diy-test-design/SKILL.md:Schema dimension（5 值枚举·一条用例一个轴）
+    enum(report, where + ".dimension", entry.get("dimension"), DIMENSIONS, "dimension")
+    if entry.get("radius") is not None:
+        # rule: diy-test-design/SKILL.md:Schema radius（可选·爆炸半径标注）
+        enum(report, where + ".radius", entry.get("radius"), RADII, "radius")
+
+
+def _api_anchor_ok(anchor) -> bool:
+    """api_refs 复合锚三键形状：operationId/path/method 皆非空字符串。"""
+    if not isinstance(anchor, dict):
+        return False
+    return all(is_str(anchor.get(k)) and anchor.get(k).strip()
+               for k in ("operationId", "path", "method"))
+
+
+def _openapi_anchors(docs) -> dict:
+    """openapi.yaml → {operationId: (path, method)}；文档缺失/损坏 → {}。
+
+    rule: diy-test-design/SKILL.md:锚定（operationId 即接口唯一身份·复合锚＝
+    operationId＋path+method；openapi 缺席时调用方降级 warning 跳过，不加硬门）
+    """
+    spec = docs.doc("openapi")
+    if not isinstance(spec, dict):
+        return {}
+    out = {}
+    for path, item in (spec.get("paths") or {}).items():
+        if not isinstance(item, dict):
+            continue
+        for method, op in item.items():
+            if method in PATH_ITEM_KEYS or not isinstance(op, dict):
+                continue
+            oid = op.get("operationId")
+            if is_str(oid) and oid.strip():
+                out[oid] = (str(path), method)
+    return out
+
+
+def _anchor_resolves(anchor, anchors) -> bool:
+    """复合锚可解析：operationId 在场且 (path, method) 与 openapi 一致。"""
+    hit = anchors.get(anchor.get("operationId"))
+    return hit is not None and hit == (anchor.get("path"), anchor.get("method"))
+
+
+def _done_acs(docs) -> set:
+    """已完成故事的 AC id 集合（五轴 audit 与接口门豁免口径同 ≥1 TC 豁免）。"""
+    stories = docs.doc("stories")
+    return {a.get("id") for s in items(stories, "stories")
+            if s.get("status") == "已完成"
+            for a in items(s, "acceptance_criteria")
+            if is_str(a.get("id"))}
+
+
+def _fh_matches_ac(hid, ac_id) -> bool:
+    """FH-x.y.z 的 x.y 与 AC-x.y 数字段对应（z 为该 AC 内自由序号）。"""
+    def parts(value):
+        try:
+            return value.split("-", 1)[1].split(".")
+        except (AttributeError, IndexError):
+            return []
+    hp, ap = parts(hid), parts(ac_id)
+    return (len(hp) == 3 and len(ap) == 2
+            and hp[:2] == ap and all(p.isdigit() for p in hp))
 
 
 # ---------------------------------------------------------------- prd
@@ -477,6 +551,12 @@ def check_stories(doc, rel, docs, final, report) -> dict:
     if not prd_available:
         report.warn("prd.yaml 缺失/损坏：stories refs 引用无法解析（跳过该子检查）")
     pages = _design_pages(docs)
+    openapi_anchors = _openapi_anchors(docs)
+    openapi_available = docs.doc("openapi") is not None
+    if not openapi_available:
+        openapi_anchors = {}
+    anchored_ops = set()
+    ac_has_api = False
     referenced = set()
     ac_pairs = []
     for s in stories:
@@ -524,6 +604,27 @@ def check_stories(doc, rel, docs, final, report) -> dict:
                 elif design_ref not in pages:
                     report.add("UNKNOWN_ID", aw + ".design_ref",
                                "%s 在 design.yaml pages 中不存在" % design_ref)
+            api_refs = a.get("api_refs")
+            if api_refs is not None:
+                # rule: diy-epics-stories/SKILL.md:Schema AC.api_refs（可选复合锚·须可解析·与 design_ref 同构）
+                if not (isinstance(api_refs, list) and api_refs):
+                    report.add("EMPTY_FIELD", aw + ".api_refs",
+                               "api_refs 形状异常（应为非空列表，缺席即整键省略）")
+                else:
+                    for j, anchor in enumerate(api_refs):
+                        pw = "%s.api_refs[%d]" % (aw, j)
+                        if not _api_anchor_ok(anchor):
+                            report.add("EMPTY_FIELD", pw,
+                                       "复合锚形状异常（须含 operationId/path/method 三键）")
+                        elif openapi_anchors == {}:
+                            pass  # openapi 缺席：跳过解析（warning 一次，见下）
+                        elif not _anchor_resolves(anchor, openapi_anchors):
+                            report.add("UNKNOWN_ID", pw,
+                                       "operationId=%s path=%s method=%s 与 openapi.yaml 不一致"
+                                       % (anchor.get("operationId"), anchor.get("path"),
+                                          anchor.get("method")))
+                        else:
+                            anchored_ops.add(anchor.get("operationId"))
     dup(report, ac_pairs, "AC id")
     must_frs = {fid for fid, r in docs.frs().items() if r.get("priority") == "必须"}
     counts["must_frs"] = len(must_frs)
@@ -534,6 +635,20 @@ def check_stories(doc, rel, docs, final, report) -> dict:
             report.add("SET_MISMATCH", rel + " acceptance_criteria",
                        "必须级 FR 未被任何 AC 引用：%s（每个必须 FR 至少被一条 AC 的 refs 覆盖）"
                        % "、".join(missing))
+    if openapi_available and openapi_anchors:
+        # rule: diy-test-design/SKILL.md:锚定（反向悬空 operation → notes skip line 显式登记，不静默）
+        dangling = sorted(set(openapi_anchors) - anchored_ops)
+        if dangling:
+            notes = doc.get("notes")
+            notes_text = notes if is_str(notes) else "\n".join(
+                x for x in (notes or []) if is_str(x))
+            unregistered = [op for op in dangling
+                            if op not in (notes_text or "")]
+            if unregistered:
+                report.add("SET_MISMATCH", rel + " notes",
+                           "悬空 operation 未登记 skip line：%s（openapi 有端点、无 AC 引——"
+                           "顶层 notes 逐行写 '<operationId>: <为什么>' 或补 AC 绑定）"
+                           % "、".join(unregistered))
     return counts
 
 
@@ -547,7 +662,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
     # rule: diy-test-design/SKILL.md:Final requires（zero [假设]，zero decision: 待办
     #       gaps，every ac resolving in stories.yaml，schema-enum technique，non-empty kill_target）
     counts = {"cases": 0, "by_type": {}, "by_priority": {}, "acs_covered": 0,
-              "gaps_by_decision": {}}
+              "gaps_by_decision": {}, "fhs": 0, "by_dimension": {}}
     project = doc.get("project")
     if not isinstance(project, dict):
         report.add("EMPTY_FIELD", rel + " project", "project 块缺失或形状异常")
@@ -559,6 +674,50 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
     known_acs = set(docs.acs()) if stories_available else set()
     if not stories_available:
         report.warn("stories.yaml 缺失/损坏：test_cases[].ac 引用无法解析（跳过该子检查）")
+    done_acs = _done_acs(docs) if stories_available else set()
+
+    # FH 段（先铸 id 集合，供 kill_target 引用校验）
+    # rule: diy-test-design/SKILL.md:Schema fault_hypotheses（id: FH-x.y.z 与 ac 数字段对应）
+    fh_ids = None
+    fh_pairs = []
+    fhs = doc.get("fault_hypotheses")
+    if not isinstance(fhs, list) or not fhs:
+        report.add("EMPTY_FIELD", rel + " fault_hypotheses",
+                   "fault_hypotheses 缺失或为空（先列故障假设铸 FH，TC 的 kill_target 才有可引的 ID）")
+    else:
+        fh_ids = set()
+        for h in fhs:
+            if not isinstance(h, dict):
+                report.add("EMPTY_FIELD", rel + " fault_hypotheses[]",
+                           "FH 条目形状异常（应为映射）")
+                continue
+            hid = h.get("id")
+            hw = "%s fault_hypotheses[%s]" % (rel, hid or "?")
+            if req(report, hw + ".id", hid, "FH id"):
+                fh_pairs.append((hid, hw + ".id"))
+                fh_ids.add(hid)
+            hac = h.get("ac")
+            if req(report, hw + ".ac", hac, "FH ac"):
+                if stories_available and hac not in known_acs:
+                    report.add("UNKNOWN_ID", hw + ".ac",
+                               "%s 在 stories.yaml 中不存在" % hac)
+                elif is_str(hid) and not _fh_matches_ac(hid, hac):
+                    report.add("ENUM_INVALID", hw + ".id",
+                               "FH id 数字段须与其 ac 对应：%s ↔ %s（FH-x.y.z 的 x.y = AC-x.y）"
+                               % (hid, hac))
+            req(report, hw + ".text", h.get("text"), "FH text（具体错误实现的描述）")
+            if h.get("radius") is not None:
+                enum(report, hw + ".radius", h.get("radius"), RADII, "radius")
+        counts["fhs"] = len(fh_ids or ())
+
+    openapi_anchors = _openapi_anchors(docs) if docs.doc("openapi") is not None else {}
+    ac_anchors = {}  # AC id -> [复合锚]（stories 铸造；接口门对账用）
+    if stories_available:
+        for ac_id, entry in docs.acs().items():
+            refs = entry.get("api_refs")
+            if isinstance(refs, list) and refs:
+                ac_anchors[ac_id] = refs
+
     cases = items(doc, "test_cases")
     counts["cases"] = len(cases)
     if not cases:
@@ -585,8 +744,28 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
             counts["by_type"][t["type"]] = counts["by_type"].get(t["type"], 0) + 1
         if enum(report, w + ".priority", t.get("priority"), PRIORITIES, "priority"):
             counts["by_priority"][t["priority"]] = counts["by_priority"].get(t["priority"], 0) + 1
+        if enum(report, w + ".dimension", t.get("dimension"), DIMENSIONS, "dimension"):
+            counts["by_dimension"][t["dimension"]] = \
+                counts["by_dimension"].get(t["dimension"], 0) + 1
         enum(report, w + ".status", t.get("status"), TC_STATUSES, "status")
-        tc_declarations(t, w, report)
+        tc_declarations(t, w, report, fh_ids=fh_ids)
+        api_refs = t.get("api_refs")
+        if api_refs is not None:
+            # rule: diy-test-design/SKILL.md:Schema TC.api_refs（可选复合锚·点名 AC 锚定的端点）
+            if not (isinstance(api_refs, list) and api_refs):
+                report.add("EMPTY_FIELD", w + ".api_refs",
+                           "api_refs 形状异常（非空列表；缺席即整键省略）")
+            else:
+                for j, anchor in enumerate(api_refs):
+                    pw = "%s.api_refs[%d]" % (w, j)
+                    if not _api_anchor_ok(anchor):
+                        report.add("EMPTY_FIELD", pw,
+                                   "复合锚形状异常（须含 operationId/path/method 三键）")
+                    elif openapi_anchors and not _anchor_resolves(anchor, openapi_anchors):
+                        report.add("UNKNOWN_ID", pw,
+                                   "operationId=%s path=%s method=%s 与 openapi.yaml 不一致"
+                                   % (anchor.get("operationId"), anchor.get("path"),
+                                      anchor.get("method")))
         steps = t.get("steps")
         if not (isinstance(steps, list) and any(is_str(x) and x.strip() for x in steps)):
             report.add("EMPTY_FIELD", w + ".steps",
@@ -654,6 +833,144 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                 report.add("PENDING_DECISION", rel + " coverage_gaps",
                            "定稿前缺口须由用户裁决（decision: 待办 → 已豁免 / 接受缺口 / 补用例）：%s"
                            % "、".join(pending_acs))
+
+    # 五轴审计段：非已完成 AC × 5 轴每格二选一（tcs 或 not_applicable），双向一致
+    # rule: diy-test-design/SKILL.md:Schema dimension_audit（audit 列的 TC 须真绑该 AC 且
+    #       dimension 对应；TC.dimension 须出现在其 AC 对应轴；已完成故事整段豁免）
+    audit = doc.get("dimension_audit")
+    tc_by_id = {t.get("id"): t for t in cases if is_str(t.get("id"))}
+    audited = set()
+    if audit is None:
+        report.add("EMPTY_FIELD", rel + " dimension_audit",
+                   "dimension_audit 缺失（每 AC × 5 轴：TC 列表或 not_applicable 理由，二选一）")
+    elif not isinstance(audit, list):
+        report.add("EMPTY_FIELD", rel + " dimension_audit", "dimension_audit 形状异常（应为列表）")
+    else:
+        pairs = []
+        for e in audit:
+            if not isinstance(e, dict):
+                report.add("EMPTY_FIELD", rel + " dimension_audit[]",
+                           "audit 条目形状异常（应为映射）")
+                continue
+            ac_id = e.get("ac")
+            axis = e.get("axis")
+            ew = "%s dimension_audit[%s/%s]" % (rel, ac_id or "?", axis or "?")
+            if req(report, ew + ".ac", ac_id, "audit ac") \
+                    and stories_available and ac_id not in known_acs:
+                report.add("UNKNOWN_ID", ew + ".ac", "%s 在 stories.yaml 中不存在" % ac_id)
+            enum(report, ew + ".axis", axis, DIMENSIONS, "axis")
+            if is_str(ac_id) and is_str(axis) and axis in DIMENSIONS:
+                pairs.append(((ac_id, axis), ew))
+                if ac_id not in done_acs:
+                    audited.add((ac_id, axis))
+            if ac_id in done_acs:
+                continue  # 已完成故事豁免：形状查过即过，不进对账
+            tcs = e.get("tcs")
+            na = e.get("not_applicable")
+            if tcs is not None:
+                if not (isinstance(tcs, list) and tcs):
+                    report.add("EMPTY_FIELD", ew + ".tcs",
+                               "tcs 形状异常（非空列表；不适用改用 not_applicable）")
+                else:
+                    for j, tid in enumerate(tcs):
+                        hit = tc_by_id.get(tid)
+                        if hit is None:
+                            report.add("UNKNOWN_ID", "%s.tcs[%d]" % (ew, j),
+                                       "%s 不在 test_cases 中" % tid)
+                        elif ac_id not in diyc_lib._ac_ids(hit):
+                            report.add("SET_MISMATCH", "%s.tcs[%d]" % (ew, j),
+                                       "%s 未绑定 %s（audit 列的 TC 须真绑该 AC）" % (tid, ac_id))
+                        elif hit.get("dimension") != axis:
+                            report.add("SET_MISMATCH", "%s.tcs[%d]" % (ew, j),
+                                       "%s.dimension=%r 与轴 %s 不对应"
+                                       % (tid, hit.get("dimension"), axis))
+                if na is not None:
+                    report.add("EMPTY_FIELD", ew,
+                               "tcs 与 not_applicable 二选一，不得并存")
+            elif na is not None:
+                if not nonempty(na):
+                    report.add("EMPTY_FIELD", ew + ".not_applicable",
+                               "不适用理由须非空（一行）")
+            else:
+                report.add("EMPTY_FIELD", ew, "audit 格须二选一：tcs 或 not_applicable")
+        dup(report, pairs, "dimension_audit 格")
+
+    if stories_available and isinstance(audit, list):
+        expected = {(ac_id, axis) for ac_id in known_acs - done_acs
+                    for axis in DIMENSIONS}
+        missing = sorted(expected - audited)
+        if missing:
+            report.add("SET_MISMATCH", rel + " dimension_audit",
+                       "缺审计格：%s（每条非已完成 AC × 5 轴逐轴审过：适用→TC，不适用→一行理由）"
+                       % "、".join("%s/%s" % m for m in missing))
+        for t in cases:
+            tid, dim = t.get("id"), t.get("dimension")
+            if not (is_str(tid) and dim in DIMENSIONS):
+                continue
+            for ac_id in diyc_lib._ac_ids(t):
+                if ac_id in done_acs:
+                    continue
+                hit = [e for e in audit
+                       if isinstance(e, dict) and e.get("ac") == ac_id
+                       and e.get("axis") == dim and tid in (e.get("tcs") or [])]
+                if not hit:
+                    report.add("SET_MISMATCH", "%s test_cases[%s]" % (rel, tid),
+                               "%s.dimension=%r 未出现在 %s 对应轴的 audit tcs 里"
+                               % (tid, dim, ac_id))
+
+    if final:
+        # 接口门：带 api_refs 的非已完成 AC → 每锚 ≥1 条 type: 集成 TC 点名
+        # rule: diy-test-design/SKILL.md:锚定（门联动·强门；被引 operation ≥1 TC）
+        if stories_available and ac_anchors:
+            tc_anchor_hits = set()
+            for t in cases:
+                if t.get("type") != "集成":
+                    continue
+                for anchor in (t.get("api_refs") or []):
+                    if isinstance(anchor, dict):
+                        tc_anchor_hits.add((anchor.get("operationId"),
+                                            anchor.get("path"), anchor.get("method")))
+            for ac_id in sorted(ac_anchors):
+                if ac_id in done_acs:
+                    continue
+                for anchor in ac_anchors[ac_id]:
+                    key = (anchor.get("operationId"), anchor.get("path"),
+                           anchor.get("method"))
+                    if key not in tc_anchor_hits:
+                        report.add("SET_MISMATCH", rel + " test_cases",
+                                   "%s 的接口锚（%s %s）无 type: 集成 用例点名"
+                                   "（带 api_refs 的 AC 接口用例必做）"
+                                   % (ac_id, anchor.get("method"), anchor.get("path")))
+        # FH 被杀：每条 FH 须被 ≥1 TC 的 kill_target 引用
+        # rule: diy-test-design/SKILL.md:Final requires（杀不掉的 FH 记 [FH-GAP] 缺口
+        #       交用户当轮裁决；两出口收口后终态仍是被杀或已删）
+        if fh_ids:
+            killed = set()
+            for t in cases:
+                kt = t.get("kill_target")
+                if isinstance(kt, list):
+                    killed.update(x for x in kt if is_str(x))
+                elif is_str(kt):
+                    killed.add(kt)
+            unkilled = sorted(fh_ids - killed)
+            if unkilled:
+                report.add("SET_MISMATCH", rel + " fault_hypotheses",
+                           "FH 未被任何用例杀掉：%s（每条 FH 须 ≥1 TC 引用；杀不掉记 [FH-GAP] "
+                           "缺口交用户裁决，裁『不删』必须补 TC）" % "、".join(unkilled))
+
+    # mutation 段（在场时校验形状；缺席按 enabled: true 消费，不报）
+    # rule: diy-test-design/SKILL.md:Schema mutation（enabled 布尔·tool 可选；唯一出处在本技能）
+    mutation = doc.get("mutation")
+    if mutation is not None:
+        if not isinstance(mutation, dict):
+            report.add("EMPTY_FIELD", rel + " mutation", "mutation 形状异常（应为映射）")
+        else:
+            if not isinstance(mutation.get("enabled"), bool):
+                report.add("ENUM_INVALID", rel + " mutation.enabled",
+                           "enabled 应为布尔（true|false，缺省 true）")
+            if mutation.get("tool") is not None and not nonempty(mutation.get("tool")):
+                report.add("EMPTY_FIELD", rel + " mutation.tool",
+                           "tool 在场须非空（缺席走按栈选：Python→cosmic-ray、JS→stryker）")
     return counts
 
 
