@@ -640,6 +640,21 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面：`diyc_check_docs.py` final 段＋`tests/test_diyc_check.py`（测试面系本裁定直接后果·同源）；②③另动 diy-test-design SKILL.md 终门口径句。
 
+### 待办：枚举值跨技能一致性——回查关卡先行，方案 A 注入后并（2026-10-11 用户认可两步路径，登记排期，现在不动）
+
+登记来源：用户问「同一枚举 a 处 5 个值、b 处 4 个值」如何防止（各使用点各自手维护）。核实后给出两步路径，用户认可、登第二批待办。
+
+事实：
+- 单点已有：`diyc_check_docs.py:31-39` 九个枚举常量（RADII/DIMENSIONS/TC_STATUSES 等，`# rule:` 注释锚回 SKILL.md 规则位），已用于**产物数据**校验（值非法=红）。
+- 缺口=文档面：SKILL.md schema 行（diy-test-design:52 radius、diy-review findings 同族）、viewer 中文标签各自手维护、无引擎回查——漂移只发生在这一层。
+- 方案 A 引擎（sync_texts.py＋suite-texts.yaml）未开工（库内无文件），公共条款待办③仍开放。
+
+方案（已认可·两步）：
+①查而不写——每个枚举常量登记「出现面清单」（封闭世界），check 引擎逐面提取枚举文本、与常量断言集合相等；漂移/缺值/新面私加=红。viewer 标签值域读同一常量。
+②引擎升级——方案 A 开工后枚举并入 YAML 单点派发；①回查降为兜底关卡，不撤。
+
+改动面（做①时）：`diyc_check_docs.py`（面清单＋extract＋断言）＋`tests/test_diyc_check.py`；viewer 标签接线随①范围定。
+
 ## 升级事项（可选·不排期·需要才做）
 
 ### object-types 参考层类型扩展（2026-10-04 登记）
