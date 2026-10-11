@@ -23,7 +23,7 @@
            每条违规一行 `CODE where: msg` + 末尾汇总行）
 - 用例 15：--output-dir 与 collect --target 必填（用法错误 exit 2）
 - 用例 16：SKILL.md / steps 契约冒烟（中文化轮 2026-09-19——母本 §1/§3/§4/§6 逐字 +
-          §2 自定短块（母本 §8 登记的非成员变体）+ 四段中文标题 ≤93 行 + B-24 语义条目）
+          §2 自定短块（母本 §8 登记的非成员变体）+ 四段中文标题 ≤105 行 + B-24 语义条目）
 - 用例 17：check source 数组 / schema 分层（元素越界 → ENUM_INVALID；schema≥2 缺 source
            或空数组 → EMPTY_FIELD；无 schema 存量缺 source 缺省 [卡点] 兼容不报错；
            顶层 schema: 2 写入面在场；counts.by_source 按元素各计与夹具分法一致）
@@ -552,10 +552,10 @@ class SkillContractTests(unittest.TestCase):
         self.assertTrue(raw.rstrip(NL).endswith(DISCIPLINE_OWN_ZH),
                         "写作纪律块须置文件收尾行")
 
-    # trace: 中文化政策（四段中文标题 ≤93 行 + 无英文段名 + §5 渲染静默命令全文）
+    # trace: 中文化政策（四段中文标题 ≤105 行 + 无英文段名 + §5 渲染静默命令全文）
     def test_four_chinese_sections_and_budget(self):
         raw = self.read_skill()
-        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 105, "薄主文件超出 105 行预算")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, raw, "缺四段结构：%s" % section)
         for legacy in ("## On Activation", "## Workflow", "## Schema", "## Rules"):
@@ -597,6 +597,66 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("SS-002", step5, "SS-026-07 缺机器锚点 SS-002")
         self.assertIn("本技能不改规格", step5, "缺零改写纪律（本技能不改规格）")
         self.assertNotIn("可进入建设批次", step5, "SS-026-07 的「可进入建设批次」未删")
+
+    # trace: v4 批 2b · 硬门放开——可读非空即入扫（:30 新文案 + :33 新退出句 + 边界两态；旧句零在场）
+    def test_hard_gate_opened_to_readable_nonempty(self):
+        raw = self.read_skill()
+        self.assertIn("硬门：目标存在、可读、非空即入扫", raw, ":30 硬门新文案缺失")
+        self.assertNotIn("要照做的事", raw, "旧硬门句「要照做的事」须零在场")
+        lines = raw.splitlines()
+        self.assertTrue(
+            any("不可读 / 空" in ln and "零产出" in ln for ln in lines),
+            ":33 缺「不可读 / 空 → 零产出」新退出句")
+        self.assertTrue(
+            any("纯参考资料" in ln and "不再退出" in ln for ln in lines),
+            "缺「纯参考不再退出」反转句")
+        boundary = next((ln for ln in lines if "边界两态" in ln), "")
+        self.assertIn("解码失败", boundary, "边界两态缺非 UTF-8 解码失败警示问句")
+        self.assertIn("入扫零单元 / 退出", boundary, "边界两态缺解码失败问句的两个选项")
+        self.assertIn("无 `.md`", boundary, "边界两态缺「目录无 .md」")
+        self.assertIn("零产出", boundary, "「目录无 .md」须归「空 → 零产出」")
+
+    # trace: v4 批 2b · 裁①甲——kind 扩枚举「任务书|技能|规格|文档」两处均断（SKILL schema 行 + 01 四选一）
+    def test_kind_enum_includes_document_in_both_places(self):
+        self.assertIn("任务书|技能|规格|文档", self.read_skill(),
+                      "SKILL 结构段 kind 枚举缺「文档」")
+        collect = self.read(os.path.join(STEPS_DIR, "01-collect.md"))
+        self.assertIn("四选一", collect, "01-collect 未由三选一改四选一")
+        doc_line = next((ln for ln in collect.splitlines() if ln.startswith("- `文档`")), "")
+        self.assertIn("兜底值", doc_line, "「文档」释义须写兜底值")
+        self.assertIn("duties", doc_line, "「文档」释义须含 duties 轴（无可预演 duties）")
+
+    # trace: v4 批 2b · 裁①甲——01 分岔（文档→03／其余→02）+ 纠错通道 revisions 留痕 + 建文件 schema: 2 配方
+    def test_collect_route_fork_and_schema_stamp(self):
+        collect = self.read(os.path.join(STEPS_DIR, "01-collect.md"))
+        self.assertIn("判为 `文档` → 读全并照做 `./03-exhaustive.md`", collect,
+                      "01 缺纯文档分岔（kind=文档 → 03）")
+        self.assertIn("读全并照做 `./02-dry-run.md`", collect,
+                      "01 缺其余照旧 → 02 分岔")
+        self.assertIn("HALT 重走本步", collect, "01 缺纠错通道（改判 → HALT 重走本步）")
+        self.assertIn("`revisions` 留痕", collect, "纠错通道缺 revisions 留痕")
+        self.assertIn("schema: 2", collect, "01 建文件配方缺顶层 schema: 2 版本戳")
+
+    # trace: v4 批 2b · dispatch 写面（source 三值/schema: 2 ＋ 纯文档路由句 ＋ 执行计划互斥豁免）
+    #   断言面登记在 spec-scan 侧；02-dispatch.md 落文由 selfcheck 施工线承担，同批同步重跑。
+    def test_selfcheck_dispatch_source_schema_and_route(self):
+        dispatch = self.read(os.path.join(
+            HERE, "..", "skills", "diy-selfcheck", "steps", "02-dispatch.md"))
+        self.assertIn("纯文档路由", dispatch, "dispatch 缺纯文档路由句")
+        self.assertTrue(
+            any("source" in ln and "卡点|穷举|交叉认证" in ln
+                for ln in dispatch.splitlines()),
+            "dispatch 缺 source 三值写面句（同句含 source）")
+        self.assertIn("schema: 2", dispatch, "dispatch 缺 schema: 2 写面句")
+        blocks = re.split(r"\n\s*\n", dispatch)
+        self.assertTrue(
+            any("纯文档" in b and "执行计划" in b for b in blocks),
+            "dispatch 缺纯文档路由与「每个单元先写执行计划」强制句的互斥豁免（须同段共现）")
+
+    # trace: v4 批 2b · 04 复扫优先项括注（纯文档路由下预演缺席——本优先项跳过）
+    def test_cross_check_marks_pure_document_route(self):
+        step4 = self.read(os.path.join(STEPS_DIR, "04-cross-check.md"))
+        self.assertIn("纯文档", step4, "04 优先项缺纯文档路由跳过括注")
 
     # trace: steps 形态（H1 中文步名 + 步号与文件序一致 + Read/Write 行逐字英文 + 末段）
     def test_steps_shape(self):

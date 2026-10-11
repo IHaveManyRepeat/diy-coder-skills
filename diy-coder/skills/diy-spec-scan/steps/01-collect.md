@@ -17,11 +17,12 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
 
 ## 定目标类型
 
-`target.kind` 由你判定（引擎不给），三选一：
+`target.kind` 由你判定（引擎不给），四选一：
 
 - `任务书` — 施工指令（含角色分工、分节规格）
 - `技能` — 技能规格（`SKILL.md` + `steps/`）
 - `规格` — 其他给 AI 执行的规格文本
+- `文档` — 兜底值：非任务书/技能/规格、无可预演 duties 的任意文档
 
 ## 调整单元粒度
 
@@ -34,7 +35,7 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
 
 ## 落草稿记录
 
-创建 `{output_dir}/spec-scan.yaml`（文件不存在时建：`project: {name, created, updated}`——`name` 取自 `diy-coder.yaml` 的 `project.name`——加空的 `scans: []` 与 `revisions: []`），追加一条：
+创建 `{output_dir}/spec-scan.yaml`（文件不存在时建：`project: {name, created, updated}`——`name` 取自 `diy-coder.yaml` 的 `project.name`——加顶层 `schema: 2` 版本戳、空的 `scans: []` 与 `revisions: []`），追加一条：
 
 ```yaml
   - id: SS-001            # 下一个 = 已有序号最大值 + 1，三位零填充；不重编不重用
@@ -48,10 +49,11 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
     open_questions: []
 ```
 
-`units` 先全部写 `scanned: false`，step 2 每扫完一个改成 `true`——这是覆盖凭证，不是装饰。
+`units` 先全部写 `scanned: false`，预演在场时 step 2 每扫完一个改成 `true`（纯文档路由由 step 3 接管改标）——这是覆盖凭证，不是装饰。
 
 ## 播报与下一步
 
-给用户一句话：目标是什么、切出多少个单元、总共多少行、下一步开始预演。
+给用户一句话：目标是什么、切出多少个单元、总共多少行、下一步去向（纯文档 → 穷举，其余 → 预演）。
 
-读全并照做 `./02-dry-run.md`。
+`kind` 判为 `文档` → 读全并照做 `./03-exhaustive.md`（纯文档路由：跳过 02 预演，`scanned` 由 03 接管）；其余照旧 → 读全并照做 `./02-dry-run.md`。
+纠错通道：用户自然语言明示改判 → HALT 重走本步重判 `kind`，`revisions` 留痕（非初判即终判）。

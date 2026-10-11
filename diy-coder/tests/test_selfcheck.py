@@ -112,7 +112,7 @@ class SkillContractTests(unittest.TestCase):
                        "出 B 才算 dogfood", "B 部分必出"):
             self.assertIn(phrase, raw, "缺四保障要素：%s" % phrase)
         step2 = read(os.path.join(STEPS_DIR, "02-dispatch.md"))
-        self.assertIn("不复用任务书写作侧", step2,
+        self.assertIn("不复用被扫目标写作侧", step2,
                       "片指令缺 self-preference 隔离句")
         self.assertIn("锚一变全废", step2, "片指令缺锚点失效句")
         self.assertIn("禁写长 JSON", step2, "缺 B7b 长 JSON 截断教训句")
@@ -142,6 +142,25 @@ class SkillContractTests(unittest.TestCase):
         step5 = read(os.path.join(STEPS_DIR, "05-close.md"))
         self.assertIn("spec_scan.py", step5, "缺终门命令机器锚点")
         self.assertIn("check --final", step5, "缺 --final 终门旗标")
+
+    # trace: 硬门放开（v4 批 2b）——可读非空即入扫，旧「要照做的事」门零在场
+    def test_hard_gate_allows_any_readable_document(self):
+        raw = self.skill()
+        self.assertIn(
+            "硬门：目标存在、可读、非空 → 入扫；不可读 / 空 → 一行说明后零产出退出。",
+            raw, "缺新硬门句（可读非空即入扫）")
+        self.assertNotIn("要照做的事", raw, "旧硬门句「要照做的事」须零在场")
+
+    # trace: dispatch 纯文档路由接线（2a②移交＋2a⑤ scanned 接管）＋与执行计划强制句互斥豁免
+    def test_dispatch_document_route_and_mandatory_plan_exemption(self):
+        step2 = read(os.path.join(STEPS_DIR, "02-dispatch.md"))
+        for phrase in ("纯文档路由", "01 末直指 03", "02 预演缺席",
+                       "scanned` 由 03 接管", "照跑完整管线", "schema: 2",
+                       "卡点|穷举|交叉认证"):
+            self.assertIn(phrase, step2, "片 A 缺纯文档路由/source 写面句：%s" % phrase)
+        self.assertIn(
+            "「每个单元先写「我第 N 步做 X」的执行计划」不适用", step2,
+            "缺与 :16 执行计划强制句的互斥豁免句（两文不得互斥）")
 
     # trace: 与 diy-spec-scan 的边界声明双向一致
     def test_boundary_with_spec_scan_is_two_way(self):
