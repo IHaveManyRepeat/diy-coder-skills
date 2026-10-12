@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""diy-selfcheck 契约冒烟（零引擎、零 YAML 写面、编排型技能）。
+"""diy-selfcheck 契约冒烟（自带 selfcheck.py 终门引擎、主产物 selfcheck.yaml 编排者写、编排型技能）。
 
 技能定位：任务书/规格自检的**编排者**（B3 taskbook §13 底子 + B4/B6/B7/C·7/C·15 机制融合）——
 冻结锚点 → 三机制派发（预演片调 diy-spec-scan / 引用核对 / 对抗三层）→ 合并去重 →
-D 表处置 → 旧值复扫两轮 → B 部分机制评价。机械面全复用（md5/grep 走 shell，
-SS-### 与终门走 diy-spec-scan 引擎）——不得为凑测试造无意义引擎（party-mode 判例）。
+D 表处置 → 旧值复扫两轮 → B 部分机制评价。机械面分工（md5/grep 走 shell，
+SS-### 台账与预演片归 diy-spec-scan；终门走自带 selfcheck.py check --final 六义务引擎）。
 
 本文件不含子进程用例，只做 SKILL.md / steps 契约冒烟：
 
@@ -20,7 +20,8 @@ SS-### 与终门走 diy-spec-scan 引擎）——不得为凑测试造无意义�
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_selfcheck.py" -v
 
 trace: B3 §13 编排规格固化（用户 2026-10-03 裁定：B3 底子 + 各批机制融合为新技能）；
-       零 YAML 写面承 diy-party-mode 判例；双向边界承 diy-party-mode ↔ diy-review 先例。
+       主产物由编排者单一写、子代理只写分片短 YAML 承 diy-party-mode 判例；
+       双向边界承 diy-party-mode ↔ diy-review 先例。
 """
 import io
 import os
@@ -58,7 +59,8 @@ class SkillContractTests(unittest.TestCase):
         raw = self.skill()
         head = raw.split("## 激活时")[0]
         for line in ("name: diy-selfcheck", "phase: anytime", "precededBy: []",
-                     "followedBy: []", "required: false", "line: any", "outputs: —"):
+                     "followedBy: []", "required: false", "line: any",
+                     "outputs: selfcheck.yaml"):
             self.assertIn(line, head, "frontmatter 缺登记项：%s" % line)
         self.assertIn("# ↑ 中文：", head, "缺 description 下方的中文注释行")
         self.assertRegex(head, r"description: '[^']+'",
@@ -71,7 +73,7 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn(section, raw, "缺四段结构：%s" % section)
         for legacy in ("## On Activation", "## Workflow", "## Schema", "## Rules"):
             self.assertNotIn(legacy, raw, "英文段名残留：%s" % legacy)
-        self.assertLessEqual(len(raw.splitlines()), 80, "薄主文件超出 80 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 105, "薄主文件超出 105 行预算")
 
     # trace: steps 形态（H1 中文步名 + 步号与文件序一致 + Read/Write 行逐字 + 末段播报）
     def test_steps_shape(self):
@@ -115,7 +117,8 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("不复用被扫目标写作侧", step2,
                       "片指令缺 self-preference 隔离句")
         self.assertIn("锚一变全废", step2, "片指令缺锚点失效句")
-        self.assertIn("禁写长 JSON", step2, "缺 B7b 长 JSON 截断教训句")
+        self.assertIn("子代理不写长结构化", step2, "缺 B7b 新句（子代理不写长结构化）")
+        self.assertIn("主产物由编排者写", step2, "缺 B7b 新句（主产物由编排者写）")
 
     # trace: B6/B7 闭环道（D 表无空行 / 增量补扫 / 旧值复扫两轮）
     def test_dispose_loop(self):
@@ -140,8 +143,29 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("SS-###", raw, "缺 SS-### 台账锚")
         self.assertIn("永不复用", raw, "缺「永不复用」纪律")
         step5 = read(os.path.join(STEPS_DIR, "05-close.md"))
-        self.assertIn("spec_scan.py", step5, "缺终门命令机器锚点")
+        self.assertIn("selfcheck.py", step5, "缺终门命令机器锚点（selfcheck.py）")
         self.assertIn("check --final", step5, "缺 --final 终门旗标")
+
+    # trace: 旧 md 写面五族句零在场（v4 批 2c · SS-004-09）——对 SKILL + steps×5 六文件全扫
+    def test_legacy_artifact_phrases_absent(self):
+        legacy = ("dogfood-scan-", "不碰 `{output_dir}`", "零 YAML 写面",
+                  "spec-scan/part-", "直接写 md")
+        paths = [SKILL_MD] + [os.path.join(STEPS_DIR, name) for name in STEP_FILES]
+        for path in paths:
+            text = read(path)
+            for phrase in legacy:
+                self.assertNotIn(phrase, text, "旧句残留于 %s：%s"
+                                % (os.path.basename(path), phrase))
+
+    # trace: 结构节 schema 关键锚 + 终门红线句在场（v4 批 2c · SS-004-10 · ⑥已裁甲）
+    def test_structure_schema_anchors_and_red_line(self):
+        raw = self.skill()
+        for phrase in ("SC-###", "`{output_dir}/selfcheck.yaml`",
+                       "selfcheck/part-", "主产物由编排者写",
+                       "子代理不写长结构化"):
+            self.assertIn(phrase, raw, "SKILL 结构节缺关键锚：%s" % phrase)
+        for phrase in ("不得改用", "diyc.py check --type"):
+            self.assertIn(phrase, raw, "缺终门红线句要素：%s" % phrase)
 
     # trace: 硬门放开（v4 批 2b）——可读非空即入扫，旧「要照做的事」门零在场
     def test_hard_gate_allows_any_readable_document(self):

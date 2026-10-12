@@ -308,6 +308,16 @@ KEY_LABELS = {
     "codebase": "代码库路径", "data_flow": "数据流", "layers": "分层", "location": "位置",
     "mermaid": "Mermaid 图", "output_format": "输出形态", "overview": "总览",
     "tech_stack": "技术栈", "time_box": "时间盒",
+    # v4 批 2c——selfcheck.yaml（diy-selfcheck 主产物，schema 骨架照批 2c 任务书 §3）：
+    # 此前缺失的键渲染英文裸键（零裸键纪律）。id/date/status/summary/findings/target/
+    # path/n/source/severity/claim/actual/confidence/total/by_source/revisions/change/
+    # reason/project 已有全局标签，不在本块重复
+    "schema": "结构版本", "anchor": "锚点", "disposals": "处置记录",
+    "rescans": "复扫记录", "b_review": "B 部分机制评价",
+    "md5": "MD5 指纹", "commit": "提交哈希", "exec_form": "执行形态",
+    "shards": "分片数", "ss_ref": "关联预演条目", "issue": "问题",
+    "round1": "第一轮复扫", "round2": "第二轮复扫", "cleared": "清零项",
+    "ref_checked": "已核引用数", "ref_false": "失实引用数", "landing": "落点",
 }
 # 值标签（词表正典来源）：机器层中文化后键=中文值、值=展示标签，多数同名。
 VALUE_LABELS = {
@@ -454,6 +464,14 @@ VALUE_LABELS = {
     # 两不互扰。归类语义（非结论）→ 中性徽章，不进 BADGE_CLASSES（同 :65 口径）
     "响应式 Web": "响应式 Web", "桌面": "桌面", "多端": "多端",
     "亮": "亮", "暗": "暗", "双模": "双模",
+    # trace: v4 批 2c——selfcheck.yaml 值域（任务书 §3 骨架逐字）：
+    # source 三值（findings 元素·∈ ENUM_KEYS，缺值即刷 `unmapped enum`）＋
+    # layer 三值（对抗审查三层，02-dispatch 字面·layer ∈ ENUM_KEYS 同故——SS-004-08）；
+    # target.kind 四值（kind ∉ ENUM_KEYS、值渲染纯文本，入表作值域留档，「文档」已在
+    # 类型/模式区）。归类语义 → 中性徽章，照 2a 裁定值入表不入 BADGE_CLASSES
+    "预演": "预演", "引用核对": "引用核对", "对抗": "对抗",
+    "盲猎": "盲猎", "边界猎手": "边界猎手", "验收审计": "验收审计",
+    "任务书": "任务书", "技能": "技能", "规格": "规格",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
@@ -480,6 +498,9 @@ DOC_LABELS = {
     # 单问架构分析），不另造词
     "wds-design-system": "设计系统", "wds-assets": "资产工厂",
     "wds-evolution": "Kaizen 迭代", "analysis": "单问架构分析",
+    # trace: v4 批 2c——selfcheck.yaml（diy-selfcheck 主产物）页面标题，
+    # 未登记则页面 h1 / 索引卡片回落英文原名
+    "selfcheck": "自检产物",
 }
 # 文档级标签覆盖（B1）：同一 key 在不同文档语义不同——bug-log 的 type 是缺陷三级分类，
 # 其余文档（test-plan/openapi 等）回落全局 type=类型
@@ -557,6 +578,11 @@ DOC_KEY_LABELS = {
     # wds-assets：全局 code=违规码（diyc-baseline 的豁免台账）在这里是活动的字母码
     # （W/P/U/I/M/V/C/S）——全局键不动，只覆盖本文档
     "wds-assets": {"code": "活动码"},
+    # trace: v4 批 2c——selfcheck：全局 kind=类别 在 target 里是被检目标类型四选一
+    # （任务书|技能|规格|文档，同 spec-scan「目标类型」口径）；全局 layer=层 在此是对抗
+    # 审查三层（盲猎/边界猎手/验收审计，02-dispatch），与 analysis 的架构分层不同义——
+    # 两者全局键不动，只覆盖本文档
+    "selfcheck": {"kind": "目标类型", "layer": "审查层"},
 }
 # 术语表（展示层，FR-4.1 可读性）：标签/徽章/标题命中即挂悬浮解释，YAML 单一源不动。
 # key = 渲染后的展示文本（已 esc，纯中文无 HTML 字符，查找安全）。

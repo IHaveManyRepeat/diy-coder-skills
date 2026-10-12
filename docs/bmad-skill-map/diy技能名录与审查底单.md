@@ -407,6 +407,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 源侧缺陷登记保留条件（已裁·2026-10-04 补）：**正确路径可寻得**（缺陷＝源笔误、文件本体在）→ 错误登记**不保留**；**真幽灵**（正确路径亦不存在）→ 保留「裁/改道」处置事实，源路径细节进 dev-only 台账。实测两例：D12 `object-router.md` 实存于源 `data/object-types/`（笔误，登记可删）；D13 `design-system-router.md` 全库未寻得（幽灵，保留裁的事实）。
 - 迁移痕迹零正文（已裁·2026-10-04 补）：裁撤登记/改写说明/净损失登记/归属裁定等**迁移决策记录整块迁 dev-only 台账专门记录，技能正文不留**——不只去路径锚，记录块本身退出正文。技能正文是可执行内容，迁移决策记录属变更台账，载体分离。台账载体可与 迁移计划.md「能力损失台账」合并，落地时定。普查（标记词口径）：真 16 处/14 文件（diy-design 13 处全族＋`diy-dev/steps/wds-accept.md:44` 整节＋`diy-wds-system/data/complexity-router.md:5`；party-mode 2 处系误报——「缺陷台账」指 diy-review 产物非迁移记录）；2026-10-04 用户点名补登 `diy-dev/steps/wds-implement.md:39` / `wds-fix.md:33` 两整节（同族「裁撤与归位（源侧台账）」，原普查时点后新增）→ 计 18 处/16 文件；一审 party-mode 预发现（2026-10-05）：`diy-party-mode/SKILL.md:15`「裁自源技能：…」句＝裁剪说明嵌入正文段（非独立块），「裁自」形态不在标记词口径 → 计 19 处/17 文件；一审 quick-dev 预发现（2026-10-05）：「源技能做法 vs diy 做法」裁改对照注记 6 处/4 文件（SKILL.md:58/:86＋steps/01:21/:22·03:18·06:31——同「裁自」族嵌入正文段）→ 计 25 处/21 文件；「收编自/出处/按裁定 N/普查编号」等旁形态随逐技能实测覆盖（一审 e2e 预发现：BMAD 溯源注记 6 处/4 文件——steps/02-targets:10·03-generate-api:14·04-generate-e2e:10/:15/:17/:29·05-record:48，归本批；一审 test-review 预发现：criteria.yaml 头部迁移裁定注释块＋`source:` 键＋steps 泛指 3 处（02:10·03:24/:33）——数据资产面非 SKILL 正文，归本批、处置随批核；一审 test-gate 预发现：adr-checklist.yaml 路径与源注（:3/:4/:39）＋steps 源泛指约 8 处（02:15 源四级·03:47 源时效线·04:52/:61/:67·05:16/:46/:50/:51），同归本批；一审 retrospective 预发现：泛指形态最重一族——「源技能/源 step-N/源主持纪律」遍布 7 个 steps 文件＋引擎头注约 20 处/8 文件（无路径锚），同归本批；一审 viewer 预发现：viewer.py `# trace:`/批次码出处注约 70 处（C·2/B3/W2/R-x——出处类旁形态，处置面随批核）；口径补记（2026-10-05）：任务书编号（AC-9.x/FR-3.x/R-x/§五 C·N 等）散见 build-loop SKILL.md（4 处）、test-review steps/引擎（R-3/R-4）等——同归「普查编号」旁形态，此前一审未单列，此处补口径；一审 teach-me-testing 预发现：curriculum.yaml 头部迁移裁定注释块＋逐行「源: 英文名」留档注——数据资产面，同 criteria.yaml 先例，归本批；一审 party-mode 预发现（2026-10-05 用户裁定）：SKILL.md:15 尾句「裁自源技能：BMAD 的 agent 名册与人设剧本整段不迁，留的是『多视角独立推理』的方法本体」＝迁移归属裁定正文化——信息搬日志（dev-only 台账）、正文删句，归本批；selfcheck 讲解时用户裁定（2026-10-05·一审前点名）：`diy-selfcheck/SKILL.md:17`「底子」整句（B3 §13 固化的编排＋融合 B4 机器台账/B6 旧值复扫/B7 片间交叉置信度/C·7 单执行者降级形态）＝批次码出处说明——出处类旁形态，正文删句（已裁可去·待本批执行，信息进台账）→ 计 20 处/18 文件）。
 - **任务批名词整类禁入正文（2026-10-05 用户裁定·WDS 线一审点名）**：「B6 的已批码 `TOKEN_UNRESOLVED`（本批不新增码）」同款句在 WDS 四技能 SKILL.md 违规码段在场（`diy-wds-brief/SKILL.md:80`·`diy-wds-scenarios/SKILL.md:81`·`diy-wds-system/SKILL.md:82`·`diy-wds-assets/SKILL.md:81`）＝批次码出处注嵌规则正文。裁定：任务批名词（批次码 B3/B6/B7b·裁定号·C·N·SS-###·§N·「本批/同批/移交/已批」句）**全面普查、全量迁 dev-only 台账，技能正文不放**；行为内容（码表、承载语义、判据值）改写自包含留正文，出处句删。预扫（2026-10-05·grep 已批码/本批/`B\d`/`C·\d`/裁定 \d/`SS-###`·.analysis 外）：约 **314 处/99 文件**，遍布 SKILL/steps/scripts 注释/data 资产头注/templates——远超窄口径已计数（20 处/18 文件系标记词口径）；精确清单随批逐技能实测出（正则预扫只作参考·本批既有纪律）。
+- 批 2c 预发现（2026-10-12 用户点名·归本批，不动 2c 已呈审面）：用户点名 2 处＝`diy-selfcheck/SKILL.md:40`「B7b 口径：」领起句＋`steps/02-dispatch.md:11`「（B7b 截断教训）」尾注——均照本段已裁原则处置（行为内容「分片写短 YAML、主产物由编排者写」自包含留正文，出处标记删）；同批 2c 新写同族 2 处＝`SKILL.md:48/:55`「照 spec-scan 先例」；原有批次码句余 9 处（SKILL:17〔已点名〕/:72/:74/:75·01:16/:24·03:14·04:24）预扫口径在场零净新。全部补入批 6 实测清单，随逐处呈审定去留。
 - **dev 仓内部文档引用同属迁移痕迹**（已裁·2026-10-04 补）：`迁移计划.md:行号`、`*-fidelity.md §节`、`docs/bmad-skill-map/` 路径等 dev 私有管理文档引用**不得出现在技能正文**——发布包必无该文件，且行号/章节号随文档漂移，比 BMAD 源锚更不可解析（例：`prototype-loop.md:12` 的「源侧 `迁移计划.md:210`」）。普查：真 4 处/4 文件（`diy-design/steps/prototype-loop.md:12`、`diy-wds-brief/steps/03-signoff.md:144`、`diy-viewer/scripts/viewer.py:666`、`diy-wds-assets/data/presentation-formats/index.md:25`；`c-discuss.md:6` 系「讨论结论」产物字段名误报）。处置同总则：行为事实改写自包含留正文，出处/行号/编号进台账。一审 test-gate 补登（2026-10-05，原普查漏网）：6 处/4 文件——`diy-test-gate/SKILL.md:67`（裸节号 §十三:459）＋`steps/05-gate.md:17`＋`scripts/gate.py:60/:73`（§十三:459／§二验收 #3·#4·#12）＋`scripts/gate_check.py:13/:665`，皆「迁移计划 §节」形 → 计真 10 处/8 文件；一审 viewer 再补 +2（2026-10-05）：viewer.py:669（迁移计划 §已定补充）＋:165（§五 C·8 裸节号——原普查仅记 :666）→ 计真 12 处/8 文件；一审 diy-tools 补 +4（2026-10-05）：`diyc_mutate.py:2`（迁移计划 §五 阶段 C 第 9 项）＋`diyc_writeback.py:67/:563/:629`（§五 C·8②·迁移计划 §十三）→ 计真 16 处/10 文件（`diyc.py:302` 系 FR-4.5/D-9 全族模板句，归母本批不在此计）。
 - 范围（已裁）：整个技能包。排期（已裁）：专批；与逐项化/母本批协调先后（同为 50 文件级正文改动，避免同文件改两遍）。
 
@@ -452,16 +453,18 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 词族四组：`未建|若已建`·`待登记|下游待`·`≤90/90 行/上限 90`·`标签缺口|降级渲染|通用降级`。**净新增仅 1 处**：diy-bmb-builder steps 三处「≤90 行」（`03-analyze.md:41`·`04-gate.md:18/:20`·`05-finish.md:24`）→ 已补登逐项化批上限落点行。其余命中均在案或活机制：help.py:387「下游待登记」＝链走完分支的运行时枚举（活机制非滞后）；bmb_module.py:388 与 wds_brief/scenarios/trigger 三引擎「尚未建立」＝MISSING_FILE warning 语义（活机制）；wds-brief `03-signoff.md:146`「缺口 2」句面滞后已在一审行裁定归去源锚批（标签实落 viewer.py:48/:400）；wds_brief.py:90 / wds_scenarios.py:101 头注释「viewer 标签缺口登记」＝出处注旁形态（去源锚批口径内）。
 
-## 待办：diy-review steps 步骤深化（2026-10-04 用户提出，登记待裁，现在不动）
+## 待办：diy-review steps 步骤深化（2026-10-04 用户提出，2026-10-11 三候选均立项·②③实施子项待裁，现在不动）
 
 登记来源：用户看 `diy-review/steps/` 觉单薄，问补充可能。
+
+裁定（2026-10-11 用户）：**三候选均立项（①②③全做）**。②③实施子项仍待裁——②方法定义识别规则（lambda/嵌套/装饰器）＋扫面口径声明；③形态三选（A 撤/B 降级改写/C 坚持原案＋实证）与 leanness-4 处置；利弊见调研 `diy-coder/.analysis/2026-10-07-execution-plan/research-review-steps-deepen.md` §⑤，推荐 ② 照旧建议落、③ 降级改写。施工排批 7 后（同文件协调在案）。
 
 事实（2026-10-04 核实）：
 - 抓手盘点：L1/L3/L4 各有机械抓手（`diyc.py trace`／`check --type review`／`design.py audit+check`），**L2 零抓手**——仅一句口诀（坏输入/空None/并发/错误路径/静默兜底＋「真会咬人」），无推导方法无判据；falsify 非功能六维只有名字、「跑临时攻击」零打法；lenses（HALT/空数组合法/归一）与 wds-review（零产出/不采信自述/写权）纪律齐备，不补。
 - 规模对比：兄弟技能 steps 单文件 20~82 行（dev 32~50／test-author 20~52／investigate 29~57／retrospective 27~82），diy-review 全部 6~9 行——steps/ 系单文件 SKILL.md 拆分产物，未按步骤展开规程。
 - `diyc.py trace` 只解析已有 trace 行 ID（diyc.py:45 `TRACE_LINE_RE`→references/unresolved），不报「方法定义缺 trace 行」——l1 正文自认「整行缺席仍属目读」；旧分析（.analysis/2026-09-13 determinism-1）建议的 untraced 类半截未落。
 
-候选（①方向自洽，②③待裁）：
+候选（①方向自洽；②③ 2026-10-11 立项，实施子项待裁）：
 - ① **L2 补推导规程**：AC→边界怎么推（输入等价类/域边界／状态字段非法迁移／错误路径静默兜底识别）＋「真会咬人」判据——补推导方法而非固定清单（守 lenses「边界类从内容自身推，不套固定清单」）；须写明与边界穷举透镜分层：L2＝必跑层高危快扫、透镜＝可选全量枚举（防透镜被架空）。
 - ② **L1 untraced 机械检测**：`diyc.py trace` 扩「扫面内方法定义缺 trace 行」报告——方法定义识别有误报面（lambda/嵌套函数/扫面口径），先裁后动（测试面纪律）。
 - ③ **falsify 六维最小探针**（每维一行打法）：与旧分析 leanness-4「证伪轮向更简」方向相抵、无产出差实证——待裁。
@@ -533,6 +536,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 检查任务（随 §6 批闭合执行，不动手改）：§6 批收口时确认该测试在全量下稳定绿即可；若再红，先查是否又是并行批中间态（台账先行/正文后至），不要直接改断言。
 
 ## 待办：diy-selfcheck 产物 YAML 化（2026-10-05 用户裁定，待用户点头开工）
+
+**〔v4·批2c 已销 2026-10-11〕**：四项方案施工完毕——主产物 `{output_dir}/selfcheck.yaml` 集合形态（SC-###/status 草稿|已定稿/anchor·target·findings 三源·disposals·rescans·b_review·revisions 区块）＋分片 `selfcheck/part-<片名>.yaml` 化＋自带引擎 `selfcheck.py check --final` 六义务终门＋viewer 标签（零裸键）；全量 1702 passed＋248 subtests 零红。⑦「PRECISE_NON_MEMBERS 同步退出」系登记笔误已勘正零动作（台账从未含 selfcheck）。
 
 登记来源：用户审查 diy-selfcheck 产物节——主产物 md（`dogfood-scan-<日期>.md` 落目标同目录、不碰 `{output_dir}`、`outputs: —`）违背家族「YAML 单一源＋viewer 渲染」原则，全库 50 技能唯一例外。
 
@@ -659,6 +664,21 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 ②引擎升级——方案 A 开工后枚举并入 YAML 单点派发；①回查降为兜底关卡，不撤。
 
 改动面（做①时）：`diyc_check_docs.py`（面清单＋extract＋断言）＋`tests/test_diyc_check.py`；viewer 标签接线随①范围定。
+
+### 待办：spec-scan kind 判据规则表（2026-10-11 批 2c 立书调研发现·用户裁「甲＝只登记不动手」，排期待呈裁，现在不动）
+
+登记来源：批 2c 裁⑤讨论——`target.kind` 现由执行者（AI）现场判定（`01-collect.md:20`「由你判定（引擎不给）」），四条定义是唯一判据、无规则表＝非确定性；每轮问人＝低效。用户裁定登底单，两技能规则表**同批同文一次立**。
+
+事实：
+- 四选一枚举在案（`01-collect.md:20-25`＝任务书|技能|规格|文档）；边界弹性（prd/epic/story/架构）2b① 裁「判法在执行者」＝归 AI 裁量，无兜底规则。
+- selfcheck 侧同源：2c 裁⑤拟三阶判据链，规则表写 selfcheck 01＝2c 面内（经派发指令传片 A 照录，两账同源不依赖本段动工）。
+- 不造通用共享文档（安装自包含模型＋两技能读取纪律开洞）；公共内容方案 A（sync_texts）落地后收编候选。
+
+方案（2026-10-11 讨论共识·待正式裁）：
+- 三阶判据链：① 用户明示 kind 照录 → ② 规则表机械判（`SKILL.md+steps`→技能；名字含 prd/epic/story/架构→规格；带分工施工指令→任务书；无执行结构→文档）→ ③ 模糊档 AI 判＋播报纠错（或先问一次，形态待裁）。
+- spec-scan 侧动工前与 selfcheck 侧（2c 裁⑤回填件）对表同文；2b「判法在执行者」运行态维持至规则表落地。
+
+改动面（做时）：`diy-spec-scan/steps/01-collect.md:20-25` 定目标类型节＋`tests/test_spec_scan.py` kind 断言面（2b 落）随之扩＝测试面先裁后动。
 
 ## 升级事项（可选·不排期·需要才做）
 

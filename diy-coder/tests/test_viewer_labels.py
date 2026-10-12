@@ -1193,5 +1193,132 @@ class SpecScanSourceLabelTests(_Fixture):
             self.assertNotIn(leak, html, "spec-scan 英文键名直出：%s" % leak)
 
 
+# trace: 批 2c——selfcheck.yaml 完整夹具（照任务书 §5-3 覆盖清单：三源 findings 含
+# layer 三值＋多元素 source 交叉命中 confidence＋disposals 全覆盖＋rescans 完整子键
+# ＋anchor 完整子键＋b_review＋summary 含 ref_checked/ref_false——夹具最小化则
+# 清单外键全体漏网）
+SELFCHECK_DOC = """project:
+  name: demo
+  created: 2026-10-11
+  updated: 2026-10-11
+schema: 2
+checks:
+  - id: SC-001
+    date: 2026-10-11
+    status: 草稿
+    anchor:
+      md5: d41d8cd98f00b204e9800998ecf8427e
+      commit: 03b4e35
+      exec_form: 编排者合并
+      shards: 3
+    target:
+      kind: 技能
+      path: skills/diy-selfcheck/SKILL.md
+    findings:
+      - n: 1
+        source: [预演]
+        ss_ref: SS-001-01
+        severity: 阻断
+      - n: 2
+        source: [引用核对]
+        claim: 文中称三片合并 28 条
+        actual: spec-scan.yaml 实为 28 条
+        severity: 建议
+      - n: 3
+        source: [对抗]
+        layer: 盲猎
+        issue: B 部分缺收口出口
+        severity: 观察
+      - n: 4
+        source: [对抗]
+        layer: 边界猎手
+        issue: 并发写同一产物
+        severity: 建议
+      - n: 5
+        source: [对抗]
+        layer: 验收审计
+        issue: 验收标准缺负向
+        severity: 观察
+      - n: 6
+        source: [预演, 对抗]
+        layer: 验收审计
+        ss_ref: SS-001-02
+        confidence: 2
+        issue: 交叉命中同一条歧义
+        severity: 阻断
+    disposals:
+      - {finding: 1, level: 阻断, action: 修入, landing: 'SKILL.md:23'}
+      - {finding: 2, level: 建议, action: 采纳, landing: '03-merge.md:6'}
+      - {finding: 3, level: 观察, action: 留痕, landing: revisions}
+      - {finding: 4, level: 建议, action: 合并, landing: '05-close.md:13'}
+      - {finding: 5, level: 观察, action: 采纳, landing: '01-freeze.md:24'}
+      - {finding: 6, level: 阻断, action: 修入, landing: '02-dispatch.md:11'}
+    rescans:
+      round1: 复扫一轮：旧值全清
+      round2: 复扫二轮：零回归
+      cleared:
+        - 旧值 A
+    b_review: B 部分：三机制评价，编排闭环成立。
+    revisions:
+      - date: 2026-10-11
+        change: 处置后 anchor 重记
+        reason: finding 1 修入
+    summary:
+      total: 6
+      by_source:
+        预演: 2
+        引用核对: 1
+        对抗: 4
+      ref_checked: 12
+      ref_false: 1
+"""
+
+
+class SelfcheckYamlLabelTests(_Fixture):
+    """批 2c：selfcheck.yaml 标签面——DOC 标题、新键标签、source/layer 值域
+    中性徽章、渲染零裸键、零 unmapped enum。"""
+
+    def test_selfcheck_doc_title_and_value_domain_registered(self):
+        self.assertEqual(viewer.DOC_LABELS.get("selfcheck"), "自检产物",
+                         "selfcheck 页面标题未登记")
+        # 归类语义 → 中性徽章：值入表不入 BADGE_CLASSES（照 2a 裁定）
+        for value in ("预演", "引用核对", "对抗", "盲猎", "边界猎手", "验收审计"):
+            self.assertIn(value, viewer.VALUE_LABELS, "值域未入表：%s" % value)
+            self.assertNotIn(value, viewer.BADGE_CLASSES,
+                             "归类语义须中性徽章（值入表不入徽章）：%s" % value)
+        self.assertEqual(viewer.DOC_KEY_LABELS.get("selfcheck", {}).get("kind"),
+                         "目标类型", "selfcheck kind 未做 doc 级覆盖")
+        self.assertEqual(viewer.DOC_KEY_LABELS.get("selfcheck", {}).get("layer"),
+                         "审查层", "selfcheck layer 未做 doc 级覆盖")
+        for key in ("schema", "anchor", "disposals", "rescans", "b_review",
+                    "ss_ref", "exec_form", "shards", "ref_checked", "ref_false",
+                    "landing", "issue", "round1", "round2", "cleared"):
+            self.assertIn(key, viewer.KEY_LABELS, "新键标签未登记：%s" % key)
+
+    def test_selfcheck_renders_chinese_without_drift(self):
+        self.write("selfcheck.yaml", SELFCHECK_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr, "selfcheck 值域漂移：%s" % p.stderr)
+        html = self.page("selfcheck")
+        for label in ("锚点", "处置记录", "复扫记录", "B 部分机制评价",
+                      "关联预演条目", "执行形态", "分片数", "已核引用数",
+                      "失实引用数", "落点", "目标类型", "审查层"):
+            self.assertIn(label, html, "键标签未落页：%s" % label)
+        for key in ("anchor", "disposals", "rescans", "b_review", "ss_ref",
+                    "exec_form", "shards", "ref_checked", "ref_false", "landing",
+                    "source", "layer", "kind", "claim", "actual", "issue",
+                    "confidence", "round1", "round2", "cleared", "level", "action"):
+            self.assertNotIn(">%s<" % key, html, "英文键名直出：%s" % key)
+        # findings.source 数组逐元素出中性徽章（列表项走徽章路径，照 2a 先例）
+        for value in ("预演", "引用核对", "对抗"):
+            self.assertIn('<li><span class="badge b-neutral">%s</span></li>' % value,
+                          html, "source 值未出中性徽章：%s" % value)
+        # layer 三值落页（标量字段形态随渲染器，值在场即证标签链通）
+        for value in ("盲猎", "边界猎手", "验收审计"):
+            self.assertIn(value, html, "layer 值未落页：%s" % value)
+        self.assertIn("编排闭环成立", html, "b_review 内容丢失")
+
+
 if __name__ == "__main__":
     unittest.main()
