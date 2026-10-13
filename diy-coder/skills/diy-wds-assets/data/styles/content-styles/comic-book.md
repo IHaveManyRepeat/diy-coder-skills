@@ -1,25 +1,27 @@
-# Comic Book
+# 漫画（Comic Book）
 
-## Overview
-Bold outlines, halftone dots, speech bubbles, and dynamic action-style compositions.
+## 概述
+粗轮廓线、半调网点、对话气泡与动感十足的动作式构图。
 
-## Rendering Characteristics
+## 渲染特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Detail level** | Medium — simplified but expressive |
-| **Lighting** | High contrast, dramatic shadows |
-| **Texture** | Halftone dots, Ben-Day dots, ink splatter |
-| **Color** | Bold, saturated, limited palette |
-| **Depth** | Flat with dramatic perspective |
+| **细节程度** | 中等——简化但富有表现力 |
+| **光照** | 高对比，戏剧化阴影 |
+| **质感** | 半调网点、Ben-Day 网点、墨迹飞溅 |
+| **色彩** | 大胆浓烈、饱和度高、限定色板 |
+| **景深** | 扁平但带戏剧化透视 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `comic book, comic style, halftone, bold outlines, pop art, graphic novel, ink, dynamic, action`
 
-## Best For
-- Gaming, entertainment, youth brands, marketing campaigns
-- Storytelling sequences, feature explanations, onboarding
+## 适用场景
+- 游戏、娱乐、年轻潮牌、营销活动
+- 叙事序列、功能讲解、新手引导
 
 ## Dimensions Guide
-- Panels: various ratios, comic grid layout
-- Characters: variable, action poses
+> 本节标题被流程引用，英文原文逐字保留。
+- 分格：多种比例，漫画网格布局
+- 角色：尺寸不定，动作姿态

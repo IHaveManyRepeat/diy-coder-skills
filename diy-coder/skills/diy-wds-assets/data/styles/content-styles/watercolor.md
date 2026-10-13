@@ -1,25 +1,27 @@
-# Watercolor
+# 水彩（Watercolor）
 
-## Overview
-Soft, flowing artwork with transparent washes, organic edges, and painterly feel.
+## 概述
+柔和流动的画面——透明渲染、边缘自然随性，富有手绘笔触感。
 
-## Rendering Characteristics
+## 渲染特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Detail level** | Low to medium — suggestive, not precise |
-| **Lighting** | Soft, diffused through paint |
-| **Texture** | Paper grain visible, paint bleeding at edges |
-| **Color** | Soft, transparent, blended |
-| **Depth** | Atmospheric — fades into white |
+| **细节程度** | 低到中——写意而非精确 |
+| **光照** | 柔和，经颜料漫射 |
+| **质感** | 可见纸张纹理，边缘有颜料晕染 |
+| **色彩** | 柔和、透明、自然融合 |
+| **景深** | 氛围感——逐渐淡入白色 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `watercolor, watercolour, painted, soft washes, paper texture, transparent paint, flowing color, artistic`
 
-## Best For
-- Wedding sites, wellness, art galleries, stationery, boutique brands
-- Backgrounds, decorative elements, section dividers
+## 适用场景
+- 婚礼网站、健康养生、艺术画廊、文具、精品品牌
+- 背景、装饰元素、章节分隔
 
 ## Dimensions Guide
-- Backgrounds: full-width, transparent edges
-- Decorative: variable, organic shapes
+> 本节标题被流程引用，英文原文逐字保留。
+- 背景：通栏，边缘透明
+- 装饰：尺寸不定，形状自然随性

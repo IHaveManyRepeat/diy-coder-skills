@@ -173,7 +173,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | diy-test-gate viewer 滞后句清理（06-finish:33「走通用降级渲染·标签缺口由主 agent 登记」——C·2 2026-09-21 已补齐 test-gate 标签，句面失实） | diy-test-gate steps/06-finish.md |
 | 单独技能 | diy-test-gate dev 仓引用漏网 6 处清理（迁移计划 §十三:459×4·§二验收×1·SKILL.md:67 裸节号；普查标记词未命中 §形态——与既有 4 处同族合计 10 处/8 文件，**随去源锚专批一起改**，待用户点头开工） | diy-test-gate SKILL＋steps/05＋scripts/gate.py＋gate_check.py |
 | 单独技能 | 变异配置显式化（test-plan `mutation:{enabled,tool?}` 段·默认开日常任务级·任务级/发版级 override·借位条款退役） | test-design/augment SKILL＋diyc 校验＋tests |
-| 单独技能 | wds-assets 风格库汉化（2026-10-05 用户点名 content-styles＋design-styles 两目录；实测：content-styles 10 件全英文、design-styles 6 件全英文、presentation-formats 7 件标题已中文正文疑英文待核、styles/index.md 已中文。**卡名与文件名是引用键**（SKILL:59 `style:{design,content,format 卡名}`＋steps 02/05 消费）——只汉化叙述、键逐字保留，steps 零改动。待用户点头开工） | diy-wds-assets data/styles＋presentation-formats |
+| 单独技能 | wds-assets 风格库汉化（2026-10-05 用户点名 content-styles＋design-styles 两目录；实测：content-styles 10 件全英文、design-styles 6 件全英文、presentation-formats 7 件标题已中文正文疑英文待核、styles/index.md 已中文。**卡名与文件名是引用键**（SKILL:59 `style:{design,content,format 卡名}`＋steps 02/05 消费）——只汉化叙述、键逐字保留，steps 零改动。待用户点头开工）〔v4·汉化插队已销 2026-10-13〕 | diy-wds-assets data/styles＋presentation-formats |
 | 单独技能 | diy-spec-scan 加方法驱动分支穷举（ECH 化·2026-10-05 用户裁定「卡点法还不够」＋**方案全定 1A+3B·无待裁项**：①穷举独立成 step（如 02b-exhaustive）不并入 03——与 diy-review 双透镜并列同构·两法 findings 去重复用 02「同一处只报一次」·判据参考 diy-review lenses.md「边界类从内容自身推·不套固定清单」；②**穷举默认跑（opt-out·2026-10-05 裁）**——除非用户明示不用穷举·对齐 editorial-review 两透镜默认全跑 `--lens` 收窄先例；③**载体已裁＝`source: 卡点\|穷举` 字段**——type 保持八类·引擎 FINDING_TYPES 零改·summary 分法计数（selfcheck B 部分机制评价原料）。**未开工·待用户点头**）〔v4·批2a 已销 2026-10-11〕 | diy-spec-scan SKILL＋steps＋引擎＋tests |
 | 单独技能 | diy-selfcheck 硬门放开「要照做的事」→ 任意文档可审（2026-10-05 用户点名 prd/架构/epic/story/任意文档；BMAD AR/ECH 文档面能力补缺·Story 2.1 实用过 AR 定稿兜底；**方案已裁 2A+4a**：spec-scan 硬门同步放开为「可读非空」·两技能形态统一·selfcheck 预演片对纯文档不降级；纯文档时 spec-scan 跳过 02 预演只跑穷举+03+04（依赖 1A）；kind 扩「任务书\|技能\|规格\|文档」——引擎不校验语义 kind·仅改 SKILL.md 文案零引擎改动。**未开工·待用户点头**）〔v4·批2b 已销 2026-10-11·引擎零改＝4a 收窄——改动面列之『引擎』在册未触〕 | diy-selfcheck SKILL＋steps＋diy-spec-scan SKILL＋steps＋引擎＋tests |
 | 单独技能 | 爆炸半径分析注入 diy-review＋测试设计族（四项全闭合：1b 独立面/2b FH 排序/三技能范围/定制标签＋漂移防治已核·**未开工·待用户点头**） | diy-review＋test-design/e2e/augment＋引擎＋viewer＋tests |
@@ -680,6 +680,21 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面（做时）：`diy-spec-scan/steps/01-collect.md:20-25` 定目标类型节＋`tests/test_spec_scan.py` kind 断言面（2b 落）随之扩＝测试面先裁后动。
 
+### 待办：wds-assets 提示词（Prompt Keywords）翻译（2026-10-13 用户提出，登记待办，汉化批先这样）
+
+登记来源：汉化插队批呈审时用户指示「提示词也要翻译」——该批按裁断保留英文未翻，补登待办。
+
+事实：
+- 23 个数据文件（content 10／design 6／presentation 7）`## Prompt Keywords` 节关键词行英文原文，导语「关键词行整段贴入外部生成服务的提示词，保留英文原文」。
+- 保留英文系汉化批裁断（外部生成服务以英文关键词生效）；翻译＝推翻该裁断，导语同改。
+
+待裁：
+① 全译中文（导语改「译文」口径，外部服务兼容性存疑）。
+② 中英并排（导语改双语口径，行数＋1）。
+③ 维持英文（销本待办）。
+
+改动面（做时）：23 文件 Prompt Keywords 节＋导语句；涉及译文一致性核验（随批呈审）。
+
 ## 升级事项（可选·不排期·需要才做）
 
 ### object-types 参考层类型扩展（2026-10-04 登记）
@@ -693,3 +708,10 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 - 候选：新技能把好用工具安装进项目——代码分析工具（如 ruff/rg/knip 类）、各技能运行必备的外部工具；一次巡检缺啥装啥。
 - 触发：实际开新项目或技能报缺工具时再做。
+
+### viewer HTML 任务复制按钮（2026-10-12 登记）
+
+- 候选：viewer 渲染的 HTML 页面对任意任务加一个复制按钮——点击后把该任务内容复制到剪贴板，粘贴进 Claude Code 这类工具里继续处理；不限产物类型（不管是什么产物）。
+- 事实：渲染脚本＝`diy-viewer/scripts/viewer.py`（产 index.html 等页）；按钮属纯前端交互，加在任务卡渲染处。
+- 待裁：复制内容形态（任务原文 YAML/JSON vs 转成提示词文案）、按钮位置与交互细节——动工时随任务书裁。
+- 触发：需要把 viewer 里看到的任务直接喂给 AI 工具时再做。

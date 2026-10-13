@@ -1,26 +1,27 @@
-# Organic
+# 有机风（Organic）
 
-## Overview
-Natural, warm design inspired by nature — soft shapes, earthy tones, flowing layouts.
+## 概述
+源于自然的温暖设计——柔和形状、大地色系、流动的版面。
 
-## Visual Characteristics
+## 视觉特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Whitespace** | Flowing — irregular but comfortable |
-| **Color palette** | Earth tones — greens, browns, warm neutrals |
-| **Typography** | Rounded sans-serif or serif, medium weight |
-| **Borders** | Rounded corners, organic shapes |
-| **Shadows** | Soft, diffused |
-| **Imagery** | Nature photography, textures, hand-drawn elements |
-| **Icons** | Rounded, organic line style |
+| **留白** | 流动——不规则但舒适 |
+| **配色** | 大地色系——绿、棕、暖中性色 |
+| **字体** | 圆润无衬线或衬线，中等字重 |
+| **边框** | 圆角、有机形状 |
+| **阴影** | 柔和、弥散 |
+| **图像** | 自然摄影、纹理、手绘元素 |
+| **图标** | 圆润的有机线条风格 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `organic, natural, warm, earthy, soft, flowing, nature-inspired, handcrafted, textured`
 
-## Best For
-- Wellness, food, sustainability, outdoor brands, local businesses
-- Sites that want to feel human and approachable
+## 适用场景
+- 健康养生、食品、可持续发展、户外品牌、本地商户
+- 想要显得有人情味、亲切可近的网站
 
-## Avoid
-- High-tech, finance, enterprise software
+## 避免场景
+- 高科技、金融、企业级软件

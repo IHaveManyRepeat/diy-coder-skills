@@ -1,26 +1,27 @@
-# Corporate
+# 企业风（Corporate）
 
-## Overview
-Professional, trustworthy design that communicates reliability and authority.
+## 概述
+专业、可信赖的设计，传达可靠与权威感。
 
-## Visual Characteristics
+## 视觉特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Whitespace** | Moderate — structured but not sparse |
-| **Color palette** | Navy, gray, white + brand accent |
-| **Typography** | Sans-serif, regular to medium weight |
-| **Borders** | Clean, defined sections |
-| **Shadows** | Subtle card elevation |
-| **Imagery** | Professional photography, team shots, office environments |
-| **Icons** | Solid or duo-tone, consistent style |
+| **留白** | 适中——结构清晰但不空旷 |
+| **配色** | 藏青、灰、白＋品牌点缀色 |
+| **字体** | 无衬线，常规至中等字重 |
+| **边框** | 干净利落，区块分明 |
+| **阴影** | 轻微的卡片浮起效果 |
+| **图像** | 专业摄影、团队合影、办公场景 |
+| **图标** | 实心或双色调，风格统一 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `corporate, professional, trustworthy, clean, business, authoritative, polished, structured`
 
-## Best For
-- B2B software, financial services, consulting, enterprise tools
-- Sites that need to convey trust and competence
+## 适用场景
+- B2B 软件、金融服务、咨询、企业级工具
+- 需要传递信任感与专业能力的网站
 
-## Avoid
-- Creative agencies, children's products, casual/playful brands
+## 避免场景
+- 创意机构、儿童产品、休闲/活泼风格的品牌

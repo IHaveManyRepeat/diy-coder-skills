@@ -1,26 +1,28 @@
-# Photorealistic
+# 照片写实（Photorealistic）
 
-## Overview
-Images that look like real photographs — natural lighting, real textures, believable scenes.
+## 概述
+如同真实照片的图像——自然光照、真实质感、可信的场景。
 
-## Rendering Characteristics
+## 渲染特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Detail level** | High — realistic textures and materials |
-| **Lighting** | Natural or studio lighting |
-| **Texture** | True-to-life materials |
-| **Color** | Natural color palette |
-| **Depth** | Realistic depth of field |
+| **细节程度** | 高——逼真的纹理与材质 |
+| **光照** | 自然光或影棚光 |
+| **质感** | 与实物一致的材质 |
+| **色彩** | 自然色板 |
+| **景深** | 真实景深 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `photorealistic, realistic, photograph, natural lighting, high detail, lifelike, studio quality, DSLR`
 
-## Best For
-- Product photography, hero images, team portraits, real estate
-- Any context where authenticity matters
+## 适用场景
+- 产品摄影、首屏大图、团队人像、房地产
+- 任何需要真实感的场合
 
 ## Dimensions Guide
-- Hero images: 1920x1080 or 2560x1440
-- Product shots: 1:1 or 4:3 ratio
-- Portraits: 3:4 ratio
+> 本节标题被流程引用，英文原文逐字保留。
+- 首屏大图：1920x1080 或 2560x1440
+- 产品图：1:1 或 4:3 比例
+- 人像：3:4 比例

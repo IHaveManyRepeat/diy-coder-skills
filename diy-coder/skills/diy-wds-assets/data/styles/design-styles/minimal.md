@@ -1,26 +1,27 @@
-# Minimal
+# 极简（Minimal）
 
-## Overview
-Clean, spacious design with maximum whitespace and restrained use of elements.
+## 概述
+干净、宽敞的设计，最大化留白，克制地使用元素。
 
-## Visual Characteristics
+## 视觉特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Whitespace** | Generous — elements breathe |
-| **Color palette** | Monochrome + one accent |
-| **Typography** | Sans-serif, thin to regular weight |
-| **Borders** | Hairline or none |
-| **Shadows** | None or very subtle |
-| **Imagery** | High-contrast, isolated subjects |
-| **Icons** | Line icons, consistent stroke width |
+| **留白** | 充裕——元素间从容呼吸 |
+| **配色** | 单色＋一个点缀色 |
+| **字体** | 无衬线，细至常规字重 |
+| **边框** | 发丝线或无边框 |
+| **阴影** | 无阴影或极轻微 |
+| **图像** | 高对比、主体孤立突出 |
+| **图标** | 线条图标，描边粗细一致 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `minimal, clean, whitespace, simple, uncluttered, modern, restrained, elegant simplicity`
 
-## Best For
-- Portfolio sites, luxury brands, SaaS products, personal sites
-- Content-focused layouts where text is primary
+## 适用场景
+- 作品集网站、奢侈品牌、SaaS 产品、个人网站
+- 以文字为主的内容导向型版面
 
-## Avoid
-- Dense data displays, e-commerce with many products, playful brands
+## 避免场景
+- 密集数据展示、商品繁多的电商、活泼风格品牌

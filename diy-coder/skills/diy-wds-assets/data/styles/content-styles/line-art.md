@@ -1,26 +1,28 @@
-# Line Art
+# 线描（Line Art）
 
-## Overview
-Pure outlines — no fill, no shading, just clean continuous lines.
+## 概述
+纯轮廓——无填充、无明暗，只有干净的连续线条。
 
-## Rendering Characteristics
+## 渲染特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Detail level** | Low to medium — defined by lines only |
-| **Lighting** | None — no shading |
-| **Texture** | None — clean strokes |
-| **Color** | Single color (usually black) or thin color lines |
-| **Depth** | Implied through line weight variation |
+| **细节程度** | 低到中——完全由线条界定 |
+| **光照** | 无——不做明暗处理 |
+| **质感** | 无——笔触干净 |
+| **色彩** | 单色（通常为黑色）或细彩色线条 |
+| **景深** | 通过线条粗细变化暗示 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `line art, line drawing, outline, continuous line, single line, clean lines, black and white, monoline`
 
-## Best For
-- Icons, technical diagrams, coloring-book style, decorative patterns
-- Minimalist brands, loading animations base art
+## 适用场景
+- 图标、技术图纸、涂色书风格、装饰纹样
+- 极简品牌、加载动画的基础图形
 
 ## Dimensions Guide
-- Icons: 24x24 to 128x128
-- Decorative: variable
-- Diagrams: content-dependent
+> 本节标题被流程引用，英文原文逐字保留。
+- 图标：24x24 到 128x128
+- 装饰图形：尺寸不定
+- 图表：视内容而定

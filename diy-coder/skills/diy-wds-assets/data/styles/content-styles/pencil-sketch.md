@@ -1,25 +1,27 @@
-# Pencil Sketch
+# 铅笔素描（Pencil Sketch）
 
-## Overview
-Hand-drawn pencil or charcoal look — raw, authentic, in-progress feel.
+## 概述
+手绘铅笔或炭笔效果——质朴、真实，带有未完成的现场感。
 
-## Rendering Characteristics
+## 渲染特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Detail level** | Variable — from rough to refined |
-| **Lighting** | Tonal shading, crosshatch |
-| **Texture** | Paper grain, graphite smudge |
-| **Color** | Grayscale (or limited color accents) |
-| **Depth** | Tonal depth through shading |
+| **细节程度** | 不定——从粗略到精细 |
+| **光照** | 色调明暗、交叉排线 |
+| **质感** | 纸张纹理、石墨涂抹痕迹 |
+| **色彩** | 灰阶（或少量彩色点缀） |
+| **景深** | 由明暗色调营造的景深 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `pencil sketch, hand-drawn, graphite, charcoal, sketch style, rough drawing, crosshatch, tonal`
 
-## Best For
-- Architecture, concept art, wireframe-style illustrations, draft previews
-- Conveying "in progress" or "behind the scenes" feel
+## 适用场景
+- 建筑、概念艺术、线框风格插画、草稿预览
+- 传达「进行中」或「幕后」的氛围
 
 ## Dimensions Guide
-- Concept sketches: variable
-- Wireframe illustrations: page-width
+> 本节标题被流程引用，英文原文逐字保留。
+- 概念草图：尺寸不定
+- 线框插画：页宽

@@ -1,26 +1,28 @@
-# Isometric
+# 等距视角（Isometric）
 
-## Overview
-3D-like objects rendered in isometric projection — no perspective, parallel lines.
+## 概述
+以等距投影渲染的类 3D 物体——无透视，线条平行。
 
-## Rendering Characteristics
+## 渲染特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Detail level** | Medium to high — clean geometry |
-| **Lighting** | Flat or subtle ambient |
-| **Texture** | Smooth, clean surfaces |
-| **Color** | Brand palette, can be vibrant |
-| **Depth** | Isometric projection (30-degree angles) |
+| **细节程度** | 中到高——几何形体干净利落 |
+| **光照** | 平光或微妙的环境光 |
+| **质感** | 平滑洁净的表面 |
+| **色彩** | 品牌色板，可用鲜艳色彩 |
+| **景深** | 等距投影（30-degree 夹角） |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `isometric, isometric illustration, 3D isometric, parallel projection, geometric, clean, technical illustration`
 
-## Best For
-- Tech products, data visualization, process diagrams, feature showcases
-- Explaining complex systems or workflows visually
+## 适用场景
+- 科技产品、数据可视化、流程图、功能展示
+- 以视觉方式讲解复杂系统或工作流
 
 ## Dimensions Guide
-- Scene: 16:9 or square
-- Individual objects: 1:1 ratio
-- Infographics: variable height
+> 本节标题被流程引用，英文原文逐字保留。
+- 场景：16:9 或正方形
+- 单个物体：1:1 比例
+- 信息图：高度不定

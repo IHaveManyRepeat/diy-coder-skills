@@ -1,26 +1,27 @@
-# Editorial
+# 编辑风（Editorial）
 
-## Overview
-Magazine-inspired design with strong typography hierarchy, editorial layouts, and storytelling focus.
+## 概述
+杂志启发的设计，强调字体层级、编辑式版面与叙事表达。
 
-## Visual Characteristics
+## 视觉特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Whitespace** | Strategic — frames content like a magazine spread |
-| **Color palette** | Restrained — often monochrome with one accent |
-| **Typography** | Strong hierarchy, serif headlines, elegant spacing |
-| **Borders** | Thin rules, column dividers |
-| **Shadows** | Minimal |
-| **Imagery** | Full-bleed photography, editorial style |
-| **Icons** | Minimal use — typography carries the design |
+| **留白** | 策略性运用——像杂志跨页一样框住内容 |
+| **配色** | 克制——常用单色加一抹点缀色 |
+| **字体** | 层级分明，衬线标题，优雅的间距 |
+| **边框** | 细分隔线、栏目分隔 |
+| **阴影** | 极少 |
+| **图像** | 满版出血摄影，编辑风格 |
+| **图标** | 少量使用——由字体承载设计 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `editorial, magazine, typographic, sophisticated, storytelling, grid-based, print-inspired, refined`
 
-## Best For
-- Media, publications, blogs, luxury brands, cultural institutions
-- Content-heavy sites where reading experience matters
+## 适用场景
+- 媒体、出版物、博客、奢侈品牌、文化机构
+- 阅读体验至关重要的内容密集型网站
 
-## Avoid
-- SaaS dashboards, e-commerce with many products, data-heavy apps
+## 避免场景
+- SaaS 仪表盘、商品繁多的电商、数据密集型应用

@@ -1,26 +1,27 @@
-# Brutalist
+# 粗野主义（Brutalist）
 
-## Overview
-Raw, bold, unapologetic design that breaks conventions intentionally.
+## 概述
+生猛、大胆、毫不掩饰的设计，刻意打破常规。
 
-## Visual Characteristics
+## 视觉特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Whitespace** | Irregular — sometimes dense, sometimes empty |
-| **Color palette** | High contrast — black/white, neon accents |
-| **Typography** | Bold, oversized, mixed weights, sometimes monospace |
-| **Borders** | Thick, visible, sometimes raw |
-| **Shadows** | Hard/offset shadows or none |
-| **Imagery** | Raw, unprocessed, collage-style |
-| **Icons** | Custom, hand-drawn, or deliberately crude |
+| **留白** | 不规则——时而密集，时而空旷 |
+| **配色** | 高对比——黑/白，霓虹点缀色 |
+| **字体** | 粗重、超大号、混排字重，有时用等宽字体 |
+| **边框** | 粗、外露，有时呈现原始感 |
+| **阴影** | 硬边/偏移阴影，或无阴影 |
+| **图像** | 原始、未加工、拼贴风格 |
+| **图标** | 定制、手绘，或刻意粗陋 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `brutalist, raw, bold, unconventional, stark, industrial, exposed structure, anti-design`
 
-## Best For
-- Creative agencies, art portfolios, experimental projects, fashion
-- Brands that want to stand out through contrast
+## 适用场景
+- 创意机构、艺术作品集、实验性项目、时尚品牌
+- 想通过对比脱颖而出的品牌
 
-## Avoid
-- Healthcare, finance, government, accessibility-critical applications
+## 避免场景
+- 医疗、金融、政府，以及无障碍性要求严苛的应用

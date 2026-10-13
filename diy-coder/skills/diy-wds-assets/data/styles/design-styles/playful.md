@@ -1,26 +1,27 @@
-# Playful
+# 活泼风（Playful）
 
-## Overview
-Fun, energetic design with bold colors, rounded shapes, and a sense of joy.
+## 概述
+有趣、充满活力的设计，大胆用色、圆润形状、洋溢愉悦感。
 
-## Visual Characteristics
+## 视觉特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Whitespace** | Moderate — lively but not cramped |
-| **Color palette** | Vibrant, multi-color, saturated |
-| **Typography** | Rounded, bold, sometimes quirky display fonts |
-| **Borders** | Rounded corners, chunky outlines |
-| **Shadows** | Colorful or offset shadows |
-| **Imagery** | Illustrations, cartoons, bright photography |
-| **Icons** | Filled, colorful, sometimes animated |
+| **留白** | 适中——活泼但不局促 |
+| **配色** | 明亮、多彩、高饱和 |
+| **字体** | 圆润、粗壮，有时用古怪的展示字体 |
+| **边框** | 圆角、粗轮廓线 |
+| **阴影** | 彩色或偏移阴影 |
+| **图像** | 插画、卡通、明快的摄影 |
+| **图标** | 填充式、色彩丰富，有时带动画 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `playful, fun, colorful, energetic, vibrant, cheerful, friendly, whimsical, bouncy`
 
-## Best For
-- Children's products, games, education, creative tools, food delivery
-- Brands targeting younger audiences or wanting to feel approachable
+## 适用场景
+- 儿童产品、游戏、教育、创意工具、外卖配送
+- 面向年轻受众或想显得平易近人的品牌
 
-## Avoid
-- Luxury, finance, healthcare, legal services
+## 避免场景
+- 奢侈品、金融、医疗、法律服务

@@ -1,20 +1,22 @@
 # EX — 视频解说版式
 
-## Overview
+## 概述
 按拍写的视觉脚本：每一拍画面是什么、用来留人的钩子在哪几秒。
 
 ## Format Characteristics
+> 本节标题被流程引用，英文原文逐字保留。
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
 | **Aspect** | 16:9（横屏）/ 9:16（竖屏短视频） |
-| **Frames** | 按**拍**计：`0s` 钩子 → `3s` 承诺 → 每 `15–30s` 一个再钩子 → 收尾兑付 |
+| **帧数** | 按**拍**计：`0s` 钩子 → `3s` 承诺 → 每 `15–30s` 一个再钩子 → 收尾兑付 |
 | **Density** | 每拍一个画面 + 一句旁白；屏上文字 ≤ 8 字（短视频常见） |
-| **Type scale** | 屏上文字为「扫读」服务：大字、粗体、高对比 |
-| **Transition** | 拍与拍之间用画面变化做节拍（切换即节拍） |
-| **Chart treatment** | 数据用动效逐项出现，不做一次性铺满 |
+| **字阶** | 屏上文字为「扫读」服务：大字、粗体、高对比 |
+| **转场** | 拍与拍之间用画面变化做节拍（切换即节拍） |
+| **图表处理** | 数据用动效逐项出现，不做一次性铺满 |
 
 ## Prompt Recipe
+> 配方整段贴入外部生成服务的提示词，保留英文原文。
 
 ```
 Design a YouTube explainer layout. Produce a visual script with engagement hooks at 0s, 3s, and every 15-30s; specify on-screen visuals per beat; apply bold, casual typographic style appropriate to the platform.
@@ -27,6 +29,7 @@ Design a YouTube explainer layout. Produce a visual script with engagement hooks
 - 需要在开头 3 秒决定观众去留的分发场景
 
 ## Review Gate
+> 本节标题被流程引用，英文原文逐字保留。
 - 钩子节拍：0s / 3s / 15–30s 各有明确钩子，且钩子回答「你为什么继续看」
 - 逐拍画面：每拍都能说出画面上是什么（写「画面丰富」等于没写）
 - 故事结构：钩子 → 张力 → 兑付这条弧在整片成立

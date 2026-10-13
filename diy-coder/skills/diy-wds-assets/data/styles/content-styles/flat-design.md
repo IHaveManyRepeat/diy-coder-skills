@@ -1,26 +1,28 @@
-# Flat Design
+# 扁平设计（Flat Design）
 
-## Overview
-No gradients, shadows, or 3D effects — pure shapes, clean colors, geometric simplicity.
+## 概述
+无渐变、无阴影、无 3D 效果——纯粹的形状、干净的色彩、几何化的简洁。
 
-## Rendering Characteristics
+## 渲染特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Detail level** | Low — maximally simplified |
-| **Lighting** | None — flat color fills |
-| **Texture** | None — smooth, uniform |
-| **Color** | Solid fills, limited palette |
-| **Depth** | None — purely 2D |
+| **细节程度** | 低——最大程度简化 |
+| **光照** | 无——纯色平涂 |
+| **质感** | 无——平滑均匀 |
+| **色彩** | 纯色填充，限定色板 |
+| **景深** | 无——纯 2D |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `flat design, flat illustration, minimalist, geometric, solid colors, no shadows, 2D, clean shapes`
 
-## Best For
-- UI elements, icons, infographics, onboarding illustrations
-- Fast-loading assets, scalable graphics
+## 适用场景
+- UI 元素、图标、信息图、新手引导插画
+- 加载快速的素材、可缩放的图形
 
 ## Dimensions Guide
-- Icons: 24x24 to 256x256
-- Illustrations: variable
-- Infographics: full-width
+> 本节标题被流程引用，英文原文逐字保留。
+- 图标：24x24 到 256x256
+- 插画：尺寸不定
+- 信息图：通栏

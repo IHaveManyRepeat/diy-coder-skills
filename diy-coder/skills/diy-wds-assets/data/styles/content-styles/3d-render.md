@@ -1,26 +1,28 @@
-# 3D Render
+# 3D 渲染（3D Render）
 
-## Overview
-Full 3D rendered objects or scenes with realistic materials, lighting, and depth.
+## 概述
+完整的 3D 渲染物体或场景，具备真实的材质、光照与景深层次。
 
-## Rendering Characteristics
+## 渲染特征
 
-| Property | Value |
+| 属性 | 值 |
 |----------|-------|
-| **Detail level** | High — materials, reflections, environment |
-| **Lighting** | Studio or environmental lighting |
-| **Texture** | Realistic materials (metal, glass, plastic, fabric) |
-| **Color** | Full spectrum, material-dependent |
-| **Depth** | Full 3D with perspective |
+| **细节程度** | 高——材质、反射与环境细节丰富 |
+| **光照** | 影棚灯光或环境光 |
+| **质感** | 真实材质（金属、玻璃、塑料、织物） |
+| **色彩** | 全光谱，随材质而定 |
+| **景深** | 完整 3D，带透视 |
 
 ## Prompt Keywords
+> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `3D render, 3D illustration, CGI, rendered, studio lighting, material design, glossy, matte, metallic`
 
-## Best For
-- Product showcases, device mockups, abstract hero images
-- Technology brands, gaming, automotive
+## 适用场景
+- 产品展示、设备样机、抽象首屏大图
+- 科技品牌、游戏、汽车行业
 
 ## Dimensions Guide
-- Product renders: 1:1 or 4:3
-- Hero scenes: 16:9 or 21:9
-- Device mockups: device-specific ratios
+> 本节标题被流程引用，英文原文逐字保留。
+- 产品渲染：1:1 或 4:3
+- 首屏场景：16:9 或 21:9
+- 设备样机：按设备实际比例
