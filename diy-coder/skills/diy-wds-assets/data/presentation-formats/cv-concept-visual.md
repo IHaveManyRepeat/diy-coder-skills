@@ -4,7 +4,7 @@
 一张图把主意讲完：**图就是解释本身**，不是解释旁边的配图。
 
 ## Format Characteristics
-> 本节标题被流程引用，英文原文逐字保留。
+> **格式特征**——本节标题被流程引用，英文原文逐字保留。
 
 | 属性 | 值 |
 |----------|-------|
@@ -16,7 +16,7 @@
 | **图表处理** | 不讲数据；讲的是一个念头 |
 
 ## Prompt Recipe
-> 配方整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词配方**——配方整段贴入外部生成服务的提示词，保留英文原文。
 
 ```
 Generate a single expressive image (concept visual) that explains the idea creatively and memorably. Apply visual metaphor, test the 3-second comprehension rule, and make the image the explanation — not a decoration on top of one.
@@ -25,11 +25,12 @@ Generate a single expressive image (concept visual) that explains the idea creat
 > **本配方是七条里最小的一条**，也是最容易被误用的一条：它的判据只有一条——**把文字全遮住，图还讲得通**吗。
 
 ## Best For
+> **适用场景**——英文原文保留。
 - 文章/帖子题图，需要一眼抓人的场合
 - 一个点子只需要一个画面承载时
 
 ## Review Gate
-> 本节标题被流程引用，英文原文逐字保留。
+> **评审门**——本节标题被流程引用，英文原文逐字保留。
 - 图就是解释：遮住文字后，图仍然传达同一件事
 - 3 秒可懂：第一眼看懂在讲什么
 - 单一焦点：没有第二个抢注意力的元素

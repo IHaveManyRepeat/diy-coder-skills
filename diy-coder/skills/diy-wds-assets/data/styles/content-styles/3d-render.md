@@ -14,7 +14,7 @@
 | **景深** | 完整 3D，带透视 |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `3D render, 3D illustration, CGI, rendered, studio lighting, material design, glossy, matte, metallic`
 
 ## 适用场景
@@ -22,7 +22,7 @@
 - 科技品牌、游戏、汽车行业
 
 ## Dimensions Guide
-> 本节标题被流程引用，英文原文逐字保留。
+> **尺寸指南**——本节标题被流程引用，英文原文逐字保留。
 - 产品渲染：1:1 或 4:3
 - 首屏场景：16:9 或 21:9
 - 设备样机：按设备实际比例

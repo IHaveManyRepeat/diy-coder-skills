@@ -14,7 +14,7 @@
 | **景深** | 氛围感——逐渐淡入白色 |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `watercolor, watercolour, painted, soft washes, paper texture, transparent paint, flowing color, artistic`
 
 ## 适用场景
@@ -22,6 +22,6 @@
 - 背景、装饰元素、章节分隔
 
 ## Dimensions Guide
-> 本节标题被流程引用，英文原文逐字保留。
+> **尺寸指南**——本节标题被流程引用，英文原文逐字保留。
 - 背景：通栏，边缘透明
 - 装饰：尺寸不定，形状自然随性

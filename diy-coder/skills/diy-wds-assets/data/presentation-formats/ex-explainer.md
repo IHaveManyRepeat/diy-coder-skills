@@ -4,7 +4,7 @@
 按拍写的视觉脚本：每一拍画面是什么、用来留人的钩子在哪几秒。
 
 ## Format Characteristics
-> 本节标题被流程引用，英文原文逐字保留。
+> **格式特征**——本节标题被流程引用，英文原文逐字保留。
 
 | 属性 | 值 |
 |----------|-------|
@@ -16,7 +16,7 @@
 | **图表处理** | 数据用动效逐项出现，不做一次性铺满 |
 
 ## Prompt Recipe
-> 配方整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词配方**——配方整段贴入外部生成服务的提示词，保留英文原文。
 
 ```
 Design a YouTube explainer layout. Produce a visual script with engagement hooks at 0s, 3s, and every 15-30s; specify on-screen visuals per beat; apply bold, casual typographic style appropriate to the platform.
@@ -25,11 +25,12 @@ Design a YouTube explainer layout. Produce a visual script with engagement hooks
 > **diy 机制的改动（裁定 7）**：**去平台绑定**（源句里的平台专属字体与缩略图规格不迁移），保留**钩子时间线**与「逐拍画面」。**交界约定**：内容脚本（钩子节拍 / 逐拍画面 / 旁白）归第 9 活动；**动效与视频落盘走 `[V]` 的 `assets/motion/` 通道**——EX 是两个活动的交界配方，不是 `[V]` 的子项。
 
 ## Best For
+> **适用场景**——英文原文保留。
 - 产品解说 / 教程 / 概念科普等「讲一遍」的场合
 - 需要在开头 3 秒决定观众去留的分发场景
 
 ## Review Gate
-> 本节标题被流程引用，英文原文逐字保留。
+> **评审门**——本节标题被流程引用，英文原文逐字保留。
 - 钩子节拍：0s / 3s / 15–30s 各有明确钩子，且钩子回答「你为什么继续看」
 - 逐拍画面：每拍都能说出画面上是什么（写「画面丰富」等于没写）
 - 故事结构：钩子 → 张力 → 兑付这条弧在整片成立

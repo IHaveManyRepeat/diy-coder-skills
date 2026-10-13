@@ -14,7 +14,7 @@
 | **景深** | 无——纯 2D |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `flat design, flat illustration, minimalist, geometric, solid colors, no shadows, 2D, clean shapes`
 
 ## 适用场景
@@ -22,7 +22,7 @@
 - 加载快速的素材、可缩放的图形
 
 ## Dimensions Guide
-> 本节标题被流程引用，英文原文逐字保留。
+> **尺寸指南**——本节标题被流程引用，英文原文逐字保留。
 - 图标：24x24 到 256x256
 - 插画：尺寸不定
 - 信息图：通栏

@@ -14,7 +14,7 @@
 | **景深** | 通过线条粗细变化暗示 |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `line art, line drawing, outline, continuous line, single line, clean lines, black and white, monoline`
 
 ## 适用场景
@@ -22,7 +22,7 @@
 - 极简品牌、加载动画的基础图形
 
 ## Dimensions Guide
-> 本节标题被流程引用，英文原文逐字保留。
+> **尺寸指南**——本节标题被流程引用，英文原文逐字保留。
 - 图标：24x24 到 128x128
 - 装饰图形：尺寸不定
 - 图表：视内容而定

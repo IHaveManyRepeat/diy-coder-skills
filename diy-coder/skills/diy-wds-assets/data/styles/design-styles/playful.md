@@ -16,7 +16,7 @@
 | **图标** | 填充式、色彩丰富，有时带动画 |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `playful, fun, colorful, energetic, vibrant, cheerful, friendly, whimsical, bouncy`
 
 ## 适用场景

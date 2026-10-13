@@ -16,7 +16,7 @@
 | **图标** | 圆润的有机线条风格 |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `organic, natural, warm, earthy, soft, flowing, nature-inspired, handcrafted, textured`
 
 ## 适用场景

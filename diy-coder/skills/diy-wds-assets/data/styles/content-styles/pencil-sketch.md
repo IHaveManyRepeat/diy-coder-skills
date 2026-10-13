@@ -14,7 +14,7 @@
 | **景深** | 由明暗色调营造的景深 |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `pencil sketch, hand-drawn, graphite, charcoal, sketch style, rough drawing, crosshatch, tonal`
 
 ## 适用场景
@@ -22,6 +22,6 @@
 - 传达「进行中」或「幕后」的氛围
 
 ## Dimensions Guide
-> 本节标题被流程引用，英文原文逐字保留。
+> **尺寸指南**——本节标题被流程引用，英文原文逐字保留。
 - 概念草图：尺寸不定
 - 线框插画：页宽

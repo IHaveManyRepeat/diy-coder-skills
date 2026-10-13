@@ -4,7 +4,7 @@
 用视觉隐喻把一个概念讲明白：鲁布·戈德堡机 / 旅程地图 / 创意流程——**可记忆优先于全面**。
 
 ## Format Characteristics
-> 本节标题被流程引用，英文原文逐字保留。
+> **格式特征**——本节标题被流程引用，英文原文逐字保留。
 
 | 属性 | 值 |
 |----------|-------|
@@ -16,7 +16,7 @@
 | **图表处理** | 流程/因果用箭头与空间位置表达，不靠文字说明 |
 
 ## Prompt Recipe
-> 配方整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词配方**——配方整段贴入外部生成服务的提示词，保留英文原文。
 
 ```
 Create a conceptual illustration — Rube Goldberg machine, journey map, or creative-process diagram. Use visual metaphor to explain the concept; prioritize memorability over comprehensiveness.
@@ -25,11 +25,12 @@ Create a conceptual illustration — Rube Goldberg machine, journey map, or crea
 > **成像技法从第二轴取**：插画风格（`isometric` / `illustration` / `line-art` / `watercolor` 等）从 `data/styles/content-styles/` 选卡，`Prompt Keywords` 逐词带进提示词。
 
 ## Best For
+> **适用场景**——英文原文保留。
 - 把一个抽象流程讲给人听（旅程地图最擅此项）
 - 概念页 / 封面 / 社媒单图
 
 ## Review Gate
-> 本节标题被流程引用，英文原文逐字保留。
+> **评审门**——本节标题被流程引用，英文原文逐字保留。
 - 隐喻成立：不看标签能不能猜出大意
 - 可记忆优先：宁可少讲一层，不可让隐喻变复杂
 - 3 秒可懂：远处一眼看出「这是在讲一件事」

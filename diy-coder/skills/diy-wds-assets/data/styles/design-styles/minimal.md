@@ -16,7 +16,7 @@
 | **图标** | 线条图标，描边粗细一致 |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `minimal, clean, whitespace, simple, uncluttered, modern, restrained, elegant simplicity`
 
 ## 适用场景

@@ -14,7 +14,7 @@
 | **景深** | 扁平至中等景深 |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `illustration, digital illustration, hand-drawn, custom art, vector style, flat illustration, character illustration`
 
 ## 适用场景
@@ -22,7 +22,7 @@
 - 摄影无法呈现的独特品牌辨识度
 
 ## Dimensions Guide
-> 本节标题被流程引用，英文原文逐字保留。
+> **尺寸指南**——本节标题被流程引用，英文原文逐字保留。
 - 点缀插画：400x400 到 800x800
 - 场景插画：16:9 或自定义
 - 图标式插画：64x64 到 256x256

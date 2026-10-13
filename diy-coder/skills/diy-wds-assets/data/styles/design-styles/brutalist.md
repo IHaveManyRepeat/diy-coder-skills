@@ -16,7 +16,7 @@
 | **图标** | 定制、手绘，或刻意粗陋 |
 
 ## Prompt Keywords
-> 关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
 `brutalist, raw, bold, unconventional, stark, industrial, exposed structure, anti-design`
 
 ## 适用场景
