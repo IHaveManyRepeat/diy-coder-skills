@@ -16,11 +16,13 @@
 | **图表处理** | 增长曲线 / 漏斗 / 单位经济三件套；坐标轴与单位必须标全（投资人会追问） |
 
 ## Prompt Recipe
-> **提示词配方**——配方整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词配方**——配方英文段整段贴入外部生成服务，保留英文原文；段后中文对照仅供理解。
 
 ```
 Craft an investor pitch presentation. Build a narrative arc (problem → solution → traction → ask), design data visualizations that make the numbers pop, and enforce a polished, professional visual language.
 ```
+
+中文对照：打造一份投资人路演演示。搭建叙事弧线（问题 → 方案 → 进展 → 融资请求），设计让数字跳出来的数据可视化，并贯彻精致、专业的视觉语言。
 
 > **输入来源**：`wds-brief.yaml` 的 `brief.core`（愿景 / 定位 / 业务模式 / 目标用户 / 成功标准 / 竞争格局）逐项对得上四拍——这是 diy 侧「演示跨域可容」的真正依据（census-4 §7-③）。
 

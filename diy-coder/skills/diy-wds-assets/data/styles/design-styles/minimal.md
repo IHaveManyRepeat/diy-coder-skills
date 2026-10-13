@@ -16,8 +16,9 @@
 | **图标** | 线条图标，描边粗细一致 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `minimal, clean, whitespace, simple, uncluttered, modern, restrained, elegant simplicity`
+中文对照：极简、干净、留白、简单、无杂乱、现代、克制、优雅的简洁
 
 ## 适用场景
 - 作品集网站、奢侈品牌、SaaS 产品、个人网站

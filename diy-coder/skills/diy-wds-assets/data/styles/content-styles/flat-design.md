@@ -14,8 +14,9 @@
 | **景深** | 无——纯 2D |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `flat design, flat illustration, minimalist, geometric, solid colors, no shadows, 2D, clean shapes`
+中文对照：扁平设计、扁平插画、极简、几何感、纯色平涂、无阴影、二维、干净形状
 
 ## 适用场景
 - UI 元素、图标、信息图、新手引导插画

@@ -14,8 +14,9 @@
 | **景深** | 扁平但带戏剧化透视 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `comic book, comic style, halftone, bold outlines, pop art, graphic novel, ink, dynamic, action`
+中文对照：美式漫画、漫画风格、半调网点、粗描边、波普艺术、图像小说、墨线、动感、动作场面
 
 ## 适用场景
 - 游戏、娱乐、年轻潮牌、营销活动

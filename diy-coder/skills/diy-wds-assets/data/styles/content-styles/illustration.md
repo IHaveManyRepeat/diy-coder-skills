@@ -14,8 +14,9 @@
 | **景深** | 扁平至中等景深 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `illustration, digital illustration, hand-drawn, custom art, vector style, flat illustration, character illustration`
+中文对照：插画、数字插画、手绘、定制美术、矢量风格、扁平插画、角色插画
 
 ## 适用场景
 - 品牌叙事、新手引导流程、空状态页、错误页

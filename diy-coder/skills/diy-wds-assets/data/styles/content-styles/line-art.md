@@ -14,8 +14,9 @@
 | **景深** | 通过线条粗细变化暗示 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `line art, line drawing, outline, continuous line, single line, clean lines, black and white, monoline`
+中文对照：线条艺术、线描画、轮廓线、连续线条、单线画、干净线条、黑白、等宽单线
 
 ## 适用场景
 - 图标、技术图纸、涂色书风格、装饰纹样

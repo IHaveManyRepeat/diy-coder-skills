@@ -14,8 +14,9 @@
 | **景深** | 氛围感——逐渐淡入白色 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `watercolor, watercolour, painted, soft washes, paper texture, transparent paint, flowing color, artistic`
+中文对照：水彩、水彩（英式拼法）、绘画感、柔和晕染、纸张纹理、透明颜料、色彩流动、艺术感
 
 ## 适用场景
 - 婚礼网站、健康养生、艺术画廊、文具、精品品牌

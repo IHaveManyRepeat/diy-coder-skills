@@ -14,8 +14,9 @@
 | **景深** | 由明暗色调营造的景深 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `pencil sketch, hand-drawn, graphite, charcoal, sketch style, rough drawing, crosshatch, tonal`
+中文对照：铅笔素描、手绘、石墨笔、炭笔、素描风格、粗粝笔触、交叉排线、明暗调子
 
 ## 适用场景
 - 建筑、概念艺术、线框风格插画、草稿预览

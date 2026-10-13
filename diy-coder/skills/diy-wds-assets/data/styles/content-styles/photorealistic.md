@@ -14,8 +14,9 @@
 | **景深** | 真实景深 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `photorealistic, realistic, photograph, natural lighting, high detail, lifelike, studio quality, DSLR`
+中文对照：照片级写实、写实、照片、自然光、高细节、栩栩如生、影棚级画质、单反相机
 
 ## 适用场景
 - 产品摄影、首屏大图、团队人像、房地产

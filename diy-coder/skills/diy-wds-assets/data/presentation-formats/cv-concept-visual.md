@@ -16,11 +16,13 @@
 | **图表处理** | 不讲数据；讲的是一个念头 |
 
 ## Prompt Recipe
-> **提示词配方**——配方整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词配方**——配方英文段整段贴入外部生成服务，保留英文原文；段后中文对照仅供理解。
 
 ```
 Generate a single expressive image (concept visual) that explains the idea creatively and memorably. Apply visual metaphor, test the 3-second comprehension rule, and make the image the explanation — not a decoration on top of one.
 ```
+
+中文对照：生成一张富有表现力的图像（概念视觉图），用有创意且令人难忘的方式把主意讲清楚。运用视觉隐喻，检验 3 秒理解规则，让图像成为解释本身——而不是附在解释之上的装饰。
 
 > **本配方是七条里最小的一条**，也是最容易被误用的一条：它的判据只有一条——**把文字全遮住，图还讲得通**吗。
 

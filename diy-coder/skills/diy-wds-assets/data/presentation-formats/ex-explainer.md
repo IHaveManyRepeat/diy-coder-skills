@@ -16,11 +16,13 @@
 | **图表处理** | 数据用动效逐项出现，不做一次性铺满 |
 
 ## Prompt Recipe
-> **提示词配方**——配方整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词配方**——配方英文段整段贴入外部生成服务，保留英文原文；段后中文对照仅供理解。
 
 ```
 Design a YouTube explainer layout. Produce a visual script with engagement hooks at 0s, 3s, and every 15-30s; specify on-screen visuals per beat; apply bold, casual typographic style appropriate to the platform.
 ```
+
+中文对照：设计 YouTube 解说视频版式。产出带留人钩子的视觉脚本（0 秒、3 秒、每 15–30 秒一处）；逐拍指定屏上画面；运用适合该平台的大胆随性的字体风格。
 
 > **diy 机制的改动（裁定 7）**：**去平台绑定**（源句里的平台专属字体与缩略图规格不迁移），保留**钩子时间线**与「逐拍画面」。**交界约定**：内容脚本（钩子节拍 / 逐拍画面 / 旁白）归第 9 活动；**动效与视频落盘走 `[V]` 的 `assets/motion/` 通道**——EX 是两个活动的交界配方，不是 `[V]` 的子项。
 

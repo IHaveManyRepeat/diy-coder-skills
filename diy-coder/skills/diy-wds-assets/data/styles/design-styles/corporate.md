@@ -16,8 +16,9 @@
 | **图标** | 实心或双色调，风格统一 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `corporate, professional, trustworthy, clean, business, authoritative, polished, structured`
+中文对照：商务、专业、可信赖、干净、商业感、权威感、精致打磨、结构化
 
 ## 适用场景
 - B2B 软件、金融服务、咨询、企业级工具

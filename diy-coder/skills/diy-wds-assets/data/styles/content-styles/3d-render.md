@@ -14,8 +14,9 @@
 | **景深** | 完整 3D，带透视 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `3D render, 3D illustration, CGI, rendered, studio lighting, material design, glossy, matte, metallic`
+中文对照：3D 渲染、3D 插画、CGI 电脑合成图像、已渲染成品、影棚打光、材质设计、高光泽、哑光、金属质感
 
 ## 适用场景
 - 产品展示、设备样机、抽象首屏大图

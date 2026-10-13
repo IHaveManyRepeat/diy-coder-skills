@@ -14,8 +14,9 @@
 | **景深** | 等距投影（30 度夹角） |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `isometric, isometric illustration, 3D isometric, parallel projection, geometric, clean, technical illustration`
+中文对照：等距视角、等距插画、3D 等距、平行投影、几何感、干净、技术插画
 
 ## 适用场景
 - 科技产品、数据可视化、流程图、功能展示

@@ -16,11 +16,13 @@
 | **图表处理** | 流程/因果用箭头与空间位置表达，不靠文字说明 |
 
 ## Prompt Recipe
-> **提示词配方**——配方整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词配方**——配方英文段整段贴入外部生成服务，保留英文原文；段后中文对照仅供理解。
 
 ```
 Create a conceptual illustration — Rube Goldberg machine, journey map, or creative-process diagram. Use visual metaphor to explain the concept; prioritize memorability over comprehensiveness.
 ```
+
+中文对照：创作一张概念插画——鲁布·戈德堡机、旅程地图或创意流程图。用视觉隐喻解释概念；可记忆优先于面面俱到。
 
 > **成像技法从第二轴取**：插画风格（`isometric` / `illustration` / `line-art` / `watercolor` 等）从 `data/styles/content-styles/` 选卡，`Prompt Keywords` 逐词带进提示词。
 

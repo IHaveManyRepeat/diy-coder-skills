@@ -16,11 +16,13 @@
 | **图表处理** | **图型先定**：比较用条形 / 趋势用折线 / 构成用堆叠 / 关系用散点或弦图；层级靠视觉编码，不靠报表默认样式 |
 
 ## Prompt Recipe
-> **提示词配方**——配方整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词配方**——配方英文段整段贴入外部生成服务，保留英文原文；段后中文对照仅供理解。
 
 ```
 Design a creative information visualization. Choose the chart/diagram type that lets the data tell the story, layer visual storytelling on top of the data, and cut every pixel that doesn't inform-persuade-or-transition.
 ```
+
+中文对照：设计有创意的信息可视化。选择能让数据自己讲故事的图表类型，在数据之上叠加视觉叙事层，砍掉每一个不参与「传递信息—说服—过渡」的像素。
 
 > **与 `content-styles` 的接续**：`VM` / `CV` 之外的插画技法从 `data/styles/content-styles/` 取——源侧实测 `isometric` 卡的 `适用场景` 已直接写「数据可视化、流程图」，两轴天然接续，无需新机制。
 

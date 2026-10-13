@@ -16,8 +16,9 @@
 | **图标** | 定制、手绘，或刻意粗陋 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `brutalist, raw, bold, unconventional, stark, industrial, exposed structure, anti-design`
+中文对照：粗野主义、原始感、大胆、反常规、冷峻、工业感、裸露结构、反设计
 
 ## 适用场景
 - 创意机构、艺术作品集、实验性项目、时尚品牌

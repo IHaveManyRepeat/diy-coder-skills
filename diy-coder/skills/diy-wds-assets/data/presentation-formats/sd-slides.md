@@ -16,11 +16,13 @@
 | **图表处理** | 数据作图，不做装饰性图表；一图一个结论 |
 
 ## Prompt Recipe
-> **提示词配方**——配方整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词配方**——配方英文段整段贴入外部生成服务，保留英文原文；段后中文对照仅供理解。
 
 ```
 Design a multi-slide presentation using Excalidraw frame-based layout. Apply audience-appropriate visual hierarchy, enforce the 3-second rule on every frame, and use consistent visual language throughout.
 ```
+
+中文对照：使用 Excalidraw 基于画框的版式设计多页演示。运用适合受众的视觉层级，每一帧执行 3 秒规则，全程使用一致的视觉语言。
 
 > **diy 机制的改动（裁定 7）**：保留「逐页版式 + 视觉层级 + 3 秒规则」，**弃 Excalidraw 帧文件格式**——本套件产物是 YAML / HTML，不是 `.excalidraw`。上句可作为提示词的风格段整段粘贴；「一帧 = 一页」由 `frames[]` 的 `n` 承载。生成物请要求 HTML / 图片，忽略 Excalidraw 文件格式那一句。
 

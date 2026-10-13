@@ -16,8 +16,9 @@
 | **图标** | 少量使用——由字体承载设计 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `editorial, magazine, typographic, sophisticated, storytelling, grid-based, print-inspired, refined`
+中文对照：编辑排版、杂志感、字体编排、精致老练、叙事性、基于网格、印刷启发、雅致
 
 ## 适用场景
 - 媒体、出版物、博客、奢侈品牌、文化机构

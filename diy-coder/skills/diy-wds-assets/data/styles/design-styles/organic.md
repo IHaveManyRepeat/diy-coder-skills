@@ -16,8 +16,9 @@
 | **图标** | 圆润的有机线条风格 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `organic, natural, warm, earthy, soft, flowing, nature-inspired, handcrafted, textured`
+中文对照：有机、自然、温暖、大地色、柔和、流动感、自然启发、手工感、有肌理
 
 ## 适用场景
 - 健康养生、食品、可持续发展、户外品牌、本地商户

@@ -14,8 +14,9 @@
 | **景深** | 浅景深、焦外虚化 |
 
 ## Prompt Keywords
-> **提示词关键词**——关键词行整段贴入外部生成服务的提示词，保留英文原文。
+> **提示词**——英文行整段贴入外部生成服务；下行中文对照仅供理解。
 `hyper-realistic, ultra-detailed, 8K, macro detail, cinematic lighting, photographic, sharp focus, professional photography`
+中文对照：超写实、超精细、8K、微距细节、电影感打光、摄影质感、锐利对焦、专业摄影
 
 ## 适用场景
 - 奢侈品牌、美食摄影、汽车、珠宝
