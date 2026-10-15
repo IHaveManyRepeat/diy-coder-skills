@@ -66,10 +66,6 @@ GATE_FILES = ("design.yaml", "design.yml", "sprint.yaml", "sprint.yml")
 GATE_GLOB_PREFIX = "wds-"
 
 
-class UsageError(Exception):
-    """用法/参数错误（exit 2）。"""
-
-
 # —— 基础工具 ——
 
 
