@@ -841,6 +841,28 @@ class CommonTest(CheckBase):
         self.assertIsInstance(r["warnings"], list)
         self.assertIsInstance(r["counts"], dict)
 
+    # v4 批 3（§7-3b）：全类型 project 时间键格式断言——两格式兼容（存量纯日期 |
+    # 秒级真值）；空串（留空＝未盖章）与乱写红
+    def test_project_times_accept_both_formats(self):
+        doc = prd_doc()
+        doc["project"]["created"] = "2026-10-13 09:00:00"
+        doc["project"]["updated"] = "2026-10-13 09:30:15"
+        fx.write_doc(self.root, "prd", doc)
+        r = check(self.root, "prd")
+        self.assertTrue(r["ok"], msgs(r))
+
+    def test_project_times_reject_empty_and_garbage(self):
+        doc = prd_doc()
+        doc["project"]["created"] = ""
+        doc["project"]["updated"] = "手写"
+        fx.write_doc(self.root, "prd", doc)
+        r = check(self.root, "prd")
+        self.assertFalse(r["ok"])
+        self.assertEqual(codes(r), {"ENUM_INVALID"})
+        wheres = " ".join(x["where"] for x in r["violations"])
+        self.assertIn("project.created", wheres)
+        self.assertIn("project.updated", wheres)
+
 
 # ---------------------------------------------------------------- mutation-report
 

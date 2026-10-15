@@ -150,8 +150,9 @@ class NewTests(EngineCase):
         self.assertEqual([x["id"] for x in records], ["SK-001", "SK-002"])
         self.assertEqual([x["slug"] for x in records], ["alpha", "beta"])
         self.assertEqual(records[0]["status"], "草稿")
-        self.assertEqual(records[0]["date"], self.payload(r1)["updated"])
-        self.assertEqual(data["updated"], self.payload(r1)["updated"])
+        # v4 批3：updated 秒级后，记录 date（日期粒度）与两写回的 updated 取日期部分对齐
+        self.assertEqual(records[0]["date"], self.payload(r1)["updated"][:10])
+        self.assertEqual(data["updated"][:10], self.payload(r1)["updated"][:10])
         # 有空洞的稿：最大序号 + 1，绝不重号
         self.write_spec(NL.join([
             "project: {name: mini, created: '2026-09-20', updated: '2026-09-20'}",

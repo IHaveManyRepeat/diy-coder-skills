@@ -82,7 +82,8 @@ Progress: `[Ignition] → Press Release → Customer FAQ → Internal FAQ → Ve
 写 `{output_dir}/prfaq.yaml`——后续每个阶段都更新的单一源：
 
 ```yaml
-project: {name: <diy-coder.yaml 的 project.name>, status: 草稿, created: <today>, updated: <today>}
+project: {name: <diy-coder.yaml 的 project.name>, status: 草稿, created: , updated: }
+                              # 时间键留空；建文件后跑 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type prfaq --json 盖秒级章；每次写回产物后再跑一次（刷 updated）
 prfaq:
   stage: 1
   concept_type: <detected>

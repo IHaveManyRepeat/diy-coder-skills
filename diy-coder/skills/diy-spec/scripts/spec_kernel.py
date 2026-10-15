@@ -70,6 +70,11 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def display_path(path, project_root):
     """where 显示口径（对齐 diyc）：正斜杠 + 相对 project-root；越界回退绝对路径。"""
     try:
@@ -480,7 +485,7 @@ def cmd_new(args):
     elif nonempty(args.slug):
         if data is None:
             name = project_name(root, warnings)
-            stamp = today()
+            stamp = now()
             data = {"project": {"name": name, "created": stamp, "updated": stamp},
                     "specs": [], "revisions": []}
         existing = [r for r in (data.get("specs") or []) if isinstance(r, dict)]
@@ -504,9 +509,9 @@ def cmd_new(args):
                                   "preservation": {"dropped": [], "note": ""}}}
             data["specs"] = list(data.get("specs") or []) + [record]
             data["project"] = dict(data.get("project") or {})
-            data["project"]["updated"] = today()
+            data["project"]["updated"] = now()
             if not nonempty(data["project"].get("created")):
-                data["project"]["created"] = today()
+                data["project"]["created"] = now()
             try:
                 os.makedirs(out, exist_ok=True)
                 save_yaml_atomic(path, data)

@@ -142,6 +142,11 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 # trace: B3 diy-teach-me-testing where 显示口径（正斜杠 + 相对 project-root；越界回退绝对路径）
 def display_path(path, project_root):
     try:
@@ -595,7 +600,7 @@ def project_name(root):
 
 # trace: B3 diy-teach-me-testing 空白进度骨架（7 节全未开始；派生字段由引擎写）
 def blank_progress(curriculum, name, role):
-    stamp = today()
+    stamp = now()
     index_by_id = curriculum_index(curriculum)
     sessions = []
     for sid in sorted(index_by_id):
@@ -999,7 +1004,7 @@ def cmd_update(args):
         new_data["completion_percentage"] = percentage
         new_data["next_recommended"] = next_recommended
         project = dict(new_data.get("project") or {})
-        project["updated"] = today()
+        project["updated"] = now()
         new_data["project"] = project
         gate, _ = validate(new_data, curriculum, show, out, root)
         violations = gate

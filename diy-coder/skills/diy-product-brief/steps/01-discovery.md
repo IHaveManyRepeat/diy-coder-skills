@@ -39,7 +39,8 @@ Progress: `[Discovery] → Draft → Finalize`（新建路径；更新从 step 4
 建 `{output_dir}/brief.yaml`（仅新建意图）并告知用户路径：
 
 ```yaml
-project: {name: <diy-coder.yaml project.name>, status: 草稿, created: <today>, updated: <today>}
+project: {name: <diy-coder.yaml project.name>, status: 草稿, created: , updated: }
+                              # 时间键留空；建文件后跑 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type brief --json 盖秒级章；每次写回产物后再跑一次（刷 updated）
 brief: {title: '', stakes: <已读出的档位>, problem: '', solution: '', pitch: '',
         users: [], value: [], open_questions: [], assumptions: [], extra_sections: []}
 decisions: []

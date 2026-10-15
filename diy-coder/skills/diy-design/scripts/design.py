@@ -140,6 +140,11 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def load_yaml(path):
     with io.open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
@@ -1236,7 +1241,7 @@ def cmd_transition(args):  # trace: S-14 AC-14.1 页状态迁移写回（9 条�
     if not isinstance(project, dict):
         return _transition_fail(args, [v("EMPTY_FIELD", base_name + " project",
                                          "project 缺失或不是映射——形状异常，拒绝写回")], counts)
-    stamp = today()
+    stamp = now()
     new_page = dict(page)
     new_page["status"] = dst
     if dst == "已移除":
@@ -1248,7 +1253,7 @@ def cmd_transition(args):  # trace: S-14 AC-14.1 页状态迁移写回（9 条�
     if dst == "已移除" or (src, dst) == ("已批准", "结构稿中"):
         # 破坏性边才追加 revisions（裁定 14）：纯推进不记
         new_doc["revisions"] = list(doc.get("revisions") or []) + [
-            {"date": stamp, "change": args.page, "reason": reason or ("%s → %s" % (src, dst))}]
+            {"date": today(), "change": args.page, "reason": reason or ("%s → %s" % (src, dst))}]
     warnings = dangling_design_refs(path, args.page) if dst == "已移除" else []
     write_prev_snapshot(path)  # 重写前落 .prev 快照（裁定 15）
     save_yaml_atomic(path, new_doc)

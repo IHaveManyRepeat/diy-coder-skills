@@ -45,6 +45,12 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    import datetime
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def load_yaml(path):
     with io.open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
@@ -137,7 +143,7 @@ def read_product(args, command):
 # ---- init ------------------------------------------------------------------
 
 def skeleton(name, question, scope, output_format, time_box, codebase):
-    stamp = today()
+    stamp = now()
     return {
         "project": {"name": name, "created": stamp, "updated": stamp,
                     "status": "草稿"},
@@ -178,7 +184,7 @@ def cmd_init(args):
             warnings.append(v("ALREADY_EXISTS", "analysis.yaml",
                               "既有产物在场：不覆盖，只刷 project.updated"
                               "（要改内容就地编辑，改既有条目往 revisions 追加）"))
-            old.setdefault("project", {})["updated"] = today()
+            old.setdefault("project", {})["updated"] = now()
             save_yaml_atomic(path, old)
             return emit(receipt("init", True, args.project_root, out_dir,
                                 warnings=warnings,

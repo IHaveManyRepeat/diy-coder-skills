@@ -44,7 +44,7 @@ outputs: test-plan.yaml
 
 `{output_dir}/test-plan.yaml`:
 ```yaml
-project: {name, status: 草稿|已定稿, created: YYYY-MM-DD, updated: YYYY-MM-DD}   # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, status: 草稿|已定稿, created, updated}   # 时间键留空、跑 diyc stamp 盖秒级章（created 此后不改；updated 每次写回后刷）
 fault_hypotheses:         # 先列故障假设：每条 AC 的具体错误实现，先落 FH 才有可引的 kill_target
   - id: FH-5.1.1          # 稳定：FH-{ac 数字段}.{seq}；永不复用（删除走用户裁决 + revisions 留痕）
     ac: AC-5.1            # 必填：stories.yaml 中已存在的 AC ID

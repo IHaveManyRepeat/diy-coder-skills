@@ -72,8 +72,8 @@ outputs: sprint.yaml
 project:
   name: string
   status: 草稿 | 已定稿            # 用户确认全部假设后才写已定稿
-  created: YYYY-MM-DD             # 建文件时设、此后不改
-  updated: YYYY-MM-DD             # 每次写回刷今天
+  created:                        # diyc 建骨架时程序铸秒级真值（此后不改；AI 不手写时间）
+  updated:                        # diyc 写回命令每次刷秒级真值
 tasks:
   - story: S-1                    # stories.yaml 里既有的 story ID（必填、唯一）
     status: 待办|进行中|待审查|已完成|已阻塞

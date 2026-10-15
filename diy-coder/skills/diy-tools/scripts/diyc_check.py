@@ -413,6 +413,8 @@ def run(args) -> dict:
         return _done(report, {})
 
     docs = Docs(root, out_dir)
+    # v4 批 3（§7-3b）：全类型通用 project 时间键格式断言（两格式兼容＋防忘跑 stamp）
+    d.check_project_times(doc, rel, report)
     if typ in d.CHECKERS:
         counts = d.CHECKERS[typ](doc, rel, docs, final, report)
     elif typ == "sprint":

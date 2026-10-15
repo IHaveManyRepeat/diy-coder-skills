@@ -57,6 +57,11 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def load_yaml(path):
     with io.open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
@@ -152,7 +157,7 @@ def read_design(args, command):
 # ---- init ------------------------------------------------------------------
 
 def skeleton(name):
-    stamp = today()
+    stamp = now()
     return {
         "project": {"name": name, "created": stamp, "updated": stamp,
                     "status": "草稿"},

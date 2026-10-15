@@ -144,6 +144,12 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    import datetime
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def save_yaml_atomic(path, data):
     """同目录 tmp + os.replace 原子替换（契约 §3 写回纪律；注释不保留，失败不吞异常）。"""
     tmp = path + ".tmp"
@@ -411,7 +417,7 @@ def cmd_init(args):
     path = os.path.join(out, BRAINSTORM_FILE)
     show = display_path(path, root)
     payload = receipt_base("init", args, out)
-    stamp = today()
+    stamp = now()
     data, err = load_yaml_safe(path)
     if err is not None:
         payload["violations"] = [v("UNPARSABLE_YAML", show,
@@ -449,7 +455,7 @@ def cmd_init(args):
         doc.setdefault("revisions", [])
         payload["warnings"] = warnings
     record_id = next_record_id(doc.get("sessions") or [])
-    record = new_record(record_id, args.topic, args.goals, stamp)
+    record = new_record(record_id, args.topic, args.goals, today())
     doc["sessions"] = list(doc.get("sessions") or []) + [record]
     try:
         if out:

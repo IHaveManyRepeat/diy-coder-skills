@@ -239,6 +239,12 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    import datetime
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def save_yaml_atomic(path, data):
     """同目录 tmp + os.replace 原子替换（契约 §3 写回纪律；同款实现 = `diyc_lib.save_yaml_atomic`，
     语义一致：注释不保留、失败清理 tmp 后原样抛出，不吞异常、不留残骸）。"""
@@ -635,7 +641,7 @@ def cmd_init(args):
     if violations:
         payload["violations"] = violations
         return emit(payload, args.json)
-    stamp = today()
+    stamp = now()
     data, err = load_yaml_safe(path)
     if err is not None:
         payload["violations"] = [v("UNPARSABLE_YAML", show,
@@ -673,7 +679,7 @@ def cmd_init(args):
         doc.setdefault("revisions", [])
         payload["warnings"] = warnings
     record_id = next_record_id(doc.get("sessions") or [])
-    record = new_record(record_id, method, topic, stamp)
+    record = new_record(record_id, method, topic, today())
     doc["sessions"] = list(doc.get("sessions") or []) + [record]
     try:
         if out:

@@ -48,7 +48,7 @@ outputs: editorial-review.yaml
 `{output_dir}/editorial-review.yaml` —— 唯一源头，顶层不设 `status`（状态在记录级）：
 
 ```yaml
-project: {name, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}   # 时间键留空、跑 diyc stamp 盖秒级章（created 此后不改；updated 每次写回后刷）
 reviews:
   - id: ER-001                      # 首次评审铸造 ER-###；递增、稳定，永不重编号、永不复用
     target: diy-output/brief.yaml   # 被评审文档：project-root 相对 + 正斜杠 + 无 `path:` 前缀

@@ -46,7 +46,8 @@ Progress: `[1 读功能清单] → [2 生成场景/页面树] → [3 用户确�
 用户点头后写盘。形状（**只写骨架，`states[]` 留到 `[P]`**）：
 
 ```yaml
-project: {name: <prd.yaml 的 project.name>, status: 草稿, created: <今天>, updated: <今天>}
+project: {name: <prd.yaml 的 project.name>, status: 草稿, created: , updated: }
+                              # 时间键留空；建文件后跑 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type design --json 盖秒级章；每次写回产物后再跑一次（刷 updated）
 pages:
   - id: P-1            # 主线页 ID 域 `P-n`：顺序铸号、不重编不复用；WDS 线另用 SC-<nn>.P<n>
     name: <页名>

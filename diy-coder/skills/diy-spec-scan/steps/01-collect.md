@@ -35,7 +35,7 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
 
 ## 落草稿记录
 
-创建 `{output_dir}/spec-scan.yaml`（文件不存在时建：`project: {name, created, updated}`——`name` 取自 `diy-coder.yaml` 的 `project.name`——加顶层 `schema: 2` 版本戳、空的 `scans: []` 与 `revisions: []`），追加一条：
+创建 `{output_dir}/spec-scan.yaml`（文件不存在时建：`project: {name, created, updated}`——`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type spec-scan --json` 盖秒级章、每次写回产物后再跑一次；`name` 取自 `diy-coder.yaml` 的 `project.name`——加顶层 `schema: 2` 版本戳、空的 `scans: []` 与 `revisions: []`），追加一条：
 
 ```yaml
   - id: SS-001            # 下一个 = 已有序号最大值 + 1，三位零填充；不重编不重用

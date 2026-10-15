@@ -257,7 +257,7 @@ class UpdateSessionTests(EngineCase):
         self.assertEqual(receipt["sessions_completed"], 1)
         self.assertEqual(receipt["completion_percentage"], 14)
         self.assertEqual(receipt["next_recommended"], 2)
-        self.assertEqual(receipt["updated"], self.today)
+        self.assertEqual(receipt["updated"][:10], self.today)  # v4 批3：updated 秒级
         self.assertEqual(receipt["change"],
                          {"kind": "session", "session": 1,
                           "from": "未开始", "to": "已完成", "redo": False})
@@ -622,14 +622,14 @@ class ContractTests(EngineCase):
         self.assertEqual(data["command"], "init")
         self.assertEqual(data["project_root"], self.root)
         self.assertEqual(data["output_dir"], self.out.replace("\\", "/"))
-        self.assertEqual(data["updated"], self.today, "写命令回执含 updated")
+        self.assertEqual(data["updated"][:10], self.today, "写命令回执含 updated")  # v4 批3：updated 秒级
 
         self.write_notes(1)
         r2 = self.update("--session", "1", "--status", "已完成",
                          "--notes", self.notes_rel(1))
         data2 = json.loads(r2.stdout)
         self.assertTrue(common <= set(data2))
-        self.assertEqual(data2["updated"], self.today)
+        self.assertEqual(data2["updated"][:10], self.today)  # v4 批3：updated 秒级
 
         r3 = self.check()
         data3 = json.loads(r3.stdout)

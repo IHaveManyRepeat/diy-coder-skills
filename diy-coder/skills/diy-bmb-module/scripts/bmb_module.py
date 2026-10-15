@@ -180,6 +180,11 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 # trace: diy-bmb-module 路径令牌处置：{project-root} 按 --project-root 自解析，其余 {...} 一律拒绝
 def resolve_path_arg(raw, project_root):
     text = str(raw)
@@ -674,7 +679,7 @@ def cmd_new(args):
         "plan_id": "",
         "slug": str(args.slug or ""),
         "file": show,
-        "created": today(),
+        "created": now(),
     }
     if out_tokens:
         for token in out_tokens:
@@ -693,7 +698,7 @@ def cmd_new(args):
         return 1
     data, err = load_yaml_safe(path)
     if data is None and err is None:
-        data = {"project": {"name": project_name(root), "created": today(), "updated": today()},
+        data = {"project": {"name": project_name(root), "created": now(), "updated": now()},
                 "plans": [], "revisions": []}
     elif err is not None:
         violations.append(v("UNPARSABLE_YAML", show, "YAML 解析失败：%s" % err))
@@ -719,7 +724,7 @@ def cmd_new(args):
             return 1
     plan_id = next_plan_id(plans)
     plans.append(skeleton_record(plan_id, slug, str(args.title or "").strip()))
-    data["project"]["updated"] = today()
+    data["project"]["updated"] = now()
     if not os.path.isdir(out):
         os.makedirs(out, exist_ok=True)
     save_yaml_atomic(path, data)

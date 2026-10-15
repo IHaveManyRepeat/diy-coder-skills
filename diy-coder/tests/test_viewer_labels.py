@@ -1320,5 +1320,88 @@ class SelfcheckYamlLabelTests(_Fixture):
         self.assertIn("编排闭环成立", html, "b_review 内容丢失")
 
 
+class ViewerSortOrderTests(unittest.TestCase):
+    """v4 批 3（底单 :387 段三项裁定）——index 卡片序按 created 生成时间排：
+    五态＋动态挂两例。三消费点（index 卡片序 / others 导航序 / 渲染循环序）
+    全走 sort_docs 的 all_docs 序，此处单点断言即全覆盖。"""
+
+    @staticmethod
+    def _doc(created="2026-10-13 10:00:00"):
+        proj = {"name": "fx", "updated": "2026-10-13"}
+        if created is not None:
+            proj["created"] = created
+        return {"project": proj}
+
+    def test_time_order_strict(self):
+        # 态一：时分秒严格序（同日内先后可比）
+        docs = [("prd", self._doc("2026-10-01 09:00:00")),
+                ("architecture", self._doc("2026-10-01 08:59:59")),
+                ("design", self._doc("2026-09-30 23:00:00"))]
+        self.assertEqual([n for n, _ in viewer.sort_docs(docs)],
+                         ["design", "architecture", "prd"])
+
+    def test_same_second_tie_uses_chain_order(self):
+        # 态二：同秒并列走链序兜底；非链产物（链序表无位）排链产物之后
+        same = "2026-10-01 09:00:00"
+        docs = [("architecture", self._doc(same)),
+                ("analysis", self._doc(same)),
+                ("prd", self._doc(same))]
+        self.assertEqual([n for n, _ in viewer.sort_docs(docs)],
+                         ["prd", "architecture", "analysis"])
+
+    def test_pure_date_sorts_as_midnight(self):
+        # 态三：存量纯日期不回填、按当日零点参与（旧日期 vs 带时分秒新日期交排）
+        docs = [("prd", self._doc("2026-10-01")),
+                ("architecture", self._doc("2026-09-30 23:59:59")),
+                ("design", self._doc("2026-10-01 00:00:01"))]
+        self.assertEqual([n for n, _ in viewer.sort_docs(docs)],
+                         ["architecture", "prd", "design"])
+
+    def test_unparseable_created_falls_back_to_chain(self):
+        # 态四：created 值不可比不炸——链产物归桶一尾按链序兜底；非链落桶二按文件名
+        docs = [("prd", self._doc("2026-10-01 09:00:00")),
+                ("architecture", self._doc("不是日期")),
+                ("analysis", self._doc("也是乱写"))]
+        self.assertEqual([n for n, _ in viewer.sort_docs(docs)],
+                         ["prd", "architecture", "analysis"])
+
+    def test_missing_created_sorts_last(self):
+        # 态五：缺 created 排最后（桶三组内按链序位、无位按文件名殿后）
+        docs = [("sprint", self._doc(None)),
+                ("analysis", self._doc(None)),
+                ("prd", self._doc("2026-10-01 09:00:00"))]
+        self.assertEqual([n for n, _ in viewer.sort_docs(docs)],
+                         ["prd", "sprint", "analysis"])
+
+    def test_editorial_review_attaches_after_target(self):
+        # 动态挂例一（§7-5 甲）：editorial-review/selfcheck 读最新记录 target
+        # 匹配产物挂紧后；同挂时 editorial-review 前、selfcheck 后
+        er = {"project": self._doc()["project"],
+              "reviews": [{"id": "ER-001", "target": "diy-output/brief.yaml"}]}
+        sc = {"project": self._doc()["project"],
+              "checks": [{"id": "SC-001",
+                          "target": {"kind": "文档", "path": "diy-output/brief.yaml"}}]}
+        same = "2026-10-12 08:00:00"  # 四产物并列，逼出链序兜底位
+        er["project"]["created"] = same
+        sc["project"]["created"] = same
+        docs = [("editorial-review", er), ("selfcheck", sc),
+                ("brief", self._doc(same)), ("prd", self._doc(same))]
+        self.assertEqual([n for n, _ in viewer.sort_docs(docs)],
+                         ["brief", "editorial-review", "selfcheck", "prd"])
+
+    def test_unmatched_target_falls_to_non_chain_bucket(self):
+        # 动态挂例二（§7-5 甲）：target 非产物（任务书路径）匹配不上 → 按非链
+        # 产物处理（桶二，文件名字母序）
+        er = {"project": {"name": "fx", "created": "手写时间",
+                          "updated": "2026-10-13"},
+              "reviews": [{"id": "ER-001",
+                           "target": "diy-coder/.analysis/x/taskbook.md"}]}
+        docs = [("editorial-review", er),
+                ("zebra-note", self._doc("另一乱值")),
+                ("prd", self._doc("2026-10-01 09:00:00"))]
+        self.assertEqual([n for n, _ in viewer.sort_docs(docs)],
+                         ["prd", "editorial-review", "zebra-note"])
+
+
 if __name__ == "__main__":
     unittest.main()

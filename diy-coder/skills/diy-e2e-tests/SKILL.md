@@ -61,7 +61,7 @@ test_cases:
     steps: [string]         # 具体验证步骤，含预期结果
 ```
 
-追加成功时 `record` 把 `project.updated` 刷成今天（`YYYY-MM-DD`）；其余 `project` 键与既有条目一律不动——本技能不建文件、不写 `created`。
+追加成功时 `record` 把 `project.updated` 刷成当前时刻（`YYYY-MM-DD HH:MM:SS`）；其余 `project` 键与既有条目一律不动——本技能不建文件、不写 `created`。
 
 ## 规则
 

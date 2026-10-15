@@ -59,8 +59,8 @@ python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --desi
 
 `{output_dir}/design.yaml` 的唯一源头：
 ```yaml
-project: {name, status: 草稿 | 已定稿, created: YYYY-MM-DD, updated: YYYY-MM-DD}
-                          # created 建文件时设、此后不改；updated 每次写回刷今天；三命令全过 + 假设清零才写 已定稿
+project: {name, status: 草稿 | 已定稿, created, updated}
+                          # 时间键留空、跑 diyc stamp 盖秒级章（created 此后不改；updated 每次写回后刷）；三命令全过 + 假设清零才写 已定稿
 direction: <string>       # 第一行一句话方向，换行后 2–3 行反模式禁令（每行以 "- " 起头）；不是列表/映射（引擎只校验非空）
 frontend_framework: react|vue|svelte|…|html   # 纯 HTML 项目写 html（取值路径见规则）
 form_factor: 响应式 Web|移动端|桌面|多端   # 目标表面（写在什么上，与 frontend_framework 互补）；开工先定，表外值 validate 即拒

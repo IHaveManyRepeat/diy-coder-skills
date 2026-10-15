@@ -57,7 +57,7 @@ outputs: spec-scan.yaml
 `{output_dir}/spec-scan.yaml` —— 唯一源头。本文件不设 `project.status`（状态在记录级）：
 
 ```yaml
-project: {name, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}   # 时间键留空、跑 diyc stamp 盖秒级章（created 此后不改；updated 每次写回后刷）
 schema: 2                           # 顶层版本戳；旧文件无戳按 [卡点] 兼容
 scans:
   - id: SS-001                     # 顺序递增、稳定，永不重编号、永不复用

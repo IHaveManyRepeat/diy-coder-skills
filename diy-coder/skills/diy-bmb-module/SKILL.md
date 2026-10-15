@@ -49,7 +49,7 @@ outputs: module-plan.yaml
 `{output_dir}/module-plan.yaml` —— 唯一产物。单记录产物（`sprint.yaml` 等）写 `project.status`；多记录产物（一份文件装 N 条记录）顶层不设 status，定稿态挂记录级 `status: 草稿|已定稿`。
 
 ```yaml
-project: {name, created, updated}      # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}      # 引擎建文件时程序铸秒级真值（created 此后不改；updated 每次写回程序刷秒级）
 plans:
   - id: MP-001                         # 引擎铸造（最大号 + 1，三位零填充），不重编不重用
     slug: <string>                     # 计划的身份键：同 slug 就地更新，不新建

@@ -498,10 +498,27 @@ DOC_LABELS = {
     # 单问架构分析），不另造词
     "wds-design-system": "设计系统", "wds-assets": "资产工厂",
     "wds-evolution": "Kaizen 迭代", "analysis": "单问架构分析",
+    # trace: v4 批 3（三裁随批）——WDS 线三产物中文名，照裁定字面取
+    # （WDS 简报 / 触发映射 / 场景大纲），未登记则页面 h1 / 索引卡片回落英文原名
+    "wds-brief": "WDS 简报", "wds-trigger": "触发映射", "wds-scenarios": "场景大纲",
     # trace: v4 批 2c——selfcheck.yaml（diy-selfcheck 主产物）页面标题，
     # 未登记则页面 h1 / 索引卡片回落英文原名
     "selfcheck": "自检产物",
 }
+# trace: v4 批 3（§7-1 甲·内置硬编码，照 DOC_LABELS 先例；§7-2 主线在前
+# 官网线在后；§2-6 三裁 23 键全序）——产物链逻辑生成序，作 created 并列或
+# 值不可比时的兜底序。editorial-review / selfcheck 不占静态位（§7-5 甲动态挂）。
+CHAIN_ORDER = (
+    "brainstorm", "research", "brief", "prfaq",
+    "prd", "architecture", "openapi", "design", "epics", "stories",
+    "test-framework", "test-gate", "test-plan", "test-review", "sprint",
+    "wds-brief", "wds-trigger", "wds-scenarios", "wds-design-system",
+    "wds-assets", "wds-evolution",
+    "mutation-report", "bug-log",
+)
+CHAIN_RANK = {name: i for i, name in enumerate(CHAIN_ORDER)}
+_NO_CHAIN = len(CHAIN_ORDER)
+_DT_MAX = datetime.datetime.max
 # 文档级标签覆盖（B1）：同一 key 在不同文档语义不同——bug-log 的 type 是缺陷三级分类，
 # 其余文档（test-plan/openapi 等）回落全局 type=类型
 DOC_KEY_LABELS = {
@@ -1410,6 +1427,76 @@ def get_meta(data) -> dict:
     return {}
 
 
+def _parse_created(raw):
+    """created 两格式解析（`YYYY-MM-DD` | `YYYY-MM-DD HH:MM:SS`）；纯日期补当日
+    零点（底单三项裁定：存量纯日期不回填、按当日零点参与排序）。缺失/空白/
+    形状或数值非法 → None（排序面走链序兜底，不炸）。"""
+    if not isinstance(raw, str):
+        return None
+    m = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2}):(\d{2}))?",
+                     raw.strip())
+    if not m:
+        return None
+    y, mo, d, h, mi, s = (int(g or 0) for g in m.groups())
+    try:
+        return datetime.datetime(y, mo, d, h, mi, s)
+    except ValueError:
+        return None
+
+
+def _dynamic_ranks(all_docs: list) -> dict:
+    """editorial-review / selfcheck 动态挂位（§7-5 甲）：读产物内最新一条记录的
+    target，解析 stem 匹配在场链序产物 → 挂该产物紧后（同挂时 editorial-review
+    前、selfcheck 后）；匹配不上（target 指任务书/技能/外部文档，或目标不在场
+    /非链产物）→ 不给位，按通用桶序排。"""
+    by_name = dict(all_docs)
+    ranks = {}
+    for name, key, pick in (
+        ("editorial-review", "reviews",
+         lambda r: r.get("target") if isinstance(r.get("target"), str) else None),
+        ("selfcheck", "checks",
+         lambda r: (r.get("target") or {}).get("path")
+         if isinstance(r.get("target"), dict) else None),
+    ):
+        data = by_name.get(name)
+        recs = data.get(key) if isinstance(data, dict) else None
+        if not isinstance(recs, list) or not recs or not isinstance(recs[-1], dict):
+            continue
+        target = pick(recs[-1])
+        if not isinstance(target, str) or not target.strip():
+            continue
+        stem = Path(target).stem
+        if stem in by_name and stem in CHAIN_RANK:
+            ranks[name] = CHAIN_RANK[stem] + (0.1 if name == "editorial-review" else 0.2)
+    return ranks
+
+
+def sort_docs(all_docs: list) -> list:
+    """三桶全局序（底单 :387 段三项裁定落形）：桶一＝created 可解析组按值升序
+    （值并列或不可解析者按链序位兜底排，非链排链后）；桶二＝非链产物（按文件
+    名字母序）；桶三＝缺 created 组排最后（组内按链序位、无位按文件名）。动态
+    挂位并入链序位参与兜底。返回新列表，不改入参。"""
+    dyn = _dynamic_ranks(all_docs)
+
+    def key(entry):
+        name, data = entry
+        rank = dyn.get(name)
+        if rank is None:
+            rank = CHAIN_RANK.get(name, _NO_CHAIN)
+        raw = get_meta(data).get("created")
+        parsed = _parse_created(raw)
+        if parsed is not None:
+            return (0, parsed, rank, name)
+        if isinstance(raw, str) and raw.strip():
+            # 有值但不可解析：有链位归桶一尾（链序兜底），非链落桶二（文件名序）
+            if rank < _NO_CHAIN:
+                return (0, _DT_MAX, rank, name)
+            return (1, _DT_MAX, 0, name)
+        return (2, _DT_MAX, rank, name)  # 缺 created：桶三（无位 → 按文件名殿后）
+
+    return sorted(all_docs, key=key)
+
+
 def render_openapi_section(data: dict) -> str:
     """OpenAPI doc extras: 3.1 sanity check + endpoint overview table."""
     alerts = []
@@ -1743,6 +1830,13 @@ def main() -> int:
     docs = all_docs
     if args.files:
         docs, all_docs = select_explicit_docs(all_docs, args.files, out_dir, errors)
+    # trace: v4 批 3——select 之后重排（显式路径 append 条目 :1675 也要参与排序，
+    # 故不放 :1729 后）；三消费点（index 卡片序 / others 导航序 / 渲染循环序）全走
+    # all_docs 序，docs 是其子集，照排序后序重新过滤保持同序
+    all_docs = sort_docs(all_docs)
+    if args.files:
+        keep = {n for n, _ in docs}
+        docs = [(n, d) for n, d in all_docs if n in keep]
 
     # trace: B4 来源展示：output_dir 相对项目根路径（含实例名）
     try:

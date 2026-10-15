@@ -45,7 +45,7 @@ outputs: spec-kernel.yaml
 `{output_dir}/spec-kernel.yaml` —— 唯一源头，集合形态。**顶层不设 status**（定稿态挂记录级）：
 
 ```yaml
-project: {name, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}   # 引擎建文件时程序铸秒级真值（created 此后不改；updated 每次写回程序刷秒级）
 specs:
   - id: SK-001                      # SK-###：由 `new` 铸造，顺序递增、永不重编号、永不复用
     slug: <string>                  # 记录唯一键——同一 slug 更新既有记录，不新建

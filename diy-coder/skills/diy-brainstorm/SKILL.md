@@ -47,7 +47,7 @@ outputs: brainstorm.yaml
 `{output_dir}/brainstorm.yaml` —— 唯一源头，集合形态；**顶层不设 `status`**（定稿态挂记录级）：
 
 ```yaml
-project: {name, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}   # 引擎建文件时程序铸秒级真值（created 此后不改；updated 每次写回程序刷秒级）
 sessions:
   - id: BS-001                      # init 铸造：顺序递增、稳定，永不重编号、永不复用
     topic: <string>

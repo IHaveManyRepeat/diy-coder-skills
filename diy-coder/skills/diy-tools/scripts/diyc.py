@@ -29,6 +29,11 @@ from diyc_lib import receipt, v  # noqa: E402
 
 CHECK_TYPES = ("prd", "architecture", "openapi", "epics", "stories",
                "test-plan", "sprint", "review", "mutation-report")
+# v4 批 3（二裁·全量程序盖章）：C 组 AI 建产物「时间键留空＋跑 stamp」的类型面。
+# CHECK_TYPES 封闭集不扩（prfaq 等 check 门不达的类型不强进）
+STAMP_TYPES = ("prd", "architecture", "openapi", "prfaq", "test-design",
+               "epics", "stories", "brief", "editorial-review", "spec-scan",
+               "design")
 # --previous 稳定 ID 比对仅这些类型支持（契约 §4.2）
 PREVIOUS_TYPES = ("prd", "openapi", "epics", "stories", "test-plan", "architecture")
 WRITEBACK_COMMANDS = ("transition", "green", "done", "bug-add", "defer-add", "reconcile")
@@ -353,6 +358,11 @@ def build_parser() -> argparse.ArgumentParser:
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--entry", default=None, help="JSON 对象字符串")
     g.add_argument("--entry-file", default=None, help="JSON 对象文件路径")
+
+    p = sub.add_parser("stamp", parents=[common],
+                       help="产物时间盖章（created 缺则补秒级·已有不动；updated 每次刷秒级）")
+    p.add_argument("--type", required=True, choices=STAMP_TYPES,
+                   help="文档类型（C 组 AI 建产物，见 STAMP_TYPES）")
 
     p = sub.add_parser("defer-add", parents=[common],
                        help="待确认动作入队（deferred-actions.yaml）")

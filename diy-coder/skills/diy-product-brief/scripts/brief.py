@@ -66,7 +66,8 @@ STAKES = ("个人兴趣", "内部", "投资人", "公开")
 DECISION_STATUSES = ("生效", "已反转")
 
 BD_RE = re.compile(r"BD-\d{3}")
-DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+# v4 批 3（§7-3b/d）：时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
+DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?")
 
 
 def v(code, where, msg):
@@ -322,7 +323,7 @@ def check_decisions(decisions, where, final, violations):
             violations.append(v("EMPTY_FIELD", iw + ".date", "date 缺失"))
         elif not DATE_RE.fullmatch(str(date)):
             violations.append(v("ENUM_INVALID", iw + ".date",
-                                "date 须为 YYYY-MM-DD，实为 %s" % date))
+                                "date 须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %s" % date))
         if not nonempty(item.get("decision")):
             violations.append(v("EMPTY_FIELD", iw + ".decision", "decision 为空"))
         status = item.get("status")
@@ -373,7 +374,7 @@ def check_revisions(revisions, where, violations):
         date = item.get("date")
         if nonempty(date) and not DATE_RE.fullmatch(str(date)):
             violations.append(v("ENUM_INVALID", iw + ".date",
-                                "date 须为 YYYY-MM-DD，实为 %s" % date))
+                                "date 须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %s" % date))
     return revisions
 
 
@@ -395,7 +396,7 @@ def check_project(project, where, violations, final):
         value = project.get(key)
         if nonempty(value) and not DATE_RE.fullmatch(str(value)):
             violations.append(v("ENUM_INVALID", "%s.%s" % (where, key),
-                                "%s 须为 YYYY-MM-DD，实为 %s" % (key, value)))
+                                "%s 须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %s" % (key, value)))
 
 
 def previous_ids(previous, project_root, violations):

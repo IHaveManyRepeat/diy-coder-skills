@@ -24,7 +24,7 @@ python "{project-root}/.claude/skills/diy-editorial-review/scripts/editorial_rev
 
 ## 落草稿记录
 
-文件不存在时建：`project: {name, created, updated}`（`name` 取自 `diy-coder.yaml` 的 `project.name`）+ 空 `reviews: []` + `revisions: []`。追加一条：
+文件不存在时建：`project: {name, created, updated}`（`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type editorial-review --json` 盖秒级章、每次写回产物后再跑一次；`name` 取自 `diy-coder.yaml` 的 `project.name`）+ 空 `reviews: []` + `revisions: []`。追加一条：
 
 ```yaml
   - id: ER-001            # 下一个 = 已有序号最大值 + 1，三位零填充；不重编不重用

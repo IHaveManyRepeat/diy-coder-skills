@@ -49,7 +49,7 @@ outputs: brief.yaml
 `{output_dir}/brief.yaml` —— 单一源：一份文档加它的集合（顶层形状随 `bug-log.yaml`）：
 
 ```yaml
-project: {name, status: 草稿|已定稿, created, updated}   # status 是终门检查的文档级旗标；created 建文件时设、此后不改，updated 每次写回刷今天
+project: {name, status: 草稿|已定稿, created, updated}   # status 是终门检查的文档级旗标；时间键留空、跑 diyc stamp 盖秒级章（created 此后不改；updated 每次写回后刷）
 brief:
   title: string
   stakes: 个人兴趣|内部|投资人|公开   # 风险校准：顶得多狠

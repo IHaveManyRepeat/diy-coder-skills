@@ -77,6 +77,11 @@ def stamp() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
+def now() -> str:
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def _id_sort_key(value):
     parts = re.split(r"(\d+)", str(value))
     return [(1, int(p)) if p.isdigit() else (0, p) for p in parts]

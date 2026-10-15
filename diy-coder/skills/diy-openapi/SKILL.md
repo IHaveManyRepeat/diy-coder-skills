@@ -44,8 +44,8 @@ openapi: 3.1.0
 x-project:                       # diy-coder 元数据扩展（viewer 渲染它）；元数据只在这里
   name: string
   status: 草稿 | 已定稿          # 写状态的唯一位置
-  created: YYYY-MM-DD            # 建文件时设，此后不改
-  updated: YYYY-MM-DD            # 每次写回刷今天
+  created:                        # 建文件时留空，跑 diyc stamp 盖秒级章（此后不改）
+  updated:                        # 每次写回后跑 diyc stamp 刷秒级章
   revisions: []                  # {date, change, reason} —— 改既有 operation 时追加
 info:
   title: string

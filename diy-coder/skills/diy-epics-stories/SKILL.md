@@ -54,7 +54,7 @@ outputs: epics.yaml + stories.yaml
 
 `epics.yaml`：
 ```yaml
-project: {name, status: 草稿|已定稿, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天（均 YYYY-MM-DD）
+project: {name, status: 草稿|已定稿, created, updated}   # 时间键留空、跑 diyc stamp 盖秒级章（created 此后不改；updated 每次写回后刷）
 notes: string                # 可选；逐行记录——'[假设] …' 回填标记、应该级 FR 的 skip line
 epics:
   - id: E-1                 # 稳定：顺序递增，永不重编号、永不复用

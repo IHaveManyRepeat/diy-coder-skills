@@ -223,10 +223,15 @@ def today() -> str:
     return _dt.date.today().isoformat()
 
 
+def now() -> str:
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    return _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def skeleton(project_root: Path) -> dict:
-    now = today()
+    ts = now()
     return {
-        "project": {"name": project_name(project_root), "created": now, "updated": now, "status": "草稿"},
+        "project": {"name": project_name(project_root), "created": ts, "updated": ts, "status": "草稿"},
         "stage": STAGES[0],
         "activities": [
             {

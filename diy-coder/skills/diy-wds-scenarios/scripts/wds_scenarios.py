@@ -215,6 +215,12 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    import datetime
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def save_yaml_atomic(path, data):
     """同目录 tmp + os.replace 原子替换（同款实现 = `diyc_lib.save_yaml_atomic`）。"""
     tmp = path + ".tmp"
@@ -594,7 +600,7 @@ def cmd_init(args):
             "上游未定稿（实为 %s，要求 %s）→ 零产出停止：回 `diy-wds-trigger` 收尾"
             % (stored_status or "空", FINAL_UPSTREAM_STATUS))]
         return emit(payload, args.json)
-    stamp = today()
+    stamp = now()
     data, err = read_document(path)
     if err is not None:
         payload["violations"] = [v("UNPARSABLE_YAML", show,

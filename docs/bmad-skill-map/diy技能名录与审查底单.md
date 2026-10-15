@@ -382,6 +382,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面：viewer.py `render_openapi_section`（行锚；注意 `render_table` 行锚机制取 `item["id"]` 会同步渲染成列——实施时避免「操作 ID」列重复，row-id 参数或本函数自拼，实施时定）＋viewer tests（新增断言，本裁定直接后果同源可逆，按三条件报备）。与「接口契约通用设计与架构鉴权面」批同文件（viewer.py），排先后实施避免改两遍。
 
+**〔2026-10-13 用户裁定〕**：撤 v4·批3a 任务书（taskbook-batch3a.md 转留档），本段**改归批 4 一体落形**——openapi 展示重组（功能分组＋详情表格）后行锚随形落地；锚值＝operationId（2026-10-04 已裁）不变；「row-id 参数 vs 自拼」实现方式随重组后表格形态重定、不单独裁。
+
 ## 待办：viewer index 产物卡片按生成时间排序（2026-10-04 用户提出，登记待裁，现在不动）
 
 登记来源：用户看 diy-lab 实测 index.html 提出「产物按生成时间排，不然眼睛看花了」。
@@ -396,6 +398,30 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - **缺 `created` 的产物排最后**。
 
 改动面：viewer.py（排序落点：main 渲染序或 build_index 内排序——注意渲染文件循环也用同一序，页内「其他产物」导航链接顺序随之变，属同题一并动）＋viewer tests＋**created 时分秒的 schema 面（随批核）**。与「openapi 接口总览行锚」「接口契约」批同文件（viewer.py），可同批施工。
+
+**〔v4·批3 已销 2026-10-13〕**：viewer.py 三桶全局序（created 升序·并列/不可比走 23 键内置链序兜底·缺 created 殿后；editorial-review/selfcheck 动态挂——读最新记录 target 匹配在场产物挂紧后·匹配不上按非链处理）＋DOC_LABELS 补 wds-brief/wds-trigger/wds-scenarios 三键；created 时分秒落库收口（§7-3 一/二/三裁演进）：A 组 15＋1 引擎铸点 now() 秒级（wds_system 漏铸点照 SS-006-08 同构漏网先例补入）·**created/updated 同铸同改**〔e 裁附记：推翻「updated 不扩」默认，写回刷值一并 now()〕·diyc stamp 新子命令（C 组 10 家「时间键留空＋跑 stamp」·AI 填时指示全部退役·定位照写回族 type/instance 法·CHECK_TYPES 封闭集零扩）·brief.py DATE_RE＋diyc_check_docs 通用 project 时间键断言两格式兼容（存量纯日期合法·空串＝未盖章红）——全量 1718＋248 零红·sync 源装 md5 43/43。
+
+## 待办：viewer 产物页左侧章节目录（TOC）（2026-10-13 用户提出，登记待裁，现在不动）
+
+登记来源：用户提出——viewer 渲染 HTML 时左侧展示章节目录（如 prd 章节多，左侧见目录、点击跳转对应位置）。
+
+事实（2026-10-13 核实）：
+- 页面骨架（viewer.py:1351 `page()`）＝顶栏（h1＋`nav` 页间导航）＋单栏 `<main>` 正文＋`refpane` 引用详情侧板——**无页内目录**；`nav` 是产物间导航非章节目录，section 标题无锚点跳转入口。
+- 产物页按 section 顺序渲染（`render_doc_page` :1492）——prd 等长文档页内定位只能滚动。
+
+待裁项：TOC 深度（仅一级 section 标题 vs 含嵌套子节）；形态与响应式（左侧固定边栏 vs 窄屏折叠/隐藏阈值）；覆盖面（全部产物页 vs 章节数达阈值的页才显示）；锚点实现（section 标题铸 id，是否复用既有行锚机制——openapi 行锚批先例）。
+
+改动面：viewer.py（`page()` 骨架＋CSS＋section 渲染加锚）＋viewer tests。与「index 产物排序」「openapi 行锚」批同文件（viewer.py），可同批施工。
+
+## 待办：BMAD 记忆文件实存细看（2026-10-13 用户提出，登记待查，现在不动）
+
+登记来源：用户——想看 BMAD 的记忆文件里到底存了什么、用户强调的东西为何它能记住；当初技能迁移没迁记忆，这个部分需要细致看。
+
+事实（2026-10-13 核实）：
+- BMAD 记忆机制在册：agent 记忆实位＝`_bmad/_memory/<agent>-sidecar/`（`_bmad/bmm/module-help.csv:8` 注册 tech-writer `update-standards` 动作写 documentation-standards.md）；**本仓 `_bmad/` 下无 `_memory/` 目录**——用户实际使用时的记忆实存待寻（本仓外项目/全局位置）。
+- diy 侧对位物＝experience_repo 经验库（`diy-coder.yaml:10`，全局 `~/.diy-coder/experience`）——与 BMAD agent-sidecar 记忆（用户偏好/标准类）非同物；迁移未覆盖此面。
+
+待办动作：细看 BMAD 记忆体系（存储内容/写入触发/读取时机），产出「存了什么、强调为何能记住」事实清单；再裁 diy 是否补记忆面及形态。**〔2026-10-13 调研已完成〕**报告＝`docs/bmad-skill-map/调研结论-BMAD记忆机制-2026-10-13.md`。核心结论：BMAD 记住强调＝「偏好固化进 `_bmad/custom/` 的 `persistent_facts`＋技能激活时自动读入」（非模型记忆）；四层机制（custom 偏好／agent MEMORY／bmm sidecar／wds 会话状态）中本机仅 custom 层有实存（本仓 20 toml＋doc-style.md＋eng-defaults.md）；diy 零对位面，现状靠宿主 CLAUDE.md 兜底。待裁三项（是否补 persistent_facts 同构面／补则形态／层②③要不要）见报告末节，**未裁不动**。
 
 ## 待办：全库去源路径锚（2026-10-04 用户裁定，专批，现在不动）
 
@@ -705,6 +731,10 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 ### viewer HTML 任务复制按钮（2026-10-12 登记）
 
 - 候选：viewer 渲染的 HTML 页面对任意任务加一个复制按钮——点击后把该任务内容复制到剪贴板，粘贴进 Claude Code 这类工具里继续处理；不限产物类型（不管是什么产物）。
-- 事实：渲染脚本＝`diy-viewer/scripts/viewer.py`（产 index.html 等页）；按钮属纯前端交互，加在任务卡渲染处。
-- 待裁：复制内容形态（任务原文 YAML/JSON vs 转成提示词文案）、按钮位置与交互细节——动工时随任务书裁。
+- 事实：渲染脚本＝`diy-viewer/scripts/viewer.py`（产 index.html 等页）；按钮属纯前端交互。
+- 已裁（2026-10-13，三项）：
+  - **复制内容形态＝转成提示词文案**（不复制原文 YAML/JSON）——文案必带**产物文件路径＋条目 ID**，使 AI 据以打开对应文件、定位该 ID 对应内容，再按用户粘贴后口述的意图（解释/修改等）处理。
+  - **按钮位置＝表格内每个 ID 旁**（非每任务卡一个）。
+  - **交互＝单击复制**。
+  - 文案具体措辞随任务书拟。
 - 触发：需要把 viewer 里看到的任务直接喂给 AI 工具时再做。

@@ -78,6 +78,12 @@ def today():
     return date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def v(code, where, msg):
     return {"code": code, "where": where, "msg": msg}
 
@@ -466,7 +472,7 @@ def cmd_init(args):
             return receipt("init", False, project_root=args.project_root,
                            output_dir=norm(args.output_dir), violations=violations,
                            warnings=warnings, counts=counts)
-        data.setdefault("project", {})["updated"] = today()
+        data.setdefault("project", {})["updated"] = now()
         save_yaml_atomic(product_path(args.output_dir), data)
         warnings.append(v("SET_MISMATCH", where,
                           "产物已存在：骨架与 EV-01 未重建，只刷 project.updated"))
@@ -477,7 +483,7 @@ def cmd_init(args):
     # 铸骨架 + 首轮铸号
     name = os.path.basename(os.path.abspath(args.project_root)) or "project"
     data = {
-        "project": {"name": name, "created": today(), "updated": today(),
+        "project": {"name": name, "created": now(), "updated": now(),
                     "status": "草稿"},
         "kaizen_priority": {
             "formula": "Priority = Impact × Effort × Learning",

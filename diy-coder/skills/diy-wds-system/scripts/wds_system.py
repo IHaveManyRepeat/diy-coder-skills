@@ -82,6 +82,12 @@ DOC_REQUIRED = ("project", "design_system_mode", "tokens", "categories", "prefix
 
 # ───────────────────────────── 基础设施 ─────────────────────────────
 
+def now() -> str:
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    import datetime
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def today() -> str:
     import datetime
     return datetime.date.today().isoformat()
@@ -452,7 +458,7 @@ def cmd_init(args, project_root: Path) -> dict:
     if bad:
         return {"violations": bad, "warnings": warnings, "counts": {}}
 
-    day = today()
+    day = now()
     product_path = output_dir / PRODUCT
     where = display_path(product_path, project_root)
     if product_path.exists():

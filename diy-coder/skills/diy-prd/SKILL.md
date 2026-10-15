@@ -76,8 +76,8 @@ project:
   name: string
   status: 草稿 | 已定稿          # 用户确认全部假设后才写已定稿
   strictness: 个人兴趣 | 内部 | 投资人 | 公开   # 深度档位，与 brief 的 stakes 同一枚举；推断值带 [假设] 前缀写在值上
-  created: YYYY-MM-DD
-  updated: YYYY-MM-DD
+  created:                        # 建文件时留空，跑 diyc stamp 盖秒级章（此后不改）
+  updated:                        # 每次写回后跑 diyc stamp 刷秒级章
 purpose: one-sentence product purpose
 goals:                            # 2-5 measurable goals
   - id: G-1

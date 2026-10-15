@@ -51,7 +51,7 @@ outputs: prfaq.yaml
 `{output_dir}/prfaq.yaml` —— 单一源、一份文档（顶层形状沿用 `bug-log.yaml`）：
 
 ```yaml
-project: {name, status: 草稿|已定稿, created: YYYY-MM-DD, updated: YYYY-MM-DD}   # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, status: 草稿|已定稿, created, updated}   # 时间键留空、跑 diyc stamp 盖秒级章（created 此后不改；updated 每次写回后刷）
 prfaq:
   stage: 1|2|3|4|5                  # 续跑锚点：1 点火、2 新闻稿、3 客户 FAQ、4 内部 FAQ、5 判定；N ＝ 第 N 阶段输出已完整写入
   concept_type: 商业|内部|开源|社区   # 第 1 阶段判定；校准第 3-4 阶段的提问框

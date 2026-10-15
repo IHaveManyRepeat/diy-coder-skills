@@ -78,6 +78,8 @@ def run(args) -> dict:
         return _done(args)
     if args.command == "bug-add":
         return _bug_add(args)
+    if args.command == "stamp":
+        return _stamp(args)
     if args.command == "defer-add":
         return _defer_add(args)
     if args.command == "defer-set":
@@ -148,7 +150,7 @@ def _bump(args, path, doc):
     rel = _rel(args, path)
     if not isinstance(proj, dict):
         return lib.v("EMPTY_FIELD", rel, f"{rel} 的 project 缺失或不是映射——形状异常，拒绝写回")
-    proj["updated"] = lib.today()
+    proj["updated"] = lib.now()
     return None
 
 
@@ -527,8 +529,8 @@ def _bug_add(args):
                                      f"{rel} 的 bugs 不是列表（形状异常）——拒绝改写"))
     else:
         # 无文件 → 新建骨架（首个 bug 或新实例）
-        doc = {"project": {"name": _project_name(args), "created": lib.today(),
-                           "updated": lib.today()},
+        doc = {"project": {"name": _project_name(args), "created": lib.now(),
+                           "updated": lib.now()},
                "bugs": []}
         bugs = doc["bugs"]
 
@@ -555,6 +557,28 @@ def _bug_add(args):
     os.makedirs(os.path.dirname(bug_path), exist_ok=True)
     lib.save_yaml_atomic(bug_path, doc)
     return _receipt(args, True, updated=doc["project"]["updated"], id=new_id, file=rel)
+
+
+# ---- stamp（v4 批 3·二裁全量程序盖章：C 组 AI 建产物「时间键留空＋跑 stamp」） ----
+
+def _stamp(args):
+    """产物时间盖章：created 缺则补秒级真值、已有不动（「建文件时设此后不改」
+    ＋存量纯日期不回填）；updated 每次刷当前秒级。定位照写回族既有法
+    （output_dir 平铺 <type>.yaml，--instance 经 diyc.py resolve 透传）。"""
+    doc, path, viol = _load(args, args.type)
+    if viol:
+        return _fail(args, viol)
+    rel = _rel(args, path)
+    proj = doc.get("project")
+    if not isinstance(proj, dict):
+        return _fail(args, lib.v("EMPTY_FIELD", rel,
+                                 f"{rel} 的 project 缺失或不是映射——形状异常，拒绝盖章"))
+    now = lib.now()
+    if not _nonempty(proj.get("created")):
+        proj["created"] = now
+    proj["updated"] = now
+    lib.save_yaml_atomic(path, doc)
+    return _receipt(args, True, created=proj["created"], updated=now, file=rel)
 
 
 # ---- defer-add（2026-09-15 副作用纪律修订） ----
@@ -593,8 +617,8 @@ def _defer_add(args):
                                      f"{rel} 的 actions 不是列表（形状异常）——拒绝改写"))
     else:
         # 无文件 → 新建骨架（本体系首个待确认动作；output_dir 可能尚未创建）
-        doc = {"project": {"name": _project_name(args), "created": lib.today(),
-                           "updated": lib.today()},
+        doc = {"project": {"name": _project_name(args), "created": lib.now(),
+                           "updated": lib.now()},
                "actions": []}
         actions = doc["actions"]
 
@@ -810,8 +834,8 @@ def _reconcile(args):
             sproj = sdoc.get("project")
             sname = sproj.get("name") if isinstance(sproj, dict) else None
             existing = {"project": {"name": sname if _nonempty(sname) else "project",
-                                    "status": "草稿", "created": lib.today(),
-                                    "updated": lib.today()},
+                                    "status": "草稿", "created": lib.now(),
+                                    "updated": lib.now()},
                         "tasks": new_tasks}
         else:
             existing["tasks"] = new_tasks

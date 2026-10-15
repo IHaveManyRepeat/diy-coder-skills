@@ -17,7 +17,29 @@
 """
 # trace: 2026-09-13 批次 3（统一脚本化）——文档级规则，契约 §4.2
 
+import re
+
 import diyc_lib
+
+# v4 批 3（§7-3b）：created/updated 格式断言——两格式兼容（纯日期 | 日期＋空格＋
+# 时分秒；存量纯日期仍合法）。兼防忘跑 stamp 闭环：C 组产物留空（空串）/乱写即红；
+# 键缺席归各 checker 的 project 非空门分工，此处不重复
+TIME_RE = re.compile(r"\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?")
+
+
+def check_project_times(doc, rel, report):
+    """全类型通用：project.created/updated 有值必合法（两格式）；空串＝未盖章红。"""
+    project = doc.get("project")
+    if not isinstance(project, dict):
+        return
+    for key in ("created", "updated"):
+        value = project.get(key)
+        if value is None:
+            continue
+        if not isinstance(value, str) or not TIME_RE.fullmatch(value.strip()):
+            report.add("ENUM_INVALID", "%s project.%s" % (rel, key),
+                       "时间键须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %r"
+                       "（留空＝未盖章，跑 diyc stamp --type <类型>）" % (value,))
 
 # 裁定 22（C·3a · W9）：`affects` 的 SC/P 域须经 `Docs` 读 wds-scenarios——注册项
 # （`DOC_FILES["wds-scenarios"]`）已于 2026-09-28 收口期归位 `diyc_lib.py`，此处不再就地补登记。

@@ -51,8 +51,8 @@ outputs: architecture.yaml
 project:
   name: string
   status: 草稿 | 已定稿           # 写状态的唯一位置；门检查的对象
-  created: YYYY-MM-DD            # 建文件时设，此后不改
-  updated: YYYY-MM-DD            # 每次写回刷今天
+  created:                        # 建文件时留空，跑 diyc stamp 盖秒级章（此后不改）
+  updated:                        # 每次写回后跑 diyc stamp 刷秒级章
 stack:                           # 选中的技术一行一条；choice 逐字写技术名——消费方按它取值（diy-design 取前端框架、diy-readiness-check 取脚手架）
   - choice: string
     why: string

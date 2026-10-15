@@ -248,6 +248,27 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(data["counts"]["users"], 1)
         self.assertEqual(data["counts"]["addendum"], 1)
 
+    # v4 批 3（§7-3b/d）：时间格式两格式兼容——纯日期（存量）与秒级真值都合法
+    def test_check_accepts_second_precision_times(self):
+        self.write("diy-output/brief.yaml",
+                   BRIEF_YAML.replace("created: '2026-09-14'",
+                                      "created: '2026-09-14 08:00:00'")
+                             .replace("updated: '2026-09-14'",
+                                      "updated: '2026-09-14 08:30:05'"))
+        r = self.check()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        data = json.loads(r.stdout)
+        self.assertEqual(data["violations"], [])
+
+    def test_check_rejects_garbage_created(self):
+        self.write("diy-output/brief.yaml",
+                   BRIEF_YAML.replace("created: '2026-09-14'", "created: '手写'"))
+        r = self.check()
+        data = json.loads(r.stdout)
+        self.assertFalse(data["ok"])
+        self.assertTrue(any(v["code"] == "ENUM_INVALID" and "created" in v["where"]
+                            for v in data["violations"]))
+
     # trace: 任务书 §2.5 用例 3（--final 定稿记录 exit 0，含评审证据链齐备）
     def test_check_final_legal_record_passes(self):
         self.write_final()

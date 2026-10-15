@@ -110,6 +110,11 @@ def today():
     return datetime.date.today().isoformat()
 
 
+def now():
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def display_path(path, project_root):
     """where 显示口径（对齐 diyc）：正斜杠 + 相对 project-root；越界则绝对路径。"""
     try:
@@ -632,7 +637,7 @@ def cmd_record(args):
                    for c in cases]
         project = plan.get("project")
         new_project = dict(project) if isinstance(project, dict) else {}
-        new_project["updated"] = today()
+        new_project["updated"] = now()
         updated_plan = dict(plan)
         updated_plan["project"] = new_project
         updated_plan["test_cases"] = merged

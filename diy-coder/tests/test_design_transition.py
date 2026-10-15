@@ -233,7 +233,9 @@ class LegalEdgeTests(TransitionCase):
         self.assertEqual(proc.returncode, 0, proc.stdout)
         data = self.receipt(proc)
         self.assertEqual(data["from"], "未开始")
-        self.assertEqual(data["updated"], datetime.date.today().isoformat())
+        # v4 批 3：transition 写回刷值改秒级——断言日期部分对齐 + 秒级格式
+        self.assertEqual(data["updated"][:10], datetime.date.today().isoformat())
+        self.assertRegex(data["updated"], r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
 
     # trace: C·3a §2.3（removed_reason 仅 已移除 时写——恢复即清）
     def test_restore_from_removed_clears_reason(self):
