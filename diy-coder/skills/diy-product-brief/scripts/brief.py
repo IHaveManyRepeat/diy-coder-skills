@@ -392,9 +392,13 @@ def check_project(project, where, violations, final):
     elif final and str(status) != "已定稿":
         violations.append(v("STATUS_MISMATCH", where + ".status",
                             "--final 要求 project.status 为「已定稿」（先落定稿，再跑门禁）"))
+    # 批 3 追裁②（2026-10-15）：补非空门——留空＝未盖章（防忘跑 diyc stamp 闭环断口）
     for key in ("created", "updated"):
         value = project.get(key)
-        if nonempty(value) and not DATE_RE.fullmatch(str(value)):
+        if not nonempty(value):
+            violations.append(v("EMPTY_FIELD", "%s.%s" % (where, key),
+                                "%s 留空＝未盖章，跑 diyc stamp --type brief 盖秒级章" % key))
+        elif not DATE_RE.fullmatch(str(value)):
             violations.append(v("ENUM_INVALID", "%s.%s" % (where, key),
                                 "%s 须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %s" % (key, value)))
 

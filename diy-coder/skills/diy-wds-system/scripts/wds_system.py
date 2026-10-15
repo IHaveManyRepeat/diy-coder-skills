@@ -202,7 +202,7 @@ def read_design(output_dir: Path):
 # ───────────────────────────── 组件记录 ─────────────────────────────
 
 def new_component(cid: str, prefix: str, type_name: str, category: str,
-                  complexity: str, day: str) -> dict:
+                  complexity: str, stamp: str) -> dict:
     return {
         "id": cid,
         "name": type_name,
@@ -219,7 +219,7 @@ def new_component(cid: str, prefix: str, type_name: str, category: str,
         "used_in": [],
         "token_refs": [],
         "related": [],
-        "version": {"created": day, "updated": day, "changes": 1},
+        "version": {"created": stamp, "updated": stamp, "changes": 1},
         "notes": None,
     }
 
@@ -458,7 +458,7 @@ def cmd_init(args, project_root: Path) -> dict:
     if bad:
         return {"violations": bad, "warnings": warnings, "counts": {}}
 
-    day = now()
+    stamp = now()
     product_path = output_dir / PRODUCT
     where = display_path(product_path, project_root)
     if product_path.exists():
@@ -466,14 +466,14 @@ def cmd_init(args, project_root: Path) -> dict:
         if err:
             return {"violations": [v("UNPARSABLE_YAML", where, "产物不可解析：%s" % err)],
                     "warnings": warnings, "counts": {}}
-        existing.setdefault("project", {})["updated"] = day
+        existing.setdefault("project", {})["updated"] = stamp
         save_yaml_atomic(product_path, existing)
         warnings.append(v("SET_MISMATCH", where,
                           "既有产物在场——约定不覆盖，只刷 project.updated（本次未铸新号）"))
         return {"violations": violations, "warnings": warnings,
                 "counts": {"components": len(existing.get("components") or []),
                            "created": False},
-                "updated": day}
+                "updated": stamp}
 
     design, design_present = read_design(output_dir)
     if design_present and design is not None:
@@ -488,7 +488,7 @@ def cmd_init(args, project_root: Path) -> dict:
 
     doc = {
         "project": {"name": upstream.get("name") or output_dir.name,
-                    "created": day, "updated": day, "status": "草稿"},
+                    "created": stamp, "updated": stamp, "status": "草稿"},
         "design_system_mode": args.mode,
         "tokens": {
             "source": {"file": DESIGN, "path": "tokens", "mode": mode},
@@ -504,14 +504,14 @@ def cmd_init(args, project_root: Path) -> dict:
         "components": [new_component(
             "%s-001" % prefix, prefix,
             args.name or prefix_map[prefix]["type"],
-            prefix_map[prefix]["category"], args.complexity, day)],
+            prefix_map[prefix]["category"], args.complexity, stamp)],
         "revisions": [],
     }
     save_yaml_atomic(product_path, doc)
     return {"violations": violations, "warnings": warnings,
             "counts": {"components": 1, "prefixes": len(prefix_table),
                        "categories": len(categories), "created": True},
-            "updated": day}
+            "updated": stamp}
 
 
 def cmd_list(args, project_root: Path) -> dict:

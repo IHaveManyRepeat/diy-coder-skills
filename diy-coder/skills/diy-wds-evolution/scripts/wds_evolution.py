@@ -478,7 +478,7 @@ def cmd_init(args):
                           "产物已存在：骨架与 EV-01 未重建，只刷 project.updated"))
         return receipt("init", True, project_root=args.project_root,
                        output_dir=norm(args.output_dir), violations=violations,
-                       warnings=warnings, counts=build_counts(data), updated=today())
+                       warnings=warnings, counts=build_counts(data), updated=now())
 
     # 铸骨架 + 首轮铸号
     name = os.path.basename(os.path.abspath(args.project_root)) or "project"
@@ -507,7 +507,7 @@ def cmd_init(args):
     save_yaml_atomic(product_path(args.output_dir), data)
     return receipt("init", True, project_root=args.project_root,
                    output_dir=norm(args.output_dir), violations=violations,
-                   warnings=warnings, counts=build_counts(data), updated=today())
+                   warnings=warnings, counts=build_counts(data), updated=now())
 
 
 def cmd_list(args):

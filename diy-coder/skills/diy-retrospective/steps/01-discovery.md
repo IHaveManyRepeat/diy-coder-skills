@@ -38,7 +38,7 @@ python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py
 
 ## 起草记录
 
-往 `{output_dir}/retrospective.yaml` 追加一条记录（文件缺席时先建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——加空的 `retros` 列表与 `revisions: []`）：
+往 `{output_dir}/retrospective.yaml` 追加一条记录（文件缺席时先建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type retrospective --json` 盖秒级章、每次写回产物后再跑一次——加空的 `retros` 列表与 `revisions: []`）：
 
 ```yaml
   - id: RT-001                    # 下一条 = 现有最大值 + 1，三位零填充；永不重编号、永不复用

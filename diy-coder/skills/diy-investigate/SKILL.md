@@ -49,7 +49,7 @@ outputs: investigation.yaml
 `{output_dir}/investigation.yaml` —— 唯一源头，集合形态（顶层形状照 `bug-log.yaml`）：
 
 ```yaml
-project: {name, status: 草稿|已定稿, created, updated}   # status = 文档终态、终门以它为准；日期口径 YYYY-MM-DD：created 建文件时设、此后不改，updated 每次写回刷今天
+project: {name, status: 草稿|已定稿, created, updated}   # status = 文档终态、终门以它为准；时间键留空、跑 diyc stamp --type investigation 盖秒级章（created 此后不改，updated 每次写回后刷）
 cases:
   - id: IV-001                    # IV-### —— 文件级唯一，顺序递增，永不重编号、永不复用
     slug: <kebab>                 # 续案键：同 slug 再跑一次即续这条 case

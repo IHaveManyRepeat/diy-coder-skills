@@ -22,7 +22,7 @@ Progress: `确认输入 → [据点] → 边界 → 推理 → 源码追踪 → 
 
 ## 起草记录
 
-向 `{output_dir}/investigation.yaml` 追加一条记录。文件缺席时先建它：`project: {name, status: 草稿, created, updated}`（`name` 取自 `diy-coder.yaml` 的 `project.name`；`created` 建文件时设、此后不改，`updated` 每次写回刷今天）加空 `cases` 列表与 `revisions: []`。
+向 `{output_dir}/investigation.yaml` 追加一条记录。文件缺席时先建它：`project: {name, status: 草稿, created, updated}`（`name` 取自 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type investigation --json` 盖秒级章、每次写回产物后再跑一次）加空 `cases` 列表与 `revisions: []`。
 
 **文件已在场时**（上一次结案可能留着 `project.status: 已定稿`），追加新 case 前先把 `project.status` 退回 `草稿`；该 case 走完 `./06-report.md` 的终门后，再按 SKILL.md 规则 11 置回 `已定稿`。
 

@@ -25,6 +25,7 @@
 """
 import argparse
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -82,6 +83,10 @@ def _sprint_doc(*tasks):
     return diyc_fixture.doc_sprint(list(tasks))
 
 
+# v4 批 3 追裁④施工发现：updated==now() 相等断言有跨秒竞态——统一格式断言
+NOW_RE = r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
+
+
 class WritebackCase(unittest.TestCase):
     """共用夹具：临时项目根 + 产物读写 + args 构造（对齐 diyc.py 的 Namespace 契约）。"""
 
@@ -130,7 +135,7 @@ class TransitionTests(WritebackCase):
                 self.assertEqual(doc["tasks"][0]["status"], dst)
                 self.assertEqual(res["from"], src)
                 self.assertEqual(res["to"], dst)
-                self.assertEqual(doc["project"]["updated"], diyc_lib.now())
+                self.assertRegex(doc["project"]["updated"], NOW_RE)
 
     def test_blocked_to_pending_clears_reason(self):
         self._sprint_one("已阻塞", blocked_reason="AC-1.1 无用例")
@@ -247,13 +252,13 @@ class GreenTests(WritebackCase):
         self.assertEqual(sprint["tasks"][0]["evidence"],
                          [{"tc": "TC-1.1.1", "red": "unittest: FAILED",
                            "green": "unittest: OK"}])
-        self.assertEqual(sprint["project"]["updated"], diyc_lib.now())
-        self.assertEqual(res["updated"], diyc_lib.now())
+        self.assertRegex(sprint["project"]["updated"], NOW_RE)
+        self.assertRegex(res["updated"], NOW_RE)
         tp = self.read("test-plan")
         statuses = {c["id"]: c["status"] for c in tp["test_cases"]}
         self.assertEqual(statuses["TC-1.1.1"], "通过")
         self.assertEqual(statuses["TC-1.1.2"], "待办")  # 未写入的用例不动
-        self.assertEqual(tp["project"]["updated"], diyc_lib.now())
+        self.assertRegex(tp["project"]["updated"], NOW_RE)
 
     def test_second_run_idempotent(self):
         self.assertTrue(self._green(green=["OK 二次"])["ok"])
@@ -338,9 +343,9 @@ class DoneTests(WritebackCase):
         self.assertEqual(self.read("stories")["stories"][0]["status"], "已完成")
         self.assertEqual(self.read("test-plan")["test_cases"][0]["status"], "通过")
         for name in ("sprint", "stories", "test-plan"):
-            self.assertEqual(self.read(name)["project"]["updated"], diyc_lib.now(), name)
+            self.assertRegex(self.read(name)["project"]["updated"], NOW_RE)
         self.assertEqual(res["backfilled"], {"stories": True, "test_plan": ["TC-1.1.1"]})
-        self.assertEqual(res["updated"], diyc_lib.now())
+        self.assertRegex(res["updated"], NOW_RE)
 
     def test_empty_test_refs_story_exempt(self):
         self.write("sprint", _sprint_doc(_task("S-2", "待审查", [])))
@@ -419,7 +424,7 @@ class BugAddTests(WritebackCase):
         self.assertEqual(len(doc["bugs"]), 14)
         self.assertEqual(doc["bugs"][-1]["id"], "BUG-014")
         self.assertEqual(doc["bugs"][-1]["date"], diyc_lib.today())
-        self.assertEqual(doc["project"]["updated"], diyc_lib.now())
+        self.assertRegex(doc["project"]["updated"], NOW_RE)
         self.assertEqual(res["file"], "diy-output/bug-log.yaml")
 
     def test_missing_file_creates_skeleton(self):
@@ -482,14 +487,12 @@ class StampTests(WritebackCase):
     created 缺则补秒级真值、已有不动（存量纯日期不回填）；updated 每次刷秒级；
     --instance 实例路径定位；文件缺席拒绝。"""
 
-    NOW_RE = r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
-
     def test_missing_created_filled(self):
         self.write("prd", {"project": {"name": "fx", "status": "草稿"}})
         res = diyc_writeback.run(self.args("stamp", type="prd"))
         self.assertTrue(res["ok"], str(res.get("violations")))
         doc = self.read("prd")
-        self.assertRegex(doc["project"]["created"], self.NOW_RE)
+        self.assertRegex(doc["project"]["created"], NOW_RE)
         self.assertEqual(doc["project"]["created"], res["created"])
         self.assertEqual(doc["project"]["updated"], res["updated"])
 
@@ -503,7 +506,7 @@ class StampTests(WritebackCase):
         doc = self.read("openapi")
         self.assertEqual(doc["project"]["created"], "2026-09-20")
         self.assertNotEqual(doc["project"]["updated"], "2000-01-01 00:00:00")
-        self.assertRegex(doc["project"]["updated"], self.NOW_RE)
+        self.assertRegex(doc["project"]["updated"], NOW_RE)
         self.assertEqual(res["created"], "2026-09-20")
 
     def test_instance_path_resolution(self):
@@ -516,8 +519,8 @@ class StampTests(WritebackCase):
         self.assertTrue(res["ok"], str(res.get("violations")))
         with open(inst / "brief.yaml", encoding="utf-8") as f:
             doc = yaml.safe_load(f)
-        self.assertRegex(doc["project"]["created"], self.NOW_RE)
-        self.assertRegex(doc["project"]["updated"], self.NOW_RE)
+        self.assertRegex(doc["project"]["created"], NOW_RE)
+        self.assertRegex(doc["project"]["updated"], NOW_RE)
 
     def test_missing_file_rejected(self):
         res = diyc_writeback.run(self.args("stamp", type="prd"))
@@ -529,6 +532,18 @@ class StampTests(WritebackCase):
         res = diyc_writeback.run(self.args("stamp", type="design"))
         self.assertFalse(res["ok"])
         self.assertEqual(res["violations"][0]["code"], "EMPTY_FIELD")
+
+
+
+
+    # 批 3 追裁①（2026-10-15）：清单外 10 家纳入 STAMP_TYPES——新类型同走 stamp
+    def test_new_type_investigation_stampable(self):
+        self.write("investigation", {"project": {"name": "fx", "status": "草稿"}})
+        res = diyc_writeback.run(self.args("stamp", type="investigation"))
+        self.assertTrue(res["ok"], str(res.get("violations")))
+        doc = self.read("investigation")
+        self.assertRegex(doc["project"]["created"], NOW_RE)
+        self.assertRegex(doc["project"]["updated"], NOW_RE)
 
 
 @NEEDS_W1
@@ -563,7 +578,7 @@ class DeferAddTests(WritebackCase):
         self.assertEqual(doc["actions"][-1]["id"], "DA-004")
         self.assertEqual(doc["actions"][-1]["date"], diyc_lib.today())
         self.assertEqual(doc["actions"][-1]["status"], "待办")
-        self.assertEqual(doc["project"]["updated"], diyc_lib.now())
+        self.assertRegex(doc["project"]["updated"], NOW_RE)
         self.assertEqual(res["file"], "diy-output/deferred-actions.yaml")
 
     def test_missing_file_creates_skeleton(self):
@@ -647,10 +662,10 @@ class DeferSetTests(WritebackCase):
         self.assertEqual(res["id"], "DA-001")
         self.assertEqual(res["status"], "已完成")
         self.assertEqual(res["file"], "diy-output/deferred-actions.yaml")
-        self.assertEqual(res["updated"], diyc_lib.now())
+        self.assertRegex(res["updated"], NOW_RE)
         doc = self.read("deferred-actions")
         self.assertEqual(doc["actions"][0]["status"], "已完成")
-        self.assertEqual(doc["project"]["updated"], diyc_lib.now())
+        self.assertRegex(doc["project"]["updated"], NOW_RE)
 
     def test_flip_pending_to_rejected(self):
         self._seed()
@@ -731,10 +746,10 @@ class ReconcileTests(WritebackCase):
         doc = self.read("sprint")
         self.assertEqual(doc["project"]["name"], "diy-coder-skill")  # stories.yaml 的 project.name
         self.assertEqual(doc["project"]["status"], "草稿")
-        self.assertEqual(doc["project"]["created"], diyc_lib.now())
-        self.assertEqual(doc["project"]["updated"], diyc_lib.now())
+        self.assertRegex(doc["project"]["created"], NOW_RE)
+        self.assertRegex(doc["project"]["updated"], NOW_RE)
         self.assertEqual(set(doc["project"]), {"name", "status", "created", "updated"})
-        self.assertEqual(res["updated"], diyc_lib.now())
+        self.assertRegex(res["updated"], NOW_RE)
         self.assertEqual([t["story"] for t in doc["tasks"]], ["S-1"])
 
     def test_create_defaults_project_name(self):

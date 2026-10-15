@@ -49,7 +49,8 @@ DISTILLATE_SCALARS = ("problem", "target_users")
 DISTILLATE_LISTS = ("value_props", "constraints", "open_questions")
 
 PQ_RE = re.compile(r"PQ-\d{3}")
-DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+# v4 批 3（§7-3b/d）：时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
+DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?")
 
 
 def v(code, where, msg):
@@ -178,6 +179,17 @@ def check_project(project, show, violations):
         violations.append(v("ENUM_INVALID", show + " project.status",
                             "status 越界：%s（合法集 %s）"
                             % (status, "|".join(PROJECT_STATUSES))))
+    # 批 3 追裁②（2026-10-15）：created/updated 补非空门＋格式断——留空＝未盖章
+    # （防忘跑 diyc stamp 闭环断口）；两格式同 brief 口径
+    for key in ("created", "updated"):
+        value = project.get(key)
+        if not nonempty(value):
+            violations.append(v("EMPTY_FIELD", "%s.project.%s" % (show, key),
+                                "project.%s 留空＝未盖章，跑 diyc stamp --type prfaq 盖秒级章" % key))
+        elif not DATE_RE.fullmatch(str(value)):
+            violations.append(v("ENUM_INVALID", "%s.project.%s" % (show, key),
+                                "project.%s 须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %s"
+                                % (key, value)))
 
 
 def check_revisions(revisions, show, violations):
@@ -199,7 +211,7 @@ def check_revisions(revisions, show, violations):
         date = entry.get("date")
         if nonempty(date) and not DATE_RE.fullmatch(str(date)):
             violations.append(v("ENUM_INVALID", where + ".date",
-                                "date 须为 YYYY-MM-DD，实为 %s" % date))
+                                "date 须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %s" % date))
 
 
 def as_stage(raw):

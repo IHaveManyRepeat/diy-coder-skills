@@ -30,7 +30,7 @@ Progress: `[文档发现] → 需求清点 → 覆盖校验 → UX 对齐 → �
 
 ## 起草记录
 
-向 `{output_dir}/readiness.yaml` 追加一条记录（文件缺席时新建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——外加空的 `checks` 列表与 `revisions: []`）：
+向 `{output_dir}/readiness.yaml` 追加一条记录（文件缺席时新建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type readiness --json` 盖秒级章、每次写回产物后再跑一次——外加空的 `checks` 列表与 `revisions: []`）：
 
 ```yaml
   - id: IR-001                    # 下一个 = 既有最大值 + 1，三位零填充；永不重编号、永不复用

@@ -45,7 +45,7 @@ outputs: project-context.yaml
 `{output_dir}/project-context.yaml` —— 唯一源头；顶层形状对齐 `bug-log.yaml`（`project: {name, created, updated}`，不设顶层 status）：
 
 ```yaml
-project: {name, created, updated}   # 日期口径 YYYY-MM-DD：created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}   # 时间键留空、跑 diyc stamp --type project-context 盖秒级章（created 此后不改；updated 每次写回后刷）
 scan: {mode: 全量|重扫|深挖, level: 快速|深入|穷尽, date, parts: [{name, type, path}]}
                                     # date = 本次写 scan 块的日子（三种模式一律写今天，不是首扫日）= 下一次续跑播报的增量窗口起点
 stack: [{part, language, framework, version, notes}]     # 清单未解析处写空串

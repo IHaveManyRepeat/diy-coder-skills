@@ -67,7 +67,6 @@ warning 专用扩展码：`TEMPLATE_UNSUPPORTED`（detect 专用：栈已识别�
 # trace: B3 diy-test-framework 验收 #3（前置门禁零产出退出）/#4（ID 链接入）/#12（领域引擎接线）
 # trace: S-2 AC-2.2 CI 三方对齐（correct-course path: 口径 + test-plan static_checks 链）
 import argparse
-import datetime
 import fnmatch
 import io
 import json
@@ -194,9 +193,6 @@ def v(code, where, msg):
 def nonempty(value):
     return value is not None and str(value).strip() != ""
 
-
-def today():
-    return datetime.date.today().isoformat()
 
 
 def out_dir(args):

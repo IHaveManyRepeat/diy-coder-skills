@@ -48,7 +48,7 @@ outputs: checkpoint.yaml
 `{output_dir}/checkpoint.yaml` —— 唯一源头，集合形态（顶层形状对齐 `bug-log.yaml`）：
 
 ```yaml
-project: {name, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}   # 时间键留空、跑 diyc stamp --type checkpoint 盖秒级章（created 此后不改；updated 每次写回后刷）
 checkpoints:
   - id: CK-001                 # CK-###：顺序递增、稳定，永不重编号、永不复用
     date: YYYY-MM-DD           # 本条动作的日子，不随 updated 变

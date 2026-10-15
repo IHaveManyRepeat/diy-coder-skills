@@ -270,6 +270,17 @@ class CheckValidationTests(EngineCase):
                             for v in data["violations"]))
 
     # trace: 任务书 §2.5 用例 3（--final 定稿记录 exit 0，含评审证据链齐备）
+
+    # 批 3 追裁②（2026-10-15）：created/updated 非空门——留空＝未盖章红
+    # （brief 不在 CHECK_TYPES，防忘跑 stamp 闭环断口在此补齐）
+    def test_check_rejects_empty_created(self):
+        self.write("diy-output/brief.yaml",
+                   BRIEF_YAML.replace("created: '2026-09-14'", "created: ''"))
+        r = self.check()
+        data = json.loads(r.stdout)
+        self.assertFalse(data["ok"])
+        self.assertTrue(any(v["code"] == "EMPTY_FIELD" and "created" in v["where"]
+                            for v in data["violations"]))
     def test_check_final_legal_record_passes(self):
         self.write_final()
         r = self.check("--final")

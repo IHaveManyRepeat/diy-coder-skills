@@ -207,7 +207,7 @@ def cmd_init(args):
     save_yaml_atomic(path, skeleton(os.path.basename(os.path.abspath(
         args.project_root))))
     return emit(receipt("init", True, args.project_root, out_dir,
-                        counts={"pages": 0}, updated=today()), args.json)
+                        counts={"pages": 0}, updated=now()), args.json)
 
 
 # ---- list / show -----------------------------------------------------------

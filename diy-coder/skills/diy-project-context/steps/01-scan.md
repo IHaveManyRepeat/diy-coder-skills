@@ -70,7 +70,8 @@ HALT——等回答。人修正时，部件的清单与类型逐字照收；清�
 写 `{output_dir}/project-context.yaml`（缺席时新建），机器锚点照抄回执——绝不重打：
 
 ```yaml
-project: {name: <diy-coder.yaml project.name>, created: <today>, updated: <today>}
+project: {name: <diy-coder.yaml project.name>, created: , updated: }
+                              # 时间键留空；建文件后跑 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type project-context --json 盖秒级章；每次写回产物后再跑一次（刷 updated）
 scan:
   mode: 全量|重扫|深挖
   level: 快速|深入|穷尽
@@ -83,7 +84,7 @@ rules: []
 revisions: []
 ```
 
-日期口径：格式一律 `YYYY-MM-DD`；`project.created` 建文件时设、此后不改写；`project.updated` 每次写回刷今天；`scan.date` 是**本次写 `scan` 块的日子**——全量 / 重扫 / 深挖一律写今天，不是首扫日（它同时就是下一次续跑播报的增量窗口起点）。`deep_dives[].date` 记那一次深潜的日子，与 `scan.date` 不必相同。定义源在 SKILL.md，本步只落笔。
+日期口径：project 两键留空、跑 `diyc stamp --type project-context` 盖秒级章（created 此后不改；updated 每次写回后刷）；`scan.date` 是**本次写 `scan` 块的日子**——全量 / 重扫 / 深挖一律写今天，不是首扫日（它同时就是下一次续跑播报的增量窗口起点）。`deep_dives[].date` 记那一次深潜的日子，与 `scan.date` 不必相同。定义源在 SKILL.md，本步只落笔。
 
 **重扫** 或 **深挖** 时，既有各节先整块前滚、就地编辑——`revisions` 记录改了什么。上面的骨架是**新建文件**的形态：拿它覆盖既有文件会连同 `stack` / `structure` / `architecture` / `rules` 与全部人工确认的 `PC-###` 一起丢掉。
 

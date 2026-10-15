@@ -40,7 +40,7 @@ token 区间是**建议、不是门**——由人否决。意图过不了单目�
 
 ## 路由（恰好一条）
 
-**记录缺席时才建**（多目标分支可能已建）：追加到 `{output_dir}/spec.yaml`（文件缺席时创建：`project: {name, status: 草稿, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——加空 `specs` 列表与 `revisions: []`）。
+**记录缺席时才建**（多目标分支可能已建）：追加到 `{output_dir}/spec.yaml`（文件缺席时创建：`project: {name, status: 草稿, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type spec --json` 盖秒级章、每次写回产物后再跑一次——加空 `specs` 列表与 `revisions: []`）。
 
 ```yaml
   - id: SP-001                  # 下一个 = 既有最大 + 1，三位零填充；永不重编号，永不复用

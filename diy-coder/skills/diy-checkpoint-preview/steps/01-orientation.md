@@ -91,7 +91,7 @@ diff 取不到时（git 不可用）：一行说明「无法生成轨迹——gi
 
 ## 写草稿记录
 
-往 `{output_dir}/checkpoint.yaml` 追加一条记录（文件缺席时先建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——加空的 `checkpoints` 列表与 `revisions: []`）：
+往 `{output_dir}/checkpoint.yaml` 追加一条记录（文件缺席时先建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type checkpoint --json` 盖秒级章、每次写回产物后再跑一次——加空的 `checkpoints` 列表与 `revisions: []`）：
 
 ```yaml
   - id: CK-001                 # 下一条 = 现有最大值 + 1，三位零填充；永不重编号、永不复用

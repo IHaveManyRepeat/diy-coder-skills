@@ -516,8 +516,10 @@ class SkillContractTests(unittest.TestCase):
         # SS-009-11（A-7 日期口径）落 steps/01-scope.md
         scope = read_step("01-scope.md")
         self.assertIn("本条动作的日子", scope, "SS-009-11 未落：记录级 date 口径")
-        self.assertIn("`project.created` 建文件时设、此后不改", scope, "A-7 未落：created")
-        self.assertIn("`project.updated` 每次写回刷今天", scope, "A-7 未落：updated")
+        # 批 3 追裁①（2026-10-15）：created 指示改程序盖章口径——守卫锚同步
+        self.assertIn("跑 `diyc stamp --type research` 盖秒级章", scope, "A-7 未落：created")
+        self.assertIn("created 此后不改", scope, "A-7 未落：created 不改义")
+        self.assertIn("updated 每次写回后刷", scope, "A-7 未落：updated")
         # SS-009-10：两条记录串行 + 指路 06-synthesis
         self.assertIn("串行", scope, "SS-009-10 未落：两条记录串行")
         self.assertIn("06-synthesis.md", scope, "SS-009-10 未落：指路收尾步")

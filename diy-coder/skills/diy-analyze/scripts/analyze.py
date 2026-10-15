@@ -189,7 +189,7 @@ def cmd_init(args):
             return emit(receipt("init", True, args.project_root, out_dir,
                                 warnings=warnings,
                                 counts={"components": len(old.get("components") or [])},
-                                updated=today()), args.json)
+                                updated=now()), args.json)
     if violations:
         return emit(receipt("init", False, args.project_root, out_dir,
                             violations), args.json)
@@ -199,7 +199,7 @@ def cmd_init(args):
     save_yaml_atomic(path, doc)
     return emit(receipt("init", True, args.project_root, out_dir,
                         counts={"components": 0, "risks": 0, "recommendations": 0},
-                        updated=today()), args.json)
+                        updated=now()), args.json)
 
 
 # ---- list / show -----------------------------------------------------------

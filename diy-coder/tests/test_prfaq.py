@@ -239,6 +239,23 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(data["counts"]["notes"], 2)
 
     # trace: B1 diy-prfaq 验收 #2（三类违规各带 code：枚举 / 阶段 / 空字段）
+
+    # 批 3 追裁②（2026-10-15）：project 时间键非空门＋两格式——留空＝未盖章红；
+    # 秒级真值合法（prfaq 不在 CHECK_TYPES，闭环断口在此补齐；DATE_RE 随批扩秒）
+    def test_check_time_keys_nonempty_and_second_precision(self):
+        self.write("diy-output/prfaq.yaml",
+                   PRFAQ_DRAFT.replace("created: '2026-09-14'",
+                                       "created: '2026-09-14 08:00:00'"))
+        r = self.check()
+        data = json.loads(r.stdout)
+        self.assertTrue(data["ok"], str(data["violations"]))
+        self.write("diy-output/prfaq.yaml",
+                   PRFAQ_DRAFT.replace("created: '2026-09-14'", "created: ''"))
+        r = self.check()
+        data = json.loads(r.stdout)
+        self.assertFalse(data["ok"])
+        self.assertTrue(any(v["code"] == "EMPTY_FIELD" and "created" in v["where"]
+                            for v in data["violations"]))
     def test_check_final_reports_violation_codes(self):
         cases = [
             ("ENUM_INVALID",

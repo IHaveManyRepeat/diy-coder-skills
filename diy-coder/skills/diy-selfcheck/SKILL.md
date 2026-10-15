@@ -44,7 +44,7 @@ outputs: selfcheck.yaml
 `{output_dir}/selfcheck.yaml` 主产物骨架：
 
 ```yaml
-project: {name, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}   # 时间键留空、跑 diyc stamp --type selfcheck 盖秒级章（created 此后不改；updated 每次写回后刷）
 schema: 2                           # 顶层版本戳（照 spec-scan 先例）
 checks:
   - id: SC-001                      # 顺序递增永不复用：＝既有集合 max+1，无文件自 SC-001（01 收尾创建）

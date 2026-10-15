@@ -50,7 +50,7 @@ outputs: story-context.yaml
 `{output_dir}/story-context.yaml` — 单一源，集合形态（顶层形状照 `bug-log.yaml`）：
 
 ```yaml
-project: {name, created, updated}     # created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}     # 时间键留空、跑 diyc stamp --type story-context 盖秒级章（created 此后不改；updated 每次写回后刷）
 contexts:
   - id: SC-001                  # SC-### — 顺序递增、稳定，永不重编号、永不复用
     story: S-x                  # stories.yaml 里既有的故事（一故事一记录）

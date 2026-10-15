@@ -44,7 +44,7 @@ outputs: research.yaml
 `{output_dir}/research.yaml` —— 唯一源头，集合形态（顶层形状对齐 `bug-log.yaml`）：
 
 ```yaml
-project: {name, created, updated}   # 日期口径：格式 YYYY-MM-DD；created 建文件时设、此后不改；updated 每次写回刷今天
+project: {name, created, updated}   # 时间键留空、跑 diyc stamp --type research 盖秒级章（created 此后不改；updated 每次写回后刷）
 researches:
   - id: RS-001                  # RS-###：顺序递增、稳定，永不重编号、永不复用
     dimension: 市场|技术|领域

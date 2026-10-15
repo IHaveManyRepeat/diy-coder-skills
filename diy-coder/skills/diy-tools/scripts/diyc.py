@@ -31,9 +31,17 @@ CHECK_TYPES = ("prd", "architecture", "openapi", "epics", "stories",
                "test-plan", "sprint", "review", "mutation-report")
 # v4 批 3（二裁·全量程序盖章）：C 组 AI 建产物「时间键留空＋跑 stamp」的类型面。
 # CHECK_TYPES 封闭集不扩（prfaq 等 check 门不达的类型不强进）
+# 批 3 追裁①（2026-10-15）：清单外 10 家纳入——investigate/project-context/
+# quick-dev/readiness-check/research/retrospective/checkpoint-preview/
+# correct-course/create-story/selfcheck 的产物同为 AI 建文件（无引擎或引擎纯读）。
+# spec 键供 diy-quick-dev（与 diy-spec 共写 spec.yaml：引擎已程序铸 created，
+# quick-dev 追加记录后跑 stamp 刷 updated）
 STAMP_TYPES = ("prd", "architecture", "openapi", "prfaq", "test-design",
                "epics", "stories", "brief", "editorial-review", "spec-scan",
-               "design")
+               "design",
+               "investigation", "project-context", "spec", "readiness",
+               "research", "retrospective", "checkpoint", "change-proposal",
+               "story-context", "selfcheck")
 # --previous 稳定 ID 比对仅这些类型支持（契约 §4.2）
 PREVIOUS_TYPES = ("prd", "openapi", "epics", "stories", "test-plan", "architecture")
 WRITEBACK_COMMANDS = ("transition", "green", "done", "bug-add", "defer-add", "reconcile")
@@ -293,7 +301,7 @@ def cmd_baseline_add(args) -> dict:
     if entry is None:
         return receipt("baseline-add", False, violations=violations)
     entries, _ = diyc_lib.load_baseline(args.output_dir, base_rel)  # 写后回读自检
-    return receipt("baseline-add", True, entry=entry, updated=diyc_lib.today(),
+    return receipt("baseline-add", True, entry=entry, updated=diyc_lib.now(),
                    counts={"entries": len(entries)}, violations=[])
 
 

@@ -33,7 +33,7 @@ Progress: `[Scope] → <dimension> 02–05 → Synthesis`
 
 ## 写草稿记录
 
-向 `{output_dir}/research.yaml` 追加一条记录（文件缺席时新建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`——外加空的 `researches` 列表与 `revisions: []`）：
+向 `{output_dir}/research.yaml` 追加一条记录（文件缺席时新建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type research --json` 盖秒级章、每次写回产物后再跑一次——外加空的 `researches` 列表与 `revisions: []`）：
 
 ```yaml
   - id: RS-001                 # 下一个 = 既有最大值 + 1，三位零填充；永不重编号、永不复用
@@ -46,7 +46,7 @@ Progress: `[Scope] → <dimension> 02–05 → Synthesis`
     findings: []               # 各分析步逐条追加，一次一条
 ```
 
-日期口径：格式一律 `YYYY-MM-DD`；`project.created` 建文件时设、此后不改；`project.updated` 每次写回刷今天；记录的 `date` 是**本条动作的日子**（= 建这条记录那天），不随 `updated` 变。
+日期口径：project 两键留空、跑 `diyc stamp --type research` 盖秒级章（created 此后不改；updated 每次写回后刷）；记录的 `date` 是**本条动作的日子**（= 建这条记录那天），不随 `updated` 变。
 
 源技能的命名规则按新载体承接：源技能写 `<dimension>-<slug>-research-<date>.md`、从主题派生路径安全 slug；diy 产物是一个固定文件，故 `dimension` + `topic` + `date` 即其身份，不派生路径、不派生 slug。
 

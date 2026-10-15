@@ -237,7 +237,8 @@ class BaselineAddTests(unittest.TestCase):
                                       "reason": "2026-09-13 用户裁定豁免",
                                       "on": date.today().isoformat(), "by": "user"})
         self.assertEqual(r["counts"]["entries"], 1)
-        self.assertEqual(r["updated"], date.today().isoformat())
+        # 批 3 追裁④：回执 updated 统一秒级——日期部分比对
+        self.assertEqual(r["updated"][:10], date.today().isoformat())
         p2 = chk(self.root)
         self.assertEqual(p2.returncode, 0, p2.stdout + p2.stderr)
         self.assertEqual(len(jload(p2)["known"]), 1)

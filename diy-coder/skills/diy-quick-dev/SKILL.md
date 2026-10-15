@@ -48,7 +48,7 @@ outputs: spec.yaml
 `{output_dir}/spec.yaml` —— 单一源，集合形态（顶层形状随 `bug-log.yaml`）：
 
 ```yaml
-project: {name, status: 草稿|已定稿, created, updated}   # created 建文件时设、此后不改；updated 每次写回刷今天（均 YYYY-MM-DD）
+project: {name, status: 草稿|已定稿, created, updated}   # 时间键留空、跑 diyc stamp --type spec 盖秒级章（created 此后不改；updated 每次写回后刷）
                                                          # status = 文件水位线：在场每条 SP-### 都已 已完成 且过终门后才为 已定稿；新增或重开记录先回 草稿
 specs:
   - id: SP-001                  # SP-###——顺序递增、稳定，永不重编号、永不复用
