@@ -48,7 +48,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
-from diyc_lib import now, today  # noqa: E402
+from diyc_lib import display_path, now  # noqa: E402
 
 try:
     import yaml
@@ -102,14 +102,6 @@ def save_yaml_atomic(path: Path, data) -> None:
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, path)
-
-
-def display_path(path: Path, project_root: Path) -> str:
-    """相对 project-root、正斜杠；越界则绝对路径。"""
-    try:
-        return path.resolve().relative_to(project_root.resolve()).as_posix()
-    except ValueError:
-        return path.resolve().as_posix()
 
 
 def v(code: str, where: str, msg: str) -> dict:

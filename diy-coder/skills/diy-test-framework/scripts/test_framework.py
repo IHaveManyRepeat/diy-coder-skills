@@ -77,6 +77,10 @@ import tempfile
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import display_path  # noqa: E402
+
 TF_FILE = "test-framework.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
 PLAN_JSON = "scaffold-plan.json"
@@ -202,17 +206,6 @@ def out_dir(args):
     if not os.path.isabs(out):
         out = os.path.join(os.path.abspath(args.project_root), out)
     return out
-
-
-def display_path(path, project_root):
-    """where 显示口径（对齐 diyc）：正斜杠 + 相对 project-root；越界则绝对路径。"""
-    try:
-        rel = os.path.relpath(path, project_root)
-    except ValueError:
-        rel = os.path.abspath(path)
-    if rel.startswith(".."):
-        return os.path.abspath(path).replace("\\", "/")
-    return rel.replace("\\", "/")
 
 
 def load_yaml_safe(path):

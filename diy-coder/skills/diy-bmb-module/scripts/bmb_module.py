@@ -73,7 +73,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, today  # noqa: E402
+from diyc_lib import display_path, now, today  # noqa: E402
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -100,17 +100,6 @@ def v(code, where, msg):
 # trace: diy-bmb-module 非空判定（None / 空白字符串均视为空）
 def nonempty(value):
     return value is not None and str(value).strip() != ""
-
-
-# trace: diy-bmb-module where 显示口径（正斜杠 + 相对 project-root；越界回退绝对路径）
-def display_path(path, project_root):
-    try:
-        rel = os.path.relpath(path, project_root)
-    except ValueError:
-        rel = os.path.abspath(path)
-    if rel.startswith(".."):
-        return os.path.abspath(path).replace("\\", "/")
-    return rel.replace("\\", "/")
 
 
 # trace: diy-bmb-module 相位归一（`any` 与 `anytime` 双轨等价——套件内两种拼写并存，非差异）

@@ -111,7 +111,7 @@ def receipt(command, ok, file=None, violations=None, warnings=None, counts=None,
     return r
 
 
-def display_path(path):
+def norm_path(path):
     """回执表示层统一正斜杠（机器消费面须单形分隔符）。"""
     return os.path.normpath(str(path)).replace("\\", "/")
 
@@ -208,7 +208,7 @@ def coerce_design(doc):  # trace: S-14 AC-14.3 TC-14.3.3 形状归一：半写/�
 
 def load_design_doc(path):
     """原样载入 design.yaml；返回 (文档或 None, 违规清单)。不做任何形状归一。"""
-    rel = display_path(path)
+    rel = norm_path(path)
     if not os.path.isfile(path):
         return None, [v("MISSING_FILE", rel, "%s 不存在——先运行 diy-design 生成该产物" % rel)]
     try:
@@ -230,7 +230,7 @@ def read_design(path):
     if doc is None:
         return None, violations
     design, problems = coerce_design(doc)
-    return design, [v("UNPARSABLE_YAML", display_path(path), p) for p in problems]
+    return design, [v("UNPARSABLE_YAML", norm_path(path), p) for p in problems]
 
 
 # ---------------------------------------------------------------- ID 稳定对账（裁定 15）
@@ -274,7 +274,7 @@ def check_previous(design, previous, rel):
     与 diyc_check._check_previous 同口径（错误码同名）：快照缺失 → MISSING_FILE、
     快照不可解析 → UNPARSABLE_YAML（两条都是「安全网失效，停手告知用户」）。
     """
-    prev_rel = display_path(previous)
+    prev_rel = norm_path(previous)
     if not os.path.isfile(previous):
         return [v("MISSING_FILE", prev_rel,
                   "旧稿快照不存在：%s——更新重写前先 cp design.yaml design.yaml.prev" % prev_rel)]
@@ -298,7 +298,7 @@ def check_previous(design, previous, rel):
 def cmd_detect(args):  # trace: S-14 AC-14.2 TC-14.2.1 前端需求启发式（命中词+机器锚词否决），skip 判定证据
     output_dir = resolve_output_dir(args.project_root, args.instance)
     prd_path = os.path.join(output_dir, "prd.yaml")
-    rel = display_path(prd_path)
+    rel = norm_path(prd_path)
     if not os.path.isfile(prd_path):
         return emit(receipt("detect", False, file=rel,
                             violations=[v("MISSING_FILE", rel,
@@ -617,7 +617,7 @@ def page_gate_violations(base, page, rel, states_code, file_code, required=None)
 
 def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail 列违规清单（含形状问题）
     design, violations = read_design(args.design)
-    rel = display_path(args.design)
+    rel = norm_path(args.design)
     if design is None:
         return emit(receipt("check", False, file=rel, violations=violations,
                             counts={"pages": 0, "prototypes": 0, "states": 0}), args.json)
@@ -688,7 +688,7 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail �
             continue
         n_proto += 1
         text = io.open(ppath, encoding="utf-8").read()
-        where = display_path(proto)
+        where = norm_path(proto)
         sc = SemanticChecker()
         sc.feed(text)
         sc.close()
@@ -768,7 +768,7 @@ def _validate_final_gate(design, base_name, violations):
 
 def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 TC-14.3.3 design.yaml 结构契约校验（含形状问题）；D-10 三段式字段
     design, violations = read_design(args.design)
-    rel = display_path(args.design)
+    rel = norm_path(args.design)
     if design is None:
         return emit(receipt("validate", False, file=rel, violations=violations,
                             counts={"pages": 0, "states": 0, "open_questions": 0}), args.json)
@@ -1009,22 +1009,22 @@ def resolve_token_scope(design, src):
 def _rel_to(path, root):
     """相对化（跨盘等无法相对化时回退原值）。"""
     try:
-        return display_path(os.path.relpath(path, root))
+        return norm_path(os.path.relpath(path, root))
     except ValueError:
-        return display_path(path)
+        return norm_path(path)
 
 
 def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 TC-14.3.2 one-off 色值/字号审计（归一比较，token 单一源）
     design, violations = read_design(args.design)
-    rel = display_path(args.design)
+    rel = norm_path(args.design)
     counts = {"files": 0, "skipped": 0, "skipped_dirs": 0}
     if design is None:
         return emit(receipt("audit", False, file=rel, violations=violations, counts=counts),
                     args.json)
     if not os.path.exists(args.src):
-        violations.append(v("MISSING_FILE", display_path(args.src),
+        violations.append(v("MISSING_FILE", norm_path(args.src),
                             "src 不存在：%s——--src 取项目根 src 或 {output_dir}/prototypes"
-                            % display_path(args.src)))
+                            % norm_path(args.src)))
         return emit(receipt("audit", False, file=rel, violations=violations, counts=counts),
                     args.json)
     hex_ok = collect_token_hexes(design)
@@ -1061,11 +1061,11 @@ def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 TC-14.3.2 one-off 色值/�
         skipped = 1 if not files else 0
     if scopes and (skipped or pruned):
         warnings.append("token_scope 生效：跳过 %d 个目录 / %d 个文件（%s）"
-                        % (pruned, skipped, "、".join(display_path(s) for s in scopes)))
+                        % (pruned, skipped, "、".join(norm_path(s) for s in scopes)))
     for fpath in files:
         ext = os.path.splitext(fpath)[1].lower()
         text = strip_comments(io.open(fpath, encoding="utf-8").read(), ext)
-        where = _rel_to(fpath, root) if root else display_path(fpath)
+        where = _rel_to(fpath, root) if root else norm_path(fpath)
         for value in iter_color_value_spans(text, ext):
             for m in HEX_RE.finditer(value):
                 try:
@@ -1172,13 +1172,13 @@ def _dup_page_ids(pages):
 
 
 def _transition_fail(args, violations, counts):
-    return emit(receipt("transition", False, file=display_path(args.design),
+    return emit(receipt("transition", False, file=norm_path(args.design),
                         violations=violations, counts=counts, page=args.page), args.json)
 
 
 def cmd_transition(args):  # trace: S-14 AC-14.1 页状态迁移写回（9 条合法边；破坏性边追加 revisions）
     path = args.design
-    rel = display_path(path)
+    rel = norm_path(path)
     base_name = os.path.basename(path)
     doc, violations = load_design_doc(path)
     if doc is None:

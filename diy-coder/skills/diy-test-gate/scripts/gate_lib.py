@@ -38,7 +38,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import diyc_script_path, is_int  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, is_int  # noqa: E402
 
 GATE_FILE = "test-gate.yaml"
 STORIES_FILE = "stories.yaml"
@@ -159,14 +159,6 @@ def items_of(doc, key):
         return []
     value = doc.get(key)
     return value if isinstance(value, list) else []
-
-
-def display_path(path, root):
-    try:
-        rel = os.path.relpath(path, root)
-    except ValueError:
-        rel = path
-    return rel.replace("\\", "/")
 
 
 def load_yaml_safe(path):

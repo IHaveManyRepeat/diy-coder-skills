@@ -96,7 +96,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import is_int, now, today  # noqa: E402
+from diyc_lib import display_path, is_int, now, today  # noqa: E402
 
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
@@ -139,17 +139,6 @@ def nonempty(value):
 # trace: B3 diy-teach-me-testing 整数判定（布尔不得充当整数：true 不是 1）
 
 # trace: B3 diy-teach-me-testing 日期口径（today = YYYY-MM-DD，对齐契约 §3）
-
-
-# trace: B3 diy-teach-me-testing where 显示口径（正斜杠 + 相对 project-root；越界回退绝对路径）
-def display_path(path, project_root):
-    try:
-        rel = os.path.relpath(path, project_root)
-    except ValueError:
-        rel = os.path.abspath(path)
-    if rel.startswith(".."):
-        return os.path.abspath(path).replace("\\", "/")
-    return rel.replace("\\", "/")
 
 
 # trace: B3 diy-teach-me-testing YAML 安全装载：(data, err)；缺失 (None, None)、空 ({}, None)、损坏 (None, 原因)

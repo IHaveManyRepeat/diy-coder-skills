@@ -83,6 +83,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import display_path  # noqa: E402
+
 PLAN_FILE = "test-plan.yaml"
 
 # ---------------------------------------------------------------- 探测面
@@ -283,17 +287,6 @@ def v(code, where, msg):
 
 def nonempty(value):
     return value is not None and str(value).strip() != ""
-
-
-def display_path(path, project_root):
-    """where 显示口径（对齐 diyc）：正斜杠 + 相对 project-root；越界则绝对路径。"""
-    try:
-        rel = os.path.relpath(path, project_root)
-    except ValueError:
-        rel = os.path.abspath(path)
-    if rel.startswith(".."):
-        return os.path.abspath(path).replace("\\", "/")
-    return rel.replace("\\", "/")
 
 
 def load_yaml_safe(path):

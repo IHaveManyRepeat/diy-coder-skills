@@ -38,7 +38,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
-from diyc_lib import now, today  # noqa: E402
+from diyc_lib import display_path, now  # noqa: E402
 
 try:
     import yaml
@@ -149,14 +149,6 @@ class Report:
 
     def exit_code(self):
         return 0 if not self.violations else 1
-
-
-def display_path(path: Path, project_root: Path) -> str:
-    """相对 project-root、正斜杠（契约 §3 的 `where` 口径）；越界则绝对路径。"""
-    try:
-        return path.resolve().relative_to(project_root.resolve()).as_posix()
-    except ValueError:
-        return path.resolve().as_posix()
 
 
 def nonempty(value) -> bool:

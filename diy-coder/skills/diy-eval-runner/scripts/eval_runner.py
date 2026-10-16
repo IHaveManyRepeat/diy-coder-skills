@@ -76,6 +76,10 @@ import time
 import uuid
 from datetime import datetime, timezone
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import display_path  # noqa: E402
+
 MODES = ("baseline", "variant", "quality", "trigger")
 CONFIG_MODES = ("baseline", "variant", "quality")
 # 每个模式用到的 config；顺序固定（`skill` 恒为被测侧 = delta 的被减项）
@@ -113,17 +117,6 @@ def memlog_now():
 def v(code, where, msg):
     """违规/警告同形构造（warnings 与 violations 逐键一致）。"""
     return {"code": code, "where": str(where).replace("\\", "/"), "msg": msg}
-
-
-def display_path(path, root):
-    """回执里的路径：相对 project-root、正斜杠；越界用绝对路径（母本 §7）。"""
-    try:
-        rel = os.path.relpath(os.path.abspath(path), os.path.abspath(root))
-    except ValueError:
-        return os.path.abspath(path).replace("\\", "/")
-    if rel.startswith(".."):
-        return os.path.abspath(path).replace("\\", "/")
-    return rel.replace("\\", "/")
 
 
 def norm(path):

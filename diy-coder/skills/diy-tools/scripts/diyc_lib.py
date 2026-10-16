@@ -599,3 +599,16 @@ class Docs:
                 continue
             missing.append(ac_id)
         return (not missing), missing
+
+
+# ---------------------------------------------------------------- 路径显示
+
+def display_path(path, root) -> str:
+    """回执 where 显示口径：正斜杠 + 相对 root；越界/跨盘回退绝对路径。"""
+    try:
+        rel = os.path.relpath(path, root)
+    except ValueError:
+        rel = os.path.abspath(path)
+    if rel.startswith(".."):
+        return os.path.abspath(path).replace("\\", "/")
+    return rel.replace("\\", "/")

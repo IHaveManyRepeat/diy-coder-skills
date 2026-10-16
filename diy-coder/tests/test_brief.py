@@ -452,6 +452,12 @@ class FinalEvidenceTests(EngineCase):
         fake = os.path.join(self.root, "skills", "diy-product-brief", "scripts")
         os.makedirs(fake, exist_ok=True)
         engine = shutil.copyfile(ENGINE, os.path.join(fake, "brief.py"))
+        # 丁批跟改：引擎副本跨技能 import diyc_lib（parents[2] 同构），沙盒补拷其副本
+        lib = os.path.join(self.root, "skills", "diy-tools", "scripts")
+        os.makedirs(lib, exist_ok=True)
+        shutil.copy2(os.path.join(HERE, "..", "skills", "diy-tools",
+                                  "scripts", "diyc_lib.py"),
+                     os.path.join(lib, "diyc_lib.py"))
         r = subprocess.run([sys.executable, engine, "check", "--final",
                             "--project-root", self.root, "--output-dir", self.out, "--json"],
                            capture_output=True, text=True, encoding="utf-8")

@@ -40,6 +40,10 @@ import xml.etree.ElementTree as ET
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import display_path  # noqa: E402
+
 try:  # Python 3.11+ 标准库；3.10 环境降级为「存在但未解析」warning（语言无关承诺）
     import tomllib as _toml
 except ImportError:  # pragma: no cover - 取决于运行时版本
@@ -169,17 +173,6 @@ def v(code, where, msg):
 
 def nonempty(value):
     return value is not None and str(value).strip() != ""
-
-
-def display_path(path, project_root):
-    """where 显示口径（对齐 diyc/checkpoint）：正斜杠 + 相对 project-root；越界则绝对路径。"""
-    try:
-        rel = os.path.relpath(path, project_root)
-    except ValueError:
-        rel = os.path.abspath(path)
-    if rel.startswith(".."):
-        return os.path.abspath(path).replace("\\", "/")
-    return rel.replace("\\", "/")
 
 
 def slash(path):

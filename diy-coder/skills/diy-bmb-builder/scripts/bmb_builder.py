@@ -86,6 +86,10 @@ from datetime import datetime
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import display_path  # noqa: E402
+
 SKILL_FILE = "SKILL.md"
 STEPS_DIR = "steps"
 KNOWN_DIRS = ("steps", "references", "scripts", "assets")
@@ -246,17 +250,6 @@ def v(code, where, msg):
 # trace: diy-bmb-builder 非空判定（None / 空白字符串均视为空）
 def nonempty(value):
     return value is not None and str(value).strip() != ""
-
-
-# trace: diy-bmb-builder where 显示口径（正斜杠 + 相对 project-root；越界回退绝对路径）
-def display_path(path, project_root):
-    try:
-        rel = os.path.relpath(path, project_root)
-    except ValueError:
-        rel = os.path.abspath(path)
-    if rel.startswith(".."):
-        return os.path.abspath(path).replace("\\", "/")
-    return rel.replace("\\", "/")
 
 
 # trace: diy-bmb-builder 名字归一（小写、非字母数字折成单连字符、去首尾、截到 64）

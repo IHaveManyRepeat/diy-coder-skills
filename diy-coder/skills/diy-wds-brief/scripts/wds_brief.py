@@ -100,7 +100,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, today  # noqa: E402
+from diyc_lib import display_path, now  # noqa: E402
 
 BRIEF_FILE = "wds-brief.yaml"
 
@@ -218,19 +218,6 @@ def load_yaml_safe(path):
         return None, str(e)
     except OSError as e:
         return None, str(e)
-
-
-def display_path(path, project_root):
-    """where 显示口径（对齐 diyc）：正斜杠 + 相对 project-root；越界则绝对路径。"""
-    try:
-        rel = os.path.relpath(path, project_root)
-    except ValueError:
-        rel = os.path.abspath(path)
-    if rel.startswith(".."):
-        return os.path.abspath(path).replace("\\", "/")
-    return rel.replace("\\", "/")
-
-
 
 
 def save_yaml_atomic(path, data):

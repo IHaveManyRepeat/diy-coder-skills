@@ -32,6 +32,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import display_path  # noqa: E402
+
 PRFAQ_FILE = "prfaq.yaml"
 
 CONCEPT_TYPES = ("商业", "内部", "开源", "社区")
@@ -72,17 +76,6 @@ def load_yaml_safe(path):
         return None, str(e)
     except OSError as e:
         return None, str(e)
-
-
-def display_path(path, project_root):
-    """where 显示口径（对齐 diyc）：正斜杠 + 相对 project-root；越界则绝对路径。"""
-    try:
-        rel = os.path.relpath(path, project_root)
-    except ValueError:
-        rel = os.path.abspath(path)
-    if rel.startswith(".."):
-        return os.path.abspath(path).replace("\\", "/")
-    return rel.replace("\\", "/")
 
 
 def collect_strings(node):
