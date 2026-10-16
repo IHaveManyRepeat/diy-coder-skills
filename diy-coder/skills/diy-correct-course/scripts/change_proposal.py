@@ -50,6 +50,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import diyc_script_path  # noqa: E402
+
 PROPOSAL_FILE = "change-proposal.yaml"
 PRD_FILE = "prd.yaml"
 EPICS_FILE = "epics.yaml"
@@ -67,7 +71,6 @@ ROUTE_BY_FILE = {PRD_FILE: "diy-prd", EPICS_FILE: "diy-epics-stories",
                  STORIES_FILE: "diy-epics-stories"}
 OPTIONAL_FILES = (ARCH_FILE, OPENAPI_FILE, DESIGN_FILE)
 
-DIYC_REL = ("diy-tools", "scripts", "diyc.py")
 DIYC_TYPES = ("prd", "architecture", "openapi", "epics", "stories")
 HTTP_METHODS = ("get", "put", "post", "delete", "options", "head", "patch", "trace")
 
@@ -447,12 +450,6 @@ def known_ids(docs):
 
 
 # ---------------------------------------------------------------- diyc 委派
-
-def diyc_script_path():
-    """diyc.py 路径：由引擎自身位置推算 skills 根（源码与安装布局同构，任务书 §2.3）。"""
-    skills_root = os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))
-    return os.path.join(skills_root, *DIYC_REL)
 
 
 def diyc_type_check(script, project_root, type_name):

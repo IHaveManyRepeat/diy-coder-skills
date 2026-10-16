@@ -113,6 +113,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import now, today  # noqa: E402
+
 PRODUCT_FILE = "wds-trigger.yaml"
 UPSTREAM_FILE = "wds-brief.yaml"
 UPSTREAM_SKILL = "diy-wds-brief"
@@ -226,16 +230,6 @@ def display_path(path, project_root):
     return rel.replace("\\", "/")
 
 
-def today():
-    """"YYYY-MM-DD（本地时区）。"""
-    import datetime
-    return datetime.date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    import datetime
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def save_yaml_atomic(path, data):

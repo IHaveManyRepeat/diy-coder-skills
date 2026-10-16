@@ -36,6 +36,10 @@ from datetime import date
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import diyc_script_path, is_int  # noqa: E402
+
 GATE_FILE = "test-gate.yaml"
 STORIES_FILE = "stories.yaml"
 PLAN_FILE = "test-plan.yaml"
@@ -45,7 +49,6 @@ ARCH_FILE = "architecture.yaml"
 MUTATION_FILE = "mutation-report.yaml"
 ADR_ASSET = "adr-checklist.yaml"
 
-DIYC_REL = ("diy-tools", "scripts", "diyc.py")
 DIYC_TYPES = ("test-plan",)
 
 GATE_ROUTE = {STORIES_FILE: "diy-epics-stories",
@@ -215,9 +218,6 @@ def meets(value, target):
     """软 / 硬指标达线判定：target 形态 '100%' 或 '>=90%'。"""
     return value >= threshold_of(target) - 1e-9
 
-
-def is_int(value):
-    return isinstance(value, int) and not isinstance(value, bool)
 
 
 def adr_rows():
@@ -483,12 +483,6 @@ def cross_domain_hits(statuses):
 
 
 # ---------------------------------------------------------------- diyc 委派
-
-def diyc_script_path():
-    """diyc.py 路径：由引擎自身位置推算 skills 根（源码与安装布局同构，任务书 §2.3）。"""
-    skills_root = os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))
-    return os.path.join(skills_root, *DIYC_REL)
 
 
 def diyc_type_check(script, project_root, type_name):

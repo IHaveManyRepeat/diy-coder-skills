@@ -63,6 +63,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import is_int, now, today  # noqa: E402
+
 BRAINSTORM_FILE = "brainstorm.yaml"
 METHODS_FILE = "brain-methods.csv"
 LIB_COLUMNS = ("category", "technique_name", "description")
@@ -89,10 +93,6 @@ def nonempty(value):
     """非空判定：None / 空白字符串均视为空。"""
     return value is not None and str(value).strip() != ""
 
-
-def is_int(value):
-    """整数判定（布尔不得充当整数：true 不是 1）。"""
-    return isinstance(value, int) and not isinstance(value, bool)
 
 
 def normalize_keys(node):
@@ -138,16 +138,6 @@ def display_path(path, project_root):
     return rel.replace("\\", "/")
 
 
-def today():
-    """"YYYY-MM-DD（本地时区）。"""
-    import datetime
-    return datetime.date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    import datetime
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def save_yaml_atomic(path, data):

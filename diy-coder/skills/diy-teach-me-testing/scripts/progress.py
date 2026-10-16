@@ -94,6 +94,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import is_int, now, today  # noqa: E402
+
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
 NOTES_DIR = "notes"
@@ -133,18 +137,8 @@ def nonempty(value):
 
 
 # trace: B3 diy-teach-me-testing 整数判定（布尔不得充当整数：true 不是 1）
-def is_int(value):
-    return isinstance(value, int) and not isinstance(value, bool)
-
 
 # trace: B3 diy-teach-me-testing 日期口径（today = YYYY-MM-DD，对齐契约 §3）
-def today():
-    return datetime.date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 # trace: B3 diy-teach-me-testing where 显示口径（正斜杠 + 相对 project-root；越界回退绝对路径）

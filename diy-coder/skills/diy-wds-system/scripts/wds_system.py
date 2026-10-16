@@ -47,6 +47,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
+from diyc_lib import now, today  # noqa: E402
+
 try:
     import yaml
 except ModuleNotFoundError:                                    # pragma: no cover
@@ -82,15 +85,6 @@ DOC_REQUIRED = ("project", "design_system_mode", "tokens", "categories", "prefix
 
 # ───────────────────────────── 基础设施 ─────────────────────────────
 
-def now() -> str:
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    import datetime
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-
-def today() -> str:
-    import datetime
-    return datetime.date.today().isoformat()
 
 
 def load_yaml(path: Path):

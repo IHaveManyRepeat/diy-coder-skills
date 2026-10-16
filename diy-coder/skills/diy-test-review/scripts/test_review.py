@@ -88,6 +88,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import diyc_script_path  # noqa: E402
+
 TEST_REVIEW_FILE = "test-review.yaml"
 FINDINGS_FILE = "test-review-findings.json"
 CRITERIA_FILE = "criteria.yaml"
@@ -204,8 +208,6 @@ MERGE_CONFIG_RE = re.compile(r"\bmergeConfig\s*\(|\bextends\s*:")
 FFI_SAFE_MARKER = "tea:pact-ffi-safe"
 ADD_INTERACTION_RE = re.compile(r"\baddInteraction\s*\(")
 TEST_BLOCK_RE = re.compile(r"\b(?:it|test)\s*\(")
-
-DIYC_REL = ("diy-tools", "scripts", "diyc.py")
 
 
 def v(code, where, msg):
@@ -694,12 +696,6 @@ def pact_config_paths(root, out, pacts):
 
 
 # ---------------------------------------------------------------- diyc 委派
-
-def diyc_script_path():
-    """diyc.py 路径：由引擎自身位置推算 skills 根（源码与安装布局同构，任务书 §2.3）。"""
-    skills_root = os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))
-    return os.path.join(skills_root, *DIYC_REL)
 
 
 def diyc_call(script, args_list):

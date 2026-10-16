@@ -92,6 +92,16 @@ def id_sort(ids) -> list:
     return sorted(ids, key=_id_sort_key)
 
 
+def is_int(value):
+    """整数判定（布尔不得充当整数：true 不是 1）。"""
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def diyc_script_path():
+    """diyc.py 路径：与 diyc_lib 同目录（源码与安装布局同构）。"""
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "diyc.py")
+
+
 # ---------------------------------------------------------------- YAML IO
 
 def load_yaml(path):

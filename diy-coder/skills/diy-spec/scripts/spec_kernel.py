@@ -41,7 +41,6 @@ artifacts / verdict）由 LLM 直编 YAML；引擎只做骨架与校验——**`
 """
 # trace: B4 diy-spec 验收 #2（产物 schema + SK-### 稳定前缀）/#3（门禁零产出）/#4（CAP-N + retired + --previous）/12b（终门指向自带引擎）
 import argparse
-import datetime
 import io
 import json
 import os
@@ -49,6 +48,10 @@ import re
 import sys
 
 import yaml
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import now, today  # noqa: E402
 
 SPEC_FILE = "spec-kernel.yaml"
 SK_RE = re.compile(r"SK-\d{3}")
@@ -66,13 +69,6 @@ def nonempty(value):
     return value is not None and str(value).strip() != ""
 
 
-def today():
-    return datetime.date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def display_path(path, project_root):

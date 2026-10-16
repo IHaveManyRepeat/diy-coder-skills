@@ -33,7 +33,6 @@ UNKNOWN_ID ENUM_INVALID EMPTY_FIELD ENTRY_INVALID TOOL_MISSING TOOL_ERROR SET_MI
 """
 # trace: 迁移计划 §二 验收 #3 / #4 / #12（领域引擎接线 + 窄写权）
 import argparse
-import datetime
 import io
 import json
 import os
@@ -42,6 +41,10 @@ import subprocess
 import sys
 
 import yaml
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import diyc_script_path, now, today  # noqa: E402
 
 PLAN_FILE = "test-plan.yaml"
 STORIES_FILE = "stories.yaml"
@@ -95,8 +98,6 @@ SUGGESTS = {
     "unknown": "未探测到项目清单——请显式指定被测特性的框架（本技能不自动安装）。",
 }
 
-DIYC_REL = ("diy-tools", "scripts", "diyc.py")
-
 
 def v(code, where, msg):
     return {"code": code, "where": where, "msg": msg}
@@ -106,13 +107,6 @@ def nonempty(value):
     return value is not None and str(value).strip() != ""
 
 
-def today():
-    return datetime.date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def display_path(path, project_root):
@@ -506,12 +500,6 @@ def load_known(output_dir, show, violations, warnings):
                     known_acs.add(str(ac["id"]))
     return plan, known_ids, known_acs, stories_available
 
-
-def diyc_script_path():
-    """diyc.py 路径：由引擎自身位置推算 skills 根（源码与安装布局同构，任务书 §2.3）。"""
-    skills_root = os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))
-    return os.path.join(skills_root, *DIYC_REL)
 
 
 def diyc_check_test_plan(script, project_root, output_dir):

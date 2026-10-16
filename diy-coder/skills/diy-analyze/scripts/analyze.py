@@ -28,6 +28,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import now, today  # noqa: E402
+
 LAYERS = ("展示层", "应用层", "领域层", "基础设施层", "未分层")
 SCALES = ("高", "中", "低")
 STATUSES = ("草稿", "已定稿")
@@ -40,15 +44,6 @@ ASSUMPTION = "[假设]"
 SUBCOMMANDS = ("init", "list", "show", "check")
 
 
-def today():
-    import datetime
-    return datetime.date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    import datetime
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def load_yaml(path):

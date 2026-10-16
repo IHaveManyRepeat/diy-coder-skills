@@ -63,7 +63,6 @@ project-root；人读态每条违规一行 `CODE where: msg` + 末尾汇总行�
 `{output_dir}/module-plan.yaml`；`check` 全程零写入。
 """
 import argparse
-import datetime
 import io
 import json
 import os
@@ -71,6 +70,10 @@ import re
 import sys
 
 import yaml
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import now, today  # noqa: E402
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -176,13 +179,6 @@ def collect_strings(node):
 
 
 # trace: diy-bmb-module 今日日期（YYYY-MM-DD）
-def today():
-    return datetime.date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 # trace: diy-bmb-module 路径令牌处置：{project-root} 按 --project-root 自解析，其余 {...} 一律拒绝

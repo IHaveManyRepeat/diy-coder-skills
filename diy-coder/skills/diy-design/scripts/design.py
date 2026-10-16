@@ -23,7 +23,6 @@ warnings[], counts{}, file}；退出码 0 成功 / 1 拒绝 / 2 用法错误）�
 """
 # trace: S-14 AC-14.1 AC-14.2 AC-14.3 TC-14.1.1 TC-14.2.1 TC-14.3.1
 import argparse
-import datetime
 import io
 import json
 import os
@@ -32,6 +31,10 @@ import sys
 from html.parser import HTMLParser
 
 import yaml
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import now, today  # noqa: E402
 
 # 实例名白名单（与 viewer/help/runner/exp-sync 同源）：字母数字开头和结尾，中间可含 . _ -。
 # 末字符禁点：Windows 目录名尾点被静默折叠（b. ≡ b），会破坏实例隔离；fullmatch 避免 $ 放行尾换行
@@ -136,13 +139,6 @@ def emit(result, as_json, human_lines=None):
     return 0 if result.get("ok") else 1
 
 
-def today():
-    return datetime.date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def load_yaml(path):

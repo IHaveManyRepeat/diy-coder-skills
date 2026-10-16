@@ -41,6 +41,10 @@ import tempfile
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import now, today  # noqa: E402
+
 # —— 冻结常量 ——
 
 PRODUCT = "wds-evolution.yaml"
@@ -69,15 +73,6 @@ GATE_GLOB_PREFIX = "wds-"
 # —— 基础工具 ——
 
 
-def today():
-    from datetime import date
-    return date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    from datetime import datetime
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def v(code, where, msg):

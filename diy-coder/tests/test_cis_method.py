@@ -225,6 +225,12 @@ class EngineCase(unittest.TestCase):
         scripts = os.path.join(self.root, "_skill", "diy-cis-method", "scripts")
         os.makedirs(scripts, exist_ok=True)
         shutil.copy2(ENGINE, os.path.join(scripts, "cis_method.py"))
+        # 丁批跟改：引擎副本跨技能 import diyc_lib（parents[2] 同构），沙盒补拷其副本
+        lib = os.path.join(self.root, "_skill", "diy-tools", "scripts")
+        os.makedirs(lib, exist_ok=True)
+        shutil.copy2(os.path.join(HERE, "..", "skills", "diy-tools",
+                                  "scripts", "diyc_lib.py"),
+                     os.path.join(lib, "diyc_lib.py"))
         with io.open(os.path.join(self.root, "_skill", "diy-cis-method", "cis-methods.csv"),
                      "w", encoding="utf-8", newline="") as f:
             f.write(csv_text)

@@ -32,7 +32,6 @@ schema 与易用性权威，作为**交叉核对**另行跑一次（两者都必
 实例解析由 SKILL.md 层完成（`diyc.py resolve`）；本引擎不解析实例。
 """
 import argparse
-import datetime
 import io
 import json
 import os
@@ -40,6 +39,10 @@ import re
 import sys
 
 import yaml
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import now, today  # noqa: E402
 
 REQUIRED_STATES = ("悬停", "空态", "加载中", "错误")
 COLOR_REQUIRED = ("bg", "text", "accent")
@@ -53,13 +56,6 @@ ASSUMPTION = "[假设]"
 SIGNAL_COLOR = "色彩"
 
 
-def today():
-    return datetime.date.today().isoformat()
-
-
-def now():
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def load_yaml(path):

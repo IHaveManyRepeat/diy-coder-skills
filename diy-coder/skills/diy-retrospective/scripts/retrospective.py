@@ -40,6 +40,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import is_int  # noqa: E402
+
 RETRO_FILE = "retrospective.yaml"
 STORIES_FILE = "stories.yaml"
 EPICS_FILE = "epics.yaml"
@@ -133,9 +137,6 @@ def id_sort(ids):
                      for p in re.split(r"[-.]", str(value)))
     return sorted(ids, key=key)
 
-
-def is_int(value):
-    return isinstance(value, int) and not isinstance(value, bool)
 
 
 # ---------------------------------------------------------------- 文档装载

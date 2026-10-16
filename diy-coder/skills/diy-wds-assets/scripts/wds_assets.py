@@ -32,11 +32,13 @@
 from __future__ import annotations
 
 import argparse
-import datetime as _dt
 import json
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
+from diyc_lib import now, today  # noqa: E402
 
 try:
     import yaml
@@ -219,13 +221,6 @@ def project_name(project_root: Path) -> str:
     return project_root.resolve().name
 
 
-def today() -> str:
-    return _dt.date.today().isoformat()
-
-
-def now() -> str:
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
-    return _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def skeleton(project_root: Path) -> dict:
