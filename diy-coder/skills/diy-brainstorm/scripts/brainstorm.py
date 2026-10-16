@@ -65,7 +65,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, now, today  # noqa: E402
+from diyc_lib import display_path, is_int, methods_path, next_record_id, now, today  # noqa: E402
 
 BRAINSTORM_FILE = "brainstorm.yaml"
 METHODS_FILE = "brain-methods.csv"
@@ -157,15 +157,9 @@ def project_name(project_root):
 
 # ---------------------------------------------------------------- 技术库
 
-def methods_path():
-    """技术库路径：技能目录根（`scripts/` 的上一级），两种安装布局同构。"""
-    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                        METHODS_FILE)
-
-
 def load_methods(project_root):
     """加载技术库 → (rows | None, violations)。行结构 {category, technique_name, description}。"""
-    path = methods_path()
+    path = methods_path(__file__, METHODS_FILE)
     show = display_path(path, project_root)
     if not os.path.isfile(path):
         return None, [v("MISSING_FILE", show, "%s 不存在（技能自带技术库）" % METHODS_FILE)]
@@ -360,17 +354,6 @@ def cmd_techniques(args):
 
 # ---- init ----
 
-def next_record_id(records):
-    """下一个 `BS-###`：现有最大序号 + 1（三位零填充）。空号不复用、不重号。"""
-    max_no = 0
-    for rec in records:
-        if isinstance(rec, dict) and nonempty(rec.get("id")):
-            m = BS_RE.fullmatch(str(rec["id"]).strip())
-            if m:
-                max_no = max(max_no, int(m.group(1)))
-    return "BS-%03d" % (max_no + 1)
-
-
 def blank_document(project_root, stamp):
     """新建产物骨架：project 三键 + 空集合 + 空 revisions。"""
     name, warning = project_name(project_root)
@@ -431,7 +414,7 @@ def cmd_init(args):
         doc["sessions"] = sessions
         doc.setdefault("revisions", [])
         payload["warnings"] = warnings
-    record_id = next_record_id(doc.get("sessions") or [])
+    record_id = next_record_id(doc.get("sessions") or [], BS_RE, "BS")
     record = new_record(record_id, args.topic, args.goals, today())
     doc["sessions"] = list(doc.get("sessions") or []) + [record]
     try:

@@ -85,16 +85,14 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path  # noqa: E402
+from diyc_lib import (JAVA_MANIFESTS, NODE_MANIFESTS, PY_MANIFESTS,  # noqa: E402
+                      builtin_framework, detect_project_type, display_path,
+                      is_test_file)
 
 PLAN_FILE = "test-plan.yaml"
 
 # ---------------------------------------------------------------- 探测面
-# 三张常量表与 diy-e2e-tests/scripts/e2e.py 逐值对齐（同一套探测口径，不各写一份）。
-NODE_MANIFESTS = ("package.json",)
-PY_MANIFESTS = ("pyproject.toml", "setup.py", "requirements.txt", "requirements-dev.txt",
-                "requirements-test.txt", "Pipfile")
-JAVA_MANIFESTS = ("pom.xml", "build.gradle", "build.gradle.kts")
+# NODE/PY/JAVA 三清单与 e2e 同源（diyc_lib 单源：detect_project_type 同库）；OTHER 留本地
 OTHER_MANIFESTS = ("Cargo.toml", "go.mod", "Gemfile", "composer.json")
 ALL_MANIFESTS = NODE_MANIFESTS + PY_MANIFESTS + JAVA_MANIFESTS + OTHER_MANIFESTS
 
@@ -110,8 +108,6 @@ PY_FRAMEWORKS = (("playwright", ("playwright",)),
 
 TEST_DIR_CANDIDATES = ("tests", "test", "spec", "specs", "__tests__", "e2e", "cypress",
                        "integration", "qa")
-TEST_FILE_SUFFIXES = (".spec.ts", ".spec.tsx", ".spec.js", ".spec.jsx", ".spec.py",
-                      ".test.ts", ".test.tsx", ".test.js", ".test.jsx")
 MAX_PATTERNS = 20
 SCAN_DEPTH = 3
 
@@ -352,42 +348,6 @@ def text_framework(root, manifests, frameworks, warnings):
             if any(m in text for m in markers):
                 return {"name": name, "detected_from": rel}
     return None
-
-
-def builtin_framework(root):
-    """内建测试链（无需第三方框架）：Cargo / Go / JVM 构建。"""
-    table = (("Cargo.toml", "cargo test", "rust"),
-             ("go.mod", "go test", "go"),
-             ("pom.xml", "maven-surefire", "java"),
-             ("build.gradle", "gradle test", "java"),
-             ("build.gradle.kts", "gradle test", "java"))
-    for rel, name, ptype in table:
-        if os.path.isfile(os.path.join(root, rel)):
-            return {"name": name, "detected_from": rel}, ptype
-    return None, None
-
-
-def detect_project_type(root):
-    """project_type 判定（清单存在性，顺序即优先级）。返回 (type, 命中清单)。"""
-    table = (("node", NODE_MANIFESTS), ("python", PY_MANIFESTS), ("rust", ("Cargo.toml",)),
-             ("go", ("go.mod",)), ("java", JAVA_MANIFESTS), ("ruby", ("Gemfile",)),
-             ("php", ("composer.json",)))
-    for ptype, manifests in table:
-        for rel in manifests:
-            if os.path.isfile(os.path.join(root, rel)):
-                return ptype, rel
-    return "unknown", None
-
-
-def is_test_file(name):
-    lower = name.lower()
-    if any(lower.endswith(s) for s in TEST_FILE_SUFFIXES):
-        return True
-    if lower.startswith("test_") and lower.endswith(".py"):
-        return True
-    if lower.endswith(("_test.py", "_test.go", "_test.rb")):
-        return True
-    return name.endswith(("Test.java", "Test.php"))
 
 
 def walk_files(base, root, predicate, limit):

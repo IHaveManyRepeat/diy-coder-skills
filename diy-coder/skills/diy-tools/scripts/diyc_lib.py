@@ -102,6 +102,27 @@ def diyc_script_path():
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "diyc.py")
 
 
+def methods_path(script_file, methods_file):
+    """技能自带库文件路径：脚本目录的上一级（`scripts/` 的上一级），两种安装布局同构。
+
+    `script_file` 传调用方 `__file__`（方法库在各技能目录，非 diyc_lib 目录）。
+    """
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(script_file))),
+                        methods_file)
+
+
+def next_record_id(records, id_re, prefix):
+    """下一个 `<prefix>-###`：现有最大序号 + 1（三位零填充）。空号不复用、不重号。"""
+    max_no = 0
+    for rec in records:
+        if isinstance(rec, dict) and rec.get("id") is not None \
+                and str(rec["id"]).strip() != "":
+            m = id_re.fullmatch(str(rec["id"]).strip())
+            if m:
+                max_no = max(max_no, int(m.group(1)))
+    return "%s-%03d" % (prefix, max_no + 1)
+
+
 # ---------------------------------------------------------------- YAML IO
 
 def load_yaml(path):
@@ -612,3 +633,50 @@ def display_path(path, root) -> str:
     if rel.startswith(".."):
         return os.path.abspath(path).replace("\\", "/")
     return rel.replace("\\", "/")
+
+
+# ---------------------------------------------------------------- 项目探测（e2e×author）
+
+NODE_MANIFESTS = ("package.json",)
+PY_MANIFESTS = ("pyproject.toml", "setup.py", "requirements.txt", "requirements-dev.txt",
+                "requirements-test.txt", "Pipfile")
+JAVA_MANIFESTS = ("pom.xml", "build.gradle", "build.gradle.kts")
+TEST_FILE_SUFFIXES = (".spec.ts", ".spec.tsx", ".spec.js", ".spec.jsx", ".spec.py",
+                      ".test.ts", ".test.tsx", ".test.js", ".test.jsx")
+
+
+def builtin_framework(root):
+    """内建测试链（无需第三方框架）：Cargo / Go / JVM 构建。"""
+    table = (("Cargo.toml", "cargo test", "rust"),
+             ("go.mod", "go test", "go"),
+             ("pom.xml", "maven-surefire", "java"),
+             ("build.gradle", "gradle test", "java"),
+             ("build.gradle.kts", "gradle test", "java"))
+    for rel, name, ptype in table:
+        if os.path.isfile(os.path.join(root, rel)):
+            return {"name": name, "detected_from": rel}, ptype
+    return None, None
+
+
+def detect_project_type(root):
+    """project_type 判定（清单存在性，顺序即优先级）。返回 (type, 命中清单)。"""
+    table = (("node", NODE_MANIFESTS), ("python", PY_MANIFESTS), ("rust", ("Cargo.toml",)),
+             ("go", ("go.mod",)), ("java", JAVA_MANIFESTS), ("ruby", ("Gemfile",)),
+             ("php", ("composer.json",)))
+    for ptype, manifests in table:
+        for rel in manifests:
+            if os.path.isfile(os.path.join(root, rel)):
+                return ptype, rel
+    return "unknown", None
+
+
+def is_test_file(name):
+    """测试文件名判定（e2e/author 主群版；test_review 变体留本地）。"""
+    lower = name.lower()
+    if any(lower.endswith(s) for s in TEST_FILE_SUFFIXES):
+        return True
+    if lower.startswith("test_") and lower.endswith(".py"):
+        return True
+    if lower.endswith(("_test.py", "_test.go", "_test.rb")):
+        return True
+    return name.endswith(("Test.java", "Test.php"))
