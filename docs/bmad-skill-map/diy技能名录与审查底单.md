@@ -662,7 +662,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 ## 第二批待办（2026-10-10 起·v4 批 1 审核中发现，与上方第一批待办〔2026-10-03~05 登记〕区分）
 
-### 待办：test-plan 终门「FH 被杀」口径——引用与实测结果脱钩（2026-10-10 v4 批 1 审核发现，登记待裁，现在不动）
+### 待办：test-plan 终门「FH 被杀」口径——引用与实测结果脱钩（2026-10-10 v4 批 1 审核发现·2026-10-16 已裁双口径分时点，独立校验面小批待执行，现在不动）
 
 登记来源：用户审核批 1 产物（diy-test-design/SKILL.md，提交 `5183546`）时问「新故障先落 FH 再写 TC，是否有编码/测试/结果回写字段」——核实回写机制后点出终门缺口。
 
@@ -671,13 +671,14 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 缺口本体：`diyc_check_docs.py` `check_test_plan` final 段「每条 FH 被 ≥1 TC 杀」（:944-958·批 1 工作树版）只收 `kill_target` 引用、不看 `TC.status`——引用某 FH 的 TC `status: 失败`（故障为真未修完）甚至 `待办`（未跑），门照样判「被杀」。
 - 时点分裂：设计期跑 `--final` 全待办，核引用是唯一可行口径（自洽）；实现期（green 回写 / augment·e2e 追加后）再跑 `--final`，「被杀」与实测结果脱钩。
 
-待裁（三选项）：
-①维持现状——「被杀」＝被引用；实测结果归 diy-test-gate 管。
-②收紧——final 时 FH 须被 ≥1 条 `status: 通过` 的 TC 引用。
-③折中——`status: 失败` TC 的 kill_target 引用不计数（`待办` 仍计）。
-②③须区分「设计定稿门」与「实现后门」两个时点，涉及门行为改动＋设计期门兼容口径。
+已裁（2026-10-16·双口径分时点，推翻三选项框架）：
+- **判时点**＝任务书的状态＋测试是否编写完 → 设计期 / 编码期；
+- **编码期＝收紧**（原②）：FH 须被 ≥1 条 `status: 通过` 的 TC 引用；
+- **设计期＝引用口径**（＝原①现状）：只查每条 FH 有无 ≥1 TC 引用、不看 `status`——保住设计期结构把关；设计期红不算有问题；
+- 原三选项（①②③）作废留档：①维持现状——「被杀」＝被引用，实测结果归 diy-test-gate 管；②收紧——final 时 FH 须被 ≥1 条 `status: 通过` 的 TC 引用；③折中——`status: 失败` TC 的 kill_target 引用不计数（`待办` 仍计）；
+- 判据的机械定义（任务书取哪个状态字段／「测试编写完」如何算）随任务书呈裁。
 
-改动面：`diyc_check_docs.py` final 段＋`tests/test_diyc_check.py`（测试面系本裁定直接后果·同源）；②③另动 diy-test-design SKILL.md 终门口径句。
+改动面：`diyc_check_docs.py` final 段＋`tests/test_diyc_check.py`（测试面系本裁定直接后果·同源）；另动 diy-test-design SKILL.md 终门口径句（双口径分时点须与提示词同口径）。
 
 ### 待办：枚举值跨技能一致性——回查关卡先行，方案 A 注入后并（2026-10-11 用户认可两步路径，登记排期，现在不动）
 
@@ -694,7 +695,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面（做①时）：`diyc_check_docs.py`（面清单＋extract＋断言）＋`tests/test_diyc_check.py`；viewer 标签接线随①范围定。
 
-### 待办：spec-scan kind 判据规则表（2026-10-11 批 2c 立书调研发现·用户裁「甲＝只登记不动手」，排期待呈裁，现在不动）
+### 待办：spec-scan kind 判据规则表（2026-10-11 批 2c 立书调研发现·2026-10-16 已裁闭合：模糊档=乙＋对照表＋文档轻扫口径·整体裁可，排期待定，现在不动）
 
 登记来源：批 2c 裁⑤讨论——`target.kind` 现由执行者（AI）现场判定（`01-collect.md:20`「由你判定（引擎不给）」），四条定义是唯一判据、无规则表＝非确定性；每轮问人＝低效。用户裁定登底单，两技能规则表**同批同文一次立**。
 
@@ -706,6 +707,13 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 方案（2026-10-11 讨论共识·待正式裁）：
 - 三阶判据链：① 用户明示 kind 照录 → ② 规则表机械判（`SKILL.md+steps`→技能；名字含 prd/epic/story/架构→规格；带分工施工指令→任务书；无执行结构→文档）→ ③ 模糊档 AI 判＋播报纠错（或先问一次，形态待裁）。
 - spec-scan 侧动工前与 selfcheck 侧（2c 裁⑤回填件）对表同文；2b「判法在执行者」运行态维持至规则表落地。
+
+已裁（2026-10-16·部分）：
+- **模糊档形态＝乙**（先问一次）——三阶链走完仍模糊，AI 不代判、停下来问用户；原③「AI 判＋播报纠错」作废。
+- **方案不照原样整体裁可**——三阶链（①明示照录②机械判③模糊问人）保留，但缺一块：须补**「整个 diy 体系产物→类型」对照表**（封闭世界：体系全部产物——prd/architecture/sprint/design/test-plan/SKILL/steps/任务书……逐个归 任务书|技能|规格|文档 四类；判据从「名字含 prd/epic/story/架构」启发式升级为查表定归）。补块后方案整体重呈裁。
+- **第二补块（2026-10-16 用户裁「并进」）：文档路由 03 步补「消费向轻扫」口径**——文档不整篇预演，只扫两类：①规范性语句（「须／禁止／唯一／优先／才算」等 AI 会照着行动的句子）逐句查两读；②指涉可解析性（引用 ID／文件／术语落盘是否存在、唯一）。判据表述修正：风险轴＝「谁以什么方式消费它」（机械消费靠引擎断言／语义消费靠扫＋写作纪律），「文档＝无防护」作废；与对照表并列为方案第二补块，同随整体重呈裁。深审互补面＝diy-editorial-review 已有 `--reader-type 人类|LLM` 档（单篇深审·建议制），轻扫是流水线点查、editorial-review 是重点文稿深审，不互代。
+- **整体裁可（2026-10-16）**：三阶链（①用户明示照录→②体系内查表定归／体系外结构判兜底→③模糊档问人＝乙）＋对照表（规格从紧＝prd/brief/prfaq/epics/stories/architecture/openapi/design/test-plan/spec/story-context/change-proposal＋WDS 四产物 trigger/scenarios/system/brief；技能＝SKILL.md/steps/模板与教学资产；任务书＝taskbook*；文档＝sprint/review/mutation-report/selfcheck/spec-scan/investigation/research/retrospective/checkpoint/editorial-review/readiness/WDS assets 清单/evolution；⚠ 四行 prfaq/story-context/change-proposal/project-context 从紧归规格）＋第二补块文档轻扫口径，整体裁可。两键核实结论＝产物真名 test-plan.yaml、STAMP 键 test-design 错位（缺陷另立新待办段）。
+- 排期待定。现成盘点素材（动工时核）：STAMP_TYPES 21 型＋diyc check CHECK_TYPES 9 类型。
 
 改动面（做时）：`diy-spec-scan/steps/01-collect.md:20-25` 定目标类型节＋`tests/test_spec_scan.py` kind 断言面（2b 落）随之扩＝测试面先裁后动。
 
@@ -732,6 +740,20 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 安全类覆盖面：全类必答（鉴权/加密/输入校验…）vs 限指定子类——判据待定。
 
 改动面（做时）：`diy-architecture/SKILL.md` 规则区（:84-:90）＋tests 文本守卫面（若有断言依赖）。
+
+### 待办：STAMP_TYPES `test-design` 键与产物文件名错位——stamp 对 test-plan 盖章 MISSING_FILE（2026-10-16 核实 spec-scan 对照表时发现，登记待裁，现在不动）
+
+事实（2026-10-16 证据链三步）：
+- 产物真名＝`test-plan.yaml`（diy-test-design frontmatter `outputs: test-plan.yaml`·description 原文「Derive test-plan.yaml」）。
+- 引擎定位＝output_dir 平铺 `<type>.yaml`、无别名（`diyc_writeback.py:94` `_doc_path`＋`_load` 实读）。
+- ⇒ `check --type test-plan`／green／done 回填写 test-plan.yaml 正确；**`stamp --type test-design` 找 test-design.yaml → MISSING_FILE**——盖章对本产物实际不可用。成因推测＝批 3 扩面 STAMP_TYPES 11→21 时键沿用技能名而非产物名；测试夹具疑按错名建文件把错位锁绿（施工时核实）。
+
+待裁项：
+- 修法：①键改 `test-plan`（与 check/writeback 对齐·KISS）vs ②`_doc_path` 加别名映射（保键名·多一层转接）。
+- 指示面跟改：批 3 追裁①改过 10 SKILL＋9 steps「留空＋跑 stamp」句——句中若点名 `--type test-design` 须同源跟改（做时 grep 全库核）。
+- 测试面：stamp 用例是否按错名 fixture（须核）；测试面先裁后动。
+
+改动面（做时）：`diyc.py` STAMP_TYPES＋可能 `diyc_writeback.py`＋指示面 grep 命中处＋`tests/test_diyc_writeback.py`。
 
 ## 升级事项（可选·不排期·需要才做）
 
