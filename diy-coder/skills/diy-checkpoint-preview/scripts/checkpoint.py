@@ -38,7 +38,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path  # noqa: E402
+from diyc_lib import display_path, v  # noqa: E402
 
 CK_FILE = "checkpoint.yaml"
 SPRINT_FILE = "sprint.yaml"
@@ -56,10 +56,6 @@ CK_RE = re.compile(r"CK-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 # BMAD step-01-orientation.md:54 —— "commit message is terse (under 10 words)" → 标 [inferred]
 TERSE_WORDS = 10
-
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def nonempty(value):

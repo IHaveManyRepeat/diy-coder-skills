@@ -90,7 +90,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, v  # noqa: E402
 
 TEST_REVIEW_FILE = "test-review.yaml"
 FINDINGS_FILE = "test-review-findings.json"
@@ -208,10 +208,6 @@ MERGE_CONFIG_RE = re.compile(r"\bmergeConfig\s*\(|\bextends\s*:")
 FFI_SAFE_MARKER = "tea:pact-ffi-safe"
 ADD_INTERACTION_RE = re.compile(r"\baddInteraction\s*\(")
 TEST_BLOCK_RE = re.compile(r"\b(?:it|test)\s*\(")
-
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def nonempty(value):

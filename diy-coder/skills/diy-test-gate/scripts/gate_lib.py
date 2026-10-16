@@ -38,7 +38,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, is_int  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, is_int, v  # noqa: E402
 
 GATE_FILE = "test-gate.yaml"
 STORIES_FILE = "stories.yaml"
@@ -140,10 +140,6 @@ def cross_domain_rules_doc():
              "why": rule["why"]} for rule in CROSS_DOMAIN_RULES]
 
 
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
-
-
 def nonempty(value):
     return value is not None and str(value).strip() != ""
 
@@ -209,7 +205,6 @@ def threshold_of(target):
 def meets(value, target):
     """软 / 硬指标达线判定：target 形态 '100%' 或 '>=90%'。"""
     return value >= threshold_of(target) - 1e-9
-
 
 
 def adr_rows():

@@ -73,7 +73,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, now, save_yaml_atomic, today  # noqa: E402
+from diyc_lib import display_path, now, save_yaml_atomic, today, v  # noqa: E402
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -93,8 +93,6 @@ ANY_PHASE_SPELLINGS = ("any", "anytime")
 
 
 # trace: diy-bmb-module 违规构造（统一 {code, where, msg} 形态；where 正斜杠）
-def v(code, where, msg):
-    return {"code": code, "where": str(where).replace("\\", "/"), "msg": msg}
 
 
 # trace: diy-bmb-module 非空判定（None / 空白字符串均视为空）

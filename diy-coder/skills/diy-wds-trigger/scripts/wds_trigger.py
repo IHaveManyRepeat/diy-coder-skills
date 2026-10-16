@@ -115,7 +115,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, now, save_yaml_atomic  # noqa: E402
+from diyc_lib import display_path, now, save_yaml_atomic, v  # noqa: E402
 
 PRODUCT_FILE = "wds-trigger.yaml"
 UPSTREAM_FILE = "wds-brief.yaml"
@@ -180,11 +180,6 @@ TOKEN_WHITELIST = ("{project-root}", "{output_dir}")
 TOKEN_RE = re.compile(r"\{[A-Za-z0-9_\-]+\}")
 
 ASSUMPTION_MARK = "[假设]"
-
-
-def v(code, where, msg):
-    """违规/警告项构造；where 统一正斜杠（契约 §3）。"""
-    return {"code": code, "where": str(where).replace("\\", "/"), "msg": msg}
 
 
 def nonempty(value):

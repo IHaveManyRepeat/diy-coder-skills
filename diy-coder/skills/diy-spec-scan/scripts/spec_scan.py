@@ -63,7 +63,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path  # noqa: E402
+from diyc_lib import display_path, v  # noqa: E402
 
 SPEC_SCAN_FILE = "spec-scan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -86,8 +86,6 @@ ASSUMPTION = "[假设]"
 
 
 # trace: diy-spec-scan 违规项构造（统一 {code, where, msg} 形态）
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 # trace: diy-spec-scan 非空判定（None / 空白字符串均视为空）

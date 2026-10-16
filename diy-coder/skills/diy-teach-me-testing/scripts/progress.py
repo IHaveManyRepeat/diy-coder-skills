@@ -96,7 +96,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, now, save_yaml_atomic, today  # noqa: E402
+from diyc_lib import display_path, is_int, now, save_yaml_atomic, today, v  # noqa: E402
 
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
@@ -127,8 +127,6 @@ BACKUP_STAMP = "%Y%m%d-%H%M%S"
 
 
 # trace: B3 diy-teach-me-testing 违规项构造（统一 {code, where, msg} 形态）
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 # trace: B3 diy-teach-me-testing 非空判定（None / 空白字符串均视为空）

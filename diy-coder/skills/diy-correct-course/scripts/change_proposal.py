@@ -52,7 +52,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, v  # noqa: E402
 
 PROPOSAL_FILE = "change-proposal.yaml"
 PRD_FILE = "prd.yaml"
@@ -106,10 +106,6 @@ TARGET_RE = re.compile(r"(?:%s)\Z" % "|".join(TARGET_PATTERNS))
 
 CP_RE = re.compile(r"CP-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def nonempty(value):

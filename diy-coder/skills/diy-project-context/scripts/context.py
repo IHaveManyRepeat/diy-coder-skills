@@ -42,7 +42,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path  # noqa: E402
+from diyc_lib import display_path, v  # noqa: E402
 
 try:  # Python 3.11+ 标准库；3.10 环境降级为「存在但未解析」warning（语言无关承诺）
     import tomllib as _toml
@@ -165,10 +165,6 @@ DOC_DIR_RULES = (
     ("deployment", ("docs/deployment/",)),
 )
 DOC_DIRS = ("docs", "documentation", ".github")
-
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def nonempty(value):

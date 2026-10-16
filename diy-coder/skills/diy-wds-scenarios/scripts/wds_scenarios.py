@@ -110,7 +110,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, now, save_yaml_atomic  # noqa: E402
+from diyc_lib import display_path, now, save_yaml_atomic, v  # noqa: E402
 
 SCENARIOS_FILE = "wds-scenarios.yaml"
 TRIGGER_FILE = "wds-trigger.yaml"
@@ -166,11 +166,6 @@ TOKEN_RE = re.compile(r"\{[A-Za-z0-9_\-]+\}")
 
 ASSUMPTION_MARK = "[假设]"
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}\Z")
-
-
-def v(code, where, msg):
-    """违规/警告项构造；where 统一正斜杠（契约 §3）。"""
-    return {"code": code, "where": str(where).replace("\\", "/"), "msg": msg}
 
 
 def nonempty(value):

@@ -42,7 +42,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, save_yaml_atomic, today  # noqa: E402
+from diyc_lib import now, save_yaml_atomic, today, v  # noqa: E402
 
 # —— 冻结常量 ——
 
@@ -70,10 +70,6 @@ GATE_GLOB_PREFIX = "wds-"
 
 
 # —— 基础工具 ——
-
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def receipt(command, ok, **fields):

@@ -78,7 +78,7 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path  # noqa: E402
+from diyc_lib import display_path, v  # noqa: E402
 
 MODES = ("baseline", "variant", "quality", "trigger")
 CONFIG_MODES = ("baseline", "variant", "quality")
@@ -112,11 +112,6 @@ def stamp():
 
 def memlog_now():
     return datetime.now().strftime("%Y-%m-%dT%H:%M")
-
-
-def v(code, where, msg):
-    """违规/警告同形构造（warnings 与 violations 逐键一致）。"""
-    return {"code": code, "where": str(where).replace("\\", "/"), "msg": msg}
 
 
 def norm(path):

@@ -42,7 +42,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int  # noqa: E402
+from diyc_lib import display_path, is_int, v  # noqa: E402
 
 RETRO_FILE = "retrospective.yaml"
 STORIES_FILE = "stories.yaml"
@@ -73,10 +73,6 @@ STORY_TOKEN_RE = re.compile(r"S-\d+")
 BUG_TOKEN_RE = re.compile(r"BUG-\d{3}")
 
 PATTERN_MIN_COUNT = 2  # 源 step-2：跨 story 才成模式（≥2 处证据）
-
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def nonempty(value):
@@ -125,7 +121,6 @@ def id_sort(ids):
         return tuple((0, int(p)) if p.isdigit() else (1, p)
                      for p in re.split(r"[-.]", str(value)))
     return sorted(ids, key=key)
-
 
 
 # ---------------------------------------------------------------- 文档装载

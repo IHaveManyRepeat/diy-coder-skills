@@ -79,7 +79,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path  # noqa: E402
+from diyc_lib import display_path, v  # noqa: E402
 
 TF_FILE = "test-framework.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -190,13 +190,8 @@ UNSAFE_HARNESS_RE = re.compile(r"<\+input|<\+trigger|<\+pipeline\.variables")
 COMMENT_LINE_PREFIXES = ("#", "//", "<!--", "*")
 
 
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
-
-
 def nonempty(value):
     return value is not None and str(value).strip() != ""
-
 
 
 def out_dir(args):

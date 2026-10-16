@@ -48,7 +48,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
-from diyc_lib import display_path, now  # noqa: E402
+from diyc_lib import display_path, now, v  # noqa: E402
 
 try:
     import yaml
@@ -86,7 +86,6 @@ DOC_REQUIRED = ("project", "design_system_mode", "tokens", "categories", "prefix
 # ───────────────────────────── 基础设施 ─────────────────────────────
 
 
-
 def load_yaml(path: Path):
     """→ (data, error)。error 为 None 表示解析成功。"""
     try:
@@ -102,10 +101,6 @@ def save_yaml_atomic(path: Path, data) -> None:
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, path)
-
-
-def v(code: str, where: str, msg: str) -> dict:
-    return {"code": code, "where": where, "msg": msg}
 
 
 def table_prefixes() -> list:

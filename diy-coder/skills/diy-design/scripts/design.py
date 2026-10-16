@@ -34,7 +34,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, save_yaml_atomic, today  # noqa: E402
+from diyc_lib import now, save_yaml_atomic, today, v  # noqa: E402
 
 # 实例名白名单（与 viewer/help/runner/exp-sync 同源）：字母数字开头和结尾，中间可含 . _ -。
 # 末字符禁点：Windows 目录名尾点被静默折叠（b. ≡ b），会破坏实例隔离；fullmatch 避免 $ 放行尾换行
@@ -96,10 +96,6 @@ NL = "\n"
 
 
 # ---------------------------------------------------------------- 回执与违规（契约 §2.4）
-
-def v(code, where, msg):
-    """违规构造；where 统一正斜杠（承 diyc 契约 §3）。"""
-    return {"code": code, "where": str(where).replace("\\", "/"), "msg": msg}
 
 
 def receipt(command, ok, file=None, violations=None, warnings=None, counts=None, **extra):

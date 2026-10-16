@@ -38,7 +38,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path  # noqa: E402
+from diyc_lib import display_path, v  # noqa: E402
 
 RESEARCH_FILE = "research.yaml"
 
@@ -50,10 +50,6 @@ SYNTHESIS_KEYS = ("executive_summary", "key_points", "open_questions")
 RS_RE = re.compile(r"RS-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 URL_RE = re.compile(r"https?://\S+")
-
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def nonempty(value):

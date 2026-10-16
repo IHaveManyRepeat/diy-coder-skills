@@ -51,7 +51,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, now, save_yaml_atomic, today  # noqa: E402
+from diyc_lib import display_path, now, save_yaml_atomic, today, v  # noqa: E402
 
 SPEC_FILE = "spec-kernel.yaml"
 SK_RE = re.compile(r"SK-\d{3}")
@@ -59,10 +59,6 @@ CAP_RE = re.compile(r"CAP-\d+")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 RECORD_STATUSES = ("草稿", "已定稿")
 ASSUMPTION = "[假设]"
-
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def nonempty(value):

@@ -46,7 +46,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path  # noqa: E402
+from diyc_lib import display_path, v  # noqa: E402
 
 INVESTIGATION_FILE = "investigation.yaml"
 
@@ -80,9 +80,6 @@ MAX_CANDIDATES = 100
 MAX_COMMITS = 20
 
 # 并发/测试边界外的语义（collect 只给候选面，判定权在会话）
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def nonempty(value):

@@ -42,7 +42,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, save_yaml_atomic, today  # noqa: E402
+from diyc_lib import now, save_yaml_atomic, today, v  # noqa: E402
 
 REQUIRED_STATES = ("悬停", "空态", "加载中", "错误")
 COLOR_REQUIRED = ("bg", "text", "accent")
@@ -66,10 +66,6 @@ def safe_load_yaml(path):
         return load_yaml(path), None
     except yaml.YAMLError as e:
         return None, str(e)
-
-
-def v(code, where, msg):
-    return {"code": code, "where": where, "msg": msg}
 
 
 def receipt(command, ok, project_root, output_dir, violations=None,
