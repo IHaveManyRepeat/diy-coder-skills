@@ -96,7 +96,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, now, today  # noqa: E402
+from diyc_lib import display_path, is_int, now, save_yaml_atomic, today  # noqa: E402
 
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
@@ -155,19 +155,6 @@ def load_yaml_safe(path):
 
 
 # trace: B3 diy-teach-me-testing 原子写（全文 load → 就地改 → dump → 同目录 tmp + os.replace）
-def save_yaml_atomic(path, data):
-    tmp = path + ".tmp"
-    try:
-        with io.open(tmp, "w", encoding="utf-8") as handle:
-            yaml.safe_dump(data, handle, allow_unicode=True, sort_keys=False,
-                           default_flow_style=False)
-        os.replace(tmp, path)
-    except BaseException:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
-        raise
 
 
 # trace: T-6 进度文件可用性探测（唯一判据，init 的恢复门与 status/update/check 的报错同源）

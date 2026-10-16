@@ -65,7 +65,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, methods_path, next_record_id, now, today  # noqa: E402
+from diyc_lib import display_path, is_int, methods_path, next_record_id, now, save_yaml_atomic, today  # noqa: E402
 
 BRAINSTORM_FILE = "brainstorm.yaml"
 METHODS_FILE = "brain-methods.csv"
@@ -92,7 +92,6 @@ def v(code, where, msg):
 def nonempty(value):
     """非空判定：None / 空白字符串均视为空。"""
     return value is not None and str(value).strip() != ""
-
 
 
 def normalize_keys(node):
@@ -125,22 +124,6 @@ def load_yaml_safe(path):
         return None, str(e)
     except OSError as e:
         return None, str(e)
-
-
-def save_yaml_atomic(path, data):
-    """同目录 tmp + os.replace 原子替换（契约 §3 写回纪律；注释不保留，失败不吞异常）。"""
-    tmp = path + ".tmp"
-    try:
-        with io.open(tmp, "w", encoding="utf-8") as handle:
-            yaml.safe_dump(data, handle, allow_unicode=True, sort_keys=False,
-                           default_flow_style=False)
-        os.replace(tmp, path)
-    except BaseException:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
-        raise
 
 
 def project_name(project_root):

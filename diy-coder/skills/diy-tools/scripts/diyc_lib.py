@@ -25,6 +25,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from datetime import date, datetime
 
 import yaml
@@ -146,16 +147,21 @@ def safe_load_yaml(path):
 
 
 def save_yaml_atomic(path, data) -> None:
-    """同目录 tmp + os.replace 原子替换（对齐 runner.save_sprint 先例）。
+    """写前建目录 + 同目录随机 tmp + os.replace 原子替换（并发安全·不撞名）。
 
     写回纪律（契约 §3）：全文 load → 就地改 → safe_dump(allow_unicode,
-    sort_keys=False, default_flow_style=False)；注释不保留。
+    sort_keys=False, default_flow_style=False)；注释不保留；换行强制 LF
+    （跨平台输出一致·2026-10-16 组5 裁定 A）。
     失败（权限/路径被占用/磁盘满）清理 tmp 后原样抛出——不留残骸、不吞异常；
     顶层由 diyc.py main() 转 INTERNAL_ERROR 回执（V 复验 F-1）。
     """
-    tmp = path + ".tmp"
+    folder = os.path.dirname(os.path.abspath(path))
+    if folder and not os.path.isdir(folder):
+        os.makedirs(folder, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=folder, prefix=".diyc-", suffix=".tmp")
+    os.close(fd)
     try:
-        with io.open(tmp, "w", encoding="utf-8") as f:
+        with io.open(tmp, "w", encoding="utf-8", newline="\n") as f:
             yaml.safe_dump(data, f, allow_unicode=True, sort_keys=False,
                            default_flow_style=False)
         os.replace(tmp, path)

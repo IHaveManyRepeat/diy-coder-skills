@@ -30,7 +30,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, today  # noqa: E402
+from diyc_lib import now, save_yaml_atomic, today  # noqa: E402
 
 LAYERS = ("展示层", "应用层", "领域层", "基础设施层", "未分层")
 SCALES = ("高", "中", "低")
@@ -44,8 +44,6 @@ ASSUMPTION = "[假设]"
 SUBCOMMANDS = ("init", "list", "show", "check")
 
 
-
-
 def load_yaml(path):
     with io.open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
@@ -56,18 +54,6 @@ def safe_load_yaml(path):
         return load_yaml(path), None
     except yaml.YAMLError as e:
         return None, str(e)
-
-
-def save_yaml_atomic(path, data):
-    """同目录临时文件 + os.replace 原子替换（对齐 diyc_lib.save_yaml_atomic 先例）。"""
-    folder = os.path.dirname(os.path.abspath(path))
-    if folder and not os.path.isdir(folder):
-        os.makedirs(folder, exist_ok=True)
-    tmp = path + ".tmp"
-    with io.open(tmp, "w", encoding="utf-8") as f:
-        yaml.safe_dump(data, f, allow_unicode=True, sort_keys=False,
-                       default_flow_style=False)
-    os.replace(tmp, path)
 
 
 def v(code, where, msg):

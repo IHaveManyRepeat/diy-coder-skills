@@ -73,7 +73,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, now, today  # noqa: E402
+from diyc_lib import display_path, now, save_yaml_atomic, today  # noqa: E402
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -123,19 +123,6 @@ def load_yaml_safe(path):
 
 # trace: diy-bmb-module 原子写盘（同款 diyc_lib.save_yaml_atomic：同目录 tmp + os.replace；
 # 失败清理 tmp 后原样抛出，不留残骸、不吞异常）
-def save_yaml_atomic(path, data):
-    tmp = path + ".tmp"
-    try:
-        with io.open(tmp, "w", encoding="utf-8") as handle:
-            yaml.safe_dump(data, handle, allow_unicode=True, sort_keys=False,
-                           default_flow_style=False)
-        os.replace(tmp, path)
-    except BaseException:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
-        raise
 
 
 # trace: diy-bmb-module 集合字段取列表（缺失/非列表 → []，缺项由 check 层单独报）

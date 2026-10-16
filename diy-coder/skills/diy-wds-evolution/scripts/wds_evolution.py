@@ -37,13 +37,12 @@ import json
 import os
 import re
 import sys
-import tempfile
 
 import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, today  # noqa: E402
+from diyc_lib import now, save_yaml_atomic, today  # noqa: E402
 
 # —— 冻结常量 ——
 
@@ -71,8 +70,6 @@ GATE_GLOB_PREFIX = "wds-"
 
 
 # —— 基础工具 ——
-
-
 
 
 def v(code, where, msg):
@@ -123,22 +120,6 @@ def load_yaml_soft(path):
         return yaml.safe_load(text), None
     except yaml.YAMLError as exc:
         return None, str(exc)
-
-
-def save_yaml_atomic(path, data):
-    """全文重写 + 同目录临时文件 + os.replace（对齐 save_yaml_atomic 的同款实现）。"""
-    directory = os.path.dirname(os.path.abspath(path)) or "."
-    fd, tmp = tempfile.mkstemp(dir=directory, prefix=".wds-evolution-", suffix=".tmp")
-    os.close(fd)
-    try:
-        with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
-            yaml.safe_dump(data, fh, allow_unicode=True, sort_keys=False,
-                           default_flow_style=False)
-        os.replace(tmp, path)
-    except Exception:
-        if os.path.exists(tmp):
-            os.remove(tmp)
-        raise
 
 
 def product_path(output_dir):

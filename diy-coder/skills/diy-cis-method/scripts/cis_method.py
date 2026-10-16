@@ -97,7 +97,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, methods_path, next_record_id, now, today  # noqa: E402
+from diyc_lib import display_path, is_int, methods_path, next_record_id, now, save_yaml_atomic, today  # noqa: E402
 
 CIS_FILE = "cis-method.yaml"
 METHODS_FILE = "cis-methods.csv"
@@ -208,7 +208,6 @@ def nonempty(value):
     return value is not None and str(value).strip() != ""
 
 
-
 def load_yaml_safe(path):
     """读 YAML：(data, err)。缺席 → (None, None)；空文件 → ({}, None)；损坏 → (None, 原因)。"""
     if not os.path.isfile(path):
@@ -220,23 +219,6 @@ def load_yaml_safe(path):
         return None, str(e)
     except OSError as e:
         return None, str(e)
-
-
-def save_yaml_atomic(path, data):
-    """同目录 tmp + os.replace 原子替换（契约 §3 写回纪律；同款实现 = `diyc_lib.save_yaml_atomic`，
-    语义一致：注释不保留、失败清理 tmp 后原样抛出，不吞异常、不留残骸）。"""
-    tmp = path + ".tmp"
-    try:
-        with io.open(tmp, "w", encoding="utf-8") as handle:
-            yaml.safe_dump(data, handle, allow_unicode=True, sort_keys=False,
-                           default_flow_style=False)
-        os.replace(tmp, path)
-    except BaseException:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
-        raise
 
 
 def project_name(project_root):

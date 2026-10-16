@@ -100,7 +100,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, now  # noqa: E402
+from diyc_lib import display_path, now, save_yaml_atomic  # noqa: E402
 
 BRIEF_FILE = "wds-brief.yaml"
 
@@ -218,22 +218,6 @@ def load_yaml_safe(path):
         return None, str(e)
     except OSError as e:
         return None, str(e)
-
-
-def save_yaml_atomic(path, data):
-    """同目录 tmp + os.replace 原子替换（同款实现 = `diyc_lib.save_yaml_atomic`）。"""
-    tmp = path + ".tmp"
-    try:
-        with io.open(tmp, "w", encoding="utf-8") as handle:
-            yaml.safe_dump(data, handle, allow_unicode=True, sort_keys=False,
-                           default_flow_style=False)
-        os.replace(tmp, path)
-    except BaseException:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
-        raise
 
 
 def project_name(project_root):

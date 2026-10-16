@@ -42,7 +42,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, today  # noqa: E402
+from diyc_lib import now, save_yaml_atomic, today  # noqa: E402
 
 REQUIRED_STATES = ("悬停", "空态", "加载中", "错误")
 COLOR_REQUIRED = ("bg", "text", "accent")
@@ -56,8 +56,6 @@ ASSUMPTION = "[假设]"
 SIGNAL_COLOR = "色彩"
 
 
-
-
 def load_yaml(path):
     with io.open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
@@ -68,17 +66,6 @@ def safe_load_yaml(path):
         return load_yaml(path), None
     except yaml.YAMLError as e:
         return None, str(e)
-
-
-def save_yaml_atomic(path, data):
-    folder = os.path.dirname(os.path.abspath(path))
-    if folder and not os.path.isdir(folder):
-        os.makedirs(folder, exist_ok=True)
-    tmp = path + ".tmp"
-    with io.open(tmp, "w", encoding="utf-8") as f:
-        yaml.safe_dump(data, f, allow_unicode=True, sort_keys=False,
-                       default_flow_style=False)
-    os.replace(tmp, path)
 
 
 def v(code, where, msg):
