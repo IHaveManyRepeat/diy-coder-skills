@@ -51,7 +51,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, now, save_yaml_atomic, today, v  # noqa: E402
 
 SPEC_FILE = "spec-kernel.yaml"
 SK_RE = re.compile(r"SK-\d{3}")
@@ -485,7 +485,7 @@ def cmd_new(args):
     payload["counts"] = counts
     if not violations:
         payload["updated"] = counts.pop("updated")
-    emit(payload, args.json, human_new)
+    emit_via(payload, args.json, human_new)
     return 0 if not violations else 1
 
 
@@ -560,7 +560,7 @@ def cmd_check(args):
                 check_previous(data, args.previous, root, show, violations, scope_slugs)
     payload = receipt("check", args, out, not violations, violations, warnings)
     payload["counts"] = counts
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if not violations else 1
 
 
@@ -568,13 +568,6 @@ def receipt(command, args, out, ok, violations, warnings):
     return {"ok": ok, "command": command, "project_root": args.project_root,
             "output_dir": os.path.normpath(out).replace("\\", "/"),
             "violations": violations, "warnings": warnings, "counts": {}}
-
-
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 def human_new(payload):

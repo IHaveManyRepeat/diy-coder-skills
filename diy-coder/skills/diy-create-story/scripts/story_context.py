@@ -52,7 +52,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, v  # noqa: E402
+from diyc_lib import display_path, emit_via, v  # noqa: E402
 
 STORIES_FILE = "stories.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -332,7 +332,7 @@ def cmd_collect(args):
 
     if not passed:
         payload["warnings"] = warnings
-        emit(payload, args.json, human_collect)
+        emit_via(payload, args.json, human_collect)
         return 1
 
     stories = story_map(docs[STORIES_FILE]["data"])
@@ -364,7 +364,7 @@ def cmd_collect(args):
         "prior": 1 if prior else 0,
         "warnings": len(warnings),
     }
-    emit(payload, args.json, human_collect)
+    emit_via(payload, args.json, human_collect)
     return 0
 
 
@@ -764,7 +764,7 @@ def cmd_check(args):
     payload["violations"] = violations
     payload["warnings"] = warnings
     payload["counts"] = counts
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if ok else 1
 
 
@@ -797,13 +797,6 @@ def human_check(payload):
         print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
     for item in payload["warnings"]:
         print("警告 %s %s: %s" % (item["code"], item["where"], item["msg"]))
-
-
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 def build_parser():

@@ -44,7 +44,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, v  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, v  # noqa: E402
 
 READINESS_FILE = "readiness.yaml"
 PRD_FILE = "prd.yaml"
@@ -339,7 +339,7 @@ def cmd_collect(args):
 
     if not passed:
         payload["warnings"] = warnings
-        emit(payload, args.json, human_collect)
+        emit_via(payload, args.json, human_collect)
         return 1
 
     inventory = read_requirements(docs)
@@ -366,7 +366,7 @@ def cmd_collect(args):
         "gaps": len(coverage["gaps"]),
         "diyc_violations": len(diyc_block["check"]["violations"]),
     }
-    emit(payload, args.json, human_collect)
+    emit_via(payload, args.json, human_collect)
     return 0
 
 
@@ -680,7 +680,7 @@ def cmd_check(args):
         "warnings": warnings,
         "counts": counts,
     }
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if ok else 1
 
 
@@ -720,13 +720,6 @@ def human_check(payload):
     print("FAIL：")
     for item in payload["violations"]:
         print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
-
-
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 def build_parser():

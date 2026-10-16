@@ -42,7 +42,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, v  # noqa: E402
 
 RETRO_FILE = "retrospective.yaml"
 STORIES_FILE = "stories.yaml"
@@ -472,14 +472,14 @@ def cmd_collect(args):
         payload["violations"] = [v("ENUM_INVALID", "args --epic",
                                    "epic 须为 E-<n> 或 <n>，实为 %s" % args.epic)]
         payload["gate"]["route"] = "传入 --epic E-<n>（或编号）后重跑本技能"
-        emit(payload, args.json, human_collect)
+        emit_via(payload, args.json, human_collect)
         return 1
 
     passed, violations, route = gate_check(epic, docs, out, root)
     payload["gate"] = {"passed": passed, "files": payload["docs"], "route": route}
     payload["violations"] = violations
     if not passed:
-        emit(payload, args.json, human_collect)
+        emit_via(payload, args.json, human_collect)
         return 1
 
     block = epic_stories_block(epic, docs)
@@ -503,7 +503,7 @@ def cmd_collect(args):
         "augment_fail": metrics["augment_fail"], "bugs": len(bugs),
         "prev_actions": len(prev), "tcs": coverage["tcs"],
     }
-    emit(payload, args.json, human_collect)
+    emit_via(payload, args.json, human_collect)
     return 0
 
 
@@ -1031,7 +1031,7 @@ def cmd_check(args):
         "warnings": warnings,
         "counts": counts,
     }
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if ok else 1
 
 
@@ -1079,13 +1079,6 @@ def human_check(payload):
         print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
     for item in payload["warnings"]:
         print("警告 %s %s: %s" % (item["code"], item["where"], item["msg"]))
-
-
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 def build_parser():

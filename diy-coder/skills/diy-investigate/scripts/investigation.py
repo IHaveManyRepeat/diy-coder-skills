@@ -46,7 +46,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, v  # noqa: E402
+from diyc_lib import display_path, emit_via, v  # noqa: E402
 
 INVESTIGATION_FILE = "investigation.yaml"
 
@@ -340,7 +340,7 @@ def cmd_collect(args):
                "counts": {"commits": len(vcs["commits"]), "files": len(files),
                           "candidates": len(candidates),
                           "by_kind": count_by(candidates, "kind")}}
-    emit(payload, args.json, human_collect)
+    emit_via(payload, args.json, human_collect)
     return 0
 
 
@@ -723,7 +723,7 @@ def cmd_check(args):
                "output_dir": os.path.normpath(out).replace("\\", "/"),
                "final": args.final, "violations": violations, "warnings": warnings,
                "counts": counts}
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if ok else 1
 
 
@@ -736,13 +736,6 @@ def human_check(payload):
     print("FAIL：")
     for item in payload["violations"]:
         print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
-
-
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 def build_parser():

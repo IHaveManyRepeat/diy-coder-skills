@@ -41,7 +41,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, v  # noqa: E402
+from diyc_lib import display_path, emit_via, v  # noqa: E402
 
 SPEC_FILE = "spec.yaml"
 
@@ -614,7 +614,7 @@ def cmd_check(args):
         "warnings": warnings,
         "counts": counts,
     }
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if ok else 1
 
 
@@ -632,13 +632,6 @@ def human_check(payload):
         print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
     for item in payload["warnings"]:
         print("警告 %s %s: %s" % (item["code"], item["where"], item["msg"]))
-
-
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 def build_parser():

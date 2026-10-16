@@ -90,7 +90,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, v  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, v  # noqa: E402
 
 TEST_REVIEW_FILE = "test-review.yaml"
 FINDINGS_FILE = "test-review-findings.json"
@@ -737,7 +737,7 @@ def cmd_scan(args):
             "scope 内未发现测试文件：先给 --paths 指定测试文件/目录，或先跑 "
             "diy-test-author 产出测试代码；匹配不到任何规则得到的 100 不是 100")]
         payload["counts"] = {"files": 0, "excluded": len(excluded), "mechanical": 0}
-        emit(payload, args.json, human_scan)
+        emit_via(payload, args.json, human_scan)
         return 1
 
     pacts = pact_config_paths(root, out, pacts)
@@ -769,7 +769,7 @@ def cmd_scan(args):
                          "corpus_size": baseline["corpus_size"],
                          "sampled": baseline["sampled"],
                          "by_row": _count_rows(mechanical)}
-    emit(payload, args.json, human_scan)
+    emit_via(payload, args.json, human_scan)
     return 0
 
 
@@ -979,22 +979,22 @@ def cmd_score(args):
     if findings_doc is None and err is None:
         payload["violations"] = [v("MISSING_FILE", show,
                                    "findings.json 不存在（03 步先产出 findings 载体）")]
-        emit(payload, args.json, human_score)
+        emit_via(payload, args.json, human_score)
         return 1
     if err is not None:
         payload["violations"] = [v("UNPARSABLE_YAML", show, "findings 载体解析失败：%s" % err)]
-        emit(payload, args.json, human_score)
+        emit_via(payload, args.json, human_score)
         return 1
     if not isinstance(findings_doc, dict):
         payload["violations"] = [v("EMPTY_FIELD", show, "findings 载体顶层不是映射")]
-        emit(payload, args.json, human_score)
+        emit_via(payload, args.json, human_score)
         return 1
     ledger = compute_ledger(findings_doc, criteria)
     payload.update({k: ledger[k] for k in ("deductions", "bonus", "dimensions", "score",
                                            "grade", "recommendation", "counts")})
     payload["violations"] = ledger["violations"]
     payload["ok"] = not ledger["violations"]
-    emit(payload, args.json, human_score)
+    emit_via(payload, args.json, human_score)
     return 0 if payload["ok"] else 1
 
 
@@ -1195,7 +1195,7 @@ def cmd_walkthrough(args):
                "status": status, "gaps": gaps, "violations": [], "warnings": warnings,
                "counts": {kind: len(gaps[kind]) for kind in GAP_KINDS}}
     payload["counts"].update({"evaluated": len(evaluated), "skipped": len(skipped)})
-    emit(payload, args.json, human_walkthrough)
+    emit_via(payload, args.json, human_walkthrough)
     return 0
 
 
@@ -1678,7 +1678,7 @@ def cmd_check(args):
                "output_dir": os.path.normpath(out).replace("\\", "/"),
                "final": bool(args.final), "violations": violations, "warnings": [],
                "counts": counts}
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if payload["ok"] else 1
 
 
@@ -1702,12 +1702,6 @@ def human_check(payload):
 
 
 # ---------------------------------------------------------------- CLI
-
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 def build_parser():

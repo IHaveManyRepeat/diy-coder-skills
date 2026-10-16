@@ -38,7 +38,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, is_int, v  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, is_int, v  # noqa: E402
 
 GATE_FILE = "test-gate.yaml"
 STORIES_FILE = "stories.yaml"
@@ -601,8 +601,3 @@ def mutation_block(out, warnings, today=None):
 
 # ---------------------------------------------------------------- 回执输出
 
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)

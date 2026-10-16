@@ -244,6 +244,28 @@ def receipt(command, ok, **fields) -> dict:
     return r
 
 
+def violation_line(item) -> str:
+    """通用违规行式样：`CODE where: msg`（全库 20+ 家逐字同款·单源化）。"""
+    return "%s %s: %s" % (item.get("code"), item.get("where"), item.get("msg"))
+
+
+def warn_line(item) -> str:
+    """通用警告行式样：`WARN CODE where: msg`。"""
+    return "WARN %s %s: %s" % (item.get("code"), item.get("where"), item.get("msg"))
+
+
+def emit_via(payload, as_json, human_lines) -> None:
+    """传话筒壳（主群模式·回调全权排版直接打印·无 return）。
+
+    json → 单行回执；人读 → 回调自理。与 emit（lib 汇总模式·human_lines_fn 只供附加行）
+    语义并列：谁拼违规/警告行由调用形态决定，勿混用（组7 裁定①·2026-10-16）。
+    """
+    if as_json:
+        print(json.dumps(payload, ensure_ascii=False))
+    else:
+        human_lines(payload)
+
+
 def _summary_line(result) -> str:
     n = len(result.get("violations") or [])
     m = len(result.get("warnings") or [])

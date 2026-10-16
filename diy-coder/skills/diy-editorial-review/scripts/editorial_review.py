@@ -63,7 +63,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, v  # noqa: E402
 
 REVIEW_FILE = "editorial-review.yaml"
 LENSES = ("结构", "文风")
@@ -122,11 +122,6 @@ def load_yaml_safe(path):
 
 
 # trace: B4 diy-editorial-review 契约（--json 单行 / 人读行）
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 # trace: B4 diy-editorial-review 契约（集合字段取列表；缺失/非列表 → []，缺项由 check 层单独报）
@@ -260,7 +255,7 @@ def cmd_stats(args):
         "reader_type": args.reader_type,
         "target": target,
     }
-    emit(payload, args.json, human_stats)
+    emit_via(payload, args.json, human_stats)
     return 0 if payload["ok"] else 1
 
 
@@ -637,7 +632,7 @@ def cmd_check(args):
         "warnings": [],
         "counts": counts,
     }
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if payload["ok"] else 1
 
 

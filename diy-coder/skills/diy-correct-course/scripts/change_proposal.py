@@ -52,7 +52,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, v  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, v  # noqa: E402
 
 PROPOSAL_FILE = "change-proposal.yaml"
 PRD_FILE = "prd.yaml"
@@ -546,7 +546,7 @@ def cmd_collect(args):
 
     if not passed:
         payload["warnings"] = warnings
-        emit(payload, args.json, human_collect)
+        emit_via(payload, args.json, human_collect)
         return 1
 
     summaries = doc_summaries(docs)
@@ -559,13 +559,13 @@ def cmd_collect(args):
                                    "AC-x.y / D-x / TC-x.y.z）；文件类目标（path:...）"
                                    "不参与引用链，实为 %s" % target)]
         payload["warnings"] = warnings
-        emit(payload, args.json, human_collect)
+        emit_via(payload, args.json, human_collect)
         return 1
     if nonempty(target) and str(target) not in known_ids(docs):
         payload["violations"] = [v("UNKNOWN_ID", "--target",
                                    "%s 在六产物与 test-plan / sprint 中均不存在" % target)]
         payload["warnings"] = warnings
-        emit(payload, args.json, human_collect)
+        emit_via(payload, args.json, human_collect)
         return 1
 
     chain = scan_chain(str(target), ref_sites(docs)) if nonempty(target) else []
@@ -589,7 +589,7 @@ def cmd_collect(args):
         "chain": len(chain),
         "diyc_violations": len(diyc_block["check"]["violations"]),
     }
-    emit(payload, args.json, human_collect)
+    emit_via(payload, args.json, human_collect)
     return 0
 
 
@@ -939,7 +939,7 @@ def cmd_check(args):
         "warnings": warnings,
         "counts": counts,
     }
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if ok else 1
 
 
@@ -970,13 +970,6 @@ def human_check(payload):
     print("FAIL：")
     for item in payload["violations"]:
         print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
-
-
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 def build_parser():

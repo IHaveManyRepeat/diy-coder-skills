@@ -46,7 +46,7 @@ from gate_lib import (  # noqa: E402
     ORACLE_SOURCES, PLAN_FILE, PRIORITIES, RECORD_STATUSES, RISK_OF_STATUS,
     RISK_VALUES, SOFT_CRITERIA, STORIES_FILE, TC_RE, TC_TYPES, TG_RE,
     USER_SOURCE_RE, WAIVER_KEYS, ac_index, adr_rows, all_strings, compliance_lines,
-    compliance_rollup, count_by, cross_domain_hits, display_path, emit, is_int,
+    compliance_rollup, count_by, cross_domain_hits, display_path, emit_via, is_int,
     items_of, load_yaml_safe, meets, mutation_block, nonempty, pct_int, pct_str,
     tc_index, v,
 )
@@ -764,7 +764,7 @@ def cmd_check(args):
         "final": args.final, "violations": violations, "warnings": warnings,
         "counts": counts,
     }
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if ok else 1
 
 

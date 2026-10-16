@@ -73,7 +73,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, now, save_yaml_atomic, today, v  # noqa: E402
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -163,11 +163,6 @@ def resolve_path_arg(raw, project_root):
 
 
 # trace: diy-bmb-module 回执输出（--json 单行 / 人读行）
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 # trace: diy-bmb-module 人读态末尾汇总行（三处回执共用）
@@ -566,7 +561,7 @@ def cmd_check(args):
             violations.append(v("TOKEN_UNRESOLVED", token,
                                 "未解析的路径令牌：{...} 一律拒绝；唯一例外 {project-root} "
                                 "由引擎按 --project-root 自解析"))
-        emit(payload, args.json, human_lines)
+        emit_via(payload, args.json, human_lines)
         return 1
     faces = skill_faces(skills_value or os.path.join(root, SKILLS_FACE_REL), root)
     data, err = load_yaml_safe(plan_path)
@@ -607,7 +602,7 @@ def cmd_check(args):
     if prev_path:
         check_previous(prev_path, display_path(prev_path, root), selected, show, violations)
     payload["ok"] = not violations
-    emit(payload, args.json, human_lines)
+    emit_via(payload, args.json, human_lines)
     return 0 if payload["ok"] else 1
 
 
@@ -656,7 +651,7 @@ def cmd_new(args):
             violations.append(v("TOKEN_UNRESOLVED", token,
                                 "未解析的路径令牌：{...} 一律拒绝；唯一例外 {project-root} "
                                 "由引擎按 --project-root 自解析"))
-        emit(payload, args.json, human_new)
+        emit_via(payload, args.json, human_new)
         return 1
     slug = str(args.slug or "").strip()
     if not slug:
@@ -664,7 +659,7 @@ def cmd_new(args):
                          "无头下缺 slug 直接拒绝、零产出。\n")
         violations.append(v("EMPTY_FIELD", "--slug", "slug 缺失：计划的身份键，缺它无法判定"
                                                      "「新建」还是「更新」"))
-        emit(payload, args.json, human_new)
+        emit_via(payload, args.json, human_new)
         return 1
     data, err = load_yaml_safe(path)
     if data is None and err is None:
@@ -678,19 +673,19 @@ def cmd_new(args):
         violations.append(v("EMPTY_FIELD", show,
                             "既有文件缺 project 或 revisions（先跑 check 修好骨架，再 new）"))
     if violations:
-        emit(payload, args.json, human_new)
+        emit_via(payload, args.json, human_new)
         return 1
     plans = data.get("plans")
     if not isinstance(plans, list):
         violations.append(v("EMPTY_FIELD", show + " plans", "plans 缺失或不是列表"))
-        emit(payload, args.json, human_new)
+        emit_via(payload, args.json, human_new)
         return 1
     for plan in plans:
         if isinstance(plan, dict) and str(plan.get("slug") or "") == slug:
             violations.append(v("DUPLICATE_ID", show,
                                 "slug %s 已存在于记录 %s——同一 slug 更新走记录就地编辑，不新建"
                                 % (slug, plan.get("id"))))
-            emit(payload, args.json, human_new)
+            emit_via(payload, args.json, human_new)
             return 1
     plan_id = next_plan_id(plans)
     plans.append(skeleton_record(plan_id, slug, str(args.title or "").strip()))
@@ -701,7 +696,7 @@ def cmd_new(args):
     payload["ok"] = True
     payload["plan_id"] = plan_id
     payload["counts"] = {"plans": len(plans)}
-    emit(payload, args.json, human_new)
+    emit_via(payload, args.json, human_new)
     return 0
 
 

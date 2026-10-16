@@ -96,7 +96,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, now, save_yaml_atomic, today, v  # noqa: E402
 
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
@@ -176,11 +176,6 @@ def backup_progress(path):
 
 
 # trace: B3 diy-teach-me-testing 回执输出（--json 单行 / 人读行）
-def emit(payload, as_json, human_lines):
-    if as_json:
-        print(json.dumps(payload, ensure_ascii=False))
-    else:
-        human_lines(payload)
 
 
 # trace: B3 diy-teach-me-testing 回执公共头（共同键 + 命令名 + 归一化 output_dir）
@@ -609,14 +604,14 @@ def cmd_init(args):
     curriculum, cv = load_curriculum(root)
     if cv:
         payload["violations"] = cv
-        emit(payload, args.json, human_init)
+        emit_via(payload, args.json, human_init)
         return 1
     role = args.role
     if role is not None and str(role) not in ROLE_ENUM:
         payload["violations"] = [v("ENUM_INVALID", "init --role",
                                    "role 越界：%s（合法集 %s）"
                                    % (role, "|".join(ROLE_ENUM)))]
-        emit(payload, args.json, human_init)
+        emit_via(payload, args.json, human_init)
         return 1
     backup = None
     if os.path.exists(path):
@@ -626,17 +621,17 @@ def cmd_init(args):
                 v("ALREADY_EXISTS", show,
                   "进度文件已存在 → 走 resume：先跑 status 拿分流，"
                   "禁止覆盖重建（断点即进度，覆盖等于抹掉学习历史）")]
-            emit(payload, args.json, human_init)
+            emit_via(payload, args.json, human_init)
             return 1
         if not args.recover:
             payload["violations"] = [v(damage[0], show, damage[1] + RECOVERY_HINT)]
-            emit(payload, args.json, human_init)
+            emit_via(payload, args.json, human_init)
             return 1
         try:
             backup = backup_progress(path)
         except OSError as e:
             payload["violations"] = [v("TOOL_ERROR", show, "备份损坏件失败（零写入）：%s" % e)]
-            emit(payload, args.json, human_init)
+            emit_via(payload, args.json, human_init)
             return 1
     name, warning = project_name(root)
     doc = blank_progress(curriculum, name, role)
@@ -645,7 +640,7 @@ def cmd_init(args):
         save_yaml_atomic(path, doc)
     except OSError as e:
         payload["violations"] = [v("TOOL_ERROR", show, "写盘失败：%s" % e)]
-        emit(payload, args.json, human_init)
+        emit_via(payload, args.json, human_init)
         return 1
     if backup is not None:
         payload["recovered"] = {"backup": display_path(backup, root)}
@@ -656,7 +651,7 @@ def cmd_init(args):
     payload["counts"] = {"sessions": len(doc["sessions"]),
                          "sessions_completed": doc["sessions_completed"],
                          "completion_percentage": doc["completion_percentage"]}
-    emit(payload, args.json, human_init)
+    emit_via(payload, args.json, human_init)
     return 0
 
 
@@ -726,21 +721,21 @@ def cmd_status(args):
         payload["violations"] = cv
         payload["entry_step"] = None
         payload["dashboard"] = dashboard({})
-        emit(payload, args.json, human_status)
+        emit_via(payload, args.json, human_status)
         return 1
     if not os.path.isfile(path):
         payload["violations"] = [v("MISSING_FILE", show,
                                    "进度文件不存在 → 先 init 建进度（零 mtime 覆盖）")]
         payload["entry_step"] = ENTRY_INIT
         payload["dashboard"] = dashboard({})
-        emit(payload, args.json, human_status)
+        emit_via(payload, args.json, human_status)
         return 1
     damage = progress_damage(path)
     if damage is not None:
         payload["violations"] = [v(damage[0], show, damage[1] + RECOVERY_HINT)]
         payload["entry_step"] = ENTRY_INIT
         payload["dashboard"] = dashboard({})
-        emit(payload, args.json, human_status)
+        emit_via(payload, args.json, human_status)
         return 1
     data, _ = load_yaml_safe(path)          # damage 已判过：此处必为 dict + sessions 列表
     violations, (completed, percentage, next_recommended) = validate(
@@ -752,7 +747,7 @@ def cmd_status(args):
                          "sessions_completed": completed,
                          "completion_percentage": percentage}
     payload["ok"] = not violations
-    emit(payload, args.json, human_status)
+    emit_via(payload, args.json, human_status)
     return 0 if payload["ok"] else 1
 
 
@@ -943,18 +938,18 @@ def cmd_update(args):
     curriculum, cv = load_curriculum(root)
     if cv:
         payload["violations"] = cv
-        emit(payload, args.json, human_update)
+        emit_via(payload, args.json, human_update)
         return 1
     index_by_id = curriculum_index(curriculum)
     if not os.path.isfile(path):
         payload["violations"] = [v("MISSING_FILE", show,
                                    "进度文件不存在 → 先 init 建进度（本命令是写通道，不建文件）")]
-        emit(payload, args.json, human_update)
+        emit_via(payload, args.json, human_update)
         return 1
     damage = progress_damage(path)
     if damage is not None:
         payload["violations"] = [v(damage[0], show, damage[1] + RECOVERY_HINT)]
-        emit(payload, args.json, human_update)
+        emit_via(payload, args.json, human_update)
         return 1
     data, _ = load_yaml_safe(path)          # damage 已判过：此处必为 dict + sessions 列表
 
@@ -978,13 +973,13 @@ def cmd_update(args):
         violations = gate
     if violations:
         payload["violations"] = violations
-        emit(payload, args.json, human_update)
+        emit_via(payload, args.json, human_update)
         return 1
     try:
         save_yaml_atomic(path, new_data)
     except OSError as e:
         payload["violations"] = [v("TOOL_ERROR", show, "写回失败（原文件未改）：%s" % e)]
-        emit(payload, args.json, human_update)
+        emit_via(payload, args.json, human_update)
         return 1
     payload["ok"] = True
     payload["updated"] = new_data["project"]["updated"]
@@ -995,7 +990,7 @@ def cmd_update(args):
     payload["counts"] = {"sessions": len(new_data["sessions"]),
                          "sessions_completed": new_data["sessions_completed"],
                          "completion_percentage": new_data["completion_percentage"]}
-    emit(payload, args.json, human_update)
+    emit_via(payload, args.json, human_update)
     return 0
 
 
@@ -1021,17 +1016,17 @@ def cmd_check(args):
     curriculum, cv = load_curriculum(root)
     if cv:
         payload["violations"] = cv
-        emit(payload, args.json, human_check)
+        emit_via(payload, args.json, human_check)
         return 1
     if not os.path.isfile(path):
         payload["violations"] = [v("MISSING_FILE", show,
                                    "%s 不存在（先跑 init 建进度）" % PROGRESS_FILE)]
-        emit(payload, args.json, human_check)
+        emit_via(payload, args.json, human_check)
         return 1
     damage = progress_damage(path)
     if damage is not None:
         payload["violations"] = [v(damage[0], show, damage[1] + RECOVERY_HINT)]
-        emit(payload, args.json, human_check)
+        emit_via(payload, args.json, human_check)
         return 1
     data, _ = load_yaml_safe(path)          # damage 已判过：此处必为 dict + sessions 列表
     violations, (completed, percentage, next_recommended) = validate(
@@ -1041,7 +1036,7 @@ def cmd_check(args):
                          "sessions_completed": completed,
                          "completion_percentage": percentage}
     payload["ok"] = not violations
-    emit(payload, args.json, human_check)
+    emit_via(payload, args.json, human_check)
     return 0 if payload["ok"] else 1
 
 

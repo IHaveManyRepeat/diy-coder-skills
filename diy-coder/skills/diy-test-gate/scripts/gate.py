@@ -84,7 +84,7 @@ from gate_lib import (  # noqa: E402
     COMPLIANCE_STANDARDS, COVERED_VALUES, DOMAINS, EVIDENCE_TTL_DAYS, GATE_ROUTE,
     NEGATIVE_TECHNIQUES, PLAN_FILE, PRD_FILE, SPRINT_FILE, STORIES_FILE,
     TC_TYPES, ac_index, adr_rows, count_by, cross_domain_rules_doc,
-    display_path, duplicate_candidates, emit, evidence_index, evidence_stamp,
+    display_path, duplicate_candidates, emit_via, evidence_index, evidence_stamp,
     fr_index, heuristic_candidates, is_counted, items_of, judge_coverage,
     judge_tc, load_yaml_safe, meets, mutation_block, nonempty, pct_int, pct_str,
     priority_of, ratio, run_diyc_checks, tc_index, v,
@@ -389,7 +389,7 @@ def cmd_collect(args):
                      "mutation": {}, "diyc": empty_diyc,
                      "gate": {"passed": False, "route": route},
                      "counts": {"items": 0}})
-        emit(base, args.json, human_collect)
+        emit_via(base, args.json, human_collect)
         return 1
     for name in (SPRINT_FILE, ARCH_FILE):
         data, err = load_yaml_safe(os.path.join(out, name))
@@ -431,7 +431,7 @@ def cmd_collect(args):
                                           if warn["code"] == "EVIDENCE_STALE"]),
                    "diyc_violations": len(diyc_block["violations"])},
     })
-    emit(base, args.json, human_collect)
+    emit_via(base, args.json, human_collect)
     return 0
 
 
