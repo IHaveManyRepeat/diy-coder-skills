@@ -46,8 +46,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import (JAVA_MANIFESTS, NODE_MANIFESTS, PY_MANIFESTS,  # noqa: E402
                       builtin_framework, detect_project_type, display_path,
-                      diyc_script_path, is_test_file, load_yaml_safe, now,
-                      save_yaml_atomic, v)
+                      diyc_script_path, is_test_file, load_yaml_safe, nonempty,
+                      now, save_yaml_atomic, v)
 
 PLAN_FILE = "test-plan.yaml"
 STORIES_FILE = "stories.yaml"
@@ -95,10 +95,6 @@ SUGGESTS = {
     "php": "PHPUnit（tests/ 目录）。由用户确认后安装。",
     "unknown": "未探测到项目清单——请显式指定被测特性的框架（本技能不自动安装）。",
 }
-
-
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 # ---------------------------------------------------------------- detect
@@ -412,7 +408,6 @@ def load_known(output_dir, show, violations, warnings):
                 if isinstance(ac, dict) and nonempty(ac.get("id")):
                     known_acs.add(str(ac["id"]))
     return plan, known_ids, known_acs, stories_available
-
 
 
 def diyc_check_test_plan(script, project_root, output_dir):

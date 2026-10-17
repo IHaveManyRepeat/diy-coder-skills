@@ -73,7 +73,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v  # noqa: E402
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -96,8 +96,6 @@ ANY_PHASE_SPELLINGS = ("any", "anytime")
 
 
 # trace: diy-bmb-module 非空判定（None / 空白字符串均视为空）
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 # trace: diy-bmb-module 相位归一（`any` 与 `anytime` 双轨等价——套件内两种拼写并存，非差异）

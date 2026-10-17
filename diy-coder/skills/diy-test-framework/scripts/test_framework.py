@@ -79,7 +79,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
 
 TF_FILE = "test-framework.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -188,10 +188,6 @@ BLOCK_SCALAR_RE = re.compile(r"^[|>]")
 UNSAFE_EXPR_RE = re.compile(r"\$\{\{\s*(inputs\.|github\.event\.|github\.head_ref\b|parameters\.)")
 UNSAFE_HARNESS_RE = re.compile(r"<\+input|<\+trigger|<\+pipeline\.variables")
 COMMENT_LINE_PREFIXES = ("#", "//", "<!--", "*")
-
-
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 def out_dir(args):

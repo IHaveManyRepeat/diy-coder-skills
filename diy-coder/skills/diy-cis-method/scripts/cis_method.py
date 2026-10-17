@@ -97,7 +97,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, now, read_sessions, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, save_yaml_atomic, today, v  # noqa: E402
 
 CIS_FILE = "cis-method.yaml"
 METHODS_FILE = "cis-methods.csv"
@@ -196,11 +196,6 @@ TOKEN_RE = re.compile(r"\{[A-Za-z0-9_\-]+\}")
 
 CM_RE = re.compile(r"CM-(\d{3})\Z")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}\Z")
-
-
-def nonempty(value):
-    """非空判定：None / 空白字符串均视为空。"""
-    return value is not None and str(value).strip() != ""
 
 
 def project_name(project_root):

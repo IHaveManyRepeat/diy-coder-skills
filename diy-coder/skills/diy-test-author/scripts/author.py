@@ -86,7 +86,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import (JAVA_MANIFESTS, NODE_MANIFESTS, PY_MANIFESTS,  # noqa: E402
                       builtin_framework, detect_project_type, display_path,
-                      is_test_file, load_yaml_safe, v)
+                      is_test_file, load_yaml_safe, nonempty, v)
 
 PLAN_FILE = "test-plan.yaml"
 
@@ -274,10 +274,6 @@ EMPTY_NAME_RE = re.compile(r"^\s*[\W_]*\s*$")
 JS_TEST_RE = re.compile(r"(?:^|[^\w.$])(?:it|test)\s*(?P<paren>\()\s*"
                         r"(?P<quote>['\"`])(?P<name>[^'\"`]*)")
 PY_TEST_RE = re.compile(r"^(?P<indent>[ \t]*)def\s+(?P<name>test\w*)\s*\(", re.M)
-
-
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 # ---------------------------------------------------------------- detect

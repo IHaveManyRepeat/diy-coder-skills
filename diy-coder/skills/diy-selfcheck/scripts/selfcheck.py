@@ -52,7 +52,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v  # noqa: E402
 
 SPEC_SCAN_FILE = "spec-scan.yaml"
 
@@ -78,8 +78,6 @@ VIOLATION_CODES = ("EMPTY_FIELD", "ENUM_INVALID", "ID_FMT", "ID_DUP",
 
 
 # trace: diy-selfcheck 非空判定（None / 空白字符串均视为空）
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 # trace: diy-selfcheck YAML 安全装载：(data, err)；缺失 (None, None)、空文件 ({}, None)、损坏 (None, 原因)

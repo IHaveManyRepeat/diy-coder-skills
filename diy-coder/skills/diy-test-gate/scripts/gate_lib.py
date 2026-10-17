@@ -37,7 +37,7 @@ from datetime import date
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, emit_via, is_int, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, is_int, load_yaml_safe, nonempty, v  # noqa: E402
 
 GATE_FILE = "test-gate.yaml"
 STORIES_FILE = "stories.yaml"
@@ -137,10 +137,6 @@ def cross_domain_rules_doc():
              "trigger": {name: list(states)
                          for name, states in rule["trigger"].items()},
              "why": rule["why"]} for rule in CROSS_DOMAIN_RULES]
-
-
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 def is_counted(verdict):

@@ -63,7 +63,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, v  # noqa: E402
 
 REVIEW_FILE = "editorial-review.yaml"
 LENSES = ("结构", "文风")
@@ -88,8 +88,6 @@ NL = "\n"
 
 
 # trace: B4 diy-editorial-review 契约（非空判定：None / 空白字符串均视为空）
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 # trace: B4 diy-editorial-review 契约（整数判定：布尔不得充当整数）

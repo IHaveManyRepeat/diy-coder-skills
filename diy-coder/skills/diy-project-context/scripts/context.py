@@ -41,7 +41,7 @@ import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
 
 try:  # Python 3.11+ 标准库；3.10 环境降级为「存在但未解析」warning（语言无关承诺）
     import tomllib as _toml
@@ -164,10 +164,6 @@ DOC_DIR_RULES = (
     ("deployment", ("docs/deployment/",)),
 )
 DOC_DIRS = ("docs", "documentation", ".github")
-
-
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 def slash(path):

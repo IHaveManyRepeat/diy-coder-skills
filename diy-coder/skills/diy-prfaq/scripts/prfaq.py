@@ -32,7 +32,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
 
 PRFAQ_FILE = "prfaq.yaml"
 
@@ -53,10 +53,6 @@ DISTILLATE_LISTS = ("value_props", "constraints", "open_questions")
 PQ_RE = re.compile(r"PQ-\d{3}")
 # v4 批 3（§7-3b/d）：时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?")
-
-
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 def collect_strings(node):

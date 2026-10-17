@@ -38,7 +38,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
-from diyc_lib import display_path, now  # noqa: E402
+from diyc_lib import display_path, nonempty, now  # noqa: E402
 
 try:
     import yaml
@@ -151,17 +151,6 @@ class Report:
         return 0 if not self.violations else 1
 
 
-def nonempty(value) -> bool:
-    """非空判定（对齐 `wds_brief.nonempty`）：None / 空白串 / 空容器均视为空。"""
-    if value is None:
-        return False
-    if isinstance(value, str):
-        return value.strip() != ""
-    if isinstance(value, (list, dict, tuple)):
-        return len(value) > 0
-    return True
-
-
 def path_in(path: str, prefix: str) -> bool:
     """路径包含性判据（VA-07）：**拒绝含 `..` 段的形态**。
 
@@ -211,8 +200,6 @@ def project_name(project_root: Path) -> str:
         except yaml.YAMLError:
             pass
     return project_root.resolve().name
-
-
 
 
 def skeleton(project_root: Path) -> dict:

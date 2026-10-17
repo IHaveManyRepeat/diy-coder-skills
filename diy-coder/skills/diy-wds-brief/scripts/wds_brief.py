@@ -99,7 +99,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, now, save_yaml_atomic, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, now, save_yaml_atomic, v  # noqa: E402
 
 BRIEF_FILE = "wds-brief.yaml"
 
@@ -188,17 +188,6 @@ TOKEN_RE = re.compile(r"\{[A-Za-z0-9_\-]+\}")
 
 ASSUMPTION_MARK = "[假设]"
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}\Z")
-
-
-def nonempty(value):
-    """非空判定：None / 空白串 / 空容器均视为空。"""
-    if value is None:
-        return False
-    if isinstance(value, str):
-        return value.strip() != ""
-    if isinstance(value, (list, dict, tuple)):
-        return len(value) > 0
-    return True
 
 
 def project_name(project_root):

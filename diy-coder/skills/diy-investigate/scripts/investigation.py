@@ -45,7 +45,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v  # noqa: E402
 
 INVESTIGATION_FILE = "investigation.yaml"
 
@@ -79,10 +79,6 @@ MAX_CANDIDATES = 100
 MAX_COMMITS = 20
 
 # 并发/测试边界外的语义（collect 只给候选面，判定权在会话）
-
-
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 def items(doc, key):

@@ -42,7 +42,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, emit_via, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, load_yaml_safe, nonempty, v  # noqa: E402
 
 READINESS_FILE = "readiness.yaml"
 PRD_FILE = "prd.yaml"
@@ -67,10 +67,6 @@ COUNT_KEYS = ("frs", "nfrs", "epics", "stories", "acs")
 
 IR_RE = re.compile(r"IR-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-
-
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 def items(doc, key):

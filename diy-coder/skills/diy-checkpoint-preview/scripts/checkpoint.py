@@ -36,7 +36,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
 
 CK_FILE = "checkpoint.yaml"
 SPRINT_FILE = "sprint.yaml"
@@ -54,10 +54,6 @@ CK_RE = re.compile(r"CK-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 # BMAD step-01-orientation.md:54 —— "commit message is terse (under 10 words)" → 标 [inferred]
 TERSE_WORDS = 10
-
-
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 # ---- git 层（只读；任何失败都降级为结构化原因，不抛异常） ----

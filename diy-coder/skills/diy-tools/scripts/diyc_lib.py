@@ -98,6 +98,18 @@ def is_int(value):
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+def nonempty(value):
+    """非空判定（逐型版）：None/空白串/空 list·dict·tuple → False；其余 True。
+    空容器不得靠 str 化误判为有货（`str([])` = `"[]"`）。"""
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return value.strip() != ""
+    if isinstance(value, (list, dict, tuple)):
+        return len(value) > 0
+    return True
+
+
 def diyc_script_path():
     """diyc.py 路径：与 diyc_lib 同目录（源码与安装布局同构）。"""
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "diyc.py")

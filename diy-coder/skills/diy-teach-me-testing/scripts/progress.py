@@ -95,7 +95,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v  # noqa: E402
 
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
@@ -129,8 +129,6 @@ BACKUP_STAMP = "%Y%m%d-%H%M%S"
 
 
 # trace: B3 diy-teach-me-testing 非空判定（None / 空白字符串均视为空）
-def nonempty(value):
-    return value is not None and str(value).strip() != ""
 
 
 # trace: B3 diy-teach-me-testing 整数判定（布尔不得充当整数：true 不是 1）
