@@ -51,7 +51,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 BRIEF_FILE = "brief.yaml"
 REVIEW_FILE = "editorial-review.yaml"
@@ -87,21 +87,6 @@ def normalize_rel(value, project_root):
     if rel.startswith(".."):                                         # 越界（对齐 display_path）
         return os.path.abspath(absolute).replace("\\", "/")
     return rel.replace("\\", "/")
-
-
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
 
 
 def emit(payload, as_json, human_lines):
@@ -498,7 +483,7 @@ def cmd_check(args):
                                     args.final, violations)
         addendum = check_addendum(data.get("addendum"), show + " addendum", violations)
         revisions = check_revisions(data.get("revisions"), show + " revisions", violations)
-        if args.final and any("[假设]" in s for s in collect_strings(data)):
+        if args.final and any("[假设]" in s for _p, s in walk_strings(data, "")):
             violations.append(v("ASSUMPTION_PRESENT", show,
                                 "--final 要求零 [假设]；未决假设须先落定"))
         if args.final:

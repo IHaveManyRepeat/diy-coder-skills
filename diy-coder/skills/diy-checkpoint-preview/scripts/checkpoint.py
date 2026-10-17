@@ -36,7 +36,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 CK_FILE = "checkpoint.yaml"
 SPRINT_FILE = "sprint.yaml"
@@ -304,20 +304,6 @@ def cmd_target(args):
 
 # ---- check ----
 
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
-
 
 def check_concerns(record, where):
     violations = []
@@ -493,7 +479,7 @@ def check_final_duties(record, where, decision, status):
     if isinstance(concerns, list) and not concerns:
         violations.append(v("EMPTY_FIELD", where + ".concerns",
                             "--final 要求至少 1 个 concern"))
-    if any("[假设]" in s for s in collect_strings(record)):
+    if any("[假设]" in s for _p, s in walk_strings(record, "")):
         violations.append(v("ASSUMPTION_PRESENT", where,
                             "--final 要求零 [假设]；未决假设须先落定"))
     return violations

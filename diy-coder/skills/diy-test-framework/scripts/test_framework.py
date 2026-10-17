@@ -79,7 +79,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 TF_FILE = "test-framework.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -243,21 +243,6 @@ def command_in_text(tool, text):
            (after is None or after in COMMAND_BOUNDARIES):
             return True
         start = i + 1
-
-
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
 
 
 def find_files(root, patterns):
@@ -1090,7 +1075,7 @@ def check_record(project_root, output_dir, index, record, final, show, warnings)
         violations.append(v("EMPTY_FIELD", where + ".open_questions", "open_questions 须为列表"))
 
     if final:
-        if any("[假设]" in s for s in collect_strings(record)):
+        if any("[假设]" in s for _p, s in walk_strings(record, "")):
             violations.append(v("ASSUMPTION_PRESENT", where, "--final 要求零 [假设]"))
         if mode in ("CI", "两者"):
             if not isinstance(ci, dict):

@@ -40,7 +40,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 REQUIRED_STATES = ("悬停", "空态", "加载中", "错误")
 COLOR_REQUIRED = ("bg", "text", "accent")
@@ -232,18 +232,6 @@ def cmd_show(args):
 
 # ---- check -----------------------------------------------------------------
 
-def _walk_strings(node, path="design"):
-    if isinstance(node, str):
-        yield path, node
-    elif isinstance(node, dict):
-        for k, val in node.items():
-            for got in _walk_strings(val, "%s.%s" % (path, k)):
-                yield got
-    elif isinstance(node, list):
-        for i, item in enumerate(node):
-            for got in _walk_strings(item, "%s[%d]" % (path, i)):
-                yield got
-
 
 def cmd_check(args):
     doc, path, bad = read_design(args, "check")
@@ -345,7 +333,7 @@ def cmd_check(args):
         if status != "已定稿":
             vio.append(v("STATUS_MISMATCH", "project.status",
                          "定稿门要求 已定稿，实得 %r" % status))
-        for where, text in _walk_strings(doc):
+        for where, text in walk_strings(doc, "design"):
             if ASSUMPTION in text:
                 vio.append(v("ASSUMPTION_PRESENT", where,
                              "定稿门要求零 %s：%s" % (ASSUMPTION, text[:60])))

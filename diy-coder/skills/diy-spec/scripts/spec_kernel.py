@@ -49,7 +49,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 SPEC_FILE = "spec-kernel.yaml"
 SK_RE = re.compile(r"SK-\d{3}")
@@ -57,20 +57,6 @@ CAP_RE = re.compile(r"CAP-\d+")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 RECORD_STATUSES = ("草稿", "已定稿")
 ASSUMPTION = "[假设]"
-
-
-def collect_strings(node):
-    """递归收集任意节点的字符串值（`[假设]` 扫描用，只看值不看键）。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for value in node.values():
-            for item in collect_strings(value):
-                yield item
-    elif isinstance(node, list):
-        for value in node:
-            for item in collect_strings(value):
-                yield item
 
 
 def resolve_path(value, project_root):
@@ -312,7 +298,7 @@ def check_record(index, record, final, root, show, violations):
         if nonempty(status) and str(status) != "已定稿":
             violations.append(v("STATUS_MISMATCH", where + ".status",
                                 "--final 要求 status: 已定稿，实为 %s" % status))
-        if any(ASSUMPTION in s for s in collect_strings(record)):
+        if any(ASSUMPTION in s for _p, s in walk_strings(record, "")):
             violations.append(v("ASSUMPTION_PRESENT", where,
                                 "--final 要求零 %s；未决推断须先落定（或清空标记、"
                                 "把缺口写进 open_questions）" % ASSUMPTION))

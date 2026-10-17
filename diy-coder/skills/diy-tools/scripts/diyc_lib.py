@@ -110,6 +110,21 @@ def nonempty(value):
     return True
 
 
+def walk_strings(node, path):
+    """递归产 (路径, 字符串值)：键只进路径不进文字——字数统计/标记扫描只碰值。
+    根 path 由调用点自传（不关心定位时传 ''）。"""
+    if isinstance(node, str):
+        yield (path, node)
+    elif isinstance(node, dict):
+        for key, value in node.items():
+            for item in walk_strings(value, "%s.%s" % (path, key)):
+                yield item
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            for item in walk_strings(value, "%s[%d]" % (path, index)):
+                yield item
+
+
 def diyc_script_path():
     """diyc.py 路径：与 diyc_lib 同目录（源码与安装布局同构）。"""
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "diyc.py")

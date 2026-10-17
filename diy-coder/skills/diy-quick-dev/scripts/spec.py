@@ -39,7 +39,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 SPEC_FILE = "spec.yaml"
 
@@ -67,21 +67,6 @@ def items(doc, key):
         return []
     value = doc.get(key)
     return value if isinstance(value, list) else []
-
-
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
 
 
 # ---------------------------------------------------------------- 分段校验
@@ -451,7 +436,7 @@ def check_final_duties(record, where, status):
         violations.append(v("STATUS_MISMATCH", where + ".status",
                             "--final 要求该记录 status 已完工（已完成），实为 %s"
                             % (status if nonempty(status) else "未声明")))
-    if any("[假设]" in s for s in collect_strings(record)):
+    if any("[假设]" in s for _p, s in walk_strings(record, "")):
         violations.append(v("ASSUMPTION_PRESENT", where,
                             "--final 要求零 [假设]；未决推断须先落定"))
     return violations

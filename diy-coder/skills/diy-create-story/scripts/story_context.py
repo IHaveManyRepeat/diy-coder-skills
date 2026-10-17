@@ -50,7 +50,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 STORIES_FILE = "stories.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -90,21 +90,6 @@ def is_safe_rel(rel_path):
     if not text or text.startswith("/") or os.path.isabs(str(rel_path)):
         return False
     return ".." not in text.split("/")
-
-
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
 
 
 def natural_key(value):
@@ -609,7 +594,7 @@ def check_final_duties(record, where, status):
         if not str(question).startswith(CLOSED_PREFIX):
             violations.append(v("PENDING_DECISION", "%s.open_questions[%d]" % (where, i),
                                 "open_questions 须清零或逐条以 %s 标注处置" % CLOSED_PREFIX))
-    if any("[假设]" in s for s in collect_strings(record)):
+    if any("[假设]" in s for _p, s in walk_strings(record, "")):
         violations.append(v("ASSUMPTION_PRESENT", where,
                             "--final 要求零 [假设]；未决推断须先落定"))
     return violations

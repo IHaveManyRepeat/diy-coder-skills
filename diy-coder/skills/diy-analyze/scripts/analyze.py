@@ -28,7 +28,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 LAYERS = ("展示层", "应用层", "领域层", "基础设施层", "未分层")
 SCALES = ("高", "中", "低")
@@ -343,7 +343,7 @@ def cmd_check(args):
         if status != "已定稿":
             vio.append(v("STATUS_MISMATCH", "project.status",
                          "定稿门要求 已定稿，实得 %r" % status))
-        for path, text in _walk_strings(doc):
+        for path, text in walk_strings(doc, "analysis"):
             if ASSUMPTION in text:
                 vio.append(v("ASSUMPTION_PRESENT", path,
                              "定稿门要求零 %s：%s" % (ASSUMPTION, text[:60])))
@@ -362,19 +362,6 @@ def cmd_check(args):
               "recommendations": len(doc.get("recommendations") or [])}
     return emit(receipt("check", not vio, args.project_root, out_dir, vio,
                         counts=counts), args.json)
-
-
-def _walk_strings(node, path="analysis"):
-    if isinstance(node, str):
-        yield path, node
-    elif isinstance(node, dict):
-        for k, val in node.items():
-            for got in _walk_strings(val, "%s.%s" % (path, k)):
-                yield got
-    elif isinstance(node, list):
-        for i, item in enumerate(node):
-            for got in _walk_strings(item, "%s[%d]" % (path, i)):
-                yield got
 
 
 # ---- CLI -------------------------------------------------------------------

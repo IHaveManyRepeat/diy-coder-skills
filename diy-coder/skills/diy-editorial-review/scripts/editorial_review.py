@@ -63,7 +63,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 REVIEW_FILE = "editorial-review.yaml"
 LENSES = ("结构", "文风")
@@ -93,17 +93,6 @@ NL = "\n"
 # trace: B4 diy-editorial-review 契约（整数判定：布尔不得充当整数）
 
 # trace: B4 diy-editorial-review stats（递归收集任意节点的字符串值，只看值不看键）
-def collect_strings(node):
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for value in node.values():
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
 
 
 # trace: B4 diy-editorial-review 契约（YAML 安全装载：(data, err)；缺失 (None, None)、损坏 (None, 原因)）
@@ -158,8 +147,8 @@ def md_sections(text, fallback):
 # trace: B4 diy-editorial-review stats（yaml 切节：顶层键作节名，节词数 = 该键子树字符串词数）
 def yaml_sections(doc, fallback):
     if not isinstance(doc, dict):
-        return [{"name": fallback, "words": word_count(NL.join(collect_strings(doc)))}]
-    sections = [{"name": str(key), "words": word_count(NL.join(collect_strings(value)))}
+        return [{"name": fallback, "words": word_count(NL.join(t for _p, t in walk_strings(doc, "")))}]
+    sections = [{"name": str(key), "words": word_count(NL.join(t for _p, t in walk_strings(value, "")))}
                 for key, value in doc.items()]
     return sections or [{"name": fallback, "words": 0}]
 
@@ -547,7 +536,7 @@ def check_review(index, review, show, root, final, seen_ids):
         if nonempty(status) and str(status) != "已定稿":
             violations.append(v("STATUS_MISMATCH", where + ".status",
                                 "--final 要求 status: 已定稿，实为 %s" % status))
-        if any(ASSUMPTION in s for s in collect_strings(review)):
+        if any(ASSUMPTION in s for _p, s in walk_strings(review, "")):
             violations.append(v("ASSUMPTION_PRESENT", where,
                                 "--final 要求零 [假设]；未决项落 open_questions，不用假设标记"))
     return violations

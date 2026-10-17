@@ -89,7 +89,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, emit_via, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 TEST_REVIEW_FILE = "test-review.yaml"
 FINDINGS_FILE = "test-review-findings.json"
@@ -222,21 +222,6 @@ def read_text(path):
             return f.read()
     except OSError:
         return ""
-
-
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
 
 
 def criteria_path():
@@ -1600,7 +1585,7 @@ def check_record(index, record, table, final, show, root="."):
                                             "%s.convention_baseline.keys.%s.adopted"
                                             % (where, key),
                                             "--final 要求机械键带 adopted 计数（scan 判定）"))
-    if final and any(ASSUMPTION in s for s in collect_strings(record)):
+    if final and any(ASSUMPTION in s for _p, s in walk_strings(record, "")):
         violations.append(v("ASSUMPTION_PRESENT", where,
                             "--final 要求零 [假设]；未决推断须落 open_questions"))
     return violations, deduped

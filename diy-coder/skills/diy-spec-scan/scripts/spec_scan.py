@@ -62,7 +62,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 SPEC_SCAN_FILE = "spec-scan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -91,17 +91,6 @@ ASSUMPTION = "[假设]"
 
 
 # trace: diy-spec-scan 递归收集任意节点的字符串值（[假设] 扫描用，只看值不看键）
-def collect_strings(node):
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for value in node.values():
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
 
 
 # trace: diy-spec-scan YAML 安全装载：(data, err)；缺失 (None, None)、空文件 ({}, None)、损坏 (None, 原因)
@@ -516,7 +505,7 @@ def check_final_duties(where, units, findings):
         # 就含该标记——拦引文会逼出全角改写，让「逐字引原文」变成不可能。
         scanned = ({k: val for k, val in finding.items() if k != "quote"}
                    if isinstance(finding, dict) else finding)
-        if any(ASSUMPTION in s for s in collect_strings(scanned)):
+        if any(ASSUMPTION in s for _p, s in walk_strings(scanned, "")):
             violations.append(v("ASSUMPTION_PRESENT", "%s.findings[%d]" % (where, i),
                                 "--final 要求零 [假设]（quote 引文豁免）；"
                                 "未决推断须先落定再交"))

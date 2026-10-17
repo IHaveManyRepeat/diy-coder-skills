@@ -65,7 +65,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 BRAINSTORM_FILE = "brainstorm.yaml"
 METHODS_FILE = "brain-methods.csv"
@@ -353,20 +353,6 @@ def cmd_init(args):
 
 # ---- check ----
 
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for text in collect_strings(value):
-                yield text
-    elif isinstance(node, list):
-        for item in node:
-            for text in collect_strings(item):
-                yield text
-
 
 def check_idea_refs(refs, where, numbers):
     """引用检查：`no` 必须落在本记录的 `ideas[].no` 集合内（否则 UNKNOWN_ID）。"""
@@ -619,7 +605,7 @@ def check_final_duties(record, where, status):
     if str(status) != "已完成":
         violations.append(v("STATUS_MISMATCH", where + ".status",
                             "--final 要求 status: 已完成，实为 %s（先走完 5 步收尾）" % status))
-    if any(ASSUMPTION_MARK in text for text in collect_strings(record)):
+    if any(ASSUMPTION_MARK in text for _p, text in walk_strings(record, "")):
         violations.append(v("ASSUMPTION_PRESENT", where,
                             "--final 要求零 [假设]；未决项写进 open_questions 再定稿"))
     return violations

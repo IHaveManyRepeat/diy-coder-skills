@@ -73,7 +73,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -127,17 +127,6 @@ def as_links(value):
 
 
 # trace: diy-bmb-module 递归收集任意节点的字符串值（[假设] 扫描用，只看值不看键）
-def collect_strings(node):
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for value in node.values():
-            for text in collect_strings(value):
-                yield text
-    elif isinstance(node, list):
-        for entry in node:
-            for text in collect_strings(entry):
-                yield text
 
 
 # trace: diy-bmb-module 今日日期（YYYY-MM-DD）
@@ -474,7 +463,7 @@ def check_plan_record(index, plan, show, final, faces, violations, warnings, sta
         if str(status) != "已定稿":
             violations.append(v("STATUS_MISMATCH", where + ".status",
                                 "--final 要求 status: 已定稿，实为 %s" % (status if nonempty(status) else "未声明")))
-        for text in collect_strings(plan):
+        for _p, text in walk_strings(plan, ""):
             if ASSUMPTION in text:
                 violations.append(v("ASSUMPTION_PRESENT", where,
                                     "--final 要求零 [假设]；未决推断须先落定再交"))

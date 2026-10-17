@@ -41,7 +41,7 @@ import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 try:  # Python 3.11+ 标准库；3.10 环境降级为「存在但未解析」warning（语言无关承诺）
     import tomllib as _toml
@@ -830,20 +830,6 @@ def emit_scan(args, repository_type, parts, stack, docs, tree, violations, warni
 
 # ---- check ----
 
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
-
 
 def check_scan(scan, where, violations):
     if not isinstance(scan, dict):
@@ -1067,7 +1053,7 @@ def cmd_check(args):
         if revisions is not None and not isinstance(revisions, list):
             violations.append(v("EMPTY_FIELD", show + " revisions", "revisions 不是列表"))
         if args.final:
-            if any("[假设]" in s for s in collect_strings(data)):
+            if any("[假设]" in s for _p, s in walk_strings(data, "")):
                 violations.append(v("ASSUMPTION_PRESENT", show,
                                     "--final 要求零 [假设]；未决假设须先落定"))
             if isinstance(data.get("stack"), list) and not data["stack"]:

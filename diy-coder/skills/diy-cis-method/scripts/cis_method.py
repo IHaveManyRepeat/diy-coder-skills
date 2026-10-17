@@ -97,7 +97,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 CIS_FILE = "cis-method.yaml"
 METHODS_FILE = "cis-methods.csv"
@@ -207,35 +207,6 @@ def project_name(project_root):
             return str(project["name"]), None
     note = "diy-coder.yaml project.name 不可用（%s），回落项目目录名" % (err or "缺该键")
     return os.path.basename(os.path.abspath(project_root)), v("MISSING_FILE", "diy-coder.yaml", note)
-
-
-def walk_strings(node, path):
-    """递归产出 (路径, 字符串值)——令牌扫描用（只扫值：键不可能承载令牌）。"""
-    if isinstance(node, str):
-        yield path, node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            for item in walk_strings(value, "%s.%s" % (path, key)):
-                yield item
-    elif isinstance(node, list):
-        for index, value in enumerate(node):
-            for item in walk_strings(value, "%s[%d]" % (path, index)):
-                yield item
-
-
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for text in collect_strings(value):
-                yield text
-    elif isinstance(node, list):
-        for item in node:
-            for text in collect_strings(item):
-                yield text
 
 
 def check_tokens(record, where):
@@ -733,7 +704,7 @@ def check_record(index, record, final, show):
             violations.append(v("STATUS_MISMATCH", where + ".status",
                                 "--final 要求 status: 已完成，实为 %s（先走完本分支的步骤序列）"
                                 % status))
-        if any(ASSUMPTION_MARK in text for text in collect_strings(record)):
+        if any(ASSUMPTION_MARK in text for _p, text in walk_strings(record, "")):
             violations.append(v("ASSUMPTION_PRESENT", where,
                                 "--final 要求零 [假设]；未决项写进 open_questions 再定稿"))
     return violations, warnings

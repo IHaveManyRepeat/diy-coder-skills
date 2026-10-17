@@ -36,7 +36,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 RESEARCH_FILE = "research.yaml"
 
@@ -48,21 +48,6 @@ SYNTHESIS_KEYS = ("executive_summary", "key_points", "open_questions")
 RS_RE = re.compile(r"RS-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 URL_RE = re.compile(r"https?://\S+")
-
-
-def collect_strings(node):
-    """递归收集映射/列表内的全部字符串（键与值）——[假设] 扫描用。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            yield str(key)
-            for s in collect_strings(value):
-                yield s
-    elif isinstance(node, list):
-        for item in node:
-            for s in collect_strings(item):
-                yield s
 
 
 def check_string_list(value, where, label):
@@ -211,7 +196,7 @@ def check_record(index, record, final, where_base):
         if nonempty(status) and str(status) != "已定稿":
             violations.append(v("STATUS_MISMATCH", where + ".status",
                                 "记录未定稿（status: %s）；--final 要求 status: 已定稿" % status))
-        if any("[假设]" in s for s in collect_strings(record)):
+        if any("[假设]" in s for _p, s in walk_strings(record, "")):
             violations.append(v("ASSUMPTION_PRESENT", where,
                                 "--final 要求零 [假设]；未决假设须落为 open_questions 后再定稿"))
     return violations
