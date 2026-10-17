@@ -130,6 +130,15 @@ def count_by(records, key, sub=None):
     return counts
 
 
+def count_items(records, key):
+    """累加 records 各 dict 键 key 下列表长度之和；非 dict / 值非列表跳过。"""
+    total = 0
+    for record in records:
+        if isinstance(record, dict) and isinstance(record.get(key), list):
+            total += len(record[key])
+    return total
+
+
 def walk_strings(node, path):
     """递归产 (路径, 字符串值)：键只进路径不进文字——字数统计/标记扫描只碰值。
     根 path 由调用点自传（不关心定位时传 ''）。"""

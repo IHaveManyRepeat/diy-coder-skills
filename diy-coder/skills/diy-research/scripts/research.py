@@ -36,7 +36,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import count_by, display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, count_items, display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 RESEARCH_FILE = "research.yaml"
 
@@ -200,17 +200,6 @@ def check_record(index, record, final, where_base):
             violations.append(v("ASSUMPTION_PRESENT", where,
                                 "--final 要求零 [假设]；未决假设须落为 open_questions 后再定稿"))
     return violations
-
-
-def count_items(records, key):
-    total = 0
-    for record in records:
-        if not isinstance(record, dict):
-            continue
-        items = record.get(key)
-        if isinstance(items, list):
-            total += len(items)
-    return total
 
 
 def count_sources(records):

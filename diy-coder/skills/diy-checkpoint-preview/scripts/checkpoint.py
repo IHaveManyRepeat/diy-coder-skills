@@ -36,7 +36,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import count_items, display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 CK_FILE = "checkpoint.yaml"
 SPRINT_FILE = "sprint.yaml"
@@ -497,17 +497,6 @@ def count_by(records, key):
         if nonempty(value):
             counts[str(value)] = counts.get(str(value), 0) + 1
     return counts
-
-
-def count_items(records, key):
-    total = 0
-    for record in records:
-        if not isinstance(record, dict):
-            continue
-        items = record.get(key)
-        if isinstance(items, list):
-            total += len(items)
-    return total
 
 
 def cmd_check(args):

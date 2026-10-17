@@ -50,7 +50,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import count_by, display_path, emit_via, id_sort, id_sort_key, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, count_items, display_path, emit_via, id_sort, id_sort_key, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 STORIES_FILE = "stories.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -714,14 +714,6 @@ def cmd_check(args):
     payload["counts"] = counts
     emit_via(payload, args.json, human_check)
     return 0 if ok else 1
-
-
-def count_items(records, key):
-    total = 0
-    for record in records:
-        if isinstance(record, dict) and isinstance(record.get(key), list):
-            total += len(record[key])
-    return total
 
 
 def human_check(payload):

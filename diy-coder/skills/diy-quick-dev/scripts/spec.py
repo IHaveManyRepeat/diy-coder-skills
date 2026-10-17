@@ -39,7 +39,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import count_by, display_path, emit_via, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, count_items, display_path, emit_via, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 SPEC_FILE = "spec.yaml"
 
@@ -435,14 +435,6 @@ def check_final_duties(record, where, status):
 
 
 # ---------------------------------------------------------------- check
-
-def count_items(records, key):
-    total = 0
-    for record in records:
-        if isinstance(record, dict) and isinstance(record.get(key), list):
-            total += len(record[key])
-    return total
-
 
 def count_tasks_done(records):
     total = 0
