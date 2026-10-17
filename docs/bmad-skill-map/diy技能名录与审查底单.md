@@ -605,6 +605,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 ## 待办：diy-analyze 吸收 arch-analyze 职能（2026-10-05 用户提出，方向已裁·实施待裁，现在不动）
 
+**〔2026-10-17 方向推翻·本段作废〕**：用户裁定 arch-analyze **不迁移**——核实用面＝体系内零功能使用（仅 4 句边界路由文本指向它，无任何链/引擎消费）＋`analysis.yaml` 单文件形态不适合文档集体检（形态错配）；10-05「职能由 diy-analyze 取代」系未核使用面所拍，翻案有据。原三待裁（形态 A/B／产物面／边界句）全部作废；处置并入新段「diy-analyze 定位收口与产物依赖缺席总则」。arch-analyze 留作用户全局私有工具、不进套件。
+
 登记来源：用户裁定——用户级全局技能 `arch-analyze` 将不再安装，职能由 diy-analyze 取代；套件内不得再路由到套件外技能。
 
 事实（2026-10-05 核实）：
@@ -780,6 +782,18 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 落点待裁：原则下沉 diyc_lib vs 指示面 SKILL/CLAUDE.md 文案。
 
 改动面（做时）：14 家回调＋`diyc_lib.py`（若下沉）＋指示面；测试面若有行式样断言须同源核（先裁后动）。
+
+## 待办：diy-analyze 定位收口＋产物依赖缺席三档总则（2026-10-17 用户裁定，登记待办，现在不动）
+
+登记来源：arch-analyze 吸收方向翻案讨论中连带裁出（同日三裁＝architecture 规则 4 批 4a 随批之后的第二件）。
+
+**裁定三项**：
+
+1. **arch-analyze 不迁移**（推翻 10-05 方向·详见该段作废注记）：处置＝4 句死路由改「套件内自理」口径——`diy-analyze/SKILL.md:27`/`:73`、`steps/01-define.md:55`（路由句删或改写）＋`tests/test_diy_analyze.py:365` 断言同源（测试面先裁后动）。
+2. **evolution A/S 路由式接线**（历史依据：wds-[A] 扫库线在原流程喂 [S] 估范围/[I] 懂代码·迁移时拆断）：**调用方**＝`diy-wds-evolution` `01-analyze`（根因需代码库证据时路由）＋`02-scope`（估范围需组件/依赖底数时路由）；**消费方**＝同两相读 `analysis.yaml`——A 相补根因取证（`question`/`risks[]`）、S 相垫 `components_touched`/`data_changes`/`risk` 估算（`AN-<nn>` 为引用锚）；**消费＝硬消费**：一旦依赖（引锚/声明需底数）`analysis.yaml` 缺席即显式报错（依三档总则一档）；不依赖的轮次（改文案类）不受阻——依赖声明与缺席报错的机械落法（引擎校验 vs 步骤纪律）随任务书呈裁。`diy-reverse`→analyze 既有路由不动；diy-analyze 本体零改动、不改名（YAGNI）。
+3. **产物依赖缺席三档总则**（新立·全库适用）：**一档**＝硬依赖（链序上游/职责承重）缺席→显式报错拒放行；**二档**＝可选源→明文声明「缺席不阻塞」；**环境依赖**（工具/git）→`TOOL_MISSING`/`NO_VCS` warning 降级（环境≠产物·brief 既有边界句）。三灰色件按影响判档处置：①`check_openapi`←prd：**一档改硬**——`x-fr` 解析遇 prd 缺席/损坏改硬 violation（exit 1），废 :466 warning 跳过；**批 4a 任务书 F-x 拟案同源跟改**（「prd 缺席 warning 跳过照 :466」改照硬口径·随批 4a 回填）；②a `create-story`←architecture：**一档改硬**（护栏面缺席拒跑或硬 violation·随任务书定形）；②b `create-story`←test-plan/sprint：**二档维持**（链序下游·创作时本就未生成）；③`readiness`←architecture：**一档甲式拒跑**——architecture 缺席→零产出 exit 1（源侧「Missing Documents (WARNING)」设计作废留痕；design.yaml 缺席维持现状）。总则立法落点（code-quality.md vs 各技能声明汇总）随任务书呈裁。
+
+**改动面（做时）**：diy-analyze SKILL/steps＋`diy-wds-evolution` 两 step＋`diyc_check_docs.py`（check_openapi）＋`story_context.py`＋`readiness.py`＋批 4a 任务书一行＋各测试面（先裁后动）。协调：evolution 两 step 与逐项化批同文件；批 4a F-x 行随 4a 开工重锚回填。
 
 ## 升级事项（可选·不排期·需要才做）
 
