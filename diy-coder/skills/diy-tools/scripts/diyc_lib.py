@@ -313,6 +313,21 @@ def receipt(command, ok, **fields) -> dict:
     return r
 
 
+def receipt_base(command, args, output_dir) -> dict:
+    """回执公共骨架（契约 §3 schema）：ok 恒 False 起步·`instance` 恒 null 但键在位；
+    output_dir 缺席/空分开答（空 → None·不 normpath 成 "."）。`args` 传命令行对象
+    （取其 project_root）。"""
+    return {"ok": False,
+            "command": command,
+            "project_root": args.project_root,
+            "output_dir": (os.path.normpath(output_dir).replace("\\", "/")
+                           if nonempty(output_dir) else None),
+            "instance": None,
+            "violations": [],
+            "warnings": [],
+            "counts": {}}
+
+
 def read_sessions(path, show):
     """读产物并取 sessions 列表 → (records | None, violations, warnings)。"""
     data, err = load_yaml_safe(path)

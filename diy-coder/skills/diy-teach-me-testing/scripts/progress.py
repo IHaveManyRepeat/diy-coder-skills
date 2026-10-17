@@ -95,7 +95,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, now, receipt_base, save_yaml_atomic, today, v  # noqa: E402
 
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
@@ -163,19 +163,6 @@ def backup_progress(path):
 
 
 # trace: B3 diy-teach-me-testing 回执输出（--json 单行 / 人读行）
-
-
-# trace: B3 diy-teach-me-testing 回执公共头（共同键 + 命令名 + 归一化 output_dir）
-def receipt_base(command, args, out):
-    return {
-        "ok": False,
-        "command": command,
-        "project_root": args.project_root,
-        "output_dir": os.path.normpath(out).replace("\\", "/"),
-        "violations": [],
-        "warnings": [],
-        "counts": {},
-    }
 
 
 # trace: B3 diy-teach-me-testing 人读态统一收尾（每条违规一行 CODE where: msg + 汇总行）

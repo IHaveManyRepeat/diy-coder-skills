@@ -42,7 +42,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import now, receipt, save_yaml_atomic, today, v  # noqa: E402
 
 # —— 冻结常量 ——
 
@@ -70,21 +70,6 @@ GATE_GLOB_PREFIX = "wds-"
 
 
 # —— 基础工具 ——
-
-
-def receipt(command, ok, **fields):
-    data = {
-        "ok": ok,
-        "command": command,
-        "project_root": fields.pop("project_root", "."),
-        "output_dir": fields.pop("output_dir", ""),
-        "instance": None,
-        "violations": fields.pop("violations", []),
-        "warnings": fields.pop("warnings", []),
-        "counts": fields.pop("counts", {}),
-    }
-    data.update(fields)
-    return data
 
 
 def emit(result, as_json):
@@ -411,7 +396,7 @@ def cmd_init(args):
                             "取值 {} 不在 {}".format(args.entry, "|".join(ENTRIES))))
     counts = {"rounds": 0, "by_status": {}, "candidates": 0, "delivered": 0}
     if violations:
-        return receipt("init", False, project_root=args.project_root,
+        return receipt("init", False, instance=None, project_root=args.project_root,
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts=counts)
 
@@ -422,7 +407,7 @@ def cmd_init(args):
                             "入口门禁：{} 下无任何既有产物（design.yaml / sprint.yaml / "
                             "wds-*.yaml）可演进——本技能不产零起点项目".format(
                                 norm(args.output_dir))))
-        return receipt("init", False, project_root=args.project_root,
+        return receipt("init", False, instance=None, project_root=args.project_root,
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts=counts)
 
@@ -432,19 +417,19 @@ def cmd_init(args):
         if err and err != "missing":
             violations.append(v("UNPARSABLE_YAML", where,
                                 "产物损坏，拒绝写入：{}".format(err)))
-            return receipt("init", False, project_root=args.project_root,
+            return receipt("init", False, instance=None, project_root=args.project_root,
                            output_dir=norm(args.output_dir), violations=violations,
                            warnings=warnings, counts=counts)
         if not isinstance(data, dict):
             violations.append(v("UNPARSABLE_YAML", where, "产物顶层不是映射，拒绝写入"))
-            return receipt("init", False, project_root=args.project_root,
+            return receipt("init", False, instance=None, project_root=args.project_root,
                            output_dir=norm(args.output_dir), violations=violations,
                            warnings=warnings, counts=counts)
         data.setdefault("project", {})["updated"] = now()
         save_yaml_atomic(product_path(args.output_dir), data)
         warnings.append(v("SET_MISMATCH", where,
                           "产物已存在：骨架与 EV-01 未重建，只刷 project.updated"))
-        return receipt("init", True, project_root=args.project_root,
+        return receipt("init", True, instance=None, project_root=args.project_root,
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts=build_counts(data), updated=now())
 
@@ -473,7 +458,7 @@ def cmd_init(args):
         "revisions": [],
     }
     save_yaml_atomic(product_path(args.output_dir), data)
-    return receipt("init", True, project_root=args.project_root,
+    return receipt("init", True, instance=None, project_root=args.project_root,
                    output_dir=norm(args.output_dir), violations=violations,
                    warnings=warnings, counts=build_counts(data), updated=now())
 
@@ -483,12 +468,12 @@ def cmd_list(args):
     if args.status and args.status not in ROUND_STATUS:
         violations.append(v("ENUM_INVALID", "--status",
                             "取值 {} 不在 {}".format(args.status, "|".join(ROUND_STATUS))))
-        return receipt("list", False, project_root=args.project_root,
+        return receipt("list", False, instance=None, project_root=args.project_root,
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts={})
     data = load_product_or_report(args.output_dir, violations)
     if data is None:
-        return receipt("list", False, project_root=args.project_root,
+        return receipt("list", False, instance=None, project_root=args.project_root,
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts={})
     rows = []
@@ -499,7 +484,7 @@ def cmd_list(args):
             continue
         rows.append({"id": rnd.get("id"), "target": rnd.get("target"),
                      "status": rnd.get("status"), "entry": rnd.get("entry")})
-    return receipt("list", True, project_root=args.project_root,
+    return receipt("list", True, instance=None, project_root=args.project_root,
                    output_dir=norm(args.output_dir), violations=violations,
                    warnings=warnings, counts=build_counts(data), rounds=rows)
 
@@ -508,7 +493,7 @@ def cmd_show(args):
     violations, warnings = [], []
     data = load_product_or_report(args.output_dir, violations)
     if data is None:
-        return receipt("show", False, project_root=args.project_root,
+        return receipt("show", False, instance=None, project_root=args.project_root,
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts={})
     if args.id:
@@ -520,13 +505,13 @@ def cmd_show(args):
         if hit is None:
             violations.append(v("UNKNOWN_ID", "rounds[].id",
                                 "{} 在 {} 中不存在".format(args.id, PRODUCT)))
-            return receipt("show", False, project_root=args.project_root,
+            return receipt("show", False, instance=None, project_root=args.project_root,
                            output_dir=norm(args.output_dir), violations=violations,
                            warnings=warnings, counts=build_counts(data))
-        return receipt("show", True, project_root=args.project_root,
+        return receipt("show", True, instance=None, project_root=args.project_root,
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts=build_counts(data), round=hit)
-    return receipt("show", True, project_root=args.project_root,
+    return receipt("show", True, instance=None, project_root=args.project_root,
                    output_dir=norm(args.output_dir), violations=violations,
                    warnings=warnings, counts=build_counts(data), document=data)
 
@@ -535,11 +520,11 @@ def cmd_check(args):
     violations, warnings = [], []
     data = load_product_or_report(args.output_dir, violations)
     if data is None:
-        return receipt("check", False, project_root=args.project_root,
+        return receipt("check", False, instance=None, project_root=args.project_root,
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts={})
     validate(data, violations, warnings, bool(args.final))
-    return receipt("check", not violations, project_root=args.project_root,
+    return receipt("check", not violations, instance=None, project_root=args.project_root,
                    output_dir=norm(args.output_dir), violations=violations,
                    warnings=warnings, counts=build_counts(data))
 

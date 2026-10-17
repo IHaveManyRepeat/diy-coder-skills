@@ -97,7 +97,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, receipt_base, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 CIS_FILE = "cis-method.yaml"
 METHODS_FILE = "cis-methods.csv"
@@ -288,19 +288,6 @@ def count_by(rows, key):
 
 
 # ---------------------------------------------------------------- 回执与产物读取
-
-def receipt_base(command, args, output_dir):
-    """回执公共骨架（契约 §3 schema）：`instance` 恒 null 但键在位。"""
-    return {"ok": False,
-            "command": command,
-            "project_root": args.project_root,
-            "output_dir": (os.path.normpath(output_dir).replace("\\", "/")
-                           if nonempty(output_dir) else None),
-            "instance": None,
-            "violations": [],
-            "warnings": [],
-            "counts": {}}
-
 
 def emit(payload, as_json, summary_line=None, body_lines=None):
     """打印回执并返回 exit code：0 = 放行，1 = 有违规/被拒绝（契约 §3）。"""

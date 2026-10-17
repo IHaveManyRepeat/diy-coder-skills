@@ -65,7 +65,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, receipt_base, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 BRAINSTORM_FILE = "brainstorm.yaml"
 METHODS_FILE = "brain-methods.csv"
@@ -171,12 +171,6 @@ def count_by_category(rows, key):
 
 
 # ---------------------------------------------------------------- 命令面
-
-def receipt_base(command, args, output_dir):
-    return {"ok": False, "command": command, "project_root": args.project_root,
-            "output_dir": os.path.normpath(output_dir).replace("\\", "/"),
-            "violations": [], "warnings": [], "counts": {}}
-
 
 def emit(payload, as_json, summary_line=None):
     """打印回执并返回 exit code：0 = 放行，1 = 有违规（契约 §3）。"""
