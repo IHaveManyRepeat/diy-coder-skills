@@ -65,7 +65,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, receipt_base, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, receipt_base, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 BRAINSTORM_FILE = "brainstorm.yaml"
 METHODS_FILE = "brain-methods.csv"
@@ -163,13 +163,6 @@ def sample_cross_category(rows, count):
     return picked
 
 
-def count_by_category(rows, key):
-    counts = {}
-    for row in rows:
-        counts[row[key]] = counts.get(row[key], 0) + 1
-    return counts
-
-
 # ---------------------------------------------------------------- 命令面
 
 def emit(payload, as_json, summary_line=None):
@@ -210,7 +203,7 @@ def cmd_list(args):
     payload["ok"] = not violations
     payload["sessions"] = sessions
     payload["counts"] = {"sessions": len(sessions),
-                         "by_status": count_by_category(
+                         "by_status": count_by(
                              [{"k": s["status"]} for s in sessions if nonempty(s["status"])],
                              "k")}
     return emit(payload, args.json,
@@ -257,7 +250,7 @@ def cmd_techniques(args):
     payload["ok"] = True
     payload["techniques"] = picked
     payload["counts"] = {"techniques": len(picked), "library": len(rows),
-                         "by_category": count_by_category(picked, "category"),
+                         "by_category": count_by(picked, "category"),
                          "categories": len(categories)}
     return emit(payload, args.json,
                 "PASS：技术库 %d 条 / %d 类，本次返回 %d 条"

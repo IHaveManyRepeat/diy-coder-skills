@@ -45,7 +45,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, display_path, emit_via, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 INVESTIGATION_FILE = "investigation.yaml"
 
@@ -88,15 +88,6 @@ def iter_entries(records, key):
             for entry in record[key]:
                 if isinstance(entry, dict):
                     yield entry
-
-
-def count_by(entries, key):
-    counts = {}
-    for entry in entries:
-        if isinstance(entry, dict) and nonempty(entry.get(key)):
-            value = str(entry[key])
-            counts[value] = counts.get(value, 0) + 1
-    return counts
 
 
 def count_items(records, key):

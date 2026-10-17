@@ -37,7 +37,7 @@ from datetime import date
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, emit_via, is_int, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import count_by, display_path, diyc_script_path, emit_via, is_int, load_yaml_safe, nonempty, v  # noqa: E402
 
 GATE_FILE = "test-gate.yaml"
 STORIES_FILE = "stories.yaml"
@@ -199,15 +199,6 @@ def adr_rows():
         return None
     rows = data.get("rows")
     return len(rows) if isinstance(rows, list) else None
-
-
-def count_by(rows, key):
-    counts = {}
-    for row in rows:
-        value = row.get(key) if isinstance(row, dict) else None
-        if nonempty(value):
-            counts[str(value)] = counts.get(str(value), 0) + 1
-    return counts
 
 
 # ---------------------------------------------------------------- 索引层（只读）

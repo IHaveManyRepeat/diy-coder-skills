@@ -89,7 +89,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, emit_via, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, display_path, diyc_script_path, emit_via, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 TEST_REVIEW_FILE = "test-review.yaml"
 FINDINGS_FILE = "test-review-findings.json"
@@ -1633,21 +1633,13 @@ def cmd_check(args):
                               if isinstance(r, dict)),
               "gaps": sum(len(r.get("coverage_gaps") or []) for r in records
                           if isinstance(r, dict)),
-              "by_status": _count_by(records, "status")}
+              "by_status": count_by(records, "status")}
     payload = {"ok": not violations, "command": "check", "project_root": args.project_root,
                "output_dir": os.path.normpath(out).replace("\\", "/"),
                "final": bool(args.final), "violations": violations, "warnings": [],
                "counts": counts}
     emit_via(payload, args.json, human_check)
     return 0 if payload["ok"] else 1
-
-
-def _count_by(records, key):
-    counts = {}
-    for record in records:
-        if isinstance(record, dict) and nonempty(record.get(key)):
-            counts[str(record[key])] = counts.get(str(record[key]), 0) + 1
-    return counts
 
 
 def human_check(payload):

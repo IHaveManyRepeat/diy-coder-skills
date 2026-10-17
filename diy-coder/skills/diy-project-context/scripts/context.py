@@ -41,7 +41,7 @@ import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 try:  # Python 3.11+ 标准库；3.10 环境降级为「存在但未解析」warning（语言无关承诺）
     import tomllib as _toml
@@ -1073,7 +1073,7 @@ def cmd_check(args):
         "parts": safe_len(data, "scan", "parts"),
         "stack": safe_len(data, "stack"),
         "rules": len(rules),
-        "rules_by_category": count_by_attr(rules, "category"),
+        "rules_by_category": count_by(rules, "category"),
         "architecture": safe_len(data, "architecture"),
         "integration": safe_len(data, "integration"),
         "deep_dives": safe_len(data, "deep_dives"),
@@ -1102,15 +1102,6 @@ def cmd_check(args):
             print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
         print("共 %d 条违规；exit 0 是唯一放行" % len(violations))
     return 0 if ok else 1
-
-
-def count_by_attr(records, key):
-    counts = {}
-    for record in records:
-        if isinstance(record, dict) and nonempty(record.get(key)):
-            value = str(record[key])
-            counts[value] = counts.get(value, 0) + 1
-    return counts
 
 
 def safe_len(data, key, sub=None):

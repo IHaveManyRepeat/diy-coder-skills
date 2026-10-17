@@ -51,7 +51,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 BRIEF_FILE = "brief.yaml"
 REVIEW_FILE = "editorial-review.yaml"
@@ -170,15 +170,6 @@ def cmd_intent(args):
 
 def list_len(value):
     return len(value) if isinstance(value, list) else 0
-
-
-def count_by(items, key):
-    counts = {}
-    for item in items:
-        if isinstance(item, dict) and nonempty(item.get(key)):
-            value = str(item[key])
-            counts[value] = counts.get(value, 0) + 1
-    return counts
 
 
 # ---- check ----

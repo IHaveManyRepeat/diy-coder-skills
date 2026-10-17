@@ -40,7 +40,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, id_sort, is_int, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, display_path, emit_via, id_sort, is_int, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 RETRO_FILE = "retrospective.yaml"
 STORIES_FILE = "stories.yaml"
@@ -983,17 +983,6 @@ def cmd_check(args):
     }
     emit_via(payload, args.json, human_check)
     return 0 if ok else 1
-
-
-def count_by(records, key):
-    counts = {}
-    for record in records:
-        if not isinstance(record, dict):
-            continue
-        value = record.get(key)
-        if nonempty(value):
-            counts[str(value)] = counts.get(str(value), 0) + 1
-    return counts
 
 
 def count_items(records, key):

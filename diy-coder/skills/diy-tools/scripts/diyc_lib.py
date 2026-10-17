@@ -116,6 +116,20 @@ def nonempty(value):
     return True
 
 
+def count_by(records, key, sub=None):
+    """按 key 计数；非 dict / 空值跳过；值统一 str；sub 在场且值为 dict 时取子键。"""
+    counts = {}
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        value = record.get(key)
+        if sub is not None and isinstance(value, dict):
+            value = value.get(sub)
+        if nonempty(value):
+            counts[str(value)] = counts.get(str(value), 0) + 1
+    return counts
+
+
 def walk_strings(node, path):
     """递归产 (路径, 字符串值)：键只进路径不进文字——字数统计/标记扫描只碰值。
     根 path 由调用点自传（不关心定位时传 ''）。"""

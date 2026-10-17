@@ -78,7 +78,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings, write_atomic  # noqa: E402
+from diyc_lib import count_by, display_path, load_yaml_safe, nonempty, v, walk_strings, write_atomic  # noqa: E402
 
 TF_FILE = "test-framework.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -1071,19 +1071,6 @@ def check_record(project_root, output_dir, index, record, final, show, warnings)
                     violations.append(v("EMPTY_FIELD", where + ".ci.static_check_alignment",
                                         "mode=%s 时 static_check_alignment 必填（可为空列表）" % mode))
     return violations
-
-
-def count_by(records, key, sub=None):
-    counts = {}
-    for record in records:
-        if not isinstance(record, dict):
-            continue
-        value = record.get(key)
-        if sub is not None and isinstance(value, dict):
-            value = value.get(sub)
-        if nonempty(value):
-            counts[str(value)] = counts.get(str(value), 0) + 1
-    return counts
 
 
 def count_items(records, key):

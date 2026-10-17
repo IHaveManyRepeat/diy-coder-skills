@@ -97,7 +97,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, receipt_base, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import count_by, display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, receipt_base, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 CIS_FILE = "cis-method.yaml"
 METHODS_FILE = "cis-methods.csv"
@@ -278,13 +278,6 @@ def load_methods(project_root):
     if not rows:
         return None, [v("EMPTY_FIELD", show, "方法库无数据行")]
     return rows, []
-
-
-def count_by(rows, key):
-    counts = {}
-    for row in rows:
-        counts[row[key]] = counts.get(row[key], 0) + 1
-    return counts
 
 
 # ---------------------------------------------------------------- 回执与产物读取
