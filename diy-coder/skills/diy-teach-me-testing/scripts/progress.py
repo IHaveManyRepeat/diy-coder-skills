@@ -95,7 +95,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, now, receipt_base, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, now, project_name, receipt_base, save_yaml_atomic, today, v  # noqa: E402
 
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
@@ -522,18 +522,6 @@ def validate(data, curriculum, show, out_dir, project_root, final=False):
 
 
 # ---------------------------------------------------------------- init
-
-# trace: B3 diy-teach-me-testing 项目名（取 diy-coder.yaml 的 project.name，缺则回落目录名 + warning）
-def project_name(root):
-    cfg, err = load_yaml_safe(os.path.join(root, "diy-coder.yaml"))
-    if isinstance(cfg, dict):
-        project = cfg.get("project")
-        if isinstance(project, dict) and nonempty(project.get("name")):
-            return str(project["name"]), None
-    note = "diy-coder.yaml project.name 不可用（%s），回落项目目录名" % (err or "缺该键")
-    return os.path.basename(os.path.abspath(root)), v("MISSING_FILE", "diy-coder.yaml",
-                                                      note)
-
 
 # trace: B3 diy-teach-me-testing 空白进度骨架（7 节全未开始；派生字段由引擎写）
 def blank_progress(curriculum, name, role):

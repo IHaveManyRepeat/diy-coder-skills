@@ -38,7 +38,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
-from diyc_lib import display_path, nonempty, now  # noqa: E402
+from diyc_lib import display_path, nonempty, now, project_name  # noqa: E402
 
 try:
     import yaml
@@ -189,23 +189,11 @@ def save_yaml_atomic(path: Path, doc):
     tmp.replace(path)
 
 
-def project_name(project_root: Path) -> str:
-    cfg = project_root / "diy-coder.yaml"
-    if cfg.exists():
-        try:
-            doc = yaml.safe_load(cfg.read_text(encoding="utf-8")) or {}
-            name = (doc.get("project") or {}).get("name")
-            if name:
-                return str(name)
-        except yaml.YAMLError:
-            pass
-    return project_root.resolve().name
-
-
 def skeleton(project_root: Path) -> dict:
     ts = now()
+    pname, _w = project_name(project_root)
     return {
-        "project": {"name": project_name(project_root), "created": ts, "updated": ts, "status": "草稿"},
+        "project": {"name": pname, "created": ts, "updated": ts, "status": "草稿"},
         "stage": STAGES[0],
         "activities": [
             {

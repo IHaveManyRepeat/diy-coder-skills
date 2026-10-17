@@ -114,7 +114,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import TOKEN_WHITELIST, check_tokens, display_path, enum_check, load_yaml_safe, nonempty, now, receipt_base, require, save_yaml_atomic, v, walk_strings  # noqa: E402
+from diyc_lib import TOKEN_WHITELIST, check_tokens, display_path, enum_check, load_yaml_safe, nonempty, now, project_name, receipt_base, require, save_yaml_atomic, v, walk_strings  # noqa: E402
 
 PRODUCT_FILE = "wds-trigger.yaml"
 UPSTREAM_FILE = "wds-brief.yaml"
@@ -182,17 +182,6 @@ def as_list(value):
 
 def as_dict(value):
     return value if isinstance(value, dict) else {}
-
-
-def project_name(project_root):
-    """产物 `project.name`：diy-coder.yaml 的 `project.name`；不可用 → 项目目录名 + warning。"""
-    cfg, err = load_yaml_safe(os.path.join(project_root, "diy-coder.yaml"))
-    if isinstance(cfg, dict):
-        project = cfg.get("project")
-        if isinstance(project, dict) and nonempty(project.get("name")):
-            return str(project["name"]), None
-    note = "diy-coder.yaml project.name 不可用（%s），回落项目目录名" % (err or "缺该键")
-    return os.path.basename(os.path.abspath(project_root)), v("MISSING_FILE", "diy-coder.yaml", note)
 
 
 # ---------------------------------------------------------------- 回执与产物读取

@@ -303,6 +303,17 @@ def _output_dir_from_cfg(cfg, warnings) -> str:
     return value
 
 
+def project_name(project_root):
+    """产物 `project.name`：diy-coder.yaml 的 `project.name`；不可用 → 项目目录名 + warning。"""
+    cfg, err = load_yaml_safe(os.path.join(project_root, "diy-coder.yaml"))
+    if isinstance(cfg, dict):
+        project = cfg.get("project")
+        if isinstance(project, dict) and nonempty(project.get("name")):
+            return str(project["name"]), None
+    note = "diy-coder.yaml project.name 不可用（%s），回落项目目录名" % (err or "缺该键")
+    return os.path.basename(os.path.abspath(project_root)), v("MISSING_FILE", "diy-coder.yaml", note)
+
+
 def read_config(project_root) -> tuple:
     """读 diy-coder.yaml：返回 (cfg, warnings)。纯函数不写 stderr；缺失 → ({}, [])。"""
     cfg_path = os.path.join(project_root, "diy-coder.yaml")

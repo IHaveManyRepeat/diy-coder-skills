@@ -49,7 +49,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, project_name, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 SPEC_FILE = "spec-kernel.yaml"
 SK_RE = re.compile(r"SK-\d{3}")
@@ -63,19 +63,6 @@ def resolve_path(value, project_root):
     """产物内路径按 project-root 解析（绝对路径原样）。"""
     text = str(value)
     return text if os.path.isabs(text) else os.path.join(project_root, text)
-
-
-def project_name(root, warnings):
-    """project.name 取自 diy-coder.yaml；不可用 → 回落项目目录名 + warning（零静默降级）。"""
-    cfg, err = load_yaml_safe(os.path.join(root, "diy-coder.yaml"))
-    if isinstance(cfg, dict):
-        project = cfg.get("project")
-        if isinstance(project, dict) and nonempty(project.get("name")):
-            return str(project["name"])
-    warnings.append(v("MISSING_FILE", "diy-coder.yaml",
-                      "diy-coder.yaml 的 project.name 不可用（%s），回落项目目录名"
-                      % (err or "缺该键")))
-    return os.path.basename(os.path.abspath(root))
 
 
 def record_where(show, index, record):
@@ -411,7 +398,9 @@ def cmd_new(args):
                             "顶层不是映射（须为 project + specs + revisions），拒绝写入"))
     elif nonempty(args.slug):
         if data is None:
-            name = project_name(root, warnings)
+            name, _w = project_name(root)
+            if _w:
+                warnings.append(_w)
             stamp = now()
             data = {"project": {"name": name, "created": stamp, "updated": stamp},
                     "specs": [], "revisions": []}

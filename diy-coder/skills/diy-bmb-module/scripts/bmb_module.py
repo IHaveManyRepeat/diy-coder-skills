@@ -73,7 +73,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, items, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, emit_via, items, load_yaml_safe, nonempty, now, project_name, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -164,16 +164,6 @@ def skeleton_record(plan_id, slug, title):
         "build_order": [],
         "open_questions": [],
     }
-
-
-# trace: diy-bmb-module 产物 project.name（配置优先，缺配置回退项目目录名）
-def project_name(project_root):
-    cfg, _err = load_yaml_safe(os.path.join(project_root, "diy-coder.yaml"))
-    if isinstance(cfg, dict) and isinstance(cfg.get("project"), dict):
-        name = cfg["project"].get("name")
-        if nonempty(name):
-            return str(name)
-    return os.path.basename(os.path.abspath(project_root))
 
 
 # trace: diy-bmb-module 下一个计划号（既有最大号 + 1，三位零填充；不重编不重用）
@@ -632,7 +622,8 @@ def cmd_new(args):
         return 1
     data, err = load_yaml_safe(path)
     if data is None and err is None:
-        data = {"project": {"name": project_name(root), "created": now(), "updated": now()},
+        pname, _w = project_name(root)
+        data = {"project": {"name": pname, "created": now(), "updated": now()},
                 "plans": [], "revisions": []}
     elif err is not None:
         violations.append(v("UNPARSABLE_YAML", show, "YAML 解析失败：%s" % err))
