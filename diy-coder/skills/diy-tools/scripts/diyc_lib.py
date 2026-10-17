@@ -65,6 +65,9 @@ DOC_FILES = {
     "wds-scenarios": "wds-scenarios.yaml",
 }
 
+# 未解析令牌检查（{...} 白名单外一律 TOKEN_UNRESOLVED；cis/wds 四技能共用）。
+TOKEN_WHITELIST = ("{project-root}", "{output_dir}")
+TOKEN_RE = re.compile(r"\{[A-Za-z0-9_\-]+\}")
 
 # ---------------------------------------------------------------- 时间与 ID
 
@@ -152,6 +155,19 @@ def walk_strings(node, path):
         for index, value in enumerate(node):
             for item in walk_strings(value, "%s[%d]" % (path, index)):
                 yield item
+
+
+def check_tokens(node, where):
+    """未解析 `{...}` 令牌：白名单外一律 TOKEN_UNRESOLVED（沿用 B6 已批码）。"""
+    violations = []
+    for path, text in walk_strings(node, where):
+        for token in TOKEN_RE.findall(text):
+            if token in TOKEN_WHITELIST:
+                continue
+            violations.append(v("TOKEN_UNRESOLVED", path,
+                                "未解析令牌 %s（白名单仅 %s）"
+                                % (token, " / ".join(TOKEN_WHITELIST))))
+    return violations
 
 
 def diyc_script_path():

@@ -97,7 +97,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import count_by, display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, receipt_base, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import TOKEN_WHITELIST, check_tokens, count_by, display_path, is_int, load_yaml_safe, methods_path, next_record_id, nonempty, now, read_sessions, receipt_base, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 CIS_FILE = "cis-method.yaml"
 METHODS_FILE = "cis-methods.csv"
@@ -189,11 +189,6 @@ REACHABLE_CATEGORIES = {
     "叙事": ("转变", "战略", "说服", "分析", "情感"),
 }
 
-# §0 裁定 8 令牌白名单：`{project-root}` 由引擎按 --project-root 自解析（唯一例外）；
-# `{output_dir}` 是源 `{output_folder}` 的 diy 替换。其余任何 `{...}` 一律拒绝。
-TOKEN_WHITELIST = ("{project-root}", "{output_dir}")
-TOKEN_RE = re.compile(r"\{[A-Za-z0-9_\-]+\}")
-
 CM_RE = re.compile(r"CM-(\d{3})\Z")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}\Z")
 
@@ -207,19 +202,6 @@ def project_name(project_root):
             return str(project["name"]), None
     note = "diy-coder.yaml project.name 不可用（%s），回落项目目录名" % (err or "缺该键")
     return os.path.basename(os.path.abspath(project_root)), v("MISSING_FILE", "diy-coder.yaml", note)
-
-
-def check_tokens(record, where):
-    """未解析 `{...}` 令牌（裁定 8）：白名单外一律 TOKEN_UNRESOLVED。"""
-    violations = []
-    for path, text in walk_strings(record, where):
-        for token in TOKEN_RE.findall(text):
-            if token in TOKEN_WHITELIST:
-                continue
-            violations.append(v("TOKEN_UNRESOLVED", path,
-                                "未解析令牌 %s（白名单仅 %s）"
-                                % (token, " / ".join(TOKEN_WHITELIST))))
-    return violations
 
 
 # ---------------------------------------------------------------- 方法库

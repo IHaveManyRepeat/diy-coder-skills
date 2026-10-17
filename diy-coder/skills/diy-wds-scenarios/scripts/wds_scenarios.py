@@ -109,7 +109,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, now, receipt_base, save_yaml_atomic, v, walk_strings  # noqa: E402
+from diyc_lib import TOKEN_WHITELIST, check_tokens, display_path, load_yaml_safe, nonempty, now, receipt_base, save_yaml_atomic, v, walk_strings  # noqa: E402
 
 SCENARIOS_FILE = "wds-scenarios.yaml"
 TRIGGER_FILE = "wds-trigger.yaml"
@@ -158,11 +158,6 @@ SCENARIO_NESTED = (("trigger_map_context", "target_group"),
                    ("success", "user"), ("success", "business"))
 PAGE_REQUIRED = ("id", "slug", "name", "purpose")
 
-# 令牌白名单：`{project-root}` 由引擎按 --project-root 自解析（唯一例外）；
-# `{output_dir}` 是源 `{output_folder}` 的 diy 替换。其余任何 `{...}` 一律拒绝。
-TOKEN_WHITELIST = ("{project-root}", "{output_dir}")
-TOKEN_RE = re.compile(r"\{[A-Za-z0-9_\-]+\}")
-
 ASSUMPTION_MARK = "[假设]"
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}\Z")
 
@@ -181,19 +176,6 @@ def project_name(project_root):
             return str(project["name"]), None
     note = "diy-coder.yaml project.name 不可用（%s），回落项目目录名" % (err or "缺该键")
     return os.path.basename(os.path.abspath(project_root)), v("MISSING_FILE", "diy-coder.yaml", note)
-
-
-def check_tokens(node, where):
-    """未解析 `{...}` 令牌：白名单外一律 TOKEN_UNRESOLVED（沿用 B6 已批码）。"""
-    violations = []
-    for path, text in walk_strings(node, where):
-        for token in TOKEN_RE.findall(text):
-            if token in TOKEN_WHITELIST:
-                continue
-            violations.append(v("TOKEN_UNRESOLVED", path,
-                                "未解析令牌 %s（白名单仅 %s）"
-                                % (token, " / ".join(TOKEN_WHITELIST))))
-    return violations
 
 
 def require(node, keys, where, out):
