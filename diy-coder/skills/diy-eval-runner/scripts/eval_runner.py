@@ -78,7 +78,7 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, v  # noqa: E402
+from diyc_lib import display_path, stamp_file, v, write_atomic  # noqa: E402
 
 MODES = ("baseline", "variant", "quality", "trigger")
 CONFIG_MODES = ("baseline", "variant", "quality")
@@ -104,10 +104,6 @@ TOKEN_RE = re.compile(r"\{([^{}]*)\}")
 
 def utc_now_iso():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def stamp():
-    return datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
 def memlog_now():
@@ -574,16 +570,6 @@ def memlog_count(body):
     return sum(1 for ln in body.splitlines() if ln.startswith("- "))
 
 
-def write_atomic(path, text):
-    """临时文件 + flush + fsync + 原子改名：崩溃不会留半条记录。"""
-    tmp = path + ".tmp"
-    with io.open(tmp, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write(text)
-        fh.flush()
-        os.fsync(fh.fileno())
-    os.replace(tmp, path)
-
-
 def memlog_init(path, subject):
     """建 memlog；已存在抛 FileExistsError（只追加，永不覆盖）。"""
     if os.path.exists(path):
@@ -643,10 +629,10 @@ def discover_cases(skill_dir, explicit, project_root):
 
 def unique_run_dir(base, label):
     """run 目录唯一化：同名已存在则另铸后缀，**绝不覆盖**既有 run。"""
-    cand = os.path.join(base, "%s-%s" % (stamp(), label))
+    cand = os.path.join(base, "%s-%s" % (stamp_file(), label))
     n = 2
     while os.path.exists(cand):
-        cand = os.path.join(base, "%s-%s-%d" % (stamp(), label, n))
+        cand = os.path.join(base, "%s-%s-%d" % (stamp_file(), label, n))
         n += 1
     return cand
 

@@ -88,7 +88,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, nonempty, v  # noqa: E402
+from diyc_lib import display_path, nonempty, v, write_atomic  # noqa: E402
 
 SKILL_FILE = "SKILL.md"
 STEPS_DIR = "steps"
@@ -301,19 +301,6 @@ def read_text(path, show):
         return None, v("MISSING_FILE", show, "文件无法读取：%s" % e)
 
 
-# trace: diy-bmb-builder 原子写（同目录临时文件 + fsync + os.replace）
-def write_text_atomic(path, text):
-    parent = os.path.dirname(path)
-    if parent and not os.path.isdir(parent):
-        os.makedirs(parent)
-    tmp = path + ".tmp"
-    with io.open(tmp, "w", encoding="utf-8", newline="\n") as handle:
-        handle.write(text)
-        handle.flush()
-        os.fsync(handle.fileno())
-    os.replace(tmp, path)
-
-
 # trace: diy-bmb-builder 回执输出（--json 单行 / 人读行）
 def emit(payload, as_json, human_lines=None):
     if as_json or human_lines is None:
@@ -357,7 +344,7 @@ def finish(payload, args, human=None):
 def write_out(path_arg, payload):
     if not path_arg:
         return
-    write_text_atomic(os.path.abspath(path_arg),
+    write_atomic(os.path.abspath(path_arg),
                       json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
 
 
@@ -440,7 +427,7 @@ def cmd_scaffold(args):
     try:
         os.makedirs(target)
         skill_md = os.path.join(target, SKILL_FILE)
-        write_text_atomic(skill_md, SKILL_TEMPLATE.replace("{skill-name}", name))
+        write_atomic(skill_md, SKILL_TEMPLATE.replace("{skill-name}", name))
         files_created.append(display_path(target, root) + "/")
         files_created.append(display_path(skill_md, root))
         for sub in dirs:
@@ -547,7 +534,7 @@ def cmd_template(args):
         return 3
     tokens = sorted(tok for tok in set(TOKEN_RE.findall(text)) if not tok.startswith("if-"))
     try:
-        write_text_atomic(dest, text)
+        write_atomic(dest, text)
     except OSError as e:
         sys.stderr.write("诊断：模板输出失败 %s：%s\n" % (display_path(dest, root), e))
         payload["violations"].append(v("FILE_CONFLICT", display_path(dest, root),
@@ -951,7 +938,7 @@ def cmd_mlog(args):
             meta["subject"] = str(args.subject)
         meta["status"] = "active"
         meta["updated"] = datetime.now().strftime("%Y-%m-%dT%H:%M")
-        write_text_atomic(path, render_memlog(meta, ""))
+        write_atomic(path, render_memlog(meta, ""))
         payload["n"] = 0
     else:
         if not os.path.isfile(path):
@@ -988,7 +975,7 @@ def cmd_mlog(args):
             return finish(payload, args, human_lines)
         meta.pop("updated", None)
         meta["updated"] = datetime.now().strftime("%Y-%m-%dT%H:%M")
-        write_text_atomic(path, render_memlog(meta, body))
+        write_atomic(path, render_memlog(meta, body))
         payload["n"] = memlog_count(body)
     payload["appended"] = bool(payload.get("appended", False))
     payload["counts"] = {"n": payload["n"]}
@@ -1336,8 +1323,8 @@ def cmd_render(args):
         payload["violations"] += violations
         return finish(payload, args, human_lines)
     try:
-        write_text_atomic(os.path.join(run_dir, REPORT_MD), render_md(data))
-        write_text_atomic(os.path.join(run_dir, REPORT_HTML), render_html(data))
+        write_atomic(os.path.join(run_dir, REPORT_MD), render_md(data))
+        write_atomic(os.path.join(run_dir, REPORT_HTML), render_html(data))
     except OSError as e:
         sys.stderr.write("诊断：报告渲染失败 %s：%s\n" % (show, e))
         payload["violations"].append(v("FILE_CONFLICT", show, "渲染失败：%s" % e))

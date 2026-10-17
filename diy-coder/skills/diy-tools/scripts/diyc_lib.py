@@ -83,6 +83,11 @@ def now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def stamp_file() -> str:
+    """YYYYMMDD-HHMMSS（本地时区）——文件名安全时间戳（无空格冒号·可拼路径）。"""
+    return datetime.now().strftime("%Y%m%d-%H%M%S")
+
+
 def _id_sort_key(value):
     parts = re.split(r"(\d+)", str(value))
     return [(1, int(p)) if p.isdigit() else (0, p) for p in parts]
@@ -206,6 +211,28 @@ def save_yaml_atomic(path, data) -> None:
         with io.open(tmp, "w", encoding="utf-8", newline="\n") as f:
             yaml.safe_dump(data, f, allow_unicode=True, sort_keys=False,
                            default_flow_style=False)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def write_atomic(path, text) -> None:
+    """写前建目录 + 同目录随机 tmp + flush/fsync + os.replace 原子替换
+    （并发安全不撞名·断电不留半条文件·换行强制 LF）。
+    失败清理 tmp 后原样抛出——不留残骸、不吞异常。"""
+    folder = os.path.dirname(os.path.abspath(path))
+    if folder and not os.path.isdir(folder):
+        os.makedirs(folder, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=folder, prefix=".diyc-", suffix=".tmp")
+    try:
+        with io.open(fd, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
         os.replace(tmp, path)
     except BaseException:
         try:

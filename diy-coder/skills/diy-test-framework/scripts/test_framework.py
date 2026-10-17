@@ -73,13 +73,12 @@ import json
 import os
 import re
 import sys
-import tempfile
 
 import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, nonempty, v, walk_strings, write_atomic  # noqa: E402
 
 TF_FILE = "test-framework.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -313,22 +312,6 @@ def template_abs(rel):
     if path != root and not path.startswith(root + os.sep):
         return None
     return path
-
-
-def write_atomic(path, text):
-    """同目录临时文件 + os.replace（同卷原子替换；不保留既有内容）。"""
-    parent = os.path.dirname(path)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(prefix=".tfw-", suffix=".tmp", dir=parent or ".")
-    try:
-        with io.open(fd, "w", encoding="utf-8", newline="") as fh:
-            fh.write(text)
-        os.replace(tmp, path)
-    except OSError:
-        if os.path.exists(tmp):
-            os.remove(tmp)
-        raise
 
 
 # ---------------------------------------------------------------- detect
