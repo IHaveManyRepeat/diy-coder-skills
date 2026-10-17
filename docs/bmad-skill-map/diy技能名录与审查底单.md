@@ -266,7 +266,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 ## 待办：公共句式母本注入机械化（攒批，方案 A 已拍板，实施时一并动）
 
-登记（2026-10-03）：现状=母本（`.analysis/2026-09-16-skill-remediation/suite-texts.md`）+ `test_suite_texts.py` 抓漂移，但**落地是手工逐文件改**——公共条款每加一条要改所有成员技能。旧理由 NFR-4 已证伪（47 技能调 diyc.py，分发单元事实上=整套 skills 目录；详版见讨论结论文档）。
+登记（2026-10-03）：现状=母本（`.analysis/2026-09-16-skill-remediation/suite-texts.md`）+ `test_suite_texts.py` 抓漂移，但**落地是手工逐文件改**——公共条款每加一条要改所有成员技能。旧理由 NFR-4 已证伪（47 技能调 diyc.py，分发单元事实上=整套 skills 目录；详版见 `docs/bmad-skill-map/讨论结论-公共内容与保证模型-2026-10-03.md`——含保证模型两轮讨论定稿与方案 A 推导链）。
 
 - **方案 A 拍板（2026-10-03，引擎/数据分离）**：`diy-coder/sync_texts.py`（引擎，不随条款变）＋ `diy-coder/suite-texts.yaml`（唯一事实源）。均构建期资产，不随 install 分发；旧 markdown 母本退役（notes 迁 YAML，裁定史在 git history）。
 - 单条先行否决（2026-10-03 用户裁定）：不提前单建 suite-texts.yaml——单条先行=新旧双源（正是本方案要消灭的）；YAML 随本批开工整体迁移 §1-§8 时建。
@@ -433,7 +433,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - BMAD 记忆机制在册：agent 记忆实位＝`_bmad/_memory/<agent>-sidecar/`（`_bmad/bmm/module-help.csv:8` 注册 tech-writer `update-standards` 动作写 documentation-standards.md）；**本仓 `_bmad/` 下无 `_memory/` 目录**——用户实际使用时的记忆实存待寻（本仓外项目/全局位置）。
 - diy 侧对位物＝experience_repo 经验库（`diy-coder.yaml:10`，全局 `~/.diy-coder/experience`）——与 BMAD agent-sidecar 记忆（用户偏好/标准类）非同物；迁移未覆盖此面。
 
-待办动作：细看 BMAD 记忆体系（存储内容/写入触发/读取时机），产出「存了什么、强调为何能记住」事实清单；再裁 diy 是否补记忆面及形态。**〔2026-10-13 调研已完成〕**报告＝`docs/bmad-skill-map/调研结论-BMAD记忆机制-2026-10-13.md`。核心结论：BMAD 记住强调＝「偏好固化进 `_bmad/custom/` 的 `persistent_facts`＋技能激活时自动读入」（非模型记忆）；四层机制（custom 偏好／agent MEMORY／bmm sidecar／wds 会话状态）中本机仅 custom 层有实存（本仓 20 toml＋doc-style.md＋eng-defaults.md）；diy 零对位面，现状靠宿主 CLAUDE.md 兜底。待裁三项（是否补 persistent_facts 同构面／补则形态／层②③要不要）见报告末节，**未裁不动**。
+待办动作：细看 BMAD 记忆体系（存储内容/写入触发/读取时机），产出「存了什么、强调为何能记住」事实清单；再裁 diy 是否补记忆面及形态。**〔2026-10-13 调研已完成〕**报告＝`docs/bmad-skill-map/调研结论-BMAD记忆机制-2026-10-13.md`。核心结论：BMAD 记住强调＝「偏好固化进 `_bmad/custom/` 的 `persistent_facts`＋技能激活时自动读入」（非模型记忆）；四层机制（custom 偏好／agent MEMORY／bmm sidecar／wds 会话状态）中本机仅 custom 层有实存（本仓 20 toml＋doc-style.md＋eng-defaults.md）；diy 零对位面，现状靠宿主 CLAUDE.md 兜底。待裁三项（是否补 persistent_facts 同构面／补则形态／层②③要不要）见报告末节，**未裁不动**。**〔2026-10-17 方向已裁＋设计呈审〕**方向＝「机制要加·按产物/技能挂」；设计方案＝`docs/bmad-skill-map/设计方案-偏好记忆机制-2026-10-17.md`（载体＝`preferences.yaml`、读入＝`resolve` 扩键、写入＝AI 直写 append、保证＝写面 check＋读面概率区、排期＝句搭批 8 随窗）——**五裁点待裁未开工**，原三项随方向裁定收敛于设计五裁点。
 
 ## 待办：全库去源路径锚（2026-10-04 用户裁定，专批，现在不动）
 
@@ -563,7 +563,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面（已落）：`diy-coder/runner.py`（三 spawn＋note 判读＋旗标＋`_spawn` 增返 result）／三技能 SKILL.md description 补自动调用声明／diy-build-loop 规则 9 签名行／README 工作流链条／`tests/stub_claude.py`（post 会话路由）＋`tests/test_runner.py`（TC_Post_Face 七用例；`run_runner` 缺省注入 `--skip-post` 隔离既有测试，`--line wds` 不注入）；install.py 已同步安装形态。
 
-遗留待办（YAGNI 后补）：`--reopen-failed` 现只认 `augment:失败`；e2e/gate 发现的实现缺陷重开＝人手改 sprint.yaml 对应任务回 `进行中` 后重跑 runner。若实际冲刺中 e2e 失败量大，再裁扩展 reopen 认「关联端到端失败 TC 的任务」（需 TC→AC→story 映射解析）。
+遗留待办（YAGNI 后补）：`--reopen-failed` 现只认 `augment:失败`；e2e/gate 发现的实现缺陷重开＝人手改 sprint.yaml 对应任务回 `进行中` 后重跑 runner。若实际冲刺中 e2e 失败量大，再裁扩展 reopen 认「关联端到端失败 TC 的任务」（需 TC→AC→story 映射解析）。〔2026-10-17 升格：开关扩展框架作废留档——真实需求＝失败归因分叉＋分路修复的工作流，见「待办：runner 三连失败处置工作流」〕
 
 ## 待办：test_pending_precise_brief 跨窗口中间态红——检查任务（2026-10-05 发现并查明，现在不动）
 
@@ -793,6 +793,29 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 **〔2026-10-17 用户裁定·落点闭合，销入母本批〕**：**落点＝单源多通道**——原则文案统一落母本批 `suite-texts.yaml`（§9 回复纪律＋载体判据），`sync_texts.py` 增注入目标＝项目 CLAUDE.md 标记对段（全会话自动加载，任何会话回复都生效）；机械可下沉件（产物面禁词/句长 grep、中文全角宽度算列宽函数等）按判据「能下沉优先下沉＋消费者出现才落」处置（YAGNI）。**注入目标＝本项目 CLAUDE.md**（不动全局 `~/.claude/CLAUDE.md`）；**配置型设计**——注入目标列表（SKILL 集＋CLAUDE.md 路径）读配置不写死，将来 diy 用户装套件时由 init 技能/安装器写入其各项目 CLAUDE.md；换 agent 兼容＝生成物是普通 markdown 段落＋标准标记对注释，不绑 Claude Code 专有机制。**hook 路线不做**（「查存在必催生套话」教训在案，将来需要再议）。条款内容（caveman 借鉴＋STE100 子集＋载体判据）随母本批拟稿逐条呈审。本段落点问题销，通用行跟改/输出 UX 文案/复述机制讨论等其余内容不动。
 
 改动面（做时）：14 家回调＋`diyc_lib.py`（若下沉）＋指示面；测试面若有行式样断言须同源核（先裁后动）。
+
+## 待办：runner 三连失败处置工作流（2026-10-17 用户裁定，登记待办，现在不动）
+
+登记来源：runner 三连遗留待办（上段「reopen 只认 augment:失败」）讨论升格——用户点出「重开任务回进行中」框架装不下真实需求：失败须先归因分叉（用例/代码/上游），再分路修复，各自有校验门与重跑。原开关扩展框架作废留档。
+
+裁定全集：
+
+1. **归因四分法**：①用例设计错 ②测试代码写错 ③产品代码错 ④上游 AC 错。三份报告只给线索不给结论（e2e 落失败事实／test-review findings 排②嫌疑／gate 矩阵排①覆盖缺口＋④路由），归因须现场复现 debug（复现失败→对读 TC↔AC→查测试文件）。
+2. **查明技能＝diy-investigate（案 A）**：归因结论落 `investigation.yaml`（TC ID＋①②③④判定＋证据链，证据分级/假设不删既有纪律适用）；**只写自己产物**，修复写入归各产物所有者技能（写权封闭零破例）。与已立项 bug 分析技能分工＝investigate 归因止于诊断，真缺陷（③）才转 bug 分析技能做根因深挖。
+3. **修复路由（人裁断后按原生产技能执行）**：
+   - **①用例设计错→test-plan**：废弃**不改写**——独立字段（不进 `status` 枚举，green 回写面隔离），承载废弃原因＋`replaced_by` 指向新用例；原生产技能补替代用例（正常追加）。**AI 只建议废弃，人裁落标**；**废弃 TC 不算覆盖**——补替代才放行（FH 被杀门联动：唯一杀 FH 的 TC 被废弃＝红到补上）。
+   - **②测试代码错→修测试代码**（e2e 写的归 e2e）→全量三连重跑→test-review 新 RV 记录即对账面（实质＝乙案，不发明追加动作）。
+   - **③产品代码错**→`bug-add` 入 bug-log＋sprint 重开回 dev 修→全量三连重跑。
+   - **④上游 AC 错**→路由 `diy-epics-stories`（gate oracle HALT 现成路，不新设载体）。
+4. **重跑边界＝全量三连**（复用 `--post-only`，不做局部补跑——gate 矩阵分母保完整）；**质量校验衔接＝强制门**（修完必过 test-review 及各引擎终门才准重跑）。
+5. **viewer**：废弃条目**折叠区**渲染（零裸键中文标签）。
+
+待裁（随任务书呈裁）：
+- **TC 生产者判据三选一**（TC 现无生产者字段：`type: 端到端`→e2e 可判；`单元/集成` 分不清 test-design 设计 vs augment 补测）——①TC 补生产者字段（动 schema＋三生产方落笔）②按类型粗判 ③放弃按生产者、按类型路由。
+- investigate 触发形态（三连失败后人手动调 vs runner 自动路由）。
+- 废弃字段 schema 形态与强制门机械落点（引擎拦位）。
+
+改动面（做时）：test-plan schema（废弃字段）＋`diyc_check_docs.py` check_test_plan（覆盖门＋FH 门联动）＋e2e/augment/test-design 三生产方写入面＋viewer 折叠渲染＋diy-investigate SKILL（失败归因入口段）＋runner（若触发裁自动）＋tests（先裁后动）。
 
 ## 待办：diy-analyze 定位收口＋产物依赖缺席三档总则（2026-10-17 用户裁定，登记待办，现在不动）
 
