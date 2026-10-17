@@ -31,6 +31,10 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import load_yaml  # noqa: E402
+
 # 实例名白名单（与 viewer/runner/exp-sync 同源）：字母数字开头和结尾，中间可含 . _ -。
 # 末字符禁点：Windows 目录名尾点被静默折叠（b. ≡ b），会破坏实例隔离；fullmatch 避免 $ 放行尾换行
 INSTANCE_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?")
@@ -46,11 +50,6 @@ REGISTRY_PATH = os.path.join(os.path.dirname(_HERE), "registry.yaml")
 # 链节点的 outputs 形状：`+` 分隔的裸文件名（无空格/括号/破折号）。
 # 非链技能可写自由文本（`—` / `技能目录树（…）`），但链节点必须可被机械解析。
 _OUTPUT_TOKEN_RE = re.compile(r"^[A-Za-z0-9_.\-]+$")
-
-
-def load_yaml(path):
-    with io.open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
 
 
 def _fail(msg):  # 登记表/技能声明异常一律硬失败（本脚本是导航唯一权威，不给错的位置）
@@ -192,6 +191,8 @@ def read_status(path, status_path=DEFAULT_STATUS_PATH):  # trace: S-13 AC-13.1 T
 
     文件损坏或顶层非映射 → 'unparsable'；无有效 status → 'unknown'（None/空值归一）。
     """
+    if not os.path.isfile(path):
+        return "unknown"  # 文件不在：无 status 可读（load_yaml 缺失即抛，此处先答）
     try:
         doc = load_yaml(path)
     except yaml.YAMLError as e:

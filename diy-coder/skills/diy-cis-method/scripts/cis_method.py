@@ -97,7 +97,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, methods_path, next_record_id, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, is_int, load_yaml_safe, methods_path, next_record_id, now, read_sessions, save_yaml_atomic, today, v  # noqa: E402
 
 CIS_FILE = "cis-method.yaml"
 METHODS_FILE = "cis-methods.csv"
@@ -201,19 +201,6 @@ DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}\Z")
 def nonempty(value):
     """非空判定：None / 空白字符串均视为空。"""
     return value is not None and str(value).strip() != ""
-
-
-def load_yaml_safe(path):
-    """读 YAML：(data, err)。缺席 → (None, None)；空文件 → ({}, None)；损坏 → (None, 原因)。"""
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as handle:
-            return yaml.safe_load(handle) or {}, None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 def project_name(project_root):
@@ -366,29 +353,6 @@ def emit(payload, as_json, summary_line=None, body_lines=None):
     if payload.get("violations"):
         print("FAIL：%d 条违规（exit 1）" % len(payload["violations"]))
     return 0 if payload.get("ok") else 1
-
-
-def read_sessions(path, show):
-    """读产物并取 sessions 列表 → (records | None, violations, warnings)。None = 产物缺席。"""
-    data, err = load_yaml_safe(path)
-    if data is None and err is None:
-        return None, [], []
-    if err is not None:
-        return None, [v("UNPARSABLE_YAML", show, "YAML 解析失败：%s" % err)], []
-    if not isinstance(data, dict):
-        return None, [v("EMPTY_FIELD", show, "顶层不是映射（须为 project + sessions）")], []
-    raw = data.get("sessions")
-    if raw is None:
-        return [], [], []
-    if not isinstance(raw, list):
-        return None, [v("EMPTY_FIELD", show + " sessions",
-                        "sessions 不是列表（集合形态；无记录写空列表）")], []
-    warnings = []
-    for i, rec in enumerate(raw):
-        if not isinstance(rec, dict):
-            warnings.append(v("EMPTY_FIELD", "%s.sessions[%d]" % (show, i),
-                              "记录不是映射，list 面跳过（check 面报违规）"))
-    return raw, [], warnings
 
 
 def out_dir_or_violation(payload, args, command):

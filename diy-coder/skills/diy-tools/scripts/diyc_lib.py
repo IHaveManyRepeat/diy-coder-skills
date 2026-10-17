@@ -127,23 +127,38 @@ def next_record_id(records, id_re, prefix):
 # ---------------------------------------------------------------- YAML IO
 
 def load_yaml(path):
-    """读取 YAML；缺失/空 → {}；解析错 raise yaml.YAMLError（调用方决定处置）。"""
-    if not os.path.isfile(path):
-        return {}
+    """读取 YAML（直接返回数据）；文件缺失 raise FileNotFoundError（调用方必须先处置）；
+    解析错 raise yaml.YAMLError；空 → {}。"""
     with io.open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
-def safe_load_yaml(path):
-    """不抛版本：返回 (data, err)。缺失/空 → ({}, None)；解析错 → (None, 错误一行中文)。"""
+def normalize_keys(node):
+    """YAML 1.1 布尔键归一：`no:`/`yes:` 被解析为 False/True 键——归回 'no'/'yes'，
+    防编号键读到 false、写回污染产物（递归 dict/list；其余原样）。"""
+    if isinstance(node, dict):
+        out = {}
+        for key, value in node.items():
+            if isinstance(key, bool):
+                key = "no" if key is False else "yes"
+            out[key] = normalize_keys(value)
+        return out
+    if isinstance(node, list):
+        return [normalize_keys(item) for item in node]
+    return node
+
+
+def load_yaml_safe(path):
+    """读 YAML（不抛版）：返回 (data, err)。缺席 → (None, None)；空文件 → ({}, None)；
+    损坏/不可读 → (None, 原因一行)。载入即做布尔键归一（normalize_keys）。
+    错误消息为裸原因——显示上下文由调用点自拼。"""
     if not os.path.isfile(path):
-        return {}, None
+        return None, None
     try:
         with io.open(path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-    except yaml.YAMLError as e:
-        return None, "YAML 解析失败: %s" % e
-    return (data if data is not None else {}), None
+            return normalize_keys(yaml.safe_load(f) or {}), None
+    except (yaml.YAMLError, OSError, UnicodeDecodeError) as e:
+        return None, str(e)
 
 
 def save_yaml_atomic(path, data) -> None:
@@ -244,6 +259,29 @@ def receipt(command, ok, **fields) -> dict:
     return r
 
 
+def read_sessions(path, show):
+    """读产物并取 sessions 列表 → (records | None, violations, warnings)。"""
+    data, err = load_yaml_safe(path)
+    if data is None and err is None:
+        return None, [], []
+    if err is not None:
+        return None, [v("UNPARSABLE_YAML", show, "YAML 解析失败：%s" % err)], []
+    if not isinstance(data, dict):
+        return None, [v("EMPTY_FIELD", show, "顶层不是映射（须为 project + sessions）")], []
+    raw = data.get("sessions")
+    if raw is None:
+        return [], [], []
+    if not isinstance(raw, list):
+        return None, [v("EMPTY_FIELD", show + " sessions",
+                        "sessions 不是列表（集合形态；无记录写空列表）")], []
+    warnings = []
+    for i, rec in enumerate(raw):
+        if not isinstance(rec, dict):
+            warnings.append(v("EMPTY_FIELD", "%s.sessions[%d]" % (show, i),
+                              "记录不是映射，list 面跳过（check 面报违规）"))
+    return raw, [], warnings
+
+
 def violation_line(item) -> str:
     """通用违规行式样：`CODE where: msg`（全库 20+ 家逐字同款·单源化）。"""
     return "%s %s: %s" % (item.get("code"), item.get("where"), item.get("msg"))
@@ -342,7 +380,7 @@ def load_baseline(output_dir, base_rel) -> tuple:
     path = os.path.join(output_dir, BASELINE_FILE)
     if not os.path.isfile(path):
         return [], []
-    data, err = safe_load_yaml(path)
+    data, err = load_yaml_safe(path)
     if err:
         return [], [v("BASELINE_INVALID", base_rel, "baseline 文件解析失败：%s" % err)]
     if not isinstance(data, dict):
@@ -448,7 +486,7 @@ def baseline_add(project_root, output_dir, code, where, reason) -> tuple:
     if invalid:
         return None, invalid
     path = os.path.join(output_dir, BASELINE_FILE)
-    doc = load_yaml(path)
+    doc = load_yaml(path) if os.path.isfile(path) else {}
     if not isinstance(doc, dict):  # 防御：两次读之间文件被改坏
         doc = {}
     items = doc.get("baseline")

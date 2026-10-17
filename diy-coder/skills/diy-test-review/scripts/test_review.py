@@ -86,11 +86,10 @@ import re
 import subprocess
 import sys
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, emit_via, v  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, load_yaml_safe, v  # noqa: E402
 
 TEST_REVIEW_FILE = "test-review.yaml"
 FINDINGS_FILE = "test-review-findings.json"
@@ -219,19 +218,6 @@ def items(doc, key):
         return []
     value = doc.get(key)
     return value if isinstance(value, list) else []
-
-
-def load_yaml_safe(path):
-    """读 YAML：(data, err)。缺失 → (None, None)；空文件 → ({}, None)；损坏 → (None, 原因)。"""
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as f:
-            return (yaml.safe_load(f) or {}), None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 def read_text(path):

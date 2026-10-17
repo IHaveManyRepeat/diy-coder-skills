@@ -84,7 +84,6 @@ sort_keys=False, default_flow_style=False) → 同目录临时文件 + os.replac
 """
 import argparse
 import datetime
-import io
 import json
 import math
 import os
@@ -96,7 +95,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, now, save_yaml_atomic, today, v  # noqa: E402
 
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
@@ -140,16 +139,6 @@ def nonempty(value):
 
 
 # trace: B3 diy-teach-me-testing YAML 安全装载：(data, err)；缺失 (None, None)、空 ({}, None)、损坏 (None, 原因)
-def load_yaml_safe(path):
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as handle:
-            return (yaml.safe_load(handle) or {}), None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 # trace: B3 diy-teach-me-testing 原子写（全文 load → 就地改 → dump → 同目录 tmp + os.replace）

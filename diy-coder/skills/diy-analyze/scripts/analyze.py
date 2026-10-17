@@ -20,17 +20,15 @@
 不解析实例（对齐 §2.2「`--instance` 一律不做」）。
 """
 import argparse
-import io
 import json
 import os
 import re
 import sys
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v  # noqa: E402
 
 LAYERS = ("展示层", "应用层", "领域层", "基础设施层", "未分层")
 SCALES = ("高", "中", "低")
@@ -42,18 +40,6 @@ MERMAID_HEADS = ("graph", "flowchart", "sequenceDiagram", "classDiagram",
 ASSUMPTION = "[假设]"
 
 SUBCOMMANDS = ("init", "list", "show", "check")
-
-
-def load_yaml(path):
-    with io.open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
-
-
-def safe_load_yaml(path):
-    try:
-        return load_yaml(path), None
-    except yaml.YAMLError as e:
-        return None, str(e)
 
 
 def receipt(command, ok, project_root, output_dir, violations=None,
@@ -110,7 +96,7 @@ def read_product(args, command):
         return None, receipt(command, False, args.project_root, out_dir, [
             v("MISSING_FILE", "analysis.yaml",
               "%s 不存在——先跑 init 铸骨架（路由：确认分析问题与代码库路径）" % path)])
-    doc, err = safe_load_yaml(path)
+    doc, err = load_yaml_safe(path)
     if err:
         return None, receipt(command, False, args.project_root, out_dir, [
             v("UNPARSABLE_YAML", "analysis.yaml", "解析失败：%s" % err)])
@@ -151,7 +137,7 @@ def cmd_init(args):
                             "分析问题为空——先成文再动手（源 step-01 第 1 指令）"))
     path = os.path.join(out_dir, "analysis.yaml")
     if os.path.isfile(path):
-        old, err = safe_load_yaml(path)
+        old, err = load_yaml_safe(path)
         if err:
             violations.append(v("UNPARSABLE_YAML", "analysis.yaml",
                                 "既有产物解析失败：%s" % err))

@@ -121,8 +121,10 @@ class YamlIOTests(unittest.TestCase):
         self.addCleanup(fx.cleanup, self.root)
 
     def test_load_yaml_missing_and_empty(self):
+        # 缺失即抛（文件不在必须告知调用方·不以 {} 蒙混）
         p = os.path.join(self.root, "none.yaml")
-        self.assertEqual(diyc_lib.load_yaml(p), {})
+        with self.assertRaises(FileNotFoundError):
+            diyc_lib.load_yaml(p)
         empty = os.path.join(self.root, "empty.yaml")
         with open(empty, "w", encoding="utf-8") as f:
             f.write("")
@@ -135,14 +137,21 @@ class YamlIOTests(unittest.TestCase):
         with self.assertRaises(Exception):
             diyc_lib.load_yaml(bad)
 
-    def test_safe_load_yaml_returns_tuple(self):
-        data, err = diyc_lib.safe_load_yaml(os.path.join(self.root, "none.yaml"))
+    def test_load_yaml_safe_returns_tuple(self):
+        # 缺席 (None, None)；空文件 ({}, None)；损坏 (None, 原因)——缺席与空分开答
+        data, err = diyc_lib.load_yaml_safe(os.path.join(self.root, "none.yaml"))
+        self.assertIsNone(data)
+        self.assertIsNone(err)
+        empty = os.path.join(self.root, "empty.yaml")
+        with open(empty, "w", encoding="utf-8") as f:
+            f.write("")
+        data, err = diyc_lib.load_yaml_safe(empty)
         self.assertEqual(data, {})
         self.assertIsNone(err)
         bad = os.path.join(self.root, "bad.yaml")
         with open(bad, "w", encoding="utf-8") as f:
             f.write("a: [\n")
-        data, err = diyc_lib.safe_load_yaml(bad)
+        data, err = diyc_lib.load_yaml_safe(bad)
         self.assertIsNone(data)
         self.assertIsInstance(err, str)
 

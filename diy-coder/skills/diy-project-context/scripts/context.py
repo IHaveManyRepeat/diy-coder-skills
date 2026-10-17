@@ -38,11 +38,10 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, v  # noqa: E402
 
 try:  # Python 3.11+ 标准库；3.10 环境降级为「存在但未解析」warning（语言无关承诺）
     import tomllib as _toml
@@ -173,19 +172,6 @@ def nonempty(value):
 
 def slash(path):
     return str(path).replace("\\", "/")
-
-
-def load_yaml_safe(path):
-    """读 YAML：(data, err)。文件缺失 → (None, None)；空文件 → ({}, None)；损坏 → (None, 原因)。"""
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as f:
-            return (yaml.safe_load(f) or {}), None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 # ---- 清单解析（语言无关：先探测再解析；解析失败/无解析器 → 降级，不崩） ----

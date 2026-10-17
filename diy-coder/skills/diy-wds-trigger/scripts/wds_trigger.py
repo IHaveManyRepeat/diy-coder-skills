@@ -105,7 +105,6 @@ WDS 型不在其中（`test_suite_texts.py` 有守卫会直接判红）。
 #        /#3（前置门禁：读上游 wds-brief.yaml 的 project.status: 已定稿）/#4（ID 唯一性与顺序性）
 #        /#8（frontmatter 六字段）/#12（领域引擎接线：b 终门 / c --previous 判 no / e 写权边界）
 import argparse
-import io
 import json
 import os
 import re
@@ -115,7 +114,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, now, save_yaml_atomic, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, now, save_yaml_atomic, v  # noqa: E402
 
 PRODUCT_FILE = "wds-trigger.yaml"
 UPSTREAM_FILE = "wds-brief.yaml"
@@ -199,19 +198,6 @@ def as_list(value):
 
 def as_dict(value):
     return value if isinstance(value, dict) else {}
-
-
-def load_yaml_safe(path):
-    """读 YAML：(data, err)。缺席 → (None, None)；空文件 → ({}, None)；损坏 → (None, 原因)。"""
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as handle:
-            return yaml.safe_load(handle) or {}, None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 def project_name(project_root):

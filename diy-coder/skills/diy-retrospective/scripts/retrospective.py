@@ -32,17 +32,15 @@ where 正斜杠、相对 project-root；--output-dir 必填，实例解析由 SK
 
 # trace: B2 diy-retrospective 验收 #3（前置门禁零产出）/#4（ID 链接入）/#7（冒烟门禁路径）/#12（语言绑定与写权边界）
 import argparse
-import io
 import json
 import os
 import re
 import sys
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, v  # noqa: E402
 
 RETRO_FILE = "retrospective.yaml"
 STORIES_FILE = "stories.yaml"
@@ -85,19 +83,6 @@ def items(doc, key):
         return []
     value = doc.get(key)
     return value if isinstance(value, list) else []
-
-
-def load_yaml_safe(path):
-    """读 YAML：(data, err)。文件缺失 → (None, None)；空文件 → ({}, None)；损坏 → (None, 原因)。"""
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as f:
-            return (yaml.safe_load(f) or {}), None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 def collect_strings(node):

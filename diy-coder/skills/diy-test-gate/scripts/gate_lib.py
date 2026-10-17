@@ -34,11 +34,10 @@ import subprocess
 import sys
 from datetime import date
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, emit_via, is_int, v  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, is_int, load_yaml_safe, v  # noqa: E402
 
 GATE_FILE = "test-gate.yaml"
 STORIES_FILE = "stories.yaml"
@@ -155,18 +154,6 @@ def items_of(doc, key):
         return []
     value = doc.get(key)
     return value if isinstance(value, list) else []
-
-
-def load_yaml_safe(path):
-    """读 YAML：(data, err)。缺失 → (None, None)；空文件 → ({}, None)；损坏 → (None, 原因)。"""
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with open(path, encoding="utf-8") as fh:
-            data = yaml.safe_load(fh)
-    except (OSError, yaml.YAMLError) as err:
-        return None, str(err)
-    return ({} if data is None else data), None
 
 
 def all_strings(node):

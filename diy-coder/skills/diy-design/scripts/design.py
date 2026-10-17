@@ -34,7 +34,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import load_yaml, now, save_yaml_atomic, today, v  # noqa: E402
 
 # 实例名白名单（与 viewer/help/runner/exp-sync 同源）：字母数字开头和结尾，中间可含 . _ -。
 # 末字符禁点：Windows 目录名尾点被静默折叠（b. ≡ b），会破坏实例隔离；fullmatch 避免 $ 放行尾换行
@@ -133,11 +133,6 @@ def emit(result, as_json, human_lines=None):
         lines.append(_summary(result))
         print(NL.join(lines))
     return 0 if result.get("ok") else 1
-
-
-def load_yaml(path):
-    with io.open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
 
 
 def resolve_output_dir(project_root, instance):  # trace: S-16 AC-16.1 D-9 实例目录解析（白名单拒注入）

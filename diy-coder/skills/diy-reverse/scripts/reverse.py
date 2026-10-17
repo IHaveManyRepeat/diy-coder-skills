@@ -32,17 +32,15 @@ schema 与易用性权威，作为**交叉核对**另行跑一次（两者都必
 实例解析由 SKILL.md 层完成（`diyc.py resolve`）；本引擎不解析实例。
 """
 import argparse
-import io
 import json
 import os
 import re
 import sys
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v  # noqa: E402
 
 REQUIRED_STATES = ("悬停", "空态", "加载中", "错误")
 COLOR_REQUIRED = ("bg", "text", "accent")
@@ -54,18 +52,6 @@ HEX_RE = re.compile(r"^#[0-9a-fA-F]{3,8}$")
 URL_RE = re.compile(r"^https?://[^\s/]+")
 ASSUMPTION = "[假设]"
 SIGNAL_COLOR = "色彩"
-
-
-def load_yaml(path):
-    with io.open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
-
-
-def safe_load_yaml(path):
-    try:
-        return load_yaml(path), None
-    except yaml.YAMLError as e:
-        return None, str(e)
 
 
 def receipt(command, ok, project_root, output_dir, violations=None,
@@ -125,7 +111,7 @@ def read_design(args, command):
             v("MISSING_FILE", "design.yaml",
               "%s 不存在——先跑 init 做初始生成（既有 design.yaml 由 diy-design 演进）"
               % path)])
-    doc, err = safe_load_yaml(path)
+    doc, err = load_yaml_safe(path)
     if err:
         return None, path, receipt(command, False, args.project_root,
                                    resolve_output_dir(args), [

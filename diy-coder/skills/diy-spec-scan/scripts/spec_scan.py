@@ -59,11 +59,10 @@ import os
 import re
 import sys
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, v  # noqa: E402
 
 SPEC_SCAN_FILE = "spec-scan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -108,16 +107,6 @@ def collect_strings(node):
 
 
 # trace: diy-spec-scan YAML 安全装载：(data, err)；缺失 (None, None)、空文件 ({}, None)、损坏 (None, 原因)
-def load_yaml_safe(path):
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as handle:
-            return (yaml.safe_load(handle) or {}), None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 # trace: diy-spec-scan 回执输出（--json 单行 / 人读行）

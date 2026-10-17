@@ -107,7 +107,7 @@ def _check_previous(typ, doc, previous, rel, root, report):
     if not os.path.isfile(previous):
         report.add("MISSING_FILE", prev_rel, "旧稿不存在（--previous 路径无效）")
         return
-    prev, err = diyc_lib.safe_load_yaml(previous)
+    prev, err = diyc_lib.load_yaml_safe(previous)
     if err:
         report.add("UNPARSABLE_YAML", prev_rel, "旧稿解析失败：%s" % err)
         return
@@ -404,9 +404,9 @@ def run(args) -> dict:
         report.add("MISSING_FILE", rel, "%s 不存在" % filename)
         return _done(report, {})
 
-    doc, err = diyc_lib.safe_load_yaml(path)
+    doc, err = diyc_lib.load_yaml_safe(path)
     if err:
-        report.add("UNPARSABLE_YAML", rel, err)
+        report.add("UNPARSABLE_YAML", rel, "YAML 解析失败：%s" % err)
         return _done(report, {})
     if not isinstance(doc, dict):
         report.add("UNPARSABLE_YAML", rel, "顶层不是映射（实际 %s）" % type(doc).__name__)

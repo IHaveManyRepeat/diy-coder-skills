@@ -81,13 +81,12 @@ import os
 import re
 import sys
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import (JAVA_MANIFESTS, NODE_MANIFESTS, PY_MANIFESTS,  # noqa: E402
                       builtin_framework, detect_project_type, display_path,
-                      is_test_file, v)
+                      is_test_file, load_yaml_safe, v)
 
 PLAN_FILE = "test-plan.yaml"
 
@@ -279,19 +278,6 @@ PY_TEST_RE = re.compile(r"^(?P<indent>[ \t]*)def\s+(?P<name>test\w*)\s*\(", re.M
 
 def nonempty(value):
     return value is not None and str(value).strip() != ""
-
-
-def load_yaml_safe(path):
-    """读 YAML：(data, err)。缺失 → (None, None)；空 → ({}, None)；损坏 → (None, 原因)。"""
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as f:
-            return (yaml.safe_load(f) or {}), None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 # ---------------------------------------------------------------- detect

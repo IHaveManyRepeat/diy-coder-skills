@@ -28,17 +28,15 @@ RS-0nn 由 LLM 铸造、本引擎只校验格式与唯一性。本引擎只读�
 """
 # trace: 迁移计划 §二 验收 #3（拒绝路径零产出）/#4（ID 链稳定）/#12（领域引擎接线）
 import argparse
-import io
 import json
 import os
 import re
 import sys
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, v  # noqa: E402
+from diyc_lib import display_path, load_yaml_safe, v  # noqa: E402
 
 RESEARCH_FILE = "research.yaml"
 
@@ -54,19 +52,6 @@ URL_RE = re.compile(r"https?://\S+")
 
 def nonempty(value):
     return value is not None and str(value).strip() != ""
-
-
-def load_yaml_safe(path):
-    """读 YAML：(data, err)。文件缺失 → (None, None)；空文件 → ({}, None)；损坏 → (None, 原因)。"""
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as f:
-            return (yaml.safe_load(f) or {}), None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 def collect_strings(node):

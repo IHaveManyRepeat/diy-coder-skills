@@ -63,7 +63,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, v  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, v  # noqa: E402
 
 REVIEW_FILE = "editorial-review.yaml"
 LENSES = ("结构", "文风")
@@ -109,16 +109,6 @@ def collect_strings(node):
 
 
 # trace: B4 diy-editorial-review 契约（YAML 安全装载：(data, err)；缺失 (None, None)、损坏 (None, 原因)）
-def load_yaml_safe(path):
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as handle:
-            return (yaml.safe_load(handle) or {}), None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except (OSError, UnicodeDecodeError) as e:
-        return None, str(e)
 
 
 # trace: B4 diy-editorial-review 契约（--json 单行 / 人读行）

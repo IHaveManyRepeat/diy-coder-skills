@@ -41,17 +41,15 @@ artifacts / verdict）由 LLM 直编 YAML；引擎只做骨架与校验——**`
 """
 # trace: B4 diy-spec 验收 #2（产物 schema + SK-### 稳定前缀）/#3（门禁零产出）/#4（CAP-N + retired + --previous）/12b（终门指向自带引擎）
 import argparse
-import io
 import json
 import os
 import re
 import sys
 
-import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, now, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, now, save_yaml_atomic, today, v  # noqa: E402
 
 SPEC_FILE = "spec-kernel.yaml"
 SK_RE = re.compile(r"SK-\d{3}")
@@ -63,19 +61,6 @@ ASSUMPTION = "[假设]"
 
 def nonempty(value):
     return value is not None and str(value).strip() != ""
-
-
-def load_yaml_safe(path):
-    """读 YAML：(data, err)。缺失 → (None, None)；空 → ({}, None)；损坏 → (None, 原因)。"""
-    if not os.path.isfile(path):
-        return None, None
-    try:
-        with io.open(path, "r", encoding="utf-8") as f:
-            return (yaml.safe_load(f) or {}), None
-    except yaml.YAMLError as e:
-        return None, str(e)
-    except OSError as e:
-        return None, str(e)
 
 
 def collect_strings(node):
