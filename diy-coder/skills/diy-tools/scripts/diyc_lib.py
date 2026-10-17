@@ -364,6 +364,16 @@ def enum_check(value, allowed, where, label, out):
     return None
 
 
+def require(node, keys, where, out):
+    """必填键非空检查。node 不是映射时只报一条。"""
+    if not isinstance(node, dict):
+        out.append(v("EMPTY_FIELD", where, "须为映射（键表 %s）" % " / ".join(keys)))
+        return
+    for key in keys:
+        if not nonempty(node.get(key)):
+            out.append(v("EMPTY_FIELD", "%s.%s" % (where, key), "必填键 %s 为空" % key))
+
+
 def receipt(command, ok, **fields) -> dict:
     """回执基础构造；公共键（project_root/output_dir/instance/violations/warnings/counts）
     由 diyc.py 收口补齐（契约 §2）。"""
