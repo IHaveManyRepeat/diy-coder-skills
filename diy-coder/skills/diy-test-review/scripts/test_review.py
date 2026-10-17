@@ -89,7 +89,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, emit_via, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 TEST_REVIEW_FILE = "test-review.yaml"
 FINDINGS_FILE = "test-review-findings.json"
@@ -207,13 +207,6 @@ MERGE_CONFIG_RE = re.compile(r"\bmergeConfig\s*\(|\bextends\s*:")
 FFI_SAFE_MARKER = "tea:pact-ffi-safe"
 ADD_INTERACTION_RE = re.compile(r"\baddInteraction\s*\(")
 TEST_BLOCK_RE = re.compile(r"\b(?:it|test)\s*\(")
-
-
-def items(doc, key):
-    if not isinstance(doc, dict):
-        return []
-    value = doc.get(key)
-    return value if isinstance(value, list) else []
 
 
 def read_text(path):

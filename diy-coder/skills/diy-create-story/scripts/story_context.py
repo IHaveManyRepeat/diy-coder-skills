@@ -50,7 +50,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, id_sort, id_sort_key, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, emit_via, id_sort, id_sort_key, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 STORIES_FILE = "stories.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -69,14 +69,6 @@ CLOSED_PREFIX = "[CLOSED]"
 GIT_COMMITS = 5
 GIT_FILES_PER_COMMIT = 20
 GIT_SEP = "@@"
-
-
-def items(doc, key):
-    """取顶层列表键；缺失/非列表 → []。"""
-    if not isinstance(doc, dict):
-        return []
-    value = doc.get(key)
-    return value if isinstance(value, list) else []
 
 
 def rel_to_root(root, rel_path):

@@ -63,7 +63,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, emit_via, is_int, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 REVIEW_FILE = "editorial-review.yaml"
 LENSES = ("结构", "文风")
@@ -99,14 +99,6 @@ NL = "\n"
 
 
 # trace: B4 diy-editorial-review 契约（--json 单行 / 人读行）
-
-
-# trace: B4 diy-editorial-review 契约（集合字段取列表；缺失/非列表 → []，缺项由 check 层单独报）
-def items(doc, key):
-    if not isinstance(doc, dict):
-        return []
-    value = doc.get(key)
-    return value if isinstance(value, list) else []
 
 
 # ---------------------------------------------------------------- stats：结构统计

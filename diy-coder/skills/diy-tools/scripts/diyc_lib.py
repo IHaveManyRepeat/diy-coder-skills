@@ -583,13 +583,16 @@ def baseline_add(project_root, output_dir, code, where, reason) -> tuple:
 
 # ---------------------------------------------------------------- 产物索引
 
-def _list_of_dicts(container, key) -> list:
-    if not isinstance(container, dict):
+def items(doc, key, of_type=None) -> list:
+    """取顶层列表键；缺失/非列表 → []；of_type 在场时仅保留该类型项。"""
+    if not isinstance(doc, dict):
         return []
-    items = container.get(key)
-    if not isinstance(items, list):
+    value = doc.get(key)
+    if not isinstance(value, list):
         return []
-    return [i for i in items if isinstance(i, dict)]
+    if of_type is None:
+        return value
+    return [x for x in value if isinstance(x, of_type)]
 
 
 def _ac_ids(tc_entry) -> list:
@@ -648,14 +651,14 @@ class Docs:
     def stories(self) -> dict:
         """S-x → story 条目。"""
         d = self.doc("stories") or {}
-        return {s["id"]: s for s in _list_of_dicts(d, "stories")
+        return {s["id"]: s for s in items(d, "stories", of_type=dict)
                 if isinstance(s.get("id"), str)}
 
     def acs(self) -> dict:
         """AC-x.y → ac 条目（注入 _story）。"""
         out = {}
         for sid, s in self.stories().items():
-            for a in _list_of_dicts(s, "acceptance_criteria"):
+            for a in items(s, "acceptance_criteria", of_type=dict):
                 if isinstance(a.get("id"), str):
                     entry = dict(a)
                     entry["_story"] = sid
@@ -667,7 +670,7 @@ class Docs:
         d = self.doc("test-plan") or {}
         acs = self.acs()
         out = {}
-        for t in _list_of_dicts(d, "test_cases"):
+        for t in items(d, "test_cases", of_type=dict):
             if not isinstance(t.get("id"), str):
                 continue
             entry = dict(t)
@@ -685,7 +688,7 @@ class Docs:
         """AC → coverage_gaps 条目（同一 AC 多条取首条）。"""
         d = self.doc("test-plan") or {}
         out = {}
-        for g in _list_of_dicts(d, "coverage_gaps"):
+        for g in items(d, "coverage_gaps", of_type=dict):
             ac = g.get("ac")
             if isinstance(ac, list):
                 ac = ac[0] if ac else None
@@ -697,8 +700,8 @@ class Docs:
         """FR-x.y → requirement（注入 _feature）。"""
         d = self.doc("prd") or {}
         out = {}
-        for f in _list_of_dicts(d, "features"):
-            for r in _list_of_dicts(f, "requirements"):
+        for f in items(d, "features", of_type=dict):
+            for r in items(f, "requirements", of_type=dict):
                 if isinstance(r.get("id"), str):
                     entry = dict(r)
                     entry["_feature"] = f.get("id")
@@ -708,25 +711,25 @@ class Docs:
     def nfrs(self) -> dict:
         """NFR-x → 条目。"""
         d = self.doc("prd") or {}
-        return {n["id"]: n for n in _list_of_dicts(d, "nfrs")
+        return {n["id"]: n for n in items(d, "nfrs", of_type=dict)
                 if isinstance(n.get("id"), str)}
 
     def decisions(self) -> dict:
         """D-x → 架构决策条目。"""
         d = self.doc("architecture") or {}
-        return {x["id"]: x for x in _list_of_dicts(d, "decisions")
+        return {x["id"]: x for x in items(d, "decisions", of_type=dict)
                 if isinstance(x.get("id"), str)}
 
     def epics(self) -> dict:
         """E-x → epic 条目。"""
         d = self.doc("epics") or {}
-        return {x["id"]: x for x in _list_of_dicts(d, "epics")
+        return {x["id"]: x for x in items(d, "epics", of_type=dict)
                 if isinstance(x.get("id"), str)}
 
     def tasks(self) -> dict:
         """S-x → sprint 任务条目。"""
         d = self.doc("sprint") or {}
-        return {t["story"]: t for t in _list_of_dicts(d, "tasks")
+        return {t["story"]: t for t in items(d, "tasks", of_type=dict)
                 if isinstance(t.get("story"), str)}
 
     # -- 派生（TDD 门唯一入口） --------------------------------------------
@@ -755,7 +758,7 @@ class Docs:
             bound_acs.update(_ac_ids(t))
         gaps = self.gaps()
         missing = []
-        for a in _list_of_dicts(entry, "acceptance_criteria"):
+        for a in items(entry, "acceptance_criteria", of_type=dict):
             ac_id = a.get("id")
             if not isinstance(ac_id, str):
                 continue

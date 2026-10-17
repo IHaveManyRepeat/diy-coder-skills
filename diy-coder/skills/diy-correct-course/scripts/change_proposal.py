@@ -50,7 +50,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, diyc_script_path, emit_via, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, diyc_script_path, emit_via, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 PROPOSAL_FILE = "change-proposal.yaml"
 PRD_FILE = "prd.yaml"
@@ -104,14 +104,6 @@ TARGET_RE = re.compile(r"(?:%s)\Z" % "|".join(TARGET_PATTERNS))
 
 CP_RE = re.compile(r"CP-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-
-
-def items(doc, key):
-    """取顶层列表键；缺失/非列表 → []。"""
-    if not isinstance(doc, dict):
-        return []
-    value = doc.get(key)
-    return value if isinstance(value, list) else []
 
 
 def is_target_id(value):

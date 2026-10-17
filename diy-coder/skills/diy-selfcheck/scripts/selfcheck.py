@@ -52,7 +52,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, emit_via, items, load_yaml_safe, nonempty, v  # noqa: E402
 
 SPEC_SCAN_FILE = "spec-scan.yaml"
 
@@ -244,14 +244,6 @@ def check_one(index, check, show, seen_ids):
         violations.append(v("EMPTY_FIELD", base + ".summary",
                             "summary 缺失或不是映射（total/by_source/ref_checked/ref_false）"))
     return violations
-
-
-# trace: diy-selfcheck 集合字段取列表（缺失/非列表 → []，缺项由 check 层单独报）
-def items(doc, key):
-    if not isinstance(doc, dict):
-        return []
-    value = doc.get(key)
-    return value if isinstance(value, list) else []
 
 
 # trace: diy-selfcheck 同目录 spec-scan.yaml 的 finding id 集合（义务⑥解析面；

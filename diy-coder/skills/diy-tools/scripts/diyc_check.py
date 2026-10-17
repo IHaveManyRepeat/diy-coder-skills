@@ -66,10 +66,10 @@ def _stable_ids(typ, doc) -> set:
             ids.add(value)
 
     if typ == "prd":
-        for f in d.items(doc, "features"):
-            for r in d.items(f, "requirements"):
+        for f in d.items(doc, "features", of_type=dict):
+            for r in d.items(f, "requirements", of_type=dict):
                 add(r.get("id"))
-        for n in d.items(doc, "nfrs"):
+        for n in d.items(doc, "nfrs", of_type=dict):
             add(n.get("id"))
     elif typ == "openapi":
         paths = doc.get("paths")
@@ -80,20 +80,20 @@ def _stable_ids(typ, doc) -> set:
                         if mkey in d.HTTP_METHODS and isinstance(op, dict):
                             add(op.get("operationId"))
     elif typ == "epics":
-        for e in d.items(doc, "epics"):
+        for e in d.items(doc, "epics", of_type=dict):
             add(e.get("id"))
     elif typ == "stories":
-        for s in d.items(doc, "stories"):
+        for s in d.items(doc, "stories", of_type=dict):
             add(s.get("id"))
-            for a in d.items(s, "acceptance_criteria"):
+            for a in d.items(s, "acceptance_criteria", of_type=dict):
                 add(a.get("id"))
     elif typ == "test-plan":
-        for t in d.items(doc, "test_cases"):
+        for t in d.items(doc, "test_cases", of_type=dict):
             add(t.get("id"))
     elif typ == "architecture":
         # D-*/C-*/R-* 三个命名空间各自独立（前缀不同，扁平并集不冲突）
         for key in ("decisions", "components", "risks"):
-            for item in d.items(doc, key):
+            for item in d.items(doc, key, of_type=dict):
                 add(item.get("id"))
     return ids
 
@@ -137,7 +137,7 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
     else:
         d.enum(report, rel + " project.status", project.get("status"),
                ("草稿", "已定稿"), "project.status")
-    all_tasks = d.items(doc, "tasks")
+    all_tasks = d.items(doc, "tasks", of_type=dict)
     if not all_tasks:
         report.add("EMPTY_FIELD", rel + " tasks", "tasks 缺失或为空")
     scan = all_tasks
@@ -263,7 +263,7 @@ def _task_chain(t, w, docs, tp_available, tc_ids, report):
         if d.nonempty(ref) and tp_available and ref not in tc_ids:
             report.add("UNKNOWN_ID", "%s.test_refs[%d]" % (w, j),
                        "%s 在 test-plan.yaml 中不存在" % ref)
-    for i, e in enumerate(d.items(t, "evidence")):
+    for i, e in enumerate(d.items(t, "evidence", of_type=dict)):
         tc = e.get("tc")
         if not d.nonempty(tc):
             report.add("EMPTY_FIELD", "%s.evidence[%d].tc" % (w, i), "evidence.tc 缺失或为空")
@@ -322,7 +322,7 @@ def _ledger(t, w, docs, tp_available, tc_status, report):
     refs = [r for r in (t.get("test_refs") if isinstance(t.get("test_refs"), list) else [])
             if d.nonempty(r)]
     ev_by_tc = {}
-    for e in d.items(t, "evidence"):
+    for e in d.items(t, "evidence", of_type=dict):
         tc = e.get("tc")
         if d.nonempty(tc):
             ev_by_tc[tc] = e   # 同 tc 多条 → 取最后一条（HALT 续跑的最新记录）
@@ -350,7 +350,7 @@ def _ledger(t, w, docs, tp_available, tc_status, report):
 def check_review(doc, rel, docs, story_filter, report) -> dict:
     """review：review 块裁决校验 + 待审查/已完成 任务台账（契约 §4.2）。"""
     counts = {"findings_by_layer": {}, "findings_by_route": {}}
-    all_tasks = d.items(doc, "tasks")
+    all_tasks = d.items(doc, "tasks", of_type=dict)
     if story_filter:
         scan = [t for t in all_tasks if t.get("story") == story_filter]
         if not scan:

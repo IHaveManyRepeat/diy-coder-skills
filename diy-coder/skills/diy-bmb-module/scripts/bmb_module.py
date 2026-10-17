@@ -73,7 +73,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, emit_via, items, load_yaml_safe, nonempty, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -109,14 +109,6 @@ def normalize_phase(value):
 
 # trace: diy-bmb-module 原子写盘（同款 diyc_lib.save_yaml_atomic：同目录 tmp + os.replace；
 # 失败清理 tmp 后原样抛出，不留残骸、不吞异常）
-
-
-# trace: diy-bmb-module 集合字段取列表（缺失/非列表 → []，缺项由 check 层单独报）
-def items(doc, key):
-    if not isinstance(doc, dict):
-        return []
-    value = doc.get(key)
-    return value if isinstance(value, list) else []
 
 
 # trace: diy-bmb-module 链字段归一（列表原样；单值包一层；空/None → []）

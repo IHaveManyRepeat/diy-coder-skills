@@ -20,6 +20,7 @@
 import re
 
 import diyc_lib
+from diyc_lib import items
 
 # v4 批 3（§7-3b）：created/updated 格式断言——两格式兼容（纯日期 | 日期＋空格＋
 # 时分秒；存量纯日期仍合法）。兼防忘跑 stamp 闭环：C 组产物留空（空串）/乱写即红；
@@ -78,15 +79,6 @@ class Report:
 
 
 # ---------------------------------------------------------------- 通用形状工具
-
-def items(container, key) -> list:
-    """list-of-dicts 取值（形状异常 → []，非 dict 项剔除）。"""
-    if not isinstance(container, dict):
-        return []
-    value = container.get(key)
-    if not isinstance(value, list):
-        return []
-    return [x for x in value if isinstance(x, dict)]
 
 
 def is_str(value) -> bool:
@@ -215,9 +207,9 @@ def _anchor_resolves(anchor, anchors) -> bool:
 def _done_acs(docs) -> set:
     """已完成故事的 AC id 集合（五轴 audit 与接口门豁免口径同 ≥1 TC 豁免）。"""
     stories = docs.doc("stories")
-    return {a.get("id") for s in items(stories, "stories")
+    return {a.get("id") for s in items(stories, "stories", of_type=dict)
             if s.get("status") == "已完成"
-            for a in items(s, "acceptance_criteria")
+            for a in items(s, "acceptance_criteria", of_type=dict)
             if is_str(a.get("id"))}
 
 
@@ -249,7 +241,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
              ("草稿", "已定稿"), "project.status")
     req(report, rel + " purpose", doc.get("purpose"), "purpose（一句话产品目的）")
 
-    goals = items(doc, "goals")
+    goals = items(doc, "goals", of_type=dict)
     counts["goals"] = len(goals)
     if not goals:
         report.add("EMPTY_FIELD", rel + " goals", "goals 缺失或为空（2-5 条可度量目标）")
@@ -259,7 +251,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
         req(report, w + ".goal", g.get("goal"), "goal")
         req(report, w + ".metric", g.get("metric"), "metric（成功如何度量）")
 
-    users = items(doc, "users")
+    users = items(doc, "users", of_type=dict)
     counts["users"] = len(users)
     for u in users:
         w = "%s users[%s]" % (rel, u.get("id") or "?")
@@ -269,7 +261,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
     dup(report, [(u.get("id"), "%s users[%s].id" % (rel, u.get("id") or "?")) for u in users],
         "user id")
 
-    features = items(doc, "features")
+    features = items(doc, "features", of_type=dict)
     counts["features"] = len(features)
     if not features:
         report.add("EMPTY_FIELD", rel + " features", "features 缺失或为空")
@@ -281,7 +273,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
         req(report, fw + ".id", f.get("id"), "feature id")
         req(report, fw + ".name", f.get("name"), "feature name")
         req(report, fw + ".description", f.get("description"), "feature description")
-        reqs = items(f, "requirements")
+        reqs = items(f, "requirements", of_type=dict)
         if not reqs:
             report.add("EMPTY_FIELD", fw + ".requirements", "feature 下 requirements 缺失或为空")
         for r in reqs:
@@ -293,7 +285,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
             counts["frs"] += 1
     dup(report, fr_pairs, "requirement id")
 
-    nfrs = items(doc, "nfrs")
+    nfrs = items(doc, "nfrs", of_type=dict)
     counts["nfrs"] = len(nfrs)
     for n in nfrs:
         w = "%s nfrs[%s]" % (rel, n.get("id") or "?")
@@ -304,7 +296,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
 
     # rule: diy-prd/SKILL.md:PRD Discipline（Every pending decision lives in the file；
     #       用户确认后 [假设] 才可去除）→ --final 时未答问题 = 未决
-    for q in items(doc, "open_questions"):
+    for q in items(doc, "open_questions", of_type=dict):
         w = "%s open_questions[%s]" % (rel, q.get("id") or "?")
         req(report, w + ".id", q.get("id"), "question id")
         req(report, w + ".question", q.get("question"), "question")
@@ -328,11 +320,11 @@ def _wds_scenario_ids(docs) -> tuple:
     if doc is None:
         return set(), docs.yaml_err("wds-scenarios")
     ids = set()
-    for s in items(doc, "scenarios"):
+    for s in items(doc, "scenarios", of_type=dict):
         sid = s.get("id")
         if is_str(sid) and sid:
             ids.add(sid)
-        for p in items(s, "pages"):
+        for p in items(s, "pages", of_type=dict):
             pid = p.get("id")
             if is_str(pid) and pid:
                 ids.add(pid)
@@ -370,12 +362,12 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
     else:
         enum(report, rel + " project.status", project.get("status"),
              ("草稿", "已定稿"), "project.status")
-    for i, s in enumerate(items(doc, "stack")):
+    for i, s in enumerate(items(doc, "stack", of_type=dict)):
         w = "%s stack[%d]" % (rel, i)
         req(report, w + ".choice", s.get("choice"), "stack.choice")
         req(report, w + ".why", s.get("why"), "stack.why")
 
-    decisions = items(doc, "decisions")
+    decisions = items(doc, "decisions", of_type=dict)
     counts["decisions"] = len(decisions)
     if not decisions:
         report.add("EMPTY_FIELD", rel + " decisions", "decisions 缺失或为空")
@@ -394,7 +386,7 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
             if final and status == "待定":
                 report.add("PENDING_DECISION", w + ".status",
                            "定稿前决策须被用户接受（status: 待定 → 已采纳）")
-        alternatives = items(d, "alternatives")
+        alternatives = items(d, "alternatives", of_type=dict)
         if not alternatives:
             report.add("EMPTY_FIELD", w + ".alternatives",
                        "缺少被否决备选（alternatives 至少一条；无备选的决策通常是未检验的默认）")
@@ -417,12 +409,12 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
                                "（affects 只引用现有 FR/NFR 或 SC-<nn> / SC-<nn>.P<n>，不复制需求文本）"
                                % ref)
 
-    for i, c in enumerate(items(doc, "components")):
+    for i, c in enumerate(items(doc, "components", of_type=dict)):
         w = "%s components[%d]" % (rel, i)
         req(report, w + ".id", c.get("id"), "component id")
         req(report, w + ".name", c.get("name"), "component name")
         req(report, w + ".responsibility", c.get("responsibility"), "responsibility")
-    for i, r in enumerate(items(doc, "risks")):
+    for i, r in enumerate(items(doc, "risks", of_type=dict)):
         w = "%s risks[%d]" % (rel, i)
         req(report, w + ".id", r.get("id"), "risk id")
         req(report, w + ".risk", r.get("risk"), "risk")
@@ -521,7 +513,7 @@ def check_epics(doc, rel, docs, final, report) -> dict:
     else:
         enum(report, rel + " project.status", project.get("status"),
              ("草稿", "已定稿"), "project.status")
-    epics = items(doc, "epics")
+    epics = items(doc, "epics", of_type=dict)
     counts["epics"] = len(epics)
     if not epics:
         report.add("EMPTY_FIELD", rel + " epics", "epics 缺失或为空")
@@ -545,7 +537,7 @@ def _design_pages(docs):
     design = docs.doc("design")
     if not isinstance(design, dict):
         return None
-    return {p.get("id") for p in items(design, "pages") if is_str(p.get("id"))}
+    return {p.get("id") for p in items(design, "pages", of_type=dict) if is_str(p.get("id"))}
 
 
 def check_stories(doc, rel, docs, final, report) -> dict:
@@ -562,7 +554,7 @@ def check_stories(doc, rel, docs, final, report) -> dict:
     else:
         enum(report, rel + " project.status", project.get("status"),
              ("草稿", "已定稿"), "project.status")
-    stories = items(doc, "stories")
+    stories = items(doc, "stories", of_type=dict)
     counts["stories"] = len(stories)
     if not stories:
         report.add("EMPTY_FIELD", rel + " stories", "stories 缺失或为空")
@@ -588,7 +580,7 @@ def check_stories(doc, rel, docs, final, report) -> dict:
         req(report, w + ".title", s.get("title"), "title")
         req(report, w + ".narrative", s.get("narrative"), "narrative")
         enum(report, w + ".status", s.get("status"), STORY_STATUSES, "status")
-        acs = items(s, "acceptance_criteria")
+        acs = items(s, "acceptance_criteria", of_type=dict)
         if not acs:
             report.add("EMPTY_FIELD", w + ".acceptance_criteria",
                        "acceptance_criteria 缺失或为空")
@@ -740,7 +732,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
             if isinstance(refs, list) and refs:
                 ac_anchors[ac_id] = refs
 
-    cases = items(doc, "test_cases")
+    cases = items(doc, "test_cases", of_type=dict)
     counts["cases"] = len(cases)
     if not cases:
         report.add("EMPTY_FIELD", rel + " test_cases", "test_cases 缺失或为空")
@@ -1038,7 +1030,7 @@ def check_mutation_report(doc, rel, docs, final, report) -> dict:
     else:
         enum(report, rel + " project.status", project.get("status"),
              ("草稿", "已定稿"), "project.status")
-    runs = items(doc, "runs")
+    runs = items(doc, "runs", of_type=dict)
     if not runs:
         report.add("EMPTY_FIELD", rel + " runs",
                    "runs 缺失或为空——本产物只在真跑过变异时写")
@@ -1059,7 +1051,7 @@ def check_mutation_report(doc, rel, docs, final, report) -> dict:
             else:
                 counts["critical_runs"] += 1
                 _tally(report, w + ".critical", critical)
-        for s in items(run, "survivors"):
+        for s in items(run, "survivors", of_type=dict):
             counts["survivors"] += 1
             if not isinstance(s, dict):
                 report.add("TYPE_INVALID", w + " survivors[]", "survivor 须为映射")
@@ -1067,7 +1059,7 @@ def check_mutation_report(doc, rel, docs, final, report) -> dict:
             sw = "%s survivors[%s]" % (w, s.get("mutant") or "?")
             req(report, sw + ".mutant", s.get("mutant"), "mutant")
             req(report, sw + ".file", s.get("file"), "file")
-        for e in items(run, "equivalents"):
+        for e in items(run, "equivalents", of_type=dict):
             counts["equivalents"] += 1
             if not isinstance(e, dict):
                 report.add("TYPE_INVALID", w + " equivalents[]", "equivalent 须为映射")

@@ -81,14 +81,6 @@ MAX_COMMITS = 20
 # 并发/测试边界外的语义（collect 只给候选面，判定权在会话）
 
 
-def items(doc, key):
-    """取顶层列表键；缺失/非列表 → []。"""
-    if not isinstance(doc, dict):
-        return []
-    value = doc.get(key)
-    return value if isinstance(value, list) else []
-
-
 def iter_entries(records, key):
     """遍历各记录该列表键的映射条目（跳过非映射；计数助手共用）。"""
     for record in records:

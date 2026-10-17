@@ -99,14 +99,6 @@ ASSUMPTION = "[假设]"
 # trace: diy-spec-scan 回执输出（--json 单行 / 人读行）
 
 
-# trace: diy-spec-scan 集合字段取列表（缺失/非列表 → []，缺项由 check 层单独报）
-def items(doc, key):
-    if not isinstance(doc, dict):
-        return []
-    value = doc.get(key)
-    return value if isinstance(value, list) else []
-
-
 # ---------------------------------------------------------------- collect：扫描单元枚举
 
 # trace: diy-spec-scan 目录一层枚举（本层 *.md 先、一层子目录 *.md 后，各按文件名排序，不深挖）

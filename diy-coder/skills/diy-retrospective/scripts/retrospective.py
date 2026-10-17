@@ -40,7 +40,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, id_sort, is_int, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, emit_via, id_sort, is_int, items, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 RETRO_FILE = "retrospective.yaml"
 STORIES_FILE = "stories.yaml"
@@ -71,14 +71,6 @@ STORY_TOKEN_RE = re.compile(r"S-\d+")
 BUG_TOKEN_RE = re.compile(r"BUG-\d{3}")
 
 PATTERN_MIN_COUNT = 2  # 源 step-2：跨 story 才成模式（≥2 处证据）
-
-
-def items(doc, key):
-    """取顶层列表键；缺失/非列表 → []。"""
-    if not isinstance(doc, dict):
-        return []
-    value = doc.get(key)
-    return value if isinstance(value, list) else []
 
 
 # ---------------------------------------------------------------- 文档装载
