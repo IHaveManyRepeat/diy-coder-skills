@@ -28,7 +28,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import args_output_dir, load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 LAYERS = ("展示层", "应用层", "领域层", "基础设施层", "未分层")
 SCALES = ("高", "中", "低")
@@ -82,15 +82,9 @@ def _human_lines(result):
     return lines
 
 
-def resolve_output_dir(args):
-    """回执里的 output_dir 统一正斜杠（对齐 batch3-contract §3 的 where 口径）。"""
-    raw = args.output_dir or os.path.join(args.project_root, "diy-output")
-    return os.path.normpath(raw).replace(os.sep, "/")
-
-
 def read_product(args, command):
     """读产物；返回 (doc, result 或 None)。违规即回执。"""
-    out_dir = resolve_output_dir(args)
+    out_dir = args_output_dir(args)
     path = os.path.join(out_dir, "analysis.yaml")
     if not os.path.isfile(path):
         return None, receipt(command, False, args.project_root, out_dir, [
@@ -125,7 +119,7 @@ def skeleton(name, question, scope, output_format, time_box, codebase):
 
 
 def cmd_init(args):
-    out_dir = resolve_output_dir(args)
+    out_dir = args_output_dir(args)
     violations, warnings = [], []
     codebase = args.codebase or args.project_root
     if not os.path.isdir(codebase) or not os.access(codebase, os.R_OK):
@@ -173,7 +167,7 @@ def cmd_list(args):
         return emit(bad, args.json)
     if args.status and args.status not in COMPONENT_STATUS:
         return emit(receipt("list", False, args.project_root,
-                            resolve_output_dir(args),
+                            args_output_dir(args),
                             [v("ENUM_INVALID", "--status", "取值非法：%s（合法集 %s）"
                                % (args.status, "|".join(COMPONENT_STATUS)))]),
                     args.json)
@@ -186,7 +180,7 @@ def cmd_list(args):
         if args.status and item["status"] != args.status:
             continue
         items.append(item)
-    return emit(receipt("list", True, args.project_root, resolve_output_dir(args),
+    return emit(receipt("list", True, args.project_root, args_output_dir(args),
                         counts={"components": len(items)}, items=items), args.json,
                 human_lines=["组件 %d 条：" % len(items)] + [
                     "%s %s [%s] %s" % (i["id"], i["name"], i["layer"],
@@ -197,7 +191,7 @@ def cmd_show(args):
     doc, bad = read_product(args, "show")
     if bad:
         return emit(bad, args.json)
-    out_dir = resolve_output_dir(args)
+    out_dir = args_output_dir(args)
     if not args.id:
         arch = doc.get("architecture") or {}
         lines = ["问题：%s" % (doc.get("question") or {}).get("text", ""),
@@ -239,7 +233,7 @@ def _texts(node):
 
 def cmd_check(args):
     doc, bad = read_product(args, "check")
-    out_dir = resolve_output_dir(args)
+    out_dir = args_output_dir(args)
     if bad:
         return emit(bad, args.json)
     vio = []

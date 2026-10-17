@@ -40,7 +40,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
+from diyc_lib import args_output_dir, load_yaml, load_yaml_safe, now, save_yaml_atomic, today, v, walk_strings  # noqa: E402
 
 REQUIRED_STATES = ("悬停", "空态", "加载中", "错误")
 COLOR_REQUIRED = ("bg", "text", "accent")
@@ -93,28 +93,22 @@ def _human_lines(result):
     return lines
 
 
-def resolve_output_dir(args):
-    """回执里的 output_dir 统一正斜杠（对齐 batch3-contract §3 的 where 口径）。"""
-    raw = args.output_dir or os.path.join(args.project_root, "diy-output")
-    return os.path.normpath(raw).replace(os.sep, "/")
-
-
 def design_path(args):
-    return os.path.join(resolve_output_dir(args), "design.yaml")
+    return os.path.join(args_output_dir(args), "design.yaml")
 
 
 def read_design(args, command):
     path = design_path(args)
     if not os.path.isfile(path):
         return None, None, receipt(command, False, args.project_root,
-                                   resolve_output_dir(args), [
+                                   args_output_dir(args), [
             v("MISSING_FILE", "design.yaml",
               "%s 不存在——先跑 init 做初始生成（既有 design.yaml 由 diy-design 演进）"
               % path)])
     doc, err = load_yaml_safe(path)
     if err:
         return None, path, receipt(command, False, args.project_root,
-                                   resolve_output_dir(args), [
+                                   args_output_dir(args), [
             v("UNPARSABLE_YAML", "design.yaml", "解析失败：%s" % err)])
     return doc, path, None
 
@@ -143,7 +137,7 @@ def skeleton(name):
 
 
 def cmd_init(args):
-    out_dir = resolve_output_dir(args)
+    out_dir = args_output_dir(args)
     violations = []
     if args.track not in TRACKS:
         violations.append(v("ENUM_INVALID", "--track",
@@ -181,7 +175,7 @@ def cmd_list(args):
     doc, _, bad = read_design(args, "list")
     if bad:
         return emit(bad, args.json)
-    out_dir = resolve_output_dir(args)
+    out_dir = args_output_dir(args)
     items = []
     for page in doc.get("pages") or []:
         states = [s.get("name") for s in page.get("states") or []]
@@ -206,7 +200,7 @@ def cmd_show(args):
     doc, _, bad = read_design(args, "show")
     if bad:
         return emit(bad, args.json)
-    out_dir = resolve_output_dir(args)
+    out_dir = args_output_dir(args)
     if not args.id:
         tokens = doc.get("tokens") or {}
         lines = ["方向：%s" % str(doc.get("direction") or "").splitlines()[:1],
@@ -235,7 +229,7 @@ def cmd_show(args):
 
 def cmd_check(args):
     doc, path, bad = read_design(args, "check")
-    out_dir = resolve_output_dir(args)
+    out_dir = args_output_dir(args)
     if bad:
         return emit(bad, args.json)
     base = os.path.dirname(os.path.abspath(path))
@@ -349,7 +343,7 @@ def cmd_check(args):
 # ---- tokens（「不抄像素」判据的机械面） -------------------------------------
 
 def cmd_tokens(args):
-    out_dir = resolve_output_dir(args)
+    out_dir = args_output_dir(args)
     raw = [x.strip() for x in str(args.values or "").split(",")]
     values = [x for x in raw if x]
     if not values:

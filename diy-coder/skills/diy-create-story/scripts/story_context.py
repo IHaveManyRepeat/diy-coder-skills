@@ -50,7 +50,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, emit_via, id_sort, id_sort_key, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 STORIES_FILE = "stories.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
@@ -90,16 +90,6 @@ def is_safe_rel(rel_path):
     if not text or text.startswith("/") or os.path.isabs(str(rel_path)):
         return False
     return ".." not in text.split("/")
-
-
-def natural_key(value):
-    """数字感知排序键（S-2 < S-10 / TC-3.1.2 < TC-3.1.10），对齐 diyc_lib.id_sort。"""
-    return tuple((0, int(p)) if p.isdigit() else (1, p)
-                 for p in re.split(r"[-.]", str(value)))
-
-
-def id_sort(ids):
-    return sorted(ids, key=natural_key)
 
 
 def story_num(story_id):
@@ -186,7 +176,7 @@ def read_tcs(docs, acs):
             continue
         result.append({k: tc.get(k) for k in ("id", "ac", "title", "type", "priority",
                                               "technique", "status")})
-    return sorted(result, key=lambda t: natural_key(t["id"]))
+    return sorted(result, key=lambda t: id_sort_key(t["id"]))
 
 
 def read_prior(docs, story, stories):
@@ -214,7 +204,7 @@ def read_decisions(docs):
     for dec in items(docs[ARCH_FILE]["data"], "decisions"):
         if isinstance(dec, dict) and nonempty(dec.get("id")):
             result.append({k: dec.get(k) for k in ("id", "title", "status", "affects")})
-    return sorted(result, key=lambda d: natural_key(d["id"]))
+    return sorted(result, key=lambda d: id_sort_key(d["id"]))
 
 
 def git_intel(project_root):

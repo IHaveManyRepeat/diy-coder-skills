@@ -33,11 +33,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import load_yaml  # noqa: E402
-
-# 实例名白名单（与 viewer/runner/exp-sync 同源）：字母数字开头和结尾，中间可含 . _ -。
-# 末字符禁点：Windows 目录名尾点被静默折叠（b. ≡ b），会破坏实例隔离；fullmatch 避免 $ 放行尾换行
-INSTANCE_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?")
+from diyc_lib import load_yaml, resolve_output_dir  # noqa: E402
 
 DEFAULT_STATUS_PATH = ("project", "status")
 
@@ -154,36 +150,6 @@ def chain_nodes(reg, line):  # trace: C·1 表（链序）+ frontmatter（产物
             "note": notes.get(skill, ""),
         })
     return nodes
-
-
-def resolve_output_dir(project_root, instance):  # trace: S-16 AC-16.1 D-9 实例目录解析（白名单拒注入，主线平铺兼容）
-    cfg_path = os.path.join(project_root, "diy-coder.yaml")
-    output_dir = "diy-output"
-    if os.path.isfile(cfg_path):
-        # trace: S-13 AC-13.1 TC-13.1.6 配置损坏/半写（paths 为 null 等）降级默认值，不崩
-        try:
-            cfg = load_yaml(cfg_path)
-        except yaml.YAMLError as e:
-            sys.stderr.write("WARN diy-coder.yaml: %s\n" % e)
-            cfg = {}
-        if not isinstance(cfg, dict):
-            cfg = {}
-        # trace: F-A3b paths 为真值标量时 isinstance 守卫降级默认值（对齐 read_status 范式）
-        paths = cfg.get("paths")
-        if isinstance(paths, dict):
-            output_dir = paths.get("output_dir", output_dir)
-            if not isinstance(output_dir, str):  # trace: 对抗审查修复——output_dir 值非字符串降级
-                sys.stderr.write("WARN diy-coder.yaml: output_dir 不是字符串，降级默认 diy-output\n")
-                output_dir = "diy-output"
-        elif paths is not None:
-            sys.stderr.write("WARN diy-coder.yaml: paths 形状异常（应为映射），降级默认 %s\n"
-                             % output_dir)
-    if instance:
-        if not INSTANCE_RE.fullmatch(instance):
-            sys.stderr.write("非法实例名: %s（字母数字开头和结尾，中间可含 . _ -）\n" % instance)
-            sys.exit(1)
-        output_dir = os.path.join(output_dir, instance)
-    return os.path.join(project_root, output_dir)
 
 
 def read_status(path, status_path=DEFAULT_STATUS_PATH):  # trace: S-13 AC-13.1 TC-13.1.6 按节点声明路径读 status；语法/形状/半写降级 unparsable/unknown 而非崩溃

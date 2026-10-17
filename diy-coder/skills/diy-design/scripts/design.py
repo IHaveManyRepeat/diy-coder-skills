@@ -34,11 +34,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import load_yaml, now, save_yaml_atomic, today, v  # noqa: E402
-
-# 实例名白名单（与 viewer/help/runner/exp-sync 同源）：字母数字开头和结尾，中间可含 . _ -。
-# 末字符禁点：Windows 目录名尾点被静默折叠（b. ≡ b），会破坏实例隔离；fullmatch 避免 $ 放行尾换行
-INSTANCE_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?")
+from diyc_lib import load_yaml, now, resolve_output_dir, save_yaml_atomic, today, v  # noqa: E402
 
 HIT_WORDS = ("页面", "界面", "登录", "表单", "图表", "看板", "仪表盘",
              "导航栏", "弹窗", "轮播", "输入框", "按钮", "列表页", "详情页")
@@ -133,19 +129,6 @@ def emit(result, as_json, human_lines=None):
         lines.append(_summary(result))
         print(NL.join(lines))
     return 0 if result.get("ok") else 1
-
-
-def resolve_output_dir(project_root, instance):  # trace: S-16 AC-16.1 D-9 实例目录解析（白名单拒注入）
-    cfg_path = os.path.join(project_root, "diy-coder.yaml")
-    output_dir = "diy-output"
-    if os.path.isfile(cfg_path):
-        output_dir = load_yaml(cfg_path).get("paths", {}).get("output_dir", output_dir)
-    if instance:
-        if not INSTANCE_RE.fullmatch(instance):
-            sys.stderr.write("非法实例名: %s（字母数字开头和结尾，中间可含 . _ -）\n" % instance)
-            sys.exit(2)
-        output_dir = os.path.join(output_dir, instance)
-    return os.path.join(project_root, output_dir)
 
 
 # ---------------------------------------------------------------- 读取与形状归一

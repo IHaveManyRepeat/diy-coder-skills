@@ -40,7 +40,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, is_int, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
+from diyc_lib import display_path, emit_via, id_sort, is_int, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 RETRO_FILE = "retrospective.yaml"
 STORIES_FILE = "stories.yaml"
@@ -79,14 +79,6 @@ def items(doc, key):
         return []
     value = doc.get(key)
     return value if isinstance(value, list) else []
-
-
-def id_sort(ids):
-    """数字感知排序（S-2 < S-10），对齐 diyc_lib.id_sort。"""
-    def key(value):
-        return tuple((0, int(p)) if p.isdigit() else (1, p)
-                     for p in re.split(r"[-.]", str(value)))
-    return sorted(ids, key=key)
 
 
 # ---------------------------------------------------------------- 文档装载

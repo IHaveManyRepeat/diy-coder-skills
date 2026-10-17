@@ -88,14 +88,15 @@ def stamp_file() -> str:
     return datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
-def _id_sort_key(value):
+def id_sort_key(value):
+    """排序键零件：字符串切成数字段/文字段的比较元组（数字感知；id_sort 与条目直排共用）。"""
     parts = re.split(r"(\d+)", str(value))
     return [(1, int(p)) if p.isdigit() else (0, p) for p in parts]
 
 
 def id_sort(ids) -> list:
     """数字感知排序：S-2 < S-10，TC-5.1.2 < TC-5.1.10。"""
-    return sorted(ids, key=_id_sort_key)
+    return sorted(ids, key=id_sort_key)
 
 
 def is_int(value):
@@ -296,6 +297,16 @@ def resolve_output_dir(project_root, instance) -> str:
             sys.exit(1)
         output_dir = os.path.join(output_dir, instance)
     return os.path.normpath(os.path.join(project_root, output_dir))
+
+
+def args_output_dir(args):
+    """回执里的 output_dir 统一正斜杠（对齐 batch3-contract §3 的 where 口径）。
+
+    与 resolve_output_dir 同名异物各司其职：本函数吃 CLI --output-dir 旗标（缺省回落
+    <project_root>/diy-output），不读配置、无 instance 概念——analyze/reverse 回执面。
+    """
+    raw = args.output_dir or os.path.join(args.project_root, "diy-output")
+    return os.path.normpath(raw).replace(os.sep, "/")
 
 
 # ---------------------------------------------------------------- 违规与回执
