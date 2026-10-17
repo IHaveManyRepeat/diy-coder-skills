@@ -99,7 +99,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import TOKEN_WHITELIST, check_tokens, display_path, load_yaml_safe, nonempty, now, receipt_base, save_yaml_atomic, v, walk_strings  # noqa: E402
+from diyc_lib import TOKEN_WHITELIST, check_tokens, display_path, enum_check, load_yaml_safe, nonempty, now, receipt_base, save_yaml_atomic, v, walk_strings  # noqa: E402
 
 BRIEF_FILE = "wds-brief.yaml"
 
@@ -205,16 +205,6 @@ def require(node, keys, where, out, missing_ok=True):
     for key in keys:
         if not nonempty(node.get(key)):
             out.append(v("EMPTY_FIELD", "%s.%s" % (where, key), "必填键 %s 为空" % key))
-
-
-def enum_check(value, allowed, where, label, out, warnings=None, soft=False):
-    """枚举检查：非法 → ENUM_INVALID（soft=True 时落 warnings）。"""
-    if isinstance(value, str) and value.strip() in allowed:
-        return value.strip()
-    item = v("ENUM_INVALID", where, "%s 越界：%s（合法集 %s）"
-             % (label, value if nonempty(value) else "空", "|".join(allowed)))
-    (warnings if soft and warnings is not None else out).append(item)
-    return None
 
 
 # ---------------------------------------------------------------- 回执与产物读取

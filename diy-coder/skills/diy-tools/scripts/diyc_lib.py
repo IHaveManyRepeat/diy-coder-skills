@@ -355,6 +355,15 @@ def v(code, where, msg) -> dict:
     return {"code": code, "where": str(where).replace("\\", "/"), "msg": msg}
 
 
+def enum_check(value, allowed, where, label, out):
+    """枚举检查：非法 → ENUM_INVALID。"""
+    if isinstance(value, str) and value.strip() in allowed:
+        return value.strip()
+    out.append(v("ENUM_INVALID", where, "%s 越界：%s（合法集 %s）"
+                 % (label, value if nonempty(value) else "空", "|".join(allowed))))
+    return None
+
+
 def receipt(command, ok, **fields) -> dict:
     """回执基础构造；公共键（project_root/output_dir/instance/violations/warnings/counts）
     由 diyc.py 收口补齐（契约 §2）。"""
