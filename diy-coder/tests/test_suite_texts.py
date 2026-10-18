@@ -353,7 +353,7 @@ def gate_criteria_names():
 
 
 def bonus_keys():
-    path = os.path.join(SKILLS_DIR, "diy-test-review", "scripts", "test_review.py")
+    path = os.path.join(SKILLS_DIR, "diy-test-review", "scripts", "test_review_lib.py")
     return _const_members(path, "BONUS_KEYS")
 
 
