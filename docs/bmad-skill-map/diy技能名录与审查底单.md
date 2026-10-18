@@ -416,8 +416,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 登记来源：用户提出——viewer 渲染 HTML 时左侧展示章节目录（如 prd 章节多，左侧见目录、点击跳转对应位置）。
 
 事实（2026-10-13 核实）：
-- 页面骨架（viewer.py:1351 `page()`）＝顶栏（h1＋`nav` 页间导航）＋单栏 `<main>` 正文＋`refpane` 引用详情侧板——**无页内目录**；`nav` 是产物间导航非章节目录，section 标题无锚点跳转入口。
-- 产物页按 section 顺序渲染（`render_doc_page` :1492）——prd 等长文档页内定位只能滚动。
+- 页面骨架（viewer_pages.py `page()`）＝顶栏（h1＋`nav` 页间导航）＋单栏 `<main>` 正文＋`refpane` 引用详情侧板——**无页内目录**；`nav` 是产物间导航非章节目录，section 标题无锚点跳转入口。
+- 产物页按 section 顺序渲染（viewer_pages.py `render_doc_page`）——prd 等长文档页内定位只能滚动。
 
 待裁项：TOC 深度（仅一级 section 标题 vs 含嵌套子节）；形态与响应式（左侧固定边栏 vs 窄屏折叠/隐藏阈值）；覆盖面（全部产物页 vs 章节数达阈值的页才显示）；锚点实现（section 标题铸 id，是否复用既有行锚机制——openapi 行锚批先例）。
 
@@ -659,7 +659,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 带日期拍板注记 7 处/7 文件（`.analysis/` 各批任务书/裁定录＝日志本体，合规不计；tests 零钉住已核）：
   - diy-wds-assets：SKILL.md:16＋steps/01-wireframes.md:69（「我直接出 html 就行了」）
   - diy-wds-system：steps/02-import.md:10＋steps/04-edit.md:12＋data/token-vocabulary.yaml:3＋scripts/wds_system.py:21（裁定 5/6 溯源句）
-  - diy-viewer/scripts/viewer.py:669（revisions 留痕裁定）
+  - diy-viewer/scripts/viewer_refs.py FOLDED_KEYS 注释（revisions 留痕裁定）
 - 同族更广变体：无日期「裁定 N」编号锚 297 处/97 文件（wds 线＋design＋reverse 密集；编号指向 `.analysis` 裁定表，安装面内无解析对象）。
 - 与去源锚批预扫（314 处/99 文件）重合为主：该批 grep 口径已含 `裁定 \d`——本段 297 处几乎全在场内；净新增＝「用户 <日期> 拍板」引语句式（7 处中 6 处因带裁定号/迁移计划引用已在场，唯 SKILL.md:16 纯引语句净新）。
 

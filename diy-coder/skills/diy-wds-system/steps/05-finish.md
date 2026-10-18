@@ -107,7 +107,7 @@ python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" chec
 
 `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
-〔**C2 面缺口（登记，不在本批修）**〕本产物名 `wds-design-system` **不在 `viewer.py` 的 `DOC_LABELS` 里**——表现为标题回落英文 stem、键名英文直出（**不报错、不红测**，`test_viewer_labels.py` 只遍历已登记的键）。另：`03-view.md` 产出的 `catalog.html` 与 `wds-design-system-catalog.html` **不是 YAML**，`viewer.py` 只扫顶层 `*.yaml`（`viewer.py:1419`）——**渲染不到**。两条都归 **C2 面**，由主 agent 收口期登记。
+〔**C2 面缺口（登记，不在本批修）**〕本产物名 `wds-design-system` **不在 `viewer.py` 的 `DOC_LABELS` 里**——表现为标题回落英文 stem、键名英文直出（**不报错、不红测**，`test_viewer_labels.py` 只遍历已登记的键）。另：`03-view.md` 产出的 `catalog.html` 与 `wds-design-system-catalog.html` **不是 YAML**，`viewer.py` 只扫顶层 `*.yaml`（main()）——**渲染不到**。两条都归 **C2 面**，由主 agent 收口期登记。
 
 ### 4.2 交接摘要（会话内，不落盘）
 
