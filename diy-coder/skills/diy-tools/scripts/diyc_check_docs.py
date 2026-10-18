@@ -20,7 +20,7 @@
 import re
 
 import diyc_lib
-from diyc_lib import items
+from diyc_lib import items, is_int
 
 # v4 批 3（§7-3b）：created/updated 格式断言——两格式兼容（纯日期 | 日期＋空格＋
 # 时分秒；存量纯日期仍合法）。兼防忘跑 stamp 闭环：C 组产物留空（空串）/乱写即红；
@@ -990,10 +990,6 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
 
 # ---------------------------------------------------------------- mutation-report
 
-def _is_count(value) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool)
-
-
 def _tally(report, spot, block):
     """一组 killed / total / score：值域 + **保守口径**自洽。
 
@@ -1002,14 +998,14 @@ def _tally(report, spot, block):
     """
     killed, total, score = block.get("killed"), block.get("total"), block.get("score")
     for name, value in (("killed", killed), ("total", total)):
-        if not _is_count(value) or value < 0:
+        if not is_int(value) or value < 0:
             report.add("TYPE_INVALID", "%s.%s" % (spot, name), "%s 须为非负整数" % name)
-    if _is_count(total) and total <= 0:
+    if is_int(total) and total <= 0:
         report.add("ENUM_INVALID", spot + ".total", "total 须为正整数（分母不可为 0）")
-    if not _is_count(score):
+    if not is_int(score):
         report.add("TYPE_INVALID", spot + ".score", "score 须为整数百分数（0–100）")
         return
-    if _is_count(killed) and _is_count(total) and total > 0:
+    if is_int(killed) and is_int(total) and total > 0:
         want = round(killed / total * 100)
         if score != want:
             report.add("SET_MISMATCH", spot + ".score",

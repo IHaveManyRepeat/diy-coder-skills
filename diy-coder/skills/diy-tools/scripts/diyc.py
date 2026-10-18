@@ -25,7 +25,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import diyc_lib  # noqa: E402
-from diyc_lib import receipt, v  # noqa: E402
+from diyc_lib import receipt, v, short, tail, rel_path  # noqa: E402
 
 CHECK_TYPES = ("prd", "architecture", "openapi", "epics", "stories",
                "test-plan", "sprint", "review", "mutation-report")
@@ -59,17 +59,8 @@ TRACE_LINE_RE = re.compile(r"(?:#|//)\s*trace:(.*)$")
 TRACE_TOKENS = None  # 延迟绑定 diyc_lib 的正则常量
 
 
-def _rel_path(root, path) -> str:
-    return os.path.relpath(path, root).replace("\\", "/")
-
-
 def _rel_to_output(args, filename) -> str:
-    return _rel_path(args.project_root, os.path.join(args.output_dir, filename)).replace("\\", "/")
-
-
-def _short(text, limit=72) -> str:
-    text = " ".join(str(text).split())
-    return text if len(text) <= limit else text[:limit - 1] + "…"
+    return rel_path(args.project_root, os.path.join(args.output_dir, filename)).replace("\\", "/")
 
 
 # ---------------------------------------------------------------- resolve
@@ -174,7 +165,7 @@ def cmd_trace(args) -> dict:
     files_with_trace = 0
     seen_kinds = set()
     for path in _trace_targets(args):
-        rel = _rel_path(args.project_root, path)
+        rel = rel_path(args.project_root, path)
         hits = _scan_trace_file(path)
         if hits:
             files_with_trace += 1
@@ -219,11 +210,6 @@ def _human_trace(result) -> list:
 
 # ---------------------------------------------------------------- static
 
-def _tail(text, limit=20) -> list:
-    lines = [ln for ln in (text or "").splitlines() if ln.strip()]
-    return lines[-limit:]
-
-
 def cmd_static(args) -> dict:
     # trace: S-7 AC-7.1 static_checks 链机械执行（阻断失败即停）
     docs = diyc_lib.Docs(args.project_root, args.output_dir)
@@ -265,16 +251,16 @@ def cmd_static(args) -> dict:
         if timed_out:
             out = ("[diyc] 超时（>%ss）被杀\n" % args.timeout) + out
             violations.append(v("STATIC_FAIL", "static_checks[order=%s]" % order,
-                                "工具超时（>%ss）：%s" % (args.timeout, _short(tool, 48))))
+                                "工具超时（>%ss）：%s" % (args.timeout, short(tool, 48))))
         layers.append({"order": order, "tool": tool, "gate": gate, "rc": rc,
-                       "verdict": verdict, "tail": _tail(out)})
+                       "verdict": verdict, "tail": tail(out)})
         run_n += 1
         if verdict == "失败":
             failed_n += 1
             if not timed_out:
                 violations.append(v("STATIC_FAIL", "static_checks[order=%s]" % order,
                                     "%s 层失败（rc=%s）：%s"
-                                    % (gate, rc, _short(tool, 48))))
+                                    % (gate, rc, short(tool, 48))))
             if gate == "阻断":
                 stopped = True
     ok = not any(x["verdict"] == "失败" and x["gate"] == "阻断" for x in layers)
@@ -285,7 +271,7 @@ def cmd_static(args) -> dict:
 
 def _human_static(result) -> list:
     return ["[%s] %s %s → %s (rc=%s)"
-            % (x.get("order"), x.get("gate"), _short(x.get("tool"), 48),
+            % (x.get("order"), x.get("gate"), short(x.get("tool"), 48),
                x.get("verdict"), x.get("rc"))
             for x in result.get("layers") or []]
 
@@ -294,7 +280,7 @@ def _human_static(result) -> list:
 
 def cmd_baseline_add(args) -> dict:
     # trace: baseline 台账唯一写入口（D1-D4 用户裁定 2026-09-13；仅用户裁定后调用）
-    base_rel = _rel_path(args.project_root,
+    base_rel = rel_path(args.project_root,
                          os.path.join(args.output_dir, diyc_lib.BASELINE_FILE))
     entry, violations = diyc_lib.baseline_add(
         args.project_root, args.output_dir, args.code, args.where, args.reason)
@@ -403,7 +389,7 @@ def _human_mutate(result) -> list:
                             "保留" if result.get("sandbox_kept") else "已销毁"),
         "范围：%s" % ("全量" if result.get("mode") == "full"
                       else "%d 个文件" % len(scope or [])),
-        "命令：%s" % _short(result.get("tool"), 96),
+        "命令：%s" % short(result.get("tool"), 96),
         "rc=%s%s" % (result.get("rc"),
                      "（超时被杀）" if result.get("timed_out") else ""),
         "工作区脏度：%s → %s" % ((result.get("workspace") or {}).get("dirty_before"),
@@ -506,7 +492,7 @@ def main(argv=None) -> int:
     except Exception as e:  # 顶层兜底（V 复验 F-1）：任何未预期异常转回执，
         # 绝不空 stdout 静默失败；--json 面保持单行 JSON；异常回执不消费 baseline
         final = _finalize(receipt(args.command, False, violations=[v(
-            "INTERNAL_ERROR", _rel_path(args.project_root, args.output_dir),
+            "INTERNAL_ERROR", rel_path(args.project_root, args.output_dir),
             "未预期内部异常：%s: %s（操作可能部分完成，请核对现场后重试）" % (type(e).__name__, e))]), args)
     return diyc_lib.emit(final, args.json,
                          human_lines_fn=HUMAN_RENDERERS.get(args.command))

@@ -25,7 +25,7 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import diyc_lib  # noqa: E402
-from diyc_lib import receipt, v  # noqa: E402
+from diyc_lib import receipt, v, short, tail  # noqa: E402
 
 # 不进副本的条目（按 basename 匹配）：VCS 元数据、各类缓存、依赖目录、编辑器
 SANDBOX_EXCLUDES = (".git", ".hg", ".svn", "__pycache__", ".pytest_cache",
@@ -137,7 +137,7 @@ def run(args) -> dict:
         rc, out, timed_out = diyc_lib.run_tool(cmd, sandbox, timeout)
         if timed_out:
             violations.append(v("MUTATE_TIMEOUT", _norm(sandbox),
-                                "变异命令超时（>%ss）被杀：%s" % (timeout, _short(cmd))))
+                                "变异命令超时（>%ss）被杀：%s" % (timeout, short(cmd))))
     except OSError as e:
         violations.append(v("SANDBOX_FAILED", _norm(sandbox),
                             "沙箱副本创建/执行失败：%s: %s" % (type(e).__name__, e)))
@@ -157,19 +157,9 @@ def run(args) -> dict:
     return receipt("mutate", ok,
                    tool=cmd, mode=mode, scope=scope or None,
                    sandbox=_norm(sandbox), sandbox_kept=keep and created,
-                   rc=rc, timed_out=timed_out, output_tail=_tail(out),
+                   rc=rc, timed_out=timed_out, output_tail=tail(out),
                    workspace={"dirty_before": dirty_before, "dirty_after": dirty_after,
                               "sandbox_in_project": in_project},
                    violations=violations, warnings=warnings,
                    counts={"scope_files": len(scope),
                            "output_lines": len((out or "").splitlines())})
-
-
-def _short(text, limit=72) -> str:
-    text = " ".join(str(text).split())
-    return text if len(text) <= limit else text[:limit - 1] + "…"
-
-
-def _tail(text, limit=20) -> list:
-    lines = [ln for ln in (text or "").splitlines() if ln.strip()]
-    return lines[-limit:]

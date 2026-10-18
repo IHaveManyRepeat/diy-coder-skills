@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import diyc_check_docs as d  # noqa: E402
 import diyc_lib  # noqa: E402
-from diyc_lib import Docs, receipt  # noqa: E402
+from diyc_lib import Docs, receipt, rel_path  # noqa: E402
 
 TYPE_FILES = {
     "prd": "prd.yaml",
@@ -39,10 +39,6 @@ FINDING_LAYERS = ("正确性", "边界", "覆盖审计", "设计采用")  # rule
 FINDING_RADII = d.RADII  # rule: diy-review/SKILL.md:Schema review.findings.radius（爆炸半径标注·与 test-plan 同族枚举）
 TASK_STATUSES = d.STORY_STATUSES  # rule: diy-sprint/SKILL.md:Schema tasks.status（五态与 story 同集）
 AUGMENT_VERDICTS = ("通过", "失败", "已跳过")  # rule: diy-sprint/SKILL.md:Schema tasks.augment
-
-
-def rel_path(root, path) -> str:
-    return os.path.relpath(path, root).replace("\\", "/")
 
 
 def _doc_rel(docs, filename) -> str:

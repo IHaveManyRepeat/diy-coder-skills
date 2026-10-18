@@ -853,6 +853,25 @@ def display_path(path, root) -> str:
     return rel.replace("\\", "/")
 
 
+def rel_path(root, path) -> str:
+    """相对路径（正斜杠归一·无越界回退）。"""
+    return os.path.relpath(path, root).replace("\\", "/")
+
+
+# ---------------------------------------------------------------- 文本工具
+
+def short(text, limit=72) -> str:
+    """文本压缩截断：空白折叠为单空格，超长截断加省略号。"""
+    text = " ".join(str(text).split())
+    return text if len(text) <= limit else text[:limit - 1] + "…"
+
+
+def tail(text, limit=20) -> list:
+    """取末尾非空行。"""
+    lines = [ln for ln in (text or "").splitlines() if ln.strip()]
+    return lines[-limit:]
+
+
 # ---------------------------------------------------------------- 项目探测（e2e×author）
 
 NODE_MANIFESTS = ("package.json",)
