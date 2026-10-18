@@ -23,7 +23,7 @@ SKILLS = os.path.join(HERE, "..", "skills")
 SKILL_MD = os.path.join(SKILLS, "diy-architecture", "SKILL.md")
 SCRIPTS = os.path.join(SKILLS, "diy-tools", "scripts")
 UPSTREAM_MD = os.path.join(SKILLS, "diy-wds-scenarios", "SKILL.md")
-CHECK_DOCS_PY = os.path.join(SCRIPTS, "diyc_check_docs.py")
+CHECK_DOCS_PY = os.path.join(SCRIPTS, "diyc_check_docs_upstream.py")
 
 sys.path.insert(0, SCRIPTS)
 import diyc_check  # noqa: E402

@@ -321,7 +321,7 @@ def skill_docs(skill):
 
 def defer_reasons():
     """引擎的 defer-add 合法 reason 集——读源码，不复制常量（防两处漂移）。"""
-    path = os.path.join(SKILLS_DIR, "diy-tools", "scripts", "diyc_writeback.py")
+    path = os.path.join(SKILLS_DIR, "diy-tools", "scripts", "diyc_writeback_lib.py")
     with open(path, encoding="utf-8") as fh:
         src = fh.read()
     m = re.search(r"DEFER_REASONS\s*=\s*\(([^)]*)\)", src)
@@ -379,7 +379,7 @@ class EngineContractGuardTests(unittest.TestCase):
     # trace: rulings §A8 机器层缺口①——diy-test-framework/steps/05-verify.md:35 曾教 `reason: user-only`
     def test_defer_add_reason_is_engine_legal(self):
         legal = defer_reasons()
-        self.assertTrue(legal, "未能从 diyc_writeback.py 取到 DEFER_REASONS")
+        self.assertTrue(legal, "未能从 diyc_writeback_lib.py 取到 DEFER_REASONS")
         bad = []
         for skill in skills():
             for rel, text in skill_docs(skill):
