@@ -1,0 +1,379 @@
+"""diy-wds-system 常量表、IO 与组件校验。"""
+
+import json
+import os
+import re
+import sys
+import yaml
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
+from diyc_lib import display_path, v  # noqa: E402
+
+SKILL_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = SKILL_DIR / "data"
+
+PRODUCT = "wds-design-system.yaml"
+UPSTREAM = "wds-scenarios.yaml"
+DESIGN = "design.yaml"
+
+DOC_STATUSES = ("草稿", "已定稿")
+MODES = ("on", "off")
+COMPONENT_STATUSES = ("在用", "已废弃")
+COMPLEXITIES = ("simple", "moderate", "complex")
+
+ID_RE = re.compile(r"^([a-z]{3})-(\d{3})$")
+PAGE_ID_RE = re.compile(r"^SC-\d{2}\.P\d+$")
+TOKEN_REF_RE = re.compile(r"^([a-z_]+)\.([a-z0-9_\-]+)$")
+NAMESPACES = ("color", "spacing", "typography")
+ASSUMPTION = "[假设]"
+
+# 组件记录必填键（11 段组件模板的 diy 形态；`related` / `notes` 为选填，故不入集）
+COMPONENT_REQUIRED = (
+    "id", "name", "prefix", "category", "complexity", "status", "variants", "states",
+    "styling", "behavior", "accessibility", "usage", "used_in", "token_refs", "version",
+)
+DOC_REQUIRED = ("project", "design_system_mode", "tokens", "categories", "prefixes",
+                "components", "revisions")
+
+
+# ───────────────────────────── 基础设施 ─────────────────────────────
+
+
+def load_yaml(path: Path):
+    """→ (data, error)。error 为 None 表示解析成功。"""
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8")), None
+    except Exception as exc:                                   # noqa: BLE001 - 一律转违规码
+        return None, str(exc)
+
+
+def save_yaml_atomic(path: Path, data) -> None:
+    """全文组装 → 同目录临时文件 → os.replace 原子替换（对齐 diyc 写回纪律；注释不保留）。"""
+    text = yaml.safe_dump(data, allow_unicode=True, sort_keys=False,
+                          default_flow_style=False)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def table_prefixes() -> list:
+    data, err = load_yaml(DATA_DIR / "component-prefixes.yaml")
+    if err:
+        raise SystemExit("前缀表不可读：%s" % err)
+    return data["table"]
+
+
+def table_categories() -> list:
+    data, err = load_yaml(DATA_DIR / "component-categories.yaml")
+    if err:
+        raise SystemExit("分类表不可读：%s" % err)
+    return [c["name"] for c in data["categories"]]
+
+
+def table_spacing_names() -> list:
+    data, err = load_yaml(DATA_DIR / "token-vocabulary.yaml")
+    if err:
+        raise SystemExit("令牌词汇表不可读：%s" % err)
+    return [s["name"] for s in data["spacing"]]
+
+
+def table_spacing_steps() -> dict:
+    """`名 → design.yaml.tokens.spacing.scale 的 0 基下标`（`space-0` 为 None：值恒 0）。"""
+    data, err = load_yaml(DATA_DIR / "token-vocabulary.yaml")
+    if err:
+        raise SystemExit("令牌词汇表不可读：%s" % err)
+    return {s["name"]: s.get("step") for s in data["spacing"]}
+
+
+# ───────────────────────────── 上游与产物读取 ─────────────────────────────
+
+def read_upstream(output_dir: Path, project_root: Path):
+    """→ (page_ids, violations)。门禁：wds-scenarios.yaml 必须在场且已定稿。"""
+    path = output_dir / UPSTREAM
+    where = display_path(path, project_root)
+    if not path.exists():
+        return None, [v("MISSING_FILE", where,
+                        "上游产物不在场——零产出停止，路由 `diy-wds-scenarios`")]
+    doc, err = load_yaml(path)
+    if err:
+        return None, [v("UNPARSABLE_YAML", where, "上游产物不可解析：%s" % err)]
+    status = (doc.get("project") or {}).get("status")
+    if status != "已定稿":
+        return None, [v("STATUS_MISMATCH", where + " project.status",
+                        "上游未定稿（实测 %r）——零产出停止，路由 `diy-wds-scenarios`" % status)]
+    pages = []
+    for sc in doc.get("scenarios") or []:
+        for pg in (sc or {}).get("pages") or []:
+            if isinstance(pg, dict) and pg.get("id"):
+                pages.append(pg["id"])
+    return {"pages": pages, "name": (doc.get("project") or {}).get("name")}, None
+
+
+def read_product(output_dir: Path, project_root: Path):
+    """→ (data, violations)。产物必须在场且可解析。"""
+    path = output_dir / PRODUCT
+    where = display_path(path, project_root)
+    if not path.exists():
+        return None, [v("MISSING_FILE", where, "产物不在场——先跑 `init`")]
+    doc, err = load_yaml(path)
+    if err:
+        return None, [v("UNPARSABLE_YAML", where, "产物不可解析：%s" % err)]
+    return doc, None
+
+
+def read_design(output_dir: Path):
+    """可选读 `design.yaml`（裁定 5 的派生源头）→ (tokens, present)。"""
+    path = output_dir / DESIGN
+    if not path.exists():
+        return None, False
+    doc, err = load_yaml(path)
+    if err or not isinstance(doc, dict):
+        return None, False
+    tokens = doc.get("tokens")
+    return (tokens if isinstance(tokens, dict) else None), True
+
+
+# ───────────────────────────── 组件记录 ─────────────────────────────
+
+def new_component(cid: str, prefix: str, type_name: str, category: str,
+                  complexity: str, stamp: str) -> dict:
+    return {
+        "id": cid,
+        "name": type_name,
+        "prefix": prefix,
+        "category": category,
+        "complexity": complexity,
+        "status": "在用",
+        "variants": [],
+        "states": [{"name": "默认", "signals": []}],
+        "styling": {"visual_properties": {}, "layout": {}, "library_component": None},
+        "behavior": {"interactions": [], "animations": [], "rules": []},
+        "accessibility": {"aria": None, "keyboard": [], "screen_reader": None},
+        "usage": {"when_to_use": None, "when_not_to_use": [], "best_practices": []},
+        "used_in": [],
+        "token_refs": [],
+        "related": [],
+        "version": {"created": stamp, "updated": stamp, "changes": 1},
+        "notes": None,
+    }
+
+
+def check_component(rec, idx, prefix_map, categories, page_ids, where_base,
+                    namespaces, final):
+    """单条组件记录的全部机械判据 → violations。"""
+    bad = []
+    if not isinstance(rec, dict):
+        return [v("UNPARSABLE_YAML", "%s[%d]" % (where_base, idx), "组件记录不是映射")]
+    cid = rec.get("id")
+    m = ID_RE.match(cid) if isinstance(cid, str) else None
+    if not cid:
+        bad.append(v("EMPTY_FIELD", "%s[%d].id" % (where_base, idx), "组件缺 id"))
+    elif not m:
+        bad.append(v("SET_MISMATCH", "%s[%d].id" % (where_base, idx),
+                     "id 形态须为 `[prefix]-[NNN]`（三位补零），实测 %r" % cid))
+    elif m.group(1) not in prefix_map:
+        bad.append(v("ENUM_INVALID", "%s[%d].id" % (where_base, idx),
+                     "前缀 %r 不在 26 条冻结前缀表内" % m.group(1)))
+
+    prefix = rec.get("prefix")
+    if prefix not in prefix_map:
+        bad.append(v("ENUM_INVALID", "%s[%d].prefix" % (where_base, idx),
+                     "prefix %r 不在冻结前缀表内" % prefix))
+    elif m and m.group(1) != prefix:
+        bad.append(v("SET_MISMATCH", "%s[%d].prefix" % (where_base, idx),
+                     "prefix %r 与 id 前缀 %r 不一致" % (prefix, m.group(1))))
+
+    category = rec.get("category")
+    if category not in categories:
+        bad.append(v("ENUM_INVALID", "%s[%d].category" % (where_base, idx),
+                     "category %r 不在 6 条冻结分类表内" % category))
+    elif prefix in prefix_map and prefix_map[prefix] != category:
+        bad.append(v("SET_MISMATCH", "%s[%d].category" % (where_base, idx),
+                     "category %r 与前缀表里 %s 那一行的 %r 不一致"
+                     % (category, prefix, prefix_map[prefix])))
+
+    if rec.get("complexity") not in COMPLEXITIES:
+        bad.append(v("ENUM_INVALID", "%s[%d].complexity" % (where_base, idx),
+                     "complexity %r 不在 %s 内" % (rec.get("complexity"), list(COMPLEXITIES))))
+    if rec.get("status") not in COMPONENT_STATUSES:
+        bad.append(v("ENUM_INVALID", "%s[%d].status" % (where_base, idx),
+                     "status %r 不在 %s 内" % (rec.get("status"), list(COMPONENT_STATUSES))))
+
+    # used_in → 上游页面 ID（跨技能 ID 链接入）
+    for j, pid in enumerate(rec.get("used_in") or []):
+        if not (isinstance(pid, str) and PAGE_ID_RE.match(pid)):
+            bad.append(v("SET_MISMATCH", "%s[%d].used_in[%d]" % (where_base, idx, j),
+                         "页面引用须为 `SC-<nn>.P<n>` 形态，实测 %r" % pid))
+        elif pid not in page_ids:
+            bad.append(v("UNKNOWN_ID", "%s[%d].used_in[%d]" % (where_base, idx, j),
+                         "%s 不在 wds-scenarios.yaml 的页面清单里" % pid))
+
+    # token_refs → 命名空间解析（裁定 5 的机械兑现面）
+    for j, ref in enumerate(rec.get("token_refs") or []):
+        token_where = "%s[%d].token_refs[%d]" % (where_base, idx, j)
+        m2 = TOKEN_REF_RE.match(ref) if isinstance(ref, str) else None
+        if not m2:
+            bad.append(v("TOKEN_UNRESOLVED", token_where,
+                         "引用须为 `命名空间.名` 形态，实测 %r" % ref))
+            continue
+        ns, name = m2.group(1), m2.group(2)
+        if ns not in NAMESPACES:
+            bad.append(v("TOKEN_UNRESOLVED", token_where,
+                         "命名空间 %r 不在 %s 内" % (ns, list(NAMESPACES))))
+        elif name not in namespaces.get(ns, []):
+            bad.append(v("TOKEN_UNRESOLVED", token_where,
+                         "%s.%s 不在本产物声明的 %s 命名空间表内" % (ns, name, ns)))
+
+    if final:
+        for key in COMPONENT_REQUIRED:
+            if key not in rec:
+                bad.append(v("EMPTY_FIELD", "%s[%d]" % (where_base, idx),
+                             "组件缺必填键 %r" % key))
+        if not rec.get("name"):
+            bad.append(v("EMPTY_FIELD", "%s[%d].name" % (where_base, idx), "组件缺 name"))
+        for key in ("usage", "styling", "behavior", "accessibility"):
+            if isinstance(rec.get(key), dict) and not rec.get(key):
+                bad.append(v("EMPTY_FIELD", "%s[%d].%s" % (where_base, idx, key),
+                             "定稿态不许留空段 %r" % key))
+        if not rec.get("variants"):           # VA-03a：列表段，`--final` 要求至少 1 条
+            bad.append(v("EMPTY_FIELD", "%s[%d].variants" % (where_base, idx),
+                         "定稿态不许变体清单为空（源侧「变体齐备」的 diy 判据）"))
+    return bad
+
+
+def check_document(doc, project_root, output_dir, page_ids, prefix_table, categories,
+                   namespaces, final) -> list:
+    where = display_path(output_dir / PRODUCT, project_root)
+    bad = []
+    for key in DOC_REQUIRED:
+        if key not in doc:
+            bad.append(v("EMPTY_FIELD", where, "产物缺顶层键 %r" % key))
+    if bad:
+        return bad
+
+    status = (doc.get("project") or {}).get("status")
+    if status not in DOC_STATUSES:
+        bad.append(v("ENUM_INVALID", where + " project.status",
+                     "project.status %r 不在 %s 内" % (status, list(DOC_STATUSES))))
+    if final and status != "已定稿":
+        bad.append(v("STATUS_MISMATCH", where + " project.status",
+                     "终门要求 project.status: 已定稿，实测 %r" % status))
+    if doc.get("design_system_mode") not in MODES:
+        bad.append(v("ENUM_INVALID", where + " design_system_mode",
+                     "design_system_mode %r 不在 %s 内" % (doc.get("design_system_mode"),
+                                                         list(MODES))))
+
+    # 冻结表逐条对账
+    want_p = [r["prefix"] for r in prefix_table]
+    got_p = [r.get("prefix") for r in (doc.get("prefixes") or []) if isinstance(r, dict)]
+    if got_p != want_p:
+        bad.append(v("SET_MISMATCH", where + " prefixes",
+                     "前缀表与冻结资产不一致（实测 %d 条，应为 %d 条）" % (len(got_p), len(want_p))))
+    if list(doc.get("categories") or []) != list(categories):
+        bad.append(v("SET_MISMATCH", where + " categories",
+                     "分类表与冻结资产不一致（实测 %r）" % (doc.get("categories"),)))
+
+    # token 段：派生模式下名字不得超出 design.yaml 的键集
+    source = (doc.get("tokens") or {}).get("source") or {}
+    if source.get("mode") == "派生":
+        design, present = read_design(output_dir)
+        if present and design is not None:
+            for ns in ("color", "typography"):
+                keys = sorted((design.get(ns) or {}).keys())
+                got = list((doc.get("tokens") or {}).get("namespaces", {}).get(ns) or [])
+                for name in got:
+                    if keys and name not in keys:
+                        bad.append(v("TOKEN_UNRESOLVED",
+                                     "%s tokens.namespaces.%s" % (where, ns),
+                                     "%s.%s 在 design.yaml.tokens.%s 里解析不到（引用漂移）"
+                                     % (ns, name, ns)))
+            # VA-04：spacing 的名字冻结在本表，**值**按 `step` 下标解析到 scale——
+            # 下标越出 scale 档数 = 解析不到（与上两桶的「名字对不上」同码同义）
+            scale = list((design.get("spacing") or {}).get("scale") or [])
+            steps = table_spacing_steps()
+            for name in (doc.get("tokens") or {}).get("namespaces", {}).get("spacing") or []:
+                step = steps.get(name)
+                if scale and step is not None and step >= len(scale):
+                    bad.append(v("TOKEN_UNRESOLVED", "%s tokens.namespaces.spacing" % where,
+                                 "spacing.%s 的 step 下标 %s 越出 design.yaml.tokens.spacing."
+                                 "scale（实测 %d 档，引用漂移）" % (name, step, len(scale))))
+
+    # 组件集：唯一性 / 编号连续性 / 逐条判据
+    comps = doc.get("components")
+    if not isinstance(comps, list):
+        bad.append(v("UNPARSABLE_YAML", where + " components", "components 不是列表"))
+        return bad
+
+    seen = {}
+    prefix_map = {r["prefix"]: r["category"] for r in prefix_table}
+    for i, rec in enumerate(comps):
+        bad += check_component(rec, i, prefix_map, categories, page_ids,
+                               where + " components", namespaces, final)
+        cid = (rec or {}).get("id") if isinstance(rec, dict) else None
+        if cid:
+            seen.setdefault(cid, []).append(i)
+    for cid, idxs in seen.items():
+        if len(idxs) > 1:
+            bad.append(v("DUPLICATE_ID", where + " components",
+                         "%s 出现 %d 次（下标 %s）" % (cid, len(idxs), idxs)))
+
+    per_prefix = {}
+    for cid in seen:
+        m = ID_RE.match(cid)
+        if m:
+            per_prefix.setdefault(m.group(1), []).append(int(m.group(2)))
+    for prefix, nums in sorted(per_prefix.items()):
+        if sorted(nums) != list(range(1, len(nums) + 1)):
+            bad.append(v("SET_MISMATCH", where + " components",
+                         "前缀 %s 的编号不连续（实测 %s，应自 001 起逐 1 递增）"
+                         % (prefix, sorted(nums))))
+
+    if final and not comps:
+        bad.append(v("EMPTY_FIELD", where + " components", "定稿态不许零组件"))
+
+    # 零 [假设]
+    dumped = json.dumps(doc, ensure_ascii=False)
+    if ASSUMPTION in dumped:
+        bad.append(v("ASSUMPTION_PRESENT", where,
+                     "产物含 %s 标记——未决项须写进 revisions 或就地补问" % ASSUMPTION))
+    return bad
+
+
+def orphan_token_warnings(doc, project_root, output_dir) -> list:
+    """反向扫「无孤儿令牌」（`steps/02-import.md` 第 4 项）：`tokens.namespaces` 里零引用的名字。
+
+    引用面 = `components[].token_refs[]`（唯一令牌引用机制）；逐命名空间聚合成一条
+    **warning**（不阻断：源侧允许备用令牌）。
+    """
+    referenced = set()
+    for rec in doc.get("components") or []:
+        if not isinstance(rec, dict):
+            continue
+        for ref in rec.get("token_refs") or []:
+            m = TOKEN_REF_RE.match(ref) if isinstance(ref, str) else None
+            if m:
+                referenced.add((m.group(1), m.group(2)))
+    where_base = display_path(output_dir / PRODUCT, project_root) + " tokens.namespaces"
+    out = []
+    for ns, names in ((doc.get("tokens") or {}).get("namespaces") or {}).items():
+        orphans = [str(n) for n in (names or []) if (ns, n) not in referenced]
+        if orphans:
+            out.append(v("SET_MISMATCH", "%s.%s" % (where_base, ns),
+                         "零引用的名字 %d 个：%s（备用令牌允许，不阻断）"
+                         % (len(orphans), ", ".join(orphans))))
+    return out
+
+
+# 四维权重与等级→数值映射（源 step-03:152–160 的 action 块，逐字）
+DIM_WEIGHTS = {"visual": 0.30, "functional": 0.30, "behavioral": 0.25, "contextual": 0.15}
+GRADE_VALUES = {"high": 1.0, "medium": 0.6, "low": 0.2}
+# 6 级阈值（源 step-03:56–144；左闭右闭，逐级递减）
+SIM_LEVELS = (
+    (95, 100, 1, "Identical", "复用既有组件引用"),
+    (80, 94, 2, "Very High Similarity", "考虑给既有组件加变体"),
+    (65, 79, 3, "High Similarity", "设计师定：加变体还是新建"),
+    (45, 64, 4, "Medium Similarity", "倾向新建，请设计师确认"),
+    (20, 44, 5, "Low Similarity", "新建组件"),
+    (0, 19, 6, "No Similarity", "必新建组件"),
+)

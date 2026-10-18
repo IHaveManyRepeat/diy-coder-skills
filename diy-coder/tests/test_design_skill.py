@@ -40,6 +40,16 @@ READ_DISCIPLINE = ("读取纪律：预载预算 = 本文件、上述配置与回
                    "**主文件不列举封闭清单**。")
 
 
+def read_scenarios_source():
+    """引擎拆分后（入口+checks+lib）的上游源文本拼接——文本探针同源保活。"""
+    parts = []
+    for name in ("wds_scenarios.py", "wds_scenarios_checks.py", "wds_scenarios_lib.py"):
+        with open(os.path.join(SKILLS, "diy-wds-scenarios", "scripts", name),
+                  encoding="utf-8") as fh:
+            parts.append(fh.read())
+    return "".join(parts)
+
+
 class SkillContractTests(unittest.TestCase):
     """SKILL.md 契约冒烟：母本逐字 + 中文化政策 + B-6 七条落点 + C·3a 改造面。"""
 
@@ -141,9 +151,7 @@ class SkillContractTests(unittest.TestCase):
     #        锚串「问用户一次」——删掉 `L` 的处置句即红。
     def test_design_intent_l_has_disposition(self):
         import re
-        upstream = os.path.join(SKILLS, "diy-wds-scenarios", "scripts", "wds_scenarios.py")
-        with open(upstream, encoding="utf-8") as fh:
-            source = fh.read()
+        source = read_scenarios_source()
         enum_match = re.search(r"DESIGN_INTENT_ENUM\s*=\s*\(([^)]*)\)", source)
         self.assertIsNotNone(enum_match, "上游 diy-wds-scenarios 不再定义 DESIGN_INTENT_ENUM")
         self.assertIn('"L"', enum_match.group(1),
@@ -163,9 +171,7 @@ class SkillContractTests(unittest.TestCase):
     #        （缺口原失效模式 = 映射里自造「进行中值」类枚举外值）；补反向 ⊆ 断言。
     def test_design_status_value_domain_matches_upstream_enum(self):
         import re
-        upstream = os.path.join(SKILLS, "diy-wds-scenarios", "scripts", "wds_scenarios.py")
-        with open(upstream, encoding="utf-8") as fh:
-            source = fh.read()
+        source = read_scenarios_source()
         match = re.search(r"DESIGN_STATUS_ENUM\s*=\s*\(([^)]*)\)", source)
         self.assertIsNotNone(match, "上游 diy-wds-scenarios 不再定义 DESIGN_STATUS_ENUM")
         enum_values = re.findall(r'"([a-z-]+)"', match.group(1))
@@ -199,9 +205,7 @@ class SkillContractTests(unittest.TestCase):
     #        文件中以反引号机器锚形式在场。
     def test_design_status_advance_stages_landed_in_steps(self):
         import re
-        upstream = os.path.join(SKILLS, "diy-wds-scenarios", "scripts", "wds_scenarios.py")
-        with open(upstream, encoding="utf-8") as fh:
-            source = fh.read()
+        source = read_scenarios_source()
         enum_match = re.search(r"DESIGN_STATUS_ENUM\s*=\s*\(([^)]*)\)", source)
         self.assertIsNotNone(enum_match, "上游 diy-wds-scenarios 不再定义 DESIGN_STATUS_ENUM")
         enum_values = re.findall(r'"([a-z-]+)"', enum_match.group(1))

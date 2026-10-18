@@ -37,6 +37,8 @@ DESIGN_STEPS = os.path.join(SKILLS, "diy-design", "steps")
 DEV_SKILL_MD = os.path.join(SKILLS, "diy-dev", "SKILL.md")
 SCENARIOS_SKILL_MD = os.path.join(SKILLS, "diy-wds-scenarios", "SKILL.md")
 SCENARIOS_PY = os.path.join(SKILLS, "diy-wds-scenarios", "scripts", "wds_scenarios.py")
+SCENARIOS_CHECKS_PY = os.path.join(SKILLS, "diy-wds-scenarios", "scripts", "wds_scenarios_checks.py")
+SCENARIOS_LIB_PY = os.path.join(SKILLS, "diy-wds-scenarios", "scripts", "wds_scenarios_lib.py")
 DESIGN_PY = os.path.join(SKILLS, "diy-design", "scripts", "design.py")
 NL = chr(10)
 
@@ -111,6 +113,11 @@ IMPL_JS = NL.join([
 def read(path):
     with io.open(path, encoding="utf-8") as fh:
         return fh.read()
+
+
+def read_scenarios_source():
+    """引擎拆分后（入口+checks+lib 三件）的上游源文本拼接——文本探针同源保活。"""
+    return read(SCENARIOS_PY) + read(SCENARIOS_CHECKS_PY) + read(SCENARIOS_LIB_PY)
 
 
 def run(script, args, cwd=None):
@@ -287,7 +294,7 @@ class UpstreamToDesignHandoverTests(W7Harness):
                 self.assertIn(field, design_doc,
                               "设计侧消费点 %s 未出现上游字段 %s" % (where, field))
         # 上游终门的必填面由上游引擎常量机械取数，须逐名在上游结构块里声明
-        source = read(SCENARIOS_PY)
+        source = read_scenarios_source()
         for const in ("SCENARIO_REQUIRED", "SCENARIO_NESTED", "PAGE_REQUIRED",
                       "INVENTORY_KEYS"):
             block_const = re.search(r"%s\s*=\s*\((.*?)\)\n" % const, source, re.S)
@@ -299,7 +306,7 @@ class UpstreamToDesignHandoverTests(W7Harness):
 
     # trace: C·3a §6 面 1（上游五值意图域 → 设计侧活动路由：值域两处必须同源）
     def test_design_intent_domain_matches_upstream_enum(self):
-        source = read(SCENARIOS_PY)
+        source = read_scenarios_source()
         enum = re.search(r"DESIGN_INTENT_ENUM\s*=\s*\((.*?)\)", source)
         self.assertIsNotNone(enum, "上游不再定义 DESIGN_INTENT_ENUM")
         values = re.findall(r'"([A-Z])"', enum.group(1))
@@ -322,7 +329,7 @@ class UpstreamToDesignHandoverTests(W7Harness):
 
     # trace: C·3a §6 面 1（覆盖矩阵：上游机械核过 → 下游显式声明「不重核」）
     def test_coverage_matrix_is_upstream_gated_and_not_rechecked(self):
-        self.assertIn("def check_coverage", read(SCENARIOS_PY),
+        self.assertIn("def check_coverage", read_scenarios_source(),
                       "上游不再机械核覆盖矩阵——下游的「不重核」失去前提")
         rule = [ln for ln in read(DESIGN_SKILL_MD).splitlines()
                 if "覆盖矩阵" in ln and "不重核" in ln]
