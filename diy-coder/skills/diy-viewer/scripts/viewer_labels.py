@@ -311,5 +311,43 @@ KEY_LABELS = {
     "shards": "分片数", "ss_ref": "关联预演条目", "issue": "问题",
     "round1": "第一轮复扫", "round2": "第二轮复扫", "cleared": "清零项",
     "ref_checked": "已核引用数", "ref_false": "失实引用数", "landing": "落点",
+    # trace: Q-105（底单 :367 ⑧）——cis-method 四分支 deliverable 键补齐（115 缺 + deliverable）。
+    # 键表逐条取自 steps/02~05「本分支结构」节；键名是 schema 机器锚点，产物保留英文、
+    # 仅展示层译名（C·11 W3 先例）。constraints/timeline/action_items/resolution 已有全局标签，不重复。
+    # cis-method 创新策略 分支 deliverable 键
+    "business_model_innovation": "商业模式创新", "company_name": "公司名称", "competitive_dynamics": "竞争动态", "current_business_model": "现有商业模式",
+    "current_situation": "现状", "decision_gates": "决策门", "disruption_vectors": "颠覆向量", "innovation_initiatives": "创新举措",
+    "key_hypotheses": "关键假设", "key_risks": "关键风险", "lagging_indicators": "滞后指标", "leading_indicators": "领先指标",
+    "market_insights": "市场洞察", "market_landscape": "市场格局", "market_opportunities": "市场机会", "model_weaknesses": "模式弱点",
+    "option_a_cons": "选项A缺点", "option_a_description": "选项A描述", "option_a_name": "选项A名称", "option_a_pros": "选项A优点",
+    "option_b_cons": "选项B缺点", "option_b_description": "选项B描述", "option_b_name": "选项B名称", "option_b_pros": "选项B优点",
+    "option_c_cons": "选项C缺点", "option_c_description": "选项C描述", "option_c_name": "选项C名称", "option_c_pros": "选项C优点",
+    "partnership_opportunities": "伙伴机会", "phase_1": "阶段一", "phase_2": "阶段二", "phase_3": "阶段三",
+    "recommended_strategy": "推荐战略", "revenue_cost_structure": "收入成本结构", "risk_mitigation": "风险缓解", "strategic_challenge": "战略挑战",
+    "strategic_focus": "战略焦点", "strategic_whitespace": "战略空白", "success_factors": "成功因素", "technology_enablers": "技术使能",
+    "unmet_jobs": "未满足任务", "value_chain_opportunities": "价值链机会", "value_proposition": "价值主张",
+    # cis-method 问题求解 分支 deliverable 键
+    "action_steps": "行动步骤", "adjustment_triggers": "调整触发", "contributing_factors": "促成因素", "creative_alternatives": "创意备选",
+    "driving_forces": "驱动力", "evaluation_criteria": "评估判据", "generated_solutions": "生成解法", "implementation_approach": "实施方式",
+    "initial_problem": "初始问题", "key_insights": "关键洞察", "key_learnings": "关键收获", "problem_boundaries": "问题边界",
+    "problem_category": "问题类别", "problem_context": "问题背景", "problem_title": "问题标题", "recommended_solution": "推荐方案",
+    "refined_problem_statement": "精炼问题陈述", "resources_needed": "资源需求", "responsible_parties": "责任方", "restraining_forces": "阻碍力",
+    "root_cause_analysis": "根因分析", "solution_analysis": "方案分析", "solution_methods": "解法方法", "solution_rationale": "推荐理由",
+    "success_criteria": "成功判据", "success_metrics": "成功指标", "system_dynamics": "系统动态", "validation_plan": "验证计划",
+    "what_to_avoid": "避免做法", "what_worked": "有效做法",
+    # cis-method 设计思维 分支 deliverable 键
+    "challenge_statement": "挑战陈述", "design_challenge": "设计挑战", "empathy_map": "共情图", "features_to_test": "待测特性",
+    "generated_ideas": "生成想法", "hmw_questions": "怎样才能问题", "ideation_methods": "构思方法", "key_observations": "关键观察",
+    "pov_statement": "观点陈述", "problem_insights": "问题洞察", "project_name": "项目名称", "prototype_approach": "原型方式",
+    "prototype_description": "原型描述", "refinements": "精修建议", "testing_plan": "测试计划", "top_concepts": "入选概念",
+    "user_feedback": "用户反馈", "user_insights": "用户洞察",
+    # cis-method 叙事 分支 deliverable 键
+    "adaptation_suggestions": "改编建议", "additional_versions": "额外版本", "audience_considerations": "受众适配", "best_channels": "最佳渠道",
+    "character_voice": "角色声音", "complete_story": "完整故事", "conflict_tension": "冲突张力", "core_narrative": "核心叙事",
+    "emotional_arc": "情绪弧", "emotional_touchpoints": "情绪触点", "extended_version": "长版", "feedback_plan": "反馈计划",
+    "framework_name": "框架名称", "key_messages": "关键信息", "medium_version": "中版", "opening_hook": "开场钩子",
+    "refinement_opportunities": "精修机会", "short_version": "短版", "story_beats": "故事节拍", "story_purpose": "故事目的",
+    "story_type": "故事类型", "target_audience": "目标受众", "tone_notes": "语气注意", "transformation": "转变",
+    "deliverable": "交付内容",
 }
 # 值标签（词表正典来源）：机器层中文化后键=中文值、值=展示标签，多数同名。
