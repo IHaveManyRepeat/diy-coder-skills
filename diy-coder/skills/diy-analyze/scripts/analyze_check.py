@@ -19,8 +19,6 @@ MERMAID_HEADS = ("graph", "flowchart", "sequenceDiagram", "classDiagram",
                  "stateDiagram", "erDiagram", "journey", "gantt", "pie")
 ASSUMPTION = "[假设]"
 
-SUBCOMMANDS = ("init", "list", "show", "check")
-
 def receipt(command, ok, project_root, output_dir, violations=None,
             warnings=None, counts=None, **extra):
     out = {
@@ -73,20 +71,6 @@ def read_product(args, command):
     return doc, None
 
 # ---- check -----------------------------------------------------------------
-
-def _texts(node):
-    """递归取全部字符串（键与值都算）——`[假设]` 全扫口径。"""
-    if isinstance(node, str):
-        yield node
-    elif isinstance(node, dict):
-        for k, val in node.items():
-            yield str(k)
-            for t in _texts(val):
-                yield t
-    elif isinstance(node, list):
-        for item in node:
-            for t in _texts(item):
-                yield t
 
 def cmd_check(args):
     doc, bad = read_product(args, "check")

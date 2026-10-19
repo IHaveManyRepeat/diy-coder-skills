@@ -17,10 +17,6 @@ REVIEWED_STATUSES = ("审查中", "已完成")
 REVIEW_LAYERS = ("正确性", "边界", "覆盖审计")
 REVIEW_ROUTES = ("意图缺口", "规格缺陷", "小修", "后置")
 
-# 必填集合键（须在场，可为空列表）：无内容写空列表，缺席是 schema 缺口
-REQUIRED_LISTS = ("tasks", "acceptance", "change_log", "deferred")
-# 可选集合键（在场才校验其条目结构）
-OPTIONAL_LISTS = ("code_map", "io_matrix", "review_order", "open_questions")
 BOUNDARY_TIERS = ("总是", "先问", "从不")
 
 SP_RE = re.compile(r"SP-\d{3}")

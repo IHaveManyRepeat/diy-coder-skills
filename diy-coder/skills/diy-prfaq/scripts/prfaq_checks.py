@@ -20,9 +20,6 @@ ESSENTIAL_KEYS = ("customer", "problem", "stakes", "solution")
 # 源 assets/prfaq-template.md 的九节结构（Press Release 锻造面）
 PRESS_KEYS = ("headline", "subheadline", "opening", "problem", "solution",
               "leader_quote", "how_it_works", "customer_quote", "getting_started")
-# 源 references/verdict.md "Produce the Distillate" 的九类内容收敛入这五个键
-DISTILLATE_KEYS = ("problem", "target_users", "value_props", "constraints",
-                   "open_questions")
 DISTILLATE_SCALARS = ("problem", "target_users")
 DISTILLATE_LISTS = ("value_props", "constraints", "open_questions")
 
