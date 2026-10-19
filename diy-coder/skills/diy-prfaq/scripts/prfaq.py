@@ -77,7 +77,7 @@ def cmd_headless(args):
 
 def cmd_check(args):
     root = os.path.abspath(args.project_root)
-    out = args.output_dir
+    out = args.output_dir if os.path.isabs(args.output_dir) else os.path.join(root, args.output_dir)
     path = os.path.join(out, PRFAQ_FILE)
     show = display_path(path, root)
     violations = []
