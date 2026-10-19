@@ -234,7 +234,12 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - **写面（2026-10-04 用户裁定）：能写输出文件**——① 分析结果经 `bug-add` 入 `bug-log.yaml`（五段→字段映射：表面→`symptom`／复现→`trigger`／根因→`root_cause`／机制消灭→`fix`＋`prevention`；`source` 值域现四值 `开发|审查发现|证伪轮|用户`，扩「bug 分析」类值随批核）——直写非「给命令」（有异于 investigate 零写面先例）；② experience_repo 投影（`bugs/<subclass>.yaml`＋`taxonomy.yaml`）——补 diy 体系零写方缺口（查证：diyc 无投影命令、retro 仅提醒不同步），直写 vs 新引擎命令待裁。
 - **衔接机制（2026-10-04 用户裁定）：diy-review 发现真缺陷 → 自动调用本技能**——bug 分析技能做好后，review 经 `bug-add` 入库的真缺陷自动触发本技能生成分析内容（预填 `BUG-0xx` 上下文）＝BMAD 机制 (a) 的 diy 化；调用形态（挂载式内部调用照 elicit/party-mode 先例 vs 收尾路由移交）随批核。
 - **BMAD 源阶段参考（2026-10-04，`bmad-analyze-bug`）**：五阶段＝① 信息收集 ② 代码图生成（调用图＋依赖可视化）③ 根因分析（**工作流级＋实现级两层**）④ 修复提案（**双产物**：自动化验证方案＋工作流变更提案）⑤ 完备校验＋归档——报告增量构建（每步 verify 前步＋append 本节，零占位符）。四个可借鉴机制：(a) review 自动衔接——**已裁 diy 化（见上条）**；(b) 代码图阶段（diy 对应物：`diyc trace` 分析面，是否独立阶段待裁）；(c) ④的双产物面——validation plan（防复发测试）与 diy「机制性消灭方案」的测试面交集待定；(d) **⑤引擎自动归档**（源用 `bug-archive.js` 归档 bug registry＋commit＋distribute）——经验库投影「引擎化」的 BMAD 先例，支持写面②选新引擎命令。
-- 待裁：技能名与产物文件名；挂法 A（独立 bug 专有产物，cis-method 当方法引擎）vs B（薄模板特化走 cis-method 记录）；与 diy-investigate 分工（代码取证 vs 方法流分析，是否吃 `IV-###`）；BMAD 机制 (b)(c)(d) 取舍；phase / line。
+- 待裁：技能名与产物文件名；挂法 A（独立 bug 专有产物，cis-method 当方法引擎）vs B（薄模板特化走 cis-method 记录）；与 diy-investigate 分工（代码取证 vs 方法流分析，是否吃 `IV-###`）〔2026-10-18 分工与 IV-### 已裁·见下〕；BMAD 机制 (b)(c)(d) 取舍；phase / line。
+
+**〔2026-10-18 用户裁定·分工重画＋`IV-###` 喂案卷〕**：
+- **入口分两条，investigate 只在 runner 路径进场**——① review 路径：diy-review 发现真缺陷 → **直接调 bug 分析技能**（investigate 不参与；输入＝bug-log 条目＋`BUG-0xx` 预填，无案卷裸跑）；② runner 路径：三连失败结论 → **先 investigate 归因**（四分法定性·10-17 案 A 既定）→ 判「③产品代码错」确认为 bug → **调 bug 分析技能分析并修复**。
+- **「是否吃 `IV-###`」＝吃**：runner 路径在场必接——归因案卷（证据/复现/因果链）供根因深挖复用、不重查；review 路径缺席不阻塞。原「代码取证 vs 方法流分析」接力式分工表述作废（该分工框定系 10-04 记录时 AI 注解非用户裁定——「有异于 investigate 零写面先例」括注同批同性质，不作依据）；改判＝investigate 退守失败定性/探索/悬案，bug 技能为已确认 bug 的分析执行者。
+- **连带两点**：① 吃案卷形态（随任务书定形）——bug 技能输入面加 `investigation.yaml` 可选输入源，按 ID 引用、缺席不阻塞；② 与 10-17 修复路由③衔接顺序＝**位置 A＋分析完才重开〔2026-10-18 用户裁定〕**——归因③ → bug 技能分析（五段落 bug-log·吃 IV-### 案卷）→ **分析产物（investigation 案卷＋五段）作为重开前置产物** → sprint 重开回 dev 按消灭方案修 → 全量三连重跑；重开时机与五段写入节奏（一次性入 vs 分段追加）等 schema 细节随任务书。
 
 ## 待办：新增 prd→开发前编排工作流技能
 
@@ -810,10 +815,18 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 4. **重跑边界＝全量三连**（复用 `--post-only`，不做局部补跑——gate 矩阵分母保完整）；**质量校验衔接＝强制门**（修完必过 test-review 及各引擎终门才准重跑）。
 5. **viewer**：废弃条目**折叠区**渲染（零裸键中文标签）。
 
-待裁（随任务书呈裁）：
+待裁（随任务书呈裁）→〔2026-10-18 用户三项全裁·见下，实施细节随任务书〕：
 - **TC 生产者判据三选一**（TC 现无生产者字段：`type: 端到端`→e2e 可判；`单元/集成` 分不清 test-design 设计 vs augment 补测）——①TC 补生产者字段（动 schema＋三生产方落笔）②按类型粗判 ③放弃按生产者、按类型路由。
 - investigate 触发形态（三连失败后人手动调 vs runner 自动路由）。
 - 废弃字段 schema 形态与强制门机械落点（引擎拦位）。
+
+**〔2026-10-18 用户三项裁定〕**（裁定本体不再重呈，实施细节随任务书）：
+1. **TC 生产者判据＝①补生产者字段**——TC 加生产者字段，三生产方（test-design/augment/e2e）追加用例时落笔。字段名、枚举值、存量 TC 兼容口径（缺省不回填 vs 按 type 推断）随任务书。
+2. **investigate 触发形态＝runner 自动路由**——三连失败汇总后 runner 自动 spawn investigate 归因（非人手动调）。spawn 点、旗标设计、与 `--post-only` 关系、无头成本随任务书。
+3. **废弃字段 schema＋强制门落点（两半均裁）**：
+   - **schema＝TC 可选嵌套键 `retired: {reason, replaced_by}`**——不进 `status` 枚举（green 回写面隔离；status＝执行结果、废弃＝生命周期裁决，两轴正交）；嵌套单键在场性即裁决开关（键缺席＝活跃、键在场＝已裁废弃；AI 只建议不写键、人裁落标＝键写入即人闸凭证）；键在则双键必填（缺一 EMPTY_FIELD）；`replaced_by` 按 UNKNOWN_ID 校验在场、禁自指（照 `kill_target`→FH 引用校验先例）；存量 TC 零改动天然合法（api_refs「缺席即整键省略」同款）。
+   - **强制门＝三处改造＋一设计，复用现有门零新增违规码**：(a) 形状校验挂 `check_test_plan` TC 循环内（status 枚举后·任何 check 都跑——同 api_refs 形状/锚解析分层惯例）；(b) 覆盖类集合统一剔除 retired＝联动本体——FH 被杀门 `killed` 收集与接口锚门 `tc_anchor_hits` 收集跳过带 `retired` 键的 TC（「废弃不算覆盖＋FH 门联动」的机械本质＝覆盖类断言输入集合不收废料；FH 侧红走现有 SET_MISMATCH 零新码）；(c) counts 层（by_type/by_dimension/`covered`）同步剔除（虚报活跃数防护）；(d) 替代品**不继承** kill_target（KISS——补替代是完整生产动作须重新瞄准 FH；FH 杀伤＝活 TC 真引用，单一事实源零代理推理）。违规码复用 EMPTY_FIELD/UNKNOWN_ID/SET_MISMATCH（批 4a 封闭集零扩先例）。
+   - **留任务书小尾巴**：green 对 retired TC 写回是否机械拒——倾向不动 green（YAGNI·提示词层禁跑废弃 TC），误操作实证再议。
 
 改动面（做时）：test-plan schema（废弃字段）＋`diyc_check_docs.py` check_test_plan（覆盖门＋FH 门联动）＋e2e/augment/test-design 三生产方写入面＋viewer 折叠渲染＋diy-investigate SKILL（失败归因入口段）＋runner（若触发裁自动）＋tests（先裁后动）。
 
