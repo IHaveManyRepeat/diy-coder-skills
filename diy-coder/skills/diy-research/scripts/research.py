@@ -8,8 +8,8 @@
           --id RS-xxx 只校验指定记录（未命中 → UNKNOWN_ID）；--previous PATH 比对旧稿
           RS-### 集合，旧有新无 → ID_UNSTABLE（Update 防丢记录，任务书 B1 §2.2）。
           --final 附加定稿义务：零 [假设]、synthesis 三键非空、findings 非空、
-          status 已落「已定稿」（定稿门须咬住记录状态，同 P1 样板 check_final_duties 语义）。
-          exit 0 唯一放行。
+          status 已落「已定稿」（定稿门须咬住记录状态，同 P1 样板 check_final_duties 语义）、
+          顶层 distillate 交出面存在且五字段非空（文档级，下游 PRD 输入）。exit 0 唯一放行。
 
 分工裁定（任务书 B1 §2.2）：research 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态（同 diy-checkpoint-preview/scripts/checkpoint.py 分工），契约同构：
@@ -44,6 +44,8 @@ DIMENSIONS = ("市场", "技术", "领域")
 STATUSES = ("草稿", "已定稿")
 CONFIDENCES = ("高", "中", "低")
 SYNTHESIS_KEYS = ("executive_summary", "key_points", "open_questions")
+DISTILLATE_SCALARS = ("problem", "target_users")
+DISTILLATE_LISTS = ("value_props", "constraints", "open_questions")
 
 RS_RE = re.compile(r"RS-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -202,6 +204,30 @@ def check_record(index, record, final, where_base):
     return violations
 
 
+# trace: 夜队列 Q-103（底单 :361 ②：check --final 加 distillate 存在＋五字段非空校验）
+def check_distillate_final(distillate, show):
+    """--final 文档级交出面义务：顶层 `distillate` 在场（映射）且五字段非空——
+    `problem` / `target_users` 非空，`value_props` / `constraints` / `open_questions`
+    为非空列表（跨全部 researches[] 的汇裁面，下游 PRD 输入）；起草期不查。"""
+    if not isinstance(distillate, dict):
+        return [v("EMPTY_FIELD", show + " distillate",
+                  "--final 要求 distillate 非空（交出面：下游 PRD 输入）")]
+    violations = []
+    for key in DISTILLATE_SCALARS:
+        if not nonempty(distillate.get(key)):
+            violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (show, key),
+                                "--final 要求 distillate.%s 非空" % key))
+    for key in DISTILLATE_LISTS:
+        value = distillate.get(key)
+        if not isinstance(value, list):
+            violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (show, key),
+                                "--final 要求 distillate.%s 为列表" % key))
+        elif not value:
+            violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (show, key),
+                                "--final 要求 distillate.%s 非空（至少 1 条）" % key))
+    return violations
+
+
 def count_sources(records):
     total = 0
     for record in records:
@@ -295,6 +321,8 @@ def cmd_check(args):
     if args.final and not scope and not violations:
         violations.append(v("EMPTY_FIELD", show + " researches",
                             "--final 要求至少 1 条记录"))
+    if args.final and comparable:
+        violations += check_distillate_final(data.get("distillate"), show)
 
     if nonempty(args.previous) and comparable:
         # 当前稿缺失/损坏时不再叠加 ID 比对噪音（MISSING_FILE / UNPARSABLE_YAML 已定因）
@@ -349,7 +377,8 @@ def main():
     c.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--final", action="store_true",
-                   help="定稿校验：status 已落「已定稿」+ findings/synthesis 非空 + 零假设")
+                   help="定稿校验：status 已落「已定稿」+ findings/synthesis 非空 + 零假设"
+                        " + distillate 交出面五字段非空")
     c.add_argument("--id", default=None, help="只校验指定记录（RS-0nn；未命中 → UNKNOWN_ID）")
     c.add_argument("--previous", default=None,
                    help="旧稿路径：比对 RS ID 集合，旧有新无 → ID_UNSTABLE（Update 防丢记录）")

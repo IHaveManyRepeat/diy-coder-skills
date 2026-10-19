@@ -18,7 +18,9 @@
                   content/why_separate）恒非空；起草期容许叙事字段半写（实时持久化的前提）
           --previous PATH：读旧稿快照，比对 BD-### 集合，旧有新无 → ID_UNSTABLE（update 模式防丢决策）
           --final 附加定稿义务：project.status 已落「已定稿」、零 [假设]（含 assumptions 清空）、
-                  title/problem/solution/users 非空、每条 decision 有 rationale。exit 0 唯一放行。
+                  title/problem/solution/users 非空、每条 decision 有 rationale、distillate
+                  交出面在场且五字段非空（problem/target_users/value_props/constraints/
+                  open_questions）。exit 0 唯一放行。
           --final 附加评审证据链（任务书 §12.1 ①ⓒ 六条）：顶层 review_refs 非空（缺失或空 →
                   EVIDENCE_MISSING）；{output_dir}/editorial-review.yaml 在场（缺席 →
                   MISSING_FILE）；每个 ID 在该台账 reviews[] 内（否则 UNKNOWN_ID）；该记录
@@ -52,7 +54,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
 from diyc_lib import count_by, display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from brief_checks import check_addendum, check_brief_section, check_decisions, check_project, check_review_evidence, check_revisions, list_len, previous_ids  # noqa: E402
+from brief_checks import check_addendum, check_brief_section, check_decisions, check_distillate_final, check_project, check_review_evidence, check_revisions, list_len, previous_ids  # noqa: E402
 
 BRIEF_FILE = "brief.yaml"
 INTENTS = ("新建", "更新", "校验")
@@ -171,6 +173,7 @@ def cmd_check(args):
                                 "--final 要求零 [假设]；未决假设须先落定"))
         if args.final:
             check_review_evidence(data, root, out, path, show, violations, warnings)
+            check_distillate_final(data.get("distillate"), show, violations)
 
     if args.previous:
         old = previous_ids(args.previous, root, violations)
@@ -237,7 +240,8 @@ def main():
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--final", action="store_true",
                    help="定稿校验：status 已落「已定稿」+ 零假设 + 主体非空 + 每条决策有 "
-                        "rationale + review_refs 评审证据链（六条）")
+                        "rationale + distillate 交出面五字段非空 + review_refs 评审证据链"
+                        "（六条）")
     c.add_argument("--previous", default=None,
                    help="旧稿快照路径：比对 BD-### 集合，旧有新无 → ID_UNSTABLE")
     c.add_argument("--json", action="store_true", help="输出单行 JSON 回执")

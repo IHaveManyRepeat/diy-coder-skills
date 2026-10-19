@@ -16,6 +16,8 @@ REVIEW_LENSES = ("结构", "文风")
 DOC_STATUSES = ("草稿", "已定稿")
 STAKES = ("个人兴趣", "内部", "投资人", "公开")
 DECISION_STATUSES = ("生效", "已反转")
+DISTILLATE_SCALARS = ("problem", "target_users")
+DISTILLATE_LISTS = ("value_props", "constraints", "open_questions")
 
 BD_RE = re.compile(r"BD-\d{3}")
 # v4 批 3（§7-3b/d）：时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
@@ -209,6 +211,28 @@ def check_project(project, where, violations, final):
         elif not DATE_RE.fullmatch(str(value)):
             violations.append(v("ENUM_INVALID", "%s.%s" % (where, key),
                                 "%s 须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %s" % (key, value)))
+
+# trace: 夜队列 Q-103（底单 :361 ②：check --final 加 distillate 存在＋五字段非空校验）
+def check_distillate_final(distillate, where, violations):
+    """--final 交出面义务：`distillate` 在场（映射）且五字段非空——`problem` /
+    `target_users` 非空，`value_props` / `constraints` / `open_questions` 为非空列表。
+    交给 `diy-prd` 的下游契约（字段级映射在 prd 侧）；起草期不查。"""
+    if not isinstance(distillate, dict):
+        violations.append(v("EMPTY_FIELD", where + " distillate",
+                            "--final 要求 distillate 非空（交出面：下游 PRD 输入）"))
+        return
+    for key in DISTILLATE_SCALARS:
+        if not nonempty(distillate.get(key)):
+            violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (where, key),
+                                "--final 要求 distillate.%s 非空" % key))
+    for key in DISTILLATE_LISTS:
+        value = distillate.get(key)
+        if not isinstance(value, list):
+            violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (where, key),
+                                "--final 要求 distillate.%s 为列表" % key))
+        elif not value:
+            violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (where, key),
+                                "--final 要求 distillate.%s 非空（至少 1 条）" % key))
 
 def previous_ids(previous, project_root, violations):
     """读旧稿快照的 BD-### 集合；读失败记违规并返回 None。"""

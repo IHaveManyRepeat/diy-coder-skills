@@ -3,7 +3,7 @@
 Progress: `Discovery → Draft → [Finalize]`
 
 **Read (input):** `{output_dir}/brief.yaml` 全文——brief、`decisions`、`addendum`；对话。
-**Write (output):** 定稿的 `brief.yaml`（`project.status` / `updated`）；交付消息；渲染投影（静默旁路）。
+**Write (output):** 定稿的 `brief.yaml`（`project.status` / `updated` 与补完的 `distillate` 交出面）；交付消息；渲染投影（静默旁路）。
 
 ## 1. 决策日志审计 + 附录复核
 
@@ -14,6 +14,8 @@ Progress: `Discovery → Draft → [Finalize]`
 - 作为过程噪音搁置。
 
 没有东西静默消失，也没有条目未经复核。然后收尾线头：清掉每处 `[假设]`（用户确认即摘掉前缀，否则降为一行 `open_questions`），并把每条 `open_questions` 了结或显式挂起。
+
+**补完交出面。**顶层 `distillate` 五字段（`problem` / `target_users` / `value_props` / `constraints` / `open_questions`）逐字段过一遍并落盘——它是交给 `diy-prd` 的下游契约，`--final` 校验存在且非空，缺哪个字段门就报哪个。按上面的清账结果归拢：被排除项进 `constraints`，了结不了的挂进 `open_questions`。
 
 ## 2. 润色
 
