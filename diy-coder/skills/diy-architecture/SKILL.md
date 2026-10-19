@@ -84,10 +84,11 @@ revisions: []                    # {date, change, reason} —— 改既有条目
 1. **写范围恰好一份产物**：`{output_dir}/architecture.yaml`（加 `.prev` 临时件）。`prd.yaml` / `stories.yaml` / 源码一律不碰——非 `已定稿` 的 `prd.yaml` 也只读、只在 `risks[]` 留痕；WDS 线同理，`wds-brief.yaml` / `wds-scenarios.yaml` 只读（推进 `design_status` 等写权**不属本技能**）。
 2. **ID 链是硬契约。** `D-*` / `C-*` / `R-*` 一经铸造永不重编号、永不复用；重写既有稿走激活时第 3 条的 `.prev` 快照 → 对账改写 → 删 `.prev`。源码里的 `# trace: D-x` 由 `diyc.py trace` 按这些 ID 解析——丢 ID 即 `TRACE_UNRESOLVED`；`check --previous` 的类型白名单已含 architecture，重写既有稿时按激活时第 3 条跑它做机械比对（三条失败分支见该条）。Update 对账确曾改写既有决策时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `D-*`、不复制内容）——纯新增不算改既有。
 3. **每条决策至少一条被否决备选**（`alternatives` 带 `why_not`）；没有备选的决策通常是未经检验的默认值。`affects` 只引用上游既有 ID——主线 `prd.yaml` 的 FR/NFR，WDS 线 `wds-scenarios.yaml` 的 `SC-<nn>` / `SC-<nn>.P<n>`（形态由 `diy-wds-scenarios` 定义，本技能只消费、不重定义；终门两域都认——引擎 `known` 域已并入 SC/P，裁定 22）——引用，绝不复制需求文本。
-4. **决策只为需求存在。** 持久化 / 安全 / 性能这类横切关切，也只在某条 FR/NFR（或 WDS 线的 `SC-<nn>` / `SC-<nn>.P<n>`）要求时才成型——不臆造架构。
+4. **决策只为需求存在。** 持久化 / 性能这类横切关切，也只在某条 FR/NFR（或 WDS 线的 `SC-<nn>` / `SC-<nn>.P<n>`）要求时才成型——不臆造架构。**安全默认考虑**：激活时问用户一次「持久化 / 安全 / 性能哪些需要在架构设计时考虑」——安全默认在场，除非用户明确答「只自己用、不对外」才移出考虑面，该答复本身落盘留痕；安全类全类逐类显式作答（封闭四类：鉴权 / 加密（传输＋存储）/ 输入校验 / 敏感数据处理（含日志红线）），选「无」也落盘为决策；持久化 / 性能按用户当场回答与需求要求定。
 5. **未决项留在文件里。** 任何未经用户确认的推断——含机制细节与风险缓解——都要带 `[假设]` 前缀写在 YAML **值**上（只写值、不新增独立键），绝不只在对话里列；终门对全字段深扫 `[假设]`。
 6. **路由。** 下游：接口面 → `diy-openapi`；前端面 → `diy-design`；拆解 → `diy-epics-stories`。主线顺序 = `prd → architecture → openapi(可选) → design(可选) → epics+stories → test-plan → sprint → build-loop`。
 7. **评审两维（缺席即 finding，不新增产物键）**：每批决策**逐条**同时过——① **可测性**：可控（状态可播种 / 可 mock / 可注入故障）· 可观测（日志 / 指标 / 追踪 / 确定性断言）· 可靠（隔离 / 可复现 / 并行安全），判据写进该决策的 `rationale`（来源：`bmad-testarch-test-design` 系统级模式的架构可测性评审）；② **运维面**：部署与环境 · 基础设施选型 · 运维（operational / environmental envelope）——整维沉默即 finding。**缺席处置**：往 `risks[]` 落一条（`risk` 点名缺席的决策 ID 与维度，`mitigation` 写补法），定稿前逐条处置：补判据，或经用户确认豁免并把授权记进该条 `mitigation`。
+8. **接口面联动。** 接口面判定在场（components/decisions＋FR 集合推导，照 `diy-openapi` 激活时 3 同款）时，鉴权决策须与 openapi 侧对表：`securitySchemes` 每 scheme 以 `x-decision: D-*` 引用本侧决策（下游认源 ID 判据）。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

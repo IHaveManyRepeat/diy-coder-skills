@@ -38,7 +38,11 @@ FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design"
                     # type：wds-design-system 的 prefixes[].type 装的是 26 个组件类型名
                     # （Button…Spacer），全局 type=类型 在此不是枚举——不登记则每次渲染刷 26 行
                     # 诊断（R-02），且其中一个类型名恰与 6 分类值同名（Form）会被误标成「表单」
-                    ("wds-design-system", "type")}
+                    ("wds-design-system", "type"),
+                    # trace: v4 批 4a——openapi 的 type 是 OpenAPI/JSON-Schema 机器锚点
+                    # 值域（securityScheme: apiKey/http/oauth2…；schema: object/string/
+                    # integer…），非本产品枚举域；不登记则 components 渲染每次刷 unmapped enum
+                    ("openapi", "type")}
 BADGE_CLASSES = {
     "已定稿": "ok", "已完成": "ok", "通过": "ok", "必须": "must",
     "已采纳": "ok",
@@ -104,6 +108,12 @@ KEY_LABELS = {
     "reason": "原因", "decision": "处理决定", "note": "备注", "notes": "备注",
     "method": "方法", "path": "路径", "operationId": "操作 ID",
     "summary": "摘要", "x-fr": "关联需求",
+    # trace: v4 批 4a——openapi 接口契约扩展面（tags/通用错误 $ref/securitySchemes/
+    # security）；未补键即英文裸键（零裸键纪律）。schema 见 diy-openapi/SKILL.md:结构
+    "tags": "功能标签", "security": "安全要求", "securitySchemes": "鉴权方案",
+    "responses": "响应定义", "schemas": "数据模型", "$ref": "引用",
+    "x-decision": "关联决策", "in": "传参位置", "properties": "属性",
+    "required": "必填字段",
     "tasks": "任务", "blocked_reason": "阻塞原因", "test_refs": "关联用例",
     "augment": "编码后验证",
     "evidence": "执行证据", "tc": "用例", "red": "红", "green": "绿",
