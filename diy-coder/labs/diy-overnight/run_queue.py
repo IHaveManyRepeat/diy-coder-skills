@@ -308,6 +308,15 @@ def cmd_report(args: argparse.Namespace) -> None:
             f"| {task.get('id')} | {task.get('status')} | {res.get('branch', '—')} "
             f"| {(res.get('commit') or '—')[:7]} | {res.get('tests', '—')} | {note or '—'} |"
         )
+    diffs = []
+    for i, task in enumerate(tasks):
+        res = task.get("result") or {}
+        if task.get("status") == "完成" and res.get("commit"):
+            body = "；".join(git("log", "-1", "--format=%B", res["commit"]).stdout.splitlines()[1:])
+            desc = [s.strip() for s in body.split("；") if s.strip() and not s.strip().startswith(("basis", "测试"))]
+            diffs.append(f"- {task.get('id')}：`git diff {prev_tip(data, i)[:7]}..{res['commit'][:7]}`（{'；'.join(desc)}）")
+    if diffs:
+        lines += ["", "## 早审 diff 入口（队列序）", ""] + diffs
     pending = [x for x in tasks if x.get("status") in ("顺延", "跳过", "阻塞")]
     if pending:
         lines += ["", "## 未完成项（原因＋建议处置）", ""] + [

@@ -40,7 +40,7 @@ runs: []                      # 每晚一行：date/base/deadline/完成计数
 
 1. 取用户指定的队列路径（激活时未指定则询）；定位仓根：`git rev-parse --show-toplevel`；队列缺失或无条目 → 停，一行说明。
 2. 只碰 `status` 为 待跑/顺延/跳过 的条目；完成/阻塞/进行中之外的状态不重开（阻塞留待用户裁）。
-3. **开工门是唯一交互点**——前置五步见下，用户说「开工」前不写任何 git 状态。
+3. **开工权只归用户**——激活、队列就绪、开工前置做完，均不构成开工依据；用户说「开工」前不写任何 git 状态，`run_queue.py start` 不得调用。
 
 ## 开工前置（交互·用户在场）
 
@@ -48,7 +48,8 @@ runs: []                      # 每晚一行：date/base/deadline/完成计数
 2. `git status`：树不净 → 停，列未提交面，交用户裁处置（提交／stash／明示忽略）；用户明示后才继续。
 3. 基线自证：跑 `test_cmd` 全量绿（HEAD 自证，买归因干净）。基线红 → 停，报红，不开工。
 4. 呈队列顺序＋estimate 合计＋deadline 建议（缺省次日 07:00）→ 用户可逐项改五数值（deadline／宽限 45min／超时 2×estimate／连跳停机 2／测试缓冲 15min）。
-5. 用户说「开工」→ `python <技能同目录>/run_queue.py start --queue <路径> [--deadline ... --grace ... --timeout-x ... --circuit ... --buffer ...]` 写 `base`＝HEAD＋`tonight` 五数值（下文各步 `run_queue.py` 均指该同目录脚本，调用时带实际路径）。
+5. **停手交提示词**：第 4 步呈完即结束本轮，给用户一段可直接粘贴的开工提示词（如「使用 diy-overnight，队列 `<绝对路径>`，开工」＋建议五数值）——由用户自己决定何时开工，不得自动进入下一步。
+6. 用户明示「开工」→ `python <技能同目录>/run_queue.py start --queue <路径> [--deadline ... --grace ... --timeout-x ... --circuit ... --buffer ...]` 写 `base`＝HEAD＋`tonight` 五数值（下文各步 `run_queue.py` 均指该同目录脚本，调用时带实际路径）。
 
 ## 执行循环（无人值守）
 
@@ -67,6 +68,7 @@ runs: []                      # 每晚一行：date/base/deadline/完成计数
 1. `python run_queue.py report --queue <路径>`——脚本写晨报落**队列同目录** `report-<YYYY-MM-DD>.md`（不入库：头行 base／deadline／运行窗／计数；表 `| 任务 | 状态 | 分支 | commit | 测试 | 备注 |` 队列序＝审核序；顺延/跳过/阻塞逐条原因；阻塞待裁点收集；尾附早审指引），并幂等追加 `runs` 运行行。
 2. 完成条目留队待用户审后归档。
 3. **不删分支、不动 dev、不 push**。
+4. **最后一步＝交提示词**：晨报写完即停手，给用户一段可直接粘贴的下一晚开工提示词（队列路径＋建议参数），由用户自己决定何时开工；不自动续跑。
 
 ## 中断恢复
 
