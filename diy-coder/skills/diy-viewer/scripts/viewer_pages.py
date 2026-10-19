@@ -8,8 +8,9 @@ import viewer_refs as _refs
 from viewer_glossary import (CHAIN_RANK, DOC_LABELS, _DT_MAX, _NO_CHAIN)
 from viewer_labels import HTTP_METHODS, META_KEYS
 from viewer_refs import gloss, render_ref_item
-from viewer_render import (CSS, PANE_JS, TOOLTIP_JS, badge, build_templates,
-                           cell, esc, render_table, render_value, slugify)
+from viewer_render import (COPY_JS, CSS, PANE_JS, TOOLTIP_JS, badge, build_templates,
+                           cell, esc, render_table, render_value, set_render_source,
+                           slugify)
 
 
 def page(title: str, body: str, nav: str = "", source: str = "") -> str:
@@ -40,6 +41,7 @@ def page(title: str, body: str, nav: str = "", source: str = "") -> str:
 {build_templates()}
 <script>{PANE_JS}</script>
 <script>{TOOLTIP_JS}</script>
+<script>{COPY_JS}</script>
 </body>
 </html>
 """
@@ -225,6 +227,7 @@ def render_augment_panel(data, others: list) -> str:
 
 def render_doc_page(name: str, data, others: list, source: str = "") -> str:
     _refs._RENDER_DOC = name  # trace: B1 文档级标签覆盖上下文
+    set_render_source(source)  # trace: Q-003 复制按钮取 output_dir 相对路径（含实例名）
     meta = get_meta(data)
     meta_line = []
     if isinstance(meta, dict):
