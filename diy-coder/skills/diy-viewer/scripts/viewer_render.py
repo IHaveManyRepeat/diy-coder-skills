@@ -51,6 +51,26 @@ def badge(key: str, v) -> str:
     return cell(v)
 
 
+_RENDER_SOURCE = ""
+
+def set_render_source(source) -> None:
+    global _RENDER_SOURCE
+    _RENDER_SOURCE = source or ""
+
+
+def _copy_file_ref() -> str:
+    doc = _refs._RENDER_DOC
+    if not doc:
+        return ""
+    return f"{_RENDER_SOURCE}/{doc}.yaml" if _RENDER_SOURCE else f"{doc}.yaml"
+
+
+def copy_button(rid: str) -> str:
+    # trace: Q-003——表格 ID 旁复制按钮，单击复制「文件 + 条目 ID」定位提示词（文案 A）
+    return (f'<button class="copy-id" type="button" data-file="{esc(_copy_file_ref())}" '
+            f'data-id="{esc(rid)}" title="复制定位提示词">复制</button>')
+
+
 def render_table(items: list, with_row_ids: bool = True) -> str:
     headers: list = []
     for item in items:
@@ -60,11 +80,14 @@ def render_table(items: list, with_row_ids: bool = True) -> str:
     th = "".join(f"<th>{gloss(esc(key_label(h)))}</th>" for h in headers)
     rows = []
     for item in items:
+        rid = item.get("id") if with_row_ids else None
         tds = []
         for h in headers:
             v = item.get(h)
-            tds.append(f"<td>{value_html(h, v)}</td>")
-        rid = item.get("id") if with_row_ids else None
+            html = value_html(h, v)
+            if h == "id" and isinstance(rid, str) and rid:
+                html += copy_button(rid)
+            tds.append(f"<td>{html}</td>")
         anchor = f' id="{esc(rid)}"' if isinstance(rid, str) and rid else ""
         # trace: S-12 AC-12.2 TC-12.2.1 孤儿 must FR：行标红 + 徽章提示
         if isinstance(rid, str) and rid in ORPHAN_IDS:
@@ -298,6 +321,8 @@ details.detail[open] summary{border-bottom:1px dashed var(--line)}
 details.detail .d-body{padding:6px 14px 10px;font-size:.95em;color:var(--mut)}
 .foot{color:var(--mut);font-size:.85em;border-top:1px solid var(--line);
 margin-top:40px;padding-top:12px}
+.copy-id{margin-left:6px;padding:0 6px;font-size:.8em;color:var(--mut);background:#f6f8fa;border:1px solid var(--line);border-radius:4px;cursor:pointer}
+.copy-id:hover{color:var(--accent);border-color:var(--accent)}
 """
 
 
@@ -349,5 +374,27 @@ document.addEventListener('mouseover',function(e){
   if(t){show(t);}else{hide();}
 });
 document.addEventListener('scroll',hide,true);
+})();
+"""
+
+
+COPY_JS = """
+(function(){
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('button.copy-id');if(!btn)return;
+  var file=btn.getAttribute('data-file')||'',id=btn.getAttribute('data-id')||'';
+  var text='请打开产物文件 '+file+'，定位条目 '+id+'，读取该条目的完整内容，然后按我的后续指令处理（解释/修改等）。';
+  function done(){var old=btn.textContent;btn.textContent='已复制';
+    setTimeout(function(){btn.textContent=old;},1200);}
+  function legacy(){
+    var ta=document.createElement('textarea');ta.value=text;
+    ta.style.position='fixed';ta.style.top='-9999px';
+    document.body.appendChild(ta);ta.select();
+    var ok=false;try{ok=document.execCommand('copy');}catch(err){ok=false;}
+    document.body.removeChild(ta);if(ok){done();}
+  }
+  if(!navigator.clipboard||!navigator.clipboard.writeText){legacy();return;}
+  navigator.clipboard.writeText(text).then(done,legacy);
+});
 })();
 """
