@@ -452,6 +452,8 @@ class FinalEvidenceTests(EngineCase):
         fake = os.path.join(self.root, "skills", "diy-product-brief", "scripts")
         os.makedirs(fake, exist_ok=True)
         engine = shutil.copyfile(ENGINE, os.path.join(fake, "brief.py"))
+        shutil.copy2(os.path.join(HERE, "..", "skills", "diy-product-brief", "scripts", "brief_checks.py"),
+                     os.path.join(fake, "brief_checks.py"))
         # 引擎副本跨技能 import diyc_lib（parents[2] 同构），沙盒补拷库四件
         # （lib 入口 + base/report/docs 分域件）
         lib = os.path.join(self.root, "skills", "diy-tools", "scripts")

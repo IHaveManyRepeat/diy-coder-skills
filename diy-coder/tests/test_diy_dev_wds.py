@@ -149,9 +149,11 @@ def run_engine(args, cwd=None):
 
 
 def engine_statuses():
-    """从 design.py 源码取页状态词表与合法边（读源码，不复制常量）。"""
-    with io.open(DESIGN_SRC, encoding="utf-8") as fh:
-        src = fh.read()
+    """从 design 引擎全件源码取页状态词表与合法边（读源码，不复制常量）。"""
+    d = os.path.dirname(DESIGN_SRC)
+    src = "".join(open(os.path.join(d, n), encoding="utf-8").read()
+                  for n in sorted(os.listdir(d))
+                  if n.startswith("design") and n.endswith(".py"))
     statuses = re.search(r"PAGE_STATUSES\s*=\s*\(([^)]*)\)", src)
     edges = re.search(r"LEGAL_EDGES\s*=\s*frozenset\(\{(.*?)\}\)", src, re.S)
     return (re.findall(r'"([^"]+)"', statuses.group(1)),

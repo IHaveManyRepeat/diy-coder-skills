@@ -348,8 +348,11 @@ TRANSITION_TO_RE = re.compile(r"design\.py\"\s+transition[^\n]*?--to\s+([^\s\"`]
 
 def legal_edges():
     """design.py 的 LEGAL_EDGES——读源码，不复制常量（防两处漂移）。"""
-    block = LEGAL_EDGES_BLOCK_RE.search(read(DESIGN_PY))
-    assert block, "未能从 design.py 取到 LEGAL_EDGES"
+    _d = os.path.dirname(DESIGN_PY)
+    _src = "".join(read(os.path.join(_d, n)) for n in sorted(os.listdir(_d))
+                   if n.startswith("design") and n.endswith(".py"))
+    block = LEGAL_EDGES_BLOCK_RE.search(_src)
+    assert block, "未能从 design 引擎全件取到 LEGAL_EDGES"
     return set(EDGE_PAIR_RE.findall(block.group(1)))
 
 

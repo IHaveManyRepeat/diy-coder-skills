@@ -92,8 +92,8 @@ VALUE_LABELS = {
     "静态检查": "静态检查", "契约": "契约", "预热": "预热", "报告": "报告",
     "可维护性": "可维护性", "合成": "合成",
     "覆盖": "覆盖", "非功能需求": "非功能需求", "启发式": "启发式",
-    # trace: C·2——editorial-review 的建议类别存英文大写（引擎 editorial_review.py:397 按原样
-    # 校验，属机器锚点不可改），展示层给白话译名；判据见 steps/02-analyze.md:29-34
+    # trace: C·2——editorial-review 的建议类别存英文大写（引擎 editorial_review_checks.py
+    # 的 CATEGORIES 按原样校验，属机器锚点不可改），展示层给白话译名；判据见 steps/02-analyze.md:29-34
     "CUT": "整段删除", "MERGE": "合并章节", "MOVE": "调整位置",
     "CONDENSE": "显著压缩", "QUESTION": "待作者拍板", "PRESERVE": "显式保留",
     # trace: C·11 W3（§5.1）——B7b 五产物的值级缺口（此前这些值全部回落纯文本 + 刷

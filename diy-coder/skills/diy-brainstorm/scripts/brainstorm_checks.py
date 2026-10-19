@@ -1,0 +1,348 @@
+# -*- coding: utf-8 -*-
+"""diy-brainstorm 校验命令域：想法引用/主题/优先级/行动检查、记录级 schema 枚举锚点校验、--final 定稿义务与 cmd_check 总编排（含随行常量 DEFAULT_CANDIDATES、STEP_MIN/STEP_MAX）。."""
+
+import os
+
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import display_path, is_int, load_yaml_safe, nonempty, receipt_base, v, walk_strings  # noqa: E402
+
+from brainstorm_lib import APPROACH_ENUM, ASSUMPTION_MARK, BRAINSTORM_FILE, BS_RE, DATE_RE, STATUS_ENUM, STEP_BY_STATUS, emit, library_categories, load_methods  # noqa: E402
+STEP_MIN, STEP_MAX = 1, 5
+DEFAULT_CANDIDATES = 5
+
+# ---- check ----
+
+def check_idea_refs(refs, where, numbers):
+    """引用检查：`no` 必须落在本记录的 `ideas[].no` 集合内（否则 UNKNOWN_ID）。"""
+    violations = []
+    if not isinstance(refs, list):
+        return [v("EMPTY_FIELD", where, "缺失或不是列表（无引用写空列表）")]
+    for i, ref in enumerate(refs):
+        if is_int(ref) and ref in numbers:
+            continue
+        violations.append(v("UNKNOWN_ID", "%s[%d]" % (where, i),
+                            "%s 不在本记录 ideas[].no 内（可引用集 %s）"
+                            % (ref, sorted(numbers) or "空")))
+    return violations
+
+def check_ideas(record, where):
+    violations = []
+    ideas = record.get("ideas")
+    numbers = []
+    if ideas is None:
+        return [v("EMPTY_FIELD", where + ".ideas", "ideas 缺失（无内容写空列表）")], numbers
+    if not isinstance(ideas, list):
+        return [v("EMPTY_FIELD", where + ".ideas", "ideas 不是列表")], numbers
+    for i, idea in enumerate(ideas):
+        iw = "%s.ideas[%d]" % (where, i)
+        if not isinstance(idea, dict):
+            violations.append(v("EMPTY_FIELD", iw, "想法不是映射"))
+            continue
+        no = idea.get("no")
+        if not is_int(no) or no < 1:
+            violations.append(v("ENUM_INVALID", iw + ".no",
+                                "no 须为正整数（会话内序号，从 1 起），实为 %r" % (no,)))
+        else:
+            numbers.append(no)
+        for key in ("title", "concept", "novelty", "technique"):
+            if not nonempty(idea.get(key)):
+                violations.append(v("EMPTY_FIELD", iw + "." + key, "%s 为空" % key))
+    if numbers and sorted(numbers) != list(range(1, len(numbers) + 1)):
+        violations.append(v("SET_MISMATCH", where + ".ideas",
+                            "想法 no 须为 1..N 连续不跳号，实为 %s" % sorted(numbers)))
+    return violations, numbers
+
+def check_themes(record, where, numbers):
+    violations = []
+    themes = record.get("themes")
+    if themes is None:
+        return [v("EMPTY_FIELD", where + ".themes", "themes 缺失（无内容写空列表）")]
+    if not isinstance(themes, list):
+        return [v("EMPTY_FIELD", where + ".themes", "themes 不是列表")]
+    for i, theme in enumerate(themes):
+        tw = "%s.themes[%d]" % (where, i)
+        if not isinstance(theme, dict):
+            violations.append(v("EMPTY_FIELD", tw, "主题不是映射"))
+            continue
+        for key in ("name", "focus"):
+            if not nonempty(theme.get(key)):
+                violations.append(v("EMPTY_FIELD", tw + "." + key, "%s 为空" % key))
+        refs = theme.get("ideas")
+        if refs is None:
+            violations.append(v("EMPTY_FIELD", tw + ".ideas",
+                                "ideas 缺失（无引用写空列表）"))
+            continue
+        violations += check_idea_refs(refs, tw + ".ideas", numbers)
+    return violations
+
+def check_priorities(record, where, numbers):
+    violations = []
+    priorities = record.get("priorities")
+    if priorities is None:
+        return [v("EMPTY_FIELD", where + ".priorities",
+                  "priorities 缺失（三键 top / quick_wins / breakthroughs，无内容写空列表）")]
+    if not isinstance(priorities, dict):
+        return [v("EMPTY_FIELD", where + ".priorities", "priorities 不是映射")]
+    for key in ("top", "quick_wins", "breakthroughs"):
+        refs = priorities.get(key)
+        if refs is None:
+            violations.append(v("EMPTY_FIELD", "%s.priorities.%s" % (where, key),
+                                "%s 缺失（无引用写空列表）" % key))
+            continue
+        violations += check_idea_refs(refs, "%s.priorities.%s" % (where, key), numbers)
+    return violations
+
+def check_actions(record, where, numbers):
+    violations = []
+    actions = record.get("actions")
+    if actions is None:
+        return [v("EMPTY_FIELD", where + ".actions", "actions 缺失（无内容写空列表）")]
+    if not isinstance(actions, list):
+        return [v("EMPTY_FIELD", where + ".actions", "actions 不是列表")]
+    for i, action in enumerate(actions):
+        aw = "%s.actions[%d]" % (where, i)
+        if not isinstance(action, dict):
+            violations.append(v("EMPTY_FIELD", aw, "行动计划不是映射"))
+            continue
+        if action.get("idea") is None:
+            violations.append(v("EMPTY_FIELD", aw + ".idea",
+                                "idea 缺失（须指向 ideas[].no）"))
+        else:
+            violations += check_idea_refs([action.get("idea")], aw + ".idea", numbers)
+        for key in ("why", "resources", "timeline", "success"):
+            if not nonempty(action.get(key)):
+                violations.append(v("EMPTY_FIELD", aw + "." + key, "%s 为空" % key))
+        steps = action.get("steps")
+        if steps is None:
+            violations.append(v("EMPTY_FIELD", aw + ".steps", "steps 缺失（至少一步）"))
+        elif not isinstance(steps, list):
+            violations.append(v("EMPTY_FIELD", aw + ".steps", "steps 不是列表"))
+        else:
+            if not steps:
+                violations.append(v("EMPTY_FIELD", aw + ".steps", "steps 为空（至少一步）"))
+            for j, step in enumerate(steps):
+                if not nonempty(step):
+                    violations.append(v("EMPTY_FIELD", "%s.steps[%d]" % (aw, j),
+                                        "step 为空"))
+    return violations
+
+def check_record(index, record, final, categories, show):
+    """单条记录的 schema / 枚举 / 引用 / 锚点一致性检查。"""
+    violations = []
+    where = "%s.sessions[%d]" % (show, index)
+    if not isinstance(record, dict):
+        return [v("EMPTY_FIELD", where, "记录不是映射")]
+
+    rid = record.get("id")
+    if not nonempty(rid):
+        violations.append(v("EMPTY_FIELD", where + ".id", "id 缺失"))
+    elif not BS_RE.fullmatch(str(rid).strip()):
+        violations.append(v("ENUM_INVALID", where + ".id",
+                            "id 须为 BS-0nn（三位零填充），实为 %s" % rid))
+
+    for key in ("topic", "goals"):
+        if not nonempty(record.get(key)):
+            violations.append(v("EMPTY_FIELD", where + "." + key,
+                                "%s 为空（会话门禁要求议题与目标在场）" % key))
+
+    date = record.get("date")
+    if not nonempty(date):
+        violations.append(v("EMPTY_FIELD", where + ".date", "date 缺失"))
+    elif not DATE_RE.fullmatch(str(date).strip()):
+        violations.append(v("ENUM_INVALID", where + ".date",
+                            "date 须为 YYYY-MM-DD，实为 %s" % date))
+
+    approach = record.get("approach")
+    if nonempty(approach) and str(approach) not in APPROACH_ENUM:
+        violations.append(v("ENUM_INVALID", where + ".approach",
+                            "approach 越界：%s（合法集 %s）"
+                            % (approach, "|".join(APPROACH_ENUM))))
+
+    status = record.get("status")
+    status_ok = False
+    if not nonempty(status):
+        violations.append(v("EMPTY_FIELD", where + ".status", "status 缺失"))
+    elif str(status) not in STATUS_ENUM:
+        violations.append(v("ENUM_INVALID", where + ".status",
+                            "status 越界：%s（合法集 %s）"
+                            % (status, "|".join(STATUS_ENUM))))
+    else:
+        status_ok = True
+
+    step = record.get("current_step")
+    step_ok = False
+    if not is_int(step):
+        violations.append(v("ENUM_INVALID", where + ".current_step",
+                            "current_step 须为 1-5 整数，实为 %r" % (step,)))
+    elif not (STEP_MIN <= step <= STEP_MAX):
+        violations.append(v("ENUM_INVALID", where + ".current_step",
+                            "current_step 越界：%s（合法集 1-5）" % step))
+    else:
+        step_ok = True
+
+    if status_ok and step_ok:
+        legal = STEP_BY_STATUS[str(status)]
+        if step not in legal:
+            violations.append(v("STATUS_MISMATCH", where + ".current_step",
+                                "status: %s 要求 current_step ∈ %s，实为 %s（续接锚点必须与"
+                                "会话阶段同档）"
+                                % (status, "|".join(str(x) for x in legal), step)))
+        if step >= 2 and not nonempty(approach):
+            violations.append(v("EMPTY_FIELD", where + ".approach",
+                                "current_step: %s 要求 approach 已选（%s）"
+                                % (step, "|".join(APPROACH_ENUM))))
+
+    techniques = record.get("techniques")
+    if techniques is None:
+        violations.append(v("EMPTY_FIELD", where + ".techniques",
+                            "techniques 缺失（无内容写空列表）"))
+    elif not isinstance(techniques, list):
+        violations.append(v("EMPTY_FIELD", where + ".techniques", "techniques 不是列表"))
+    else:
+        for i, technique in enumerate(techniques):
+            tw = "%s.techniques[%d]" % (where, i)
+            if not isinstance(technique, dict):
+                violations.append(v("EMPTY_FIELD", tw, "技术条目不是映射"))
+                continue
+            for key in ("name", "category"):
+                if not nonempty(technique.get(key)):
+                    violations.append(v("EMPTY_FIELD", tw + "." + key, "%s 为空" % key))
+            category = technique.get("category")
+            if nonempty(category) and categories and str(category) not in categories:
+                violations.append(v("ENUM_INVALID", tw + ".category",
+                                    "category 越界：%s（合法集 = 技术库类名 %s）"
+                                    % (category, "|".join(categories))))
+        if step_ok and step >= 3 and not techniques:
+            violations.append(v("EMPTY_FIELD", where + ".techniques",
+                                "current_step: %s 要求已选技术（step 2 的产出）" % step))
+
+    idea_violations, numbers = check_ideas(record, where)
+    violations += idea_violations
+    violations += check_themes(record, where, numbers)
+    violations += check_priorities(record, where, numbers)
+    violations += check_actions(record, where, numbers)
+
+    questions = record.get("open_questions")
+    if questions is None:
+        violations.append(v("EMPTY_FIELD", where + ".open_questions",
+                            "open_questions 缺失（无内容写空列表）"))
+    elif not isinstance(questions, list):
+        violations.append(v("EMPTY_FIELD", where + ".open_questions",
+                            "open_questions 不是列表"))
+    else:
+        for i, question in enumerate(questions):
+            if not nonempty(question):
+                violations.append(v("EMPTY_FIELD", "%s.open_questions[%d]" % (where, i),
+                                    "条目为空"))
+
+    if step_ok and step == STEP_MAX:
+        # 源纪律「无行动计划不得收尾」：收尾态必须有组织结论与行动计划
+        for key, msg in (("themes", "至少 1 个主题"),
+                         ("actions", "至少 1 条行动计划")):
+            if isinstance(record.get(key), list) and not record[key]:
+                violations.append(v("EMPTY_FIELD", where + "." + key,
+                                    "current_step: 5 要求%s（组织步的产出）" % msg))
+        priorities = record.get("priorities")
+        if isinstance(priorities, dict) and not priorities.get("top"):
+            violations.append(v("EMPTY_FIELD", where + ".priorities.top",
+                                "current_step: 5 要求 top 非空（优先级四维的收敛结果）"))
+
+    if final:
+        violations += check_final_duties(record, where, status)
+    return violations
+
+def check_final_duties(record, where, status):
+    """`--final` 附加义务：`status: 已完成` + 零 `[假设]`（定稿前清零）。"""
+    violations = []
+    if str(status) != "已完成":
+        violations.append(v("STATUS_MISMATCH", where + ".status",
+                            "--final 要求 status: 已完成，实为 %s（先走完 5 步收尾）" % status))
+    if any(ASSUMPTION_MARK in text for _p, text in walk_strings(record, "")):
+        violations.append(v("ASSUMPTION_PRESENT", where,
+                            "--final 要求零 [假设]；未决项写进 open_questions 再定稿"))
+    return violations
+
+def cmd_check(args):
+    root = os.path.abspath(args.project_root)
+    out = os.path.abspath(args.output_dir)
+    path = os.path.join(out, BRAINSTORM_FILE)
+    show = display_path(path, root)
+    payload = receipt_base("check", args, out)
+    violations = []
+    warnings = []
+    records = []
+    categories = None
+
+    rows, lib_violations = load_methods(root)
+    if lib_violations:
+        warnings += lib_violations  # 库缺席 → 类名枚举降级（不阻断产物校验）
+    else:
+        categories = library_categories(rows)
+
+    data, err = load_yaml_safe(path)
+    if data is None and err is None:
+        violations.append(v("MISSING_FILE", show,
+                            "%s 不存在（先跑 init 建会话记录）" % BRAINSTORM_FILE))
+    elif err is not None:
+        violations.append(v("UNPARSABLE_YAML", show, "YAML 解析失败：%s" % err))
+    elif not isinstance(data, dict):
+        violations.append(v("EMPTY_FIELD", show, "顶层不是映射（须为 project + sessions）"))
+    else:
+        project = data.get("project")
+        if project is not None and not isinstance(project, dict):
+            violations.append(v("EMPTY_FIELD", show + " project", "project 不是映射"))
+        revisions = data.get("revisions")
+        if revisions is not None and not isinstance(revisions, list):
+            violations.append(v("EMPTY_FIELD", show + " revisions", "revisions 不是列表"))
+        raw = data.get("sessions")
+        if raw is None:
+            violations.append(v("EMPTY_FIELD", show + " sessions",
+                                "sessions 缺失（集合形态；无记录写空列表）"))
+        elif not isinstance(raw, list):
+            violations.append(v("EMPTY_FIELD", show + " sessions", "sessions 不是列表"))
+        else:
+            records = raw
+            seen = set()
+            for i, record in enumerate(records):
+                if isinstance(record, dict) and nonempty(record.get("id")):
+                    rid = str(record["id"]).strip()
+                    if rid in seen:
+                        violations.append(v("DUPLICATE_ID", "%s.sessions[%d].id" % (show, i),
+                                            "记录 ID %s 重复（BS ID 稳定不重用）" % rid))
+                    seen.add(rid)
+            target_id = str(args.id).strip() if nonempty(args.id) else None
+            if target_id is not None and target_id not in seen:
+                violations.append(v("UNKNOWN_ID", "check --id",
+                                    "%s 不在 %s 的 sessions[] 内" % (target_id, show)))
+            for i, record in enumerate(records):
+                if target_id is not None and (
+                        not isinstance(record, dict)
+                        or str(record.get("id") or "").strip() != target_id):
+                    continue
+                violations += check_record(i, record, args.final, categories, show)
+            if args.final and not records:
+                violations.append(v("EMPTY_FIELD", show + " sessions",
+                                    "--final 要求至少 1 条会话记录"))
+
+    statuses = {}
+    ideas = 0
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        if nonempty(record.get("status")):
+            statuses[str(record["status"])] = statuses.get(str(record["status"]), 0) + 1
+        if isinstance(record.get("ideas"), list):
+            ideas += len(record["ideas"])
+    payload["ok"] = not violations
+    payload["violations"] = violations
+    payload["warnings"] = warnings
+    payload["final"] = bool(args.final)
+    payload["counts"] = {"sessions": len(records), "by_status": statuses, "ideas": ideas}
+    return emit(payload, args.json,
+                "PASS：%s 校验通过（sessions=%d / ideas=%d%s）"
+                % (show, len(records), ideas, " / --final" if args.final else ""))

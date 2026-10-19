@@ -40,6 +40,14 @@ READ_DISCIPLINE = ("读取纪律：预载预算 = 本文件、上述配置与回
                    "**主文件不列举封闭清单**。")
 
 
+def read_design_sources():
+    """design 引擎全件拼接（拆分后常量/码散落各域件——读源探针扫全集保活）。"""
+    d = os.path.join(SKILLS, "diy-design", "scripts")
+    return "".join(open(os.path.join(d, n), encoding="utf-8").read()
+                   for n in sorted(os.listdir(d))
+                   if n.startswith("design") and n.endswith(".py"))
+
+
 def read_scenarios_source():
     """引擎拆分后（入口+checks+lib）的上游源文本拼接——文本探针同源保活。"""
     parts = []
@@ -301,9 +309,7 @@ class SkillContractTests(unittest.TestCase):
     #        design.py 实现枚举，双向逐字一致——单侧断言查不出另一侧自造枚举外值）
     def test_form_factor_and_modes_enums_match_engine(self):
         import re
-        engine = os.path.join(SKILLS, "diy-design", "scripts", "design.py")
-        with open(engine, encoding="utf-8") as fh:
-            source = fh.read()
+        source = read_design_sources()
         for const, key in (("FORM_FACTORS", "form_factor"), ("MODES", "modes")):
             m = re.search(r"%s\s*=\s*\(([^)]*)\)" % const, source)
             self.assertIsNotNone(m, "design.py 不再定义 %s——值域守卫前提消失，须重裁" % const)
@@ -326,9 +332,7 @@ class SkillContractTests(unittest.TestCase):
     # trace: C·7 任务书 §2 W4 交付 4（meta 子键集双向守卫——照 C·12 W1 交付 5 形态，键名集比对）
     def test_meta_subkeys_match_engine(self):
         import re
-        engine = os.path.join(SKILLS, "diy-design", "scripts", "design.py")
-        with open(engine, encoding="utf-8") as fh:
-            source = fh.read()
+        source = read_design_sources()
         m = re.search(r"META_KEYS\s*=\s*\(([^)]*)\)", source)
         self.assertIsNotNone(m, "design.py 不再定义 META_KEYS——meta 守卫前提消失，须重裁")
         py_keys = re.findall(r'"([^"]+)"', m.group(1))
@@ -346,9 +350,7 @@ class SkillContractTests(unittest.TestCase):
     #        行定位口径同 test_design_intent_l_has_disposition，不扫全文反引号串））
     def test_a11y_code_set_matches_engine(self):
         import re
-        engine = os.path.join(SKILLS, "diy-design", "scripts", "design.py")
-        with open(engine, encoding="utf-8") as fh:
-            source = fh.read()
+        source = read_design_sources()
         py_codes = set(re.findall(r'"(a11y-[a-z-]+)"', source))
         self.assertTrue(
             py_codes, "design.py 不再产出 a11y-* 码——码集守卫前提消失，须重裁")
@@ -366,9 +368,7 @@ class SkillContractTests(unittest.TestCase):
     # trace: C·12 §7-5①（dark 六角色 = 亮色六角色同款——守卫两角色集不脱钩）
     def test_dark_roles_match_color_roles(self):
         import re
-        engine = os.path.join(SKILLS, "diy-design", "scripts", "design.py")
-        with open(engine, encoding="utf-8") as fh:
-            source = fh.read()
+        source = read_design_sources()
         m = re.search(r"DARK_ROLES\s*=\s*\(([^)]*)\)", source)
         self.assertIsNotNone(m, "design.py 不再定义 DARK_ROLES——dark 形状守卫前提消失")
         dark_roles = re.findall(r'"([^"]+)"', m.group(1))

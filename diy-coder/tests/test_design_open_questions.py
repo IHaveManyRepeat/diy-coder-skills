@@ -335,7 +335,9 @@ class FinalGateTests(W7Harness):
         for term in ("`validate` exit 0", "`check` PASS", "`audit` 零 `one-off-*`",
                      "`[假设]` 清零", "零 `待办`", "才写 `status: 已定稿`"):
             self.assertIn(term, gate[0], "定稿三道的合取项缺失：%s" % term)
-        engine_src = read(DESIGN_PY)
+        _d = os.path.dirname(DESIGN_PY)
+        engine_src = "".join(read(os.path.join(_d, n)) for n in sorted(os.listdir(_d))
+                             if n.startswith("design") and n.endswith(".py"))
         self.assertIn("OPEN_QUESTION_PENDING", engine_src,
                       "「零 待办」这一道在引擎里没有闸")
         self.assertNotIn("[假设]", engine_src,

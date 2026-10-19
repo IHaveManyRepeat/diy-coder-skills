@@ -986,6 +986,8 @@ def make_wds_fixture(page_statuses, project_status="已定稿", instance=None,
     engine = root / ".claude" / "skills" / "diy-design" / "scripts" / "design.py"
     engine.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(DESIGN_ENGINE, engine)
+    for _extra in sorted(DESIGN_ENGINE.parent.glob("design_*.py")):
+        shutil.copyfile(_extra, engine.parent / _extra.name)
     # 引擎副本跨技能 import diyc_lib（parents[2] 同构），沙盒补拷库四件
     # （lib 入口 + base/report/docs 分域件）
     lib_dir = root / ".claude" / "skills" / "diy-tools" / "scripts"
