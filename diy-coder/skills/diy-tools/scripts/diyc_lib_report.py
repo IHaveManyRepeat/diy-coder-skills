@@ -5,7 +5,8 @@ import json
 import os
 import subprocess
 
-from diyc_lib_base import load_yaml, load_yaml_safe, nonempty, save_yaml_atomic, today, v
+from diyc_lib_base import (load_yaml, load_yaml_checked, load_yaml_safe, nonempty,
+                           save_yaml_atomic, today, v)
 
 # ---------------------------------------------------------------- 回执与输出
 
@@ -34,11 +35,13 @@ def receipt_base(command, args, output_dir) -> dict:
 
 def read_sessions(path, show):
     """读产物并取 sessions 列表 → (records | None, violations, warnings)。"""
-    data, err = load_yaml_safe(path)
+    data, code, err = load_yaml_checked(path)
     if data is None and err is None:
         return None, [], []
     if err is not None:
-        return None, [v("UNPARSABLE_YAML", show, "YAML 解析失败：%s" % err)], []
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        return None, [v(code, show, "YAML %s：%s"
+                        % ("重复键" if code == "DUPLICATE_KEY" else "解析失败", err))], []
     if not isinstance(data, dict):
         return None, [v("EMPTY_FIELD", show, "顶层不是映射（须为 project + sessions）")], []
     raw = data.get("sessions")

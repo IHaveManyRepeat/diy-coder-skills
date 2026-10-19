@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
 from diyc_lib import display_path, v  # noqa: E402
+from diyc_lib_base import load_yaml_text  # noqa: E402
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = SKILL_DIR / "data"
@@ -43,7 +44,7 @@ DOC_REQUIRED = ("project", "design_system_mode", "tokens", "categories", "prefix
 def load_yaml(path: Path):
     """→ (data, error)。error 为 None 表示解析成功。"""
     try:
-        return yaml.safe_load(path.read_text(encoding="utf-8")), None
+        return load_yaml_text(path.read_text(encoding="utf-8")), None
     except Exception as exc:                                   # noqa: BLE001 - 一律转违规码
         return None, str(exc)
 

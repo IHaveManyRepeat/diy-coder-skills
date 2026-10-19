@@ -9,6 +9,7 @@ import yaml
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import v  # noqa: E402
+from diyc_lib_base import load_yaml_text  # noqa: E402
 
 PRODUCT = "wds-evolution.yaml"
 # VA-09（.yml 扩面）连带（C·11 V-A E3）：自产物的两种拼写都不算门禁上游
@@ -62,7 +63,7 @@ def load_yaml_soft(path):
     if not text.strip():
         return {}, None
     try:
-        return yaml.safe_load(text), None
+        return load_yaml_text(text), None
     except yaml.YAMLError as exc:
         return None, str(exc)
 

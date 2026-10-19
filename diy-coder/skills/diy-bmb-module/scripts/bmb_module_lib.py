@@ -8,6 +8,7 @@ import re
 import yaml
 
 from diyc_lib import nonempty, today
+from diyc_lib_base import load_yaml_text
 
 PLAN_FILE = "module-plan.yaml"
 SKILL_FILE = "SKILL.md"
@@ -145,7 +146,7 @@ def read_frontmatter(path):
     if end is None:
         return None, "frontmatter 段未闭合"
     try:
-        data = yaml.safe_load("\n".join(lines[1:end]))
+        data = load_yaml_text("\n".join(lines[1:end]))
     except yaml.YAMLError as e:
         return None, "frontmatter 解析失败：%s" % e
     if data is None:

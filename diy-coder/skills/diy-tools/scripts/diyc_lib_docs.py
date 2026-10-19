@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 """diyc 共享层产物索引：Docs 唯一入口（契约 §5）。"""
 
-import io
 import os
 
-import yaml
-
-from diyc_lib_base import id_sort
+from diyc_lib_base import id_sort, load_yaml_checked
 
 # 文档名 → 文件名（契约 §6 形状以 diy-output 实物为准）
 DOC_FILES = {
@@ -58,31 +55,30 @@ class Docs:
         self.output_dir = output_dir
         self._cache = {}
         self._errs = {}
+        self._err_codes = {}
 
     # -- 原始文档 ----------------------------------------------------------
 
     def doc(self, name):
         """name: prd/architecture/openapi/epics/stories/test-plan/sprint/design/bug-log。
 
-        缺失 → None；解析失败/顶层非映射 → None（错误见 yaml_err）；空文件 → {}。
+        缺失 → None；解析失败/重复键/顶层非映射 → None（错误见 yaml_err）；空文件 → {}。
         """
         if name in self._cache:
             return self._cache[name]
         fname = DOC_FILES[name]
         path = os.path.join(self.output_dir, fname)
-        data = None
-        if os.path.isfile(path):
-            try:
-                with io.open(path, "r", encoding="utf-8") as f:
-                    data = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                self._errs[name] = "YAML 解析失败: %s" % e
-            else:
-                if data is None:
-                    data = {}
-                elif not isinstance(data, dict):
-                    self._errs[name] = "顶层不是映射（实际 %s）" % type(data).__name__
-                    data = None
+        data, code, err = load_yaml_checked(path)
+        if err:
+            # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+            label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
+            self._errs[name] = "YAML %s: %s" % (label, err)
+            self._err_codes[name] = code
+            data = None
+        elif data is not None and not isinstance(data, dict):
+            self._errs[name] = "顶层不是映射（实际 %s）" % type(data).__name__
+            self._err_codes[name] = "UNPARSABLE_YAML"
+            data = None
         self._cache[name] = data
         return data
 
@@ -90,6 +86,11 @@ class Docs:
         """该文档的解析错误一行中文；无错 → None。"""
         self.doc(name)
         return self._errs.get(name)
+
+    def yaml_err_code(self, name):
+        """该文档解析错误的违规码（DUPLICATE_KEY/UNPARSABLE_YAML）；无错 → None。"""
+        self.doc(name)
+        return self._err_codes.get(name)
 
     # -- 索引 --------------------------------------------------------------
 

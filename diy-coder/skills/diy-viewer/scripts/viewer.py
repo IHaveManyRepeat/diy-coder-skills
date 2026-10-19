@@ -15,6 +15,9 @@ from pathlib import Path
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
+from diyc_lib_base import load_yaml_text  # noqa: E402
+
 import viewer_refs as _refs
 from viewer_glossary import DOC_KEY_LABELS, DOC_LABELS, VALUE_LABELS
 from viewer_labels import BADGE_CLASSES, ENUM_KEYS, KEY_LABELS
@@ -31,7 +34,7 @@ def load_config(project_root: Path) -> dict:
     cfg = {}
     if cfg_path.exists():
         try:
-            cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
+            cfg = load_yaml_text(cfg_path.read_text(encoding="utf-8")) or {}
         except yaml.YAMLError as e:
             print(f"[diy-viewer] warning: cannot parse {cfg_path}: {e}", file=sys.stderr)
         else:
@@ -84,7 +87,7 @@ def load_docs(paths) -> tuple:
     docs, errors = [], []
     for p in paths:
         try:
-            data = yaml.safe_load(p.read_text(encoding="utf-8"))
+            data = load_yaml_text(p.read_text(encoding="utf-8"))
         except (yaml.YAMLError, OSError) as e:
             errors.append(f"{p.name}: {e}")
             continue

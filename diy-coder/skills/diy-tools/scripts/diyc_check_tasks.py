@@ -6,6 +6,7 @@ import os
 import diyc_check_docs as d  # noqa: E402
 import diyc_lib  # noqa: E402
 from diyc_lib import rel_path  # noqa: E402
+from diyc_lib_base import load_yaml_checked  # noqa: E402
 
 VERDICT_ROUTES = ("意图缺口", "规格缺陷", "小修", "后置")   # rule: diy-review/SKILL.md:Routing
 FINDING_LAYERS = ("正确性", "边界", "覆盖审计", "设计采用")  # rule: diy-review/SKILL.md:Schema review.findings.layer
@@ -69,9 +70,11 @@ def _check_previous(typ, doc, previous, rel, root, report):
     if not os.path.isfile(previous):
         report.add("MISSING_FILE", prev_rel, "旧稿不存在（--previous 路径无效）")
         return
-    prev, err = diyc_lib.load_yaml_safe(previous)
+    prev, prev_code, err = load_yaml_checked(previous)
     if err:
-        report.add("UNPARSABLE_YAML", prev_rel, "旧稿解析失败：%s" % err)
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        report.add(prev_code, prev_rel, "旧稿%s：%s"
+                   % ("重复键" if prev_code == "DUPLICATE_KEY" else "解析失败", err))
         return
     if not isinstance(prev, dict):
         report.add("UNPARSABLE_YAML", prev_rel, "旧稿顶层不是映射")
