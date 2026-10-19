@@ -298,12 +298,17 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                                    "%s 的接口锚（%s %s）无 type: 集成 用例点名"
                                    "（带 api_refs 的 AC 接口用例必做）"
                                    % (ac_id, anchor.get("method"), anchor.get("path")))
-        # FH 被杀：每条 FH 须被 ≥1 TC 的 kill_target 引用
-        # rule: diy-test-design/SKILL.md:Final requires（杀不掉的 FH 记 [FH-GAP] 缺口
-        #       交用户当轮裁决；两出口收口后终态仍是被杀或已删）
+        # FH 被杀双口径（底单 :683 2026-10-16 裁·R2=A TC.status 机械判据）：
+        # 全部 TC 待办＝设计期引用口径（只查引用）；出现 通过/失败＝编码期收紧
+        # （仅 status: 通过 的 TC 引用计数）。
+        # rule: diy-test-design/SKILL.md:Final requires（双口径分时点·杀不掉的 FH 记
+        #       [FH-GAP] 缺口交用户当轮裁决；两出口收口后终态仍是被杀或已删）
         if fh_ids:
+            coding_phase = any(t.get("status") in ("通过", "失败") for t in cases)
             killed = set()
             for t in cases:
+                if coding_phase and t.get("status") != "通过":
+                    continue  # 编码期仅 status: 通过 的引用计数
                 kt = t.get("kill_target")
                 if isinstance(kt, list):
                     killed.update(x for x in kt if is_str(x))
@@ -311,9 +316,14 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                     killed.add(kt)
             unkilled = sorted(fh_ids - killed)
             if unkilled:
+                if coding_phase:
+                    hint = ("编码期口径：FH 须被 ≥1 条 status: 通过 的 TC 引用；"
+                            "杀不掉记 [FH-GAP] 缺口交用户裁决，裁『不删』必须补/修至通过")
+                else:
+                    hint = ("设计期口径：每条 FH 须 ≥1 TC 引用；"
+                            "杀不掉记 [FH-GAP] 缺口交用户裁决，裁『不删』必须补 TC")
                 report.add("SET_MISMATCH", rel + " fault_hypotheses",
-                           "FH 未被任何用例杀掉：%s（每条 FH 须 ≥1 TC 引用；杀不掉记 [FH-GAP] "
-                           "缺口交用户裁决，裁『不删』必须补 TC）" % "、".join(unkilled))
+                           "FH 未被任何用例杀掉：%s（%s）" % ("、".join(unkilled), hint))
 
     # mutation 段（在场时校验形状；缺席按 enabled: true 消费，不报）
     # rule: diy-test-design/SKILL.md:Schema mutation（enabled 布尔·tool 可选；唯一出处在本技能）

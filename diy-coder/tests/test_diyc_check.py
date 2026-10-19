@@ -611,6 +611,44 @@ class FiveAxisCheckTest(CheckBase):
         self.assertIn("SET_MISMATCH", codes(r), "FH 未被杀未拦")
         self.assertIn("FH-1.1.2", msgs(r))
 
+    def test_final_fh_dual_design_phase_reference_only(self):
+        """设计期（全待办）＝引用口径：待办 TC 引用即算被杀。"""
+        tc, fhs, audit, _ = self._clean_env()
+        tc["status"] = "待办"
+        self._env([tc], fhs=fhs, audit=audit)
+        r = check(self.root, "test-plan", final=True)
+        self.assertTrue(r["ok"], msgs(r))
+
+    def test_final_fh_dual_coding_phase_requires_passed(self):
+        """编码期（出现通过/失败）＝收紧：仅 status: 通过 的引用计数。"""
+        tc, fhs, audit, _ = self._clean_env()
+        tc["status"] = "失败"  # 失败触发编码期，但失败引用不计数
+        self._env([tc], fhs=fhs, audit=audit)
+        r = check(self.root, "test-plan", final=True)
+        self.assertIn("SET_MISMATCH", codes(r), "编码期失败引用未收紧未拦")
+        self.assertIn("FH-1.1.1", msgs(r))
+        tc["status"] = "通过"
+        self._env([tc], fhs=fhs, audit=audit)
+        self.assertTrue(check(self.root, "test-plan", final=True)["ok"],
+                        "编码期通过引用未放行")
+
+    def test_final_fh_dual_mixed_status(self):
+        """混合状态：通过计数、待办不计数——仅被待办引用的 FH 仍红。"""
+        tc1, fhs, audit, _ = self._clean_env()
+        tc2 = dict(tc1, id="TC-1.1.2", status="待办",
+                   kill_target="FH-1.1.2", dimension="正向")
+        tc1["status"] = "通过"
+        fhs = fhs + [{"id": "FH-1.1.2", "ac": "AC-1.1", "text": "仅待办引用"}]
+        audit = [{"ac": "AC-1.1", "axis": "正向",
+                  "tcs": ["TC-1.1.1", "TC-1.1.2"]}] + [
+            {"ac": "AC-1.1", "axis": ax, "not_applicable": "夹具不适用"}
+            for ax in ("边界", "异常", "安全", "性能")]
+        self._env([tc1, tc2], fhs=fhs, audit=audit)
+        r = check(self.root, "test-plan", final=True)
+        self.assertIn("SET_MISMATCH", codes(r), "混合状态待办引用未拦")
+        self.assertIn("FH-1.1.2", msgs(r))
+        self.assertNotIn("FH-1.1.1", msgs(r))
+
     def test_mutation_section_shape(self):
         tc, fhs, audit, _ = self._clean_env()
         self._env([tc], fhs=fhs, audit=audit, mutation={"enabled": "yes"})
