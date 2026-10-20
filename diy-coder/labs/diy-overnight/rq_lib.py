@@ -355,6 +355,19 @@ def render_report(data: dict, now: datetime) -> str:
             f"| {res.get('branch', '—')} | {(res.get('commit') or '—')[:7]} "
             f"| {res.get('tests', '—')} | {note or '—'} |"
         )
+    # 早审 diff 入口（2026-10-19 用户要求，Q-001 173d304 迁入）：逐支给出可直接复制的
+    # `git diff 前支tip..本支tip`；摘要取提交 message 体，剔除 basis/测试 尾段
+    diffs = []
+    for i, task in enumerate(tasks):
+        res = task.get("result") or {}
+        if task.get("status") == "完成" and res.get("commit"):
+            body = "；".join(git("log", "-1", "--format=%B", res["commit"]).stdout.splitlines()[1:])
+            desc = [s.strip() for s in body.split("；")
+                    if s.strip() and not s.strip().startswith(("basis", "测试"))]
+            diffs.append(f"- {task.get('id')}：`git diff {prev_tip(data, i)[:7]}..{res['commit'][:7]}`"
+                         f"（{'；'.join(desc)}）")
+    if diffs:
+        lines += ["", "## 早审 diff 入口（队列序）", ""] + diffs
     pending = [x for x in tasks if x.get("status") in ("顺延", "跳过", "阻塞")]
     if pending:
         lines += ["", "## 未完成项（原因＋建议处置）", ""] + [
