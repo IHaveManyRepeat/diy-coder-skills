@@ -381,6 +381,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面：diy-architecture SKILL.md（触发落点＋评审面）＋ diy-openapi SKILL.md（结构段 `responses`/`securitySchemes`/`tags`＋工作流走查单位＋DRY 规则扩 `components/responses`）＋ diyc_lib.py 校验面（通用错误 `$ref`·`F-x` tag 解析）＋ viewer 展示层词汇＋相关 tests。
 
+**〔v4·批4a 已销 2026-10-19〕**：①通用错误结构——RFC 9457 problem details＋`components/responses` 通用状态码（默认清单 400/401/403/404/409/500 按需）＋每 operation 必挂通用错误 `$ref`（终门断言）；②鉴权三层联动——architecture 规则 4 改写（问用户形态·安全默认考虑、opt-out 答复落盘）＋安全类四类必答＋规则 8 保留重定位接口面联动；openapi `securitySchemes`＋顶层 `security`（`security: []`＝显式无鉴权留痕）入终门硬门；③功能分组数据面——operation 必挂 `F-x 功能名` tags＋顶层 `tags:` 声明＋F-x 解析到 prd.yaml（prd 缺席/损坏硬 violation exit 1）＋走查单位资源→功能＋跨功能共享资源单归属；④viewer KEY_LABELS 补 securitySchemes/tags 等键（零裸键）。夜队列 Q-106 施工（分支 overnight/2026-10-19/Q-106·合入 `a903268`），全量 1737 passed＋248 subtests 绿·sync 过；展示重组＋行锚归 4b。
+
 ## 待办：openapi 接口总览行锚（2026-10-04 用户裁定，待执行）
 
 登记来源：用户看 diy-lab 实测渲染的 openapi.html 接口总览提出「接口没有 id，要增加 id」。
