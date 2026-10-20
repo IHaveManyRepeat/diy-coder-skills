@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
 from diyc_lib import display_path, now, project_name  # noqa: E402
-from diyc_lib_base import load_yaml_text  # noqa: E402
+from diyc_lib_base import DuplicateKeyError, load_yaml_text  # noqa: E402
 
 PRODUCT = "wds-assets.yaml"
 UPSTREAM = "wds-scenarios.yaml"
@@ -132,6 +132,10 @@ def load_yaml(path: Path, report: Report, bucket="violations", label=None):
         return None
     try:
         doc = load_yaml_text(path.read_text(encoding="utf-8"))
+    except DuplicateKeyError as exc:
+        report.add("DUPLICATE_KEY", display_path(path, report.project_root),
+                   f"YAML 重复键：{exc}", bucket)
+        return None
     except yaml.YAMLError as exc:
         report.add("UNPARSABLE_YAML", display_path(path, report.project_root),
                    f"YAML 解析失败：{exc}", bucket)

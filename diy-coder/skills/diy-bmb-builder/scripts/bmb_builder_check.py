@@ -13,7 +13,7 @@ from bmb_builder_lib import (ENTRY_TYPES, ESCAPE_RE, FROZEN_ANCHORS, LOCAL_DIR_R
                              resolve_arg_path)
 from bmb_builder_scan import skill_md_files  # noqa: E402
 from diyc_lib import display_path, nonempty, v, write_atomic
-from diyc_lib_base import load_yaml_text
+from diyc_lib_base import DuplicateKeyError, load_yaml_text
 
 # ---------------------------------------------------------------- mlog（过程日志）
 
@@ -134,6 +134,9 @@ def parse_frontmatter(text, show):
         return None, [v("EMPTY_FIELD", show, "frontmatter 未闭合")]
     try:
         data = load_yaml_text("\n".join(lines[1:end])) or {}
+    except DuplicateKeyError as e:
+        return None, [v("DUPLICATE_KEY", show,
+                        "frontmatter 重复键：%s" % str(e).splitlines()[0])]
     except yaml.YAMLError as e:
         return None, [v("UNPARSABLE_YAML", show, "frontmatter 解析失败：%s" % str(e).splitlines()[0])]
     if not isinstance(data, dict):

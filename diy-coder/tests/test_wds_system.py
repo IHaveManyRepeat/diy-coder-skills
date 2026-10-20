@@ -463,6 +463,15 @@ class TestCheck(Base):
         self.assertEqual(rc, 1)
         self.assertEqual(receipt(out)["violations"][0]["code"], "UNPARSABLE_YAML")
 
+    # trace: 夜队列 Q-104 补（底单 :364 ⑤：重复键与解析失败区分）
+    def test_duplicate_key_yaml_is_distinct_code(self):
+        self.seed_scenarios()
+        (self.out / PRODUCT).write_text(
+            "project:\n  name: a\n  name: b\n", encoding="utf-8")
+        rc, out, _ = run("check", *self.base_args(), "--json")
+        self.assertEqual(rc, 1)
+        self.assertEqual(receipt(out)["violations"][0]["code"], "DUPLICATE_KEY")
+
 
 # ─────────────────── 7. 跨技能门禁（ID 链接入 wds-scenarios.yaml） ───────────────────
 

@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scripts"))
 from diyc_lib import display_path, v  # noqa: E402
-from diyc_lib_base import load_yaml_text  # noqa: E402
+from diyc_lib_base import DuplicateKeyError, load_yaml_text  # noqa: E402
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = SKILL_DIR / "data"
@@ -42,11 +42,13 @@ DOC_REQUIRED = ("project", "design_system_mode", "tokens", "categories", "prefix
 
 
 def load_yaml(path: Path):
-    """→ (data, error)。error 为 None 表示解析成功。"""
+    """→ (data, error, code)。error 为 None 表示解析成功。"""
     try:
-        return load_yaml_text(path.read_text(encoding="utf-8")), None
+        return load_yaml_text(path.read_text(encoding="utf-8")), None, None
+    except DuplicateKeyError as exc:
+        return None, str(exc), "DUPLICATE_KEY"
     except Exception as exc:                                   # noqa: BLE001 - 一律转违规码
-        return None, str(exc)
+        return None, str(exc), "UNPARSABLE_YAML"
 
 
 def save_yaml_atomic(path: Path, data) -> None:
@@ -59,21 +61,21 @@ def save_yaml_atomic(path: Path, data) -> None:
 
 
 def table_prefixes() -> list:
-    data, err = load_yaml(DATA_DIR / "component-prefixes.yaml")
+    data, err, _ = load_yaml(DATA_DIR / "component-prefixes.yaml")
     if err:
         raise SystemExit("前缀表不可读：%s" % err)
     return data["table"]
 
 
 def table_categories() -> list:
-    data, err = load_yaml(DATA_DIR / "component-categories.yaml")
+    data, err, _ = load_yaml(DATA_DIR / "component-categories.yaml")
     if err:
         raise SystemExit("分类表不可读：%s" % err)
     return [c["name"] for c in data["categories"]]
 
 
 def table_spacing_names() -> list:
-    data, err = load_yaml(DATA_DIR / "token-vocabulary.yaml")
+    data, err, _ = load_yaml(DATA_DIR / "token-vocabulary.yaml")
     if err:
         raise SystemExit("令牌词汇表不可读：%s" % err)
     return [s["name"] for s in data["spacing"]]
@@ -81,7 +83,7 @@ def table_spacing_names() -> list:
 
 def table_spacing_steps() -> dict:
     """`名 → design.yaml.tokens.spacing.scale 的 0 基下标`（`space-0` 为 None：值恒 0）。"""
-    data, err = load_yaml(DATA_DIR / "token-vocabulary.yaml")
+    data, err, _ = load_yaml(DATA_DIR / "token-vocabulary.yaml")
     if err:
         raise SystemExit("令牌词汇表不可读：%s" % err)
     return {s["name"]: s.get("step") for s in data["spacing"]}
@@ -96,9 +98,11 @@ def read_upstream(output_dir: Path, project_root: Path):
     if not path.exists():
         return None, [v("MISSING_FILE", where,
                         "上游产物不在场——零产出停止，路由 `diy-wds-scenarios`")]
-    doc, err = load_yaml(path)
+    doc, err, code = load_yaml(path)
     if err:
-        return None, [v("UNPARSABLE_YAML", where, "上游产物不可解析：%s" % err)]
+        label = "重复键" if code == "DUPLICATE_KEY" else "不可解析"
+        return None, [v(code or "UNPARSABLE_YAML", where,
+                        "上游产物%s：%s" % (label, err))]
     status = (doc.get("project") or {}).get("status")
     if status != "已定稿":
         return None, [v("STATUS_MISMATCH", where + " project.status",
@@ -117,9 +121,11 @@ def read_product(output_dir: Path, project_root: Path):
     where = display_path(path, project_root)
     if not path.exists():
         return None, [v("MISSING_FILE", where, "产物不在场——先跑 `init`")]
-    doc, err = load_yaml(path)
+    doc, err, code = load_yaml(path)
     if err:
-        return None, [v("UNPARSABLE_YAML", where, "产物不可解析：%s" % err)]
+        label = "重复键" if code == "DUPLICATE_KEY" else "不可解析"
+        return None, [v(code or "UNPARSABLE_YAML", where,
+                        "产物%s：%s" % (label, err))]
     return doc, None
 
 
@@ -128,7 +134,7 @@ def read_design(output_dir: Path):
     path = output_dir / DESIGN
     if not path.exists():
         return None, False
-    doc, err = load_yaml(path)
+    doc, err, _ = load_yaml(path)
     if err or not isinstance(doc, dict):
         return None, False
     tokens = doc.get("tokens")

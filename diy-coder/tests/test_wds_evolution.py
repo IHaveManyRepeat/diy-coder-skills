@@ -289,6 +289,18 @@ class InitTests(Base):
         with open(self.product_path(), encoding="utf-8") as fh:
             self.assertEqual(fh.read(), "project: [\n")
 
+    # trace: 夜队列 Q-104 补（底单 :364 ⑤：重复键与解析失败区分）
+    def test_init_on_duplicate_key_product_reports_duplicate_key(self):
+        self.write_artifact("design.yaml")
+        text = "project:\n  name: a\n  name: b\n"
+        with open(self.product_path(), "w", encoding="utf-8") as fh:
+            fh.write(text)
+        rc, rec, _, _ = self.init_ok()
+        self.assertEqual(rc, 1)
+        self.assertEqual(rec["violations"][0]["code"], "DUPLICATE_KEY")
+        with open(self.product_path(), encoding="utf-8") as fh:
+            self.assertEqual(fh.read(), text)
+
 
 class ListShowTests(Base):
     """③④ list / show。"""

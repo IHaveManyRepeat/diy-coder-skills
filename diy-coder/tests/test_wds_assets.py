@@ -332,6 +332,17 @@ class WdsAssetsTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("STATUS_MISMATCH", {v["code"] for v in payload["violations"]})
 
+    # trace: 夜队列 Q-104 补（底单 :364 ⑤：重复键与解析失败区分）
+    def test_check_duplicate_key_product_reports_duplicate_key(self):
+        self.init_ok()
+        (self.out / "wds-assets.yaml").write_text(
+            "project:\n  name: a\n  name: b\n", encoding="utf-8")
+        code, payload, _, _ = run(
+            ["check", "--project-root", str(self.root), "--output-dir", str(self.out), "--json"]
+        )
+        self.assertEqual(code, 1, payload)
+        self.assertIn("DUPLICATE_KEY", {v["code"] for v in payload["violations"]})
+
     def test_check_receipt_reports_design_system_presence(self):
         """§4.1 连带：终门回执同 init 暴露 has_design_system（在场/缺席两态）。"""
         self.init_ok()

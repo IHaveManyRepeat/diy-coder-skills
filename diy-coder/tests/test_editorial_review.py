@@ -156,6 +156,13 @@ class StatsGateTests(EngineCase):
         self.assertEqual(self.codes(r2), ["EMPTY_FIELD"])
         self.assert_zero_output()
 
+    # trace: 夜队列 Q-104 补（底单 :364 ⑤：重复键与解析失败区分）
+    def test_duplicate_key_target_reports_duplicate_key(self):
+        self.write("docs/dup.yaml", "problem: a\nproblem: b\n")
+        r = self.stats("--target", "docs/dup.yaml")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertEqual(self.codes(r), ["DUPLICATE_KEY"])
+
     # trace: B4 diy-editorial-review 用例 3（--lens / --reader-type 越界 → ENUM_INVALID；单透镜合法）
     def test_invalid_lens_refused(self):
         self.write("docs/doc.md", DOC_MD)

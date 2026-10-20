@@ -38,7 +38,8 @@ def _reconcile(args):
         if err:
             # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
             code = docs.yaml_err_code(name) or "UNPARSABLE_YAML"
-            vio.append(lib.v(code, rel, f"{rel} 解析失败：{err}"))
+            label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
+            vio.append(lib.v(code, rel, f"{rel} {label}：{err}"))
         elif docs.doc(name) is None:
             vio.append(lib.v("MISSING_FILE", rel,
                              f"{rel} 不存在——reconcile 依赖 stories 与 test-plan 计算 TDD 门"))

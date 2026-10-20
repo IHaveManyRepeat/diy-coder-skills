@@ -9,7 +9,7 @@ import yaml
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import v  # noqa: E402
-from diyc_lib_base import load_yaml_text  # noqa: E402
+from diyc_lib_base import DuplicateKeyError, load_yaml_text  # noqa: E402
 
 PRODUCT = "wds-evolution.yaml"
 # VA-09（.yml 扩面）连带（C·11 V-A E3）：自产物的两种拼写都不算门禁上游
@@ -52,20 +52,23 @@ def emit(result, as_json):
 
 
 def load_yaml_soft(path):
-    """(data, err)。缺失 → (None, "missing")；空文件 → ({}, None)；解析错 → (None, msg)。"""
+    """(data, err, code)。缺失 → (None, "missing", None)；空文件 → ({}, None, None)；
+    解析错 → (None, msg, "UNPARSABLE_YAML")；重复键 → (None, msg, "DUPLICATE_KEY")。"""
     if not os.path.exists(path):
-        return None, "missing"
+        return None, "missing", None
     try:
         with open(path, encoding="utf-8") as fh:
             text = fh.read()
     except OSError as exc:
-        return None, str(exc)
+        return None, str(exc), "UNPARSABLE_YAML"
     if not text.strip():
-        return {}, None
+        return {}, None, None
     try:
-        return load_yaml_text(text), None
+        return load_yaml_text(text), None, None
+    except DuplicateKeyError as exc:
+        return None, str(exc), "DUPLICATE_KEY"
     except yaml.YAMLError as exc:
-        return None, str(exc)
+        return None, str(exc), "UNPARSABLE_YAML"
 
 
 def product_path(output_dir):
@@ -95,13 +98,15 @@ def gate_present(output_dir):
 def load_product_or_report(output_dir, violations):
     """读产物；缺失/损坏 → 记违规并回 None。"""
     path = product_path(output_dir)
-    data, err = load_yaml_soft(path)
+    data, err, code = load_yaml_soft(path)
     where = norm(path)
     if err == "missing":
         violations.append(v("MISSING_FILE", where, "产物不存在：{}".format(PRODUCT)))
         return None
     if err:
-        violations.append(v("UNPARSABLE_YAML", where, "YAML 解析失败：{}".format(err)))
+        label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
+        violations.append(v(code or "UNPARSABLE_YAML", where,
+                            "YAML {}：{}".format(label, err)))
         return None
     if not isinstance(data, dict):
         violations.append(v("UNPARSABLE_YAML", where, "产物顶层不是映射"))
