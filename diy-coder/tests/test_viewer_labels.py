@@ -1107,7 +1107,13 @@ class FiveAxisLabelTests(_Fixture):
         self.write("test-plan.yaml", FIVE_AXIS_PLAN_DOC)
         p = self.render()
         self.assertEqual(p.returncode, 0, p.stderr)
+        # trace: Q-105——method 入 ENUM_KEYS 后，test-plan 的 api_refs[].method 装
+        # HTTP 动词：FREE_TEXT_FIELDS 例外须生效（零 unmapped + 纯文本无徽章）
+        self.assertNotIn("unmapped enum", p.stderr,
+                         "api_refs[].method 例外失效：%s" % p.stderr)
         html = self.page("test-plan")
+        self.assertNotIn('b-neutral">get</span>', html,
+                         "HTTP 动词被误当 cis-method 枚举值出徽章")
         for label in ("故障假设", "五轴审计", "变异配置", "维度",
                       "爆炸半径", "接口锚", "审计轴", "不适用理由", "是否启用"):
             self.assertIn(label, html, "批 1 新键 %s 未映射中文标签" % label)
@@ -1607,9 +1613,9 @@ class ClosedWorldLabelTests(_Fixture):
             # 页面标题中文化（DOC_LABELS）
             self.assertIn("<h1>创意方法引导器</h1>", html,
                           "%s：cis-method 页面标题未中文化" % method_value)
-            # method 值在场（method ∉ ENUM_KEYS → 纯文本渲染，不强制徽章；
-            # 值本身是中文，键标签「方法」中文化即零裸键达标）
-            self.assertIn(method_value, html, "%s：method 值丢失" % method_value)
+            # method ∈ ENUM_KEYS（用户裁定）→ 值出中性徽章
+            self.assertIn('class="badge b-neutral">%s</span>' % method_value, html,
+                          "%s：method 值未出中性徽章" % method_value)
             self.assertIn("<th>方法</th>", html, "method 键标签未映射")
             # deliverable 键标签：抽样分支首键不裸出（全键量大，封闭世界已全量断言）
             first_key = keys[0]

@@ -10,7 +10,11 @@ ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "tech
                           "scope", "stage", "recipe", "format", "prompt_lang", "entry",
                           # trace: C·12 W2（裁定 C12-2 ③）——design 族新增顶层两键（值域四值/三值，
                           # 见 diy-design 引擎 validate）；进枚举表 = 值域白名单 + 徽章判定
-                          "form_factor", "modes"}
+                          "form_factor", "modes",
+                          # trace: Q-105（用户裁定）——cis-method sessions[].method 四分支值
+                          # （创新策略|问题求解|设计思维|叙事，见 SKILL.md schema）；
+                          # 同名键装 HTTP 动词的三个产物已在 FREE_TEXT_FIELDS 例外登记
+                          "method"}
 # 自由文本字段 (doc, key)：schema 无枚举约束——同名 key 在别的产物可以是枚举。
 # 依据：diy-architecture SKILL.md:43 decision=what was chosen；diy-review SKILL.md:31 type=short tag；
 # diy-design SKILL.md:65 route=/path
@@ -42,7 +46,13 @@ FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design"
                     # trace: v4 批 4a——openapi 的 type 是 OpenAPI/JSON-Schema 机器锚点
                     # 值域（securityScheme: apiKey/http/oauth2…；schema: object/string/
                     # integer…），非本产品枚举域；不登记则 components 渲染每次刷 unmapped enum
-                    ("openapi", "type")}
+                    ("openapi", "type"),
+                    # trace: Q-105——method 入 ENUM_KEYS 后，装 HTTP 动词（get/post…）的
+                    # 三个产物面按 (文档, 键) 例外：api_refs[].method 是接口复合锚，不是
+                    # cis-method 的四分支值域（test-plan ← test-design/augment/e2e；
+                    # stories ← epics-stories 的 AC 锚；story-context ← create-story 平铺锚）
+                    ("test-plan", "method"), ("stories", "method"),
+                    ("story-context", "method")}
 BADGE_CLASSES = {
     "已定稿": "ok", "已完成": "ok", "通过": "ok", "必须": "must",
     "已采纳": "ok",

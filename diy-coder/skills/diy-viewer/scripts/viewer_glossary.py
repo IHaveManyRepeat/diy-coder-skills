@@ -148,7 +148,8 @@ VALUE_LABELS = {
     "醉汉说史式复述": "醉汉说史式复述", "反方案": "反方案", "量子叠加": "量子叠加", "元素之力": "元素之力", "自然解法": "自然解法", "生态系统思维": "生态系统思维", "演化压力": "演化压力",
     "观察者效应": "观察者效应", "纠缠思维": "纠缠思维", "叠加坍缩": "叠加坍缩", "原住民智慧": "原住民智慧", "融合料理": "融合料理", "仪式创新": "仪式创新", "神话框架": "神话框架",
     # trace: Q-105（底单 :367 ⑧）——cis-method method 四分支值域（SKILL.md schema 逐字）；
-    # method ∈ ENUM_KEYS，缺值即刷 unmapped。归类语义（分支名）→ 中性徽章，不进 BADGE_CLASSES
+    # method ∈ ENUM_KEYS，缺值即刷 unmapped（装 HTTP 动词的 test-plan/stories/story-context
+    # 已在 FREE_TEXT_FIELDS 例外，不走本表）。归类语义（分支名）→ 中性徽章，不进 BADGE_CLASSES
     "创新策略": "创新策略", "问题求解": "问题求解", "设计思维": "设计思维", "叙事": "叙事",
     # trace: C·3a 收口链④——design.yaml 增量值入值域白名单（5 页状态 + open_questions 的已解决）。
     # 两表同源登记：极性在 BADGE_CLASSES、值域在本文档（缺一头会漏）
