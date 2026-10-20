@@ -18,6 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 VIEWER_PATH = os.path.join(HERE, "..", "skills", "diy-viewer", "scripts", "viewer.py")
 sys.path.insert(0, os.path.dirname(os.path.abspath(VIEWER_PATH)))
 import viewer  # noqa: E402  仅取 DOC_LABELS 键清单，不执行渲染
+from viewer_labels import FREE_TEXT_FIELDS  # noqa: E402
 
 NL = chr(10)
 
@@ -1106,7 +1107,13 @@ class FiveAxisLabelTests(_Fixture):
         self.write("test-plan.yaml", FIVE_AXIS_PLAN_DOC)
         p = self.render()
         self.assertEqual(p.returncode, 0, p.stderr)
+        # trace: Q-105——method 入 ENUM_KEYS 后，test-plan 的 api_refs[].method 装
+        # HTTP 动词：FREE_TEXT_FIELDS 例外须生效（零 unmapped + 纯文本无徽章）
+        self.assertNotIn("unmapped enum", p.stderr,
+                         "api_refs[].method 例外失效：%s" % p.stderr)
         html = self.page("test-plan")
+        self.assertNotIn('b-neutral">get</span>', html,
+                         "HTTP 动词被误当 cis-method 枚举值出徽章")
         for label in ("故障假设", "五轴审计", "变异配置", "维度",
                       "爆炸半径", "接口锚", "审计轴", "不适用理由", "是否启用"):
             self.assertIn(label, html, "批 1 新键 %s 未映射中文标签" % label)
@@ -1401,6 +1408,244 @@ class ViewerSortOrderTests(unittest.TestCase):
                 ("prd", self._doc("2026-10-01 09:00:00"))]
         self.assertEqual([n for n, _ in viewer.sort_docs(docs)],
                          ["prd", "editorial-review", "zebra-note"])
+
+
+# ---------------------------------------------------------------------------
+# Q-105（底单 :363 ④ + :367 ⑧ · R3=A+ 封闭世界断言）——brainstorm 61 枚举 +
+# cis-method 全键 + 全产物/全键/全值缺标签即红
+# ---------------------------------------------------------------------------
+
+# brainstorm 技术库全量（brain-methods.csv 61 条·techniques[].technique 值域）
+BRAINSTORM_TECHNIQUES = [
+    "是而且接龙", "静默轮写", "随机刺激", "角色扮演", "想法接力赛",
+    "假如情景", "类比思维", "反转倒置", "第一性原理", "强制关联",
+    "时间位移", "隐喻映射", "跨界授粉", "概念融合", "反向头脑风暴",
+    "感官探索", "连续五问", "形态分析", "挑衅式刺激", "假设反转",
+    "问题风暴", "约束地图", "失败分析", "涌现式思考", "内在小孩会议",
+    "阴影挖掘", "价值观考古", "未来自我访谈", "身体智慧对话", "许可授权",
+    "SCAMPER 七镜头法", "六顶思考帽", "思维导图", "资源约束", "决策树映射",
+    "方案矩阵", "特质迁移", "时间旅行脱口秀", "外星人类学家", "梦境融合实验室",
+    "情绪管弦乐队", "平行宇宙咖啡馆", "人格面具之旅", "混沌工程", "游击园艺式创意",
+    "海盗法则头脑风暴", "僵尸末日预案", "醉汉说史式复述", "反方案", "量子叠加",
+    "元素之力", "自然解法", "生态系统思维", "演化压力", "观察者效应",
+    "纠缠思维", "叠加坍缩", "原住民智慧", "融合料理", "仪式创新", "神话框架",
+]
+BRAINSTORM_CATEGORIES = [
+    "协作", "创意", "深度分析", "内省之乐", "结构化",
+    "戏剧化", "狂野", "仿生", "量子", "文化",
+]
+
+# cis-method 四分支 deliverable 键全集（steps/02~05「本分支结构」节·119 键 + deliverable）
+CIS_INNOVATION_KEYS = [
+    "company_name", "strategic_focus", "current_situation", "strategic_challenge",
+    "market_landscape", "competitive_dynamics", "market_opportunities", "market_insights",
+    "current_business_model", "value_proposition", "revenue_cost_structure", "model_weaknesses",
+    "disruption_vectors", "unmet_jobs", "technology_enablers", "strategic_whitespace",
+    "innovation_initiatives", "business_model_innovation", "value_chain_opportunities",
+    "partnership_opportunities", "option_a_name", "option_a_description", "option_a_pros",
+    "option_a_cons", "option_b_name", "option_b_description", "option_b_pros", "option_b_cons",
+    "option_c_name", "option_c_description", "option_c_pros", "option_c_cons",
+    "recommended_strategy", "key_hypotheses", "success_factors", "phase_1", "phase_2", "phase_3",
+    "leading_indicators", "lagging_indicators", "decision_gates", "key_risks", "risk_mitigation",
+]
+CIS_PROBLEM_KEYS = [
+    "problem_title", "problem_category", "initial_problem", "refined_problem_statement",
+    "problem_context", "success_criteria", "problem_boundaries", "root_cause_analysis",
+    "contributing_factors", "system_dynamics", "driving_forces", "restraining_forces",
+    "constraints", "key_insights", "solution_methods", "generated_solutions",
+    "creative_alternatives", "evaluation_criteria", "solution_analysis", "recommended_solution",
+    "solution_rationale", "implementation_approach", "action_steps", "timeline",
+    "resources_needed", "responsible_parties", "success_metrics", "validation_plan",
+    "risk_mitigation", "adjustment_triggers", "key_learnings", "what_worked", "what_to_avoid",
+]
+CIS_DESIGN_KEYS = [
+    "project_name", "design_challenge", "challenge_statement", "user_insights",
+    "key_observations", "empathy_map", "pov_statement", "hmw_questions", "problem_insights",
+    "ideation_methods", "generated_ideas", "top_concepts", "prototype_approach",
+    "prototype_description", "features_to_test", "testing_plan", "user_feedback",
+    "key_learnings", "refinements", "action_items", "success_metrics",
+]
+CIS_STORY_KEYS = [
+    "story_type", "framework_name", "story_purpose", "target_audience", "key_messages",
+    "opening_hook", "core_narrative", "story_beats", "emotional_arc", "resolution",
+    "complete_story", "character_voice", "conflict_tension", "transformation",
+    "emotional_touchpoints", "short_version", "medium_version", "extended_version",
+    "best_channels", "audience_considerations", "tone_notes", "adaptation_suggestions",
+    "refinement_opportunities", "additional_versions", "feedback_plan",
+]
+CIS_METHOD_VALUES = ["创新策略", "问题求解", "设计思维", "叙事"]
+
+
+def _walk_closed_world(doc_name, node, missing_keys, missing_values, _seen=None):
+    """封闭世界遍历（R3=A+）：dict 键须有中文键标签；枚举键标量值须有值标签
+    （FREE_TEXT_FIELDS 除外）。缺一即收集，测试断言收集为空。"""
+    if _seen is None:
+        _seen = set()
+    if isinstance(node, dict):
+        if id(node) in _seen:
+            return
+        _seen.add(id(node))
+        doc_over = viewer.DOC_KEY_LABELS.get(doc_name, {})
+        for k, v in node.items():
+            if k not in viewer.KEY_LABELS and k not in doc_over:
+                missing_keys.append((doc_name, k))
+            if (k in viewer.ENUM_KEYS
+                    and (doc_name, k) not in FREE_TEXT_FIELDS
+                    and v is not None and not isinstance(v, (dict, list))):
+                s = str(v).strip()
+                if s and s.lower() not in {x.lower() for x in viewer.VALUE_LABELS}:
+                    missing_values.append((doc_name, k, s))
+            _walk_closed_world(doc_name, v, missing_keys, missing_values, _seen)
+    elif isinstance(node, list):
+        if id(node) in _seen:
+            return
+        _seen.add(id(node))
+        for x in node:
+            _walk_closed_world(doc_name, x, missing_keys, missing_values, _seen)
+
+
+def _mk_brainstorm_yaml():
+    """brainstorm 夹具：一条会话带 61 技术全量（techniques 列表 + category 枚举）。"""
+    lines = [
+        "project:", "  name: fx", "  created: 2026-10-19", "  updated: 2026-10-19",
+        "sessions:", "- id: BS-001", "  topic: 全量技术库回归", "  status: 已完成",
+        "  goals: 覆盖 61 技术", "  techniques:",
+    ]
+    for i, t in enumerate(BRAINSTORM_TECHNIQUES):
+        cat = BRAINSTORM_CATEGORIES[i % len(BRAINSTORM_CATEGORIES)]
+        lines.append(f"  - {{technique: {t}, category: {cat}}}")
+    lines.append("  steps: [发散, 收敛]")
+    lines.append("  actions: [落盘]")
+    lines.append("revisions: []")
+    return NL.join(lines)
+
+
+def _mk_cis_method_yaml(method_value, deliverable_keys):
+    """cis-method 夹具：一条会话，deliverable 覆盖指定分支全部键。"""
+    lines = [
+        "project:", "  name: fx", "  created: 2026-10-19", "  updated: 2026-10-19",
+        "sessions:", "- id: CM-001", f"  method: {method_value}", "  topic: 全键回归",
+        "  date: 2026-10-19", "  status: 已完成", "  current_step: 9",
+        "  deliverable:",
+    ]
+    for k in deliverable_keys:
+        lines.append(f"    {k}: 样例内容")
+    lines.append("  open_questions: []")
+    lines.append("revisions: []")
+    return NL.join(lines)
+
+
+class ClosedWorldLabelTests(_Fixture):
+    """R3=A+ 封闭世界断言：渲染路径遍历产物全键/全值，凡不在词典即红（缺标签零容忍）。"""
+
+    def _assert_closed_world(self, doc_name, data):
+        missing_keys, missing_values = [], []
+        _walk_closed_world(doc_name, data, missing_keys, missing_values)
+        self.assertEqual(missing_keys, [],
+                         "封闭世界断言失败——缺中文键标签：%s" % missing_keys[:10])
+        self.assertEqual(missing_values, [],
+                         "封闭世界断言失败——缺值标签：%s" % missing_values[:10])
+
+    def test_brainstorm_all_61_techniques_have_value_labels(self):
+        # 底单 :363 ④——技术库 61 条逐条入值表，缺一即渲染 unmapped（零裸键漏网）
+        for t in BRAINSTORM_TECHNIQUES:
+            self.assertIn(t, viewer.VALUE_LABELS, "技术名缺值标签：%s" % t)
+        for c in BRAINSTORM_CATEGORIES:
+            self.assertIn(c, viewer.VALUE_LABELS, "类名缺值标签：%s" % c)
+        self.assertEqual(len(BRAINSTORM_TECHNIQUES), 61, "技术库应为 61 条")
+
+    def test_cis_method_all_deliverable_keys_have_key_labels(self):
+        # 底单 :367 ⑧——四分支 deliverable 键 + deliverable 顶层键全量入 KEY_LABELS
+        all_keys = sorted(set(
+            CIS_INNOVATION_KEYS + CIS_PROBLEM_KEYS + CIS_DESIGN_KEYS + CIS_STORY_KEYS))
+        for k in all_keys:
+            self.assertIn(k, viewer.KEY_LABELS, "cis-method 键缺标签：%s" % k)
+        self.assertIn("deliverable", viewer.KEY_LABELS, "deliverable 顶层键缺标签")
+        # 四分支 method 值域
+        for m in CIS_METHOD_VALUES:
+            self.assertIn(m, viewer.VALUE_LABELS, "method 值缺标签：%s" % m)
+
+    def test_brainstorm_closed_world_and_render(self):
+        # 封闭世界：全键/全值在词典；渲染：零 unmapped + 零英文裸键 + 技术徽章在场
+        import yaml
+        data = yaml.safe_load(_mk_brainstorm_yaml())
+        self._assert_closed_world("brainstorm", data)
+        self.write("brainstorm.yaml", _mk_brainstorm_yaml())
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr,
+                         "brainstorm 渲染仍报枚举漂移：%s" % p.stderr)
+        html = self.page("brainstorm")
+        # 技术值出徽章（technique ∈ ENUM_KEYS → badge 路径）
+        self.assertIn('class="badge b-neutral">是而且接龙</span>', html,
+                      "技术名未出中性徽章")
+        self.assertIn('class="badge b-neutral">SCAMPER 七镜头法</span>', html,
+                      "SCAMPER 技术名未出中性徽章")
+        self.assertIn('class="badge b-neutral">神话框架</span>', html,
+                      "末条技术名未出中性徽章")
+        # 类名值徽章
+        self.assertIn('class="badge b-neutral">协作</span>', html)
+        # 英文键名不裸出
+        for leak in (">technique<", ">category<", ">actions<", ">goals<"):
+            self.assertNotIn(leak, html, "brainstorm 英文键名直出：%s" % leak)
+        self.assertIn("头脑风暴方法", html, "technique 键标签未映射")
+        self.assertIn("行动计划", html, "actions 键标签未映射")
+
+    def test_cis_method_closed_world_and_render_all_branches(self):
+        # 四分支各渲一遍：封闭世界全绿 + 零 unmapped + 键标签中文化 + method 徽章
+        import yaml
+        branches = (
+            ("创新策略", CIS_INNOVATION_KEYS),
+            ("问题求解", CIS_PROBLEM_KEYS),
+            ("设计思维", CIS_DESIGN_KEYS),
+            ("叙事", CIS_STORY_KEYS),
+        )
+        for method_value, keys in branches:
+            yaml_text = _mk_cis_method_yaml(method_value, keys)
+            data = yaml.safe_load(yaml_text)
+            self._assert_closed_world("cis-method", data)
+            self.write("cis-method.yaml", yaml_text)
+            p = self.render()
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertNotIn("unmapped enum", p.stderr,
+                             "%s 分支渲染仍报枚举漂移：%s" % (method_value, p.stderr))
+            html = self.page("cis-method")
+            # 页面标题中文化（DOC_LABELS）
+            self.assertIn("<h1>创意方法引导器</h1>", html,
+                          "%s：cis-method 页面标题未中文化" % method_value)
+            # method ∈ ENUM_KEYS（用户裁定）→ 值出中性徽章
+            self.assertIn('class="badge b-neutral">%s</span>' % method_value, html,
+                          "%s：method 值未出中性徽章" % method_value)
+            self.assertIn("<th>方法</th>", html, "method 键标签未映射")
+            # deliverable 键标签：抽样分支首键不裸出（全键量大，封闭世界已全量断言）
+            first_key = keys[0]
+            self.assertNotIn(">%s<" % first_key, html,
+                             "%s：键 %s 英文直出" % (method_value, first_key))
+            self.assertIn("交付内容", html, "deliverable 键标签未映射")
+
+    def test_closed_world_catches_missing_label(self):
+        # 封闭世界断言的反向防线：人为注入未知键/未知枚举值 → 必须被收集（红），
+        # 证明断言真的在工作而非空转
+        data = {
+            "project": {"name": "fx", "created": "2026-10-19", "updated": "2026-10-19"},
+            "sessions": [{"id": "CM-001", "method": "创新策略", "topic": "t",
+                          "date": "2026-10-19", "status": "草稿", "current_step": 1,
+                          "deliverable": {"zzz_unknown_key": "x"},
+                          "open_questions": []}],
+            "revisions": [],
+        }
+        missing_keys, missing_values = [], []
+        _walk_closed_world("cis-method", data, missing_keys, missing_values)
+        self.assertIn(("cis-method", "zzz_unknown_key"), missing_keys,
+                      "封闭世界断言未捕获未知键")
+        # 注入未知枚举值（method 之外的枚举键用一个假值）
+        data2 = {"project": {"name": "fx"},
+                 "status": "草稿",
+                 "priority": "不存在的极性值"}
+        missing_keys2, missing_values2 = [], []
+        _walk_closed_world("prd", data2, missing_keys2, missing_values2)
+        self.assertIn(("prd", "priority", "不存在的极性值"), missing_values2,
+                      "封闭世界断言未捕获未知枚举值")
 
 
 if __name__ == "__main__":
