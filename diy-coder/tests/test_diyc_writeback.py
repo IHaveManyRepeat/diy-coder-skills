@@ -572,6 +572,19 @@ class StampTests(WritebackCase):
         self.assertRegex(doc["project"]["created"], NOW_RE)
         self.assertRegex(doc["project"]["updated"], NOW_RE)
 
+    # 夜队列 Q-101（底单 :766 裁① 2026-10-16）：stamp 键＝产物名 test-plan——
+    # 原键 test-design 与产物文件名错位（stamp --type test-design → MISSING_FILE）
+    def test_stamp_type_key_is_test_plan(self):
+        import diyc
+        self.assertIn("test-plan", diyc.STAMP_TYPES)
+        self.assertNotIn("test-design", diyc.STAMP_TYPES)
+        self.write("test-plan", {"project": {"name": "fx", "status": "草稿"}})
+        res = diyc_writeback.run(self.args("stamp", type="test-plan"))
+        self.assertTrue(res["ok"], str(res.get("violations")))
+        doc = self.read("test-plan")
+        self.assertRegex(doc["project"]["created"], NOW_RE)
+        self.assertRegex(doc["project"]["updated"], NOW_RE)
+
 
 @NEEDS_W1
 class DeferAddTests(WritebackCase):

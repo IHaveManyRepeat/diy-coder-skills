@@ -35,7 +35,7 @@ CHECK_TYPES = ("prd", "architecture", "openapi", "epics", "stories",
 # correct-course/create-story/selfcheck 的产物同为 AI 建文件（无引擎或引擎纯读）。
 # spec 键供 diy-quick-dev（与 diy-spec 共写 spec.yaml：引擎已程序铸 created，
 # quick-dev 追加记录后跑 stamp 刷 updated）
-STAMP_TYPES = ("prd", "architecture", "openapi", "prfaq", "test-design",
+STAMP_TYPES = ("prd", "architecture", "openapi", "prfaq", "test-plan",
                "epics", "stories", "brief", "editorial-review", "spec-scan",
                "design",
                "investigation", "project-context", "spec", "readiness",
