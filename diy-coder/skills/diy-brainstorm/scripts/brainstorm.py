@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """diy-brainstorm 确定性引擎：会话列举（list）/ 技术库加载与抽样（techniques）/
-会话记录骨架铸造（init）/ brainstorm.yaml 校验（check [--final]）。
+会话记录骨架铸造（init）/ brainstorm.yaml 校验（check [--final][--previous]）/ 开工快照（snapshot）。
 
 机制：会话记录是**内容型产物**（教练对话的结论落 `{output_dir}/brainstorm.yaml`），
 内容面由会话（LLM）直接编辑 YAML；本引擎只做确定性的两件事——铸造骨架与机械校验。
@@ -29,44 +29,112 @@
              `ideas[].no` 内 / `techniques[].category` ∈ 库内类名。`--final` 附加：
              `status: 已完成` 且零 `[假设]`（定稿前清零，未决项落 `open_questions`）。
              `--id BS-xxx` 把记录级扫描收窄到一条（找不到 → `UNKNOWN_ID`）。
+             `--previous` 版本对账（2026-10-20 改判）：比对 `{output_dir}/brainstorm.yaml.prev`，
+             三失败分支 = `ID_UNSTABLE`（旧稿有、新稿无的会话记录 / 记录内想法标识）/
+             `MISSING_FILE`（.prev 缺失）/ `UNPARSABLE_YAML`（.prev 不可解析）；记录内想法
+             从无 id 迁到有 id 的那一轮（迁移轮）跳过该记录的想法比对，首拍 / 迁移不误报。
              exit 0 唯一放行。
+
+  snapshot   每轮开工拍快照（逐字节原子复制）：`{output_dir}/brainstorm.yaml` → 同目录 `.prev`。
+             产物缺席 → `ok` 放行不拍（新项目常态）；产物损坏 → 拒绝且零写入；
+             `.prev` 在场**不覆盖**——先对账（同 `--previous` 三失败分支），不过 exit 1 零写入，
+             过才覆盖为本轮基线；首拍（.prev 缺席）直拍。
 
 分工裁定（任务书 §2.2 形 A）：brainstorm.yaml 属新产物类型，不进 diyc.py check 的硬编码
 类型集；契约同构——exit 0 唯一放行 / `--json` 单行回执（`ensure_ascii=False`）/ 无 `--json`
 走中文人读行（每违规一行 `CODE where: msg` + 汇总行）/ 回执共同键
 {ok, command, project_root, output_dir, violations[{code, where, msg}], warnings, counts}，
-写回命令（init）另含 `updated`；`where` 正斜杠、相对 project-root。`--output-dir` 必填、
+写回命令（init、snapshot）另含命令级附加键（`updated` / `prev`）；`where` 正斜杠、相对 project-root。`--output-dir` 必填、
 无缺省；引擎不做实例解析 / 白名单 / 目录推导（实例解析由 SKILL.md 委托 `diyc.py resolve`）。
 写回纪律：全文 load → 就地改 → 追加/合并 → `yaml.safe_dump(allow_unicode=True,
 sort_keys=False, default_flow_style=False)` → 同目录临时文件 + `os.replace`（注释不保留）。
 
 违规码：复用 batch3-contract §3 冻结集——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
 `UNKNOWN_ID` / `ENUM_INVALID` / `EMPTY_FIELD` / `DUPLICATE_ID` / `SET_MISMATCH` /
-`STATUS_MISMATCH` / `ASSUMPTION_PRESENT` 共 9 个，**零新增**。两处语义复用在此登记：
+`STATUS_MISMATCH` / `ASSUMPTION_PRESENT` 共 9 个，**冻结九码一字不动**；本批技能级新增码
+1 个：**`ID_UNSTABLE`（--previous 对账：旧稿有、新稿无的稳定标识）**——按 bmb-module
+「冻结 9 + 技能级新增码」先例在此登记。两处语义复用在此登记：
 ① `UNPARSABLE_YAML` 兼作技术库（CSV）解析失败码——冻结集里没有「非 YAML 文本不可解析」码，
    造新码不如复用最近义项（msg 内点名是 CSV）；
 ② `SET_MISMATCH` 承载「想法 `no` 非 1..N 连续」——该码的语义是集合与真值不符，正中此例。
 
-`--previous` 不适用（任务书 §2.2 记账，W1 判 no）：本产物是追加式台账（`sessions[]` 只追加、
-记录内序号 `no` 只在记录内递增），从无 ID 集合收缩面——不存在「旧有新无」可比对。
+`--previous` 判 **yes**（2026-10-20 改判，原「追加式台账不适用 `--previous`」作废）：
+`BI-###` 未来成为 prd 的外部引用锚，想法丢失即跨文件断链（下游 `UNKNOWN_ID` 只能发现、
+不能恢复，prd 里也没有想法原文）——必须有 `.prev` 完整快照兜底。每轮开工 `snapshot` 拍
+`.prev`（在场不覆盖、先对账后拍）；`check [--final] --previous` 走三失败分支；迁移轮跳过
+想法比对；`revisions`（改因留痕）与 `.prev`（兜底快照）两机制并存、不互替。
 """
 # trace: 迁移计划 §二 验收 #2（产物 schema + BS-### 稳定 ID）/#3（门禁零产出退出）
 #        /#4（ID 链接入：BS-### + 想法序号）/#12（领域引擎接线：a 实例委托 d/e 写权边界）
 import argparse
+import io
 import os
 import sys
 
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from brainstorm_checks import cmd_check  # noqa: E402
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "diy-tools", "scripts"))
+from diyc_lib import display_path, read_sessions, receipt_base, v  # noqa: E402
+
+from brainstorm_checks import check_previous, cmd_check, load_previous  # noqa: E402
 from brainstorm_cmds import cmd_init, cmd_list, cmd_techniques  # noqa: E402
+from brainstorm_lib import BRAINSTORM_FILE, emit  # noqa: E402
+
+def cmd_snapshot(args):
+    """每轮开工拍 `.prev`：产物缺席 → 放行不拍；`.prev` 在场先对账，不过零写入（不覆盖）。"""
+    root = os.path.abspath(args.project_root)
+    out = os.path.abspath(args.output_dir)
+    path = os.path.join(out, BRAINSTORM_FILE)
+    prev = path + ".prev"
+    show = display_path(path, root)
+    prev_show = display_path(prev, root)
+    payload = receipt_base("snapshot", args, out)
+    records, violations, warnings = read_sessions(path, show)
+    if records is None and not violations:
+        payload["ok"] = True
+        payload["counts"] = {"sessions": 0, "snapshot": 0}
+        return emit(payload, args.json, "PASS：产物缺席，无可拍摄（init 后再拍）")
+    if violations:
+        payload["violations"] = violations  # 损坏 / 顶层非映射 → 拒绝拍摄且零写入
+        payload["warnings"] = warnings
+        return emit(payload, args.json)
+    existed = os.path.isfile(prev)
+    if existed:
+        prev_doc, prev_violations = load_previous(prev, root)
+        if prev_doc is None:
+            payload["violations"] = prev_violations
+            return emit(payload, args.json)
+        lost = check_previous(prev_doc, records, show, prev_show)
+        if lost:
+            payload["violations"] = lost  # 在场不覆盖：对账不过 exit 1，.prev 原样
+            return emit(payload, args.json)
+    try:
+        with io.open(path, "rb") as fh:
+            content = fh.read()
+        with io.open(prev + ".tmp", "wb") as fh:
+            fh.write(content)
+        os.replace(prev + ".tmp", prev)
+    except OSError as e:
+        try:
+            os.remove(prev + ".tmp")
+        except OSError:
+            pass
+        payload["violations"] = [v("TOOL_ERROR", prev_show, "快照写盘失败：%s" % e)]
+        return emit(payload, args.json)
+    payload["ok"] = True
+    payload["prev"] = prev_show
+    payload["counts"] = {"sessions": len(records), "snapshot": 1}
+    return emit(payload, args.json,
+                "PASS：已拍快照 %s（%s）" % (prev_show, "对账通过后覆盖" if existed else "首拍"))
 
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(
         description="diy-brainstorm 确定性引擎：会话列举（list）/ 技术库加载（techniques）"
-                    "/ 记录骨架（init）/ brainstorm.yaml 校验（check）")
+                    "/ 记录骨架（init）/ brainstorm.yaml 校验（check）/ 开工快照（snapshot）")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     def common(parser):
@@ -99,7 +167,14 @@ def main():
     ck.add_argument("--final", action="store_true",
                     help="定稿校验：status: 已完成 + 零 [假设]")
     ck.add_argument("--id", default=None, help="只校验指定记录（BS-###）")
+    ck.add_argument("--previous", action="store_true",
+                    help="版本对账（缺省比对 {output_dir}/brainstorm.yaml.prev）：旧有新无 → ID_UNSTABLE"
+                         " / 快照缺失 → MISSING_FILE / 不可解析 → UNPARSABLE_YAML；想法迁移轮跳过比对")
     ck.set_defaults(func=cmd_check)
+
+    sn = sub.add_parser("snapshot", help="每轮开工拍 .prev 快照（在场先对账，不过不覆盖）")
+    common(sn)
+    sn.set_defaults(func=cmd_snapshot)
 
     args = ap.parse_args()
     sys.exit(args.func(args))

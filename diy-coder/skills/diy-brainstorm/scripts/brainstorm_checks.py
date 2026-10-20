@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diy-brainstorm 校验命令域：想法引用/主题/优先级/行动检查、记录级 schema 枚举锚点校验、--final 定稿义务与 cmd_check 总编排（含随行常量 DEFAULT_CANDIDATES、STEP_MIN/STEP_MAX）。."""
+"""diy-brainstorm 校验命令域：想法引用/主题/优先级/行动检查、记录级 schema 枚举锚点校验、--final 定稿义务、--previous 三失败分支对账（load_previous / check_previous）与 cmd_check 总编排（含随行常量 DEFAULT_CANDIDATES、STEP_MIN/STEP_MAX）。"""
 
 import os
 
@@ -267,6 +267,52 @@ def check_final_duties(record, where, status):
                             "--final 要求零 [假设]；未决项写进 open_questions 再定稿"))
     return violations
 
+def load_previous(prev_path, root):
+    """读 .prev → (doc|None, violations)：缺失 → MISSING_FILE；不可解析 → UNPARSABLE_YAML。"""
+    prev_show = display_path(prev_path, root)
+    data, err = load_yaml_safe(prev_path)
+    if data is None and err is None:
+        return None, [v("MISSING_FILE", prev_show, "旧稿快照 .prev 缺失（每轮开工先跑 snapshot）")]
+    if err is not None:
+        return None, [v("UNPARSABLE_YAML", prev_show, "旧稿快照解析失败：%s（兜底失效，停手告知用户）" % err)]
+    if not isinstance(data, dict):
+        return None, [v("UNPARSABLE_YAML", prev_show, "旧稿快照顶层不是映射（须为 project + sessions）")]
+    return data, []
+
+def _index(records):
+    """配对面 {BS-###: record}：非映射 / 空 id 条目不入（形状问题由 check_record 上报）。"""
+    return {str(r["id"]).strip(): r for r in records
+            if isinstance(r, dict) and nonempty(r.get("id"))}
+
+def _idea_keyset(record, by_id):
+    """记录内想法键集：by_id → 想法 id（BI-### 面），否则 → 会话内 no。"""
+    raw = record.get("ideas")
+    ideas = [i for i in raw if isinstance(i, dict)] if isinstance(raw, list) else []
+    return ({str(i["id"]).strip() for i in ideas if nonempty(i.get("id"))} if by_id
+            else {i.get("no") for i in ideas if is_int(i.get("no"))})
+
+def check_previous(prev_doc, records, show, prev_show):
+    """ID 稳定对账（Q-109 三失败分支之 ID_UNSTABLE）：旧稿有、新稿无的会话记录 / 记录内想法标识 → ID_UNSTABLE；记录内想法从无 id 迁到有 id 的那一轮（迁移轮）跳过该记录的想法比对，首拍 / 迁移不误报。"""
+    violations = []
+    prev_raw = prev_doc.get("sessions")
+    prev_recs = _index(prev_raw if isinstance(prev_raw, list) else [])
+    cur_recs = _index(records)
+    for rid in sorted(set(prev_recs) - set(cur_recs)):
+        violations.append(v("ID_UNSTABLE", "%s.sessions[id=%s]" % (show, rid),
+                            "会话记录 %s 旧稿有、新稿无（BS ID 稳定不重用；对照 %s）" % (rid, prev_show)))
+    for rid in sorted(set(prev_recs) & set(cur_recs)):
+        old, new = prev_recs[rid], cur_recs[rid]
+        old_ids, new_ids = _idea_keyset(old, True), _idea_keyset(new, True)
+        if old_ids:
+            gone, label = sorted(old_ids - new_ids), "id"
+        elif new_ids:
+            continue  # 迁移轮（想法无 id → 有 id 当轮）：跳过比对，不误报
+        else:
+            gone, label = sorted(_idea_keyset(old, False) - _idea_keyset(new, False)), "no"
+        violations += [v("ID_UNSTABLE", "%s.sessions[id=%s].ideas[%s=%s]" % (show, rid, label, k),
+                         "想法标识 %s 旧稿有、新稿无（想法丢失即跨文件断链；对照 %s）" % (k, prev_show)) for k in gone]
+    return violations
+
 def cmd_check(args):
     root = os.path.abspath(args.project_root)
     out = os.path.abspath(args.output_dir)
@@ -328,6 +374,11 @@ def cmd_check(args):
             if args.final and not records:
                 violations.append(v("EMPTY_FIELD", show + " sessions",
                                     "--final 要求至少 1 条会话记录"))
+            if args.previous:
+                prev_doc, prev_violations = load_previous(path + ".prev", root)
+                violations += prev_violations
+                if prev_doc is not None:
+                    violations += check_previous(prev_doc, records, show, display_path(path + ".prev", root))
 
     statuses = {}
     ideas = 0
