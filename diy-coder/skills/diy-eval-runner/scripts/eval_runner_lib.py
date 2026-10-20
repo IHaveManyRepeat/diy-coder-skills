@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import v  # noqa: E402
+from diyc_lib import v, warn_line  # noqa: E402
 MODES = ("baseline", "variant", "quality", "trigger")
 CONFIG_MODES = ("baseline", "variant", "quality")
 # 每个模式用到的 config；顺序固定（`skill` 恒为被测侧 = delta 的被减项）
@@ -97,7 +97,7 @@ def emit(payload, as_json, human_lines=None):
     for item in payload.get("violations", []):
         print("VIOL %s %s: %s" % (item["code"], item["where"], item["msg"]))
     for item in payload.get("warnings", []):
-        print("WARN %s %s: %s" % (item["code"], item["where"], item["msg"]))
+        print(warn_line(item))
     print("汇总：%s（违规 %d / 警告 %d）"
           % ("OK" if ok else "FAIL", len(payload.get("violations", [])),
              len(payload.get("warnings", []))))

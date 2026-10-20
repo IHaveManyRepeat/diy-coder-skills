@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, is_int, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_lib import display_path, is_int, load_yaml_safe, nonempty, v, violation_line  # noqa: E402
 
 PROGRESS_FILE = "learning-progress.yaml"
 CURRICULUM_FILE = "curriculum.yaml"
@@ -77,7 +77,7 @@ def print_human_tail(payload, headline=None):
     if payload.get("ok") and headline:
         print(headline)
     for item in payload["violations"]:
-        print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+        print(violation_line(item))
     for item in payload["warnings"]:
         print("警告 %s %s: %s" % (item["code"], item["where"], item["msg"]))
     counts = payload["counts"]

@@ -59,7 +59,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, items, load_yaml_safe, v  # noqa: E402
+from diyc_lib import display_path, emit_via, items, load_yaml_safe, v, violation_line  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from editorial_review_checks import check_review, check_top_level, review_counts  # noqa: E402
@@ -136,7 +136,7 @@ def human_stats(payload):
         for section in target["sections"]:
             print("- %s（%d 词）" % (section["name"], section["words"]))
     for item in payload["violations"]:
-        print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+        print(violation_line(item))
     counts = payload["counts"]
     print("汇总：节 %d · 词 %d · 行 %d · 违规 %d 条（exit %d）"
           % (counts["sections"], counts["words"], counts["lines"],
@@ -195,7 +195,7 @@ def human_check(payload):
                  counts["structure_findings"], counts["prose_findings"]))
     else:
         for item in payload["violations"]:
-            print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+            print(violation_line(item))
     print("汇总：违规 %d 条 · 警告 %d 条（exit %d）"
           % (len(payload["violations"]), len(payload["warnings"]),
              0 if payload["ok"] else 1))
