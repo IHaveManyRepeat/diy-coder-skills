@@ -23,9 +23,26 @@ Progress: `[冻结与编排判定] → 三机制派发 → 合并去重分级 �
 
 环境形态判定：有子代理派发工具 → **并行分片形态**（首选）；无 → **单执行者顺序形态**（预演 → 交叉 → 引用核对 → 对抗，四轮照跑），且 `anchor` 区块必须诚实登记「self-preference 偏差未完全隔离，可在外部窗口独立复检」（C·15 先例）。
 
+## 定目标类型
+
+`target.kind` 四选一：任务书 | 技能 | 规格 | 文档（引擎不给，照三阶判据链判，不开放现场裁量）：
+
+1. **用户明示 kind → 照录**。激活段或对话中用户点名，直接采用。
+2. **规则表机械判**。体系内产物查对照表定归（下表，查到即归、不代判）；体系外用结构判兜底——`SKILL.md`+`steps/` → 技能；名字含 prd/epic/story/架构 → 规格；带分工施工指令 → 任务书；无执行结构（无可预演 duties）→ 文档。
+3. **模糊档 → 先问一次**。前两阶走完仍模糊（表外产物、结构信号互相打架），AI 不代判，停下来问用户。
+
+**体系产物→类型对照表**（封闭世界，产物真名以代码为准）：
+
+| 类型 | 体系产物 |
+| --- | --- |
+| 规格 | prd / brief / prfaq / epics / stories / architecture / openapi / design / test-plan / spec / story-context / change-proposal / project-context；WDS 四产物 trigger / scenarios / system / brief。prfaq / story-context / change-proposal / project-context 从紧归规格 |
+| 技能 | SKILL.md / steps / 模板与教学资产 |
+| 任务书 | taskbook* |
+| 文档 | sprint / review / mutation-report / selfcheck / spec-scan / investigation / research / retrospective / checkpoint / editorial-review / readiness / WDS assets 清单 / evolution |
+
 ## 收尾：创建主产物
 
-编排判定落定即创建 `{output_dir}/selfcheck.yaml`：`SC-###` 取号＝既有集合 `max+1`（无文件自 SC-001）、`status: 草稿`，写全 `anchor` 四字段（md5 / commit / exec_form / shards——执行形态与分片数此时才确定），判定写入 `target`（`kind` 四选一 任务书|技能|规格|文档；三阶判据链＝①用户明示照录→②规则表机械判→③模糊档先问人；判错 HALT 重走并 `revisions` 留痕）。
+编排判定落定即创建 `{output_dir}/selfcheck.yaml`：`SC-###` 取号＝既有集合 `max+1`（无文件自 SC-001）、`status: 草稿`，写全 `anchor` 四字段（md5 / commit / exec_form / shards——执行形态与分片数此时才确定），`target.kind` 照上节三阶判据链判得写入（判错 HALT 重走并 `revisions` 留痕）。
 
 ## 判定产出
 

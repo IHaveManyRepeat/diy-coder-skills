@@ -17,12 +17,20 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
 
 ## 定目标类型
 
-`target.kind` 由你判定（引擎不给），四选一：
+`target.kind` 四选一：任务书 | 技能 | 规格 | 文档（引擎不给，照三阶判据链判，不开放现场裁量）：
 
-- `任务书` — 施工指令（含角色分工、分节规格）
-- `技能` — 技能规格（`SKILL.md` + `steps/`）
-- `规格` — 其他给 AI 执行的规格文本
-- `文档` — 兜底值：非任务书/技能/规格、无可预演 duties 的任意文档
+1. **用户明示 kind → 照录**。激活段或对话中用户点名，直接采用。
+2. **规则表机械判**。体系内产物查对照表定归（下表，查到即归、不代判）；体系外用结构判兜底——`SKILL.md`+`steps/` → 技能；名字含 prd/epic/story/架构 → 规格；带分工施工指令 → 任务书；无执行结构（无可预演 duties）→ 文档。
+3. **模糊档 → 先问一次**。前两阶走完仍模糊（表外产物、结构信号互相打架），AI 不代判，停下来问用户。
+
+**体系产物→类型对照表**（封闭世界，产物真名以代码为准）：
+
+| 类型 | 体系产物 |
+| --- | --- |
+| 规格 | prd / brief / prfaq / epics / stories / architecture / openapi / design / test-plan / spec / story-context / change-proposal / project-context；WDS 四产物 trigger / scenarios / system / brief。prfaq / story-context / change-proposal / project-context 从紧归规格 |
+| 技能 | SKILL.md / steps / 模板与教学资产 |
+| 任务书 | taskbook* |
+| 文档 | sprint / review / mutation-report / selfcheck / spec-scan / investigation / research / retrospective / checkpoint / editorial-review / readiness / WDS assets 清单 / evolution |
 
 ## 调整单元粒度
 
@@ -55,5 +63,5 @@ python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" collec
 
 给用户一句话：目标是什么、切出多少个单元、总共多少行、下一步去向（纯文档 → 穷举，其余 → 预演）。
 
-`kind` 判为 `文档` → 读全并照做 `./03-exhaustive.md`（纯文档路由：跳过 02 预演，`scanned` 由 03 接管）；其余照旧 → 读全并照做 `./02-dry-run.md`。
+`kind` 判为 `文档` → 读全并照做 `./03-exhaustive.md`（纯文档路由：跳过 02 预演，`scanned` 由 03 接管）；其余照旧 → 读全并照做 `./02-dry-run.md`。文档轻扫口径（03 照此执行）：不整篇预演，只扫两类——①规范性语句（「须／禁止／唯一／优先／才算」等 AI 会照着行动的句子）逐句查两读；②指涉可解析性（引用 ID／文件／术语落盘是否存在、唯一）。风险轴＝「谁以什么方式消费它」：机械消费靠引擎断言，语义消费靠扫＋写作纪律。与 diy-editorial-review 的 `--reader-type 人类|LLM` 单篇深审互补、不互代。
 纠错通道：用户自然语言明示改判 → HALT 重走本步重判 `kind`，`revisions` 留痕（非初判即终判）。
