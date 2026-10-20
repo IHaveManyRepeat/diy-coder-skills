@@ -405,6 +405,139 @@ class HelpSkillContractTests(unittest.TestCase):
         self.assertIn("逐字转述", raw, "blocked 逐字转述纪律缺失")
         self.assertIn("10 行上限只约束我自己的附加说明", raw, "10 行上限未收窄为只约束附加说明")
 
+    # trace: 2026-10-20 多实例聚合导航（底单 diy-help 多实例聚合导航·版本演进）
+    def test_aggregate_mode_documented(self):
+        raw = self.read_skill()
+        self.assertIn("--all-instances", raw, "缺聚合强制开关说明")
+        self.assertIn('mode: "aggregate"', raw, "回执键缺 mode")
+        self.assertIn("多版本总览", raw, "缺聚合总览表述")
+
+
+class HelpAggregateTests(unittest.TestCase):
+    """多实例聚合导航（2026-10-20）：版本目录总览与单目录行为兼容。"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = self.tmp.name
+        self.out = os.path.join(self.root, "diy-output")
+        os.makedirs(self.out)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def instance(self, name):
+        d = os.path.join(self.out, name)
+        os.makedirs(d, exist_ok=True)
+        return d
+
+    def json_run(self, *extra):
+        p = run_help(self.root, *extra)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        return json.loads(p.stdout)
+
+    def human_run(self):
+        p = subprocess.run([sys.executable, HELP_PY, "--project-root", self.root],
+                           capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        return p.stdout
+
+    def test_auto_aggregate_two_instances(self):
+        write_artifact(self.instance("v1.0"), "prd.yaml", "已定稿")
+        write_artifact(self.instance("v1.1"), "prd.yaml", "草稿")
+        data = self.json_run()
+        self.assertEqual(data["mode"], "aggregate")
+        self.assertEqual(data["position"], "多版本总览（2 个实例）")
+        self.assertEqual([i["instance"] for i in data["instances"]], ["v1.0", "v1.1"])
+        self.assertEqual(data["instances"][1]["blocked"]["file"], "prd.yaml")
+
+    def test_non_conforming_dirs_stay_zero_start(self):
+        for name in ("_archive", "bad name"):
+            write_artifact(self.instance(name), "prd.yaml", "已定稿")
+        data = self.json_run()
+        self.assertEqual(data["position"], "零起点")
+        self.assertNotIn("mode", data)
+
+    def test_conforming_dir_without_chain_artifacts_stays_zero_start(self):
+        self.instance("v1.0")  # 目录合规但无链产物
+        data = self.json_run()
+        self.assertEqual(data["position"], "零起点")
+        self.assertNotIn("mode", data)
+
+    def test_flat_root_present_does_not_auto_aggregate(self):
+        write_artifact(self.out, "prd.yaml", "已定稿")
+        write_artifact(self.instance("v1.0"), "prd.yaml", "已定稿")
+        data = self.json_run()
+        self.assertNotIn("mode", data)
+        self.assertEqual(data["next_skill"], "diy-architecture")
+        self.assertTrue(any("实例目录" in n for n in data["notes"]), data["notes"])
+
+    def test_all_instances_forces_aggregate_with_root_row(self):
+        write_artifact(self.out, "prd.yaml", "已定稿")
+        write_artifact(self.instance("v1.0"), "prd.yaml", "已定稿")
+        data = self.json_run("--all-instances")
+        self.assertEqual(data["mode"], "aggregate")
+        self.assertEqual([i["instance"] for i in data["instances"]], ["(root)", "v1.0"])
+        self.assertEqual(data["instances"][0]["output_dir"], self.out)
+
+    def test_all_instances_empty_falls_back_to_single(self):
+        data = self.json_run("--all-instances")
+        self.assertEqual(data["position"], "零起点")
+        self.assertNotIn("mode", data)
+
+    def test_instance_wins_over_all_instances(self):
+        write_artifact(self.instance("v1.0"), "prd.yaml", "已定稿")
+        data = self.json_run("--instance", "v1.0", "--all-instances")
+        self.assertNotIn("mode", data)
+        self.assertTrue(data["output_dir"].replace("\\", "/").endswith("diy-output/v1.0"))
+        self.assertEqual(data["next_skill"], "diy-architecture")
+
+    def test_blocked_rows_first_in_human_output(self):
+        write_artifact(self.instance("v1.0"), "prd.yaml", "已定稿")
+        write_artifact(self.instance("v1.1"), "prd.yaml", "草稿")
+        out = self.human_run()
+        self.assertIn("版本 | 线 | 位置 | 下一步 | 阻塞", out)
+        self.assertIn("v1.1 | 产品主线 | 阻塞于 prd.yaml", out)
+        self.assertLess(out.index("阻塞于 prd.yaml"),
+                        out.index("第 2/7 步：diy-architecture"))
+
+    def test_instances_element_shape(self):
+        write_artifact(self.instance("v1.0"), "prd.yaml", "已定稿")
+        item = self.json_run()["instances"][0]
+        for key in ("instance", "position", "line", "branches", "output_dir",
+                    "completed_steps", "next_skill", "blocked", "notes",
+                    "workflow_done"):
+            self.assertIn(key, item)
+
+    def test_aggregate_top_level_shape(self):
+        write_artifact(self.instance("v1.0"), "prd.yaml", "已定稿")
+        data = self.json_run()
+        for key in ("mode", "position", "line", "branches", "output_dir",
+                    "completed_steps", "next_skill", "blocked", "notes",
+                    "workflow_done", "instances"):
+            self.assertIn(key, data)
+        self.assertIsNone(data["line"])
+        self.assertIsNone(data["branches"])
+        self.assertIsNone(data["next_skill"])
+        self.assertIsNone(data["blocked"])
+        self.assertFalse(data["workflow_done"])
+
+    def test_aggregate_rejects_line(self):
+        write_artifact(self.instance("v1.0"), "prd.yaml", "已定稿")
+        p = run_help(self.root, "--line", "mainline")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("--instance", p.stderr)
+        self.assertIn("--line", p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+
+    def test_parallel_lines_marked_in_overview(self):
+        d = self.instance("v1.0")
+        write_artifact(d, "prd.yaml", "已定稿")
+        write_artifact(d, "wds-brief.yaml", "已定稿")
+        item = self.json_run()["instances"][0]
+        self.assertEqual(len(item["branches"]), 2)
+        self.assertTrue(any("两线并存" in n for n in item["notes"]), item["notes"])
+        self.assertIn("多线并存", self.human_run())
+
 
 if __name__ == "__main__":
     unittest.main()

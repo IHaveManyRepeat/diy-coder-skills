@@ -33,10 +33,12 @@ outputs: —
    ```
 
    resolved 实例时附 `--instance <name>`；用户已选定工作线时附 `--line <线名>`（见规则 5）；调用方是别的脚本时才附 `--json`。唯一例外：用户对结果存疑 → 带 `--json` 重跑一次（见规则 2）。
+   不带 `--instance` 且平铺根无产物、`output_dir` 下有含链产物的版本子目录 → 自动出多版本总览；要强制汇总用 `--all-instances`（平铺根有产物时含 `(root)` 行）。合规名目录（如 `backup`）内有链产物即视为版本实例——备份请用 `_` 开头或移出 `output_dir`。
 2. 分支判定读 `--json` 回执的键（`blocked` / `next_skill` / `workflow_done`）；无 `--json` 的人读中文行只作转述。
    - `blocked` 在场 → 逐字转述该段并聚焦这里；整个跳过可选提示，绝不软化成一张选项菜单。
    - `next_skill` 在场 → 点名该技能，并建议新开一个上下文窗口。
    - `workflow_done` 为真 → 公告工作流已全部完成。
+   - `mode: "aggregate"` 在场 → 逐实例转述总览表，逐个点名阻塞版本；总览只读，开工新版本仍须显式 `--instance <name>`。
 3. 转述与收尾：按规则 3 的语言与篇幅回复。
 
 ## 结构
@@ -61,6 +63,8 @@ next_skill: 技能名 | null
 blocked: {file, status, action} | null
 notes: [可选提示]          # blocked 在场时被抑制
 workflow_done: true | false
+mode: "aggregate" | null   # 多版本总览：instances 逐实例回执（形状同上述各键 + instance）
+instances: [{instance, position, line, branches, output_dir, completed_steps, next_skill, blocked, notes, workflow_done}] | null
 ```
 
 - **两个源，各管各的**：链序与缺席提示在 `registry.yaml`；某节点要不要扫、扫哪些文件、是否可跳过，读该技能自己 `SKILL.md` frontmatter 的 `outputs` / `required`。本技能不复制、不重算。
@@ -74,5 +78,5 @@ workflow_done: true | false
 2. **脚本是唯一权威。** 绝不发明回执之外的位置或技能。结果与用户认知相左时，带 `--json` 重跑一次并摊开原始数据——这是「只跑一次」的唯一例外；YAML 文件是真源，不是本技能。
 3. **回复纪律。** 用 `project.communication_language` 回复；10 行上限只约束我自己的附加说明，脚本输出（尤其 `blocked` 段）逐字转述不受行数限制——宁可超行数，也不得压缩或改写阻塞原因。
 4. **依赖。** 脚本要求宿主 Python 装有 PyYAML。报 `ModuleNotFoundError`（`No module named 'yaml'`）时照实报告并建议 `pip install pyyaml`——绝不静默降级。
-5. **分叉与并存。** `branches` 在场即用户要选线：零起点按**用途**分叉（产品/应用 → 主线入口；官网/营销站 → WDS 入口；分析/迁移现有系统 → 逆向入口，随 B7 登记）；两条线产物并存时**问用户选定当前工作线**，再用 `--line <线名>` 重跑——绝不自行合并两条线。`branches` 不在场就按回执单线走，不问。
+5. **分叉与并存。** `branches` 在场即用户要选线：零起点按**用途**分叉（产品/应用 → 主线入口；官网/营销站 → WDS 入口；分析/迁移现有系统 → 逆向入口，随 B7 登记）；两条线产物并存时**问用户选定当前工作线**，再用 `--line <线名>` 重跑——绝不自行合并两条线。`branches` 不在场就按回执单线走，不问。聚合时 `--line` 不适用（报错）——先 `--instance <版本>` 选定版本，再 `--line <线名>` 选线。
 
