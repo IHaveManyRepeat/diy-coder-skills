@@ -206,11 +206,20 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
 # ---------------------------------------------------------------- openapi
 
 def check_openapi(doc, rel, docs, final, report) -> dict:
-    """openapi.yaml：轻量 3.1 结构自检（契约 §4.2 硬点）+ x-fr 引用解析。"""
+    """openapi.yaml：轻量 3.1 结构自检（契约 §4.2 硬点）+ x-fr / 功能 tags 引用解析。
+
+    v4 批 4a：每 operation 通用错误 $ref（components/responses）＋功能 tags（F-x
+    解析到 prd features）＋ securitySchemes/security 在场（终门硬门·批 4a §7-2）。
+    prd 缺席/损坏：x-fr 与 F-x 解析一并改硬 violation（三档总则一档·§7-1 ⑪——
+    同函数两处口径不得分裂，废 warning 跳过）。
+    """
     # rule: diy-openapi/SKILL.md:Contract Discipline（Valid OpenAPI 3.1 above all；
     #       each operation carries x-fr referencing existing FR IDs from prd.yaml）
+    # rule: diy-openapi/SKILL.md:鉴权必答（securitySchemes + security 在场·终门硬校验）
+    # rule: diy-openapi/SKILL.md:结构（每 operation 至少一条 $ref 指向 components/responses/*；
+    #       operation 必挂功能 tags，锚 F-x 须在 prd.yaml features 解析到）
     # rule: diy-openapi/SKILL.md:Final requires（openapi field is 3.1.x，zero [假设]，
-    #       every x-fr ID resolving in prd.yaml）
+    #       every x-fr ID / F-x anchor resolving in prd.yaml）
     counts = {"paths": 0, "operations": 0}
     version = doc.get("openapi")
     if not is_str(version) or not version.startswith("3.1"):
@@ -229,16 +238,35 @@ def check_openapi(doc, rel, docs, final, report) -> dict:
         else:
             enum(report, rel + " x-project.status", xp.get("status"),
                  ("草稿", "已定稿"), "x-project.status")
+    schemes = None
+    components = doc.get("components")
+    if isinstance(components, dict):
+        schemes = components.get("securitySchemes")
+    if not isinstance(schemes, dict) or not schemes:
+        report.add("EMPTY_FIELD", rel + " components.securitySchemes",
+                   "securitySchemes 缺失或为空（接口面必设计鉴权方案；"
+                   "无鉴权 = security: [] 显式留痕）")
+    if "security" not in doc:
+        report.add("EMPTY_FIELD", rel + " security",
+                   "security 缺失（顶层安全要求块必在场；显式无鉴权 = security: []）")
 
     paths = doc.get("paths")
     if not isinstance(paths, dict) or not paths:
         report.add("EMPTY_FIELD", rel + " paths", "paths 缺失或为空")
         return counts
-    prd_available = docs.doc("prd") is not None
+    prd = docs.doc("prd")
+    prd_available = prd is not None
     if not prd_available:
-        report.warn("prd.yaml 缺失/损坏：openapi x-fr 引用无法解析（跳过该子检查）")
+        # 三档总则一档（批 4a §7-1 ⑪）：prd 缺席/损坏 → 硬 violation（exit 1），
+        # x-fr 与 F-x 两处解析口径同函数一并改硬，不再 warning 跳过
+        report.add("UNKNOWN_ID", rel,
+                   "prd.yaml 缺失或损坏：x-fr 与功能 tags 的 F-x 引用无法解析"
+                   "（每个操作须引用 prd 既有 ID；硬门不再跳过）")
+        known, known_features = set(), set()
     else:
         known = set(docs.frs()) | set(docs.nfrs())
+        known_features = {f.get("id") for f in items(prd, "features", of_type=dict)
+                          if is_str(f.get("id")) and f.get("id")}
     op_ids = []
     for pkey, item in paths.items():
         w = "%s paths[%s]" % (rel, pkey)
@@ -264,8 +292,31 @@ def check_openapi(doc, rel, docs, final, report) -> dict:
             op_id = op.get("operationId")
             if req(report, ow + ".operationId", op_id, "operationId（稳定，永不改名）"):
                 op_ids.append((op_id, ow + ".operationId"))
-            if not nonempty(op.get("responses")) or not isinstance(op.get("responses"), dict):
+            responses = op.get("responses")
+            if not nonempty(responses) or not isinstance(responses, dict):
                 report.add("EMPTY_FIELD", ow + ".responses", "responses 缺失或为空")
+            elif not any(is_str(r.get("$ref"))
+                         and r["$ref"].startswith("#/components/responses/")
+                         and len(r["$ref"]) > len("#/components/responses/")
+                         for r in responses.values() if isinstance(r, dict)):
+                report.add("EMPTY_FIELD", ow + ".responses",
+                           "缺少通用错误 $ref（responses 至少一条 $ref 指向 "
+                           "components/responses/*，RFC 9457 problem details）")
+            tags = op.get("tags")
+            if not nonempty(tags) or not isinstance(tags, list):
+                report.add("EMPTY_FIELD", ow + ".tags",
+                           "tags 缺失或为空（每个操作须挂功能 tags：F-x 功能名）")
+            elif prd_available:
+                for j, tag in enumerate(tags):
+                    if not is_str(tag) or not tag:
+                        report.add("EMPTY_FIELD", "%s.tags[%d]" % (ow, j),
+                                   "tags 项缺失或非字符串")
+                        continue
+                    anchor = tag.split(None, 1)[0]
+                    if anchor not in known_features:
+                        report.add("UNKNOWN_ID", "%s.tags[%d]" % (ow, j),
+                                   "%s 的功能锚在 prd.yaml features 中不存在"
+                                   "（tag 形态 = F-x 功能名，只引用既有功能 ID）" % anchor)
             xfr = op.get("x-fr")
             if not nonempty(xfr) or not isinstance(xfr, list):
                 report.add("EMPTY_FIELD", ow + ".x-fr",

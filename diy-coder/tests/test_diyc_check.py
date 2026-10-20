@@ -7,7 +7,8 @@
 - 跨文件真值：已完成任务 vs stories/test-plan 不一致 → STATUS_MISMATCH；
   待审查任务 evidence 缺失 → EVIDENCE_MISSING
 - --previous 稳定 ID 集合（ID_UNSTABLE）
-- openapi 缺席 = ok + warning；openapi 3.1 轻量结构自检
+- openapi 缺席 = ok + warning；openapi 3.1 轻量结构自检（批 4a：通用错误 $ref /
+  功能 tags F-x 解析 / securitySchemes+security 在场；prd 缺席损坏硬 violation）
 - review verdict / route / kill_target 校验；UNPARSABLE_YAML
 
 夹具 tests/diyc_fixture.py 为 W1 冻结 API（只读引用）；全部落临时目录。
@@ -88,10 +89,20 @@ def openapi_doc(paths=None, **over):
         "openapi": "3.1.0",
         "x-project": fx.project_meta(),
         "info": {"title": "夹具接口", "version": "0.1.0"},
+        "tags": [{"name": "F-1 组"}],
+        "security": [],
         "paths": paths if paths is not None else {
             "/users": {"get": {"operationId": "listUsers",
-                               "responses": {"200": {"description": "OK"}},
+                               "tags": ["F-1 组"],
+                               "responses": {
+                                   "200": {"description": "OK"},
+                                   "404": {"$ref": "#/components/responses/NotFound"}},
                                "x-fr": ["FR-1.1"]}}},
+        "components": {
+            "responses": {"NotFound": {"description": "资源不存在"}},
+            "securitySchemes": {"noop": {"type": "apiKey", "name": "Authorization",
+                                         "in": "header", "x-decision": "D-1"}},
+        },
     }
     doc.update(over)
     return doc
@@ -316,6 +327,62 @@ class OpenapiCheckTest(CheckBase):
                                "x-fr": ["FR-9.9"]}}}))
         r = check(self.root, "openapi")
         self.assertIn("UNKNOWN_ID", codes(r))
+
+    # trace: v4 批 4a §7-4——五类新用例（通用错误 $ref / tags / F-x / prd 硬门 / 安全面）
+
+    def test_generic_error_ref_missing_red(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "openapi", openapi_doc(paths={
+            "/users": {"get": {"operationId": "listUsers", "tags": ["F-1 组"],
+                               "responses": {"200": {"description": "OK"}},
+                               "x-fr": ["FR-1.1"]}}}))
+        r = check(self.root, "openapi")
+        self.assertIn("EMPTY_FIELD", codes(r), "通用错误 $ref 缺失未拦")
+        self.assertIn("通用错误", msgs(r))
+
+    def test_tags_missing_red(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "openapi", openapi_doc(paths={
+            "/users": {"get": {
+                "operationId": "listUsers",
+                "responses": {"404": {"$ref": "#/components/responses/NotFound"}},
+                "x-fr": ["FR-1.1"]}}}))
+        r = check(self.root, "openapi")
+        self.assertIn("EMPTY_FIELD", codes(r), "tags 缺失未拦")
+        self.assertIn("tags", msgs(r))
+
+    def test_tag_feature_anchor_dangling(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "openapi", openapi_doc(paths={
+            "/users": {"get": {"operationId": "listUsers", "tags": ["F-9 幽灵功能"],
+                               "responses": {"404": {"$ref": "#/components/responses/NotFound"}},
+                               "x-fr": ["FR-1.1"]}}}))
+        r = check(self.root, "openapi")
+        self.assertIn("UNKNOWN_ID", codes(r), "F-x 功能锚悬空未拦")
+        self.assertIn("F-9", msgs(r))
+
+    def test_prd_absent_or_corrupt_is_hard_violation(self):
+        # 三档总则一档（§7-1 ⑪）：prd 缺席/损坏 → 硬 violation exit 1（废 warning 跳过）
+        fx.write_doc(self.root, "openapi", openapi_doc())
+        r = check(self.root, "openapi")
+        self.assertFalse(r["ok"], "prd 缺席须硬 violation exit 1")
+        self.assertIn("UNKNOWN_ID", codes(r))
+        self.assertIn("prd.yaml", msgs(r))
+        fx.write_doc(self.root, "prd", "foo: [unclosed")
+        r2 = check(self.root, "openapi")
+        self.assertFalse(r2["ok"], "prd 损坏须硬 violation exit 1")
+        self.assertIn("UNKNOWN_ID", codes(r2))
+
+    def test_security_schemes_and_security_absent_red(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        doc = openapi_doc()
+        del doc["components"]["securitySchemes"]
+        del doc["security"]
+        fx.write_doc(self.root, "openapi", doc)
+        r = check(self.root, "openapi")
+        self.assertIn("EMPTY_FIELD", codes(r), "securitySchemes/security 缺席未拦")
+        self.assertIn("securitySchemes", msgs(r))
+        self.assertIn("security", msgs(r))
 
 
 # ---------------------------------------------------------------- epics
