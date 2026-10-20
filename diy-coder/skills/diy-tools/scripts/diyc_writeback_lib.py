@@ -7,6 +7,7 @@ import re
 import yaml
 
 import diyc_lib as lib
+from diyc_lib_base import DuplicateKeyError
 
 # ---- 冻结常量（契约 §4.5 / §4.8） ----
 
@@ -90,6 +91,10 @@ def _load(args, name):
                                  f"{rel} 不存在——先运行上游技能生成该产物")
     try:
         doc = lib.load_yaml(path)
+    except DuplicateKeyError as e:
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        return None, path, lib.v("DUPLICATE_KEY", rel,
+                                 f"{rel} 重复键（{e}）——修复后重跑")
     except yaml.YAMLError as e:
         return None, path, lib.v("UNPARSABLE_YAML", rel,
                                  f"{rel} 解析失败（{e.__class__.__name__}）——修复后重跑")

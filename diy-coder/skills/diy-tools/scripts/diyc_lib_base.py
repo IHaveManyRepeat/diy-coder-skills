@@ -159,11 +159,52 @@ def next_record_id(records, id_re, prefix):
 
 # ---------------------------------------------------------------- YAML IO
 
+class DuplicateKeyError(yaml.YAMLError):
+    """YAML 重复键（违规码 DUPLICATE_KEY；性质区分于解析失败 UNPARSABLE_YAML——重复键≠解析失败，
+    底单 :364 ⑤）。继承 YAMLError：既有 except YAMLError 调用点零改动兼容（未接线处按解析失败
+    处理、消息含键位）；需区分的调用点先 except DuplicateKeyError。"""
+
+    def __init__(self, key, mark=None):
+        self.key = key
+        self.mark = mark
+        loc = "（line %d）" % (mark.line + 1) if mark is not None else ""
+        super().__init__("%r%s" % (key, loc))
+
+
+class _DupKeySafeLoader(yaml.SafeLoader):
+    """SafeLoader 变体：映射构造遇重复键抛 DuplicateKeyError（PyYAML 默认后值静默覆盖——
+    实测丢数据的根因，R4=B 全量直连点统一走此加载器）。"""
+
+
+def _construct_mapping_dup_check(loader, node, deep=False):
+    # 只查本层字面键；`<<` merge 键本体跳过（合并键与显式键同名是合法覆盖，flatten 后并存
+    # 若查会误报——先查后 flatten 即天然规避）
+    seen = []
+    for key_node, _ in node.value:
+        if key_node.tag == "tag:yaml.org,2002:merge":
+            continue
+        key = loader.construct_object(key_node, deep=deep)
+        if key in seen:
+            raise DuplicateKeyError(key, key_node.start_mark)
+        seen.append(key)
+    return yaml.constructor.SafeConstructor.construct_mapping(loader, node, deep=deep)
+
+
+_DupKeySafeLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_mapping_dup_check)
+
+
+def load_yaml_text(text):
+    """解析 YAML 文本（含重复键检测）；空/纯注释 → None（同 safe_load 语义，调用方自行 or {}）。
+    重复键 raise DuplicateKeyError；语法错 raise yaml.YAMLError。"""
+    return yaml.load(text, Loader=_DupKeySafeLoader)
+
+
 def load_yaml(path):
-    """读取 YAML（直接返回数据）；文件缺失 raise FileNotFoundError（调用方必须先处置）；
-    解析错 raise yaml.YAMLError；空 → {}。"""
+    """读取 YAML（直接返回数据·含重复键检测）；文件缺失 raise FileNotFoundError（调用方必须
+    先处置）；解析错 raise yaml.YAMLError；重复键 raise DuplicateKeyError；空 → {}。"""
     with io.open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+        return yaml.load(f, Loader=_DupKeySafeLoader) or {}
 
 
 def normalize_keys(node):
@@ -181,17 +222,30 @@ def normalize_keys(node):
     return node
 
 
-def load_yaml_safe(path):
-    """读 YAML（不抛版）：返回 (data, err)。缺席 → (None, None)；空文件 → ({}, None)；
-    损坏/不可读 → (None, 原因一行)。载入即做布尔键归一（normalize_keys）。
-    错误消息为裸原因——显示上下文由调用点自拼。"""
+def load_yaml_checked(path):
+    """读 YAML（含重复键检测+布尔键归一）→ (data, code, msg)。
+    缺席 → (None, None, None)；空 → ({}, None, None)；正常 → (doc, None, None)；
+    重复键 → (None, "DUPLICATE_KEY", 原因一行)；损坏/不可读 → (None, "UNPARSABLE_YAML", 原因)。"""
     if not os.path.isfile(path):
-        return None, None
+        return None, None, None
     try:
         with io.open(path, "r", encoding="utf-8") as f:
-            return normalize_keys(yaml.safe_load(f) or {}), None
+            return normalize_keys(yaml.load(f, Loader=_DupKeySafeLoader) or {}), None, None
+    except DuplicateKeyError as e:
+        return None, "DUPLICATE_KEY", str(e)
     except (yaml.YAMLError, OSError, UnicodeDecodeError) as e:
-        return None, str(e)
+        return None, "UNPARSABLE_YAML", str(e)
+
+
+def load_yaml_safe(path):
+    """读 YAML（不抛版）：返回 (data, err)。缺席 → (None, None)；空文件 → ({}, None)；
+    损坏/不可读/重复键 → (None, 原因一行)。载入即做布尔键归一（normalize_keys）。
+    错误消息为裸原因——显示上下文由调用点自拼；需区分 DUPLICATE_KEY 的调用方改用
+    load_yaml_checked（check 违规码接线面）。"""
+    data, _code, msg = load_yaml_checked(path)
+    if data is None and msg is None:
+        return None, None
+    return data, msg
 
 
 def save_yaml_atomic(path, data) -> None:
@@ -282,7 +336,7 @@ def read_config(project_root) -> tuple:
     warnings = []
     try:
         with io.open(cfg_path, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f)
+            cfg = yaml.load(f, Loader=_DupKeySafeLoader)
     except yaml.YAMLError as e:
         return {}, ["diy-coder.yaml: %s" % e]
     if not isinstance(cfg, dict):

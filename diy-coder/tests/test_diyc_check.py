@@ -938,6 +938,30 @@ class CommonTest(CheckBase):
         self.assertFalse(r["ok"])
         self.assertEqual(codes(r), {"UNPARSABLE_YAML"})
 
+    # Q-104（底单 :364 ⑤）：重复键 ≠ 解析失败——新码 DUPLICATE_KEY，与 UNPARSABLE_YAML 区分
+    def test_duplicate_key_yaml(self):
+        fx.write_doc(self.root, "prd",
+                     "project:\n  name: a\n  name: b\n")
+        r = check(self.root, "prd")
+        self.assertFalse(r["ok"])
+        self.assertEqual(codes(r), {"DUPLICATE_KEY"})
+        self.assertIn("重复键", msgs(r))
+        self.assertNotIn("UNPARSABLE_YAML", codes(r))
+
+    def test_duplicate_key_nested_and_distinct_from_unparsable(self):
+        doc = prd_doc()
+        text = yaml.safe_dump(doc, allow_unicode=True, sort_keys=False)
+        # 嵌套层重复键同样拦截（不在顶层也能抓）
+        text += "extra:\n  k: 1\n  k: 2\n"
+        fx.write_doc(self.root, "prd", text)
+        r = check(self.root, "prd")
+        self.assertFalse(r["ok"])
+        self.assertEqual(codes(r), {"DUPLICATE_KEY"})
+        # 对照：真解析失败仍是 UNPARSABLE_YAML（两码分界不漂移）
+        fx.write_doc(self.root, "prd", "project: [unclosed\n")
+        r2 = check(self.root, "prd")
+        self.assertEqual(codes(r2), {"UNPARSABLE_YAML"})
+
     def test_receipt_shape(self):
         fx.write_doc(self.root, "prd", prd_doc())
         r = check(self.root, "prd")

@@ -34,6 +34,7 @@ import yaml
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import load_yaml, resolve_output_dir  # noqa: E402
+from diyc_lib_base import DuplicateKeyError, load_yaml_text  # noqa: E402
 
 DEFAULT_STATUS_PATH = ("project", "status")
 
@@ -111,7 +112,9 @@ def read_frontmatter(skill):  # trace: C·1 节点事实来自技能自声明（
     if not m:
         _fail("技能 %s 的 SKILL.md 无 frontmatter" % skill)
     try:
-        fm = yaml.safe_load(m.group(1))
+        fm = load_yaml_text(m.group(1))
+    except DuplicateKeyError as e:
+        _fail("技能 %s 的 frontmatter 有重复键：%s" % (skill, e))
     except yaml.YAMLError as e:
         _fail("技能 %s 的 frontmatter 解析失败：%s" % (skill, e))
     if not isinstance(fm, dict):

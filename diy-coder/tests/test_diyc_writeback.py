@@ -101,8 +101,7 @@ class WritebackCase(unittest.TestCase):
         return diyc_fixture.write_doc(str(self.root), name, data)
 
     def read(self, name):
-        with open(self.out / (name + ".yaml"), encoding="utf-8") as f:
-            return yaml.safe_load(f)
+        return diyc_lib.load_yaml(str(self.out / (name + ".yaml")))
 
     def args(self, command, **kw):
         base = dict(command=command, project_root=str(self.root), instance=None,
@@ -224,6 +223,35 @@ class TransitionTests(WritebackCase):
                                            reason=None, rounds=None))
         self.assertFalse(res["ok"])
         self.assertEqual(res["violations"][0]["code"], "MISSING_FILE")
+
+
+@NEEDS_W1
+class DuplicateKeyTests(WritebackCase):
+    """Q-104（底单 :364 ⑤）：写回读产物遇重复键 → DUPLICATE_KEY，与 UNPARSABLE_YAML 区分。"""
+
+    def test_dup_key_sprint_rejected_with_distinct_code(self):
+        self.write("sprint", "project:\n  name: a\n  name: b\n")
+        res = diyc_writeback.run(self.args("transition", story="S-1", to="进行中",
+                                           reason=None, rounds=None))
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "DUPLICATE_KEY")
+        self.assertIn("重复键", res["violations"][0]["msg"])
+
+    def test_unparsable_still_reports_unparsable(self):
+        # 对照：真解析失败仍是 UNPARSABLE_YAML（两码分界不漂移）
+        self.write("sprint", "project: [unclosed\n")
+        res = diyc_writeback.run(self.args("transition", story="S-1", to="进行中",
+                                           reason=None, rounds=None))
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "UNPARSABLE_YAML")
+
+    def test_dup_key_stories_via_docs_index(self):
+        # Docs 索引入口（reconcile/green/done 共用）同样区分两码
+        self.write("stories", "project:\n  name: a\n  name: b\n")
+        self.write("test-plan", _tp_doc(_tc("TC-1.1.1", "AC-1.1")))
+        res = diyc_writeback.run(self.args("reconcile", apply=False))
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["violations"][0]["code"], "DUPLICATE_KEY")
 
 
 @NEEDS_W1
@@ -517,8 +545,7 @@ class StampTests(WritebackCase):
         res = diyc_writeback.run(self.args("stamp", type="brief", instance="lab1",
                                            output_dir=str(inst)))
         self.assertTrue(res["ok"], str(res.get("violations")))
-        with open(inst / "brief.yaml", encoding="utf-8") as f:
-            doc = yaml.safe_load(f)
+        doc = diyc_lib.load_yaml(str(inst / "brief.yaml"))
         self.assertRegex(doc["project"]["created"], NOW_RE)
         self.assertRegex(doc["project"]["updated"], NOW_RE)
 

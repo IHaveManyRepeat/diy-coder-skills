@@ -97,9 +97,11 @@ def cmd_init(args, project_root: Path) -> dict:
     product_path = output_dir / PRODUCT
     where = display_path(product_path, project_root)
     if product_path.exists():
-        existing, err = load_yaml(product_path)
+        existing, err, code = load_yaml(product_path)
         if err:
-            return {"violations": [v("UNPARSABLE_YAML", where, "产物不可解析：%s" % err)],
+            label = "重复键" if code == "DUPLICATE_KEY" else "不可解析"
+            return {"violations": [v(code or "UNPARSABLE_YAML", where,
+                                     "产物%s：%s" % (label, err))],
                     "warnings": warnings, "counts": {}}
         existing.setdefault("project", {})["updated"] = stamp
         save_yaml_atomic(product_path, existing)

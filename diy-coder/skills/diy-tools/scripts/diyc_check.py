@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import diyc_check_docs as d  # noqa: E402
 import diyc_lib  # noqa: E402
 from diyc_lib import Docs, receipt, rel_path  # noqa: E402
+from diyc_lib_base import load_yaml_checked  # noqa: E402
 from diyc_check_tasks import _check_previous, check_review, check_sprint  # noqa: E402
 
 TYPE_FILES = {
@@ -67,9 +68,11 @@ def run(args) -> dict:
         report.add("MISSING_FILE", rel, "%s 不存在" % filename)
         return _done(report, {})
 
-    doc, err = diyc_lib.load_yaml_safe(path)
+    doc, dup_code, err = load_yaml_checked(path)
     if err:
-        report.add("UNPARSABLE_YAML", rel, "YAML 解析失败：%s" % err)
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        report.add(dup_code, rel, "YAML %s：%s"
+                   % ("重复键" if dup_code == "DUPLICATE_KEY" else "解析失败", err))
         return _done(report, {})
     if not isinstance(doc, dict):
         report.add("UNPARSABLE_YAML", rel, "顶层不是映射（实际 %s）" % type(doc).__name__)

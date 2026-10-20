@@ -11,6 +11,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import v, walk_strings  # noqa: E402
+from diyc_lib_base import DuplicateKeyError, load_yaml_text  # noqa: E402
 
 REVIEW_FILE = "editorial-review.yaml"
 LENSES = ("结构", "文风")
@@ -98,7 +99,9 @@ def read_target(path, fallback):
     lines = len(text.splitlines())
     if path.lower().endswith(YAML_SUFFIXES):
         try:
-            doc = yaml.safe_load(text) or {}
+            doc = load_yaml_text(text) or {}
+        except DuplicateKeyError as e:
+            return None, lines, v("DUPLICATE_KEY", "", "目标 YAML 重复键：%s" % e)
         except yaml.YAMLError as e:
             return None, lines, v("UNPARSABLE_YAML", "", "目标 YAML 解析失败：%s" % e)
         return yaml_sections(doc, fallback), lines, None

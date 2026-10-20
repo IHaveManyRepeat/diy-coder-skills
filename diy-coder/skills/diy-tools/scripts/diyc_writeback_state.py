@@ -120,7 +120,10 @@ def _green(args):
     rel_tp = _rel(args, _doc_path(args, "test-plan"))
     err = docs.yaml_err("test-plan")
     if err:
-        return _fail(args, lib.v("UNPARSABLE_YAML", rel_tp, f"{rel_tp} 解析失败：{err}"))
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        code = docs.yaml_err_code("test-plan") or "UNPARSABLE_YAML"
+        label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
+        return _fail(args, lib.v(code, rel_tp, f"{rel_tp} {label}：{err}"))
     known = docs.tcs()
     for tc in tcs:
         if tc not in known:
@@ -203,7 +206,10 @@ def _done(args):
     rel_stories = _rel(args, _doc_path(args, "stories"))
     err = docs.yaml_err("stories")
     if err:
-        return _fail(args, lib.v("UNPARSABLE_YAML", rel_stories, f"{rel_stories} 解析失败：{err}"))
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        code = docs.yaml_err_code("stories") or "UNPARSABLE_YAML"
+        label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
+        return _fail(args, lib.v(code, rel_stories, f"{rel_stories} {label}：{err}"))
     if args.story not in docs.stories():
         return _fail(args, lib.v("UNKNOWN_ID", f"{rel_stories} stories",
                                  f"story {args.story} 不在 stories.yaml 中"))

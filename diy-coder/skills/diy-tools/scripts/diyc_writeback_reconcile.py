@@ -6,6 +6,7 @@ import os
 import yaml
 
 import diyc_lib as lib
+from diyc_lib_base import DuplicateKeyError
 
 from diyc_writeback_lib import (REGATE_STATUSES, _bump, _doc_path, _fail,
                                 _nonempty, _receipt, _rel)
@@ -35,7 +36,10 @@ def _reconcile(args):
         rel = _rel(args, _doc_path(args, name))
         err = docs.yaml_err(name)
         if err:
-            vio.append(lib.v("UNPARSABLE_YAML", rel, f"{rel} 解析失败：{err}"))
+            # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+            code = docs.yaml_err_code(name) or "UNPARSABLE_YAML"
+            label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
+            vio.append(lib.v(code, rel, f"{rel} {label}：{err}"))
         elif docs.doc(name) is None:
             vio.append(lib.v("MISSING_FILE", rel,
                              f"{rel} 不存在——reconcile 依赖 stories 与 test-plan 计算 TDD 门"))
@@ -59,6 +63,10 @@ def _reconcile(args):
     if os.path.isfile(sprint_path):
         try:
             existing = lib.load_yaml(sprint_path)
+        except DuplicateKeyError as e:
+            # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤）
+            return _fail(args, lib.v("DUPLICATE_KEY", srel,
+                                     f"{srel} 重复键（{e}）——修复后重跑"))
         except yaml.YAMLError as e:
             return _fail(args, lib.v("UNPARSABLE_YAML", srel,
                                      f"{srel} 解析失败（{e.__class__.__name__}）——修复后重跑"))

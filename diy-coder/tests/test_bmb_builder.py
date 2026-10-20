@@ -121,6 +121,17 @@ class GateTests(EngineCase):
         self.assertEqual(sorted(os.listdir(self.root)), before, "拒绝路径须零产出")
         self.assertFalse(os.path.exists(ghost), "拒绝路径不得代建目标目录")
 
+    # trace: 夜队列 Q-104 补（底单 :364 ⑤：重复键与解析失败区分）
+    def test_duplicate_key_frontmatter_reports_duplicate_key(self):
+        target = os.path.join(self.root, "dup-skill")
+        os.makedirs(target)
+        with io.open(os.path.join(target, "SKILL.md"), "w", encoding="utf-8") as fh:
+            fh.write("---\nname: a\nname: b\n---\n")
+        proc = run_engine(["check", "--target", target, "--json"] + self.common())
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        found = [item["code"] for item in json.loads(proc.stdout)["violations"]]
+        self.assertIn("DUPLICATE_KEY", found)
+
     def test_intent_gate_sentences_present(self):
         text = read(os.path.join(STEPS_DIR, "01-intent.md"))
         for anchor in ("零产出", "停并问", "MISSING_FILE",

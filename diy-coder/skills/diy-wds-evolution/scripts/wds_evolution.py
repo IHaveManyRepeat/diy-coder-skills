@@ -82,9 +82,9 @@ def cmd_init(args):
 
     # 已有产物 → 不覆盖（只刷 updated + warning）
     if os.path.exists(product_path(args.output_dir)):
-        data, err = load_yaml_soft(product_path(args.output_dir))
+        data, err, code = load_yaml_soft(product_path(args.output_dir))
         if err and err != "missing":
-            violations.append(v("UNPARSABLE_YAML", where,
+            violations.append(v(code or "UNPARSABLE_YAML", where,
                                 "产物损坏，拒绝写入：{}".format(err)))
             return receipt("init", False, instance=None, project_root=args.project_root,
                            output_dir=norm(args.output_dir), violations=violations,
