@@ -132,6 +132,13 @@ def doc(*records):
     return {
         "project": {"name": "mini", "created": "2026-01-01", "updated": "2026-09-14"},
         "researches": list(records),
+        "distillate": {
+            "problem": "欧洲电动车市场是否值得进入",
+            "target_users": ["整车厂与出行运营商"],
+            "value_props": ["细分场景切入机会已被证据支持"],
+            "constraints": ["仅覆盖德法英三国公开数据"],
+            "open_questions": ["商用车细分未覆盖，需单独研究"],
+        },
         "revisions": [],
     }
 
@@ -282,6 +289,38 @@ class CheckValidationTests(EngineCase):
             if where_tail:
                 self.assertTrue(any(where_tail in x["where"] for x in hits),
                                 "%s where 未指向 %s：%s" % (code, where_tail, r.stdout))
+
+    # trace: 夜队列 Q-103（底单 :361 ②：--final 加 distillate 存在＋五字段非空校验）
+    def test_final_requires_distillate_present_and_five_fields(self):
+        # distillate 整段缺席 → EMPTY_FIELD（存在门），where 点名交出面
+        absent = doc(record())
+        absent.pop("distillate")
+        self.write_doc(absent)
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        hits = [x for x in json.loads(r.stdout)["violations"]
+                if x["code"] == "EMPTY_FIELD" and x["where"].endswith("distillate")]
+        self.assertTrue(hits, r.stdout)
+        self.assertIn("交出面", hits[0]["msg"])
+        # 标量字段空 → 点名 distillate.problem
+        empty_scalar = doc(record())
+        empty_scalar["distillate"]["problem"] = ""
+        self.write_doc(empty_scalar)
+        r2 = self.check("--final")
+        self.assertEqual(r2.returncode, 1, r2.stdout + r2.stderr)
+        self.assertTrue(any(x["where"].endswith("distillate.problem")
+                            for x in json.loads(r2.stdout)["violations"]), r2.stdout)
+        # 列表字段空 → 点名 distillate.constraints（五字段非空）
+        empty_list = doc(record())
+        empty_list["distillate"]["constraints"] = []
+        self.write_doc(empty_list)
+        r3 = self.check("--final")
+        self.assertEqual(r3.returncode, 1, r3.stdout + r3.stderr)
+        self.assertTrue(any(x["where"].endswith("distillate.constraints")
+                            for x in json.loads(r3.stdout)["violations"]), r3.stdout)
+        # 起草期缺席仍宽松（校验收在 --final）
+        self.write_doc(absent)
+        self.assertEqual(self.check().returncode, 0)
 
     # trace: 任务书 §2.1（起草期宽松：draft 记录无 synthesis / 无 findings 合法）
     def test_check_draft_record_is_lenient(self):

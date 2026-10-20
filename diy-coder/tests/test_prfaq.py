@@ -310,6 +310,52 @@ class CheckValidationTests(EngineCase):
         self.write("diy-output/prfaq.yaml", PRFAQ_DRAFT)
         self.assertEqual(self.check().returncode, 0)
 
+    # trace: 夜队列 Q-103（对称补：--final 要求 distillate 存在且五字段非空——与 brief/research 同档）
+    def test_final_distillate_five_fields_nonempty(self):
+        # distillate 整段缺席 → EMPTY_FIELD 存在门
+        absent = swap(PRFAQ_FINAL, NL.join([
+            "distillate:",
+            "  problem: 需求整理耗时",
+            "  target_users:",
+            "  - 独立开发者",
+            "  value_props:",
+            "  - 三分钟出草稿",
+            "  constraints:",
+            "  - 仅本地文件，不做云端同步",
+            "  open_questions:",
+            "  - 成本模型缺实测数据",
+        ]) + NL, "")
+        self.write("diy-output/prfaq.yaml", absent)
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        hits = [x for x in json.loads(r.stdout)["violations"]
+                if x["code"] == "EMPTY_FIELD" and x["where"].endswith("distillate")]
+        self.assertTrue(hits, r.stdout)
+        self.assertIn("交出面", hits[0]["msg"])
+        # constraints 空列表 → 点名 distillate.constraints（对称补前该态放行）
+        empty_c = swap(PRFAQ_FINAL,
+                       NL.join(["  constraints:", "  - 仅本地文件，不做云端同步"]) + NL,
+                       "  constraints: []" + NL)
+        self.write("diy-output/prfaq.yaml", empty_c)
+        r2 = self.check("--final")
+        self.assertEqual(r2.returncode, 1, r2.stdout + r2.stderr)
+        self.assertTrue(any(x["where"].endswith("distillate.constraints")
+                            for x in json.loads(r2.stdout)["violations"]), r2.stdout)
+        # open_questions 空列表 → 点名 distillate.open_questions
+        empty_q = swap(PRFAQ_FINAL,
+                       NL.join(["  open_questions:", "  - 成本模型缺实测数据"]) + NL,
+                       "  open_questions: []" + NL)
+        self.write("diy-output/prfaq.yaml", empty_q)
+        r3 = self.check("--final")
+        self.assertEqual(r3.returncode, 1, r3.stdout + r3.stderr)
+        self.assertTrue(any(x["where"].endswith("distillate.open_questions")
+                            for x in json.loads(r3.stdout)["violations"]), r3.stdout)
+        # 起草期空列表仍放行（宽松不变）+ 五字段俱全定稿仍绿（回归）
+        self.write("diy-output/prfaq.yaml", PRFAQ_DRAFT)
+        self.assertEqual(self.check().returncode, 0)
+        self.write("diy-output/prfaq.yaml", PRFAQ_FINAL)
+        self.assertEqual(self.check("--final").returncode, 0)
+
     # trace: B1 diy-prfaq 验收 #2（notes 键：过程叙事承载，逐条校验 stage/content）
     def test_check_notes_entries(self):
         # 出现时校验：stage 越界 → ENUM_INVALID；content 空 → EMPTY_FIELD

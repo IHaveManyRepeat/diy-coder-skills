@@ -3,7 +3,7 @@
 Progress: `Discovery → [Draft] → Finalize`
 
 **Read (input):** 对话里的倾倒与摘录；`{output_dir}/brief.yaml` 的骨架。
-**Write (output):** 起草好的各节；实时的 `decisions` 与 `addendum` 条目；`[假设]` 前缀。
+**Write (output):** 起草好的各节；实时的 `decisions` 与 `addendum` 条目；随节归拢的顶层 `distillate`（交出面）；`[假设]` 前缀。
 
 ## 形状随产品
 
@@ -30,6 +30,7 @@ Progress: `Discovery → [Draft] → Finalize`
 - **前缀：**每个等用户确认的推断就地带 `[假设]` 前缀，并回声成 `brief.assumptions` 里的一行。不是任何人推断的未知项（还没人知道的事实）走 `open_questions`。
 - **决策是规范记忆，实时写。**每个决策、变更或推翻，发生即得一条带 `rationale` 的 `BD-###`：id = 现有最大值 + 1、三位零填充、永不重编号或重用。推翻先前决策时，把旧条 `status` 翻成 `已反转` 并追加一条新条目——旧史永不改写。
 - **附录实时写，绝不拖到收尾。**用户贡献的纵深，凡属于下游文档（PRD、architecture、solution design）或够格进简报却塞不下的——被拒方案的取舍理由、备选矩阵、停摆的路线图背景、技术约束、深度人物画像、规模测算数据。`why_separate` 写明它属哪一种。审计与推翻信息绝不进附录。
+- **交出面实时写。**每节成文即把下游结论归拢进顶层 `distillate` 五字段（`problem` / `target_users` / `value_props` / `constraints` / `open_questions`——范围边界与被排除项进 `constraints`，能写成「Not <X>: because <Y>」的照此写；仍未决的进 `open_questions`）。它是交给 `diy-prd` 的下游契约，只声明交什么——字段级映射在 prd 侧；`--final` 校验五字段非空，别留到定稿赶工。
 - **边写边定分量：**`stakes` 决定各节多重——`个人兴趣` 的简报短，`投资人` 的简报密。
 
 ## 呈现

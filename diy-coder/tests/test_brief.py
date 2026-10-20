@@ -74,6 +74,16 @@ BRIEF_YAML = NL.join([
     "  extra_sections:",
     "  - name: 范围",
     "    content: 仅本批 5 技能",
+    "distillate:",
+    "  problem: 手工迁移逐字对照成本高",
+    "  target_users:",
+    "  - 独立开发者",
+    "  value_props:",
+    "  - 确定性下沉到引擎",
+    "  constraints:",
+    "  - 仅本批 5 技能",
+    "  open_questions:",
+    "  - 是否需要多实例支持",
     "decisions:",
     "- id: BD-001",
     "  date: '2026-09-14'",
@@ -97,6 +107,20 @@ BRIEF_FINAL_YAML = (BRIEF_YAML
                     .replace("  status: 草稿", "  status: 已定稿")
                     .replace("revisions: []",
                              NL.join(["revisions: []", "review_refs: [ER-001]"])))
+
+# 交出面块（--final 校验对象；Q-103 夹具改写锚——移除/清字段用）
+DISTILLATE_BLOCK = NL.join([
+    "distillate:",
+    "  problem: 手工迁移逐字对照成本高",
+    "  target_users:",
+    "  - 独立开发者",
+    "  value_props:",
+    "  - 确定性下沉到引擎",
+    "  constraints:",
+    "  - 仅本批 5 技能",
+    "  open_questions:",
+    "  - 是否需要多实例支持",
+]) + NL
 
 # 配套评审台账（diy-editorial-review 形态）：target 基准 = project-root 相对 + 正斜杠
 REVIEW_YAML = NL.join([
@@ -311,6 +335,39 @@ class CheckValidationTests(EngineCase):
                           "%s 未报出：%s" % (code, r.stdout))
             self.assertTrue(all(x.get("where") and x.get("msg")
                                 for x in data["violations"]), r.stdout)
+
+    # trace: 夜队列 Q-103（底单 :361 ②：--final 加 distillate 存在＋五字段非空校验）
+    def test_final_requires_distillate_present_and_five_fields(self):
+        self.assertIn(DISTILLATE_BLOCK, BRIEF_FINAL_YAML, "夹具锚点未命中")
+        # distillate 整段缺席 → EMPTY_FIELD（存在门），where 点名交出面
+        self.write_final(BRIEF_FINAL_YAML.replace(DISTILLATE_BLOCK, ""))
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        hits = [x for x in json.loads(r.stdout)["violations"]
+                if x["code"] == "EMPTY_FIELD" and x["where"].endswith("distillate")]
+        self.assertTrue(hits, r.stdout)
+        self.assertIn("交出面", hits[0]["msg"])
+        # 标量字段空 → 点名 distillate.problem
+        empty_scalar = DISTILLATE_BLOCK.replace(
+            "  problem: 手工迁移逐字对照成本高" + NL, "  problem: ''" + NL)
+        self.assertNotEqual(empty_scalar, DISTILLATE_BLOCK, "夹具锚点未命中")
+        self.write_final(BRIEF_FINAL_YAML.replace(DISTILLATE_BLOCK, empty_scalar))
+        r2 = self.check("--final")
+        self.assertEqual(r2.returncode, 1, r2.stdout + r2.stderr)
+        self.assertTrue(any(x["where"].endswith("distillate.problem")
+                            for x in json.loads(r2.stdout)["violations"]), r2.stdout)
+        # 列表字段空 → 点名 distillate.constraints（五字段非空）
+        empty_list = DISTILLATE_BLOCK.replace(
+            "  constraints:" + NL + "  - 仅本批 5 技能" + NL, "  constraints: []" + NL)
+        self.assertNotEqual(empty_list, DISTILLATE_BLOCK, "夹具锚点未命中")
+        self.write_final(BRIEF_FINAL_YAML.replace(DISTILLATE_BLOCK, empty_list))
+        r3 = self.check("--final")
+        self.assertEqual(r3.returncode, 1, r3.stdout + r3.stderr)
+        self.assertTrue(any(x["where"].endswith("distillate.constraints")
+                            for x in json.loads(r3.stdout)["violations"]), r3.stdout)
+        # 起草期缺席仍宽松（校验收在 --final）
+        self.write("diy-output/brief.yaml", BRIEF_YAML.replace(DISTILLATE_BLOCK, ""))
+        self.assertEqual(self.check().returncode, 0)
 
     # trace: 任务书 §2.4（[假设] 扫描覆盖全文任意字段，不止 assumptions 列表）
     def test_final_scans_assumption_tag_anywhere(self):

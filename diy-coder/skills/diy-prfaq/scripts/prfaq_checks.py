@@ -215,7 +215,7 @@ def check_distillate(distillate, show, violations):
 
 def check_final_duties(data, doc, project, stage, show, violations):
     """--final 附加义务（任务书 §5）：stage=5 / status: 已定稿 / 九键 / verdict /
-    distillate 非空 / 零 [假设]。"""
+    distillate 存在且五字段非空（对称补＝与 brief/research 交出面同档）/ 零 [假设]。"""
     if stage != 5:
         violations.append(v("STATUS_MISMATCH", "%s.prfaq.stage" % show,
                             "--final 要求 stage=5（终局）；当前 stage=%s" % stage))
@@ -235,20 +235,20 @@ def check_final_duties(data, doc, project, stage, show, violations):
     distillate = data.get("distillate")
     if not isinstance(distillate, dict):
         violations.append(v("EMPTY_FIELD", "%s distillate" % show,
-                            "--final 要求 distillate 非空（下游 PRD 输入）"))
+                            "--final 要求 distillate 非空（交出面：下游 PRD 输入）"))
     else:
         for key in DISTILLATE_SCALARS:
             if not nonempty(distillate.get(key)):
                 violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (show, key),
                                     "--final 要求 distillate.%s 非空" % key))
         for key in DISTILLATE_LISTS:
-            if not isinstance(distillate.get(key), list):
+            value = distillate.get(key)
+            if not isinstance(value, list):
                 violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (show, key),
                                     "--final 要求 distillate.%s 为列表" % key))
-        if isinstance(distillate.get("value_props"), list) \
-                and not distillate.get("value_props"):
-            violations.append(v("EMPTY_FIELD", "%s distillate.value_props" % show,
-                                "--final 要求至少 1 条 value_props"))
+            elif not value:
+                violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (show, key),
+                                    "--final 要求 distillate.%s 非空（至少 1 条）" % key))
     if any("[假设]" in s for _p, s in walk_strings(data, "")):
         violations.append(v("ASSUMPTION_PRESENT", show,
                             "--final 要求零 [假设]；未决推断须清空或落为 "

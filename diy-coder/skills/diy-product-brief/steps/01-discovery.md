@@ -3,7 +3,7 @@
 Progress: `[Discovery] → Draft → Finalize`（新建路径；更新从 step 4 进入，校验从 step 5 进入）
 
 **Read (input):** 激活回执（`intent` / `route` / `counts`）；用户点名的任何源材料；`{output_dir}/project-context.yaml`（存在时）。
-**Write (output):** discovery 消息；建 `{output_dir}/brief.yaml`，含 `project`（`status: 草稿`）与倾倒已填好的骨架。
+**Write (output):** discovery 消息；建 `{output_dir}/brief.yaml`，含 `project`（`status: 草稿`）、`distillate` 交出面骨架与倾倒已填好的骨架。
 
 ## 开场
 
@@ -43,12 +43,14 @@ project: {name: <diy-coder.yaml project.name>, status: 草稿, created: , update
                               # 时间键留空；建文件后跑 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type brief --json 盖秒级章；每次写回产物后再跑一次（刷 updated）
 brief: {title: '', stakes: <已读出的档位>, problem: '', solution: '', pitch: '',
         users: [], value: [], open_questions: [], assumptions: [], extra_sections: []}
+distillate: {problem: '', target_users: [], value_props: [], constraints: [], open_questions: []}
+                              # 交出面：交给 diy-prd 的下游契约——骨架随建，各步随内容归拢；定稿前五字段须非空（--final 校验）
 decisions: []
 addendum: []
 revisions: []
 ```
 
-从这一刻起持久化是实时的：决策做出即带 `rationale` 进 `decisions`；用户主动多说的纵深带 `why_separate` 进 `addendum`；等确认的推断就地标 `[假设]`，并回声到 `brief.assumptions`。
+从这一刻起持久化是实时的：决策做出即带 `rationale` 进 `decisions`；用户主动多说的纵深带 `why_separate` 进 `addendum`；等确认的推断就地标 `[假设]`，并回声到 `brief.assumptions`。顶层 `distillate`（交出面）同理——骨架已建，倾倒与确认里下游相关的结论随手归拢进去，不留给定稿赶工。
 
 若 `brief.yaml` 本来就在——`intent` 回执会说明，且对 `新建` 给过 warning——绝不静默覆盖：给两个去处，续上在写的草稿，或走一次刻意更新；任何重写都过第 4 步的快照纪律。
 

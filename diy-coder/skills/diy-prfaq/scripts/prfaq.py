@@ -12,8 +12,8 @@
             q 与 a 非空 / verdict.strength 枚举 / notes 条目 {stage: 1-5, content 非空}。
             --previous PATH：比对旧稿 PQ ID 集合，旧有新无 → ID_UNSTABLE。
             --final：附加定稿义务——stage=5、project.status: 已定稿、press_release
-            九键非空、verdict 非空且 strength 在枚举内、distillate 非空、零 [假设]。
-            exit 0 唯一放行。
+            九键非空、verdict 非空且 strength 在枚举内、distillate 存在且五字段非空、
+            零 [假设]。exit 0 唯一放行。
 
 分工裁定（任务书 §2.2 / P1 先例）：prfaq 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态，契约同构：exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}]
@@ -199,7 +199,8 @@ def main():
     c.add_argument("--output-dir", required=True,
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--final", action="store_true",
-                   help="定稿校验：stage=5 + status: 已定稿 + 九键 + distillate + 零假设")
+                   help="定稿校验：stage=5 + status: 已定稿 + 九键 + distillate 五字段非空"
+                        " + 零假设")
     c.add_argument("--previous", default=None,
                    help="旧稿路径（Update 改写前留档；比对 PQ ID 集合）")
     c.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
