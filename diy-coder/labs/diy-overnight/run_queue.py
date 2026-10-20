@@ -13,11 +13,12 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from rq_lib import (CIRCUIT_CAUSES, DUE_FMT, SKIP_CAUSES, branch_name, changed_rels,
-                    die, dump_queue, emit, find_task, git, load_queue, next_runnable,
-                    non_scope, parse_deadline, parse_dt, parse_phases, prev_tip,
-                    queue_skip, repo_root, run_tests, task_index, tests_count_of,
-                    tonight_of)
+from rq_lib import (CIRCUIT_CAUSES, DEFAULT_PARAMS, DUE_FMT, SKIP_CAUSES, apply_relay,
+                    branch_name, changed_rels, die, dump_queue, emit, find_task, git,
+                    load_queue, make_tonight, next_runnable, non_scope, parse_deadline,
+                    parse_dt, parse_phases, passes_start_gate, prev_tip, queue_skip,
+                    relay_decision, render_report, report_filename, repo_root, run_tests,
+                    status_counts, task_index, tests_count_of, tonight_of)
 
 
 def cmd_start(args: argparse.Namespace) -> None:
@@ -28,19 +29,11 @@ def cmd_start(args: argparse.Namespace) -> None:
     if busy:
         die(f"存在进行中条目 {busy}——先按中断恢复处置（fail --cause interrupt）")
     now = datetime.now()
-    deadline = parse_deadline(args.deadline)
+    params = {"grace_min": args.grace, "timeout_x": args.timeout_x,
+              "circuit_limit": args.circuit, "buffer_min": args.buffer}
     data["base"] = git("rev-parse", "HEAD").stdout.strip()
-    data["tonight"] = {
-        "date": now.strftime("%Y-%m-%d"),
-        "deadline": deadline.strftime(DUE_FMT),
-        "grace_min": args.grace,
-        "timeout_x": args.timeout_x,
-        "circuit_limit": args.circuit,
-        "buffer_min": args.buffer,
-        "circuit_count": 0,
-        "started_at": now.strftime(DUE_FMT),
-        "baseline_min": args.baseline_min,
-    }
+    data["tonight"] = make_tonight(now, now.strftime("%Y-%m-%d"),
+                                   parse_deadline(args.deadline), params, args.baseline_min)
     dump_queue(path, data)
     emit({"ok": True, "base": data["base"], "tonight": data["tonight"]})
 
@@ -61,9 +54,8 @@ def cmd_gate(args: argparse.Namespace) -> None:
             return
 
     now = datetime.now()
-    deadline = parse_dt(t["deadline"])
-    gate_at = now + timedelta(minutes=task["estimate_min"] + t["buffer_min"])
-    if gate_at > deadline:
+    if not passes_start_gate(now, task["estimate_min"], t["buffer_min"],
+                             parse_dt(t["deadline"])):
         deferred = 0
         for other in data["tasks"][task_index(data, task["id"]):]:
             if other.get("status") == "待跑":
@@ -238,72 +230,17 @@ def cmd_fail(args: argparse.Namespace) -> None:
           "circuit_count": t.get("circuit_count", 0)})
 
 
-def fmt_val(res: dict, key: str, suffix: str = "") -> str:
-    v = res.get(key)
-    return f"{v}{suffix}" if v is not None else "—"
-
-
-def fmt_elapsed(res: dict) -> str:
-    if res.get("elapsed_min") is not None:
-        return f"{res['elapsed_min']}min"
-    if res.get("elapsed_sec") is not None:  # 失败任务只记秒
-        return f"{round(res['elapsed_sec'] / 60, 1)}min"
-    return "—"
-
-
 def cmd_report(args: argparse.Namespace) -> None:
     """晨报（队列同目录·不入库）＋runs 追加（同 date 行幂等更新）。"""
     path = Path(args.queue)
     data = load_queue(path)
     t = tonight_of(data)
-    tasks = data["tasks"]
-    counts = {s: sum(1 for x in tasks if x.get("status") == s)
-              for s in ("完成", "顺延", "跳过", "阻塞")}
     now = datetime.now()
     date = t["date"]
-    base_min = t.get("baseline_min")
-
-    lines = [
-        f"# 夜队列晨报 {date}",
-        "",
-        f"- base：`{data.get('base')}`",
-        f"- deadline：{t['deadline']}（宽限 {t['grace_min']}min／超时 {t['timeout_x']}×estimate／熔断 {t['circuit_limit']}／缓冲 {t['buffer_min']}min）",
-        f"- 基线测试：{base_min if base_min is not None else '—'}min",
-        f"- 运行窗：{t.get('started_at', '?')} → {now.strftime(DUE_FMT)}",
-        f"- 完成 {counts['完成']} · 顺延 {counts['顺延']} · 跳过 {counts['跳过']} · 阻塞 {counts['阻塞']}",
-        "",
-        "| 任务 | 状态 | 预估 | 耗时 | 偏差 | 分支 | commit | 测试 | 备注 |",
-        "|---|---|---|---|---|---|---|---|---|",
-    ]
-    for task in tasks:
-        res = task.get("result") or {}
-        est = task.get("estimate_min")
-        note = task.get("reason") or ""
-        lines.append(
-            f"| {task.get('id')} | {task.get('status')} | {est if est is not None else '—'} "
-            f"| {fmt_elapsed(res)} | {fmt_val(res, 'ratio', '×')} "
-            f"| {res.get('branch', '—')} | {(res.get('commit') or '—')[:7]} "
-            f"| {res.get('tests', '—')} | {note or '—'} |"
-        )
-    pending = [x for x in tasks if x.get("status") in ("顺延", "跳过", "阻塞")]
-    if pending:
-        lines += ["", "## 未完成项（原因＋建议处置）", ""] + [
-            f"- **{t2.get('id')}** `{t2.get('status')}`：{t2.get('reason') or '—'}"
-            for t2 in pending]
-    blocked = [x for x in tasks if x.get("status") == "阻塞"]
-    if blocked:
-        lines += ["", "## 待裁点（阻塞条目）", ""] + [
-            f"- {t2.get('id')}：{t2.get('reason')}"
-            + ("（红标分支留审：`git checkout " + branch_name(date, t2['id']) + "` 亲验）"
-               if (t2.get("result") or {}).get("kept") else "")
-            for t2 in blocked]
-    lines += ["", "## 早审指引（照队列序逐支，每支三步）", "",
-              "1. 看变更：`git diff <前支tip>..<本支tip>`（首支＝`<base>..<首支>`）；可 checkout 亲验跑 `test_cmd`。",
-              "2. 裁断：过 → `git merge <支> --no-ff` 入 dev；否 → 不合、记待办（含分支名）继续下一支；拿不准 → 停，余支记待办。",
-              "3. 全过完：删链 `git branch -d overnight/<日期>/*` ＋归档队列完成条目。", ""]
-    report = path.parent / f"report-{date}.md"
-    report.write_text("\n".join(lines), encoding="utf-8")
-
+    report = report_filename(path)
+    report.write_text(render_report(data, now), encoding="utf-8")
+    tasks = data["tasks"]
+    counts = status_counts(tasks)
     fail_dist: dict[str, int] = {}
     for x in tasks:
         cause = (x.get("result") or {}).get("cause")
@@ -329,6 +266,26 @@ def cmd_report(args: argparse.Namespace) -> None:
     emit({"ok": True, "report": str(report), "counts": counts})
 
 
+def cmd_relay(args: argparse.Namespace) -> None:
+    """队列接力：源队列无待跑后按 next 判定，并把下一队列初始化（base/tonight/relay_from）。"""
+    path = Path(args.queue)
+    data = load_queue(path)
+    t = tonight_of(data)
+    now = datetime.now()
+    decision = relay_decision(data, t, path, now)
+    if not decision["ok"]:
+        emit(decision)
+        return
+    dirty = changed_rels(queue_skip(path))
+    if dirty:
+        die(f"工作树不净（{dirty[0]}）——先处置再接力")
+    target_path = Path(decision["queue"])
+    target = load_queue(target_path)
+    apply_relay(target, now, t, str(path.resolve()))
+    dump_queue(target_path, target)
+    emit({**decision, "deadline": target["tonight"]["deadline"], "base": target["base"]})
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="run_queue", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -339,10 +296,14 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser("start", help="写 base＋tonight（开工定档后调）")
     common(sp)
     sp.add_argument("--deadline", default="07:00", help="HH:MM（最近未来时刻）或完整 ISO")
-    sp.add_argument("--grace", type=int, default=45, help="宽限分钟（缺省 45）")
-    sp.add_argument("--timeout-x", type=float, default=2.0, help="超时倍数（缺省 2×estimate）")
-    sp.add_argument("--circuit", type=int, default=2, help="连跳熔断阈值（缺省 2）")
-    sp.add_argument("--buffer", type=int, default=15, help="测试缓冲分钟（缺省 15）")
+    sp.add_argument("--grace", type=int, default=DEFAULT_PARAMS["grace_min"],
+                    help="宽限分钟（缺省 45）")
+    sp.add_argument("--timeout-x", type=float, default=DEFAULT_PARAMS["timeout_x"],
+                    help="超时倍数（缺省 2×estimate）")
+    sp.add_argument("--circuit", type=int, default=DEFAULT_PARAMS["circuit_limit"],
+                    help="连跳熔断阈值（缺省 2）")
+    sp.add_argument("--buffer", type=int, default=DEFAULT_PARAMS["buffer_min"],
+                    help="测试缓冲分钟（缺省 15）")
     sp.add_argument("--baseline-min", type=float, default=None,
                     help="基线自证全量墙钟分钟（开工前置那次跑的耗时）")
     sp.set_defaults(fn=cmd_start)
@@ -371,6 +332,10 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--keep-branch", action="store_true",
                     help="三次仍红：红标 WIP 提交留分支置阻塞（仅 --cause red）")
     sp.set_defaults(fn=cmd_fail)
+
+    sp = sub.add_parser("relay", help="队列接力：按 next 判定并初始化下一队列")
+    common(sp)
+    sp.set_defaults(fn=cmd_relay)
 
     sp = sub.add_parser("report", help="晨报＋runs 追加（幂等）")
     common(sp)
