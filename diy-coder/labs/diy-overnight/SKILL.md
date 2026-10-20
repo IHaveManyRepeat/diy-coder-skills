@@ -37,6 +37,8 @@ archive: []                   # 已审结归档条目
 runs: []                      # 每晚一行：date/base/deadline/完成计数/estimate_合计/实际_合计_秒/失败分布/熔断
 ```
 
+`test_cmd` 本仓用：`cd diy-coder && python run_tests.py`——有 `pytest-xdist` 时并行（按文件整包分配，防 `os.chdir`／模块级状态串扰），缺失时自动安装，安装失败按用户裁断重试或回退串行。排障也可直跑 `python -m pytest tests -q` 串行。
+
 命名：队列文件＝`queue-<YYYY-MM-DD-HHMMSS>.yaml`（创建时间·年月日-时分秒，一晚一文件）；晨报与队列文件同名对应＝`report-<队列文件stem>.md`（如 `report-queue-2026-10-19-230830.md`）。旧名队列照跑，晨报按 `report-<其stem>.md`。
 
 入队四条件（开工前置时核）：①全裁断——当晚零裁断余地，「随批核/待裁」子点先裁掉否则不入队；②改动面明确且与他批无交叠；③可独立 revert；④共面文档（如审查底单）仅在任务本体就是该文档作业时才入 scope。

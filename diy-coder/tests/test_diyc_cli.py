@@ -226,7 +226,7 @@ class StaticTests(unittest.TestCase):
 
     def test_timeout_counts_as_failure(self):
         self.write_plan([
-            fx.static_check(1, PY + ' -c "import time; time.sleep(10)"', gate="阻断"),
+            fx.static_check(1, PY + ' -c "import time; time.sleep(3)"', gate="阻断"),
         ])
         p = run_diyc(self.root, "static", "--timeout", "1", "--json")
         self.assertEqual(p.returncode, 1)

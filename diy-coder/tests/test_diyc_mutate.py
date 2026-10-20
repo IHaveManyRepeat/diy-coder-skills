@@ -167,7 +167,7 @@ class MutateTests(unittest.TestCase):
 
     def test_timeout_killed_and_reported(self):
         result = jload(run_mutate(
-            self.root, "--tool", "python -c \"import time; time.sleep(30)\"",
+            self.root, "--tool", "python -c \"import time; time.sleep(5)\"",
             "--full", "--timeout", "2"))
         self.assertTrue(result["timed_out"])
         self.assertFalse(result["ok"])
