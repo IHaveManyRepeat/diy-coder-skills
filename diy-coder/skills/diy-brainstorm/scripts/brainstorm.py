@@ -24,16 +24,18 @@
   check      schema / `BS-###` 格式与唯一 / `status` 枚举 / `current_step` 枚举 1-5 且与
              `status` 同档（草稿→1；进行中→2-4；已完成→5，否则 `STATUS_MISMATCH`）/
              步骤锚点与内容一致（≥2 有 approach、≥3 有 techniques、=5 有 themes + priorities.top
-             + actions——源纪律「无行动计划不得收尾」）/ 想法 `no` 连续不跳号（1..N）/
-             `themes[].ideas`、`priorities` 三键与 `actions[].idea` 的引用必须落在本记录
-             `ideas[].no` 内 / `techniques[].category` ∈ 库内类名。`--final` 附加：
-             `status: 已完成` 且零 `[假设]`（定稿前清零，未决项落 `open_questions`）。
-             `--id BS-xxx` 把记录级扫描收窄到一条（找不到 → `UNKNOWN_ID`）。
-             `--previous` 版本对账（2026-10-20 改判）：比对 `{output_dir}/brainstorm.yaml.prev`，
-             三失败分支 = `ID_UNSTABLE`（旧稿有、新稿无的会话记录 / 记录内想法标识）/
-             `MISSING_FILE`（.prev 缺失）/ `UNPARSABLE_YAML`（.prev 不可解析）；记录内想法
-             从无 id 迁到有 id 的那一轮（迁移轮）跳过该记录的想法比对，首拍 / 迁移不误报。
-             exit 0 唯一放行。
+             + actions——源纪律「无行动计划不得收尾」）/ **三级稳定 ID**（2026-10-21 裁定：想法
+             `BI-###` / 主题聚类 `BT-###` / 行动计划 `BA-###`，三位零填充）形态与**文件内按前缀
+             全局唯一**（重复 → `DUPLICATE_ID`；空号合法——稳定 ID 不重编号，故不设连续约束）/
+             `ideas[].no` 不得与 id 并存（ID 取代 no）/ `themes[].ideas`、`priorities` 三键与
+             `actions[].idea` 的引用必须落在本记录 `ideas[].id` 内 / `techniques[].category`
+             ∈ 库内类名。`--final` 附加：`status: 已完成` 且零 `[假设]`（定稿前清零，未决项落
+             `open_questions`）。`--id BS-xxx` 把记录级扫描收窄到一条（找不到 → `UNKNOWN_ID`）。
+             `--previous` 版本对账（2026-10-20 改判，2026-10-21 扩到三级）：比对
+             `{output_dir}/brainstorm.yaml.prev`，三失败分支 = `ID_UNSTABLE`（旧稿有、新稿无的
+             会话记录 / 记录内想法·主题聚类·行动计划标识）/ `MISSING_FILE`（.prev 缺失）/
+             `UNPARSABLE_YAML`（.prev 不可解析）；某级从无 id 迁到有 id 的那一轮（迁移轮）跳过
+             该级比对，首拍 / 迁移不误报。exit 0 唯一放行。
 
   snapshot   每轮开工拍快照（逐字节原子复制）：`{output_dir}/brainstorm.yaml` → 同目录 `.prev`。
              产物缺席 → `ok` 放行不拍（新项目常态）；产物损坏 → 拒绝且零写入；
@@ -49,20 +51,22 @@
 写回纪律：全文 load → 就地改 → 追加/合并 → `yaml.safe_dump(allow_unicode=True,
 sort_keys=False, default_flow_style=False)` → 同目录临时文件 + `os.replace`（注释不保留）。
 
-违规码：复用 batch3-contract §3 冻结集——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
-`UNKNOWN_ID` / `ENUM_INVALID` / `EMPTY_FIELD` / `DUPLICATE_ID` / `SET_MISMATCH` /
-`STATUS_MISMATCH` / `ASSUMPTION_PRESENT` 共 9 个，**冻结九码一字不动**；本批技能级新增码
+违规码：复用 batch3-contract §3 冻结集——本引擎在用 `MISSING_FILE` / `UNPARSABLE_YAML` /
+`UNKNOWN_ID` / `ENUM_INVALID` / `EMPTY_FIELD` / `DUPLICATE_ID` / `STATUS_MISMATCH` /
+`ASSUMPTION_PRESENT` 共 8 个（冻结九码里的 `SET_MISMATCH` 随 `ideas[].no` 退场不再触发——
+稳定 ID 不重编号，空号合法，「连续不跳号」约束随之作废），**冻结九码一字不动**；技能级新增码
 1 个：**`ID_UNSTABLE`（--previous 对账：旧稿有、新稿无的稳定标识）**——按 bmb-module
-「冻结 9 + 技能级新增码」先例在此登记。两处语义复用在此登记：
+「冻结 9 + 技能级新增码」先例在此登记。语义复用在此登记：
 ① `UNPARSABLE_YAML` 兼作技术库（CSV）解析失败码——冻结集里没有「非 YAML 文本不可解析」码，
    造新码不如复用最近义项（msg 内点名是 CSV）；
-② `SET_MISMATCH` 承载「想法 `no` 非 1..N 连续」——该码的语义是集合与真值不符，正中此例。
+② `ENUM_INVALID` 兼作「`ideas[].no` 与 id 并存」——冻结集里没有「废字段残留」码，最近义项是
+   字段取值/形态不合法（ID 取代 no，不并存）。
 
 `--previous` 判 **yes**（2026-10-20 改判，原「追加式台账不适用 `--previous`」作废）：
-`BI-###` 未来成为 prd 的外部引用锚，想法丢失即跨文件断链（下游 `UNKNOWN_ID` 只能发现、
-不能恢复，prd 里也没有想法原文）——必须有 `.prev` 完整快照兜底。每轮开工 `snapshot` 拍
-`.prev`（在场不覆盖、先对账后拍）；`check [--final] --previous` 走三失败分支；迁移轮跳过
-想法比对；`revisions`（改因留痕）与 `.prev`（兜底快照）两机制并存、不互替。
+`BI-###` / `BT-###` / `BA-###` 未来成为 prd 的外部引用锚，素材单元丢失即跨文件断链（下游
+`UNKNOWN_ID` 只能发现、不能恢复，prd 里也没有素材原文）——必须有 `.prev` 完整快照兜底。每轮
+开工 `snapshot` 拍 `.prev`（在场不覆盖、先对账后拍）；`check [--final] --previous` 走三失败
+分支；迁移轮按级跳过比对；`revisions`（改因留痕）与 `.prev`（兜底快照）两机制并存、不互替。
 """
 # trace: 迁移计划 §二 验收 #2（产物 schema + BS-### 稳定 ID）/#3（门禁零产出退出）
 #        /#4（ID 链接入：BS-### + 想法序号）/#12（领域引擎接线：a 实例委托 d/e 写权边界）
@@ -169,7 +173,8 @@ def main():
     ck.add_argument("--id", default=None, help="只校验指定记录（BS-###）")
     ck.add_argument("--previous", action="store_true",
                     help="版本对账（缺省比对 {output_dir}/brainstorm.yaml.prev）：旧有新无 → ID_UNSTABLE"
-                         " / 快照缺失 → MISSING_FILE / 不可解析 → UNPARSABLE_YAML；想法迁移轮跳过比对")
+                         " / 快照缺失 → MISSING_FILE / 不可解析 → UNPARSABLE_YAML；"
+                         "想法/主题/行动三级标识的迁移轮跳过比对")
     ck.set_defaults(func=cmd_check)
 
     sn = sub.add_parser("snapshot", help="每轮开工拍 .prev 快照（在场先对账，不过不覆盖）")

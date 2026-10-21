@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
-"""diy-brainstorm 校验命令域：想法引用/主题/优先级/行动检查、记录级 schema 枚举锚点校验、--final 定稿义务、--previous 三失败分支对账（load_previous / check_previous）与 cmd_check 总编排（含随行常量 DEFAULT_CANDIDATES、STEP_MIN/STEP_MAX）。"""
+"""diy-brainstorm 校验命令域：三级稳定 ID（想法 `BI-###` / 主题聚类 `BT-###` / 行动计划
+`BA-###`）的形态·文件内唯一·引用完整性、记录级 schema 枚举锚点校验、--final 定稿义务、
+--previous 三失败分支对账（load_previous / check_previous，三级全参与）与 cmd_check 总编排
+（含随行常量 DEFAULT_CANDIDATES、STEP_MIN/STEP_MAX、LEVELS）。"""
 
 import os
-
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -15,49 +18,93 @@ from brainstorm_lib import APPROACH_ENUM, ASSUMPTION_MARK, BRAINSTORM_FILE, BS_R
 STEP_MIN, STEP_MAX = 1, 5
 DEFAULT_CANDIDATES = 5
 
+# 三级稳定 ID（2026-10-21 用户裁定）：(键, 前缀, 中文名, 正则, 旧键)。
+# 三位零填充；**文件内按前缀全局唯一**（前缀天然隔离，不跨级比较）；ID 取代 `no`（不并存）。
+# 稳定 ID 不重编号 → 空号合法，故不设「连续不跳号」约束（SET_MISMATCH 随 `no` 退场不再触发）。
+IDEA_RE = re.compile(r"BI-\d{3}\Z")
+THEME_RE = re.compile(r"BT-\d{3}\Z")
+ACTION_RE = re.compile(r"BA-\d{3}\Z")
+LEVELS = (("ideas", "BI", "想法", IDEA_RE, "no"),
+          ("themes", "BT", "主题聚类", THEME_RE, None),
+          ("actions", "BA", "行动计划", ACTION_RE, None))
+
 # ---- check ----
 
-def check_idea_refs(refs, where, numbers):
-    """引用检查：`no` 必须落在本记录的 `ideas[].no` 集合内（否则 UNKNOWN_ID）。"""
+def _items(record, key):
+    """记录内某级条目（非映射条目不入——形状问题由各段检查上报）。"""
+    raw = record.get(key)
+    return [x for x in raw if isinstance(x, dict)] if isinstance(raw, list) else []
+
+def check_idea_refs(refs, where, ids):
+    """引用检查：`BI-###` 必须落在本记录的 `ideas[].id` 集合内（否则 UNKNOWN_ID）。"""
     violations = []
     if not isinstance(refs, list):
         return [v("EMPTY_FIELD", where, "缺失或不是列表（无引用写空列表）")]
     for i, ref in enumerate(refs):
-        if is_int(ref) and ref in numbers:
+        if isinstance(ref, str) and ref.strip() in ids:
             continue
         violations.append(v("UNKNOWN_ID", "%s[%d]" % (where, i),
-                            "%s 不在本记录 ideas[].no 内（可引用集 %s）"
-                            % (ref, sorted(numbers) or "空")))
+                            "%s 不在本记录 ideas[].id 内（可引用集 %s）"
+                            % (ref, sorted(ids) or "空")))
+    return violations
+
+def check_stable_ids(record, where):
+    """三级稳定 ID 形态：条目在场须铸 id，前缀与三位序号正确（缺失/越界各一码）。"""
+    violations = []
+    for key, prefix, label, pattern, _legacy in LEVELS:
+        for i, item in enumerate(_items(record, key)):
+            iw = "%s.%s[%d].id" % (where, key, i)
+            iid = item.get("id")
+            if not nonempty(iid):
+                violations.append(v("EMPTY_FIELD", iw,
+                                    "%s缺稳定 id（铸 %s-###，全文件按前缀唯一）" % (label, prefix)))
+            elif not pattern.fullmatch(str(iid).strip()):
+                violations.append(v("ENUM_INVALID", iw,
+                                    "%s id 须为 %s-###（三位零填充），实为 %s"
+                                    % (label, prefix, iid)))
+    return violations
+
+def check_id_uniqueness(records, show):
+    """三级 ID 文件内按前缀全局唯一（ruling：每级各自唯一、不跨级比较；重复 → DUPLICATE_ID）。"""
+    violations = []
+    seen = set()
+    for i, record in enumerate(records):
+        if not isinstance(record, dict):
+            continue
+        for key, _prefix, label, _pattern, _legacy in LEVELS:
+            for j, item in enumerate(_items(record, key)):
+                iid = item.get("id")
+                if not nonempty(iid):
+                    continue
+                where = "%s.sessions[%d].%s[%d].id" % (show, i, key, j)
+                mark = (label, str(iid).strip())
+                if mark in seen:
+                    violations.append(v("DUPLICATE_ID", where,
+                                        "ID %s 重复（%s 全文件唯一，永不重用）" % (mark[1], label)))
+                seen.add(mark)
     return violations
 
 def check_ideas(record, where):
     violations = []
     ideas = record.get("ideas")
-    numbers = []
     if ideas is None:
-        return [v("EMPTY_FIELD", where + ".ideas", "ideas 缺失（无内容写空列表）")], numbers
+        return [v("EMPTY_FIELD", where + ".ideas", "ideas 缺失（无内容写空列表）")]
     if not isinstance(ideas, list):
-        return [v("EMPTY_FIELD", where + ".ideas", "ideas 不是列表")], numbers
+        return [v("EMPTY_FIELD", where + ".ideas", "ideas 不是列表")]
     for i, idea in enumerate(ideas):
         iw = "%s.ideas[%d]" % (where, i)
         if not isinstance(idea, dict):
             violations.append(v("EMPTY_FIELD", iw, "想法不是映射"))
             continue
-        no = idea.get("no")
-        if not is_int(no) or no < 1:
+        if "no" in idea:
             violations.append(v("ENUM_INVALID", iw + ".no",
-                                "no 须为正整数（会话内序号，从 1 起），实为 %r" % (no,)))
-        else:
-            numbers.append(no)
+                                "no 已被 id 取代（不并存）——改写为 ideas[].id: BI-###"))
         for key in ("title", "concept", "novelty", "technique"):
             if not nonempty(idea.get(key)):
                 violations.append(v("EMPTY_FIELD", iw + "." + key, "%s 为空" % key))
-    if numbers and sorted(numbers) != list(range(1, len(numbers) + 1)):
-        violations.append(v("SET_MISMATCH", where + ".ideas",
-                            "想法 no 须为 1..N 连续不跳号，实为 %s" % sorted(numbers)))
-    return violations, numbers
+    return violations
 
-def check_themes(record, where, numbers):
+def check_themes(record, where, ids):
     violations = []
     themes = record.get("themes")
     if themes is None:
@@ -77,10 +124,10 @@ def check_themes(record, where, numbers):
             violations.append(v("EMPTY_FIELD", tw + ".ideas",
                                 "ideas 缺失（无引用写空列表）"))
             continue
-        violations += check_idea_refs(refs, tw + ".ideas", numbers)
+        violations += check_idea_refs(refs, tw + ".ideas", ids)
     return violations
 
-def check_priorities(record, where, numbers):
+def check_priorities(record, where, ids):
     violations = []
     priorities = record.get("priorities")
     if priorities is None:
@@ -94,10 +141,10 @@ def check_priorities(record, where, numbers):
             violations.append(v("EMPTY_FIELD", "%s.priorities.%s" % (where, key),
                                 "%s 缺失（无引用写空列表）" % key))
             continue
-        violations += check_idea_refs(refs, "%s.priorities.%s" % (where, key), numbers)
+        violations += check_idea_refs(refs, "%s.priorities.%s" % (where, key), ids)
     return violations
 
-def check_actions(record, where, numbers):
+def check_actions(record, where, ids):
     violations = []
     actions = record.get("actions")
     if actions is None:
@@ -111,9 +158,9 @@ def check_actions(record, where, numbers):
             continue
         if action.get("idea") is None:
             violations.append(v("EMPTY_FIELD", aw + ".idea",
-                                "idea 缺失（须指向 ideas[].no）"))
+                                "idea 缺失（须指向 ideas[].id 的 BI-###）"))
         else:
-            violations += check_idea_refs([action.get("idea")], aw + ".idea", numbers)
+            violations += check_idea_refs([action.get("idea")], aw + ".idea", ids)
         for key in ("why", "resources", "timeline", "success"):
             if not nonempty(action.get(key)):
                 violations.append(v("EMPTY_FIELD", aw + "." + key, "%s 为空" % key))
@@ -221,11 +268,12 @@ def check_record(index, record, final, categories, show):
             violations.append(v("EMPTY_FIELD", where + ".techniques",
                                 "current_step: %s 要求已选技术（step 2 的产出）" % step))
 
-    idea_violations, numbers = check_ideas(record, where)
-    violations += idea_violations
-    violations += check_themes(record, where, numbers)
-    violations += check_priorities(record, where, numbers)
-    violations += check_actions(record, where, numbers)
+    violations += check_ideas(record, where)
+    ids = {str(x["id"]).strip() for x in _items(record, "ideas") if nonempty(x.get("id"))}
+    violations += check_themes(record, where, ids)
+    violations += check_priorities(record, where, ids)
+    violations += check_actions(record, where, ids)
+    violations += check_stable_ids(record, where)
 
     questions = record.get("open_questions")
     if questions is None:
@@ -284,15 +332,17 @@ def _index(records):
     return {str(r["id"]).strip(): r for r in records
             if isinstance(r, dict) and nonempty(r.get("id"))}
 
-def _idea_keyset(record, by_id):
-    """记录内想法键集：by_id → 想法 id（BI-### 面），否则 → 会话内 no。"""
-    raw = record.get("ideas")
-    ideas = [i for i in raw if isinstance(i, dict)] if isinstance(raw, list) else []
-    return ({str(i["id"]).strip() for i in ideas if nonempty(i.get("id"))} if by_id
-            else {i.get("no") for i in ideas if is_int(i.get("no"))})
+def _face(record, key, legacy=None):
+    """记录内某级标识集：id 面（BI/BT/BA）；legacy 给旧键面（仅 ideas 的 no）且无 id 时用。"""
+    items = _items(record, key)
+    if legacy is None:
+        return {str(x["id"]).strip() for x in items if nonempty(x.get("id"))}
+    return {x.get(legacy) for x in items if is_int(x.get(legacy))}
 
 def check_previous(prev_doc, records, show, prev_show):
-    """ID 稳定对账（Q-109 三失败分支之 ID_UNSTABLE）：旧稿有、新稿无的会话记录 / 记录内想法标识 → ID_UNSTABLE；记录内想法从无 id 迁到有 id 的那一轮（迁移轮）跳过该记录的想法比对，首拍 / 迁移不误报。"""
+    """ID 稳定对账（Q-109 三失败分支之 ID_UNSTABLE，2026-10-21 扩到三级）：旧稿有、新稿无的
+    会话记录 / 记录内想法·主题聚类·行动计划标识 → ID_UNSTABLE；某级从无 id 迁到有 id 的那一轮
+    （迁移轮）跳过该级比对，首拍 / 迁移不误报。"""
     violations = []
     prev_raw = prev_doc.get("sessions")
     prev_recs = _index(prev_raw if isinstance(prev_raw, list) else [])
@@ -302,15 +352,20 @@ def check_previous(prev_doc, records, show, prev_show):
                             "会话记录 %s 旧稿有、新稿无（BS ID 稳定不重用；对照 %s）" % (rid, prev_show)))
     for rid in sorted(set(prev_recs) & set(cur_recs)):
         old, new = prev_recs[rid], cur_recs[rid]
-        old_ids, new_ids = _idea_keyset(old, True), _idea_keyset(new, True)
-        if old_ids:
-            gone, label = sorted(old_ids - new_ids), "id"
-        elif new_ids:
-            continue  # 迁移轮（想法无 id → 有 id 当轮）：跳过比对，不误报
-        else:
-            gone, label = sorted(_idea_keyset(old, False) - _idea_keyset(new, False)), "no"
-        violations += [v("ID_UNSTABLE", "%s.sessions[id=%s].ideas[%s=%s]" % (show, rid, label, k),
-                         "想法标识 %s 旧稿有、新稿无（想法丢失即跨文件断链；对照 %s）" % (k, prev_show)) for k in gone]
+        for key, _prefix, label, _pattern, legacy in LEVELS:
+            old_ids, new_ids = _face(old, key), _face(new, key)
+            if old_ids:
+                gone, tag = sorted(old_ids - new_ids), "id"
+            elif new_ids:
+                continue  # 迁移轮（该级无 id → 有 id 当轮）：跳过比对，不误报
+            elif legacy:
+                gone, tag = sorted(_face(old, key, legacy) - _face(new, key, legacy)), legacy
+            else:
+                continue  # 改版前的 themes/actions 两侧皆无 id：无稳定标识可比对
+            violations += [v("ID_UNSTABLE",
+                             "%s.sessions[id=%s].%s[%s=%s]" % (show, rid, key, tag, k),
+                             "%s %s 旧稿有、新稿无（丢失即下游断链；对照 %s）"
+                             % (label, k, prev_show)) for k in gone]
     return violations
 
 def cmd_check(args):
@@ -361,6 +416,8 @@ def cmd_check(args):
                         violations.append(v("DUPLICATE_ID", "%s.sessions[%d].id" % (show, i),
                                             "记录 ID %s 重复（BS ID 稳定不重用）" % rid))
                     seen.add(rid)
+            # 三级稳定 ID 的文件内唯一性独立成趟（ruling：全文件按前缀唯一，不随 --id 收窄）
+            violations += check_id_uniqueness(records, show)
             target_id = str(args.id).strip() if nonempty(args.id) else None
             if target_id is not None and target_id not in seen:
                 violations.append(v("UNKNOWN_ID", "check --id",
