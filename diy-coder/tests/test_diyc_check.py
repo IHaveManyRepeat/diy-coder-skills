@@ -787,6 +787,113 @@ class ApiRefCheckTest(CheckBase):
         self.assertIn("SET_MISMATCH", codes(check(self.root, "test-plan", final=True)))
 
 
+class RetiredTcCheckTest(CheckBase):
+    """Q-111：TC.retired 废弃键（底单 :902-904 三裁）——双键必填/replaced_by 校验/覆盖三层剔除。"""
+
+    FHS = [{"id": "FH-1.1.1", "ac": "AC-1.1", "text": "夹具故障假设"}]
+    ANCHOR = {"operationId": "listUsers", "path": "/users", "method": "get"}
+
+    def _env(self, cases, fhs=None, audit=None, final=False):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "stories", stories_doc([simple_story()]))
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
+            cases, fault_hypotheses=fhs if fhs is not None else self.FHS,
+            dimension_audit=audit, normalize=False))
+        return check(self.root, "test-plan", final=final)
+
+    def _base(self, tc_id="TC-1.1.1", **over):
+        t = fx.tc(tc_id, "AC-1.1", technique="边界", dimension="正向",
+                  kill_target="FH-1.1.1")
+        t.update(over)
+        return t
+
+    def _audit(self, ids):
+        return ([{"ac": "AC-1.1", "axis": "正向", "tcs": list(ids)}] +
+                [{"ac": "AC-1.1", "axis": ax, "not_applicable": "夹具不适用"}
+                 for ax in ("边界", "异常", "安全", "性能")])
+
+    def test_retired_both_keys_required(self):
+        # 键在场则双键必填：缺一即 EMPTY_FIELD；形状非映射同样 EMPTY_FIELD
+        dead = self._base(retired={"reason": "被取代"})
+        r = self._env([dead], audit=self._audit(["TC-1.1.1"]))
+        self.assertIn("EMPTY_FIELD", codes(r), "缺 replaced_by 未拦")
+        self.assertIn("retired.replaced_by", " | ".join(x["where"] for x in r["violations"]))
+        dead = self._base(retired={"replaced_by": "TC-1.1.2"})
+        r = self._env([dead], audit=self._audit(["TC-1.1.1"]))
+        self.assertIn("EMPTY_FIELD", codes(r), "缺 reason 未拦")
+        dead = self._base(retired="已废弃")
+        r = self._env([dead], audit=self._audit(["TC-1.1.1"]))
+        self.assertIn("EMPTY_FIELD", codes(r), "retired 形状非映射未拦")
+
+    def test_retired_replaced_by_unknown_and_self(self):
+        dead = self._base(retired={"reason": "r", "replaced_by": "TC-9.9.9"})
+        r = self._env([dead], audit=self._audit(["TC-1.1.1"]))
+        self.assertIn("UNKNOWN_ID", codes(r), "replaced_by 悬空未拦")
+        dead = self._base(retired={"reason": "r", "replaced_by": "TC-1.1.1"})
+        r = self._env([dead], audit=self._audit(["TC-1.1.1"]))
+        self.assertIn("SET_MISMATCH", codes(r), "replaced_by 自指未拦")
+
+    def test_retired_excluded_from_counts(self):
+        active = self._base()
+        dead = self._base("TC-1.1.2",
+                          retired={"reason": "重复设计", "replaced_by": "TC-1.1.1"})
+        r = self._env([active, dead], audit=self._audit(["TC-1.1.1", "TC-1.1.2"]))
+        self.assertTrue(r["ok"], msgs(r))
+        self.assertEqual(r["counts"]["cases"], 1, "cases 未剔除 retired")
+        self.assertEqual(r["counts"]["by_type"], {"单元": 1})
+        self.assertEqual(r["counts"]["by_priority"], {"P0": 1})
+        self.assertEqual(r["counts"]["by_dimension"], {"正向": 1})
+        self.assertEqual(r["counts"]["acs_covered"], 1, "acs_covered 未剔除 retired")
+
+    def test_retired_excluded_from_fh_killed(self):
+        # 替代品不继承 kill_target（KISS）：仅被废弃 TC 杀掉的 FH → 红
+        dead = self._base(retired={"reason": "r", "replaced_by": "TC-1.1.2"})
+        alive = self._base("TC-1.1.2", kill_target="FH-1.1.2")
+        fhs = self.FHS + [{"id": "FH-1.1.2", "ac": "AC-1.1", "text": "替代瞄准"}]
+        r = self._env([dead, alive], fhs=fhs,
+                      audit=self._audit(["TC-1.1.1", "TC-1.1.2"]), final=True)
+        self.assertIn("SET_MISMATCH", codes(r), "retired 杀伤未从 killed 剔除")
+        self.assertIn("FH-1.1.1", msgs(r))
+        # 替代品重新瞄准后放行（kill_target 自带，不继承）
+        alive2 = self._base("TC-1.1.2", kill_target=["FH-1.1.1", "FH-1.1.2"])
+        r = self._env([dead, alive2], fhs=fhs,
+                      audit=self._audit(["TC-1.1.1", "TC-1.1.2"]), final=True)
+        self.assertTrue(r["ok"], msgs(r))
+
+    def test_retired_status_not_flip_coding_phase(self):
+        # 废弃条目的历史 通过 不得触发编码期口径：活跃面全待办 → 设计期引用口径放行
+        dead = self._base("TC-1.1.2", status="通过",
+                          retired={"reason": "r", "replaced_by": "TC-1.1.1"})
+        r = self._env([self._base(), dead],
+                      audit=self._audit(["TC-1.1.1", "TC-1.1.2"]), final=True)
+        self.assertTrue(r["ok"], msgs(r))
+
+    def test_retired_excluded_from_anchor_gate(self):
+        # 接口锚门：唯一点名锚的集成 TC 已废弃 → 门红；替代在场 → 门绿
+        fx.write_doc(self.root, "prd", prd_doc())
+        ac = {"id": "AC-1.1", "given": "g", "when": "w", "then": "t",
+              "refs": ["FR-1.1"], "api_refs": [self.ANCHOR]}
+        fx.write_doc(self.root, "stories", stories_doc([simple_story(acs=[ac])]))
+        fx.write_doc(self.root, "openapi", openapi_doc())
+        dead = fx.tc("TC-1.1.1", "AC-1.1", technique="决策表", type_="集成",
+                     dimension="正向", kill_target="FH-1.1.1",
+                     api_refs=[self.ANCHOR])
+        dead["retired"] = {"reason": "锚迁移", "replaced_by": "TC-1.1.2"}
+        fhs = [{"id": "FH-1.1.1", "ac": "AC-1.1", "text": "夹具故障假设"}]
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
+            [dead], fault_hypotheses=fhs, dimension_audit=self._audit(["TC-1.1.1"]),
+            normalize=False))
+        r = check(self.root, "test-plan", final=True)
+        self.assertIn("SET_MISMATCH", codes(r), "retired 集成 TC 仍计入锚覆盖")
+        alive = fx.tc("TC-1.1.2", "AC-1.1", technique="决策表", type_="集成",
+                      dimension="正向", kill_target="FH-1.1.1",
+                      api_refs=[self.ANCHOR])
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
+            [dead, alive], fault_hypotheses=fhs,
+            dimension_audit=self._audit(["TC-1.1.1", "TC-1.1.2"]), normalize=False))
+        self.assertTrue(check(self.root, "test-plan", final=True)["ok"])
+
+
 # ---------------------------------------------------------------- sprint
 
 class SprintCheckTest(CheckBase):

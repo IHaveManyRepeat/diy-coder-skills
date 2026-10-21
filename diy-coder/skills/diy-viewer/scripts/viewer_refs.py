@@ -12,7 +12,8 @@ from viewer_labels import ENUM_KEYS, FREE_TEXT_FIELDS, KEY_LABELS
 ID_RE = re.compile(r"\b[A-Z]{1,4}-\d+(?:\.\d+)*\b")
 ID_FULL_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
 # trace: S-15 AC-15.1 design_ref（AC 绑定 design.yaml 页面引用）入引用链，悬空即标红
-REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr", "design_ref"}
+# trace: Q-111——replaced_by（TC.retired 替代用例 ID）入引用链：悬空即标红（UNKNOWN_ID 对位可见）
+REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr", "design_ref", "replaced_by"}
 # 资产路径字段（doc, key）：diy-wds-assets 的 assets[].path 是 **output_dir 相对**路径
 # （引擎核 `path.startswith("assets/<活动>/")`），渲染成相对链接（裁定 11/12）。
 # 同键 path 在 openapi 是 API 路由（/users）、在 spec-scan 是扫描目标——一律不从全局映射
@@ -62,16 +63,37 @@ def is_enum_key(k: str) -> bool:
     return k in ENUM_KEYS and (_RENDER_DOC, k) not in FREE_TEXT_FIELDS
 
 
+# trace: Q-111——retired 键族标签补充（viewer_labels.py 不在本批 scope；全局表缺键在此收口，
+# 零裸键纪律：replaced_by 直出英文＝显示缺陷）。retired/reason 全局表已收（已退休/原因），复用。
+KEY_LABELS_EXT = {"replaced_by": "替代用例"}
+
+
 def key_label(k: str) -> str:
     # trace: B1 文档级覆盖优先（bug-log type→小类），再回落全局表（type→类型）
     label = DOC_KEY_LABELS.get(_RENDER_DOC, {}).get(k)
     if label is None:
         label = KEY_LABELS.get(k)
     if label is None:
+        label = KEY_LABELS_EXT.get(k)
+    if label is None:
         if is_enum_key(k):
             _diag_unmapped(k)
         return k
     return label
+
+
+def split_retired(items: list):
+    """Q-111：列表条目按 retired 键在场拆分（在场＝已裁废弃）——(活跃, 废弃)。"""
+    active = [x for x in items if not (isinstance(x, dict) and "retired" in x)]
+    retired = [x for x in items if isinstance(x, dict) and "retired" in x]
+    return active, retired
+
+
+def folded_section(inner: str, n: int) -> str:
+    """Q-111：废弃条目折叠区（默认收起；沿用 detail 折叠样式，标签走 key_label）。"""
+    label = key_label("retired")
+    return (f'<details class="detail"><summary>展开{gloss(esc(label))}（{n} 项）</summary>'
+            f'<div class="d-body">{inner}</div></details>')
 
 
 def gloss(text: str) -> str:

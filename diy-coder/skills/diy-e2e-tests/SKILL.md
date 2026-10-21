@@ -70,7 +70,7 @@ test_cases:
 3. 终门（机械）：跑 `python "{project-root}/.claude/skills/diy-e2e-tests/scripts/e2e.py" record --tc-file <cases.json> --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 是唯一放行；逐条修完上报的违规再重跑；回执（含计数与 `diyc` 交叉核对块）即收口证据。`diyc` 块带违规是**要转述的 warning**（可能早于本次运行），不是写权失败。
 4. 边界声明：编码前设计 → diy-test-design；编码后按覆盖补缺 → diy-augment；编码前红相脚手架（只消费既有 TC、从不执行）→ diy-test-author。
 5. 渲染命令要求宿主 Python 有 PyYAML。它以 `ModuleNotFoundError` 失败时，报出该错并建议 `pip install pyyaml`——绝不静默回落。
-6. 不需要 `--previous` 轮——本技能只往 `test-plan.yaml` 追加用例：既有条目永不改写、重编号或删除，故 TC 集只增不减，没有 ID 集合会缩水。
+6. 不需要 `--previous` 轮——本技能只往 `test-plan.yaml` 追加用例：既有条目永不改写、重编号或删除，故 TC 集只增不减，没有 ID 集合会缩水。带 `retired` 键的既有 TC 已裁废弃（schema 归 `diy-test-design`）：绝不复活、改写或以之为覆盖证据；新用例的 `kill_target` 自行瞄准、不继承——覆盖剔除由 `diyc.py` 校验联动。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

@@ -166,9 +166,13 @@ def render_value(key: str, v, depth: int) -> str:
     # 逐页留一块「展开修订历史（0 项）」纯属噪音（有记录才折叠展示）
     if key == "revisions" and isinstance(v, list) and not v:
         return ""
+    # trace: Q-111——retired 键在场即已裁废弃：活跃面照常、废料收折叠区（ret 侧 key 置空防二次标题/递归）
+    if isinstance(v, list) and any(isinstance(x, dict) and "retired" in x for x in v):
+        act, ret = _refs.split_retired(v)
+        body = _render_value_raw(key, act, depth) if act else ""
+        return body + _refs.folded_section(_render_value_raw("", ret, depth), len(ret))
     out = _render_value_raw(key, v, depth)
-    fold = key in FOLDED_KEYS or (
-        key == "note" and isinstance(v, str) and len(v) > FOLDED_NOTE_LEN)
+    fold = key in FOLDED_KEYS or (key == "note" and isinstance(v, str) and len(v) > FOLDED_NOTE_LEN)
     if fold:
         n = len(v) if isinstance(v, list) else ""
         label = key_label(key) + (f"（{n} 项）" if n != "" else "")
