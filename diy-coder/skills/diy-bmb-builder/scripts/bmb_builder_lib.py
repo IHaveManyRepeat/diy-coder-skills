@@ -7,7 +7,7 @@ import os
 import re
 import sys
 
-from diyc_lib import v, write_atomic
+from diyc_lib import v, violation_line, warn_line, write_atomic
 
 SKILL_FILE = "SKILL.md"
 STEPS_DIR = "steps"
@@ -244,9 +244,9 @@ def base_payload(command, args, counts=None):
 # trace: diy-bmb-builder 人读态渲染（每条 `CODE where: msg` + 末尾汇总行）
 def human_lines(payload):
     for item in payload["violations"]:
-        print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+        print(violation_line(item))
     for item in payload["warnings"]:
-        print("WARN %s %s: %s" % (item["code"], item["where"], item["msg"]))
+        print(warn_line(item))
     print("汇总：违规 %d 条 · 警告 %d 条（exit %d）"
           % (len(payload["violations"]), len(payload["warnings"]),
              0 if payload["ok"] else 1))

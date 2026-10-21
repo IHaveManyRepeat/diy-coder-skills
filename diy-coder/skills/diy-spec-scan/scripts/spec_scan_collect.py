@@ -7,7 +7,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, v  # noqa: E402
+from diyc_lib import display_path, emit_via, v, violation_line  # noqa: E402
 SKILL_FILE = "SKILL.md"
 STEPS_DIR = "steps"
 MD_SUFFIX = ".md"
@@ -146,7 +146,7 @@ def human_collect(payload):
             print("- %s（%d 行 · %d 单元）"
                   % (entry["path"], entry["lines"], len(entry["units"])))
     for item in payload["violations"]:
-        print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+        print(violation_line(item))
     for item in payload["warnings"]:
         print("警告 %s %s: %s" % (item["code"], item["where"], item["msg"]))
     counts = payload["counts"]

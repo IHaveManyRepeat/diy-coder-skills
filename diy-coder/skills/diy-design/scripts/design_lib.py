@@ -9,7 +9,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import load_yaml, v  # noqa: E402
+from diyc_lib import load_yaml, v, violation_line  # noqa: E402
 # §7-5①：双模的明暗对 = tokens.color.dark 子块六角色（亮基暗覆盖），判据见 dark_pair_violation
 DARK_ROLES = ("bg", "surface", "text", "text_muted", "accent", "accent_text")
 
@@ -53,7 +53,7 @@ def emit(result, as_json, human_lines=None):
         print(json.dumps(result, ensure_ascii=False))
     else:
         lines = list(human_lines or [])
-        lines += ["%s %s: %s" % (x.get("code"), x.get("where"), x.get("msg"))
+        lines += [violation_line(x)
                   for x in result.get("violations") or []]
         lines += ["WARN %s" % w for w in result.get("warnings") or []]
         lines.append(_summary(result))

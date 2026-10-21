@@ -12,7 +12,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, methods_path, v  # noqa: E402
+from diyc_lib import display_path, methods_path, v, violation_line, warn_line  # noqa: E402
 
 BRAINSTORM_FILE = "brainstorm.yaml"
 METHODS_FILE = "brain-methods.csv"
@@ -103,9 +103,9 @@ def emit(payload, as_json, summary_line=None):
             print(summary_line or "PASS：%s 完成" % payload["command"])
         else:
             for item in payload.get("violations") or []:
-                print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+                print(violation_line(item))
         for item in payload.get("warnings") or []:
-            print("WARN %s %s: %s" % (item["code"], item["where"], item["msg"]))
+            print(warn_line(item))
         if payload.get("violations"):
             print("FAIL：%d 条违规（exit 1）" % len(payload["violations"]))
     return 0 if payload.get("ok") else 1

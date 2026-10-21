@@ -7,7 +7,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, enum_check, load_yaml_safe, nonempty, project_name, require, v  # noqa: E402
+from diyc_lib import display_path, enum_check, load_yaml_safe, nonempty, project_name, require, v, violation_line, warn_line  # noqa: E402
 
 PRODUCT_FILE = "wds-trigger.yaml"
 UPSTREAM_FILE = "wds-brief.yaml"
@@ -86,13 +86,13 @@ def emit(payload, as_json, summary_line=None, body_lines=None):
         return 0 if payload.get("ok") else 1
     if not payload.get("ok"):
         for item in payload.get("violations") or []:
-            print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+            print(violation_line(item))
     else:
         for line in body_lines or []:
             print(line)
         print(summary_line or "PASS：%s 完成" % payload["command"])
     for item in payload.get("warnings") or []:
-        print("WARN %s %s: %s" % (item["code"], item["where"], item["msg"]))
+        print(warn_line(item))
     if payload.get("violations"):
         print("FAIL：%d 条违规（exit 1）" % len(payload["violations"]))
     return 0 if payload.get("ok") else 1

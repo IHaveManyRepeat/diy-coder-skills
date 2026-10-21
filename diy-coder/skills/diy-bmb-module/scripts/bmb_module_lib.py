@@ -7,7 +7,7 @@ import re
 
 import yaml
 
-from diyc_lib import nonempty, today
+from diyc_lib import nonempty, today, violation_line, warn_line
 from diyc_lib_base import DuplicateKeyError, load_yaml_text
 
 PLAN_FILE = "module-plan.yaml"
@@ -79,9 +79,9 @@ def summary_line(payload):
 # trace: diy-bmb-module 人读态逐行渲染（违规 `CODE where: msg`、警告 `WARN CODE where: msg`）
 def human_lines(payload):
     for item in payload["violations"]:
-        print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+        print(violation_line(item))
     for item in payload["warnings"]:
-        print("WARN %s %s: %s" % (item["code"], item["where"], item["msg"]))
+        print(warn_line(item))
     summary_line(payload)
 
 

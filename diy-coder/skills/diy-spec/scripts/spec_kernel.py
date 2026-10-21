@@ -46,7 +46,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, project_name, save_yaml_atomic, today, v  # noqa: E402
+from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, project_name, save_yaml_atomic, today, v, violation_line  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from spec_kernel_checks import SK_RE, SPEC_FILE, check_previous, check_record  # noqa: E402
@@ -202,7 +202,7 @@ def human_new(payload):
                  payload["output_dir"] + "/" + SPEC_FILE))
     else:
         for item in payload["violations"]:
-            print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+            print(violation_line(item))
     for item in payload["warnings"]:
         print("警告 %s %s: %s" % (item["code"], item["where"], item["msg"]))
     print("汇总：违规 %d 条 · 警告 %d 条（exit %d）"
@@ -217,7 +217,7 @@ def human_check(payload):
                  counts["capabilities"], counts["retired"]))
     else:
         for item in payload["violations"]:
-            print("%s %s: %s" % (item["code"], item["where"], item["msg"]))
+            print(violation_line(item))
     for item in payload["warnings"]:
         print("警告 %s %s: %s" % (item["code"], item["where"], item["msg"]))
     print("汇总：违规 %d 条 · 警告 %d 条（exit %d）"
