@@ -293,6 +293,13 @@ class AugmentSkillContractTests(unittest.TestCase):
         self.assertIn("`project.status` 是文件水位线，不是本门的读取层", raw,
                       "硬门未排除 project.status 层")
 
+    # trace: Q-114（2026-10-20/21 裁：TC.producer 前向强制——三生产方追加时落笔各自标识）
+    def test_producer_falls_as_augment(self):
+        raw = self.read_skill()
+        self.assertIn("`producer: augment`", raw, "缺 producer: augment 落笔指令")
+        self.assertIn("缺失 EMPTY_FIELD、非法值 ENUM_INVALID", raw,
+                      "producer 门校验口径未点名违规码")
+
 
 if __name__ == "__main__":
     unittest.main()

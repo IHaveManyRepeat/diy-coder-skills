@@ -11,6 +11,10 @@ from diyc_lib import items  # noqa: E402
 
 # ---------------------------------------------------------------- test-plan
 
+# Q-114（底单 :884/:889 + 2026-10-20/21 裁）：TC.producer 三生产方标识——前向强制，
+# 存量零回填（当前无存量用例）。
+TC_PRODUCERS = ("test-design", "augment", "e2e")
+
 
 def _check_retired(report, where, tc, tc_ids) -> None:
     """Q-111（底单 :902-904 三裁）：TC.retired 可选嵌套键——键在场性即裁决开关
@@ -135,6 +139,11 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
             counts["by_dimension"][t["dimension"]] = \
                 counts["by_dimension"].get(t["dimension"], 0) + 1
         enum(report, w + ".status", t.get("status"), TC_STATUSES, "status")
+        # Q-114：producer 必填（缺失 EMPTY_FIELD）+ 三值枚举（非法值 ENUM_INVALID）——
+        # 三生产方（diy-test-design/diy-augment/diy-e2e-tests）追加用例时落笔各自标识。
+        # rule: diy-test-design/SKILL.md:Schema TC.producer（必填·前向强制·三生产方标识）
+        if req(report, w + ".producer", t.get("producer"), "producer（三生产方标识）"):
+            enum(report, w + ".producer", t.get("producer"), TC_PRODUCERS, "producer")
         if is_retired:
             _check_retired(report, w, t, tc_ids)
         tc_declarations(t, w, report, fh_ids=fh_ids)

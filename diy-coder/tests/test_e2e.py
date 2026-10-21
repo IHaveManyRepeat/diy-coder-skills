@@ -91,6 +91,7 @@ TEST_PLAN_YAML = NL.join([
     "  type: 单元",
     "  priority: P0",
     "  technique: 边界",
+    "  producer: test-design",
     "  dimension: 边界",
     "  kill_target: FH-1.1.1",
     "  status: 通过",
@@ -141,6 +142,7 @@ def tc_json(tc_id="TC-1.1.2", technique="场景", ac="AC-1.1", status="通过",
         "type": type_name,
         "priority": "P0",
         "technique": technique,
+        "producer": "e2e",
         "dimension": "正向",
         "kill_target": "FH-1.1.2",
         "fault_hypothesis": {
@@ -262,6 +264,7 @@ class RecordTests(EngineCase):
         self.assertIn("id: TC-1.1.2", plan)
         self.assertIn("technique: 场景", plan)
         self.assertIn("type: 端到端", plan)
+        self.assertIn("producer: e2e", plan, "Q-114：追加用例须落 producer: e2e")
         # 既有条目不被触碰
         self.assertIn("id: TC-1.1.1", plan)
         self.assertIn("technique: 边界", plan)

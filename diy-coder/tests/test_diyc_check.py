@@ -47,6 +47,17 @@ def msgs(result):
     return " | ".join(x["msg"] for x in result["violations"])
 
 
+def tc_case(*args, **kwargs):
+    """Q-114：夹具 TC 统一带 producer（前向必填，缺失即 EMPTY_FIELD）。
+
+    共享夹具 diyc_fixture.tc 是 W1 冻结面（只读引用），本文件经此包装落默认
+    test-design——需要其它生产方值的用例在调用点覆写 case["producer"]。
+    """
+    case = fx.tc(*args, **kwargs)
+    case["producer"] = "test-design"
+    return case
+
+
 def other_drive_dir(root):
     """与 root 不同盘符的现存目录（Windows 多盘；无第二盘 / POSIX → None）。"""
     cur = os.path.splitdrive(os.path.abspath(str(root)))[0].upper()
@@ -513,7 +524,7 @@ class TestPlanCheckTest(CheckBase):
         fx.write_doc(self.root, "stories", stories_doc([simple_story()]))
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
             cases if cases is not None else [
-                fx.tc("TC-1.1.1", "AC-1.1", technique="边界")],
+                tc_case("TC-1.1.1", "AC-1.1", technique="边界")],
             gaps=gaps))
 
     def test_clean_test_plan_passes_with_counts(self):
@@ -526,7 +537,7 @@ class TestPlanCheckTest(CheckBase):
         self.assertEqual(r["counts"]["acs_covered"], 1)
 
     def test_technique_and_kill_target_and_dangling_ac(self):
-        self._env(cases=[fx.tc("TC-1.1.1", "AC-9.9", technique="example",
+        self._env(cases=[tc_case("TC-1.1.1", "AC-9.9", technique="example",
                                kill_target="")])
         r = check(self.root, "test-plan")
         got = codes(r)
@@ -535,7 +546,7 @@ class TestPlanCheckTest(CheckBase):
         self.assertIn("UNKNOWN_ID", got, "ac 悬空未拦")
 
     def test_final_forbids_pending_gap(self):
-        self._env(cases=[fx.tc("TC-1.1.1", "AC-1.1", technique="边界")],
+        self._env(cases=[tc_case("TC-1.1.1", "AC-1.1", technique="边界")],
                   gaps=[fx.gap("AC-1.2", "S-1", decision="待办")])
         # 补齐 AC-1.2（缺口绑定的 AC 须存在于 stories）
         fx.write_doc(self.root, "stories", stories_doc([simple_story(acs=[
@@ -545,14 +556,14 @@ class TestPlanCheckTest(CheckBase):
         r = check(self.root, "test-plan", final=True)
         self.assertIn("PENDING_DECISION", codes(r))
         # 已豁免缺口不拦定稿
-        self._env(cases=[fx.tc("TC-1.1.1", "AC-1.1", technique="边界")],
+        self._env(cases=[tc_case("TC-1.1.1", "AC-1.1", technique="边界")],
                   gaps=[fx.gap("AC-1.2", "S-1", decision="已豁免", note="2026-01-01 用户确认")])
         fx.write_doc(self.root, "stories", stories_doc([simple_story(acs=[
             fx.ac("AC-1.1", refs=["FR-1.1"]), fx.ac("AC-1.2", refs=["FR-1.1"])])]))
         self.assertTrue(check(self.root, "test-plan", final=True)["ok"])
 
     def test_waived_gap_requires_note(self):
-        self._env(cases=[fx.tc("TC-1.1.1", "AC-1.1", technique="边界")],
+        self._env(cases=[tc_case("TC-1.1.1", "AC-1.1", technique="边界")],
                   gaps=[fx.gap("AC-1.2", "S-1", decision="已豁免")])
         fx.write_doc(self.root, "stories", stories_doc([simple_story(acs=[
             fx.ac("AC-1.1", refs=["FR-1.1"]), fx.ac("AC-1.2", refs=["FR-1.1"])])]))
@@ -571,7 +582,7 @@ class FiveAxisCheckTest(CheckBase):
 
     def _clean_env(self):
         anchor = {"operationId": "opA", "path": "/a", "method": "get"}
-        tc = fx.tc("TC-1.1.1", "AC-1.1", technique="边界", dimension="正向",
+        tc = tc_case("TC-1.1.1", "AC-1.1", technique="边界", dimension="正向",
                    kill_target="FH-1.1.1")
         fhs = [{"id": "FH-1.1.1", "ac": "AC-1.1", "text": "夹具故障假设"}]
         audit = [{"ac": "AC-1.1", "axis": "正向", "tcs": ["TC-1.1.1"]}] + [
@@ -580,7 +591,7 @@ class FiveAxisCheckTest(CheckBase):
         return tc, fhs, audit, anchor
 
     def test_missing_fh_section_and_dimension(self):
-        self._env([fx.tc("TC-1.1.1", "AC-1.1", technique="边界",
+        self._env([tc_case("TC-1.1.1", "AC-1.1", technique="边界",
                          kill_target="自由文本")])
         r = check(self.root, "test-plan")
         got = codes(r)
@@ -719,7 +730,7 @@ class ApiRefCheckTest(CheckBase):
         return stories_doc([simple_story(acs=[ac])])
 
     def _plan_covering_anchor(self):
-        tc = fx.tc("TC-1.1.1", "AC-1.1", technique="决策表", type_="集成",
+        tc = tc_case("TC-1.1.1", "AC-1.1", technique="决策表", type_="集成",
                    dimension="正向", kill_target="FH-1.1.1",
                    api_refs=[self.ANCHOR])
         fhs = [{"id": "FH-1.1.1", "ac": "AC-1.1", "text": "夹具故障假设"}]
@@ -802,7 +813,7 @@ class RetiredTcCheckTest(CheckBase):
         return check(self.root, "test-plan", final=final)
 
     def _base(self, tc_id="TC-1.1.1", **over):
-        t = fx.tc(tc_id, "AC-1.1", technique="边界", dimension="正向",
+        t = tc_case(tc_id, "AC-1.1", technique="边界", dimension="正向",
                   kill_target="FH-1.1.1")
         t.update(over)
         return t
@@ -875,7 +886,7 @@ class RetiredTcCheckTest(CheckBase):
               "refs": ["FR-1.1"], "api_refs": [self.ANCHOR]}
         fx.write_doc(self.root, "stories", stories_doc([simple_story(acs=[ac])]))
         fx.write_doc(self.root, "openapi", openapi_doc())
-        dead = fx.tc("TC-1.1.1", "AC-1.1", technique="决策表", type_="集成",
+        dead = tc_case("TC-1.1.1", "AC-1.1", technique="决策表", type_="集成",
                      dimension="正向", kill_target="FH-1.1.1",
                      api_refs=[self.ANCHOR])
         dead["retired"] = {"reason": "锚迁移", "replaced_by": "TC-1.1.2"}
@@ -885,13 +896,61 @@ class RetiredTcCheckTest(CheckBase):
             normalize=False))
         r = check(self.root, "test-plan", final=True)
         self.assertIn("SET_MISMATCH", codes(r), "retired 集成 TC 仍计入锚覆盖")
-        alive = fx.tc("TC-1.1.2", "AC-1.1", technique="决策表", type_="集成",
+        alive = tc_case("TC-1.1.2", "AC-1.1", technique="决策表", type_="集成",
                       dimension="正向", kill_target="FH-1.1.1",
                       api_refs=[self.ANCHOR])
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
             [dead, alive], fault_hypotheses=fhs,
             dimension_audit=self._audit(["TC-1.1.1", "TC-1.1.2"]), normalize=False))
         self.assertTrue(check(self.root, "test-plan", final=True)["ok"])
+
+
+class ProducerTcCheckTest(CheckBase):
+    """Q-114：TC.producer 生产者字段（底单 :884/:889 + 2026-10-20/21 裁）——
+    必填（缺失 EMPTY_FIELD）+ 三值枚举 test-design|augment|e2e（非法值 ENUM_INVALID），
+    前向强制、存量零回填（当前无存量用例）。"""
+
+    FHS = [{"id": "FH-1.1.1", "ac": "AC-1.1", "text": "夹具故障假设"}]
+
+    def _env(self, cases):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "stories", stories_doc([simple_story()]))
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
+            cases, fault_hypotheses=self.FHS))
+        return check(self.root, "test-plan")
+
+    def _case(self, producer="test-design", **over):
+        t = tc_case("TC-1.1.1", "AC-1.1", technique="边界", dimension="正向",
+                    kill_target="FH-1.1.1")
+        if producer is None:
+            t.pop("producer", None)
+        else:
+            t["producer"] = producer
+        t.update(over)
+        return t
+
+    def test_producer_missing_is_empty_field(self):
+        r = self._env([self._case(producer=None)])
+        self.assertIn("EMPTY_FIELD", codes(r), "producer 缺失未拦")
+        self.assertIn(".producer", " | ".join(x["where"] for x in r["violations"]))
+
+    def test_producer_illegal_value_is_enum_invalid(self):
+        r = self._env([self._case(producer="test-design-v2")])
+        got = codes(r)
+        self.assertIn("ENUM_INVALID", got, "producer 非法值未按枚举拦")
+        self.assertNotIn("EMPTY_FIELD", {x["code"] for x in r["violations"]
+                                         if x["where"].endswith(".producer")},
+                         "非空非法值不应报缺失")
+
+    def test_producer_three_legal_values_pass(self):
+        cases = []
+        for i, producer in enumerate(("test-design", "augment", "e2e"), start=1):
+            t = self._case(producer=producer)
+            t["id"] = "TC-1.1.%d" % i
+            cases.append(t)
+        r = self._env(cases)
+        self.assertNotIn("EMPTY_FIELD", codes(r), codes(r))
+        self.assertNotIn("ENUM_INVALID", codes(r), codes(r))
 
 
 # ---------------------------------------------------------------- sprint
@@ -905,7 +964,7 @@ class SprintCheckTest(CheckBase):
         kwargs = {"technique": "边界"}
         kwargs.update(tc_kw or {})
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
-            [fx.tc("TC-1.1.1", "AC-1.1", status=tc_status, **kwargs)], gaps=gaps))
+            [tc_case("TC-1.1.1", "AC-1.1", status=tc_status, **kwargs)], gaps=gaps))
         fx.write_doc(self.root, "sprint", fx.doc_sprint(tasks))
 
     def test_clean_sprint_passes_with_counts(self):
@@ -971,8 +1030,8 @@ class SprintCheckTest(CheckBase):
         fx.write_doc(self.root, "stories", stories_doc(
             [simple_story("S-1"), simple_story("S-2", acs=[fx.ac("AC-2.1", refs=["FR-1.1"])])]))
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
-            [fx.tc("TC-1.1.1", "AC-1.1", technique="边界"),
-             fx.tc("TC-2.1.1", "AC-2.1", technique="边界")]))
+            [tc_case("TC-1.1.1", "AC-1.1", technique="边界"),
+             tc_case("TC-2.1.1", "AC-2.1", technique="边界")]))
         fx.write_doc(self.root, "sprint", fx.doc_sprint(
             [fx.task("S-1", status="已阻塞", blocked_reason="[假设] 待确认")]))
         r = check(self.root, "sprint", final=True)
@@ -1004,7 +1063,7 @@ class ReviewCheckTest(CheckBase):
         kwargs = {"technique": "边界"}
         kwargs.update(tc_kw or {})
         fx.write_doc(self.root, "test-plan", fx.doc_test_plan(
-            [fx.tc("TC-1.1.1", "AC-1.1", status=tc_status, **kwargs)]))
+            [tc_case("TC-1.1.1", "AC-1.1", status=tc_status, **kwargs)]))
         fx.write_doc(self.root, "sprint", fx.doc_sprint([task]))
 
     def test_evidence_missing_and_status_mismatch(self):
