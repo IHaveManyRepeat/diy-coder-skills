@@ -353,7 +353,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 约束：registry 受 test_help_registry.py 双向守卫 + bmb-module 镜像校验；先裁后动。
 
-## 待办：diy-lab 实测缺陷修复批（登记 2026-10-04，部分已定档；C·14 最后处理，本批先于 C·14）
+## 待办：diy-lab 实测缺陷修复批（登记 2026-10-04·2026-10-21 部分销项：②~⑥⑧ 已落地；余 ① 随母本批、⑦ 随 Q-112）
 
 登记（2026-10-04 用户裁定）：来源 = diy-lab 六技能实测（代答模式 agent team 跑 cis-method/brainstorm/research/brief/prfaq/prd，全链终门绿），完整发现见 `D:/mycode/diy-lab/EXPERIMENT-REPORT.md` 与 memory `project-diy-lab-experiment`。同批坐实两条既有判据：下游认源 ID 实测成立（prd 通篇 BS/CM/BD/RS/PQ 锚，自由通道零复制）；三源 distillate 结构化通道、brainstorm/cis-method 走「其他材料」须点名（底单行改注另裁）。
 
@@ -369,6 +369,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | ⑧ | diy-viewer | cis-method 键标签漏网：四分支 deliverable 键＋`sessions`/`deliverable` 顶层键未注册 `KEY_LABELS`，渲染直出英文键名（实测问题求解分支至少 13 键缺，创新策略/设计思维/叙事三分支待普查）——零裸键纪律漏网，与 ④ 同族 | 补注册四分支全键（键表逐条取自 steps/02~05「本分支结构」节）＋顶层键；键名是 schema 机器锚点，产物保留英文、仅展示层译名（C·11 W3 先例）；随批核：零裸键验收断言面为何未覆盖 cis-method／brainstorm（④ 同问） |
 
 另（实测通过项，不立待办）：安装器 install.py 冒烟过；brief→prfaq→prd 链路 stakes 消歧有效、constraints 被拒项两跳传播完整；editorial-review 嵌套调用走通（调用无标准命令属别扭级，未登）。
+
+**〔2026-10-21 部分销项·核验〕**：②~⑥⑧ 已完成——Q-103 `3b74ea2`/merge `ba3f67c`（② brief/research/prfaq `--final` distillate 五字段＋brief 三步骤交出面 Write；③ prfaq root 归一）、Q-104 `049d074`（⑤ DUPLICATE_KEY）、Q-105 `53e9090`/merge `90fa9f1`（④ brainstorm 61 枚举入值表；⑧ cis-method 四分支全键标签）、Q-001 `404a5e6`（⑥ diy-prd 首跑门提示，`SKILL.md:69`）。**余①（cis-method 类目指错）未修**——`steps/03-problem.md:77/:96` 仍写「`分析` 类」，原裁走母本批（批 8）不提前直改；**余⑦（想法三级 ID）随夜队列 Q-112**（2026-10-21 已裁三级一体 BI/BT/BA）。
 
 ## 待办：接口契约通用设计与架构鉴权面（2026-10-04 用户裁定，攒批随既有批次一起处理，现在不动）
 
@@ -684,7 +686,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 ## 第二批待办（2026-10-10 起·v4 批 1 审核中发现，与上方第一批待办〔2026-10-03~05 登记〕区分）
 
-### 待办：test-plan 终门「FH 被杀」口径——引用与实测结果脱钩（2026-10-10 v4 批 1 审核发现·2026-10-16 已裁双口径分时点，独立校验面小批待执行，现在不动）
+### 待办：test-plan 终门「FH 被杀」口径——引用与实测结果脱钩（2026-10-10 v4 批 1 审核发现·2026-10-16 已裁双口径分时点·2026-10-21 已销：夜队列 Q-102 `d1879b3`）
 
 登记来源：用户审核批 1 产物（diy-test-design/SKILL.md，提交 `5183546`）时问「新故障先落 FH 再写 TC，是否有编码/测试/结果回写字段」——核实回写机制后点出终门缺口。
 
@@ -702,6 +704,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面：`diyc_check_docs.py` final 段＋`tests/test_diyc_check.py`（测试面系本裁定直接后果·同源）；另动 diy-test-design SKILL.md 终门口径句（双口径分时点须与提示词同口径）。
 
+**〔已销 2026-10-21·核验〕**：双口径已落地——`diyc_check_docs_testplan.py` final 段按 `coding_phase`（任一 TC.status ≠ 待办）分设计期引用口径／编码期收紧；`tests/test_diyc_check.py:615`（设计期）／`:623`（编码期）断言在案；`diy-test-design/SKILL.md:40` 终门口径句已同源。落地提交 `d1879b3`（夜队列 Q-102）。注：原改动面所指 `diyc_check_docs.py` 已拆分，FH 段现位于 `diyc_check_docs_testplan.py`。
+
 ### 待办：枚举值跨技能一致性——回查关卡先行，方案 A 注入后并（2026-10-11 用户认可两步路径，登记排期，现在不动）
 
 登记来源：用户问「同一枚举 a 处 5 个值、b 处 4 个值」如何防止（各使用点各自手维护）。核实后给出两步路径，用户认可、登第二批待办。
@@ -717,7 +721,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面（做①时）：`diyc_check_docs.py`（面清单＋extract＋断言）＋`tests/test_diyc_check.py`；viewer 标签接线随①范围定。
 
-### 待办：spec-scan kind 判据规则表（2026-10-11 批 2c 立书调研发现·2026-10-16 已裁闭合：模糊档=乙＋对照表＋文档轻扫口径·整体裁可，排期待定，现在不动）
+### 待办：spec-scan kind 判据规则表（2026-10-11 批 2c 立书调研发现·2026-10-16 已裁闭合·2026-10-21 已销：夜队列 Q-108 `36a780c`）
 
 登记来源：批 2c 裁⑤讨论——`target.kind` 现由执行者（AI）现场判定（`01-collect.md:20`「由你判定（引擎不给）」），四条定义是唯一判据、无规则表＝非确定性；每轮问人＝低效。用户裁定登底单，两技能规则表**同批同文一次立**。
 
@@ -738,6 +742,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 排期待定。现成盘点素材（动工时核）：STAMP_TYPES 21 型＋diyc check CHECK_TYPES 9 类型。
 
 改动面（做时）：`diy-spec-scan/steps/01-collect.md:20-25` 定目标类型节＋`tests/test_spec_scan.py` kind 断言面（2b 落）随之扩＝测试面先裁后动。
+
+**〔2026-10-21 已销·核验〕**：Q-108 已合入 dev（实施 `36a780c`·merge `832eb55`）——`diy-spec-scan/steps/01-collect.md` 与 `diy-selfcheck/steps/01-freeze.md` 同文落三阶链＋体系产物对照表＋文档轻扫口径；`tests/test_spec_scan.py` 两处 kind 断言在场。后续「kind 判据表引擎化」另登本底单第二批待办（Q-113 待跑）。
 
 ### 待办：wds-assets 提示词（Prompt Keywords / Prompt Recipe）翻译（2026-10-13 用户提出并两裁执行，已销）
 
@@ -767,7 +773,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面（做时）：`diy-architecture/SKILL.md` 规则区（:84-:90）＋tests 文本守卫面（若有断言依赖）。
 
-### 待办：STAMP_TYPES `test-design` 键与产物文件名错位——stamp 对 test-plan 盖章 MISSING_FILE（2026-10-16 核实 spec-scan 对照表时发现，登记待裁，现在不动）
+### 待办：STAMP_TYPES `test-design` 键与产物文件名错位——stamp 对 test-plan 盖章 MISSING_FILE（2026-10-16 核实 spec-scan 对照表时发现·2026-10-21 已销：修法①落地，夜队列 Q-101 `88e3f7d`）
 
 事实（2026-10-16 证据链三步）：
 - 产物真名＝`test-plan.yaml`（diy-test-design frontmatter `outputs: test-plan.yaml`·description 原文「Derive test-plan.yaml」）。
@@ -783,7 +789,9 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **〔2026-10-16 用户裁定〕**：修法＝**①键改 `test-plan`**（与 check/writeback 对齐·②别名映射弃）；调查（指示面 grep 全库核＋测试夹具错名核实）**执行时间＝批 4 开工前**——届时随调查同窗施工落地，测试面照「先裁后动」随窗呈裁。
 
-### 待办：窗口输出通用内容统一——通用行同源跟改＋输出 UX 原则（2026-10-16 组7 裁定②登记，另立批，现在不动）
+**〔已销 2026-10-21·核验〕**：修法①已落地——`diyc.py` STAMP_TYPES 键为 `test-plan`、`test-design` 不在集合；`tests/test_diyc_writeback.py:576-580` 断言在案（`test_stamp_type_key_is_test_plan`）；技能/测试指示面 grep 无 `--type test-design` 残留（仅历史注释）。落地提交 `88e3f7d`（夜队列 Q-101）。
+
+### 待办：窗口输出通用内容统一——通用行同源跟改＋输出 UX 原则（2026-10-16 组7 裁定②登记·2026-10-21 通用行已销：夜队列 Q-110 `7cbb83c`；UX 原则文案随母本批）
 
 登记来源：组7 emit 族呈核后用户两裁（提交 `a40a8b4`）——①emit_via＋violation_line/warn_line 入库、14 家接库＝**已随组7 落地**；②**原则单源方向照准，先记录、另立批**；追加提出：窗口输出统一**先说结论**、再用表格等展示友好型内容输出（含中文全角宽度设计）；并点名**穴居人（caveman）技能**部分内容适合写入统一输出通用内容。
 
@@ -802,6 +810,69 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 **〔2026-10-17 用户裁定·落点闭合，销入母本批〕**：**落点＝单源多通道**——原则文案统一落母本批 `suite-texts.yaml`（§9 回复纪律＋载体判据），`sync_texts.py` 增注入目标＝项目 CLAUDE.md 标记对段（全会话自动加载，任何会话回复都生效）；机械可下沉件（产物面禁词/句长 grep、中文全角宽度算列宽函数等）按判据「能下沉优先下沉＋消费者出现才落」处置（YAGNI）。**注入目标＝本项目 CLAUDE.md**（不动全局 `~/.claude/CLAUDE.md`）；**配置型设计**——注入目标列表（SKILL 集＋CLAUDE.md 路径）读配置不写死，将来 diy 用户装套件时由 init 技能/安装器写入其各项目 CLAUDE.md；换 agent 兼容＝生成物是普通 markdown 段落＋标准标记对注释，不绑 Claude Code 专有机制。**hook 路线不做**（「查存在必催生套话」教训在案，将来需要再议）。条款内容（caveman 借鉴＋STE100 子集＋载体判据）随母本批拟稿逐条呈审。本段落点问题销，通用行跟改/输出 UX 文案/复述机制讨论等其余内容不动。
 
 改动面（做时）：14 家回调＋`diyc_lib.py`（若下沉）＋指示面；测试面若有行式样断言须同源核（先裁后动）。
+
+**〔2026-10-21 部分销项·核验〕**：通用行同源跟改已完成（夜队列 Q-110 实施 `7cbb83c`·merge `732d841`）——14 家引擎回调接 `violation_line()`/`warn_line()`，输出同形、定制行未动。**余「输出 UX 原则文案」随母本注入批（批 8）**——落点已于 2026-10-17 裁入 `suite-texts.yaml` §9＋项目 CLAUDE.md 注入（见本段裁断行）。
+
+### 待办：kind 判据表引擎化——规则入脚本、两技能去表（2026-10-21 用户裁定，登记排期，现在不动）
+
+登记来源：Q-108 过审后用户指出「表格在两个技能里，需要合并到一个地方」（`diy-spec-scan/steps/01-collect.md` 与 `diy-selfcheck/steps/01-freeze.md` 同批同文副本）；讨论后裁定：能机械判的进脚本，不做提示词指定文件读取。
+
+已裁（2026-10-21）：
+- **判据下沉引擎**：体系产物对照表＋结构判（`SKILL.md`+`steps`→技能、`taskbook*`→任务书）入 `diy-tools` 新增判定模块，挂 `diyc.py kind --target <path> --json`，输出 `{kind, matched_by, ambiguous}`。
+- **两技能 steps 去表**：只留三阶链与命令调用——①用户明示照录（提示词，引擎看不见对话）②引擎判定 ③`ambiguous: true` → 先问一次（提示词）。不可机械化两阶留提示词属正当分层，非复制残留。
+- **母本不承载正文**：非全库重复块；母本在 `.analysis` 影子仓、不随安装分发，当不了运行时源。
+- **偏好记忆不承载**：按记忆机制设计稿 §6 归属表，判据属「可机械规则」→ 引擎关卡；偏好管用户口味、随 output_dir 实例走。
+- **步骤文件不整体脚本化**：指令层保留 Read（脚本不提升指令遵循度；Bash 输出有截断风险；步骤要可审可 diff）。可机械的只有数据与门禁。
+- **落点 `diy-tools`**：50 技能共同依赖，两技能调用零新增耦合；不放 spec-scan（避免 selfcheck 跨技能调脚本）。
+
+改动面（做时）：新增 `diy-coder/skills/diy-tools/scripts/diyc_kind.py`＋`diyc.py` 增 `kind` 子命令；`diy-spec-scan/steps/01-collect.md` 与 `diy-selfcheck/steps/01-freeze.md` 删表改命令；`tests/test_spec_scan.py` 两处 kind 断言改引擎输出断言＋新增引擎测试。测试面先裁后动（本段即裁）。
+
+关联：Q-108 已按原裁定合入 dev（2026-10-21，merge commit）；本条落地时替换两处步骤文本。
+
+### 待办：diy-brainstorm 规则 1/8 写范围张力——规则 1 未回指 `.prev` 例外（2026-10-21 Q-109 审查发现，登记待改，现在不动）
+
+登记来源：Q-109 审查发现——规则 8 新增每轮 `snapshot` 写 `{output_dir}/brainstorm.yaml.prev`，并自称「规则 1 写范围的 `.prev` 具名例外」，但规则 1 原文仍是无例外的禁令。
+
+事实（2026-10-21 引原文）：
+- 规则 1：「写范围：只写 `{output_dir}/brainstorm.yaml`（记录与 `revisions`）；不碰 `prd.yaml` / `sprint.yaml` / `stories.yaml` / 源码，也不建任何状态散文件。」
+- 规则 8：「……拍 `{output_dir}/brainstorm.yaml.prev`（规则 1 写范围的 `.prev` 具名例外）……」
+- 两条互不指认，逐字执行时冲突；规则 8 更具体，实际多半按 8 走，但自检/审查会反复报。
+
+改法（待执行）：规则 1 末尾补半句「（唯一例外＝规则 8 的 `.prev` 快照）」；只动 `diy-brainstorm/SKILL.md` 规则段，不动规则 8 与引擎。测试面已核：`tests/test_brainstorm.py` 未钉住规则 1 原文（SkillContractTests 无该句断言），改动零测试影响。
+
+### 待办：diy-brainstorm 违规码清单补登 `TOOL_ERROR`（2026-10-21 Q-109 审查发现，登记待补，现在不动）
+
+登记来源：Q-109 审查发现——`snapshot` 写盘失败报 `TOOL_ERROR`，但引擎 docstring 违规码段只列九码＋`ID_UNSTABLE`；该码在 `brainstorm_cmds.py:159`（init 写盘失败）早已使用，属本批之前既有遗漏，Q-109 沿用未扩大。
+
+事实（2026-10-21 核实）：
+- docstring 原文：「本引擎用到 …`ASSUMPTION_PRESENT` 共 9 个，**冻结九码一字不动**；本批技能级新增码 1 个：**`ID_UNSTABLE`**」——未列 `TOOL_ERROR`。
+- 使用点两处：`brainstorm_cmds.py:159`（init 写盘失败，既有）；`brainstorm.py:124`（snapshot 写盘失败，Q-109 新增）。
+- 先例：diy-correct-course「新增 `TOOL_MISSING` / `TOOL_ERROR`（diyc 委派降级专用，同 readiness 先例）」；diy-e2e-tests 码清单含 `TOOL_ERROR`；diy-readiness-check 同。
+
+改法（待执行）：docstring 违规码段补登 `TOOL_ERROR`——「工具层写盘／子进程失败通用码（init 写盘失败、snapshot 写盘失败使用）」；只补文档登记，不改代码行为、不动冻结九码。测试面已核：`tests/test_brainstorm.py` 无 docstring 码清单文字断言，改动零测试影响。
+
+### 待办：diy-brainstorm 想法铸稳定 ID `BI-###`（2026-10-21 用户指示登记，现在不动）
+
+登记来源：Q-109 审查时用户确认「队列『不含三级 ID』与测试出现 BI-### 不矛盾」（Q-109 只做对账、不做铸造），并要求把「给每一个想法增加 BI id」正式登入待办。
+
+既有裁定（2026-10-04，见本文件 :190）：brainstorm 下游锚从记录级 `BS-###` 下沉条目级三级——`BI-###`（想法）/ `BT-###`（主题）/ `BA-###`（行动）；文件内全局唯一、ID 取代 `no`（不并存）。改动面：`brainstorm.py`（铸造/唯一性/引用完整性）＋ SKILL.md 结构段（`ideas[].no`→`id`，`themes[].ideas` / `priorities` 三键 / `actions[].idea` 改引 ID）＋ `steps/04-organize.md` ＋ viewer 展示 ＋ diy-lab 存量产物迁移。
+
+本次登记：把「每个想法铸 `BI-###`」单列为可执行待办。Q-109 已就位的前置：每轮 `snapshot` 快照＋`check --previous` 已支持 `ideas[].id` 对账与「迁移轮跳过」（旧无 id → 新有 id 当轮不误报）。
+
+待裁点（做时）：
+- 范围：只做 BI（想法），还是连同 `BT-###` / `BA-###` 一次做（:190 原裁定为三级一体）；
+- ID 取代 `no` 的迁移形态、`themes[].ideas` / `priorities` / `actions[].idea` 引用切换；
+- 与 prd 前置机制化（:184）的先后：BI 是 prd 外部锚，prd 侧摄取规则随该批核；本条可先落地铸造，不阻塞 prd 批；
+- viewer 展示与测试面（先裁后动）。
+
+### 待办：architecture stack `kind` 枚举扩展（2026-10-21 用户裁定，登记待扩，现在不动）
+
+登记来源：Q-107 方案裁定——`kind` 初版只收有机械消费方的 7 类：`frontend` / `scaffold` / `language` / `test` / `lint` / `typecheck` / `build`；数据库、部署、包管理器等其余技术类目本次不进枚举，扩展时走本条。
+
+扩展判据（沿用 Q-107 口径）：
+- 有机械消费方才进枚举（下游有按 `kind` 取值的步骤点）；无消费者不写（YAGNI）。
+- 新 `kind` 入枚举须同步四处：`diy-architecture` 结构段注释、`diyc check` 枚举常量与校验、对应消费方 steps、tests。
+- 封闭世界：枚举外 `kind` 一律 `ENUM_INVALID`。
 
 ## 待办：runner 三连失败处置工作流（2026-10-17 用户裁定，登记待办，现在不动）
 
