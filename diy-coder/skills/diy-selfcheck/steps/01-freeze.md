@@ -25,20 +25,11 @@ Progress: `[冻结与编排判定] → 三机制派发 → 合并去重分级 �
 
 ## 定目标类型
 
-`target.kind` 四选一：任务书 | 技能 | 规格 | 文档（引擎不给，照三阶判据链判，不开放现场裁量）：
+`target.kind` 四选一：任务书 | 技能 | 规格 | 文档（照三阶判据链判，不开放现场裁量）：
 
 1. **用户明示 kind → 照录**。激活段或对话中用户点名，直接采用。
-2. **规则表机械判**。体系内产物查对照表定归（下表，查到即归、不代判）；体系外用结构判兜底——`SKILL.md`+`steps/` → 技能；名字含 prd/epic/story/架构 → 规格；带分工施工指令 → 任务书；无执行结构（无可预演 duties）→ 文档。
-3. **模糊档 → 先问一次**。前两阶走完仍模糊（表外产物、结构信号互相打架），AI 不代判，停下来问用户。
-
-**体系产物→类型对照表**（封闭世界，产物真名以代码为准）：
-
-| 类型 | 体系产物 |
-| --- | --- |
-| 规格 | prd / brief / prfaq / epics / stories / architecture / openapi / design / test-plan / spec / story-context / change-proposal / project-context；WDS 四产物 trigger / scenarios / system / brief。prfaq / story-context / change-proposal / project-context 从紧归规格 |
-| 技能 | SKILL.md / steps / 模板与教学资产 |
-| 任务书 | taskbook* |
-| 文档 | sprint / review / mutation-report / selfcheck / spec-scan / investigation / research / retrospective / checkpoint / editorial-review / readiness / WDS assets 清单 / evolution |
+2. **引擎判定**。跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" kind --target "<目标路径>" --json`——判据表与结构判在引擎（`diyc_kind.py`），查到即归、不代判；回执 `kind` 直接采用，`matched_by` 说明命中依据（对照表/结构判/文件名）。
+3. **模糊档 → 先问一次**。回执 `ambiguous: true`（表外产物、结构信号互相打架）→ AI 不代判，停下来问用户。
 
 ## 收尾：创建主产物
 
