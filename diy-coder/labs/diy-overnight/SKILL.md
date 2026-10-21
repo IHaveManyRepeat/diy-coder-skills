@@ -46,7 +46,7 @@ runs: []                      # 每晚一行：date/base/deadline/完成计数/e
 ## 激活时
 
 1. 取用户指定的队列路径（激活时未指定则询）；定位仓根：`git rev-parse --show-toplevel`；队列缺失或无条目 → 停，一行说明。该队列 `next` 有登记的，后续队列一并纳入本次运行（接力由脚本自动跟随，不再交互）。
-2. 只碰 `status` 为 待跑/顺延/跳过 的条目；完成/阻塞/进行中之外的状态不重开（阻塞留待用户裁）。
+2. 只碰 `status` 为 待跑/顺延/跳过 的条目；完成/阻塞/进行中不重开——阻塞条目本晚不再处理，越过继续其余条目（留晨报待裁，不等待用户）。
 3. **开工权只归用户**——激活、队列就绪、开工前置做完，均不构成开工依据；用户说「开工」前不写任何 git 状态，`run_queue.py start` 不得调用。
 
 ## 开工前置（交互·用户在场）
@@ -62,13 +62,19 @@ runs: []                      # 每晚一行：date/base/deadline/完成计数/e
 
 **分层（agent team）**：主会话常驻当调度员，只做三件事——调 runner 领任务/回报、派 subagent、标阻塞；机械循环（起跑门、建分支、状态写回、全量绿权威提交门、失败还原、熔断计数、接力判定、晨报骨架）全部由同目录 `run_queue.py` 强制执行。每任务的实施由 subagent 承担——按任务需要派单个 fresh subagent、多个 subagent 分工、或组 agent team 协作完成，子代理上下文干完即弃，调度侧只收 `{branch, commit, tests, reason, phases}` 回报，不吸收过程上下文（`phases`＝subagent 自报阶段耗时整数分钟：实施/自测/verify）。
 
+**连续运行铁律（2026-10-21 裁）**：从 `start` 到整晚收尾是一个不间断执行段——期间**禁止向用户提问、禁止等待裁定、禁止以汇报进度为由结束回合**；中间结果只写队列与晨报，天亮后由晨报交裁。任何「拿不准」都不得变成停等。
+
+**裁断点判据**：须 `ruling` 的只有硬项——需改 `scope`／`basis` 前提不成立／与已裁口径冲突／需动共享面或他任务／产品语义二选一／队列外发现影响本任务；实现细节（命名、等价写法、内部结构）自行决定，不阻塞，晨报备注一笔。
+
+**子代理委派契约**（每条委派提示词原样附上）：不得向用户提问或等待；不得提交、不动 `scope` 外；遇裁断点立即停手，回报 `{status:"ruling", point, recommend, evidence}`（`point`＝卡点一句话＋候选选项，`evidence`＝文件:行或原文引用），不得继续猜测实施；其余情况照常完成并回报实施／自测结果。
+
 对当前队列按序每个可跑条目：
 
 1. **领任务**：`python run_queue.py gate --queue <路径>`（缺省取队列序第一个 `待跑`，跨晚重排条目用 `--id` 显式领）——起跑门不过 → 脚本把余下待跑全转 `顺延`，走队列退出与接力；过 → 脚本建分支＋置 `进行中`，输出任务详情（id／branch／scope／verify／basis）。
 2. 只动 `scope` 内文件（gate 输出即白名单）。
 3. 派 subagent 实施＋自查自测（权威门在脚本，subagent 自测只为自身迭代快）→ `verify` 逐项过 → `python run_queue.py done --queue <路径> --id <id> --type feat|fix|refactor --tests <结果> [--phases 实施=25,自测=8,verify=2]`——脚本跑 `test_cmd` 计时（`test_sec`），全量绿才 stage `scope`＋统一提交（`<type>: 夜队列 <id> <title>`，体：scope／basis／tests＋全量秒数）并写 `result`（done_at／elapsed_sec／elapsed_min／test_sec／ratio／tests_count／phases）置 `完成`；红 → 不提交不写盘、返回红详情（`started_at` 继续计时，修复损耗如实入账）。
 4. **红回修循环**：`done` 红 → 把红详情反馈 subagent 修 → 重跑 `done`；修复 2 次仍红 → 第 3 次 `python run_queue.py fail --queue <路径> --id <id> --cause red --keep-branch --reason <红要点>`——脚本在任务分支打红标 WIP 提交（`wip: 夜队列 <id> <title>（三次仍红·留审）`）→ 切回链基点（分支保留，绿链零污染）→ 置 `阻塞`，晨报待裁点带 checkout 指引。
-5. **其他失败路径**（裁断点／子代理上下文超限／超时修不动）：`python run_queue.py fail --queue <路径> --id <id> --cause timeout|context|interrupt|ruling --reason <要点>`（不带 `--keep-branch`＝零痕迹还原：检回链基点＋清 scope 内自产未跟踪＋删失败分支；`result` 记 `{elapsed_sec, cause}`）：`ruling`→`阻塞`（reason 点名缺口/引文），**绝不代裁**；`context`→`跳过(子代理超限)`，不续做半成品；`timeout`→`跳过`。
+5. **其他失败路径**（裁断点／子代理上下文超限／超时修不动）：`python run_queue.py fail --queue <路径> --id <id> --cause timeout|context|interrupt|ruling --reason <要点>`（不带 `--keep-branch`＝零痕迹还原：检回链基点＋清 scope 内自产未跟踪＋删失败分支；`result` 记 `{elapsed_sec, cause}`）：`ruling`→`阻塞`（reason 点名缺口/引文），**绝不代裁**；落盘后**立即回第 1 步领下一条**，不向用户报告、不等待裁定；`context`→`跳过(子代理超限)`，不续做半成品；`timeout`→`跳过`。
 6. **连跳熔断**：脚本计数（仅 `red`/`timeout` 计，`context`/`interrupt` 不计），连续 2 → 返回 `circuit: true` → 余下转 `顺延`，整晚收尾（不接力）。
 
 **队列退出与接力**（当前队列无可跑条目后）：
@@ -102,7 +108,7 @@ runs: []                      # 每晚一行：date/base/deadline/完成计数/e
 
 1. **只消费队列，不填队列**；队列外的发现记晨报，不顺手修。
 2. **提交点＝done 脚本全量绿**（提交统一由脚本产生，subagent 不自行提交）；无半红入链；失败零痕迹（`--keep-branch` 红标留审除外——只在侧分支，不入绿链）。
-3. **不裁断**：新歧义＝`阻塞`＋reason，等用户。
+3. **不裁断、也不停等**：新歧义＝`fail --cause ruling`＋`阻塞`＋reason，随即继续下一条；夜跑期间禁止向用户提问、等待裁定或为此结束回合。
 4. **scope 外零触碰**；verify 专项照过。
 5. 时间判断取本地时钟；deadline 及四参数缺省值开工时用户可逐项改。
 6. **接力判定归脚本**：时间够不够、熔断、防环、继承时间档一律以 `relay` 输出为准；队列退出必须调 relay（熔断除外），不自行判断。
