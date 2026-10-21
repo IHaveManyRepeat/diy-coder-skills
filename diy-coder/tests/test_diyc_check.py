@@ -285,6 +285,54 @@ class ArchitectureCheckTest(CheckBase):
         self.assertIn("EMPTY_FIELD", codes(r))
         self.assertIn("PENDING_DECISION", codes(r))
 
+    # trace: Q-107（stack 铸 ST-### + kind 封闭七类；存量缺 id/kind → warning 不阻塞）
+    def test_stack_legacy_missing_id_kind_warns_not_blocks(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture",
+                     arch_doc(stack=[{"choice": "html", "why": "静态站"}]))
+        r = check(self.root, "architecture")
+        self.assertTrue(r["ok"], msgs(r))
+        self.assertTrue(any("缺 id" in w for w in r["warnings"]), r["warnings"])
+        self.assertTrue(any("缺 kind" in w for w in r["warnings"]), r["warnings"])
+
+    def test_stack_new_shape_passes_without_warnings(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(stack=[
+            {"id": "ST-001", "kind": "frontend", "choice": "html", "why": "静态站"},
+            {"id": "ST-002", "kind": "language", "choice": "python", "why": "引擎同栈"}]))
+        r = check(self.root, "architecture")
+        self.assertTrue(r["ok"], msgs(r))
+        stack_warns = [w for w in r["warnings"] if "stack" in w]
+        self.assertEqual([], stack_warns, stack_warns)
+
+    def test_stack_invalid_kind_is_violation(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(stack=[
+            {"id": "ST-001", "kind": "database", "choice": "postgres", "why": "存储"}]))
+        r = check(self.root, "architecture")
+        self.assertIn("ENUM_INVALID", codes(r))
+        self.assertIn("database", msgs(r))
+
+    def test_stack_bad_id_format_and_duplicate(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(stack=[
+            {"id": "STACK-1", "kind": "language", "choice": "python", "why": "a"},
+            {"id": "ST-002", "kind": "test", "choice": "pytest", "why": "b"},
+            {"id": "ST-002", "kind": "lint", "choice": "ruff", "why": "c"}]))
+        r = check(self.root, "architecture")
+        self.assertIn("ENUM_INVALID", codes(r))
+        self.assertIn("DUPLICATE_ID", codes(r))
+        self.assertIn("STACK-1", msgs(r))
+
+    def test_stack_frontend_scaffold_at_most_one(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(stack=[
+            {"id": "ST-001", "kind": "frontend", "choice": "react", "why": "a"},
+            {"id": "ST-002", "kind": "frontend", "choice": "vue", "why": "b"}]))
+        r = check(self.root, "architecture")
+        self.assertIn("DUPLICATE_ID", codes(r))
+        self.assertIn("frontend", msgs(r))
+
 
 # ---------------------------------------------------------------- openapi
 

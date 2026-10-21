@@ -122,9 +122,9 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("diy-epics-stories", self.raw, "悬空 design_ref 未路由回写权技能")
         self.assertIn("只读", self.raw, "未声明只读边界")
 
-    # trace: B-9（消费口径：从 stack[].choice 取值 + 找不到时的明确处置）
+    # trace: B-9（消费口径：从 stack[] 按 kind: frontend 取 choice + 找不到时的明确处置）
     def test_b9_frontend_framework_value_path(self):
-        self.assertIn("stack[].choice", self.raw, "缺 B9 取值路径")
+        self.assertIn("kind: frontend", self.raw, "缺 B9 取值路径")
         self.assertIn("停下问用户一次", self.raw, "缺找不到时的明确处置")
 
     # ------------------------------------------------------- C·3a 改造面（W1 新增）

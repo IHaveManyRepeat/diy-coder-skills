@@ -53,8 +53,10 @@ project:
   status: 草稿 | 已定稿           # 写状态的唯一位置；门检查的对象
   created:                        # 建文件时留空，跑 diyc stamp 盖秒级章（此后不改）
   updated:                        # 每次写回后跑 diyc stamp 刷秒级章
-stack:                           # 选中的技术一行一条；choice 逐字写技术名——消费方按它取值（diy-design 取前端框架、diy-readiness-check 取脚手架）
-  - choice: string
+stack:                           # 选中的技术一行一条；新条目必须带 id/kind——下游按 kind 取 choice（不按值匹配）
+  - id: ST-###                   # 稳定：顺序递增，永不重编号、永不复用
+    kind: frontend|scaffold|language|test|lint|typecheck|build   # 封闭七类；frontend/scaffold 至多一条，其余可多条
+    choice: string               # 逐字写技术名
     why: string
 decisions:
   - id: D-1                      # 稳定：顺序递增，永不重编号、永不复用；源码 `# trace: D-x` 按它解析
@@ -82,7 +84,7 @@ revisions: []                    # {date, change, reason} —— 改既有条目
 ## 规则
 
 1. **写范围恰好一份产物**：`{output_dir}/architecture.yaml`（加 `.prev` 临时件）。`prd.yaml` / `stories.yaml` / 源码一律不碰——非 `已定稿` 的 `prd.yaml` 也只读、只在 `risks[]` 留痕；WDS 线同理，`wds-brief.yaml` / `wds-scenarios.yaml` 只读（推进 `design_status` 等写权**不属本技能**）。
-2. **ID 链是硬契约。** `D-*` / `C-*` / `R-*` 一经铸造永不重编号、永不复用；重写既有稿走激活时第 3 条的 `.prev` 快照 → 对账改写 → 删 `.prev`。源码里的 `# trace: D-x` 由 `diyc.py trace` 按这些 ID 解析——丢 ID 即 `TRACE_UNRESOLVED`；`check --previous` 的类型白名单已含 architecture，重写既有稿时按激活时第 3 条跑它做机械比对（三条失败分支见该条）。Update 对账确曾改写既有决策时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `D-*`、不复制内容）——纯新增不算改既有。
+2. **ID 链是硬契约。** `D-*` / `C-*` / `R-*` / `ST-*` 一经铸造永不重编号、永不复用；重写既有稿走激活时第 3 条的 `.prev` 快照 → 对账改写 → 删 `.prev`。源码里的 `# trace: D-x` 由 `diyc.py trace` 按这些 ID 解析——丢 ID 即 `TRACE_UNRESOLVED`；`check --previous` 的类型白名单已含 architecture，重写既有稿时按激活时第 3 条跑它做机械比对（三条失败分支见该条）。Update 对账确曾改写既有决策时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `D-*`、不复制内容）——纯新增不算改既有。
 3. **每条决策至少一条被否决备选**（`alternatives` 带 `why_not`）；没有备选的决策通常是未经检验的默认值。`affects` 只引用上游既有 ID——主线 `prd.yaml` 的 FR/NFR，WDS 线 `wds-scenarios.yaml` 的 `SC-<nn>` / `SC-<nn>.P<n>`（形态由 `diy-wds-scenarios` 定义，本技能只消费、不重定义；终门两域都认——引擎 `known` 域已并入 SC/P，裁定 22）——引用，绝不复制需求文本。
 4. **决策只为需求存在。** 持久化 / 性能这类横切关切，也只在某条 FR/NFR（或 WDS 线的 `SC-<nn>` / `SC-<nn>.P<n>`）要求时才成型——不臆造架构。**安全默认考虑**：激活时问用户一次「持久化 / 安全 / 性能哪些需要在架构设计时考虑」——安全默认在场，除非用户明确答「只自己用、不对外」才移出考虑面，该答复本身落盘留痕；安全类全类逐类显式作答（封闭四类：鉴权 / 加密（传输＋存储）/ 输入校验 / 敏感数据处理（含日志红线）），选「无」也落盘为决策；持久化 / 性能按用户当场回答与需求要求定。
 5. **未决项留在文件里。** 任何未经用户确认的推断——含机制细节与风险缓解——都要带 `[假设]` 前缀写在 YAML **值**上（只写值、不新增独立键），绝不只在对话里列；终门对全字段深扫 `[假设]`。

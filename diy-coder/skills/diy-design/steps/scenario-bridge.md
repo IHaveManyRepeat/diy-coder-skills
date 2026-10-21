@@ -2,7 +2,7 @@
 
 Progress: `[1 读功能清单] → [2 生成场景/页面树] → [3 用户确认（硬门）] → [4 落 pages[] 骨架] → 收尾路由`
 
-**Read (input):** `{output_dir}/prd.yaml` 的 `features[]`（`FG-*`）与其 `requirements[]`（`FR-*` / `F-*`，逐条 `statement`）；`{output_dir}/architecture.yaml` 的 `stack[]`（框架取值，见规则 6，可选）；既有 `{output_dir}/design.yaml`（续跑时）；用户在本文件各步的回答。
+**Read (input):** `{output_dir}/prd.yaml` 的 `features[]`（`FG-*`）与其 `requirements[]`（`FR-*` / `F-*`，逐条 `statement`）；`{output_dir}/architecture.yaml` 的 `stack[]`（`kind: frontend` 条目的取值，见规则 6，可选）；既有 `{output_dir}/design.yaml`（续跑时）；用户在本文件各步的回答。
 **Write (output):** `{output_dir}/design.yaml` 的 `pages[]` **骨架**（`id` / `name` / `route` / 空 `states[]`）与 `project` 块；给用户的页面树呈批。
 
 你是**设计总监**。这一段是**主线上行**：`prd.yaml` 里只有功能清单，没有页面——「桥」要从功能清单长出场景/页面树，**请用户确认后**才进逐页规格。

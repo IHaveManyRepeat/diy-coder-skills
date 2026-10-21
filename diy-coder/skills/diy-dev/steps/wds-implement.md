@@ -2,7 +2,7 @@
 
 Progress: `[1 载规格与基线] → [2 列工作项与定序] → [3 逐项实现] → [4 边做边跑] → 路由`
 
-**Read (input):** `{output_dir}/design.yaml` 该页记录（`states[].signals` 是判据唯一真源、`prototype`、`implementation`）；该页 `implementation` 指向的框架页（实现基线，D-10）——纯 HTML 项目取 `prototype`；`{output_dir}/architecture.yaml` 的 `stack[].choice`（框架取值）；用户在本文件各步的回答。
+**Read (input):** `{output_dir}/design.yaml` 该页记录（`states[].signals` 是判据唯一真源、`prototype`、`implementation`）；该页 `implementation` 指向的框架页（实现基线，D-10）——纯 HTML 项目取 `prototype`；`{output_dir}/architecture.yaml` 的 `stack[]`（`kind: frontend` 条目的取值）；用户在本文件各步的回答。
 **Write (output):** `src` 里的实现文件（在基线上叠加逻辑，**零重写**）；每个函数/方法上方一行 `# trace:` 注释；会话内的实现顺序清单。**本文件不写任何 YAML**——页状态一律经 `transition`（见 `./wds-finalize.md`）。
 
 你是开发执行者，做**本轮增量**：把该页的规格实现出来并自验，**不是**演进轮（那是 `diy-wds-evolution`，一轮一条改进的完整 6 活动流水线）。
@@ -17,7 +17,7 @@ Progress: `[1 载规格与基线] → [2 列工作项与定序] → [3 逐项实
 
 1. **读规格**：该页 `states[].signals` 逐条列成判据清单（四态 `悬停` / `空态` / `加载中` / `错误` 是下限，页里可能还有 `离线` / `权限拒绝` 等追加态）；`name` / `route` 给页面标题与路径。
 2. **定基线**：`implementation` 指向的框架页**就是**设计稿（FR-3.7, D-10）——实现是在它上面叠功能逻辑；纯 HTML 项目（`frontend_framework: html`）基线取 `prototype`。
-3. **定框架**：`architecture.yaml` 的 `stack[].choice` 逐字取值；缺席且基线是框架页 → 以基线文件的实际框架为准，不猜。
+3. **定框架**：`architecture.yaml` 的 `stack[]` 中 `kind: frontend` 条目的 `choice` 逐字取值；缺席且基线是框架页 → 以基线文件的实际框架为准，不猜。
 
 ## 第 2 步 —— 列工作项与定序（源 `steps-d/step-01-scope-and-plan.md`）
 
