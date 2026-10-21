@@ -14,6 +14,8 @@
 - 用例 8：check 检出 current_step 与 status 不一致（STATUS_MISMATCH）
 - 用例 9：check --final 对未完成记录拒绝；对完整记录放行
 - 用例 10：SKILL.md 契约冒烟（母本 §1 中文定稿逐字 + 四段中文标题 + 终门句指向本技能引擎）
+- 用例 11：Q-109 --previous（三失败分支 ID_UNSTABLE / MISSING_FILE / UNPARSABLE_YAML +
+          迁移轮跳过比对 + 每轮开工快照序：首拍直拍、在场先对账不过不覆盖）
 
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；不依赖本机 git 状态。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_brainstorm.py" -v
@@ -91,6 +93,36 @@ COMPLETE_YAML = NL.join([
     "  open_questions: []",
     "revisions: []",
 ]) + NL
+
+# Q-109 夹具：想法 2 的块 / 滚动验证用的想法 3 块 / 迁移态（想法铸 id）
+IDEA2_BLOCK = NL.join([
+    "  - no: 2",
+    "    title: 断点提示",
+    "    concept: 回到会话即见下一步。",
+    "    novelty: 免回忆",
+    "    technique: 连续五问",
+])
+IDEA3_BLOCK = NL.join([
+    "  - no: 3",
+    "    title: 滚动验证",
+    "    concept: 覆盖拍快照的新想法。",
+    "    novelty: 证明 .prev 已滚动",
+    "    technique: 连续五问",
+])
+LOST_YAML = COMPLETE_YAML.replace(IDEA2_BLOCK + NL, "")
+WITH3_YAML = COMPLETE_YAML.replace("  themes:", IDEA3_BLOCK + NL + "  themes:")
+MIGRATED_YAML = (COMPLETE_YAML
+                 .replace("  - no: 1" + NL, "  - id: BI-001" + NL + "    no: 1" + NL)
+                 .replace("  - no: 2" + NL, "  - id: BI-002" + NL + "    no: 2" + NL))
+MIGRATED_IDEA2_BLOCK = NL.join([
+    "  - id: BI-002",
+    "    no: 2",
+    "    title: 断点提示",
+    "    concept: 回到会话即见下一步。",
+    "    novelty: 免回忆",
+    "    technique: 连续五问",
+])
+MIGRATED_LOST_YAML = MIGRATED_YAML.replace(MIGRATED_IDEA2_BLOCK + NL, "")
 
 
 def run_engine(args):
@@ -318,6 +350,92 @@ class CheckTests(EngineCase):
             self.assertEqual(r.returncode, 2, "%s: %s" % (cmd, r.stdout + r.stderr))
         r = run_engine(["init", "--topic", "T", "--project-root", self.root, "--json"])
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+
+
+class PreviousTests(EngineCase):
+    """用例 11：Q-109 --previous 三失败分支 + 迁移轮跳过 + 每轮开工快照序。"""
+
+    def prev_path(self):
+        return self.brainstorm_path() + ".prev"
+
+    # trace: Q-109 · 开工快照序（首拍直拍；.prev 在场先对账，不过零写入不覆盖，过才滚动）
+    def test_snapshot_first_shot_and_check_before_overwrite(self):
+        self.write("diy-output/brainstorm.yaml", COMPLETE_YAML)
+        r = self.engine("snapshot")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(self.read_text("diy-output/brainstorm.yaml.prev"), COMPLETE_YAML,
+                         "首拍未落 .prev")
+        # 丢想法 → 对账不过 → 拒绝覆盖（.prev 保持首拍原样）
+        self.write("diy-output/brainstorm.yaml", LOST_YAML)
+        r2 = self.engine("snapshot")
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertEqual([x["code"] for x in json.loads(r2.stdout)["violations"]],
+                         ["ID_UNSTABLE"])
+        self.assertEqual(self.read_text("diy-output/brainstorm.yaml.prev"), COMPLETE_YAML,
+                         "对账不过仍覆盖了 .prev")
+        self.assertFalse(os.path.isfile(self.prev_path() + ".tmp"), "快照残留 .prev.tmp")
+        # 集合只增（新想法）→ 对账过 → 覆盖为本轮基线
+        self.write("diy-output/brainstorm.yaml", WITH3_YAML)
+        r3 = self.engine("snapshot")
+        self.assertEqual(r3.returncode, 0, r3.stdout + r3.stderr)
+        self.assertIn("no: 3", self.read_text("diy-output/brainstorm.yaml.prev"),
+                      ".prev 未滚动为本轮基线")
+
+    # trace: Q-109 · 三失败分支①（--final --previous 同跑：想法丢失/记录丢失 → ID_UNSTABLE；同稿放行）
+    def test_check_previous_flags_lost_idea_and_record(self):
+        self.write("diy-output/brainstorm.yaml.prev", COMPLETE_YAML)
+        self.write("diy-output/brainstorm.yaml", LOST_YAML)
+        r = self.check("--final", "--previous")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        unstable = [x for x in json.loads(r.stdout)["violations"] if x["code"] == "ID_UNSTABLE"]
+        self.assertTrue(unstable, "丢失的想法未报 ID_UNSTABLE")
+        self.assertTrue(any("ideas[no=2]" in x["where"] for x in unstable),
+                        "ID_UNSTABLE where 未点名丢失想法： %s" % unstable)
+        # 记录级：BS-001 旧有新无 → ID_UNSTABLE（新记录追加不报）
+        self.write("diy-output/brainstorm.yaml", COMPLETE_YAML.replace("BS-001", "BS-002"))
+        r2 = self.check("--previous")
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertTrue(any("sessions[id=BS-001]" in x["where"]
+                            for x in json.loads(r2.stdout)["violations"]
+                            if x["code"] == "ID_UNSTABLE"),
+                        "ID_UNSTABLE where 未点名丢失记录")
+        # 同稿（基线未变）→ --final --previous 放行
+        self.write("diy-output/brainstorm.yaml", COMPLETE_YAML)
+        ok = self.check("--final", "--previous")
+        self.assertEqual(ok.returncode, 0, ok.stdout + ok.stderr)
+
+    # trace: Q-109 · 三失败分支②③（.prev 缺失 → MISSING_FILE；.prev 损坏 → UNPARSABLE_YAML，零 traceback）
+    def test_check_previous_missing_and_unparsable_snapshot(self):
+        self.write("diy-output/brainstorm.yaml", COMPLETE_YAML)
+        r = self.check("--previous")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertEqual([x["code"] for x in json.loads(r.stdout)["violations"]],
+                         ["MISSING_FILE"])
+        self.assertNotIn("Traceback", r.stderr)
+        self.write("diy-output/brainstorm.yaml.prev", "sessions: [" + NL)
+        r2 = self.check("--previous")
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertEqual([x["code"] for x in json.loads(r2.stdout)["violations"]],
+                         ["UNPARSABLE_YAML"])
+        self.assertNotIn("Traceback", r2.stderr)
+
+    # trace: Q-109 · 迁移轮跳过比对（no → id 当轮不误报）+ 迁移完成后 id 面照比
+    def test_migration_round_skips_then_id_mode_works(self):
+        self.write("diy-output/brainstorm.yaml.prev", COMPLETE_YAML)
+        self.write("diy-output/brainstorm.yaml", MIGRATED_YAML)
+        r = self.check("--previous")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(json.loads(r.stdout)["violations"], [],
+                         "迁移轮不得误报 ID_UNSTABLE")
+        # 两侧都有 id 后：丢 BI-002 → id 面 ID_UNSTABLE
+        self.write("diy-output/brainstorm.yaml.prev", MIGRATED_YAML)
+        self.write("diy-output/brainstorm.yaml", MIGRATED_LOST_YAML)
+        r2 = self.check("--previous")
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertTrue(any("ideas[id=BI-002]" in x["where"]
+                            for x in json.loads(r2.stdout)["violations"]
+                            if x["code"] == "ID_UNSTABLE"),
+                        "ID_UNSTABLE where 未点名丢失想法 BI-002")
 
 
 class SkillContractTests(unittest.TestCase):
