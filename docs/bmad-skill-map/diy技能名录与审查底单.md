@@ -224,6 +224,25 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 补登（2026-10-04，一审 diy-test-design 发现）：**第三个按值消费点**——diy-test-design 静态检查链取技术栈（SKILL.md:92「从 `stack[].choice` 里找语言与检查工具链……逐字取技术名」，B9 同款）——消费方清单扩入；改动面同步补 diy-test-design 输入面。
 
+## 待办：architecture stack 全 kind 表态＋下游取值＋help 按值推荐（2026-10-22 用户裁定，待任务书）
+
+登记来源：审 Q-107（3476d19）时提出——现校验只保「写了合法」（枚举/唯一/形态），不保「该有就有」；无前端的项目不该推荐 design，无接口面的不该推荐 openapi。
+
+裁定：
+1. **7 类 kind 逐类表态**（照规则 4 安全类先例）：适用写 choice 值；不适用落 `choice: null` 并在 why 写理由。存量缺表态 → warning 不阻塞；新写由 SKILL 文本强制。
+2. **下游取值恒在**：消费方按 kind 取 choice，空＝该项目不适用（非「取不到/追问用户」）。
+3. **help 按值推荐**：diy-help 读架构适用性值决定可选节点推荐——frontend 空不推 design，接口面空不推 openapi；推荐归导航层，不散落各下游自行 SKIP。
+
+待裁（任务书呈裁门）：
+- 多值 kind（language/test/lint/typecheck/build）与「必表态」的表示法：多条＋不适用一条 null，还是每组一条汇总。
+- 空值形态：`null` vs 空串。
+- 接口面表态落点：stack 扩第 8 类 kind（Q-107 已裁「扩展另立待办」）vs architecture 新顶层块 vs 沿用 components/decisions 推导。
+- help 数据接口：registry.yaml 扩适用性键 vs help 直读 architecture.yaml。
+- 拆批：architecture 侧 / 下游五消费方 / help 三件，是否分三批入夜跑。
+- 存量缺表态 warning 口径确认（沿用 Q-107）。
+
+改动面（草案）：`diyc_check_docs_upstream.py`＋`diyc_check_docs_lib.py`（全 kind 表态断言）／`diy-architecture/SKILL.md`（结构＋规则）／design、readiness-check、test-design、dev、augment 输入面／`diy-help`（registry.yaml＋help.py／help_lib.py＋SKILL）／`diy-openapi`（若接口面判据改）／viewer（null 渲染）／相关 tests。
+
 ## 待办：新增 bug 分析技能（编排 cis-method 问题求解）
 
 登记（2026-10-04 用户裁定立项；查证无对口技能）：现有面 = diy-investigate（取证调查，止于诊断报告，无机制消灭与经验沉淀）/ cis-method 问题求解（通用 9 步含根因·方案·经验教训，不面向 bug、无代码取证）/ retrospective（epic 级复盘）；BMAD 源 `bmad-analyze-bug` 未迁。
