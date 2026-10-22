@@ -2,8 +2,8 @@
 """diyc CLI 入口：全部子命令定义 + 统一收口（契约 §2/§3/§4）。
 
 - 本文件拥有全部 argparse 定义；行为模块只暴露 run(args) -> dict：
-  check → diyc_check、mutate → diyc_mutate（两者懒加载，见 BEHAVIOR_MODULES）、
-  写回六命令 → diyc_writeback（懒加载，按 args.command 分派）；
+  check → diyc_check、mutate → diyc_mutate、kind → diyc_kind（三者懒加载，
+  见 BEHAVIOR_MODULES）、写回六命令 → diyc_writeback（懒加载，按 args.command 分派）；
   resolve/static 两个子命令由本文件直接实现，trace 域在 diyc_trace。
 - 统一收口：解析 output_dir 写入 args.output_dir、设置 args.command、补公共回执键、
   emit 输出并以 exit code 收尾（ok → 0，否则 1；用法错误 2 由 argparse 给出）；
@@ -45,7 +45,8 @@ STAMP_TYPES = ("prd", "architecture", "openapi", "prfaq", "test-plan",
 PREVIOUS_TYPES = ("prd", "openapi", "epics", "stories", "test-plan", "architecture")
 WRITEBACK_COMMANDS = ("transition", "green", "done", "bug-add", "defer-add", "reconcile")
 # 懒加载行为模块映射；未列出的子命令（六个写回）缺省走 diyc_writeback
-BEHAVIOR_MODULES = {"check": "diyc_check", "mutate": "diyc_mutate"}
+BEHAVIOR_MODULES = {"check": "diyc_check", "mutate": "diyc_mutate",
+                    "kind": "diyc_kind"}
 
 
 def _rel_to_output(args, filename) -> str:
@@ -67,6 +68,12 @@ def _human_resolve(result) -> list:
     # .get：兜底回执（INTERNAL_ERROR）无 config_found 键，渲染不得再崩（V 复验 N-2）
     return ["output_dir: %s" % result.get("output_dir"),
             "config_found: %s" % result.get("config_found")]
+
+
+def _human_kind(result) -> list:
+    return ["kind: %s（matched_by: %s%s）"
+            % (result.get("kind") or "未定", result.get("matched_by"),
+               "·ambiguous" if result.get("ambiguous") else "")]
 
 
 # ---------------------------------------------------------------- static
@@ -164,6 +171,11 @@ def build_parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="command", required=True, metavar="<子命令>")
 
     sub.add_parser("resolve", parents=[common], help="解析 output_dir（实例透传唯一入口）")
+
+    p = sub.add_parser("kind", parents=[common],
+                       help="扫描目标类型判定（对照表＋结构判；diyc_kind）")
+    p.add_argument("--target", required=True,
+                   help="目标路径（文件或目录；相对路径按 project-root 解析）")
 
     p = sub.add_parser("check", parents=[common], help="产物机械核对（diyc_check）")
     p.add_argument("--type", required=True, choices=CHECK_TYPES, help="文档类型")
@@ -265,6 +277,7 @@ def _human_mutate(result) -> list:
 
 HUMAN_RENDERERS = {
     "resolve": _human_resolve,
+    "kind": _human_kind,
     "trace": _human_trace,
     "static": _human_static,
     "mutate": _human_mutate,

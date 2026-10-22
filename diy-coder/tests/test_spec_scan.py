@@ -618,6 +618,7 @@ class SkillContractTests(unittest.TestCase):
 
     # trace: v4 批 2b · 裁①甲——kind 扩枚举「任务书|技能|规格|文档」两处均断（SKILL schema 行 + 01 四选一）
     #   Q-108 改：01 开放裁量「由你判定」作废，改断三阶判据链锚（模糊档先问一次/不代判）
+    #   Q-113 改：②规则表机械判下沉引擎 diyc_kind——01 只留链与命令调用，表本体断言移 test_diyc_kind
     def test_kind_enum_includes_document_in_both_places(self):
         self.assertIn("任务书|技能|规格|文档", self.read_skill(),
                       "SKILL 结构段 kind 枚举缺「文档」")
@@ -629,39 +630,34 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("不代判", collect, "01 模糊档缺「AI 不代判」")
         self.assertNotIn("由你判定（引擎不给）", collect,
                          "01 旧开放裁量句「由你判定（引擎不给）」须零在场")
+        self.assertNotIn("体系产物→类型对照表", collect,
+                         "Q-113：对照表已下沉引擎，01 不得再内嵌副本")
 
-    # trace: Q-108 · 三阶链②体系产物对照表（封闭世界四类·规格从紧四行）＋文档轻扫口径（第二补块）
-    def test_kind_lookup_table_and_doc_light_scan(self):
+    # trace: Q-113 · 三阶链②引擎判定（diyc.py kind 命令调用＋matched_by/ambiguous 锚）＋文档轻扫口径
+    def test_kind_engine_call_and_doc_light_scan(self):
         collect = self.read(os.path.join(STEPS_DIR, "01-collect.md"))
-        self.assertIn("体系产物→类型对照表", collect, "01 缺对照表标题")
-        for token in ("prd", "brief", "prfaq", "epics", "stories", "architecture",
-                      "openapi", "design", "test-plan", "spec", "story-context",
-                      "change-proposal", "project-context",
-                      "trigger", "scenarios", "system",
-                      "SKILL.md", "steps", "taskbook",
-                      "sprint", "review", "mutation-report", "selfcheck",
-                      "spec-scan", "investigation", "research", "retrospective",
-                      "checkpoint", "editorial-review", "readiness", "evolution"):
-            self.assertIn(token, collect, "对照表缺产物真名：%s" % token)
-        self.assertIn("从紧归规格", collect, "对照表缺四行从紧注记")
-        self.assertIn("结构判兜底", collect, "01 缺体系外结构判兜底")
+        self.assertIn("diyc.py\" kind --target", collect, "01 缺 kind 引擎调用命令")
+        self.assertIn("matched_by", collect, "01 缺 matched_by 命中依据说明")
+        self.assertIn("ambiguous", collect, "01 缺 ambiguous 模糊档锚")
+        self.assertIn("diyc_kind.py", collect, "01 缺判据表落点（diyc_kind.py）")
+        self.assertNotIn("结构判兜底", collect, "Q-113：体系外结构判兜底已入引擎，01 不得再写")
         self.assertIn("轻扫口径", collect, "01 文档路由缺轻扫口径")
         self.assertIn("规范性语句", collect, "轻扫口径缺①规范性语句")
         self.assertIn("指涉可解析性", collect, "轻扫口径缺②指涉可解析性")
         self.assertIn("谁以什么方式消费它", collect, "轻扫口径缺风险轴判据表述")
         self.assertIn("互补", collect, "轻扫口径缺与 editorial-review 深审互补区分")
 
-    # trace: Q-108 · selfcheck 01 同批同文——三阶链＋对照表全文自包含（落文断言面登记在 spec-scan 侧）
+    # trace: Q-108 · selfcheck 01 同批同文——三阶链；Q-113 改：表下沉引擎，断引擎调用同文
     def test_selfcheck_freeze_same_kind_rule_table(self):
         freeze = self.read(os.path.join(
             HERE, "..", "skills", "diy-selfcheck", "steps", "01-freeze.md"))
         self.assertIn("三阶判据链", freeze, "selfcheck 01 缺三阶判据链")
-        self.assertIn("体系产物→类型对照表", freeze, "selfcheck 01 缺对照表标题")
+        self.assertIn("diyc.py\" kind --target", freeze, "selfcheck 01 缺 kind 引擎调用命令")
+        self.assertIn("ambiguous", freeze, "selfcheck 01 缺 ambiguous 模糊档锚")
         self.assertIn("模糊档", freeze, "selfcheck 01 缺模糊档")
         self.assertIn("先问一次", freeze, "selfcheck 01 缺「先问一次」")
-        self.assertIn("从紧归规格", freeze, "selfcheck 01 对照表缺从紧注记")
-        self.assertIn("taskbook", freeze, "selfcheck 01 对照表缺任务书行")
-        self.assertIn("WDS 四产物", freeze, "selfcheck 01 对照表缺 WDS 行")
+        self.assertNotIn("体系产物→类型对照表", freeze,
+                         "Q-113：对照表已下沉引擎，selfcheck 01 不得再内嵌副本")
 
     # trace: v4 批 2b · 裁①甲——01 分岔（文档→03／其余→02）+ 纠错通道 revisions 留痕 + 建文件 schema: 2 配方
     def test_collect_route_fork_and_schema_stamp(self):
