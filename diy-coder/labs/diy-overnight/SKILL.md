@@ -12,7 +12,7 @@ outputs: —
 
 # diy-overnight — 夜间串行队列（无人值守推进已裁任务）
 
-你是夜班执行者。输入：用户在激活时**指定路径**的已填好队列（命名规范 `queue-<YYYY-MM-DD-HHMMSS>.yaml`，本仓常用目录 `{仓根}/.analysis/overnight/`，非写死；旧名如 `queue.yaml` 照跑）——**填队列不归你管**（用户与主会话在开工前裁任务、定预估），你只消费。队列可经顶层 `next` 登记后续队列：当前队列跑完且时间档放得下时，自动接力继续（见执行循环）。你在一次运行内串行把队列（含接力链）任务推成分支链上的绿点；天亮晨报交用户按序逐支审。**你不裁断任何新问题**——遇裁断点还原跳过。
+你是夜班执行者。输入：用户在激活时**指定路径**的已填好队列（命名规范 `queue-<YYYY-MM-DD-HHMMSS>.yaml`，本仓常用目录 `{仓根}/.analysis/overnight/`，非写死；旧名如 `queue.yaml` 照跑）——**填队列不归你管**（用户与主会话在开工前裁任务、定预估），你只消费。队列可经顶层 `next` 登记后续队列：当前队列跑完且时间档放得下时，自动接力继续（见执行循环）。你在一次运行内串行把队列（含接力链）任务推成分支链上的绿点；天亮晨报交用户按序逐支审。**你不裁断任何新问题**——遇裁断点红标留审（产物不浪费），置阻塞继续下一条。
 
 ## 队列格式
 
@@ -73,8 +73,8 @@ runs: []                      # 每晚一行：date/base/deadline/完成计数/e
 1. **领任务**：`python run_queue.py gate --queue <路径>`（缺省取队列序第一个 `待跑`，跨晚重排条目用 `--id` 显式领）——起跑门不过 → 脚本把余下待跑全转 `顺延`，走队列退出与接力；过 → 脚本建分支＋置 `进行中`，输出任务详情（id／branch／scope／verify／basis）。
 2. 只动 `scope` 内文件（gate 输出即白名单）。
 3. 派 subagent 实施＋自查自测（权威门在脚本，subagent 自测只为自身迭代快）→ `verify` 逐项过 → `python run_queue.py done --queue <路径> --id <id> --type feat|fix|refactor --tests <结果> [--phases 实施=25,自测=8,verify=2]`——脚本跑 `test_cmd` 计时（`test_sec`），全量绿才 stage `scope`＋统一提交（`<type>: 夜队列 <id> <title>`，体：scope／basis／tests＋全量秒数）并写 `result`（done_at／elapsed_sec／elapsed_min／test_sec／ratio／tests_count／phases）置 `完成`；红 → 不提交不写盘、返回红详情（`started_at` 继续计时，修复损耗如实入账）。
-4. **红回修循环**：`done` 红 → 把红详情反馈 subagent 修 → 重跑 `done`；修复 2 次仍红 → 第 3 次 `python run_queue.py fail --queue <路径> --id <id> --cause red --keep-branch --reason <红要点>`——脚本在任务分支打红标 WIP 提交（`wip: 夜队列 <id> <title>（三次仍红·留审）`）→ 切回链基点（分支保留，绿链零污染）→ 置 `阻塞`，晨报待裁点带 checkout 指引。
-5. **其他失败路径**（裁断点／子代理上下文超限／超时修不动）：`python run_queue.py fail --queue <路径> --id <id> --cause timeout|context|interrupt|ruling --reason <要点>`（不带 `--keep-branch`＝零痕迹还原：检回链基点＋清 scope 内自产未跟踪＋删失败分支；`result` 记 `{elapsed_sec, cause}`）：`ruling`→`阻塞`（reason 点名缺口/引文），**绝不代裁**；落盘后**立即回第 1 步领下一条**，不向用户报告、不等待裁定；`context`→`跳过(子代理超限)`，不续做半成品；`timeout`→`跳过`。
+4. **红回修循环**：`done` 红 → 把红详情反馈 subagent 修 → 重跑 `done`；修复 2 次仍红 → 第 3 次 `python run_queue.py fail --queue <路径> --id <id> --cause red --reason <红要点>`——脚本把产物打成红标 WIP 提交（`wip: 夜队列 <id> <title>（失败留审·red）`）留在任务分支 → 切回链基点（分支保留，绿链零污染）→ 置 `阻塞`，晨报待裁点带 checkout 指引。
+5. **其他失败路径**（裁断点／子代理上下文超限／超时修不动／会话中断）：`python run_queue.py fail --queue <路径> --id <id> --cause timeout|context|interrupt|ruling --reason <要点>`——同口径：有产物即红标 WIP 提交留分支＋切回链基点（`result` 记 `{elapsed_sec, cause[,branch,commit,kept]}`）；有产物或 `ruling` → `阻塞`，否则删空分支置 `跳过`；越界改动（scope 外）不自动打包，脚本报错交人处置。`ruling` 落盘后**立即回第 1 步领下一条**，不向用户报告、不等待裁定；`context` → 不续做半成品，下一条照跑。
 6. **连跳熔断**：脚本计数（仅 `red`/`timeout` 计，`context`/`interrupt` 不计），连续 2 → 返回 `circuit: true` → 余下转 `顺延`，整晚收尾（不接力）。
 
 **队列退出与接力**（当前队列无可跑条目后）：
@@ -94,7 +94,7 @@ runs: []                      # 每晚一行：date/base/deadline/完成计数/e
 
 ## 中断恢复
 
-会话崩溃后续跑：读队列 `runs` 末行＋分支链（最后一支＝最新绿点）→ `进行中` 条目跑 `fail --cause interrupt --reason 中断还原`（脚本还原＋置 `跳过`，不续做半成品）→ 仍在起跑门内才继续循环。接力链中崩溃时，先定位有 `进行中` 条目的队列（即当前活跃队列）在其上处置；已收尾队列晨报已落盘，其 `next` 接力照常。
+会话崩溃后续跑：读队列 `runs` 末行＋分支链（最后一支＝最新绿点）→ `进行中` 条目跑 `fail --cause interrupt --reason 中断还原`（脚本把已有产物红标留分支＋切回绿链基点；无产物删空分支）→ 红分支待早审，不续做半成品；仍在起跑门内才继续循环。接力链中崩溃时，先定位有 `进行中` 条目的队列（即当前活跃队列）在其上处置；已收尾队列晨报已落盘，其 `next` 接力照常。
 
 ## 早审顺序（晨报尾块照抄给用户）
 
@@ -107,7 +107,7 @@ runs: []                      # 每晚一行：date/base/deadline/完成计数/e
 ## 规则
 
 1. **只消费队列，不填队列**；队列外的发现记晨报，不顺手修。
-2. **提交点＝done 脚本全量绿**（提交统一由脚本产生，subagent 不自行提交）；无半红入链；失败零痕迹（`--keep-branch` 红标留审除外——只在侧分支，不入绿链）。
+2. **提交点＝done 脚本全量绿**（提交统一由脚本产生，subagent 不自行提交）；无半红入链；失败**不还原**——有产物打成红标 WIP 提交留在侧分支（供早审修复），绿链零污染；下一条从最近绿点建支。
 3. **不裁断、也不停等**：新歧义＝`fail --cause ruling`＋`阻塞`＋reason，随即继续下一条；夜跑期间禁止向用户提问、等待裁定或为此结束回合。
 4. **scope 外零触碰**；verify 专项照过。
 5. 时间判断取本地时钟；deadline 及四参数缺省值开工时用户可逐项改。

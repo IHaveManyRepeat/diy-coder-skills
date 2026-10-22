@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""夜队列机械循环 runner —— 起跑门/建分支/状态写回/失败还原/熔断计数/晨报骨架。
+"""夜队列机械循环 runner —— 起跑门/建分支/状态写回/失败红标留审/熔断计数/晨报骨架。
 
 分层协议（见 SKILL.md 执行循环）：主 agent 常驻调度，循环中每步调本脚本；派 subagent 与裁断判断归主 agent，本脚本只做确定性机械动作。
 权威提交门在 done：脚本自跑 test_cmd，全量绿才统一 stage+提交（无半红入链）。
@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 import argparse
-import shutil
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -17,7 +16,7 @@ from rq_lib import (CIRCUIT_CAUSES, DEFAULT_PARAMS, DUE_FMT, SKIP_CAUSES, apply_
                     branch_name, changed_rels, die, dump_queue, emit, find_task, git,
                     load_queue, make_tonight, next_runnable, non_scope, parse_deadline,
                     parse_dt, parse_phases, passes_start_gate, prev_tip, queue_skip,
-                    relay_decision, render_report, report_filename, repo_root, run_tests,
+                    relay_decision, render_report, report_filename, run_tests,
                     status_counts, task_index, tests_count_of, tonight_of)
 
 
@@ -114,7 +113,7 @@ def cmd_done(args: argparse.Namespace) -> None:
     green, out, test_sec = run_tests(test_cmd)
     if not green:
         tail = "\n".join(out.strip().splitlines()[-15:])
-        die(f"全量红（回修后重跑 done；修不动则 fail --cause red --keep-branch）：\n{tail}")
+        die(f"全量红（回修后重跑 done；修不动则 fail --cause red）：\n{tail}")
 
     if scope:
         git("add", "--", *scope)
@@ -165,13 +164,11 @@ def cmd_done(args: argparse.Namespace) -> None:
 
 
 def cmd_fail(args: argparse.Namespace) -> None:
-    """失败处置：缺省零痕迹还原；--keep-branch（仅 red）＝三次仍红红标留审。均记 result{elapsed_sec,cause}。"""
+    """失败处置（产物不浪费）：有改动→红标 WIP 提交留分支＋切回绿链基点（下一条从最近绿点起跑）；无改动→删空分支。记 result{elapsed_sec,cause[,branch,commit,kept]}。"""
     if args.cause not in SKIP_CAUSES:
         die(f"cause 须为 {SKIP_CAUSES}")
     if not args.reason.strip():
         die("reason 必填")
-    if args.keep_branch and args.cause != "red":
-        die("--keep-branch 仅配 --cause red（三次仍红留审）")
     path = Path(args.queue)
     data = load_queue(path)
     t = tonight_of(data)
@@ -184,37 +181,25 @@ def cmd_fail(args: argparse.Namespace) -> None:
     elapsed_sec = max(0, int((datetime.now() - parse_dt(task["started_at"])).total_seconds()))
     scope = task.get("scope") or []
 
+    # 红标留审：产物全在 scope 内才打包；越界属违规，交人处置，不自动打包
+    rels = changed_rels(queue_skip(path))
+    bad = non_scope(rels, scope)
+    if bad:
+        die(f"scope 外改动（{bad[0]}）——先处置越界再 fail（越界不自动打包）")
     wip = None
-    if args.keep_branch:
-        rels = changed_rels(queue_skip(path))
-        bad = non_scope(rels, scope)
-        if bad:
-            die(f"scope 外改动（{bad[0]}）——红标留审前先处置")
-        if not rels:
-            die("无改动可留——直接 fail 不带 --keep-branch")
+    if rels:
         if scope:
             git("add", "--", *scope)
         else:
             git("add", "-A")
-        git("commit", "-m", f"wip: 夜队列 {args.id} {task.get('title') or args.id}（三次仍红·留审）",
+        git("commit", "-m", f"wip: 夜队列 {args.id} {task.get('title') or args.id}（失败留审·{args.cause}）",
             "-m", f"reason: {args.reason}")
         wip = git("rev-parse", "HEAD").stdout.strip()
-        git("checkout", "-f", tip)  # 留分支不删；链基点回退，绿链不受红标污染
-    else:
-        # 零痕迹还原：已跟踪回基点 → 清 scope 内自产未跟踪 → 删失败分支
-        git("checkout", "-f", tip)
-        if scope:
-            proc = git("ls-files", "--others", "--exclude-standard", "--", *scope)
-            for rel in (ln for ln in proc.stdout.splitlines() if ln.strip()):
-                target = repo_root() / rel
-                if target.is_dir():
-                    shutil.rmtree(target, ignore_errors=True)
-                elif target.exists():
-                    target.unlink()
-        if git("show-ref", "--verify", "--quiet", f"refs/heads/{name}", check=False).returncode == 0:
-            git("branch", "-D", name)
+    git("checkout", "-f", tip)  # 工作树回绿链基点；红分支保留，绿链不受污染
+    if not wip and git("show-ref", "--verify", "--quiet", f"refs/heads/{name}", check=False).returncode == 0:
+        git("branch", "-D", name)  # 无产物：空分支无留审价值
 
-    kind = "阻塞" if (args.cause == "ruling" or args.keep_branch) else "跳过"
+    kind = "阻塞" if (args.cause == "ruling" or wip) else "跳过"
     task["status"] = kind
     task["reason"] = f"[{args.cause}] {args.reason}"
     result = {"elapsed_sec": elapsed_sec, "cause": args.cause}
@@ -323,14 +308,12 @@ def build_parser() -> argparse.ArgumentParser:
                     help="subagent 自报阶段耗时 整数分钟：实施=25,自测=8,verify=2")
     sp.set_defaults(fn=cmd_done)
 
-    sp = sub.add_parser("fail", help="失败处置（缺省零痕迹还原；red 可 --keep-branch 红标留审）")
+    sp = sub.add_parser("fail", help="失败处置（有产物红标留审：WIP 提交留分支＋切回绿链基点）")
     common(sp)
     sp.add_argument("--id", required=True)
     sp.add_argument("--cause", required=True, choices=SKIP_CAUSES,
                     help="red|timeout 计熔断；context|interrupt 不计；ruling→阻塞")
     sp.add_argument("--reason", required=True, help="错误首行／裁断点引文")
-    sp.add_argument("--keep-branch", action="store_true",
-                    help="三次仍红：红标 WIP 提交留分支置阻塞（仅 --cause red）")
     sp.set_defaults(fn=cmd_fail)
 
     sp = sub.add_parser("relay", help="队列接力：按 next 判定并初始化下一队列")
