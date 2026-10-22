@@ -137,38 +137,55 @@ def _green(args):
         return _fail(args, lib.v("UNPARSABLE_YAML", rel_tp,
                                  f"{rel_tp} 的 test_cases 不是列表（形状异常）——修复后重跑"))
 
+    # Q-121 兜底：retired TC 跳过不写（evidence 与 test-plan status 回填均不落，其余照写）——
+    # check 期主防线强制移出 test_refs，此为既有产物（test_refs 过时）的时间窗兜底，不打断开发循环
+    active, skipped_retired = [], []
+    for tc, red, green in zip(tcs, reds, greens):
+        pos = _find_entry(tp_cases, "id", tc)
+        if pos is not None and "retired" in tp_cases[pos]:
+            skipped_retired.append(tc)
+        else:
+            active.append((tc, red, green))
+
     # sprint evidence 追加：同 tc 已有条目 → 替换（HALT 续跑幂等，不叠加重复）
     new_task = dict(task)
-    evidence = list(new_task.get("evidence") or [])
-    for tc, red, green in zip(tcs, reds, greens):
-        entry = {"tc": tc, "red": red.strip(), "green": green.strip()}
-        pos = _find_entry(evidence, "tc", tc)
-        evidence = [e for e in evidence if not (isinstance(e, dict) and e.get("tc") == tc)]
-        if pos is None:
-            evidence.append(entry)
-        else:
-            evidence.insert(min(pos, len(evidence)), entry)
-    new_task["evidence"] = evidence
-    tasks[idx] = new_task
-    if doc.get("tasks") is None:
-        doc["tasks"] = tasks
+    if active:
+        evidence = list(new_task.get("evidence") or [])
+        for tc, red, green in active:
+            entry = {"tc": tc, "red": red.strip(), "green": green.strip()}
+            pos = _find_entry(evidence, "tc", tc)
+            evidence = [e for e in evidence if not (isinstance(e, dict) and e.get("tc") == tc)]
+            if pos is None:
+                evidence.append(entry)
+            else:
+                evidence.insert(min(pos, len(evidence)), entry)
+        new_task["evidence"] = evidence
+        tasks[idx] = new_task
+        if doc.get("tasks") is None:
+            doc["tasks"] = tasks
 
-    # test-plan 真源回填：本次 tc → status: 通过（已是 通过 跳过）
+    # test-plan 真源回填：本次 tc → status: 通过（已是 通过 跳过；retired 跳过不写）
     backfilled = []
-    for tc in tcs:
+    for tc, red, green in active:
         pos = _find_entry(tp_cases, "id", tc)
         if pos is not None and tp_cases[pos].get("status") != "通过":
             tp_cases[pos]["status"] = "通过"
             backfilled.append(tc)
 
-    for p, d in ((path, doc), (tp_path, tp_doc)):
-        viol = _bump(args, p, d)
-        if viol:
-            return _fail(args, viol)
-    lib.save_yaml_atomic(path, doc)
-    lib.save_yaml_atomic(tp_path, tp_doc)
-    return _receipt(args, True, updated=doc["project"]["updated"], story=args.story,
-                    evidence_written=tcs, test_plan_backfilled=backfilled)
+    if active:
+        # 全部 skipped_retired 时零落盘（无可写内容：不 bump 不存，避免空 evidence 键副作用）
+        for p, d in ((path, doc), (tp_path, tp_doc)):
+            viol = _bump(args, p, d)
+            if viol:
+                return _fail(args, viol)
+        lib.save_yaml_atomic(path, doc)
+        lib.save_yaml_atomic(tp_path, tp_doc)
+    proj = doc.get("project")
+    return _receipt(args, True,
+                    updated=proj.get("updated") if isinstance(proj, dict) else None,
+                    story=args.story,
+                    evidence_written=[tc for tc, _, _ in active],
+                    test_plan_backfilled=backfilled, skipped_retired=skipped_retired)
 
 
 # ---- done（§4.7） ----
