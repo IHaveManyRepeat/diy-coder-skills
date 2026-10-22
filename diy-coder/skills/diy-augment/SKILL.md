@@ -32,7 +32,7 @@ outputs: —
 
 1. 建覆盖率基线：对实现面跑项目覆盖率命令（工具链取值路径见规则第 2 条）。工具缺失或未获许可 → 落 `augment: 已跳过`、一行说明原因并停下；不安装任何东西。
 2. 分类缺口：每条未覆盖项按规则第 3 条落技法；低于项目覆盖率门槛的条目丢弃，除非它落在 AC path 上（门槛取值顺序与 `AC path` 判据见规则第 4 条）。**变异开启时（test-plan `mutation` 段，见规则第 5 条），另经 `diyc.py mutate` 对沙箱副本跑一遍（`--scope` 限本任务实现面），幸存体照同法分类（`变异杀伤`；等价体登记待裁、永不成为用例），运行落 `{output_dir}/mutation-report.yaml`——关闭时是一行 note，不是判定。** 重跑（任务已带判定）先对账：等价用例就地更新，不重复追加。
-3. 推导并追加用例到 `test-plan.yaml`（`status: 待办` + `technique` / `kill_target` / `note` / 具体可执行的 `steps`；schema 同 `diy-test-design`）；新 TC ID 并入本任务的 `test_refs`。
+3. 推导并追加用例到 `test-plan.yaml`（`status: 待办` + `producer: augment` + `technique` / `kill_target` / `note` / 具体可执行的 `steps`；schema 同 `diy-test-design`）；新 TC ID 并入本任务的 `test_refs`。
 4. 执行用例：逐条回写 `通过` / `失败`，再把任务判定（`通过` / `失败` / `已跳过`）落在 `augment` 上。
 5. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。**真写过 `mutation-report.yaml` 时补一道机械自检**（形状/枚举/保守分自洽，防 schema 漂移）：`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type mutation-report --project-root "{project-root}" --json`——exit 0 放行，违规即改；自检失败不阻断本轮判定，只在收尾报一行。收尾报计数：按技法追加的用例数 / 通过 / 失败 / 判定，以及剩余缺口。
 
@@ -55,7 +55,7 @@ runs:
 revisions: []                 # {date, change, reason}——改既有条目时追加
 ```
 
-追加用例落 `{output_dir}/test-plan.yaml`（schema 归 `diy-test-design`，本技能不重定义）：只写它的后四值技法 `覆盖分支` / `MC-DC 覆盖` / `白盒路径` / `变异杀伤` 加 `status` / `kill_target` / `note` / `steps`；`priority` 沿用所在 AC 的既有档位。
+追加用例落 `{output_dir}/test-plan.yaml`（schema 归 `diy-test-design`，本技能不重定义）：只写它的后四值技法 `覆盖分支` / `MC-DC 覆盖` / `白盒路径` / `变异杀伤` 加 `producer: augment`（三生产方标识，前向必填——缺失 EMPTY_FIELD、非法值 ENUM_INVALID）/ `status` / `kill_target` / `note` / `steps`；`priority` 沿用所在 AC 的既有档位。
 `{output_dir}/sprint.yaml` 只写两个字段：本任务的 `augment: 通过|失败|已跳过`，以及并入追加 TC ID 的 `test_refs`。
 
 ## 规则

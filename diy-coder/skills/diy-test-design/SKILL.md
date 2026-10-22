@@ -61,6 +61,7 @@ test_cases:
     kill_target: FH-5.1.1|[FH-5.1.1, ...]   # 本条用例杀掉的故障假设——引用 FH ID（允许列表＝一杀多）
     radius: 局部|模块|跨模块|系统|外部       # 可选：爆炸半径标注（与 FH 同族枚举）
     api_refs: [{operationId, path, method}] # 可选：点名 AC 锚定的接口端点（复合锚·须可解析；接口用例必填）
+    producer: test-design   # 必填：生产方标识——本技能落笔恒为 test-design（前向强制·缺失 EMPTY_FIELD·非法值 ENUM_INVALID；diy-augment 追加落 augment、diy-e2e-tests 追加落 e2e）
     status: 待办|通过|失败   # 通过/失败 由 diy-dev / diy-build-loop 写回
     retired: {reason, replaced_by}  # 可选：人裁废弃（不进 status 枚举·两轴正交）——键在场即已裁废弃：双键必填（缺一 EMPTY_FIELD）；replaced_by 须指向现存 TC ID（UNKNOWN_ID）且禁自指（SET_MISMATCH）；覆盖三层联动剔除（FH 被杀/接口锚/counts），替代品不继承 kill_target
     steps: [string]       # 具体验证步骤；写明预期结果（非空）
