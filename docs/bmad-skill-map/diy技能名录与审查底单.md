@@ -942,7 +942,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
    - **强制门＝三处改造＋一设计，复用现有门零新增违规码**：(a) 形状校验挂 `check_test_plan` TC 循环内（status 枚举后·任何 check 都跑——同 api_refs 形状/锚解析分层惯例）；(b) 覆盖类集合统一剔除 retired＝联动本体——FH 被杀门 `killed` 收集与接口锚门 `tc_anchor_hits` 收集跳过带 `retired` 键的 TC（「废弃不算覆盖＋FH 门联动」的机械本质＝覆盖类断言输入集合不收废料；FH 侧红走现有 SET_MISMATCH 零新码）；(c) counts 层（by_type/by_dimension/`covered`）同步剔除（虚报活跃数防护）；(d) 替代品**不继承** kill_target（KISS——补替代是完整生产动作须重新瞄准 FH；FH 杀伤＝活 TC 真引用，单一事实源零代理推理）。违规码复用 EMPTY_FIELD/UNKNOWN_ID/SET_MISMATCH（批 4a 封闭集零扩先例）。
    - **留任务书小尾巴**：green 对 retired TC 写回是否机械拒——倾向不动 green（YAGNI·提示词层禁跑废弃 TC），误操作实证再议。
    - **〔2026-10-22 用户审 Q-111 提出·待裁〕**：green 对 retired TC 写回是否机械拒——要求单列裁断（原「倾向不动」不代裁）。待裁：①机械拒（复用哪码）／跳过不写／维持现状；②范围仅 green 还是 dev/build-loop 全部 status 写回路径；③是否同拦 evidence 写回。
-   - **〔2026-10-22 用户审 Q-111 提出·待裁〕五轴审计 dimension_audit 未剔 retired**（10-18 裁定原文只点三层 killed/tc_anchor_hits/counts）：正向审计格 `audited` 接受废弃 TC 的 `tcs` 条目；反向（`check_test_plan` 五轴审计反向段）仍要求废弃 TC 出现在 audit 里，否则 SET_MISMATCH——某 AC×轴仅由废弃 TC 覆盖时审计矩阵照样过（活跃覆盖为零）。待裁：①纳入剔除面（正反向同步改＋补测试）／②维持现状（裁定字面只三层）／③改由 help/早审兜底。
+   - **〔2026-10-22 用户审 Q-111 提出·待裁〕五轴审计 dimension_audit 未剔 retired**（10-18 裁定原文只点三层 killed/tc_anchor_hits/counts）：正向审计格 `audited` 接受废弃 TC 的 `tcs` 条目；反向（`check_test_plan` 五轴审计反向段）仍要求废弃 TC 出现在 audit 里，否则 SET_MISMATCH——某 AC×轴仅由废弃 TC 覆盖时审计矩阵照样过（活跃覆盖为零）。待裁：①纳入剔除面（正反向同步改＋补测试）／②维持现状（裁定字面只三层）／③改由 help/早审兜底。**〔2026-10-22 用户裁①〕纳入剔除面，并入 2026-10-22 夜队列 Q-120。**
 
 改动面（做时）：test-plan schema（废弃字段）＋`diyc_check_docs.py` check_test_plan（覆盖门＋FH 门联动）＋e2e/augment/test-design 三生产方写入面＋viewer 折叠渲染＋diy-investigate SKILL（失败归因入口段）＋runner（若触发裁自动）＋tests（先裁后动）。
 
