@@ -35,7 +35,7 @@ python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-ro
 会话完成：<议题>（BS-###）
 - 走过 N 个技术：<技术名列表>
 - 想法 M 条 → 主题 K 个
-- Top 优先级：<no 列表>；快速见效：<no 列表>；突破：<no 列表>
+- Top 优先级：<BI 列表>；快速见效：<BI 列表>；突破：<BI 列表>
 - 行动计划 L 条：<一句话，每条>
 - 未决问题：<open_questions 逐条，无则写「无」>
 ```
