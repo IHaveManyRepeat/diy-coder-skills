@@ -886,6 +886,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **〔2026-10-22 Q-112 已施工（68a7d0f）＋遗留登记〕** 三级 ID 引擎、SKILL、`steps/04-organize.md` 已落；遗留 `steps/03-facilitate.md`（:6 输出形状、:35 铸造口径、:38 格式模板、:43 已作废判据「`no` 连续性即存在凭证」）与 `steps/05-finish.md:38` 摘要模板仍为 no 制——照 03 执行会被新引擎拒收（`no` 在场 → `ENUM_INVALID`）。处置＝2026-10-22 夜队列 Q-119（纯文本 5 处，scope 两 steps 文件；前提 Q-112 已合并）。
 
+**〔2026-10-22 用户裁·裁断不进技能文本〕** Q-112 引入的溯源句「ID 取代 `no` 不并存」及裁定日期锚须清除，SKILL／引擎只留可执行规则（`ideas[]` 用 `id`；`no` 字段出现即 `ENUM_INVALID`）。落点：`SKILL.md:73`、`brainstorm.py:27/:30/:63`、`brainstorm_checks.py:21/:22/:101`。并入 Q-119。
+
 ### 待办：architecture stack `kind` 枚举扩展（2026-10-21 用户裁定，登记待扩，现在不动）
 
 登记来源：Q-107 方案裁定——`kind` 初版只收有机械消费方的 7 类：`frontend` / `scaffold` / `language` / `test` / `lint` / `typecheck` / `build`；数据库、部署、包管理器等其余技术类目本次不进枚举，扩展时走本条。
