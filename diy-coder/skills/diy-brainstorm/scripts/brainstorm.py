@@ -56,7 +56,9 @@ sort_keys=False, default_flow_style=False)` → 同目录临时文件 + `os.repl
 `ASSUMPTION_PRESENT` 共 8 个（冻结九码里的 `SET_MISMATCH` 随 `ideas[].no` 退场不再触发——
 稳定 ID 不重编号，空号合法，「连续不跳号」约束随之作废），**冻结九码一字不动**；技能级新增码
 1 个：**`ID_UNSTABLE`（--previous 对账：旧稿有、新稿无的稳定标识）**——按 bmb-module
-「冻结 9 + 技能级新增码」先例在此登记。语义复用在此登记：
+「冻结 9 + 技能级新增码」先例在此登记。补登 **`TOOL_ERROR`**（工具层写盘失败通用码，两处
+抛出点：init 写盘失败 `brainstorm_cmds.py:159`、snapshot 写盘失败 `brainstorm.py:128`——
+只补文档登记，代码早已抛出）。语义复用在此登记：
 ① `UNPARSABLE_YAML` 兼作技术库（CSV）解析失败码——冻结集里没有「非 YAML 文本不可解析」码，
    造新码不如复用最近义项（msg 内点名是 CSV）；
 ② `ENUM_INVALID` 兼作「`ideas[].no` 与 id 并存」——冻结集里没有「废字段残留」码，最近义项是
