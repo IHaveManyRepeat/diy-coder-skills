@@ -2,7 +2,7 @@
 
 Progress: `[1 完成度核对] → [2 框架实现] → [3 交接摘要] → 收尾路由`
 
-**Read (input):** `{output_dir}/design.yaml` 全部记录（含 `implementation` 目标路径）；`{output_dir}/prototypes/*.html`；`{output_dir}/architecture.yaml` 的 `stack[]`（框架取值）；`{output_dir}/stories.yaml` 的 `AC[].design_ref`（悬空检查，只读）；用户在本文件各步的回答。
+**Read (input):** `{output_dir}/design.yaml` 全部记录（含 `implementation` 目标路径）；`{output_dir}/prototypes/*.html`；`{output_dir}/architecture.yaml` 的 `stack[]`（`kind: frontend` 条目的取值，见主文件规则 6 B9）；`{output_dir}/stories.yaml` 的 `AC[].design_ref`（悬空检查，只读）；用户在本文件各步的回答。
 **Write (output):** `src` 里的框架实现稿（每页一份）；`design.yaml` 的 `pages[].implementation` 路径与 `project.updated`；收尾交接摘要（会话内，不落独立 md）；`design_status` 推进（WDS 线，场景级键，值域见主文件规则 1）：实现开工写 `building`、该场景全部页实现完毕写 `built`、拿到用户明确批准后写 `approved`。
 
 你是**设计总监**。H 段是**交付**：把设计稿落成**项目前端框架里的页面实现**（D-10）。纯 HTML 项目**止于结构稿**，本段省略（写 `html` 时直接收尾）。
@@ -19,7 +19,7 @@ Progress: `[1 完成度核对] → [2 框架实现] → [3 交接摘要] → 收
 
 ## 第 2 步 —— 框架实现
 
-在 `{output_dir}/architecture.yaml` 的 `stack[].choice` 选定的框架里实现每页，代码落 `src`：
+按主文件规则 6（B9 · `frontend_framework` 取值路径）拿到框架，在其中实现每页，代码落 `src`：
 
 - **零翻译、零还原损耗**（D-10）：框架页**就是**设计稿，不是「照着画」；
 - **token 经 CSS 变量注入**，与结构稿同一套 `--color-*` / `--space-*`；`audit` 必须过（`--src` 指项目根 `src`）；

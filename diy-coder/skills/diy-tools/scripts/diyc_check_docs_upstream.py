@@ -2,8 +2,8 @@
 """diyc check 文档级规则：prd / architecture / openapi / epics（契约 §4.2）。"""
 
 from diyc_check_docs_lib import (DEC_STATUSES, EPIC_STATUSES, FR_PRIORITIES,
-                                 HTTP_METHODS, PATH_ITEM_KEYS, dup, enum, is_str,
-                                 nonempty, req)
+                                 HTTP_METHODS, PATH_ITEM_KEYS, STACK_KINDS, dup,
+                                 enum, is_str, nonempty, req)
 from diyc_lib import items  # noqa: E402
 
 # ---------------------------------------------------------------- prd
@@ -143,10 +143,34 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
     else:
         enum(report, rel + " project.status", project.get("status"),
              ("草稿", "已定稿"), "project.status")
-    for i, s in enumerate(items(doc, "stack", of_type=dict)):
+    stack = items(doc, "stack", of_type=dict)
+    for i, s in enumerate(stack):
         w = "%s stack[%d]" % (rel, i)
         req(report, w + ".choice", s.get("choice"), "stack.choice")
         req(report, w + ".why", s.get("why"), "stack.why")
+        # rule: diy-architecture/SKILL.md:Schema stack（新写条目必须带 id/kind；
+        #       存量缺 id/kind → warning 不阻塞，下游按 kind 取值）
+        sid = s.get("id")
+        if not (is_str(sid) and sid.strip()):
+            report.warn("%s stack[%d] 缺 id（存量条目过渡态；新写条目须带 ST-###）" % (rel, i))
+        elif not (sid.startswith("ST-") and len(sid) == 6 and sid[3:].isdigit()):
+            report.add("ENUM_INVALID", w + ".id",
+                       "stack id %r 非 ST-### 形态（三位数字，如 ST-001）" % (sid,))
+        kind = s.get("kind")
+        if not (is_str(kind) and kind.strip()):
+            report.warn("%s stack[%d] 缺 kind（存量条目过渡态；新写条目须带 kind，"
+                        "封闭七类：%s）" % (rel, i, "/".join(STACK_KINDS)))
+        else:
+            enum(report, w + ".kind", kind, STACK_KINDS, "stack.kind")
+    dup(report, [(s.get("id"), "%s stack[%s].id" % (rel, s.get("id") or "?"))
+                 for s in stack if is_str(s.get("id")) and s.get("id").strip()],
+        "stack id")
+    for kind in ("frontend", "scaffold"):
+        idxs = [i for i, s in enumerate(stack) if s.get("kind") == kind]
+        if len(idxs) > 1:
+            report.add("DUPLICATE_ID", "%s stack kind=%s" % (rel, kind),
+                       "kind %s 至多一条（出现于 stack[%s]）"
+                       % (kind, ", ".join(str(i) for i in idxs)))
 
     decisions = items(doc, "decisions", of_type=dict)
     counts["decisions"] = len(decisions)

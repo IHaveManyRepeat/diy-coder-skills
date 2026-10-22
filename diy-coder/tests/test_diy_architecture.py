@@ -213,7 +213,7 @@ class SkillContractTests(unittest.TestCase):
         self._dump(os.path.join(out, "architecture.yaml"), {
             "project": {"name": "demo", "status": "已定稿",
                         "created": "2026-01-01", "updated": "2026-01-01"},
-            "stack": [{"choice": "html", "why": "静态站"}],
+            "stack": [{"id": "ST-001", "kind": "frontend", "choice": "html", "why": "静态站"}],
             "decisions": [{"id": "D-1", "title": "页面结构", "decision": "每场景一页",
                            "rationale": "理由", "alternatives": [{"option": "单页", "why_not": "更差"}],
                            "affects": ["SC-01", "SC-01.P1"], "status": "已采纳"}],

@@ -42,6 +42,8 @@ DIMENSIONS = ("正向", "边界", "异常", "安全", "性能")  # rule: diy-tes
 RADII = ("局部", "模块", "跨模块", "系统", "外部")    # rule: diy-test-design/SKILL.md:Schema radius（爆炸半径标注·FH/TC 同族）
 FR_PRIORITIES = ("必须", "应该", "可选")             # rule: diy-prd/SKILL.md:Schema requirements.priority
 DEC_STATUSES = ("待定", "已采纳")                    # rule: diy-architecture/SKILL.md:Schema decisions.status
+STACK_KINDS = ("frontend", "scaffold", "language", "test", "lint", "typecheck",
+               "build")  # rule: diy-architecture/SKILL.md:Schema stack.kind（封闭七类）
 EPIC_STATUSES = ("待办", "进行中", "已完成")         # rule: diy-epics-stories/SKILL.md:Schema epics.status
 STORY_STATUSES = ("待办", "进行中", "待审查", "已完成", "已阻塞")  # rule: diy-epics-stories/SKILL.md:Schema stories.status
 HTTP_METHODS = ("get", "put", "post", "delete", "options", "head", "patch", "trace")

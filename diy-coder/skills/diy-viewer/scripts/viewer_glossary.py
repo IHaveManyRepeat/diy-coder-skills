@@ -168,6 +168,11 @@ VALUE_LABELS = {
     "预演": "预演", "引用核对": "引用核对", "对抗": "对抗",
     "盲猎": "盲猎", "边界猎手": "边界猎手", "验收审计": "验收审计",
     "任务书": "任务书", "技能": "技能", "规格": "规格",
+    # trace: Q-107——architecture.stack[].kind 封闭七类（英文机器锚点，展示层译名；
+    # kind ∉ ENUM_KEYS（同键异义：spec-scan/selfcheck 的 kind 各有值域），只入值标签
+    # 作展示词与徽章白名单，不触发 unmapped 诊断）。归类语义 → 中性徽章，不进 BADGE_CLASSES
+    "frontend": "前端", "scaffold": "脚手架", "language": "语言",
+    "test": "测试", "lint": "静态检查", "typecheck": "类型检查", "build": "构建",
 }
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
