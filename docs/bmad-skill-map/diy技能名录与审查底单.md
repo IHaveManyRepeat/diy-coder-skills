@@ -884,6 +884,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 与 prd 前置机制化（:184）的先后：BI 是 prd 外部锚，prd 侧摄取规则随该批核；本条可先落地铸造，不阻塞 prd 批；
 - viewer 展示与测试面（先裁后动）。
 
+**〔2026-10-22 Q-112 已施工（68a7d0f）＋遗留登记〕** 三级 ID 引擎、SKILL、`steps/04-organize.md` 已落；遗留 `steps/03-facilitate.md`（:6 输出形状、:35 铸造口径、:38 格式模板、:43 已作废判据「`no` 连续性即存在凭证」）与 `steps/05-finish.md:38` 摘要模板仍为 no 制——照 03 执行会被新引擎拒收（`no` 在场 → `ENUM_INVALID`）。处置＝2026-10-22 夜队列 Q-119（纯文本 5 处，scope 两 steps 文件；前提 Q-112 已合并）。
+
 ### 待办：architecture stack `kind` 枚举扩展（2026-10-21 用户裁定，登记待扩，现在不动）
 
 登记来源：Q-107 方案裁定——`kind` 初版只收有机械消费方的 7 类：`frontend` / `scaffold` / `language` / `test` / `lint` / `typecheck` / `build`；数据库、部署、包管理器等其余技术类目本次不进枚举，扩展时走本条。
