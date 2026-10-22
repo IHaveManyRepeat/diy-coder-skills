@@ -62,6 +62,7 @@ test_cases:
     radius: 局部|模块|跨模块|系统|外部       # 可选：爆炸半径标注（与 FH 同族枚举）
     api_refs: [{operationId, path, method}] # 可选：点名 AC 锚定的接口端点（复合锚·须可解析；接口用例必填）
     status: 待办|通过|失败   # 通过/失败 由 diy-dev / diy-build-loop 写回
+    retired: {reason, replaced_by}  # 可选：人裁废弃（不进 status 枚举·两轴正交）——键在场即已裁废弃：双键必填（缺一 EMPTY_FIELD）；replaced_by 须指向现存 TC ID（UNKNOWN_ID）且禁自指（SET_MISMATCH）；覆盖三层联动剔除（FH 被杀/接口锚/counts），替代品不继承 kill_target
     steps: [string]       # 具体验证步骤；写明预期结果（非空）
     note: string          # 可选：diy-augment 为追加用例记录的覆盖证据
 dimension_audit:          # 五轴审计：每条非「已完成」AC × 5 轴逐轴审过，每格二选一
@@ -110,6 +111,7 @@ revisions: []             # {date, change, reason} —— 改既有条目时追�
 - **type 映射到层**：`单元`（单组件代码检查，如 `viewer.py` / `runner.py` 的函数配夹具）、`集成`（跨产物检查，不靠 agent 也能脚本化跑）、`端到端`（由 agent 或操作者驱动的完整技能/工作流运行）。
 - **priority 映射到风险（唯一权威出处就是本技能）。** `prd.yaml` 的 FR `priority` 决定其 AC 的用例档位：`必须`→P0 / `应该`→P1 / `可选`→P2；**NFR 引用的 AC→P0**（NFR 是必须满足的横切约束）；AC 最低要求之外的补充用例亦记 P2。`diy-augment` / `diy-e2e-tests` 只引用本映射，不重定义。
 - **缺口是决策，不是遗漏。** 任何没有用例的 AC 都要出现在 `coverage_gaps` 里，带 `reason` 与 `decision: 待办`——由用户当轮裁决（补一条用例 / 接受缺口）。判据轴是「这次要不要问用户」：`已豁免` ＝ 依据**先前**的用户确认，`note` 写日期 + 确认了什么；`接受缺口` ＝ **本轮**用户裁决接受不补。`已完成` 故事的自动豁免是**另一类** `已豁免`——`note` 必须写明其**依据**而非用户确认（如「story S-x 已 `已完成`（源：`stories.yaml` `status: 已完成`）——用例缺席系历史交付，非本轮决定」），因为 `note` 留空的 `已豁免` 条目会被门拒（`EMPTY_FIELD`）。推导不出 oracle 的 AC 拿 `[SPEC-GAP]` reason。用户选「补一条用例」这一出口的归宿 ＝ **删掉该 gap 条目**（补了就没有缺口；`已豁免` 要引先前确认、`接受缺口` 意为「接受不补」，都不合用）。任何推断出来的豁免或优先级判断，都在 YAML 值里带 `[假设]` 前缀；未决事项落在文件里，绝不只存在于对话中。
+- **废弃标记 retired（人裁落标，覆盖联动剔除）。** TC 可选嵌套键 `retired: {reason, replaced_by}`——不进 `status` 枚举（status＝执行结果、废弃＝生命周期裁决，两轴正交）；键在场性即裁决开关（缺席＝活跃、在场＝已裁废弃——AI 只建议不写键，键写入即人闸凭证）。键在场则双键必填（缺一 `EMPTY_FIELD`）；`replaced_by` 按 `UNKNOWN_ID` 校验须指向现存 TC ID、禁自指（`SET_MISMATCH`）。覆盖类集合三层联动剔除：FH 被杀门 `killed` 集合／接口锚门 `tc_anchor_hits`／counts 统计（`cases`/`by_type`/`by_dimension`/`by_priority`/`acs_covered`）——废弃不算覆盖，仅被废弃 TC 杀掉的 FH 红走既有 `SET_MISMATCH`。替代品**不继承** `kill_target`（补替代是完整生产动作，须重新瞄准 FH）。存量 TC 零改动天然合法。
 - **重写对账、改绑留痕。** Update 是对账不是重建：既有 TC（含 `diy-augment` / `diy-e2e-tests` 追加的用例与其 `note`）原 ID 原样保留、只补面；确需改既有 TC 的字段时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `TC-x.y.z` 或 `FH-x.y.z`、不复制内容）。**存量迁移（Update 首跑）**：既有自由文本 `kill_target` 逐条转 `fault_hypotheses` 条目（text 存原文、`kill_target` 回填 FH ID）；缺 `dimension` 的既有 TC 补轴判定；`kill_target` 不入 ID 稳定门（门只比对 `test_cases[].id`），存量 TC 原样保留可对账。引擎写回（`diyc.py green` 改 TC `status`）与 `e2e.py record` 的 FH/audit 联动维护是机械迁移，不进 `revisions`。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

@@ -342,6 +342,53 @@ class ViewerBadgeValueAwareTests(_Fixture):
         self.assertIn('<span class="dim">—</span>', plan, "空值未回落为 —")
 
 
+TEST_PLAN_RETIRED_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 已定稿",
+    "test_cases:",
+    "- id: TC-1.1.1",
+    "  ac: AC-1.1",
+    "  type: 单元",
+    "  priority: P0",
+    "  status: 待办",
+    "  steps:",
+    "  - 第一步",
+    "- id: TC-1.1.2",
+    "  ac: AC-1.1",
+    "  type: 单元",
+    "  priority: P1",
+    "  status: 待办",
+    "  retired:",
+    "    reason: 设计重复已废弃",
+    "    replaced_by: TC-1.1.1",
+    "  steps:",
+    "  - 第二步",
+])
+
+
+class ViewerRetiredFoldTests(_Fixture):
+    # trace: Q-111——废弃条目折叠区渲染 + 零裸键（retired/reason/replaced_by 中文标签）
+    def test_retired_entry_folded_with_chinese_labels(self):
+        self.write("test-plan.yaml", TEST_PLAN_RETIRED_DOC)
+        p = run_viewer(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        _, body = self.page_body("test-plan")
+        # 折叠区在场且默认收起（details + 中文摘要）
+        self.assertIn('<details class="detail">', body, "废弃折叠区缺失")
+        self.assertIn("展开已退休", body, "折叠区摘要标签未映射")
+        # 零裸键：三键均中文标签，英文键名不直出
+        for leak in (">retired<", ">reason<", ">replaced_by<"):
+            self.assertNotIn(leak, body, "英文键名直出：%s" % leak)
+        for label in ("已退休", "原因", "替代用例"):
+            self.assertIn(label, body, "键 %s 未映射为中文" % label)
+        # 废弃内容收进折叠区正文；活跃条目照常在场
+        self.assertIn("设计重复已废弃", body)
+        self.assertIn("TC-1.1.1", body)
+        self.assertIn("第一步", body, "活跃用例渲染丢失")
+
+
 class ViewerConfigShapeTests(_Fixture):
     # trace: 对抗审查修复（P2）——配置形状异常（顶层/paths/值）降级默认 + 一行警告，不裸栈
     def write_config(self, content):

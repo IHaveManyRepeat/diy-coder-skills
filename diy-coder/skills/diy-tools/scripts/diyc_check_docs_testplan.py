@@ -11,6 +11,28 @@ from diyc_lib import items  # noqa: E402
 
 # ---------------------------------------------------------------- test-plan
 
+
+def _check_retired(report, where, tc, tc_ids) -> None:
+    """Q-111（底单 :902-904 三裁）：TC.retired 可选嵌套键——键在场性即裁决开关
+    （缺席＝活跃、在场＝已裁废弃·人闸凭证）；双键必填、replaced_by 指向现存 TC、禁自指。"""
+    # rule: diy-test-design/SKILL.md:Schema TC.retired（可选嵌套键·两轴正交·覆盖三层剔除）
+    r = tc.get("retired")
+    if not isinstance(r, dict):
+        report.add("EMPTY_FIELD", where + ".retired",
+                   "retired 形状异常（应为 {reason, replaced_by} 映射；键在场＝已裁废弃）")
+        return
+    req(report, where + ".retired.reason", r.get("reason"),
+        "retired.reason（键在场则双键必填）")
+    rb = r.get("replaced_by")
+    if req(report, where + ".retired.replaced_by", rb,
+           "retired.replaced_by（键在场则双键必填·须指向现存 TC）"):
+        if rb == tc.get("id"):
+            report.add("SET_MISMATCH", where + ".retired.replaced_by",
+                       "replaced_by 不得指向自身（须指向替代它的现存 TC）")
+        elif not is_str(rb) or rb not in tc_ids:
+            report.add("UNKNOWN_ID", where + ".retired.replaced_by",
+                       "%r 不在 test_cases 中（须指向现存 TC ID）" % (rb,))
+
 def check_test_plan(doc, rel, docs, final, report) -> dict:
     """test-plan.yaml：用例声明形状 + AC 解析 + 缺口形状；--final 禁 decision: 待办。"""
     # rule: diy-test-design/SKILL.md:Schema（test_cases / static_checks / coverage_gaps）
@@ -76,16 +98,22 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                 ac_anchors[ac_id] = refs
 
     cases = items(doc, "test_cases", of_type=dict)
-    counts["cases"] = len(cases)
+    # Q-111：replaced_by 目标集（现存 TC ID，含废弃条目自身——链合法性不在机械门内）
+    tc_ids = {t.get("id") for t in cases if is_str(t.get("id"))}
     if not cases:
         report.add("EMPTY_FIELD", rel + " test_cases", "test_cases 缺失或为空")
     tc_pairs = []
     covered = set()
+    active_cases = 0
     for t in cases:
         w = "%s test_cases[%s]" % (rel, t.get("id") or "?")
+        # Q-111：键在场性即裁决开关——在场＝已裁废弃，覆盖类输入不收废料（虚报活跃数防护）
+        is_retired = "retired" in t
         req(report, w + ".id", t.get("id"), "case id")
         req(report, w + ".title", t.get("title"), "title")
         tc_pairs.append((t.get("id"), w + ".id"))
+        if not is_retired:
+            active_cases += 1
         ac_value = t.get("ac")
         ac_list = diyc_lib._ac_ids(t)
         if not ac_list:
@@ -95,16 +123,20 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                 where = w + ".ac" if is_str(ac_value) else "%s.ac[%d]" % (w, j)
                 if ref not in known_acs:
                     report.add("UNKNOWN_ID", where, "%s 在 stories.yaml 中不存在" % ref)
-                else:
+                elif not is_retired:
                     covered.add(ref)
-        if enum(report, w + ".type", t.get("type"), CASE_TYPES, "type"):
+        if enum(report, w + ".type", t.get("type"), CASE_TYPES, "type") and not is_retired:
             counts["by_type"][t["type"]] = counts["by_type"].get(t["type"], 0) + 1
-        if enum(report, w + ".priority", t.get("priority"), PRIORITIES, "priority"):
+        if enum(report, w + ".priority", t.get("priority"), PRIORITIES, "priority") \
+                and not is_retired:
             counts["by_priority"][t["priority"]] = counts["by_priority"].get(t["priority"], 0) + 1
-        if enum(report, w + ".dimension", t.get("dimension"), DIMENSIONS, "dimension"):
+        if enum(report, w + ".dimension", t.get("dimension"), DIMENSIONS, "dimension") \
+                and not is_retired:
             counts["by_dimension"][t["dimension"]] = \
                 counts["by_dimension"].get(t["dimension"], 0) + 1
         enum(report, w + ".status", t.get("status"), TC_STATUSES, "status")
+        if is_retired:
+            _check_retired(report, w, t, tc_ids)
         tc_declarations(t, w, report, fh_ids=fh_ids)
         api_refs = t.get("api_refs")
         if api_refs is not None:
@@ -128,6 +160,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
             report.add("EMPTY_FIELD", w + ".steps",
                        "steps 缺失或为空（用例须可执行：具体验证步骤 + 预期结果）")
     dup(report, tc_pairs, "case id")
+    counts["cases"] = active_cases  # Q-111：counts 剔除 retired（虚报活跃数防护）
     counts["acs_covered"] = len(covered)
 
     checks = doc.get("static_checks")
@@ -281,8 +314,8 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
         if stories_available and ac_anchors:
             tc_anchor_hits = set()
             for t in cases:
-                if t.get("type") != "集成":
-                    continue
+                if t.get("type") != "集成" or "retired" in t:
+                    continue  # Q-111：接口锚门剔除 retired（废弃不算覆盖）
                 for anchor in (t.get("api_refs") or []):
                     if isinstance(anchor, dict):
                         tc_anchor_hits.add((anchor.get("operationId"),
@@ -304,9 +337,13 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
         # rule: diy-test-design/SKILL.md:Final requires（双口径分时点·杀不掉的 FH 记
         #       [FH-GAP] 缺口交用户当轮裁决；两出口收口后终态仍是被杀或已删）
         if fh_ids:
-            coding_phase = any(t.get("status") in ("通过", "失败") for t in cases)
+            # Q-111：相位探测同剔 retired——废弃条目的历史 通过/失败 不得把活跃面拖进编码期口径
+            coding_phase = any(t.get("status") in ("通过", "失败") and "retired" not in t
+                               for t in cases)
             killed = set()
             for t in cases:
+                if "retired" in t:
+                    continue  # Q-111：FH 被杀门剔除 retired（废弃不算覆盖·FH 侧红走既有 SET_MISMATCH）
                 if coding_phase and t.get("status") != "通过":
                     continue  # 编码期仅 status: 通过 的引用计数
                 kt = t.get("kill_target")
