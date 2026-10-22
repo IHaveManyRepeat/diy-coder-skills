@@ -53,6 +53,10 @@ FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design"
                     # 值域（securityScheme: apiKey/http/oauth2…；schema: object/string/
                     # integer…），非本产品枚举域；不登记则 components 渲染每次刷 unmapped enum
                     ("openapi", "type"),
+                    # trace: v4 批 4b——format 同族（JSON-Schema format 锚点：date-time/
+                    # password 等），与 wds-assets 的 format 枚举同键异义；不登记则
+                    # components 渲染刷 unmapped enum（diy-lab 实测两条），照 4a type 先例
+                    ("openapi", "format"),
                     # trace: Q-105——method 入 ENUM_KEYS 后，装 HTTP 动词（get/post…）的
                     # 三个产物面按 (文档, 键) 例外：api_refs[].method 是接口复合锚，不是
                     # cis-method 的四分支值域（test-plan ← test-design/augment/e2e；
@@ -132,6 +136,13 @@ KEY_LABELS = {
     "responses": "响应定义", "schemas": "数据模型", "$ref": "引用",
     "x-decision": "关联决策", "in": "传参位置", "properties": "属性",
     "required": "必填字段",
+    # trace: v4 批 4b——openapi 详情竖表行键（两层展示落形，零裸键纪律）；
+    # 键名是 OpenAPI 机器锚点，产物保留英文、仅展示层译名（4a 先例）。
+    # schema 单数不在列：全局表已有 selfcheck 语义「结构版本」，openapi 侧
+    # schema 文本内联进请求体/响应行，不作行键，避免同键异义覆盖
+    "parameters": "请求参数", "requestBody": "请求体", "externalDocs": "外部文档",
+    "servers": "服务地址", "callbacks": "回调定义", "deprecated": "废弃标记",
+    "headers": "响应头",
     "tasks": "任务", "blocked_reason": "阻塞原因", "test_refs": "关联用例",
     "augment": "编码后验证",
     "evidence": "执行证据", "tc": "用例", "red": "红", "green": "绿",
