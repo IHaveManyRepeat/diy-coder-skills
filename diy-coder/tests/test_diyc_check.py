@@ -1351,5 +1351,98 @@ class WdsAffectsDomainTest(CheckBase):
                         "损坏输入未告警：%s" % r["warnings"])
 
 
+class EnumFacesTest(CheckBase):
+    """Q-115 枚举面一致性：面清单＋extract＋集合相等断言（封闭世界）。"""
+
+    def _mini(self, files):
+        import shutil
+        import tempfile
+        root = tempfile.mkdtemp(prefix="enum_faces_")
+        self.addCleanup(shutil.rmtree, root, True)
+        for rel, text in files.items():
+            path = os.path.join(root, rel.replace("/", os.sep))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(text)
+        return root
+
+    def _check(self, root, registry, sweep=None):
+        from diyc_check_docs import check_enum_faces
+        from diyc_check_docs_lib import Report
+        r = Report()
+        check_enum_faces(r, skills_root=root, registry=registry, sweep_keys=sweep)
+        return r
+
+    def test_installation_faces_green(self):
+        """仓库安装面自查：当前全部面与常量对齐（面清单零违规）。"""
+        from diyc_check_docs import check_enum_faces
+        from diyc_check_docs_lib import Report
+        r = Report()
+        check_enum_faces(r)
+        self.assertEqual([v["where"] for v in r.violations], [], msgs({"violations": r.violations, "warnings": []}))
+
+    def test_check_run_carries_faces_gate(self):
+        """通用门挂载：正常 check 运行不引入 skills/ 面违规。"""
+        fx.write_doc(self.root, "prd", prd_doc())
+        r = check(self.root, "prd")
+        self.assertTrue(r["ok"], msgs(r))
+        self.assertFalse([v for v in r["violations"] if v["where"].startswith("skills/")])
+
+    def test_pipe_drift_red(self):
+        files = {"demo/SKILL.md": "  k: A|B|C\n"}
+        reg = (("FAKE", ("A", "B"), (("demo/SKILL.md", ("pipe", "k")),)),)
+        r = self._check(self._mini(files), reg, {"k": ("FAKE",)})
+        self.assertEqual([v["code"] for v in r.violations], ["SET_MISMATCH"])
+        self.assertIn("不一致", r.violations[0]["msg"])
+
+    def test_pipe_missing_value_red(self):
+        files = {"demo/SKILL.md": "  k: A\n"}
+        reg = (("FAKE", ("A", "B"), (("demo/SKILL.md", ("pipe", "k")),)),)
+        r = self._check(self._mini(files), reg, {"k": ("FAKE",)})
+        self.assertEqual([v["code"] for v in r.violations], ["SET_MISMATCH"])
+
+    def test_new_face_private_add_red(self):
+        files = {"demo/SKILL.md": "  k: A|B\n",
+                 "intruder/SKILL.md": "  k: A|B\n"}
+        reg = (("FAKE", ("A", "B"), (("demo/SKILL.md", ("pipe", "k")),)),)
+        r = self._check(self._mini(files), reg, {"k": ("FAKE",)})
+        self.assertEqual([v["code"] for v in r.violations], ["SET_MISMATCH"])
+        self.assertIn("清单外", r.violations[0]["msg"])
+        self.assertIn("intruder", r.violations[0]["where"])
+
+    def test_disjoint_foreign_enum_not_flagged(self):
+        """同名键异义（如 research 的 dimension）值域不相交 → 扫掠不误报。"""
+        files = {"demo/SKILL.md": "  k: A|B\n",
+                 "other/SKILL.md": "  k: X|Y\n"}
+        reg = (("FAKE", ("A", "B"), (("demo/SKILL.md", ("pipe", "k")),)),)
+        r = self._check(self._mini(files), reg, {"k": ("FAKE",)})
+        self.assertEqual(r.violations, [])
+
+    def test_text_face_drift_red(self):
+        files = {"demo/SKILL.md": "枚举：A / C\n"}
+        reg = (("FAKE", ("A", "B"), (("demo/SKILL.md", ("text", "A / B")),)),)
+        r = self._check(self._mini(files), reg, {})
+        self.assertEqual([v["code"] for v in r.violations], ["SET_MISMATCH"])
+        self.assertIn("缺枚举句", r.violations[0]["msg"])
+
+    def test_membership_sweep_producer_red(self):
+        files = {"demo/SKILL.md": "    producer: alpha\n",
+                 "intruder/SKILL.md": "    producer: alpha\n"}
+        reg = (("FAKE", ("alpha", "beta"), (
+            ("demo/SKILL.md", ("text", "producer: alpha")),)),)
+        r = self._check(self._mini(files), reg, {"producer": ("FAKE",)})
+        self.assertEqual([v["code"] for v in r.violations], ["SET_MISMATCH"])
+        self.assertIn("清单外", r.violations[0]["msg"])
+
+    def test_pipe_after_context_disambiguates(self):
+        files = {"demo/SKILL.md": "  status: 草稿|已定稿\n"
+                                  "  - id: D-1\n"
+                                  "    status: 待定|已采纳\n"}
+        reg = (("FAKE", ("待定", "已采纳"),
+                (("demo/SKILL.md", ("pipe_after", "- id: D-1", "status")),)),)
+        r = self._check(self._mini(files), reg, {})
+        self.assertEqual(r.violations, [])
+
+
 if __name__ == "__main__":
     unittest.main()

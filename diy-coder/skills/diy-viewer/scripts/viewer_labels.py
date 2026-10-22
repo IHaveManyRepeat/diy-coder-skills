@@ -1,6 +1,12 @@
 """diy-viewer 标签与徽章常量表。"""
 
+import os
 import re
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "..", "..", "diy-tools", "scripts"))
+from diyc_check_docs_lib import HTTP_METHODS as _CHECK_HTTP_METHODS  # noqa: E402
 
 BADGE_KEYS = {"status", "priority", "state"}
 ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "technique", "gate", "class", "subclass", "source", "augment", "severity",
@@ -91,7 +97,9 @@ BADGE_CLASSES = {
 }
 KEY_RE = re.compile(r"[^a-z0-9]+")
 META_KEYS = ("project", "x-project")
-HTTP_METHODS = {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
+# trace: Q-115——HTTP 动词值域单点同源（check 引擎常量）；此前两处字面量各持一份，
+# 漂移无门。渲染侧保持 set 语义（viewer_pages 成员判定）。
+HTTP_METHODS = set(_CHECK_HTTP_METHODS)
 
 # 展示层中文标签：YAML 键名仍为英文，键名→中文展示标签；枚举值已是中文
 # （机器层中文化），值标签表因此键值同名，兼作已知值域白名单（徽章判定依据）。

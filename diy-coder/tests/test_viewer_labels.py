@@ -1648,5 +1648,34 @@ class ClosedWorldLabelTests(_Fixture):
                       "封闭世界断言未捕获未知枚举值")
 
 
+class EnumValueAlignmentTest(unittest.TestCase):
+    """Q-115 值域对齐：viewer 常量单点同源＋值标签覆盖跨技能枚举常量。"""
+
+    # 豁免集（登记债，非放行口径）：RADII 五值与 DIMENSIONS 的 正向/异常 此前
+    # 从未进 VALUE_LABELS（徽章缺档仅影响着色，中文值渲染自身不裸奔）；glossary
+    # 不在 Q-115 scope，随夜队列回报登记，补注册后即从本表删除。
+    _EXEMPT = frozenset({("RADII", "局部"), ("RADII", "模块"), ("RADII", "跨模块"),
+                         ("RADII", "系统"), ("RADII", "外部"),
+                         ("DIMENSIONS", "正向"), ("DIMENSIONS", "异常")})
+
+    def test_http_methods_single_source(self):
+        """HTTP 动词值域＝check 引擎常量单点（渲染侧 set 包装，不另持字面量）。"""
+        from viewer_labels import HTTP_METHODS
+        from diyc_check_docs_lib import HTTP_METHODS as LIB_HTTP_METHODS
+        self.assertEqual(set(HTTP_METHODS), set(LIB_HTTP_METHODS))
+
+    def test_registry_chinese_values_in_value_labels(self):
+        """面清单枚举的每个中文值须在值标签表（缺档=徽章失灵）。"""
+        from diyc_check_docs import _registry
+        for name, values, _faces in _registry():
+            for value in values:
+                if not any(ord(ch) > 127 for ch in value):
+                    continue  # 英文机器锚点（P0/frontend/test-design 等）走译名表，非本断言
+                if (name, value) in self._EXEMPT:
+                    continue
+                self.assertIn(value, viewer.VALUE_LABELS,
+                              "值域缺标签：%s.%s（面清单枚举）" % (name, value))
+
+
 if __name__ == "__main__":
     unittest.main()
