@@ -8,14 +8,17 @@
 - 用例 4：techniques 命令面——`--all` 条数 == brain-methods.csv 数据行数（61）且每条
           description 非空；`--category` 合法值只返该类、非法值 exit 1（ENUM_INVALID）；
           `--random N` 不重复
-- 用例 5：check 检出 themes[].ideas / actions[].idea 引用越界 no（UNKNOWN_ID）
-- 用例 6：check 检出想法 no 跳号（SET_MISMATCH）
+- 用例 5：check 检出 themes[].ideas / priorities 三键 / actions[].idea 引用越界 BI（UNKNOWN_ID）
+- 用例 6：check 检出三级稳定 ID 形态越界——缺 id / 序号非三位零填充 / 前缀错级
+          （EMPTY_FIELD / ENUM_INVALID；原「no 跳号 SET_MISMATCH」断言随 no 退场作废）
 - 用例 7：check 检出 status 非法（ENUM_INVALID）
 - 用例 8：check 检出 current_step 与 status 不一致（STATUS_MISMATCH）
 - 用例 9：check --final 对未完成记录拒绝；对完整记录放行
 - 用例 10：SKILL.md 契约冒烟（母本 §1 中文定稿逐字 + 四段中文标题 + 终门句指向本技能引擎）
 - 用例 11：Q-109 --previous（三失败分支 ID_UNSTABLE / MISSING_FILE / UNPARSABLE_YAML +
           迁移轮跳过比对 + 每轮开工快照序：首拍直拍、在场先对账不过不覆盖）
+- 用例 12：Q-112 三级稳定 ID（BI/BT/BA-### 形态 + 文件内按前缀唯一 + 引用完整性 +
+          no 不并存 + --previous 三级对账 + viewer 零裸键/引用键登记）
 
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；不依赖本机 git 状态。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_brainstorm.py" -v
@@ -50,8 +53,53 @@ PRECISE_ZH = ("- **精准简练。** 写进产物的每条内容都要精准、�
 RECEIPT_KEYS = ("ok", "command", "project_root", "output_dir", "violations",
                 "warnings", "counts")
 
-# 完整会话记录夹具（已完成 / current_step: 5；各校验面自洽）
+# 完整会话记录夹具（已完成 / current_step: 5；三级稳定 ID 各校验面自洽——Q-112 同源）
 COMPLETE_YAML = NL.join([
+    "project:",
+    "  name: mini",
+    "  created: '2026-01-01'",
+    "  updated: '2026-09-20'",
+    "sessions:",
+    "- id: BS-001",
+    "  topic: 会话续接体验",
+    "  goals: 产出可执行的改进项",
+    "  approach: AI 推荐",
+    "  date: '2026-09-20'",
+    "  status: 已完成",
+    "  current_step: 5",
+    "  techniques:",
+    "  - {name: 连续五问, category: 深度分析}",
+    "  ideas:",
+    "  - id: BI-001",
+    "    title: 会话卡片",
+    "    concept: 一屏看完状态。续接点直达。",
+    "    novelty: 免读全文",
+    "    technique: 连续五问",
+    "  - id: BI-002",
+    "    title: 断点提示",
+    "    concept: 回到会话即见下一步。",
+    "    novelty: 免回忆",
+    "    technique: 连续五问",
+    "  themes:",
+    "  - {id: BT-001, name: 续接体验, focus: 回到会话的成本, ideas: [BI-001, BI-002]}",
+    "  priorities:",
+    "    top: [BI-001]",
+    "    quick_wins: [BI-002]",
+    "    breakthroughs: []",
+    "  actions:",
+    "  - id: BA-001",
+    "    idea: BI-001",
+    "    why: 续接成本最高",
+    "    steps: [设计卡片字段, 实现 list 命令]",
+    "    resources: 无",
+    "    timeline: 一周",
+    "    success: 续接步数减半",
+    "  open_questions: []",
+    "revisions: []",
+]) + NL
+
+# Q-112 迁移前格式（改版前的 .prev 实况）：想法用 no、引用走整数、三级皆无 id
+OLD_NO_YAML = NL.join([
     "project:",
     "  name: mini",
     "  created: '2026-01-01'",
@@ -94,16 +142,16 @@ COMPLETE_YAML = NL.join([
     "revisions: []",
 ]) + NL
 
-# Q-109 夹具：想法 2 的块 / 滚动验证用的想法 3 块 / 迁移态（想法铸 id）
+# Q-109/Q-112 夹具：想法 2 的块 / 滚动验证用的想法 3 块（三级 ID 面）
 IDEA2_BLOCK = NL.join([
-    "  - no: 2",
+    "  - id: BI-002",
     "    title: 断点提示",
     "    concept: 回到会话即见下一步。",
     "    novelty: 免回忆",
     "    technique: 连续五问",
 ])
 IDEA3_BLOCK = NL.join([
-    "  - no: 3",
+    "  - id: BI-003",
     "    title: 滚动验证",
     "    concept: 覆盖拍快照的新想法。",
     "    novelty: 证明 .prev 已滚动",
@@ -111,18 +159,6 @@ IDEA3_BLOCK = NL.join([
 ])
 LOST_YAML = COMPLETE_YAML.replace(IDEA2_BLOCK + NL, "")
 WITH3_YAML = COMPLETE_YAML.replace("  themes:", IDEA3_BLOCK + NL + "  themes:")
-MIGRATED_YAML = (COMPLETE_YAML
-                 .replace("  - no: 1" + NL, "  - id: BI-001" + NL + "    no: 1" + NL)
-                 .replace("  - no: 2" + NL, "  - id: BI-002" + NL + "    no: 2" + NL))
-MIGRATED_IDEA2_BLOCK = NL.join([
-    "  - id: BI-002",
-    "    no: 2",
-    "    title: 断点提示",
-    "    concept: 回到会话即见下一步。",
-    "    novelty: 免回忆",
-    "    technique: 连续五问",
-])
-MIGRATED_LOST_YAML = MIGRATED_YAML.replace(MIGRATED_IDEA2_BLOCK + NL, "")
 
 
 def run_engine(args):
@@ -280,29 +316,53 @@ class TechniquesTests(EngineCase):
 
 class CheckTests(EngineCase):
 
-    # trace: 任务书 §3 测试节用例 5（themes[].ideas 与 actions[].idea 引用越界 → UNKNOWN_ID）
+    # trace: 任务书 §3 测试节用例 5（themes[].ideas / priorities 三键 / actions[].idea 引用越界 → UNKNOWN_ID）
     def test_check_reports_dangling_idea_references(self):
         self.write("diy-output/brainstorm.yaml",
-                   COMPLETE_YAML.replace("ideas: [1, 2]", "ideas: [1, 99]"))
+                   COMPLETE_YAML.replace("ideas: [BI-001, BI-002]",
+                                         "ideas: [BI-001, BI-999]"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("UNKNOWN_ID", {x["code"] for x in json.loads(r.stdout)["violations"]})
         self.write("diy-output/brainstorm.yaml",
-                   COMPLETE_YAML.replace("  - idea: 1" + NL, "  - idea: 9" + NL))
+                   COMPLETE_YAML.replace("    idea: BI-001" + NL, "    idea: BI-999" + NL))
         r2 = self.check()
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("UNKNOWN_ID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
+        # priorities 三键同样走 BI 面（越界 → UNKNOWN_ID）
+        self.write("diy-output/brainstorm.yaml",
+                   COMPLETE_YAML.replace("top: [BI-001]", "top: [BI-999]"))
+        r3 = self.check()
+        self.assertEqual(r3.returncode, 1, r3.stdout)
+        self.assertIn("UNKNOWN_ID", {x["code"] for x in json.loads(r3.stdout)["violations"]})
 
-    # trace: 任务书 §3 测试节用例 6（想法 no 跳号 → SET_MISMATCH）
-    def test_check_reports_non_consecutive_idea_numbers(self):
-        text = (COMPLETE_YAML
-                .replace("  - no: 2" + NL, "  - no: 3" + NL)
-                .replace("ideas: [1, 2]", "ideas: [1, 3]")
-                .replace("quick_wins: [2]", "quick_wins: [3]"))
-        self.write("diy-output/brainstorm.yaml", text)
+    # trace: Q-112（原用例 6 的 no 跳号断言随 ideas[].no 退场作废，改锚三级 ID 形态）
+    # 三级稳定 ID 形态：缺 id / 序号非三位零填充 / 前缀错 → EMPTY_FIELD 或 ENUM_INVALID
+    def test_check_reports_malformed_stable_ids(self):
+        self.write("diy-output/brainstorm.yaml",
+                   COMPLETE_YAML.replace("{id: BT-001, name: 续接体验", "{name: 续接体验"))
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
-        self.assertIn("SET_MISMATCH", {x["code"] for x in json.loads(r.stdout)["violations"]})
+        bad = [x for x in json.loads(r.stdout)["violations"] if x["code"] == "EMPTY_FIELD"]
+        self.assertTrue(any(x["where"].endswith("themes[0].id") for x in bad),
+                        "主题缺 id 未报 EMPTY_FIELD：%s" % bad)
+        # 序号非三位零填充（BI-9 / BA-02）→ ENUM_INVALID
+        self.write("diy-output/brainstorm.yaml",
+                   COMPLETE_YAML.replace("id: BI-001", "id: BI-9"))
+        r2 = self.check()
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
+        self.write("diy-output/brainstorm.yaml",
+                   COMPLETE_YAML.replace("id: BA-001", "id: BA-02"))
+        r3 = self.check()
+        self.assertEqual(r3.returncode, 1, r3.stdout)
+        self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r3.stdout)["violations"]})
+        # 前缀错级（想法位挂 BT-001）→ ENUM_INVALID
+        self.write("diy-output/brainstorm.yaml",
+                   COMPLETE_YAML.replace("id: BI-001", "id: BT-001", 1))
+        r4 = self.check()
+        self.assertEqual(r4.returncode, 1, r4.stdout)
+        self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r4.stdout)["violations"]})
 
     # trace: 任务书 §3 测试节用例 7（status 非法 → ENUM_INVALID）
     def test_check_reports_invalid_status(self):
@@ -378,7 +438,7 @@ class PreviousTests(EngineCase):
         self.write("diy-output/brainstorm.yaml", WITH3_YAML)
         r3 = self.engine("snapshot")
         self.assertEqual(r3.returncode, 0, r3.stdout + r3.stderr)
-        self.assertIn("no: 3", self.read_text("diy-output/brainstorm.yaml.prev"),
+        self.assertIn("id: BI-003", self.read_text("diy-output/brainstorm.yaml.prev"),
                       ".prev 未滚动为本轮基线")
 
     # trace: Q-109 · 三失败分支①（--final --previous 同跑：想法丢失/记录丢失 → ID_UNSTABLE；同稿放行）
@@ -389,7 +449,7 @@ class PreviousTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         unstable = [x for x in json.loads(r.stdout)["violations"] if x["code"] == "ID_UNSTABLE"]
         self.assertTrue(unstable, "丢失的想法未报 ID_UNSTABLE")
-        self.assertTrue(any("ideas[no=2]" in x["where"] for x in unstable),
+        self.assertTrue(any("ideas[id=BI-002]" in x["where"] for x in unstable),
                         "ID_UNSTABLE where 未点名丢失想法： %s" % unstable)
         # 记录级：BS-001 旧有新无 → ID_UNSTABLE（新记录追加不报）
         self.write("diy-output/brainstorm.yaml", COMPLETE_YAML.replace("BS-001", "BS-002"))
@@ -419,23 +479,135 @@ class PreviousTests(EngineCase):
                          ["UNPARSABLE_YAML"])
         self.assertNotIn("Traceback", r2.stderr)
 
-    # trace: Q-109 · 迁移轮跳过比对（no → id 当轮不误报）+ 迁移完成后 id 面照比
+    # trace: Q-109 · 迁移轮跳过比对（Q-112 同源：老 no 稿 → 三级 id 稿，当轮不误报）+ 迁移完成后 id 面照比
     def test_migration_round_skips_then_id_mode_works(self):
-        self.write("diy-output/brainstorm.yaml.prev", COMPLETE_YAML)
-        self.write("diy-output/brainstorm.yaml", MIGRATED_YAML)
+        self.write("diy-output/brainstorm.yaml.prev", OLD_NO_YAML)   # 改版前：no + 整数引用
+        self.write("diy-output/brainstorm.yaml", COMPLETE_YAML)      # 改版后：三级稳定 ID
         r = self.check("--previous")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertEqual(json.loads(r.stdout)["violations"], [],
                          "迁移轮不得误报 ID_UNSTABLE")
         # 两侧都有 id 后：丢 BI-002 → id 面 ID_UNSTABLE
-        self.write("diy-output/brainstorm.yaml.prev", MIGRATED_YAML)
-        self.write("diy-output/brainstorm.yaml", MIGRATED_LOST_YAML)
+        self.write("diy-output/brainstorm.yaml.prev", COMPLETE_YAML)
+        self.write("diy-output/brainstorm.yaml", LOST_YAML)
         r2 = self.check("--previous")
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertTrue(any("ideas[id=BI-002]" in x["where"]
                             for x in json.loads(r2.stdout)["violations"]
                             if x["code"] == "ID_UNSTABLE"),
                         "ID_UNSTABLE where 未点名丢失想法 BI-002")
+
+
+class StableIdTests(EngineCase):
+    """用例 12：Q-112 三级稳定 ID（BI-### / BT-### / BA-###）。"""
+
+    # trace: Q-112 · 文件内按前缀全局唯一（跨记录同号 → DUPLICATE_ID）
+    def test_level_ids_unique_across_records(self):
+        second = NL.join([
+            "- id: BS-002",
+            "  topic: 第二场",
+            "  goals: 同号碰撞",
+            "  approach: 随机",
+            "  date: '2026-09-21'",
+            "  status: 草稿",
+            "  current_step: 1",
+            "  techniques: []",
+            "  ideas:",
+            "  - id: BI-001",
+            "    title: 撞号想法",
+            "    concept: 与 BS-001 同号。",
+            "    novelty: 证唯一性",
+            "    technique: 连续五问",
+            "  themes: []",
+            "  priorities: {top: [], quick_wins: [], breakthroughs: []}",
+            "  actions: []",
+            "  open_questions: []",
+        ])
+        self.write("diy-output/brainstorm.yaml",
+                   COMPLETE_YAML.replace("revisions: []", second + NL + "revisions: []"))
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        dup = [x for x in json.loads(r.stdout)["violations"] if x["code"] == "DUPLICATE_ID"]
+        self.assertTrue(any("sessions[1].ideas[0].id" in x["where"] and "BI-001" in x["msg"]
+                            for x in dup),
+                        "跨记录同号 BI-001 未报 DUPLICATE_ID：%s" % dup)
+        # 记录内同级同号（两条主题都是 BT-001）→ DUPLICATE_ID
+        dup_theme = ("  - {id: BT-001, name: 续接体验, focus: 回到会话的成本, ideas: [BI-001, BI-002]}"
+                     + NL + "  - {id: BT-001, name: 次题, focus: 另一个焦点, ideas: [BI-001]}")
+        self.write("diy-output/brainstorm.yaml",
+                   COMPLETE_YAML.replace(
+                       "  - {id: BT-001, name: 续接体验, focus: 回到会话的成本, ideas: [BI-001, BI-002]}",
+                       dup_theme))
+        r2 = self.check()
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertIn("DUPLICATE_ID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
+
+    # trace: Q-112 · ID 取代 no（不并存）：残留 no → ENUM_INVALID（复用冻结码）
+    def test_legacy_no_field_rejected(self):
+        self.write("diy-output/brainstorm.yaml",
+                   COMPLETE_YAML.replace("  - id: BI-001" + NL,
+                                         "  - id: BI-001" + NL + "    no: 1" + NL))
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        hit = [x for x in json.loads(r.stdout)["violations"]
+               if x["code"] == "ENUM_INVALID" and x["where"].endswith("ideas[0].no")]
+        self.assertTrue(hit, "残留 ideas[].no 未报 ENUM_INVALID：%s" % r.stdout)
+
+    # trace: Q-112 · --previous 扩到三级（BT / BA 丢失同样 ID_UNSTABLE，迁移轮按级跳过）
+    def test_previous_covers_theme_and_action_levels(self):
+        no_theme = COMPLETE_YAML.replace(
+            "  - {id: BT-001, name: 续接体验, focus: 回到会话的成本, ideas: [BI-001, BI-002]}" + NL, "")
+        no_action = COMPLETE_YAML.replace(
+            "  - id: BA-001" + NL + "    idea: BI-001" + NL + "    why: 续接成本最高" + NL
+            + "    steps: [设计卡片字段, 实现 list 命令]" + NL + "    resources: 无" + NL
+            + "    timeline: 一周" + NL + "    success: 续接步数减半" + NL, "")
+        self.write("diy-output/brainstorm.yaml.prev", COMPLETE_YAML)
+        self.write("diy-output/brainstorm.yaml", no_theme)
+        r = self.check("--previous")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertTrue(any("themes[id=BT-001]" in x["where"]
+                            for x in json.loads(r.stdout)["violations"]
+                            if x["code"] == "ID_UNSTABLE"),
+                        "丢失的主题 BT-001 未报 ID_UNSTABLE")
+        self.write("diy-output/brainstorm.yaml", no_action)
+        r2 = self.check("--previous")
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertTrue(any("actions[id=BA-001]" in x["where"]
+                            for x in json.loads(r2.stdout)["violations"]
+                            if x["code"] == "ID_UNSTABLE"),
+                        "丢失的行动计划 BA-001 未报 ID_UNSTABLE")
+
+
+class ViewerWiringTests(unittest.TestCase):
+    """Q-112 · viewer 零裸键纪律（ID 相关键全部有中文标签）+ 引用键登记（命中即链 / 悬空标红）。"""
+
+    KEYS = ("id", "ideas", "idea", "top", "quick_wins", "breakthroughs", "themes", "priorities")
+
+    def _viewer(self):
+        scripts = os.path.join(HERE, "..", "skills", "diy-viewer", "scripts")
+        if scripts not in sys.path:
+            sys.path.insert(0, scripts)
+        import viewer_glossary
+        import viewer_labels
+        import viewer_refs
+        return viewer_labels, viewer_glossary, viewer_refs
+
+    def test_id_related_keys_have_chinese_labels(self):
+        viewer_labels, viewer_glossary, _refs = self._viewer()
+        for key in self.KEYS:
+            label = viewer_labels.KEY_LABELS.get(key)
+            self.assertTrue(label, "键缺中文标签：%s" % key)
+            self.assertNotEqual(label, key, "键标签未中文化（裸键）：%s" % key)
+        # BI/BT/BA 是机器锚点，不入值域表（入表会被中文化改写）
+        known = {k.lower() for k in viewer_glossary.VALUE_LABELS}
+        for token in ("BI-001", "BT-001", "BA-001"):
+            self.assertNotIn(token.lower(), known)
+
+    def test_brainstorm_ref_keys_registered(self):
+        _labels, _glossary, viewer_refs = self._viewer()
+        for key in ("ideas", "idea", "top", "quick_wins", "breakthroughs"):
+            self.assertIn(key, viewer_refs.REF_KEYS,
+                          "brainstorm 引用键未入 REF_KEYS：%s" % key)
 
 
 class SkillContractTests(unittest.TestCase):

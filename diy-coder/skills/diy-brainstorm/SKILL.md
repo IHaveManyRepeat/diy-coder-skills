@@ -58,19 +58,19 @@ sessions:
     current_step: 1-5               # 续接锚点：1 会话设置 / 2 技术选取 / 3 教练执行 / 4 组织 / 5 收尾
     techniques: [{name, category}]  # 用过的技术；category 取技术库的 10 个中文类名
     ideas:
-      - no: 1                       # 会话内序号 1..N，连续不跳号（不新增全局 ID）
+      - id: BI-001                  # 想法稳定 ID：全文件唯一、永不重编号（### 为三位序号）
         title: <助记标题>
         concept: <2-3 句>
         novelty: <差异点>
         technique: <出处技术>
-    themes: [{name, focus, ideas: [<no 列表>]}]      # 组织结果：主题聚类
-    priorities: {top: [<no>], quick_wins: [<no>], breakthroughs: [<no>]}
-    actions: [{idea: <no>, why, steps: [<string>], resources, timeline, success}]
+    themes: [{id: BT-001, name, focus, ideas: [<BI 列表>]}]   # 组织结果：主题聚类
+    priorities: {top: [<BI>], quick_wins: [<BI>], breakthroughs: [<BI>]}
+    actions: [{id: BA-001, idea: <BI>, why, steps: [<string>], resources, timeline, success}]
     open_questions: [<string>]
 revisions: []                       # {date, change, reason} —— 改既有记录时追加
 ```
 
-`status` 与 `current_step` 必须同档：`草稿` = 1；`进行中` = 2-4；`已完成` = 5（不一致引擎报 `STATUS_MISMATCH`）。`themes[].ideas` / `priorities` 三键 / `actions[].idea` 一律引用同一条记录的 `ideas[].no`。`已完成` 要求 `themes` / `actions` / `priorities.top` 非空（无行动计划不得收尾）。
+`status` 与 `current_step` 必须同档：`草稿` = 1；`进行中` = 2-4；`已完成` = 5（不一致引擎报 `STATUS_MISMATCH`）。**三级稳定 ID**：想法 `BI-###` / 主题聚类 `BT-###` / 行动计划 `BA-###`——三位序号、全文件按前缀唯一（不复用不重编号）、**取代 `no` 不并存**（前缀天然隔离，不跨级比较）。`themes[].ideas` / `priorities` 三键 / `actions[].idea` 一律引用同一条记录的 `ideas[].id`（`BI-###`）。`已完成` 要求 `themes` / `actions` / `priorities.top` 非空（无行动计划不得收尾）。
 
 ## 规则
 
@@ -78,10 +78,10 @@ revisions: []                       # {date, change, reason} —— 改既有记
 2. **教练纪律（本技能的灵魂）**：一次只推进**一个**技术元素——抛出一个想法 / 挑衅 / 角度就停下来等回应，**绝不批量生成想法**（100+ 是协作产出的目标，不是生成任务）；按三分支深挖：基础回应 → 追问细节与落地；详细回应 → 在其洞见上再推一步；卡住 → 给一个温和的起手角度。
 3. **能量与反偏置**：每 4-5 轮做一次能量检查点（继续 / 换技术 / 已充分探索）；**每 10 个想法换一个正交域**（如 体验 → 商业 → 物理 → 社会影响）对抗语义聚类的顺序偏置；模拟温度 0.85——允许更野的跳跃与挑衅性概念。
 4. **默认继续探索**：只有三种情况才建议收敛——用户明说要收 / 已 45 分钟以上且 100+ 想法 / 能量明显枯竭（短回应、「不知道」）。一个技术做完不等于会话结束。
-5. 想法格式：`[类别 #no]` 助记标题 + `_Concept_` 2-3 句 + `_Novelty_` 差异点，逐条落 `ideas[]`（`no` 从 1 起连续铸造）。
+5. 想法格式：`[类别 #BI-001]` 助记标题 + `_Concept_` 2-3 句 + `_Novelty_` 差异点，逐条落 `ideas[]` 并铸 `id: BI-###`（取全文件现有最大序号 + 1，不复用不重编号；主题聚类 / 行动计划同法铸 `BT-###` / `BA-###`）。
 6. 深挖入口：菜单 `[A]` → 调用 `diy-elicit`。跨文档信息一律引用 ID 或路径（`FR-x.y` / `path:<relative>`），禁复制内容。
 7. 终门（机械）：先落 `status: 已完成` + `current_step: 5`，再跑 `python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `open_questions`）。渲染与收尾都等 exit 0。
-8. `--previous` 判 yes（2026-10-20 改判）：每轮开工跑 `python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" snapshot --project-root "{project-root}" --output-dir "{output_dir}" --json` 拍 `{output_dir}/brainstorm.yaml.prev`（规则 1 写范围的 `.prev` 具名例外）——`.prev` 在场不覆盖、先对账后拍（`ID_UNSTABLE` / `MISSING_FILE` / `UNPARSABLE_YAML` 不过不拍；想法无 id → 有 id 的迁移轮跳过比对）；改既有记录仍往 `revisions` 追加（date / change / reason），与 `.prev` 并存不互替；定稿在规则 7 终门命令上加 `--previous` 同跑。副作用面：除产物、`.prev` 快照与静默渲染外无任何外部动作。
+8. `--previous` 判 yes（2026-10-20 改判）：每轮开工跑 `python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" snapshot --project-root "{project-root}" --output-dir "{output_dir}" --json` 拍 `{output_dir}/brainstorm.yaml.prev`（规则 1 写范围的 `.prev` 具名例外）——`.prev` 在场不覆盖、先对账后拍（`ID_UNSTABLE` / `MISSING_FILE` / `UNPARSABLE_YAML` 不过不拍；想法/主题/行动三级标识无 id → 有 id 的迁移轮按级跳过比对）；改既有记录仍往 `revisions` 追加（date / change / reason），与 `.prev` 并存不互替；定稿在规则 7 终门命令上加 `--previous` 同跑。副作用面：除产物、`.prev` 快照与静默渲染外无任何外部动作。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 
