@@ -1092,6 +1092,29 @@ class SprintCheckTest(CheckBase):
         r2 = check(self.root, "sprint", story="S-9")
         self.assertIn("UNKNOWN_ID", codes(r2))
 
+    def test_retired_tc_in_test_refs_red_then_removed_green(self):
+        # trace: Q-121 主防线——test_refs 引用 retired TC → SET_MISMATCH（msg 点名 TC id
+        # 与 retired.reason）；同步移出 test_refs 后转绿
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "stories", stories_doc([simple_story()]))
+        dead = tc_case("TC-1.1.1", "AC-1.1", technique="边界")
+        dead["retired"] = {"reason": "重复设计", "replaced_by": "TC-1.1.2"}
+        alive = tc_case("TC-1.1.2", "AC-1.1", technique="边界")
+        fx.write_doc(self.root, "test-plan", fx.doc_test_plan([dead, alive]))
+        # 废弃 TC 还挂在 test_refs → 红
+        fx.write_doc(self.root, "sprint", fx.doc_sprint(
+            [fx.task("S-1", status="待办", test_refs=["TC-1.1.1"])]))
+        r = check(self.root, "sprint")
+        self.assertIn("SET_MISMATCH", codes(r), "test_refs 引用 retired TC 未拦")
+        m = msgs(r)
+        self.assertIn("TC-1.1.1", m, "msg 未点名冲突 TC id")
+        self.assertIn("重复设计", m, "msg 未点名 retired.reason")
+        # 同步移出（改挂活跃替代品）→ 绿
+        fx.write_doc(self.root, "sprint", fx.doc_sprint(
+            [fx.task("S-1", status="待办", test_refs=["TC-1.1.2"])]))
+        r2 = check(self.root, "sprint")
+        self.assertTrue(r2["ok"], msgs(r2))
+
 
 # ---------------------------------------------------------------- review
 

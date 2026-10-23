@@ -123,8 +123,12 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
     story_ids = set(docs.stories()) if stories_available else set()
     story_status = {sid: s.get("status") for sid, s in docs.stories().items()} \
         if stories_available else {}
-    tc_status = {tid: t.get("status") for tid, t in docs.tcs().items()} \
-        if tp_available else {}
+    tcs_by_id = docs.tcs() if tp_available else {}
+    tc_status = {tid: t.get("status") for tid, t in tcs_by_id.items()}
+    # Q-121 主防线：sprint test_refs ∩ retired TC ≠ ∅ → 违规（retired 键在场即废弃，
+    # 与 test-plan 侧 Q-111 同判）——废弃用例不进执行面，强制废弃时须同步移出 test_refs
+    tc_retired = {tid: t.get("retired") for tid, t in tcs_by_id.items()
+                  if "retired" in t}
 
     d.dup(report, [(t.get("story"), "%s tasks[%s].story" % (rel, t.get("story") or "?"))
                    for t in all_tasks], "task story")
@@ -170,6 +174,14 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
                 # rule: diy-sprint/SKILL.md:Workflow 1（every test_refs entry resolves in test-plan.yaml）
                 report.add("UNKNOWN_ID", "%s.test_refs[%d]" % (w, j),
                            "%s 在 test-plan.yaml 中不存在" % ref)
+            elif ref in tc_retired:
+                # rule: Q-121 废弃用例不进执行面（check 期主防线；green 回写期兜底跳过）
+                entry = tc_retired[ref]
+                reason = entry.get("reason") if isinstance(entry, dict) else None
+                report.add("SET_MISMATCH", "%s.test_refs[%d]" % (w, j),
+                           "%s 已在 test-plan.yaml 标记废弃（retired.reason：%s）——"
+                           "废弃用例不得留在 test_refs（执行面会照跑），须同步移出 test_refs"
+                           % (ref, reason if d.nonempty(reason) else "（缺失）"))
         if stories_available and d.is_str(story) and story not in story_ids:
             report.add("UNKNOWN_ID", w + ".story", "%s 在 stories.yaml 中不存在" % story)
 

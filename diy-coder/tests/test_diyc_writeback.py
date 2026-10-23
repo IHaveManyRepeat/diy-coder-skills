@@ -350,6 +350,51 @@ class GreenTests(WritebackCase):
         self.assertFalse(res["ok"])
         self.assertEqual(res["violations"][0]["code"], "DUPLICATE_ID")
 
+    # ---- Q-121 兜底：retired TC 回写期跳过 ----
+
+    def _retire(self, tc_id, reason="重复设计", replaced_by="TC-1.1.1"):
+        tp = self.read("test-plan")
+        for c in tp["test_cases"]:
+            if c["id"] == tc_id:
+                c["retired"] = {"reason": reason, "replaced_by": replaced_by}
+        self.write("test-plan", tp)
+
+    def test_retired_tc_skipped_other_written(self):
+        # trace: Q-121 兜底——retired TC 的 evidence 与 status 均不落，其余照写，
+        # 回执带 skipped_retired
+        self._retire("TC-1.1.2", replaced_by="TC-1.1.1")
+        res = self._green(tc=["TC-1.1.1", "TC-1.1.2"], red=["r1", "r2"], green=["g1", "g2"])
+        self.assertTrue(res["ok"], res)
+        self.assertEqual(res["evidence_written"], ["TC-1.1.1"])
+        self.assertEqual(res["test_plan_backfilled"], ["TC-1.1.1"])
+        self.assertEqual(res["skipped_retired"], ["TC-1.1.2"])
+        evidence = self.read("sprint")["tasks"][0].get("evidence")
+        self.assertEqual([e["tc"] for e in (evidence or [])], ["TC-1.1.1"],
+                         "retired TC 的 evidence 不应落盘")
+        statuses = {c["id"]: c["status"] for c in self.read("test-plan")["test_cases"]}
+        self.assertEqual(statuses["TC-1.1.1"], "通过")
+        self.assertEqual(statuses["TC-1.1.2"], "待办", "retired TC 的 status 不应回填")
+
+    def test_all_retired_zero_write(self):
+        # 全部 skipped：零落盘（无 evidence 键、status 不动、不写即不造空键副作用）
+        self._retire("TC-1.1.1", replaced_by="TC-1.1.2")
+        res = self._green()
+        self.assertTrue(res["ok"], res)
+        self.assertEqual(res["evidence_written"], [])
+        self.assertEqual(res["test_plan_backfilled"], [])
+        self.assertEqual(res["skipped_retired"], ["TC-1.1.1"])
+        self.assertIsNone(self.read("sprint")["tasks"][0].get("evidence"))
+        statuses = {c["id"]: c["status"] for c in self.read("test-plan")["test_cases"]}
+        self.assertEqual(statuses["TC-1.1.1"], "待办")
+
+    def test_normal_path_skipped_retired_empty(self):
+        # 正常路径零回归：无 retired 时回执键在位且为空列表，写回行为不变
+        res = self._green()
+        self.assertTrue(res["ok"], res)
+        self.assertEqual(res["skipped_retired"], [])
+        self.assertEqual(res["evidence_written"], ["TC-1.1.1"])
+        self.assertEqual(res["test_plan_backfilled"], ["TC-1.1.1"])
+
 
 @NEEDS_W1
 class DoneTests(WritebackCase):
