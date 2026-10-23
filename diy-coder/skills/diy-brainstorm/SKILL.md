@@ -70,7 +70,7 @@ sessions:
 revisions: []                       # {date, change, reason} —— 改既有记录时追加
 ```
 
-`status` 与 `current_step` 必须同档：`草稿` = 1；`进行中` = 2-4；`已完成` = 5（不一致引擎报 `STATUS_MISMATCH`）。**三级稳定 ID**：想法 `BI-###` / 主题聚类 `BT-###` / 行动计划 `BA-###`——三位序号、全文件按前缀唯一（不复用不重编号）、**取代 `no` 不并存**（前缀天然隔离，不跨级比较）。`themes[].ideas` / `priorities` 三键 / `actions[].idea` 一律引用同一条记录的 `ideas[].id`（`BI-###`）。`已完成` 要求 `themes` / `actions` / `priorities.top` 非空（无行动计划不得收尾）。
+`status` 与 `current_step` 必须同档：`草稿` = 1；`进行中` = 2-4；`已完成` = 5（不一致引擎报 `STATUS_MISMATCH`）。**三级稳定 ID**：想法 `BI-###` / 主题聚类 `BT-###` / 行动计划 `BA-###`——三位序号、全文件按前缀唯一（不复用不重编号）。`themes[].ideas` / `priorities` 三键 / `actions[].idea` 一律引用同一条记录的 `ideas[].id`（`BI-###`）。`已完成` 要求 `themes` / `actions` / `priorities.top` 非空（无行动计划不得收尾）。
 
 ## 规则
 

@@ -24,10 +24,10 @@
   check      schema / `BS-###` 格式与唯一 / `status` 枚举 / `current_step` 枚举 1-5 且与
              `status` 同档（草稿→1；进行中→2-4；已完成→5，否则 `STATUS_MISMATCH`）/
              步骤锚点与内容一致（≥2 有 approach、≥3 有 techniques、=5 有 themes + priorities.top
-             + actions——源纪律「无行动计划不得收尾」）/ **三级稳定 ID**（2026-10-21 裁定：想法
+             + actions——源纪律「无行动计划不得收尾」）/ **三级稳定 ID**（想法
              `BI-###` / 主题聚类 `BT-###` / 行动计划 `BA-###`，三位零填充）形态与**文件内按前缀
              全局唯一**（重复 → `DUPLICATE_ID`；空号合法——稳定 ID 不重编号，故不设连续约束）/
-             `ideas[].no` 不得与 id 并存（ID 取代 no）/ `themes[].ideas`、`priorities` 三键与
+             `ideas[].no` 不得与 id 并存 / `themes[].ideas`、`priorities` 三键与
              `actions[].idea` 的引用必须落在本记录 `ideas[].id` 内 / `techniques[].category`
              ∈ 库内类名。`--final` 附加：`status: 已完成` 且零 `[假设]`（定稿前清零，未决项落
              `open_questions`）。`--id BS-xxx` 把记录级扫描收窄到一条（找不到 → `UNKNOWN_ID`）。
@@ -62,7 +62,7 @@ sort_keys=False, default_flow_style=False)` → 同目录临时文件 + `os.repl
 ① `UNPARSABLE_YAML` 兼作技术库（CSV）解析失败码——冻结集里没有「非 YAML 文本不可解析」码，
    造新码不如复用最近义项（msg 内点名是 CSV）；
 ② `ENUM_INVALID` 兼作「`ideas[].no` 与 id 并存」——冻结集里没有「废字段残留」码，最近义项是
-   字段取值/形态不合法（ID 取代 no，不并存）。
+   字段取值/形态不合法。
 
 `--previous` 判 **yes**（2026-10-20 改判，原「追加式台账不适用 `--previous`」作废）：
 `BI-###` / `BT-###` / `BA-###` 未来成为 prd 的外部引用锚，素材单元丢失即跨文件断链（下游

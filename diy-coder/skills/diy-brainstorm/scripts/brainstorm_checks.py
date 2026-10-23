@@ -18,8 +18,8 @@ from brainstorm_lib import APPROACH_ENUM, ASSUMPTION_MARK, BRAINSTORM_FILE, BS_R
 STEP_MIN, STEP_MAX = 1, 5
 DEFAULT_CANDIDATES = 5
 
-# 三级稳定 ID（2026-10-21 用户裁定）：(键, 前缀, 中文名, 正则, 旧键)。
-# 三位零填充；**文件内按前缀全局唯一**（前缀天然隔离，不跨级比较）；ID 取代 `no`（不并存）。
+# 三级稳定 ID：(键, 前缀, 中文名, 正则, 旧键)。
+# 三位零填充；**文件内按前缀全局唯一**（前缀天然隔离，不跨级比较）。
 # 稳定 ID 不重编号 → 空号合法，故不设「连续不跳号」约束（SET_MISMATCH 随 `no` 退场不再触发）。
 IDEA_RE = re.compile(r"BI-\d{3}\Z")
 THEME_RE = re.compile(r"BT-\d{3}\Z")
@@ -98,7 +98,7 @@ def check_ideas(record, where):
             continue
         if "no" in idea:
             violations.append(v("ENUM_INVALID", iw + ".no",
-                                "no 已被 id 取代（不并存）——改写为 ideas[].id: BI-###"))
+                                "no 废字段——改写为 ideas[].id: BI-###"))
         for key in ("title", "concept", "novelty", "technique"):
             if not nonempty(idea.get(key)):
                 violations.append(v("EMPTY_FIELD", iw + "." + key, "%s 为空" % key))
