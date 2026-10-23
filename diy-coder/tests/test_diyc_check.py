@@ -904,6 +904,45 @@ class RetiredTcCheckTest(CheckBase):
             dimension_audit=self._audit(["TC-1.1.1", "TC-1.1.2"]), normalize=False))
         self.assertTrue(check(self.root, "test-plan", final=True)["ok"])
 
+    def test_retired_only_axis_is_uncovered(self):
+        # Q-120：某轴仅由废弃 TC 覆盖＝活跃覆盖为零→缺审计格红；反向不再要求废弃 TC 在场
+        dead = self._base(retired={"reason": "r", "replaced_by": "TC-1.1.2"})
+        r = self._env([dead], audit=self._audit(["TC-1.1.1"]))
+        self.assertIn("SET_MISMATCH", codes(r), "仅废弃 TC 覆盖的轴未报缺审计格")
+        self.assertIn("AC-1.1/正向", msgs(r))
+        # 补活跃替代 TC 后放行（audit 只列活跃替代品）
+        alive = self._base("TC-1.1.2")
+        r = self._env([dead, alive], audit=self._audit(["TC-1.1.2"]))
+        self.assertTrue(r["ok"], msgs(r))
+
+    def test_retired_not_required_in_audit_reverse(self):
+        # 反向：废弃 TC 不要求出现在 audit——仅列活跃替代品时废弃侧不红
+        dead = self._base(retired={"reason": "r", "replaced_by": "TC-1.1.2"})
+        alive = self._base("TC-1.1.2")
+        r = self._env([dead, alive], audit=self._audit(["TC-1.1.2"]))
+        self.assertTrue(r["ok"], msgs(r))
+        # 混列（活跃＋废弃同时在 tcs）也不因废弃侧报缺
+        r = self._env([dead, alive], audit=self._audit(["TC-1.1.1", "TC-1.1.2"]))
+        self.assertTrue(r["ok"], msgs(r))
+
+    def test_audit_dangling_id_not_misfired(self):
+        # 悬空 ID（不在 cases）：既有 UNKNOWN_ID 判定保持，不因 Q-120 加误伤
+        dead = self._base(retired={"reason": "r", "replaced_by": "TC-1.1.2"})
+        alive = self._base("TC-1.1.2")
+        r = self._env([dead, alive],
+                      audit=self._audit(["TC-1.1.2", "TC-9.9.9"]))
+        self.assertIn("UNKNOWN_ID", codes(r), "悬空 audit ID 未拦")
+        # 悬空 ID 与活跃混合时格仍计入（不额外报缺审计格）
+        self.assertNotIn("AC-1.1/正向", msgs(r))
+
+    def test_audit_not_applicable_not_affected(self):
+        # not_applicable 不受 Q-120 影响：全轴 na 且活跃 TC 不在其轴 → 既有反向红保持
+        tc = self._base()
+        audit = [{"ac": "AC-1.1", "axis": ax, "not_applicable": "夹具不适用"}
+                 for ax in ("正向", "边界", "异常", "安全", "性能")]
+        r = self._env([tc], audit=audit)
+        self.assertIn("SET_MISMATCH", codes(r), "全轴 na 时活跃 TC 不在 audit 未拦")
+
 
 class ProducerTcCheckTest(CheckBase):
     """Q-114：TC.producer 生产者字段（底单 :884/:889 + 2026-10-20/21 裁）——

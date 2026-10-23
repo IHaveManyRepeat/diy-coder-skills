@@ -238,6 +238,9 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
     #       dimension 对应；TC.dimension 须出现在其 AC 对应轴；已完成故事整段豁免）
     audit = doc.get("dimension_audit")
     tc_by_id = {t.get("id"): t for t in cases if is_str(t.get("id"))}
+    # Q-120：废弃不算覆盖——正向 audited 计入须有非 retired 的 tcs，反向不要求废弃 TC 在场
+    retired_ids = {t.get("id") for t in cases
+                   if "retired" in t and is_str(t.get("id"))}
     audited = set()
     if audit is None:
         report.add("EMPTY_FIELD", rel + " dimension_audit",
@@ -261,7 +264,14 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
             if is_str(ac_id) and is_str(axis) and axis in DIMENSIONS:
                 pairs.append(((ac_id, axis), ew))
                 if ac_id not in done_acs:
-                    audited.add((ac_id, axis))
+                    _tcs, _na = e.get("tcs"), e.get("not_applicable")
+                    # Q-120：计入条件＝not_applicable 在场，或 tcs 至少一条非 retired
+                    #（悬空 ID 不在 retired 集合，保持既有 UNKNOWN_ID 判定不误伤）；
+                    # 全废弃＝该格未填（走缺审计格 SET_MISMATCH）；空/畸形格维持既有单错误行为
+                    if not (isinstance(_tcs, list) and _tcs) or _na is not None:
+                        audited.add((ac_id, axis))
+                    elif any(tid not in retired_ids for tid in _tcs):
+                        audited.add((ac_id, axis))
             if ac_id in done_acs:
                 continue  # 已完成故事豁免：形状查过即过，不进对账
             tcs = e.get("tcs")
@@ -304,6 +314,8 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                        % "、".join("%s/%s" % m for m in missing))
         for t in cases:
             tid, dim = t.get("id"), t.get("dimension")
+            if "retired" in t:
+                continue  # Q-120：废弃 TC 不要求出现在 audit（废弃不算覆盖）
             if not (is_str(tid) and dim in DIMENSIONS):
                 continue
             for ac_id in diyc_lib._ac_ids(t):
