@@ -423,6 +423,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **〔2026-10-16 用户裁定〕裁点 B/C 提前闭合**（原随批 4b 任务书呈裁，批 4a 讲解时提前裁）：**B＝是**——requestBody/responses 等详情聚合表格**归批 4 扩面**，4b 一体落形（功能分组＋详情表格＋行锚）；**C＝保留中文**——「操作 ID」列标签**不**弃中文改 operationId 原文（viewer.py KEY_LABELS `"operationId": "操作 ID"` 现状维持）。4b 立书直接引用本两裁、不重呈。
 
+**〔v4·批4b 已销 2026-10-22〕**：总览/详情两层落形——总览横表 7 列（方法/路径/操作 ID/摘要/功能组/x-fr/请求参数简略·操作 ID 行内链接跳详情）＋详情按顶层 tags 声明序分组、每接口一张两列竖表全字段、标题挂 `id=operationId` 行锚（一 operation 一锚）；未挂/不匹配 tags 落「未分组」殿后（存量不丢行）；多 tag 取首个匹配归组；openapi 页通用渲染跳过 paths 树与顶层 tags 表（其余顶层键保留兜底）；KEY_LABELS 补详情行键 7 条＋`("openapi", "format")` FREE_TEXT 例外（照 4a type 先例·diy-lab 零诊断）；拆 `viewer_openapi.py` 新件（viewer_pages 336 行不超线）。新增 `tests/test_viewer_openapi.py` 9 用例（7 列/分组序/兜底/锚唯一/无重复节/security 覆盖/存量形）；夜队列 Q-118 施工（分支 overnight/2026-10-22/Q-118）。
+
 ## 待办：viewer index 产物卡片按生成时间排序（2026-10-04 用户提出，登记待裁，现在不动）
 
 登记来源：用户看 diy-lab 实测 index.html 提出「产物按生成时间排，不然眼睛看花了」。

@@ -6,10 +6,11 @@ from pathlib import Path
 
 import viewer_refs as _refs
 from viewer_glossary import (CHAIN_RANK, DOC_LABELS, _DT_MAX, _NO_CHAIN)
-from viewer_labels import HTTP_METHODS, META_KEYS
+from viewer_labels import META_KEYS
+from viewer_openapi import render_openapi_section
 from viewer_refs import gloss, render_ref_item
 from viewer_render import (COPY_JS, CSS, PANE_JS, TOOLTIP_JS, badge, build_templates,
-                           cell, esc, render_table, render_value, set_render_source,
+                           cell, esc, render_value, set_render_source,
                            slugify)
 
 
@@ -146,33 +147,6 @@ def sort_docs(all_docs: list) -> list:
     return sorted(all_docs, key=key)
 
 
-def render_openapi_section(data: dict) -> str:
-    """OpenAPI doc extras: 3.1 sanity check + endpoint overview table."""
-    alerts = []
-    version = data.get("openapi")
-    if not isinstance(version, str) or not version.startswith("3.1"):
-        alerts.append(f"⚠ openapi 字段缺失或非 3.1（当前：{version}）——不符合 OpenAPI 3.1 语法")
-    rows = []
-    for path, item in (data.get("paths") or {}).items():
-        if not isinstance(item, dict):
-            continue
-        for method, op in item.items():
-            if method.lower() not in HTTP_METHODS or not isinstance(op, dict):
-                continue
-            fr = op.get("x-fr")
-            rows.append({
-                "method": method.upper(),
-                "path": path,
-                "operationId": op.get("operationId"),
-                "summary": op.get("summary"),
-                "x-fr": ", ".join(str(x) for x in fr) if isinstance(fr, list) else fr,
-            })
-    out = "".join(f'<div class="alert">{a}</div>' for a in alerts)
-    if rows:
-        out += '<h2 id="api-overview">接口总览</h2>' + render_table(rows)
-    return out
-
-
 def render_augment_panel(data, others: list) -> str:
     # trace: 2026-09-13 裁定——补测待裁断聚合面板：sprint 页集中列出 augment:失败 任务
     # 与其失败用例（跨 test-plan/stories 反查），裁断三途径同屏可见；无失败任务零输出
@@ -249,12 +223,17 @@ def render_doc_page(name: str, data, others: list, source: str = "") -> str:
         body += render_augment_panel(data, others)  # trace: 2026-09-13 裁定 补测待裁断面板
     if name == "openapi":
         body += render_openapi_section(data)
+    # trace: v4·批4b 裁⑤——openapi 页跳过通用 paths 树与顶层 tags 表（总览＋详情已承载，
+    # 否则三层重复）；其余顶层键（x-project/openapi/info/security/components 及未识别键）
+    # 保留通用渲染，即兜底区
+    _skip = {"paths", "tags"} if name == "openapi" else set()
     for k, v in (data or {}).items():
         if k in META_KEYS:
             body += render_value(k, v, 0)
             break
     body += "".join(
-        render_value(k, v, 0) for k, v in (data or {}).items() if k not in META_KEYS
+        render_value(k, v, 0) for k, v in (data or {}).items()
+        if k not in META_KEYS and k not in _skip
     )
     links = ['<a href="index.html">⌂ 首页</a>'] + [
         f'<a href="{esc(n)}.html">{gloss(esc(DOC_LABELS.get(n, n)))}</a>' for n, _ in others if n != name
