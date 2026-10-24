@@ -43,8 +43,10 @@ project: {name: <diy-coder.yaml project.name>, status: 草稿, created: , update
                               # 时间键留空；建文件后跑 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type brief --json 盖秒级章；每次写回产物后再跑一次（刷 updated）
 brief: {title: '', stakes: <已读出的档位>, problem: '', solution: '', pitch: '',
         users: [], value: [], open_questions: [], assumptions: [], extra_sections: []}
+                              # users/value 条目带 id: VD-###（两列表共用文件级序列，按文档块顺序铸造、新文件 VD-001 起）
 distillate: {problem: '', target_users: [], value_props: [], constraints: [], open_questions: []}
-                              # 交出面：交给 diy-prd 的下游契约——骨架随建，各步随内容归拢；定稿前五字段须非空（--final 校验）
+                              # 交出面：交给 diy-prd 的下游契约——骨架随建，各步随内容归拢；定稿前五字段须非空（--final 校验）；
+                              # 四列表条目 {text, src}——src 指 VD 锚或结构段位，只引用不复制上游文本
 decisions: []
 addendum: []
 revisions: []

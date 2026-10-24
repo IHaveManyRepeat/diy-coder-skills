@@ -5,14 +5,17 @@ from diyc_check_docs_lib import (DEC_STATUSES, EPIC_STATUSES, FR_PRIORITIES,
                                  HTTP_METHODS, PATH_ITEM_KEYS, STACK_KINDS, dup,
                                  enum, is_str, nonempty, req)
 from diyc_lib import items  # noqa: E402
+from diyc_prd_os import (OS_RE, SRC_ID_RE, SRC_PATH_RE,  # noqa: E402
+                       check_out_of_scope, check_src)
+import re
 
 # ---------------------------------------------------------------- prd
 
 def check_prd(doc, rel, docs, final, report) -> dict:
-    """prd.yaml：结构形状 + 枚举 + 重复 ID；--final 由 run() 统一加 [假设] 扫描。"""
+    """prd.yaml：结构形状 + 枚举 + 重复 ID + out_of_scope 两形态；--final 由 run() 统一加 [假设] 扫描。"""
     # rule: diy-prd/SKILL.md:Schema（author exactly this shape）
     # rule: diy-prd/SKILL.md:PRD Discipline（ID chain is sacred / 编号分配后永不重编号）
-    counts = {"goals": 0, "users": 0, "features": 0, "frs": 0, "nfrs": 0}
+    counts = {"goals": 0, "users": 0, "features": 0, "frs": 0, "nfrs": 0, "os": 0}
     project = doc.get("project")
     if not isinstance(project, dict):
         report.add("EMPTY_FIELD", rel + " project", "project 块缺失或形状异常")
@@ -31,6 +34,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
         req(report, w + ".id", g.get("id"), "goal id")
         req(report, w + ".goal", g.get("goal"), "goal")
         req(report, w + ".metric", g.get("metric"), "metric（成功如何度量）")
+        check_src(g.get("src"), w, report)
 
     users = items(doc, "users", of_type=dict)
     counts["users"] = len(users)
@@ -39,6 +43,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
         req(report, w + ".id", u.get("id"), "user id")
         req(report, w + ".name", u.get("name"), "persona name")
         req(report, w + ".need", u.get("need"), "need")
+        check_src(u.get("src"), w, report)
     dup(report, [(u.get("id"), "%s users[%s].id" % (rel, u.get("id") or "?")) for u in users],
         "user id")
 
@@ -54,6 +59,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
         req(report, fw + ".id", f.get("id"), "feature id")
         req(report, fw + ".name", f.get("name"), "feature name")
         req(report, fw + ".description", f.get("description"), "feature description")
+        check_src(f.get("src"), fw, report)
         reqs = items(f, "requirements", of_type=dict)
         if not reqs:
             report.add("EMPTY_FIELD", fw + ".requirements", "feature 下 requirements 缺失或为空")
@@ -62,6 +68,7 @@ def check_prd(doc, rel, docs, final, report) -> dict:
             req(report, rw + ".id", r.get("id"), "requirement id")
             req(report, rw + ".statement", r.get("statement"), "statement")
             enum(report, rw + ".priority", r.get("priority"), FR_PRIORITIES, "priority")
+            check_src(r.get("src"), rw, report)
             fr_pairs.append((r.get("id"), rw + ".id"))
             counts["frs"] += 1
     dup(report, fr_pairs, "requirement id")
@@ -81,9 +88,12 @@ def check_prd(doc, rel, docs, final, report) -> dict:
         w = "%s open_questions[%s]" % (rel, q.get("id") or "?")
         req(report, w + ".id", q.get("id"), "question id")
         req(report, w + ".question", q.get("question"), "question")
+        check_src(q.get("src"), w, report)
         if final and not nonempty(q.get("answer")):
             report.add("PENDING_DECISION", w,
                        "定稿前该开放问题须回答（answer 为空；回答保留在文件中供审计）")
+
+    check_out_of_scope(doc, rel, counts, report)
     return counts
 
 

@@ -25,7 +25,7 @@ Progress: `Ignition → Press Release → Customer FAQ → Internal FAQ → [Ver
 
 1. **润色** —— 新闻稿读起来是一篇连贯叙事，FAQ 逻辑顺畅，格式一致。
 2. **写判定** —— `prfaq.verdict: {strength: <三档之一>, narrative: <这次评估>}`、`prfaq.stage: 5`、`project.status: 已定稿`，全在同一次写入里。
-3. **补完 distillate** —— 总要做，就在同一份文件里。前四个阶段已经交出了各自的下游相关条目；再扫一遍会话记忆，把还缺的捞出来——需求信号、技术约束与平台偏好、范围信号、资源与时间线估计、未决问题。bullet 要密，每条自带足够上下文、能独立给下游 LLM 读；保持第 1 步的五个桶（`problem`、`target_users`、`value_props`、`constraints`、`open_questions`），判定里的 `欠火候` 与 `地基裂缝` 落成可执行的 `open_questions` 条目。
+3. **补完 distillate** —— 总要做，就在同一份文件里。前四个阶段已经交出了各自的下游相关条目；再扫一遍会话记忆，把还缺的捞出来——需求信号、技术约束与平台偏好、范围信号、资源与时间线估计、未决问题。bullet 要密，每条自带足够上下文、能独立给下游 LLM 读；保持第 1 步的五个桶（`problem` 标量、四列表条目 `{text, src}`——`src` 逐条落 `PQ-###`／press_release 固定键／`prfaq.verdict`），判定里的 `欠火候` 与 `地基裂缝` 落成可执行的 `open_questions` 条目。
 4. **收束 notes** —— 剩下的、属于过程叙事而非下游事实的东西（判定为何落在这档、拷问是怎么走的），成为 `notes` 里的 stage-5 条目：`{stage: 5, content}`。收束前再扫一遍下游残留：另类定位与被否的框法进 `distillate.constraints`，写成 `Not <X>: because <Y>`；影响采纳的竞争情报进 `distillate.constraints`（已定）或 `distillate.open_questions`（仍开放）。`distillate` 保持干净的机器契约；`notes` 承载故事。
 
 ## 终门（机械）

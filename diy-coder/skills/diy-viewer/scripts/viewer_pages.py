@@ -9,6 +9,8 @@ from viewer_glossary import (CHAIN_RANK, DOC_LABELS, _DT_MAX, _NO_CHAIN)
 from viewer_labels import META_KEYS
 from viewer_openapi import render_openapi_section
 from viewer_refs import gloss, render_ref_item
+from viewer_distillate import (_render_distillate_entries, _render_out_of_scope,  # noqa: F401
+                                 _DISTILLATE_DOCS)
 from viewer_render import (COPY_JS, CSS, PANE_JS, TOOLTIP_JS, badge, build_templates,
                            cell, esc, render_value, set_render_source,
                            slugify)
@@ -202,6 +204,9 @@ def render_augment_panel(data, others: list) -> str:
 def render_doc_page(name: str, data, others: list, source: str = "") -> str:
     _refs._RENDER_DOC = name  # trace: B1 文档级标签覆盖上下文
     set_render_source(source)  # trace: Q-003 复制按钮取 output_dir 相对路径（含实例名）
+    docs_by_name = {name: data}
+    for _n, _d in others:
+        docs_by_name[_n] = _d
     meta = get_meta(data)
     meta_line = []
     if isinstance(meta, dict):
@@ -227,6 +232,21 @@ def render_doc_page(name: str, data, others: list, source: str = "") -> str:
     # 否则三层重复）；其余顶层键（x-project/openapi/info/security/components 及未识别键）
     # 保留通用渲染，即兜底区
     _skip = {"paths", "tags"} if name == "openapi" else set()
+    # 批 5a：三源 distillate 四列表与 prd out_of_scope 走专用渲染
+    if name in _DISTILLATE_DOCS and isinstance(data, dict):
+        dist = data.get("distillate")
+        if isinstance(dist, dict):
+            _skip = set(_skip) | {"distillate"}
+            body += f'<h2>{gloss("交付摘要")}</h2>'
+            if "problem" in dist:
+                body += render_value("problem", dist.get("problem"), 0)
+            for k in ("target_users", "value_props", "constraints", "open_questions"):
+                v = dist.get(k)
+                if isinstance(v, list) and v:
+                    body += _render_distillate_entries(k, v, docs_by_name)
+    if name == "prd" and isinstance(data, dict) and "out_of_scope" in data:
+        _skip = set(_skip) | {"out_of_scope"}
+        body += _render_out_of_scope(data.get("out_of_scope") or [], docs_by_name)
     for k, v in (data or {}).items():
         if k in META_KEYS:
             body += render_value(k, v, 0)

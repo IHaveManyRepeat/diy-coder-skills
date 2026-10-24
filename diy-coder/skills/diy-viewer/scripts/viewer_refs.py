@@ -190,6 +190,76 @@ def dangling_ref(i: str) -> str:
             f'<span class="badge b-bad">{gloss("引用不存在")}</span>')
 
 
+def resolve_src_text(src, docs_by_name: dict):
+    """批 5a：按 src 锚取母体文本——ID 走 ID_INDEX.node 的可读文本；结构键走点路径。
+
+    返回 (text, err)：text 为找到的字符串（可空串）；err 非空表示悬空/不可解析。
+    docs_by_name: {doc_name: data} 由 viewer_pages 传入（点路径解析用）。
+    结构键点路径以产物根为起点（如 prfaq.press_release.headline）；带 [n] 下标。
+    """
+    if src is None:
+        return "", "src 缺失"
+    s = str(src).strip()
+    if not s:
+        return "", "src 为空"
+    hit = ID_INDEX.get(s)
+    if hit is not None:
+        node = hit.get("node")
+        if isinstance(node, dict):
+            for k in ("claim", "text", "statement", "need", "point", "question",
+                      "goal", "rule", "choice"):
+                v = node.get(k)
+                if isinstance(v, str) and v.strip():
+                    return v, ""
+            # 回落：拼接短标量
+            bits = [str(v) for v in node.values()
+                    if isinstance(v, str) and len(v) < 200]
+            return " · ".join(bits[:3]), ""
+        return str(node) if node is not None else "", ""
+    # 点路径：以产物根为起点（如 prfaq.press_release.headline / brief.extra_sections[0]）；
+    # 首段通常同时是文档名与顶层键——在全部候选文档根上走完整路径，首个命中即返回
+    parts = s.split(".")
+    if not docs_by_name:
+        return "", "点路径无候选文档：%s" % s
+
+    def _walk(root, parts):
+        cur = root
+        for part in parts:
+            if cur is None:
+                return None
+            if part.endswith("]") and "[" in part:
+                key, _, idx = part[:-1].partition("[")
+                try:
+                    cur = cur.get(key) if isinstance(cur, dict) else None
+                    if not isinstance(cur, list):
+                        return None
+                    cur = cur[int(idx)]
+                except (ValueError, IndexError, AttributeError):
+                    return None
+            else:
+                cur = cur.get(part) if isinstance(cur, dict) else None
+        return cur
+
+    for _doc, root in (docs_by_name or {}).items():
+        if not isinstance(root, dict):
+            continue
+        cur = _walk(root, parts)
+        if cur is None:
+            continue
+        if isinstance(cur, str):
+            return cur, ""
+        if isinstance(cur, dict):
+            for k in ("statement", "text", "claim", "need", "point", "question",
+                      "content", "choice", "rule", "goal"):
+                v = cur.get(k)
+                if isinstance(v, str) and v.strip():
+                    return v, ""
+            bits = [str(v) for v in cur.values() if isinstance(v, str) and v.strip()]
+            if bits:
+                return bits[0], ""
+    return "", "点路径悬空：%s" % s
+
+
 def id_link(i: str, hit: dict) -> str:
     return (f'<a class="idl" href="{esc(hit["doc"])}.html#{esc(i)}"'
             f' title="{esc(hit["preview"])}">{esc(i)}</a>')

@@ -7,8 +7,9 @@
 ## 链序
 
 ```
-前置  [research] → [product-brief] → [prfaq]（1-analysis，可选，无依赖边，不入链）
-      ＋ [brainstorm] / [cis-method]（anytime·line: any，产物可喂 prd）
+前置  registry.prereq（target=diy-prd，可选输入通道，非链位/非门禁，help 不消费）：
+      [research] [product-brief] [prfaq] [brainstorm] [cis-method] [project-context]
+      —— research/brief/prfaq＝1-analysis·mainline；brainstorm/cis-method/project-context＝anytime·line: any
 主线  prd ★ → architecture ★ → [openapi] → [design·双源] → epics-stories ★ → test-design ★
       → sprint ★ → create-story → test-author → dev → review → retrospective
 分叉  dev → e2e-tests ｜ review → augment → test-review → test-gate
@@ -26,8 +27,8 @@ WDS   wds-brief ★ → wds-trigger ★ → wds-scenarios ★ → [system] → [
 | ☐ | ☐ | diy-research | 市场/技术/领域三维联网调研，断言带核验来源 | 80 | — |
 | ☐ | ☐ | diy-product-brief | 对话式陪跑产出产品简报＋BD 决策日志 | 89 | — |
 | ☐ | ☐ | diy-prfaq | Working Backwards 五阶段拷问锻造产品概念 | 81 | — |
-| ☐ | ☐ | diy-brainstorm | 多样创意技术主持交互式头脑风暴，结论落 brainstorm.yaml（line: any，产物可喂 prd） | 88 | — |
-| ☐ | ☐ | diy-cis-method | 创意方法四选一引导（创新策略/问题求解/设计思维/叙事），落 cis-method.yaml（line: any，产物可喂 prd） | 81 | — |
+| ☐ | ☐ | diy-brainstorm | 多样创意技术主持交互式头脑风暴，结论落 brainstorm.yaml（line: any；prd 按 BI/BT/BA 摄取，registry.prereq） | 88 | — |
+| ☐ | ☐ | diy-cis-method | 创意方法四选一引导（创新策略/问题求解/设计思维/叙事），落 cis-method.yaml（line: any；prd 按 CM-### 摄取，registry.prereq） | 81 | — |
 | ☐ | ☐ | diy-prd ★ | 创建/更新 PRD 单一源，需求 ID 稳定 | 121 | — |
 | ☐ | ☐ | diy-architecture ★ | 决策式架构，每条决策链需求 ID＋可测性/运维评审 | 94 | prd |
 | ☐ | ☐ | diy-openapi | 从 prd＋architecture 推 OpenAPI 3.1 契约，接口先行评审 | 77 | architecture |
@@ -181,7 +182,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | diy-reverse 补「参考用法」引导（2026-10-05 会话实测：用户想先逆向别站做参考再做自己的 design.yaml——instance 隔离机制在场可解（`--instance` 落 `<output_dir>/<instance>/` 不占主线位）但 SKILL.md 只有「初始设计单源」一种叙事，参考用法入口不显性；拟补引导：参考目的→带 `--instance` 跑＋主线生成权不受扰＋design `[C]`/`[K]` 只读消费参考；挂法/文案/是否动 diy-design 输入面待裁，预期零引擎改动·**未开工·待用户点头**） | diy-reverse SKILL.md（或＋diy-design 输入面） |
 | 单独技能 | diy-wds-trigger Layer 1 方法本体迁入（2026-10-05 用户裁定「要迁移就都迁移完」：2 份实存 saga 文档 1,687 行（trigger-mapping 653＋dream-up-approach 1,034）迁入 diy——**安装 diy 不装 bmad·技能不得依赖 `_bmad` 路径**·裁定 9「不可用」随之解封；迁入形态/落点待裁·**开工先普查全库同类**（运行时输入依赖安装布局外路径·功能依赖型）·**未开工·待用户点头**） | diy-wds-trigger SKILL＋steps＋新迁文件 |
 
-## 待办：prd 前置机制化（攒批，审查出结论后一并处理，现在不动）
+## 待办：prd 前置机制化〔v4·批5a 已销 2026-10-25〕
 
 裁定（2026-10-03）：语义上可喂 prd 的技能要在**机制上**成为 prd 前置，攒一批一起改，不逐个零改。
 
@@ -203,13 +204,13 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 | 技能 | 产物 | 现状 | 机制化动作（待裁） |
 | --- | --- | --- | --- |
-| diy-research | research.yaml | line: mainline / phase: 1-analysis，链上无位 | registry 前置段或链位 |
-| diy-product-brief | brief.yaml | 同上 | 同上 |
-| diy-prfaq | prfaq.yaml（distillate 段自证为 PRD 输入） | 同上 | 同上 |
-| diy-brainstorm | brainstorm.yaml | line: any / anytime | frontmatter 改线或仅挂 registry 前置段 |
-| diy-cis-method | cis-method.yaml | line: any / anytime | 同上 |
-| diy-analyze | analysis.yaml（棕地现状） | line: any（候选，待裁） | 同上 |
-| diy-project-context | project-context.yaml（棕地语境） | line: any（候选，待裁） | 同上 |
+| diy-research | research.yaml | line: mainline / phase: 1-analysis，链上无位 | registry.prereq（已落 5a） |
+| diy-product-brief | brief.yaml | 同上 | registry.prereq（已落 5a） |
+| diy-prfaq | prfaq.yaml（distillate 段自证为 PRD 输入） | 同上 | registry.prereq（已落 5a） |
+| diy-brainstorm | brainstorm.yaml | line: any / anytime | registry.prereq（已落 5a；BI/BT/BA 由 Q-112 铸） |
+| diy-cis-method | cis-method.yaml | line: any / anytime | registry.prereq（已落 5a；prd 按 CM 摄取） |
+| diy-analyze | analysis.yaml（棕地现状） | line: any（候选，待裁） | 不入本批（5a 裁定 analyze 不入） |
+| diy-project-context | project-context.yaml（棕地语境） | line: any（候选，待裁） | registry.prereq（已落 5a；rules 按 PC-###） |
 
 约束：frontmatter 六字段与 registry 链序受 test_help_registry.py 双向守卫 + diy-bmb-module 镜像校验，改动须先裁后动（feedback-test-change-ruling-first）。
 约束补充（2026-10-04 用户裁定）：**前置＝可选输入通道，非必须完成的门槛**——机制化不得要求前置产物全部在场才准跑 prd；保持 prd 现行语义「上游产物缺席即跳过该源，不因此阻塞」。本批改的是通道注册与 ID 认源，不加任何在场门禁。

@@ -117,6 +117,11 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("不留悬空豁免", self.raw, "缺豁免留痕纪律")
         self.assertIn("R-###", self.raw, "未指明豁免留痕的落点（risks[] 的 R-###）")
 
+    # trace: 批 5a §7-7——OS 摄取声明（ADR/决策按 prd out_of_scope 的 OS-###/src 禁做项）
+    def test_out_of_scope_os_ingestion_declared(self):
+        self.assertIn("OS-###", self.raw, "缺 OS-### 摄取声明")
+        self.assertIn("out_of_scope", self.raw, "缺 prd out_of_scope 摄取锚")
+
     # ---------------------------------------------------------- 交付 1：双源输入
 
     # trace: C·3a §5.9 #1 / 验收 #10（四情形：主线有/无 × WDS 有/无，各有产出行为）

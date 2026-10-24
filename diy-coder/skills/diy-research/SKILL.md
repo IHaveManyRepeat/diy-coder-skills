@@ -53,13 +53,14 @@ researches:
     scope: <string>             # 范围与方法学
     date: YYYY-MM-DD            # 本条动作的日子（建这条记录那天），不随 updated 变
     status: 草稿|已定稿          # 只有本记录过了终门才写已定稿
-    findings:                   # 平铺列表；每条断言都带来源
-      - {area: <本维度分析步句柄表里取，如 customer-behavior / regulatory>, claim, sources: [{title, url, accessed}], confidence: 高|中|低}
-    synthesis: {executive_summary, key_points: [<string>], open_questions: [<string>]}
-distillate: {problem, target_users, value_props: [<string>], constraints: [<string>], open_questions: [<string>]}
+    findings:                   # 平铺列表；每条断言都带来源；落盘即铸 RF-###
+      - {id: RF-###, area: <本维度分析步句柄表里取，如 customer-behavior / regulatory>, claim, sources: [{title, url, accessed}], confidence: 高|中|低}
+    synthesis: {executive_summary, key_points: [{id: RK-###, text}], open_questions: [{id: RO-###, text}]}
+distillate: {problem, target_users: [{text, src}], value_props: [{text, src}], constraints: [{text, src}], open_questions: [{text, src}]}
                                 # 交出面（B1）：跨全部 researches[] 记录的汇总裁面——本技能只声明交这五个字段，
                                 # 不重定义摄取规则；字段级映射的唯一出处 = diy-prd 的输入清单
-                                # problem = 研究问题；value_props = 已验证的机会点；constraints = 证据支持的边界与限制
+                                # problem = 研究问题（标量）；value_props = 已验证的机会点；constraints = 证据支持的边界与限制
+                                # 四列表条目 {text, src}：src 指本产物内 RF/RK/RO 锚，只引用不复制上游文本
 revisions: []                   # {date, change, reason} —— 改既有记录时追加
 ```
 
@@ -69,7 +70,7 @@ revisions: []                   # {date, change, reason} —— 改既有记录�
 2. 写范围：只写 `{output_dir}/research.yaml`——记录与其 `revisions`。绝不碰上游产物（`prd.yaml`、`sprint.yaml`、`stories.yaml`）或源码：调研只供它们参考，绝不编辑它们。
 3. 引用纪律：每条断言至少一个来源（`title` + http(s) `url` + `accessed` 日期）加一个 `confidence` 档位。冲突的来源要摆出来，不许平均掉；无出处的说法不进 `findings[]`——若它影响结论，收尾时作为缺口落 `synthesis.open_questions`，不静默丢弃。研究缺口与局限一律记 `open_questions`，绝不抹平。
    `critical claim` ＝ 若为假就要改方向或改设计的 claim，点名五类：市场规模/增速、监管与合规义务、竞争格局与份额、协议/标准与版本事实、成本与定价；其余 claim 单源 + `confidence` 标注即可。
-4. ID 纪律：`RS-###` 一经铸定，稳定、永不重用。新主题或新维度 = 追加新记录（文件追加）；改写既有记录 = 改字段并向 `revisions` 追加 `{date, change, reason}`——先按激活第 3 步把该记录 `status` 回退 `草稿`，改完重新定稿并重跑终门（ID 不动、记录不搬）。
+4. ID 纪律：`RS-###` 一经铸定，稳定、永不重用。条目级锚同律：finding 落盘即铸 `RF-###`，synthesis 要点/待决铸 `RK-###`/`RO-###`——文件内全局唯一、顺序递增、永不重编号、永不复用；distillate 条目的 `src` 指这些锚，只引用不复制文本。新主题或新维度 = 追加新记录（文件追加）；改写既有记录 = 改字段并向 `revisions` 追加 `{date, change, reason}`——先按激活第 3 步把该记录 `status` 回退 `草稿`，改完重新定稿并重跑终门（ID 不动、记录不搬）。
 5. 重写安全：触发条件 = **既有 `RS-###` 记录的字段被改写**（含随之追加 `revisions` 条目）；**新增记录不触发** `.prev` / `check --previous`。改写前 `cp {output_dir}/research.yaml {output_dir}/research.yaml.prev`；写完跑 `python "{project-root}/.claude/skills/diy-research/scripts/research.py" check --previous {output_dir}/research.yaml.prev --json`（exit 0 = 无记录丢失）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。
 6. 终门（机械）：先写记录级 `status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-research/scripts/research.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两个实参同激活（`--output-dir` 必填、绝不缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾都等 exit 0。
 7. 假设标记（C7 三条约定）：`[假设]` 前缀只写在**值**上，不新增独立键。`--final` 前必须清零——交互态经用户确认后删前缀；**headless 态一律转成 `synthesis.open_questions` 里的一条，不删不猜**。终门扫的字段集 = 记录的全部字符串（引擎递归全扫，键与值都算；一处命中即 `ASSUMPTION_PRESENT`）。

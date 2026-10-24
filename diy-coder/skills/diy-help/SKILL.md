@@ -67,7 +67,7 @@ mode: "aggregate" | null   # 多版本总览：instances 逐实例回执（形�
 instances: [{instance, position, line, branches, output_dir, completed_steps, next_skill, blocked, notes, workflow_done}] | null
 ```
 
-- **两个源，各管各的**：链序与缺席提示在 `registry.yaml`；某节点要不要扫、扫哪些文件、是否可跳过，读该技能自己 `SKILL.md` frontmatter 的 `outputs` / `required`。本技能不复制、不重算。
+- **两个源，各管各的**：链序与缺席提示在 `registry.yaml`；某节点要不要扫、扫哪些文件、是否可跳过，读该技能自己 `SKILL.md` frontmatter 的 `outputs` / `required`。本技能不复制、不重算。登记表顶层 `prereq` 段声明 prd 的可选前置通道——不参与本技能链序导航。
 - 各产物的 status 在 `project.status`；`openapi.yaml` 的在 `x-project.status`（读不到才回落 `project.status`）。
 - 可选节点（frontmatter `required: false`）缺席=合法跳过（`notes` 给提示），在场但非 `已定稿` 才阻塞。
 - 位置与推荐只由脚本给出——本技能不重算、不预测。

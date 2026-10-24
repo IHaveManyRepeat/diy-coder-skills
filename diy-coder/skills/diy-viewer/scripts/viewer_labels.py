@@ -155,6 +155,7 @@ KEY_LABELS = {
     "api_refs": "接口锚", "axis": "审计轴", "tcs": "轴内用例",
     "not_applicable": "不适用理由", "mutation": "变异配置",
     "enabled": "是否启用",
+    "src": "来源",
     "static_checks": "静态检查链", "order": "顺序", "tool": "工具",
     "kills": "消灭问题", "gate": "门禁",
     "bugs": "缺陷记录", "class": "大类", "subclass": "中类",

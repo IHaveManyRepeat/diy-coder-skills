@@ -147,6 +147,71 @@ class PrdCheckTest(CheckBase):
         self.assertEqual(r["counts"]["goals"], 1)
         self.assertEqual(r["counts"]["features"], 1)
 
+    # trace: 批 5a——out_of_scope 两形态（继承 {src} / 自产 OS-###）＋非 OS 字段可选 src
+    def test_out_of_scope_two_forms_and_src(self):
+        # 继承 {src} + 自产 OS 合法，counts.os 计自产条数
+        doc = prd_doc(out_of_scope=[
+            {"src": "PQ-001"},
+            {"src": "prfaq.constraints[0]"},
+            {"id": "OS-001", "statement": "不做移动端"},
+        ])
+        fx.write_doc(self.root, "prd", doc)
+        r = check(self.root, "prd")
+        self.assertTrue(r["ok"], msgs(r))
+        self.assertEqual(r["counts"]["os"], 1)
+        # 混键 {id, statement, src} → 红
+        bad = prd_doc(out_of_scope=[{"id": "OS-001", "statement": "x", "src": "PQ-001"}])
+        fx.write_doc(self.root, "prd", bad)
+        r2 = check(self.root, "prd")
+        self.assertFalse(r2["ok"])
+        self.assertIn("EMPTY_FIELD", codes(r2))
+        # 重复 OS ID → DUPLICATE_ID
+        dup = prd_doc(out_of_scope=[
+            {"id": "OS-001", "statement": "a"},
+            {"id": "OS-001", "statement": "b"},
+        ])
+        fx.write_doc(self.root, "prd", dup)
+        r3 = check(self.root, "prd")
+        self.assertFalse(r3["ok"])
+        self.assertIn("DUPLICATE_ID", codes(r3))
+        # 坏 OS 格式 → ENUM_INVALID
+        badid = prd_doc(out_of_scope=[{"id": "OS-12", "statement": "a"}])
+        fx.write_doc(self.root, "prd", badid)
+        r4 = check(self.root, "prd")
+        self.assertFalse(r4["ok"])
+        self.assertIn("ENUM_INVALID", codes(r4))
+        # 纯字符串条目 → 红（两形态之外非法）
+        plain = prd_doc(out_of_scope=["旧字符串约束"])
+        fx.write_doc(self.root, "prd", plain)
+        r5 = check(self.root, "prd")
+        self.assertFalse(r5["ok"])
+        self.assertIn("EMPTY_FIELD", codes(r5))
+        # 无 out_of_scope 仍绿
+        clean = prd_doc()
+        clean.pop("out_of_scope", None)
+        fx.write_doc(self.root, "prd", clean)
+        r6 = check(self.root, "prd")
+        self.assertTrue(r6["ok"], msgs(r6))
+
+    def test_non_os_optional_src(self):
+        # users/goals/requirements/open_questions 可选 src：合法 ID 语法绿、坏语法红
+        doc = prd_doc(
+            goals=[{"id": "G-1", "goal": "目标", "metric": "指标", "src": "BI-001"}],
+            open_questions=[{"id": "Q-1", "question": "问", "answer": None, "src": "RO-001"}],
+        )
+        doc["users"][0]["src"] = "VD-001"
+        doc["features"][0]["src"] = "BI-002"
+        doc["features"][0]["requirements"][0]["src"] = "VD-002"
+        fx.write_doc(self.root, "prd", doc)
+        r = check(self.root, "prd")
+        self.assertTrue(r["ok"], msgs(r))
+        bad = prd_doc()
+        bad["users"][0]["src"] = "not a valid anchor"
+        fx.write_doc(self.root, "prd", bad)
+        r2 = check(self.root, "prd")
+        self.assertFalse(r2["ok"])
+        self.assertIn("ENUM_INVALID", codes(r2))
+
     def test_shape_violations(self):
         doc = prd_doc(frs=[
             {"id": "FR-1.1", "statement": "甲", "priority": "必须"},

@@ -171,5 +171,71 @@ class RealityToTableTests(unittest.TestCase):
                          "frontmatter 依赖边指向未安装技能：\n  " + "\n  ".join(dangling))
 
 
+# 批 5a：prd 前置通道约定集合（顶层 prereq.skills；非链位、非门禁）
+PREREQ_SKILLS = frozenset({
+    "diy-research", "diy-product-brief", "diy-prfaq",
+    "diy-brainstorm", "diy-cis-method", "diy-project-context",
+})
+
+
+class PrereqTests(unittest.TestCase):
+    """顶层 prereq 段守卫：target 在 chain、名单双向严格、六字段齐、不在链上。"""
+
+    def setUp(self):
+        self.reg = registry()
+        self.prereq = self.reg.get("prereq") or {}
+
+    def test_target_is_chain_member(self):
+        target = self.prereq.get("target")
+        self.assertTrue(target, "prereq.target 缺失")
+        chains = [s for line in self.reg["lines"].values() for s in line["chain"]]
+        self.assertIn(target, chains, "prereq.target 必须在某条 chain 上")
+
+    def test_skills_match_convention_set(self):
+        skills = set(self.prereq.get("skills") or [])
+        self.assertEqual(skills, PREREQ_SKILLS,
+                         "prereq.skills 须恰为约定六件（双向严格）：%s" % sorted(skills))
+
+    def test_each_prereq_installed_with_six_fields(self):
+        for skill in self.prereq.get("skills") or []:
+            with self.subTest(skill=skill):
+                self.assertTrue(
+                    os.path.isfile(os.path.join(SKILLS_DIR, skill, "SKILL.md")),
+                    "%s 未安装" % skill)
+                fm = frontmatter(skill)
+                self.assertIsNotNone(fm, "%s 无 frontmatter" % skill)
+                for f in SIX_FIELDS:
+                    self.assertIn(f, fm, "%s 缺六字段 %s" % (skill, f))
+
+    def test_outputs_are_bare_filenames(self):
+        for skill in self.prereq.get("skills") or []:
+            with self.subTest(skill=skill):
+                out = str(frontmatter(skill).get("outputs") or "")
+                toks = [t.strip() for t in out.split("+") if t.strip()]
+                self.assertTrue(toks, "%s outputs 为空" % skill)
+                for t in toks:
+                    self.assertRegex(t, OUTPUT_TOKEN_RE,
+                                     "%s 的 outputs 含非文件名片段 %r" % (skill, t))
+
+    def test_prereq_skills_not_in_any_chain(self):
+        chains = {s for line in self.reg["lines"].values() for s in line["chain"]}
+        for skill in self.prereq.get("skills") or []:
+            self.assertNotIn(skill, chains,
+                             "%s 是 prereq 前置，不得同时在 chain 上" % skill)
+
+    def test_line_is_target_line_or_any(self):
+        target_line = None
+        for name, line in self.reg["lines"].items():
+            if self.prereq.get("target") in line["chain"]:
+                target_line = name
+                break
+        self.assertIsNotNone(target_line, "target 所在 line 未找到")
+        for skill in self.prereq.get("skills") or []:
+            with self.subTest(skill=skill):
+                ln = frontmatter(skill).get("line")
+                self.assertIn(ln, (target_line, "any"),
+                              "%s 的 line 须为 %s 或 any，实为 %s" % (skill, target_line, ln))
+
+
 if __name__ == "__main__":
     unittest.main()

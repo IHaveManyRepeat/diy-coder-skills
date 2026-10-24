@@ -3,7 +3,7 @@
 Progress: `Ignition → [Press Release] → Customer FAQ → Internal FAQ → Verdict`
 
 **Read (input):** `{output_dir}/prfaq.yaml` 的 `prfaq.essentials` 与 `prfaq.concept_type`；第 1 步里成形的概念；合并后的子代理发现。
-**Write (output):** 新闻稿消息；`prfaq.press_release`（九键）加 `prfaq.stage: 2` 与 `updated`，同一次写入；`distillate` 更新。
+**Write (output):** 新闻稿消息；`prfaq.press_release`（九键）加 `prfaq.stage: 2` 与 `updated`，同一次写入；`distillate` 更新（四列表条目 `{text, src}`——`src` 可指 press_release 固定键，如 `prfaq.press_release.headline`）。
 
 ## 目标
 

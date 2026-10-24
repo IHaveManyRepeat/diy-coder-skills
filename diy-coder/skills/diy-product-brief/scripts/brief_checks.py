@@ -16,8 +16,8 @@ REVIEW_LENSES = ("结构", "文风")
 DOC_STATUSES = ("草稿", "已定稿")
 STAKES = ("个人兴趣", "内部", "投资人", "公开")
 DECISION_STATUSES = ("生效", "已反转")
-DISTILLATE_SCALARS = ("problem", "target_users")
-DISTILLATE_LISTS = ("value_props", "constraints", "open_questions")
+DISTILLATE_SCALARS = ("problem",)
+DISTILLATE_LISTS = ("target_users", "value_props", "constraints", "open_questions")
 
 BD_RE = re.compile(r"BD-\d{3}")
 # v4 批 3（§7-3b/d）：时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
@@ -55,23 +55,10 @@ def check_text_list(value, where, label, violations):
             violations.append(v("EMPTY_FIELD", "%s[%d]" % (where, i), "%s 条目为空" % label))
     return value
 
-def check_pairs(value, where, keys, label, violations, optional=()):
-    """映射列表：每项须为映射；keys 恒非空；optional 键出现时不得为空。"""
-    if value is None:
-        return
-    if not isinstance(value, list):
-        violations.append(v("EMPTY_FIELD", where, "%s 不是列表" % label))
-        return
-    for i, item in enumerate(value):
-        iw = "%s[%d]" % (where, i)
-        if not isinstance(item, dict):
-            violations.append(v("EMPTY_FIELD", iw, "%s 条目不是映射" % label))
-            continue
-        for key in list(keys) + [k for k in optional if k in item]:
-            if not nonempty(item.get(key)):
-                violations.append(v("EMPTY_FIELD", "%s.%s" % (iw, key), "%s 为空" % key))
+from brief_ids import (VD_RE, check_distillate_entries, check_pairs,  # noqa: E402
+                       check_vd_ids, collect_vd_ids, local_vd_set)
 
-def check_brief_section(brief, where, final, violations):
+def check_brief_section(brief, where, final, violations, warnings=None):
     if brief is None:
         violations.append(v("EMPTY_FIELD", where, "brief 缺失（单文档主体）"))
         return {}
@@ -84,9 +71,10 @@ def check_brief_section(brief, where, final, violations):
         violations.append(v("ENUM_INVALID", where + ".stakes",
                             "stakes 越界：%s（合法集 %s）" % (stakes, "|".join(STAKES))))
 
-    check_pairs(brief.get("users"), where + ".users", ("who", "need"), "users", violations)
+    check_pairs(brief.get("users"), where + ".users", ("who", "need"), "users", violations,
+                warnings=warnings)
     check_pairs(brief.get("value"), where + ".value", ("point",), "value", violations,
-                optional=("evidence",))
+                optional=("evidence",), warnings=warnings)
     check_pairs(brief.get("extra_sections"), where + ".extra_sections",
                 ("name", "content"), "extra_sections", violations)
     check_text_list(brief.get("open_questions"), where + ".open_questions",
@@ -213,26 +201,31 @@ def check_project(project, where, violations, final):
                                 "%s 须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %s" % (key, value)))
 
 # trace: 夜队列 Q-103（底单 :361 ②：check --final 加 distillate 存在＋五字段非空校验）
-def check_distillate_final(distillate, where, violations):
-    """--final 交出面义务：`distillate` 在场（映射）且五字段非空——`problem` /
-    `target_users` 非空，`value_props` / `constraints` / `open_questions` 为非空列表。
-    交给 `diy-prd` 的下游契约（字段级映射在 prd 侧）；起草期不查。"""
+# trace: 批 5a——target_users 条目化入 LISTS；四列表条目 {text, src} 硬校验（--final）
+def check_distillate_final(distillate, where, violations, local_ids=None, warnings=None):
+    """--final 交出面义务：`distillate` 在场（映射）且五字段非空——`problem` 标量非空；
+    四列表条目恰为 `{text, src}`（--final 硬校验）；src 按批 5a §3 矩阵。起草期不查。"""
     if not isinstance(distillate, dict):
         violations.append(v("EMPTY_FIELD", where + " distillate",
                             "--final 要求 distillate 非空（交出面：下游 PRD 输入）"))
         return
+    local_ids = local_ids or set()
+    warnings = warnings if warnings is not None else []
     for key in DISTILLATE_SCALARS:
         if not nonempty(distillate.get(key)):
             violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (where, key),
                                 "--final 要求 distillate.%s 非空" % key))
     for key in DISTILLATE_LISTS:
         value = distillate.get(key)
+        w = "%s distillate.%s" % (where, key)
         if not isinstance(value, list):
-            violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (where, key),
-                                "--final 要求 distillate.%s 为列表" % key))
-        elif not value:
-            violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (where, key),
+            violations.append(v("EMPTY_FIELD", w, "--final 要求 distillate.%s 为列表" % key))
+            continue
+        if not value:
+            violations.append(v("EMPTY_FIELD", w,
                                 "--final 要求 distillate.%s 非空（至少 1 条）" % key))
+            continue
+        check_distillate_entries(value, w, local_ids, True, warnings, violations)
 
 def previous_ids(previous, project_root, violations):
     """读旧稿快照的 BD-### 集合；读失败记违规并返回 None。"""

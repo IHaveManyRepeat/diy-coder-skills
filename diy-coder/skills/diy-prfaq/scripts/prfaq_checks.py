@@ -20,10 +20,13 @@ ESSENTIAL_KEYS = ("customer", "problem", "stakes", "solution")
 # 源 assets/prfaq-template.md 的九节结构（Press Release 锻造面）
 PRESS_KEYS = ("headline", "subheadline", "opening", "problem", "solution",
               "leader_quote", "how_it_works", "customer_quote", "getting_started")
-DISTILLATE_SCALARS = ("problem", "target_users")
-DISTILLATE_LISTS = ("value_props", "constraints", "open_questions")
+DISTILLATE_SCALARS = ("problem",)
+DISTILLATE_LISTS = ("target_users", "value_props", "constraints", "open_questions")
 
 PQ_RE = re.compile(r"PQ-\d{3}")
+# src 语法：ID 形态（PQ 与跨产物前缀）或点路径（a.b.c；以产物根为起点，如 prfaq.press_release.headline）
+SRC_ID_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
+SRC_PATH_RE = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+(\[\d+\])*$")
 # v4 批 3（§7-3b/d）：时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?")
 
@@ -213,9 +216,61 @@ def check_distillate(distillate, show, violations):
     if distillate is not None and not isinstance(distillate, dict):
         violations.append(v("EMPTY_FIELD", show + " distillate", "distillate 不是映射"))
 
-def check_final_duties(data, doc, project, stage, show, violations):
+
+def local_pq_set(data):
+    return faq_ids(data)
+
+
+def check_src(src, where, local_ids, final, warnings, violations):
+    """src 按批 5a §3 矩阵：本产物内 PQ 不在场＝违规；点路径语法合法（固定键在场由
+    --final 九键义务与 press_release/verdict 形状检查兜底）；语法不合＝违规。"""
+    if not nonempty(src):
+        violations.append(v("EMPTY_FIELD", where + ".src",
+                            "src 缺失（{text, src} 条目必带 src 锚）"))
+        return
+    s = str(src).strip()
+    m = re.fullmatch(r"PQ-\d{3}", s)
+    if m:
+        if s not in local_ids:
+            violations.append(v("UNKNOWN_ID", where + ".src",
+                                "src %s 不在场（本产物内 PQ 锚须真实存在）" % s))
+        return
+    if SRC_ID_RE.fullmatch(s) or SRC_PATH_RE.fullmatch(s):
+        return
+    violations.append(v("ENUM_INVALID", where + ".src",
+                        "src 须为 ID 形态或点路径，实为 %s" % s))
+
+
+def check_distillate_entries(value, where, local_ids, final, warnings, violations):
+    """distillate 列表条目：--final 硬校验 {text, src}；起草期字符串旧形态 warning。"""
+    if not isinstance(value, list):
+        violations.append(v("EMPTY_FIELD", where, "须为列表"))
+        return
+    if not value:
+        violations.append(v("EMPTY_FIELD", where, "为空（至少 1 条）"))
+        return
+    for i, item in enumerate(value):
+        iw = "%s[%d]" % (where, i)
+        if not isinstance(item, dict):
+            if final:
+                violations.append(v("EMPTY_FIELD", iw,
+                                    "条目须为 {text, src} 映射（--final 硬校验）"))
+            else:
+                warnings.append(v("EMPTY_FIELD", iw,
+                                  "条目为字符串旧形态；新写须 {text, src}（--final 将拒）"))
+            continue
+        extra = set(item) - {"text", "src"}
+        if extra:
+            violations.append(v("EMPTY_FIELD", iw,
+                                "条目混入非法键：%s（恰为 {text, src}）" % sorted(extra)))
+        if not nonempty(item.get("text")):
+            violations.append(v("EMPTY_FIELD", iw + ".text", "text 缺失或为空"))
+        check_src(item.get("src"), iw, local_ids, final, warnings, violations)
+
+def check_final_duties(data, doc, project, stage, show, violations, warnings=None):
     """--final 附加义务（任务书 §5）：stage=5 / status: 已定稿 / 九键 / verdict /
     distillate 存在且五字段非空（对称补＝与 brief/research 交出面同档）/ 零 [假设]。"""
+    warnings = warnings if warnings is not None else []
     if stage != 5:
         violations.append(v("STATUS_MISMATCH", "%s.prfaq.stage" % show,
                             "--final 要求 stage=5（终局）；当前 stage=%s" % stage))
@@ -233,6 +288,7 @@ def check_final_duties(data, doc, project, stage, show, violations):
                 violations.append(v("EMPTY_FIELD", "%s.prfaq.press_release.%s" % (show, key),
                                     "--final 要求 %s 非空" % key))
     distillate = data.get("distillate")
+    local_ids = faq_ids(data)
     if not isinstance(distillate, dict):
         violations.append(v("EMPTY_FIELD", "%s distillate" % show,
                             "--final 要求 distillate 非空（交出面：下游 PRD 输入）"))
@@ -243,12 +299,16 @@ def check_final_duties(data, doc, project, stage, show, violations):
                                     "--final 要求 distillate.%s 非空" % key))
         for key in DISTILLATE_LISTS:
             value = distillate.get(key)
+            w = "%s distillate.%s" % (show, key)
             if not isinstance(value, list):
-                violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (show, key),
+                violations.append(v("EMPTY_FIELD", w,
                                     "--final 要求 distillate.%s 为列表" % key))
-            elif not value:
-                violations.append(v("EMPTY_FIELD", "%s distillate.%s" % (show, key),
+                continue
+            if not value:
+                violations.append(v("EMPTY_FIELD", w,
                                     "--final 要求 distillate.%s 非空（至少 1 条）" % key))
+                continue
+            check_distillate_entries(value, w, local_ids, True, warnings, violations)
     if any("[假设]" in s for _p, s in walk_strings(data, "")):
         violations.append(v("ASSUMPTION_PRESENT", show,
                             "--final 要求零 [假设]；未决推断须清空或落为 "

@@ -42,22 +42,26 @@ outputs: prd.yaml
 
 | 来源 | 路径 | 摄取 |
 |---|---|---|
-| product-brief | `{output_dir}/brief.yaml` 的 `distillate` 段 | 按下表字段级映射 |
+| product-brief | `{output_dir}/brief.yaml` 的 `distillate` 段 | 条目按 `{text, src}` 读；字段级映射见下表 |
 | prfaq | `{output_dir}/prfaq.yaml` 的 `distillate` 段 | 同上 |
 | research | `{output_dir}/research.yaml` 的 `distillate` 段 | 同上 |
+| brainstorm | `{output_dir}/brainstorm.yaml` 的 `ideas[]`/`themes[]`/`actions[]` | 按条目级三级锚 `BI-###`/`BT-###`/`BA-###` 引用，不裸内容 |
+| cis-method | `{output_dir}/cis-method.yaml` 的 `sessions[]` | 按记录级 `CM-###` 引用，不裸内容 |
 | 既有 PRD | `{output_dir}/prd.yaml` | Update 模式的对账基线 |
-| project-context | `{output_dir}/project-context.yaml` 的 `rules[]`（取值键 `rule` / `why` / `where`）、`stack[]`、`architecture[]`、`integration[]` | 棕地输入——既有规则与约束（无 `distillate`，不走字段级映射）；引用它、绝不转抄——口径归 diy-project-context，此处只声明读什么 |
+| project-context | `{output_dir}/project-context.yaml` 的 `rules[]`（取值键 `rule` / `why` / `where`）、`stack[]`、`architecture[]`、`integration[]` | 棕地输入——既有规则与约束（无 `distillate`，不走字段级映射）；`rules[]` 按 `PC-###` 引用；引用它、绝不转抄——口径归 diy-project-context，此处只声明读什么 |
 | 其他材料 | 用户粘贴或给出的路径 | 自由输入 |
 
-三源的 `distillate` 同一形状，字段级映射（**摄取规则唯一出处就是本表**；上游技能只负责交出自己的字段）：
+三源的 `distillate` 同一形状（`problem` 标量 + 四列表条目 `{text, src}`），字段级映射（**摄取规则唯一出处就是本表**；上游技能只负责交出自己的字段）：
 
 | `distillate` 字段 | 落到 prd.yaml |
 |---|---|
-| `problem` | `purpose`（一句话产品定位） |
-| `target_users` | `users[]` |
-| `value_props` | `features[]` 的能力候选 |
-| `constraints` | `out_of_scope`——含 prfaq 的拒绝项形态「Not \<X\>: because \<Y\>」，**PRD 不得把它们重新提议** |
-| `open_questions` | `open_questions[]`（追加，不覆盖既有条目） |
+| `problem` | `purpose`（一句话产品定位，标量不带 src） |
+| `target_users` 条目 | `users[]` 候选（`text` 进 `need`，`name` 由会话确认；`src` 按可选 `src` 持久化；不自动生成用户） |
+| `value_props` 条目 | `features` 能力候选（用户点名才落 feature/FR，`src` 按可选 `src` 持久化；不批量自动生成） |
+| `constraints` 条目 | `out_of_scope` 两形态——继承条目纯 `{src}`、prd 自产 `{id: OS-###, statement}`；含 prfaq 的拒绝项形态「Not \<X\>: because \<Y\>」，**PRD 不得把它们重新提议** |
+| `open_questions` 条目 | `open_questions[]`（追加，不覆盖既有条目；`question=text`、`answer=null`，`src` 按可选 `src` 持久化） |
+
+`out_of_scope[]` 两形态：**继承**条目纯 `{src}`（`src` 指母体锚——与 distillate 条目的 `src` 同值，不指 distillate 条目本身）；**prd 自产**约束铸 `{id: OS-###, statement}`。任何改写/细化＝自产 OS；纯搬运才 `{src}`；禁止 `{id, statement, src}` 混形。`users[]`/`features[]`/`features[].requirements[]`/`goals[]`/`open_questions[]` 支持可选 `src`（单字符串，仅继承条目出现）。
 
 上游产物缺席即跳过该源，不因此阻塞；用户点名要读哪个源就去读哪个源。
 
@@ -87,23 +91,29 @@ users:                            # who it serves
   - id: U-1
     name: persona name
     need: what they need
+    src: <optional 继承锚>        # 单字符串，仅继承条目出现（BI/VD/PC 等）
 features:                         # grouped capabilities; requirements nested with global stable IDs
   - id: F-1
     name: string
     description: string
+    src: <optional 继承锚>
     requirements:
       - id: FR-1.1                # global, stable, never renumbered
         statement: shall-style capability statement
         plain: why this exists, one line   # optional, hard-to-grasp entries only
         priority: 必须 | 应该 | 可选
+        src: <optional 继承锚>
 nfrs:                             # cross-cutting non-functional requirements
   - id: NFR-1
     statement: string
-out_of_scope: [string]
+out_of_scope:                     # 两形态：继承纯 {src} / 自产 {id: OS-###, statement}
+  - {src: <母体锚>}               # 纯搬运：不复制上游文本
+  - {id: OS-001, statement: string} # prd 自产约束（三位零填充）
 open_questions:                   # resolved answers stay for audit; new ones appended
   - id: Q-1
     question: string
     answer: string | null
+    src: <optional 继承锚>
 revisions: []                 # {date, change, reason} —— 改既有条目时追加
 ```
 
@@ -111,7 +121,7 @@ revisions: []                 # {date, change, reason} —— 改既有条目时
 
 ## 规则
 
-- **ID 链是硬契约。** `F-*` / `FR-*` / `NFR-*` 一经铸造，永不重编号——下游产物（architecture、epics/stories、test-plan）按 ID 引用它们，绝不复制内容。Update 对账确曾改写既有条目时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 ID、不复制内容）——纯新增不算改既有。
+- **ID 链是硬契约。** `F-*` / `FR-*` / `NFR-*` / `OS-*` 一经铸造，永不重编号——下游产物（architecture、epics/stories、test-plan）按 ID 引用它们，绝不复制内容。Update 对账确曾改写既有条目时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 ID、不复制内容）——纯新增不算改既有。
 - 写能力，不写实现。技术选型归后续 architecture 步。
 - 篇幅随利害定。砍掉产品确实不需要的章节；砍时要给得出用户会接受的理由。
 - **每个未决决定都留在文件里。** 任何等用户确认的推断——包括 `strictness` 这类元数据级——都要带 `[假设]` 前缀写进 prd.yaml（前缀只写在**值**上，不新增独立键：`strictness: "[假设] 公开"`）。绝不只在对话里列确认项：用户在 HTML 里审阅，未决集合必须等于页面上黄底高亮的集合。用户批准后才可去掉前缀。

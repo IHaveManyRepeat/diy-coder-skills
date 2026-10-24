@@ -64,9 +64,11 @@ PRFAQ_DRAFT = NL.join([
     "distillate:",
     "  problem: 需求整理耗时",
     "  target_users:",
-    "  - 独立开发者",
+    "  - text: 独立开发者",
+    "    src: prfaq.essentials.customer",
     "  value_props:",
-    "  - 三分钟出草稿",
+    "  - text: 三分钟出草稿",
+    "    src: prfaq.press_release.headline",
     "  constraints: []",
     "  open_questions: []",
     "notes:",
@@ -117,13 +119,17 @@ PRFAQ_FINAL = NL.join([
     "distillate:",
     "  problem: 需求整理耗时",
     "  target_users:",
-    "  - 独立开发者",
+    "  - text: 独立开发者",
+    "    src: prfaq.essentials.customer",
     "  value_props:",
-    "  - 三分钟出草稿",
+    "  - text: 三分钟出草稿",
+    "    src: prfaq.press_release.headline",
     "  constraints:",
-    "  - 仅本地文件，不做云端同步",
+    "  - text: 仅本地文件，不做云端同步",
+    "    src: PQ-002",
     "  open_questions:",
-    "  - 成本模型缺实测数据",
+    "  - text: 成本模型缺实测数据",
+    "    src: prfaq.verdict",
     "notes:",
     "- stage: 1",
     "  content: 概念类型判定为开源项目；被挑战的假设：维护者会用云端",
@@ -296,11 +302,53 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(r3.returncode, 1, r3.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r3.stdout)["violations"]})
 
+    # trace: 批 5a——src 按 PQ/固定键/verdict；坏 src 与字符串旧形态
+    def test_distillate_src_and_shape(self):
+        # src 指不在场的 PQ → UNKNOWN_ID（--final）
+        bad = swap(PRFAQ_FINAL, "    src: PQ-002", "    src: PQ-999")
+        self.write("diy-output/prfaq.yaml", bad)
+        r = self.check("--final")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        hits = [x for x in json.loads(r.stdout)["violations"] if x["code"] == "UNKNOWN_ID"]
+        self.assertTrue(any("PQ-999" in x["msg"] for x in hits), r.stdout)
+        # 坏 src 语法 → ENUM_INVALID
+        bad2 = swap(PRFAQ_FINAL, "    src: PQ-002", "    src: not-a-valid-anchor")
+        self.write("diy-output/prfaq.yaml", bad2)
+        r2 = self.check("--final")
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
+        # 字符串旧形态 → --final 硬拒
+        legacy = swap(PRFAQ_FINAL, NL.join([
+            "  constraints:",
+            "  - text: 仅本地文件，不做云端同步",
+            "    src: PQ-002",
+        ]) + NL, NL.join(["  constraints:", "  - 仅本地文件，不做云端同步"]) + NL)
+        self.write("diy-output/prfaq.yaml", legacy)
+        r3 = self.check("--final")
+        self.assertEqual(r3.returncode, 1, r3.stdout)
+        self.assertTrue(any("{text, src}" in x["msg"]
+                            for x in json.loads(r3.stdout)["violations"]), r3.stdout)
+        # 起草期字符串旧形态 warning 不阻塞
+        draft_legacy = swap(PRFAQ_DRAFT, "    src: prfaq.press_release.headline", "")
+        # remove the src lines from draft
+        draft_legacy = NL.join(
+            line for line in PRFAQ_DRAFT.splitlines(True) if "    src: " not in line)
+        # after removing src lines the entries become incomplete — keep full {text} only warning path
+        # simpler: write draft with string entries
+        draft_legacy = swap(PRFAQ_DRAFT, NL.join([
+            "  target_users:",
+            "  - text: 独立开发者",
+            "    src: prfaq.essentials.customer",
+        ]) + NL, NL.join(["  target_users:", "  - 独立开发者"]) + NL)
+        self.write("diy-output/prfaq.yaml", draft_legacy)
+        r4 = self.check()
+        self.assertEqual(r4.returncode, 0, r4.stdout + r4.stderr)
+
     # trace: B1 diy-prfaq 验收 #2（--final 零 [假设]）
     def test_check_final_rejects_assumption_marker(self):
         # YAML 块序列项以 `[` 开头须引号包裹（未引号会破坏解析）——SKILL.md 同款纪律
-        text = swap(PRFAQ_FINAL, "  - 成本模型缺实测数据",
-                    "  - '[假设] 成本模型缺实测数据'")
+        text = swap(PRFAQ_FINAL, "  - text: 成本模型缺实测数据",
+                    "  - text: '[假设] 成本模型缺实测数据'")
         self.write("diy-output/prfaq.yaml", text)
         r = self.check("--final")
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -317,13 +365,17 @@ class CheckValidationTests(EngineCase):
             "distillate:",
             "  problem: 需求整理耗时",
             "  target_users:",
-            "  - 独立开发者",
+            "  - text: 独立开发者",
+            "    src: prfaq.essentials.customer",
             "  value_props:",
-            "  - 三分钟出草稿",
+            "  - text: 三分钟出草稿",
+            "    src: prfaq.press_release.headline",
             "  constraints:",
-            "  - 仅本地文件，不做云端同步",
+            "  - text: 仅本地文件，不做云端同步",
+            "    src: PQ-002",
             "  open_questions:",
-            "  - 成本模型缺实测数据",
+            "  - text: 成本模型缺实测数据",
+            "    src: prfaq.verdict",
         ]) + NL, "")
         self.write("diy-output/prfaq.yaml", absent)
         r = self.check("--final")
@@ -334,7 +386,9 @@ class CheckValidationTests(EngineCase):
         self.assertIn("交出面", hits[0]["msg"])
         # constraints 空列表 → 点名 distillate.constraints（对称补前该态放行）
         empty_c = swap(PRFAQ_FINAL,
-                       NL.join(["  constraints:", "  - 仅本地文件，不做云端同步"]) + NL,
+                       NL.join(["  constraints:",
+                                "  - text: 仅本地文件，不做云端同步",
+                                "    src: PQ-002"]) + NL,
                        "  constraints: []" + NL)
         self.write("diy-output/prfaq.yaml", empty_c)
         r2 = self.check("--final")
@@ -343,7 +397,9 @@ class CheckValidationTests(EngineCase):
                             for x in json.loads(r2.stdout)["violations"]), r2.stdout)
         # open_questions 空列表 → 点名 distillate.open_questions
         empty_q = swap(PRFAQ_FINAL,
-                       NL.join(["  open_questions:", "  - 成本模型缺实测数据"]) + NL,
+                       NL.join(["  open_questions:",
+                                "  - text: 成本模型缺实测数据",
+                                "    src: prfaq.verdict"]) + NL,
                        "  open_questions: []" + NL)
         self.write("diy-output/prfaq.yaml", empty_q)
         r3 = self.check("--final")

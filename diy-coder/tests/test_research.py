@@ -94,8 +94,8 @@ def read_step(rel):
         return f.read()
 
 
-def record(rid="RS-001", dimension="市场", status="已定稿"):
-    """合法研究记录夹具（--final 全义务满足）。"""
+def record(rid="RS-001", dimension="市场", status="已定稿", n=1):
+    """合法研究记录夹具（--final 全义务满足；批 5a：RF/RK/RO 对象化，n 供多记录错号）。"""
     return {
         "id": rid,
         "dimension": dimension,
@@ -105,6 +105,7 @@ def record(rid="RS-001", dimension="市场", status="已定稿"):
         "date": "2026-09-14",
         "status": status,
         "findings": [{
+            "id": "RF-%03d" % n,
             "area": "customer-behavior",
             "claim": "城市通勤用户对续航焦虑的敏感度逐年下降",
             "sources": [{
@@ -116,8 +117,8 @@ def record(rid="RS-001", dimension="市场", status="已定稿"):
         }],
         "synthesis": {
             "executive_summary": "市场增速放缓但渗透率仍上行，需以细分场景切入。",
-            "key_points": ["德法英的充电网络密度差异大于价格差异"],
-            "open_questions": ["商用车细分未覆盖，需单独研究"],
+            "key_points": [{"id": "RK-%03d" % n, "text": "德法英的充电网络密度差异大于价格差异"}],
+            "open_questions": [{"id": "RO-%03d" % n, "text": "商用车细分未覆盖，需单独研究"}],
         },
     }
 
@@ -134,10 +135,10 @@ def doc(*records):
         "researches": list(records),
         "distillate": {
             "problem": "欧洲电动车市场是否值得进入",
-            "target_users": ["整车厂与出行运营商"],
-            "value_props": ["细分场景切入机会已被证据支持"],
-            "constraints": ["仅覆盖德法英三国公开数据"],
-            "open_questions": ["商用车细分未覆盖，需单独研究"],
+            "target_users": [{"text": "整车厂与出行运营商", "src": "RF-001"}],
+            "value_props": [{"text": "细分场景切入机会已被证据支持", "src": "RK-001"}],
+            "constraints": [{"text": "仅覆盖德法英三国公开数据", "src": "RO-001"}],
+            "open_questions": [{"text": "商用车细分未覆盖，需单独研究", "src": "RO-001"}],
         },
         "revisions": [],
     }
@@ -205,7 +206,7 @@ class CheckValidationTests(EngineCase):
 
     # trace: 任务书 §3（合法记录 exit 0 唯一放行 + 计数回执）
     def test_check_final_legal_doc_passes(self):
-        self.write_doc(doc(record("RS-001", "市场"), record("RS-002", "技术")))
+        self.write_doc(doc(record("RS-001", "市场", n=1), record("RS-002", "技术", n=2)))
         r = self.check("--final")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
@@ -258,12 +259,56 @@ class CheckValidationTests(EngineCase):
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r.stdout)["violations"]})
-        dup = doc(record("RS-001"), record("RS-001"))
+        dup = doc(record("RS-001", n=1), record("RS-001", n=2))
         dup["researches"][1]["dimension"] = "领域"
         self.write_doc(dup)
         r2 = self.check()
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("DUPLICATE_ID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
+
+    # trace: 批 5a——RF/RK/RO 文件内唯一、顺序递增、src 在场；缺 ID 存量 warning 不阻塞
+    def test_anchor_ids_unique_ordered_and_src_presence(self):
+        # RF 重复 → DUPLICATE_ID
+        d = doc(record("RS-001", n=1))
+        d["researches"].append(record("RS-002", "技术", n=1))  # 同 RF-001
+        self.write_doc(d)
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("DUPLICATE_ID", {x["code"] for x in json.loads(r.stdout)["violations"]})
+        # 顺序递增：第二条 RF 数值更小 → ENUM_INVALID
+        d2 = doc(record("RS-001", n=2), record("RS-002", "技术", n=1))
+        self.write_doc(d2)
+        r2 = self.check()
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
+        # src 指不在场的 RF → UNKNOWN_ID（--final）
+        d3 = doc(record("RS-001", n=1))
+        d3["distillate"]["value_props"] = [{"text": "机会", "src": "RF-999"}]
+        self.write_doc(d3)
+        r3 = self.check("--final")
+        self.assertEqual(r3.returncode, 1, r3.stdout)
+        hits = [x for x in json.loads(r3.stdout)["violations"] if x["code"] == "UNKNOWN_ID"]
+        self.assertTrue(any("RF-999" in x["msg"] for x in hits), r3.stdout)
+        # 缺 ID（findings 无 id + synthesis 字符串旧形态）→ warning 不阻塞（存量口径）
+        legacy = doc(record("RS-001", n=1))
+        legacy["researches"][0]["findings"][0].pop("id")
+        legacy["researches"][0]["synthesis"]["key_points"] = ["旧字符串要点"]
+        legacy["researches"][0]["synthesis"]["open_questions"] = ["旧字符串待决"]
+        self.write_doc(legacy)
+        r4 = self.check()
+        self.assertEqual(r4.returncode, 0, r4.stdout + r4.stderr)
+        warns = json.loads(r4.stdout)["warnings"]
+        self.assertTrue(any("RF-###" in w["msg"] for w in warns), r4.stdout)
+        self.assertTrue(any("RK-###" in w["msg"] for w in warns), r4.stdout)
+        self.assertTrue(any("RO-###" in w["msg"] for w in warns), r4.stdout)
+        # distillate 字符串旧形态在 --final 硬拒（形态例外）
+        legacy_str = doc(record("RS-001", n=1))
+        legacy_str["distillate"]["constraints"] = ["旧字符串约束"]
+        self.write_doc(legacy_str)
+        r5 = self.check("--final")
+        self.assertEqual(r5.returncode, 1, r5.stdout)
+        self.assertTrue(any("{text, src}" in x["msg"]
+                            for x in json.loads(r5.stdout)["violations"]), r5.stdout)
 
     # trace: 任务书 §3（--final 附加义务：synthesis 三键 / findings / 零假设 / status）
     def test_check_final_duties(self):
@@ -336,7 +381,10 @@ class CheckValidationTests(EngineCase):
     def test_check_id_filter_and_unknown_id(self):
         broken = record("RS-001", "市场")
         broken["findings"] = []
-        self.write_doc(doc(broken, record("RS-002", "技术")))
+        d = doc(broken, record("RS-002", "技术", n=2))
+        # findings 清空后 RF-001 不在场——distillate 的 src 随之改指仍合法的 RK/RO
+        d["distillate"]["target_users"] = [{"text": "整车厂与出行运营商", "src": "RK-001"}]
+        self.write_doc(d)
         r = self.check("--final", "--id", "RS-002")
         self.assertEqual(r.returncode, 0, "--id 应只校验指定记录：%s" % (r.stdout + r.stderr))
         self.assertEqual(json.loads(r.stdout)["counts"]["researches"], 1)
@@ -351,7 +399,7 @@ class PreviousRoundTests(EngineCase):
     def test_previous_dropped_id_is_unstable(self):
         prev = os.path.join(self.root, "research.prev.yaml")
         write_yaml(prev, doc(record("RS-001"), record("RS-002", "技术")))
-        self.write_doc(doc(record("RS-002", "技术"), record("RS-003", "领域")))
+        self.write_doc(doc(record("RS-002", "技术", n=2), record("RS-003", "领域", n=3)))
         r = self.check("--previous", prev)
         self.assertEqual(r.returncode, 1, r.stdout)
         hits = [x for x in json.loads(r.stdout)["violations"] if x["code"] == "ID_UNSTABLE"]
@@ -362,8 +410,8 @@ class PreviousRoundTests(EngineCase):
     def test_previous_subset_passes(self):
         prev = os.path.join(self.root, "research.prev.yaml")
         write_yaml(prev, doc(record("RS-001"), record("RS-002", "技术")))
-        self.write_doc(doc(record("RS-001"), record("RS-002", "技术"),
-                           record("RS-003", "领域")))
+        self.write_doc(doc(record("RS-001", n=1), record("RS-002", "技术", n=2),
+                           record("RS-003", "领域", n=3)))
         r = self.check("--previous", prev)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
