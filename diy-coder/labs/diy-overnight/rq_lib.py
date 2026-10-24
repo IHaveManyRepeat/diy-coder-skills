@@ -29,7 +29,7 @@ def emit(payload: dict) -> None:
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
     # git 输出是 utf-8；不锁编码在 Windows 上会按 GBK 读崩（中文/特殊字节）
-    proc = subprocess.run(["git", *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    proc = subprocess.run(["git", "-c", "core.quotepath=false", *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
     if check and proc.returncode != 0:
         die(f"git {' '.join(args)} 失败：{proc.stderr.strip()}")
     return proc
