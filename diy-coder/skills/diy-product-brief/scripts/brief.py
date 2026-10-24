@@ -54,7 +54,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
 from diyc_lib import count_by, display_path, load_yaml_safe, nonempty, v, walk_strings  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from brief_checks import check_addendum, check_brief_section, check_decisions, check_distillate_final, check_project, check_review_evidence, check_revisions, list_len, previous_ids  # noqa: E402
+from brief_checks import (check_addendum, check_brief_section, check_decisions,  # noqa: E402
+                          check_distillate_final, check_project, check_review_evidence,
+                          check_revisions, check_vd_ids, collect_vd_ids, list_len,
+                          local_vd_set, previous_ids)
 
 BRIEF_FILE = "brief.yaml"
 INTENTS = ("新建", "更新", "校验")
@@ -163,7 +166,10 @@ def cmd_check(args):
         violations.append(v("EMPTY_FIELD", show, "顶层不是映射（须为 project + brief）"))
     else:
         check_project(data.get("project"), show + " project", violations, args.final)
-        brief = check_brief_section(data.get("brief"), show + " brief", args.final, violations)
+        brief = check_brief_section(data.get("brief"), show + " brief", args.final, violations,
+                                    warnings=warnings)
+        # VD 文件级序列：唯一性与顺序递增（users→value 文档序）
+        violations += check_vd_ids(collect_vd_ids(data))
         decisions = check_decisions(data.get("decisions"), show + " decisions",
                                     args.final, violations)
         addendum = check_addendum(data.get("addendum"), show + " addendum", violations)
@@ -173,7 +179,8 @@ def cmd_check(args):
                                 "--final 要求零 [假设]；未决假设须先落定"))
         if args.final:
             check_review_evidence(data, root, out, path, show, violations, warnings)
-            check_distillate_final(data.get("distillate"), show, violations)
+            check_distillate_final(data.get("distillate"), show, violations,
+                                   local_ids=local_vd_set(data), warnings=warnings)
 
     if args.previous:
         old = previous_ids(args.previous, root, violations)
