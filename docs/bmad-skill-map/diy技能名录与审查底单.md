@@ -962,7 +962,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 1. **arch-analyze 不迁移**（推翻 10-05 方向·详见该段作废注记）：处置＝4 句死路由改「套件内自理」口径——`diy-analyze/SKILL.md:27`/`:73`、`steps/01-define.md:55`（路由句删或改写）＋`tests/test_diy_analyze.py:365` 断言同源（测试面先裁后动）。
 2. **evolution A/S 路由式接线**（历史依据：wds-[A] 扫库线在原流程喂 [S] 估范围/[I] 懂代码·迁移时拆断）：**调用方**＝`diy-wds-evolution` `01-analyze`（根因需代码库证据时路由）＋`02-scope`（估范围需组件/依赖底数时路由）；**消费方**＝同两相读 `analysis.yaml`——A 相补根因取证（`question`/`risks[]`）、S 相垫 `components_touched`/`data_changes`/`risk` 估算（`AN-<nn>` 为引用锚）；**消费＝硬消费**：一旦依赖（引锚/声明需底数）`analysis.yaml` 缺席即显式报错（依三档总则一档）；不依赖的轮次（改文案类）不受阻——依赖声明与缺席报错的机械落法（引擎校验 vs 步骤纪律）随任务书呈裁。`diy-reverse`→analyze 既有路由不动；diy-analyze 本体零改动、不改名（YAGNI）。
-3. **产物依赖缺席三档总则**（新立·全库适用）：**一档**＝硬依赖（链序上游/职责承重）缺席→显式报错拒放行；**二档**＝可选源→明文声明「缺席不阻塞」；**环境依赖**（工具/git）→`TOOL_MISSING`/`NO_VCS` warning 降级（环境≠产物·brief 既有边界句）。三灰色件按影响判档处置：①`check_openapi`←prd：**一档改硬**——`x-fr` 解析遇 prd 缺席/损坏改硬 violation（exit 1），废 :466 warning 跳过；**批 4a 任务书 F-x 拟案同源跟改**（「prd 缺席 warning 跳过照 :466」改照硬口径·随批 4a 回填）；②a `create-story`←architecture：**一档改硬**（护栏面缺席拒跑或硬 violation·随任务书定形）；②b `create-story`←test-plan/sprint：**二档维持**（链序下游·创作时本就未生成）；③`readiness`←architecture：**一档甲式拒跑**——architecture 缺席→零产出 exit 1（源侧「Missing Documents (WARNING)」设计作废留痕；design.yaml 缺席维持现状）。总则立法落点（code-quality.md vs 各技能声明汇总）随任务书呈裁。
+3. **产物依赖缺席三档总则**（新立·全库适用）：**一档**＝硬依赖（链序上游/职责承重）缺席→显式报错拒放行；**二档**＝可选源→明文声明「缺席不阻塞」；**环境依赖**（工具/git）→`TOOL_MISSING`/`NO_VCS` warning 降级（环境≠产物·brief 既有边界句）。三灰色件按影响判档处置：①`check_openapi`←prd：**一档改硬**——`x-fr` 解析遇 prd 缺席/损坏改硬 violation（exit 1），废 :466 warning 跳过；**批 4a 任务书 F-x 拟案同源跟改**（「prd 缺席 warning 跳过照 :466」改照硬口径·随批 4a 回填）；②a `create-story`←architecture：**一档改硬**（护栏面缺席拒跑或硬 violation·随任务书定形）；②b `create-story`←test-plan/sprint：**二档维持**（链序下游·创作时本就未生成）；③`readiness`←architecture：**一档甲式拒跑**——architecture 缺席→零产出 exit 1（源侧「Missing Documents (WARNING)」设计作废留痕；design.yaml 缺席维持现状）。总则立法落点（code-quality.md vs 各技能声明汇总）随任务书呈裁。〔2026-10-25 任务书 §7-3 已裁·按甲〕落 `docs/code-quality.md`（dev 面单源·不随安装；安装面效力由各 SKILL 判档结果句承载）；bmb-builder 收编另登「升级事项」。
 
 **改动面（做时）**：diy-analyze SKILL/steps＋`diy-wds-evolution` 两 step＋`diyc_check_docs.py`（check_openapi）＋`story_context.py`＋`readiness.py`＋批 4a 任务书一行＋各测试面（先裁后动）。协调：evolution 两 step 与逐项化批同文件；批 4a F-x 行随 4a 开工重锚回填。
 
@@ -1022,6 +1022,17 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **〔2026-10-24 已入队〕** 夜队列 `queue-2026-10-24-221738.yaml` 之 Q-124（队尾·小件超时自动顺延；与同队列 Q-122 批5a／Q-123 批5b 零文件交集）。
 
+## 待办：diy-bmb-builder 制作技能参考任务书丰富自身能力（2026-10-25 用户提出，登记待办，现在不动）
+
+登记来源：story-flow 任务书 §7 裁断讨论中用户指示——builder 造技能时应参考既有任务书的形态与做法，丰富其"照完整设计施工"的能力。
+
+待办内容（做时一体）：
+
+- 造技能（Build/Edit）时把任务书作为设计权威输入的参考范式——吸收 story-flow 任务书的做法：已裁项＝硬化约束不许静默漂移、builder 提议撞已裁项停下呈报、树内（builder 写面）/树外集成面（tests/diyc/registry/底单）分工清单、双层门（builder 终门＋任务书 §8 批门）。
+- 形态随做时定：02-build 步骤挂参考句 vs Build 输入模板句 vs 其他。
+
+关联：与下节「bmb-builder 收编三档总则」「改技能通道制度化」同族，bmb-builder 下次接触窗口可同窗合并处理。现在不动。
+
 ## 升级事项（可选·不排期·需要才做）
 
 ### object-types 参考层类型扩展（2026-10-04 登记）
@@ -1046,3 +1057,17 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
   - **交互＝单击复制**。
   - 文案具体措辞随任务书拟。
 - 触发：需要把 viewer 里看到的任务直接喂给 AI 工具时再做。
+
+### bmb-builder 收编三档总则（2026-10-25 登记）
+
+- 候选：把 `docs/code-quality.md`「上游产物依赖三档」总则内容放入 diy-bmb-builder——以后经工厂造/改技能时，创建动作发生即自动享受判档经验（规则跟着创建动作走）。
+- 事实：总则本批（v4·批5e §7-3 裁甲）落 `docs/code-quality.md`，dev 面单源、不随安装；工厂已有嵌套套件规范先例（lint gate「母本句式逐字」）。
+- 形态随做时定：02-build 步骤挂引用句 vs suite-texts 注入（批 8 窗口）。
+- 触发：bmb-builder 下次接触窗口或批 8 母本注入批开工时，二选一顺带落。
+
+### 改技能通道制度化（2026-10-25 用户裁向，登记待办，现在不动）
+
+- 裁向：以后改 diy 技能**必须走 diy-bmb-builder（Edit 意图）通道**；通道 SKILL/steps 内置「正文规范清单」——源路径锚/拍板引语/任务批名词/迁移决策记录四类禁入（同批 6 四类）；大改配套任务书流程。
+- 三层纵深：批 6 清存量（正文 500+ 处）→ 复扫词表常态化 guard 拦增量（批 6 §8 已裁追加判据）→ 本条收入口（改技能动作本身走规范通道）。
+- 强制形态待裁：软约束（SKILL 正文规范句＋lint gate 检查）vs 硬约束（hook 拦 `skills/**` 写操作引导走通道）。
+- 触发：bmb-builder 下次接触窗口或批 6 完工时顺带落；与「bmb-builder 收编三档总则」条同窗可合并处理。
