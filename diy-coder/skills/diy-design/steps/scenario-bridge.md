@@ -2,7 +2,7 @@
 
 Progress: `[1 读功能清单] → [2 生成场景/页面树] → [3 用户确认（硬门）] → [4 落 pages[] 骨架] → 收尾路由`
 
-**Read (input):** `{output_dir}/prd.yaml` 的 `features[]`（`FG-*`）与其 `requirements[]`（`FR-*` / `F-*`，逐条 `statement`）；`{output_dir}/architecture.yaml` 的 `stack[]`（`kind: frontend` 条目的取值，见规则 6，可选）；既有 `{output_dir}/design.yaml`（续跑时）；用户在本文件各步的回答。
+**Read (input):** `{output_dir}/prd.yaml` 的 `features[]`（`FG-*`）与其 `requirements[]`（`FR-*` / `F-*`，逐条 `statement`）；`{output_dir}/architecture.yaml` 的 `stack[]`（`kind: frontend` 条目的取值，见规则 6，可选）；`{output_dir}/cis-method.yaml` 的 `sessions[]`（`method: 设计思维` 且用户指名的 `CM-###` 记录，按 `id` 取 `deliverable` 相关键——可选上游，缺席零阻塞；**引用式取用、不复制进 design.yaml**）；既有 `{output_dir}/design.yaml`（续跑时）；用户在本文件各步的回答。
 **Write (output):** `{output_dir}/design.yaml` 的 `pages[]` **骨架**（`id` / `name` / `route` / 空 `states[]`）与 `project` 块；给用户的页面树呈批。
 
 你是**设计总监**。这一段是**主线上行**：`prd.yaml` 里只有功能清单，没有页面——「桥」要从功能清单长出场景/页面树，**请用户确认后**才进逐页规格。
@@ -48,6 +48,7 @@ Progress: `[1 读功能清单] → [2 生成场景/页面树] → [3 用户确�
 ```yaml
 project: {name: <prd.yaml 的 project.name>, status: 草稿, created: , updated: }
                               # 时间键留空；建文件后跑 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type design --json 盖秒级章；每次写回产物后再跑一次（刷 updated）
+cm_refs: [CM-###]   # 顶层键、与 project 同级；可选——用户指名的设计思维记录源引用（引用式取用、不复制内容），未指名不写
 pages:
   - id: P-1            # 主线页 ID 域 `P-n`：顺序铸号、不重编不复用；WDS 线另用 SC-<nn>.P<n>
     name: <页名>

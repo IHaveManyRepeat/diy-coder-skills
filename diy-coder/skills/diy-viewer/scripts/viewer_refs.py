@@ -13,7 +13,7 @@ ID_RE = re.compile(r"\b[A-Z]{1,4}-\d+(?:\.\d+)*\b")
 ID_FULL_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
 # trace: S-15 AC-15.1 design_ref（AC 绑定 design.yaml 页面引用）入引用链，悬空即标红
 # trace: Q-111——replaced_by（TC.retired 替代用例 ID）入引用链：悬空即标红（UNKNOWN_ID 对位可见）
-REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr", "design_ref", "replaced_by",
+REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr", "design_ref", "replaced_by", "cm_refs",
             # trace: Q-112（三级稳定 ID）——brainstorm 五键由 no/索引改引 BI-###：命中即链到
             # 想法卡片、悬空即标红（UNKNOWN_ID 对位可见）。键仅 brainstorm 在用，全局加不误伤；
             # 迁移期整数引用不经 is_id_string / all-str 守卫，仍走纯文本路径

@@ -140,6 +140,19 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("零产出", self.raw, "缺源未声明零产出")
         self.assertIn("diy-wds-brief", self.raw, "非产品站未路由到 diy-wds-brief")
 
+    # trace: 批 5b §7-2/§7-1（可选上游输入声明：SKILL + scenario-bridge 双面在场；
+    #        双源门禁不改——prd/wds 两源判定与零产出断言仍走 test_dual_source_input_declared）
+    def test_optional_cis_method_upstream_declared(self):
+        self.assertIn("cis-method.yaml", self.raw, "激活时未声明可选上游 cis-method.yaml")
+        self.assertIn("CM-###", self.raw, "未声明按源 CM-### 引用")
+        self.assertIn("cm_refs", self.raw, "结构段未声明 cm_refs 引用位")
+        self.assertIn("不改双源门禁", self.raw, "可选上游未声明不改双源门禁")
+        bridge = open(os.path.join(STEPS_DIR, "scenario-bridge.md"), encoding="utf-8").read()
+        self.assertIn("cis-method.yaml", bridge, "scenario-bridge Read (input) 未挂 cis-method.yaml")
+        self.assertIn("CM-###", bridge, "scenario-bridge 未声明按 CM-### 引用")
+        self.assertIn("cm_refs", bridge, "scenario-bridge 结构字段清单未含 cm_refs")
+        self.assertIn("不复制", bridge, "scenario-bridge 未声明引用式取用、不复制")
+
     # trace: 批 5a §7-7——OS 摄取声明（实现类禁做按 OS-###/src 从 prd out_of_scope 摄取）
     def test_out_of_scope_os_ingestion_declared(self):
         self.assertIn("OS-###", self.raw, "缺 OS-### 摄取声明")

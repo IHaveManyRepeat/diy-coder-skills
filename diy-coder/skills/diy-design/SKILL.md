@@ -23,6 +23,7 @@ outputs: design.yaml
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. **源判定（门禁 + 零产出）**：读 `{output_dir}/prd.yaml` 的 `project.status: 已定稿` → **主线**（页 ID 写 `P-n`；实现类禁做按 `OS-###`/`src` 从 prd `out_of_scope` 摄取）；读 `{output_dir}/wds-scenarios.yaml` 的 `project.status: 已定稿` → **WDS 线**（页 ID 写 `SC-<nn>.P<n>`，**不得另铸 `P-*`**；按每条场景的 `design_intent`（`K|C|S|D|L`）预选活动，并**回写该键所在的 `design_status`**（值域与推进表见「规则」1）——本技能是它唯一的推进写权，`wds-scenarios.yaml` 其余字段一律只读）。
    两源俱在 → 问用户一次走哪条；**两者都缺或不满足 → 停下，一行说明缺什么，按用途路由**（产品 → `diy-prd`；官网/营销站 → `diy-wds-brief`）；**零产出**（不写空 design.yaml、不写占位原型）。字段与取数口径见 `steps/scenario-bridge.md`。
+   **可选上游（非门禁）**：仅主线——`{output_dir}/cis-method.yaml` 在场且用户指名 `CM-###`（`method: 设计思维`、`status: 已完成`）→ 按 ID 引用消费，落顶层 `cm_refs`（见「结构」；起草时写入用户指名的 ID，换指时覆盖为当前引用集）；只读、只取 `deliverable` 相关键、不复制内容；缺席零阻塞、不改双源门禁；WDS 线不消费；源文件不可解析停下告知（不静默当缺席）。
 3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
 4. **主线**跑一次探测器（SKIP 判据在回执里）：`python "{project-root}/.claude/skills/diy-design/scripts/design.py" detect --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`；脚本化时附 `--json`，分支读回执的 `has_frontend` 键）。
    - `has_frontend: true` → 读 `steps/scenario-bridge.md`（主线上行入口：先出页面树）。
@@ -72,6 +73,7 @@ tokens:
 token_scope: [<路径>…]    # audit 跳过这些路径（继承第三方 UI 系统的出口）；相对项按 `--src` 解析
 open_questions:           # 顶层键，形状同 prd.yaml 同名键；已定稿要求零 待办
   - {id: Q-1, question: 串, status: 待办 | 已解决, answer: 串}   # answer 仅 已解决 时必填
+cm_refs: [CM-###]       # 可选——设计思维分支源引用（同 feature_refs 同构）；在场时按 id 解析（悬空 UNKNOWN_ID），cis-method.yaml 缺席不判；不复制 deliverable 内容
 pages:
   - id: P-1                # 稳定 ID；下游 AC 的 design_ref 引用它（FR-2.4）；WDS 线写 SC-<nn>.P<n>
     name: 页面名
@@ -90,7 +92,7 @@ revisions: []             # {date, change, reason} —— 改既有条目时追�
 
 ## 规则
 
-1. **写范围**：只写 `{output_dir}/design.yaml` 与 `{output_dir}/prototypes/`（含各自的 `.prev` 临时件，重写既有 design.yaml 前落快照；ID 稳定性对账用 `check --previous <旧稿>`——`ID_UNSTABLE` 从快照找回，`MISSING_FILE` / `UNPARSABLE_YAML` 停手告知用户），以及 `src` 里的框架实现稿；`prd.yaml` / `architecture.yaml` / `stories.yaml` 一律只读（WDS 线仅多一处写权：`wds-scenarios.yaml` 的 `design_status`）。页级 `已移除` 的条件边按**阶段**分写者：**设计期**废弃（`[C]` 能砍/能并、场景桥、结构稿段收尾）归本技能，**实现期**确认废弃归 `diy-dev` 的 WDS 模式——同一条边两阶段显式分工，非写权漂移。
+1. **写范围**：只写 `{output_dir}/design.yaml` 与 `{output_dir}/prototypes/`（含各自的 `.prev` 临时件，重写既有 design.yaml 前落快照；ID 稳定性对账用 `check --previous <旧稿>`——`ID_UNSTABLE` 从快照找回，`MISSING_FILE` / `UNPARSABLE_YAML` 停手告知用户），以及 `src` 里的框架实现稿；`prd.yaml` / `architecture.yaml` / `stories.yaml` / `cis-method.yaml` 一律只读（WDS 线仅多一处写权：`wds-scenarios.yaml` 的 `design_status`；`cis-method.yaml` 消费按 `cm_refs` 源引用——只取相关键、不复制内容，页面仍须追溯 prd FR，规则 7 不变）。页级 `已移除` 的条件边按**阶段**分写者：**设计期**废弃（`[C]` 能砍/能并、场景桥、结构稿段收尾）归本技能，**实现期**确认废弃归 `diy-dev` 的 WDS 模式——同一条边两阶段显式分工，非写权漂移。
    **`design_status` 只写本表的值**（上游 `DESIGN_STATUS_ENUM` 九值，写表外值即上游 `ENUM_INVALID`）：讨论定稿（`[C]`/`[K]`/`[S]`/`[D]`）写 `discussed` → 结构稿首版写 `wireframed` → 规格落定（`[P]`）写 `specified` → 逐段探索/回修写 `explored` → 框架实现开工（`[H]`）写 `building` → 实现完毕写 `built` → 用户批准写 `approved` → 该场景废弃写 `removed`（`not-started` 是上游初值，本技能不写）。**该键是场景级**（与 `pages[]` 同级，页级进度仍住 `pages[].status`）：该场景**全部页**走到某阶段才写那一档，重开/恢复回 `wireframed`。
 2. **单一源与多版本（D-10）**：结构稿从 design.yaml 再生；框架页在 `src` 里长（既是设计也是实现），多版本设计同样住在 `src`、落选即废弃/删除——不留隔离副本。**删/改名/合并页面 id 前**先扫 `{output_dir}/stories.yaml` 的 `AC[].design_ref`，列出会悬空的 AC，收尾摘要**路由 `diy-epics-stories`**（`stories.yaml` 写权在它，本技能只读）。改写既有页 / 方向 / token、或废弃落选版本时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 `P-*` / `SC-<nn>.P<n>` 或字段名、不复制内容）。
 3. **配对集合以引擎回执为准**：配色配对由 `design.py check` 枚举、原样列在回执 `checked.contrast_pairs`；创作期按回执**逐对**保证 ≥4.5:1，**不自拟子集**。token 是唯一风格源，之后不得出现一次性色值/字号。**逐 token 使用规则**（色 / 间距 / 字阶各自「用在哪、不用在哪」）写进 `direction` 的禁令行与结构稿注释；组件的三档成熟度（首用内联 → 二次成模式 → 三次进设计系统）与复杂度启发式**归 `diy-wds-system`**（`components[]` 与 `data/complexity-router.md`），本技能只引用不复述。

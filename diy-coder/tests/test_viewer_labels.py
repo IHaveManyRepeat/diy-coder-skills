@@ -918,6 +918,56 @@ class ViewerC12PathLinkTests(_Fixture):
         self.assertIn('class="badge b-neutral">亮</span>', html)
 
 
+# ---------------------------------------------------------------------------
+# 批 5b（cm_refs——design.yaml 顶层引用位：中文标签 + REF_KEYS 悬空标红）
+# ---------------------------------------------------------------------------
+
+DESIGN_CM_REFS_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 草稿",
+    "direction: 一句话方向",
+    "frontend_framework: html",
+    "cm_refs: [CM-001, CM-999]",
+    "pages:",
+    "- id: P-1",
+    "  name: 首页",
+    "  route: /",
+    "  states:",
+    "  - {name: 悬停, signals: [图标]}",
+    "revisions: []",
+])
+
+
+class ViewerCmRefsTests(_Fixture):
+    # trace: 批 5b 1a/1c（cm_refs 中文标签零裸键 + 入 REF_KEYS——CM-001 可解析出链接、
+    #        CM-999 悬空标红；CM-### 被 ID_FULL_RE 天然覆盖，零新逻辑）
+    def test_cm_refs_labelled_and_dangling_marked(self):
+        self.write("design.yaml", DESIGN_CM_REFS_DOC)
+        self.write("cis-method.yaml", NL.join([
+            "project:",
+            "  name: fx",
+            "sessions:",
+            "- id: CM-001",
+            "  method: 设计思维",
+            "  topic: 探索导航",
+            "  date: 2026-10-25",
+            "  status: 已完成",
+            "  current_step: 7",
+            "revisions: []",
+        ]))
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = self.page("design")
+        self.assertIn("设计思维引用", html, "cm_refs 中文标签缺失")
+        self.assertNotIn(">cm_refs<", html, "cm_refs 英文键名直出")
+        # 可解析：CM-001 链到 cis-method 页
+        self.assertIn('href="cis-method.html#CM-001"', html, "cm_refs 已解析 ID 未出链接")
+        # 悬空：CM-999 标红（同 design_ref 款）
+        self.assertIn("引用不存在", html, "cm_refs 悬空未标红")
+        self.assertIn("CM-999", html)
+
+
 class ViewerC12AssetsPageTests(_Fixture):
     # trace: C·12 W2（裁定 C12-2 ①）——assets 产物清单页：按活动分组 + 相对路径直链
     NINE_DOCS = ("prd", "architecture", "epics", "stories", "test-plan", "design",
