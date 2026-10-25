@@ -4,13 +4,16 @@
 import io
 
 import os
+import re
 import sys
+
+import yaml
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import v  # noqa: E402
+from diyc_lib import load_yaml, v  # noqa: E402
 
 from design_a11y import SemanticChecker, collect_a11y_extras, collect_ds_violations, page_gate_violations, required_states, touch_target_min_for  # noqa: E402
 from design_lib import PAGE_STATUSES, check_previous, contrast, dark_pair_violation, emit, norm_path, page_id_violations, read_design, receipt  # noqa: E402
@@ -27,6 +30,65 @@ MODES = ("亮", "暗", "双模")  # 默认主题模式；双模 触发 tokens �
 META_KEYS = ("title", "description", "og_image")  # 三子键全可选；在场则须非空字符串
 
 OPEN_QUESTION_STATUSES = ("待办", "已解决")
+
+# 批 5b（裁 1b）：cm_refs 轻校验——CM-### 三位零填充（同 cis_method_lib.CM_RE 口径）
+CM_REF_RE = re.compile(r"CM-\d{3}\Z")
+
+
+def _validate_cm_refs(design, base, base_name, violations):
+    """cm_refs 顶层引用位校验（批 5b 裁 1b 轻校验）：可选键——缺席零触。
+
+    形状错（null / 非列表 / 非 CM-### / 空串 / 重复）恒判；解析核只在
+    cis-method.yaml 在场时按 sessions[].id 做——文件缺席不判（不静默升格），
+    文件损坏同样不判（设计引擎不越权判他产物完整性；输入面纪律管停下告知）。
+    """
+    if "cm_refs" not in design:
+        return
+    refs = design.get("cm_refs")
+    where = base_name + " cm_refs"
+    if not isinstance(refs, list):
+        violations.append(v("UNPARSABLE_YAML", where,
+                            "cm_refs 不是列表（可选顶层引用位，形如 [CM-###]）"))
+        return
+    seen = set()
+    for i, ref in enumerate(refs):
+        cell = "%s cm_refs[%d]" % (base_name, i)
+        if not (isinstance(ref, str) and ref.strip()):
+            if ref is None or isinstance(ref, str):
+                violations.append(v("EMPTY_FIELD", cell,
+                                    "cm_refs[%d] 为空（写非空 CM-### 或整键省略）" % i))
+            else:
+                violations.append(v("UNPARSABLE_YAML", cell,
+                                    "cm_refs[%d]=%r 不是字符串（形如 CM-###）" % (i, ref)))
+            continue
+        rid = ref.strip()
+        if not CM_REF_RE.fullmatch(rid):
+            violations.append(v("UNPARSABLE_YAML", cell,
+                                "cm_refs[%d]=%r 不是 CM-###（三位零填充）" % (i, rid)))
+            continue
+        if rid in seen:
+            violations.append(v("DUPLICATE_ID", cell,
+                                "cm_refs 的 %s 重复（同一记录只引一次）" % rid))
+            continue
+        seen.add(rid)
+    # 解析核：cis-method.yaml 在场才按 id 判悬空；缺席/损坏不判
+    cm_path = os.path.join(base, "cis-method.yaml")
+    if not os.path.isfile(cm_path):
+        return
+    try:
+        cm_doc = load_yaml(cm_path)
+    except yaml.YAMLError:
+        return
+    ids = set()
+    sessions = cm_doc.get("sessions") if isinstance(cm_doc, dict) else None
+    if isinstance(sessions, list):
+        for s in sessions:
+            if isinstance(s, dict) and isinstance(s.get("id"), str):
+                ids.add(s["id"].strip())
+    for rid in sorted(seen):
+        if rid not in ids:
+            violations.append(v("UNKNOWN_ID", "%s cm_refs" % base_name,
+                                "cm_refs 的 %s 不在 cis-method.yaml sessions[] 内" % rid))
 
 def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail 列违规清单（含形状问题）
     design, violations = read_design(args.design)
@@ -279,6 +341,7 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 TC-14.3.3 design.yaml �
                                 "pages[%s].meta 不是映射（三子键 %s）" % (pid, "/".join(META_KEYS))))
     _validate_open_questions(design, base_name, violations)
     _validate_final_gate(design, base_name, violations)
+    _validate_cm_refs(design, base, base_name, violations)
     if getattr(args, "previous", None):
         violations += check_previous(design, args.previous, base_name)
     result = receipt("validate", not violations, file=rel, violations=violations,

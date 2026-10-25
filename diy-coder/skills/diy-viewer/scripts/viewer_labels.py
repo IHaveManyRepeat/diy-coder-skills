@@ -170,6 +170,8 @@ KEY_LABELS = {
     "color": "颜色", "spacing": "间距", "typography": "字号", "scale": "缩放",
     "pages": "页面", "states": "状态", "signals": "信号",
     "prototype": "结构稿", "implementation": "实现路径", "design_ref": "关联页面",
+    # trace: 批 5b（cm_refs——design.yaml 顶层 cm_refs 引用位，同 feature_refs 同构）
+    "cm_refs": "设计思维引用",
     "unit": "基准单位", "family_base": "正文字体", "family_heading": "标题字体",
     "bg": "背景", "surface": "表面", "text": "文字", "text_muted": "次要文字",
     "accent": "强调色", "accent_text": "强调色文字",

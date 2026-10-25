@@ -918,6 +918,51 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual(t2.returncode, 0, t2.stdout)
         self.assertTrue(json.loads(t2.stdout)["ok"])
 
+    # trace: 批 5b 裁 1b（cm_refs 轻校验四态：合法解析／悬空 UNKNOWN_ID／
+    #        文件缺席不判／形状非法——null·非列表·重复·非 CM-###）
+    def test_cm_refs_light_validation_four_states(self):
+        def design_with(refs_line):
+            return GOOD_DESIGN.replace(
+                "frontend_framework: html",
+                "frontend_framework: html" + NL + refs_line)
+        cm = NL.join([
+            "project: {name: mini}",
+            "sessions:",
+            "- {id: CM-001, method: 设计思维, topic: 探索, date: 2026-10-24,",
+            "  status: 已完成, current_step: 7}",
+            "revisions: []",
+        ])
+        self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
+        # 态一：合法解析（cm_refs 在场 + cis-method.yaml 在场且命中）
+        self.write("diy-output/cis-method.yaml", cm)
+        dpath = self.write("diy-output/design.yaml", design_with("cm_refs: [CM-001]"))
+        v = run_engine(["validate", "--design", dpath, "--json"])
+        self.assertEqual(v.returncode, 0, v.stdout)
+        self.assertTrue(json.loads(v.stdout)["ok"], v.stdout)
+        # 态二：悬空（cis-method.yaml 在场但 sessions 无 CM-999）→ UNKNOWN_ID
+        self.write("diy-output/design.yaml", design_with("cm_refs: [CM-999]"))
+        v2 = run_engine(["validate", "--design", dpath, "--json"])
+        self.assertEqual(v2.returncode, 1, v2.stdout)
+        self.assertIn("UNKNOWN_ID",
+                      {x["code"] for x in json.loads(v2.stdout)["violations"]}, v2.stdout)
+        # 态三：文件缺席不判（同悬空 ID，删 cis-method.yaml → 过）
+        os.remove(os.path.join(self.root, "diy-output", "cis-method.yaml"))
+        v3 = run_engine(["validate", "--design", dpath, "--json"])
+        self.assertEqual(v3.returncode, 0, v3.stdout)
+        self.assertTrue(json.loads(v3.stdout)["ok"], v3.stdout)
+        # 态四：形状非法（null / 非列表 / 重复 / 非 CM-### 形态）
+        for bad, code in (("cm_refs:", "UNPARSABLE_YAML"),
+                          ("cm_refs: CM-001", "UNPARSABLE_YAML"),
+                          ("cm_refs: [CM-001, CM-001]", "DUPLICATE_ID"),
+                          ("cm_refs: [xx-1]", "UNPARSABLE_YAML")):
+            with self.subTest(shape=bad):
+                self.write("diy-output/design.yaml", design_with(bad))
+                vr = run_engine(["validate", "--design", dpath, "--json"])
+                self.assertEqual(vr.returncode, 1, vr.stdout)
+                self.assertIn(code,
+                              {x["code"] for x in json.loads(vr.stdout)["violations"]},
+                              vr.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

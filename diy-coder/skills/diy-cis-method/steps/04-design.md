@@ -207,6 +207,6 @@ _源 step 7：Plan next iteration_
    `python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`
 4. 渲染（静默旁路）：渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 5. 交付摘要：一句话给「设计挑战 + 入选概念 + 原型方式 + 测试结论（证实 / 证伪的假设）+ 下一轮优先动作」，附未决问题（无则写「无」）。
-6. 路由：要把验证过的概念落成 UI / 接口契约 → `diy-design`（主链，产 `design.yaml`；本分支不产契约）；想再走一条方法流 → 回 `./01-route.md` 另起分支（新铸 `CM-###`）。
+6. 路由：要把验证过的概念落成 UI / 接口契约 → `diy-design`（主链，产 `design.yaml`；携本记录 `CM-###` 作源引用，设计侧按 ID 取值、不复制本分支内容；本分支不产契约）；想再走一条方法流 → 回 `./01-route.md` 另起分支（新铸 `CM-###`）。
 
 这是本分支的最后一个步骤小节——终门 exit 0 后本轮到此结束，不再读任何 `steps/` 文件。
