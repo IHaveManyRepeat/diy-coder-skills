@@ -92,7 +92,8 @@ prfaq:
   customer_faq: []
   internal_faq: []
   verdict: {}
-distillate: {problem: ..., target_users: [<string>], value_props: [], constraints: [], open_questions: []}
+distillate: {problem: ..., target_users: [], value_props: [], constraints: [], open_questions: []}
+                              # 四列表条目 {text, src}——src 锚 = PQ-###／prfaq.press_release.<固定键>／prfaq.verdict
 notes: []
 revisions: []
 ```
@@ -111,11 +112,13 @@ notes:
 
 然后把下游相关的条目路由进五个桶（后续每个阶段都用同一套切分）：
 
-- `distillate.problem` —— 被磨锐后的问题，以及它暗含的需求信号。
-- `distillate.target_users` —— 它服务谁：画像、市场、采纳人群。
-- `distillate.value_props` —— 站住的东西：差异点、经得起追问的主张。
-- `distillate.constraints` —— 技术上下文、平台偏好、范围信号（in / out / maybe）、资源与时间线估计、硬限制、**任何因某个理由被否决、下游不得再提议的东西——写成约束 `Not <X>: because <Y>`**（这条就是拦住 PRD 重提被砍选项的机制），以及已定且影响采纳的竞争情报。
-- `distillate.open_questions` —— 未知项、未决项（含仍开放的竞争情报），以及后续判定里的「欠火候」/「地基裂缝」条目落成的可执行项。
+- `distillate.problem` —— 被磨锐后的问题，以及它暗含的需求信号（标量）。
+- `distillate.target_users` —— 它服务谁：画像、市场、采纳人群。条目 `{text, src}`。
+- `distillate.value_props` —— 站住的东西：差异点、经得起追问的主张。条目 `{text, src}`。
+- `distillate.constraints` —— 技术上下文、平台偏好、范围信号（in / out / maybe）、资源与时间线估计、硬限制、**任何因某个理由被否决、下游不得再提议的东西——写成约束 `Not <X>: because <Y>`**（这条就是拦住 PRD 重提被砍选项的机制），以及已定且影响采纳的竞争情报。条目 `{text, src}`。
+- `distillate.open_questions` —— 未知项、未决项（含仍开放的竞争情报），以及后续判定里的「欠火候」/「地基裂缝」条目落成的可执行项。条目 `{text, src}`。
+
+四列表条目的 `src` 锚 = `PQ-###`／以产物根为起点的点路径 `prfaq.press_release.<固定键>`／`prfaq.verdict`——只引用不复制上游文本。
 
 否决是约束，不是故事：*为什么*与*是什么*同行，条目才能对下游读者自足。围绕它的教练过程——试过什么、探索过又搁置什么、备选感觉如何——留在 `notes`。
 

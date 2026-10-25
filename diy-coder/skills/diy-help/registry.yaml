@@ -3,6 +3,7 @@
 # 职责边界 —— 本表**只装 frontmatter 六字段没有的东西**：
 #   本表       = ① 链序（哪些技能成一条链、什么次序）② 可选节点缺席时的提示文案
 #                ③ 线级：入口技能 / 执行技能 / 下游待登记的说明
+#                ④ prd 前置通道：可选输入，非链位/非门禁，help 不消费
 #   frontmatter（各技能自己的 SKILL.md，六字段封闭集）= 自我声明
 #                line / phase / precededBy / followedBy / required / outputs
 # 两者**不重复任何一条事实**：本表不提产物文件名（从该技能 `outputs` 派生）、
@@ -15,6 +16,18 @@
 # diy-bmb-module 强制镜像对称校验会把它固化成真。
 
 version: 1
+
+# ④ prd 前置通道（可选输入，非链位、非门禁）：skills 里的产物可喂 prd 摄取面
+# （按源稳定 ID 引用，见 diy-prd 输入清单）；help 导航不消费本段。
+prereq:
+  target: diy-prd
+  skills:
+    - diy-research
+    - diy-product-brief
+    - diy-prfaq
+    - diy-brainstorm
+    - diy-cis-method
+    - diy-project-context
 
 lines:
   # 线名 mainline / wds 是机器锚点，逐字保留；label 给人看

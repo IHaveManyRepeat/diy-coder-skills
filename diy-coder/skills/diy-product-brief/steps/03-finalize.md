@@ -15,7 +15,7 @@ Progress: `Discovery → Draft → [Finalize]`
 
 没有东西静默消失，也没有条目未经复核。然后收尾线头：清掉每处 `[假设]`（用户确认即摘掉前缀，否则降为一行 `open_questions`），并把每条 `open_questions` 了结或显式挂起。
 
-**补完交出面。**顶层 `distillate` 五字段（`problem` / `target_users` / `value_props` / `constraints` / `open_questions`）逐字段过一遍并落盘——它是交给 `diy-prd` 的下游契约，`--final` 校验存在且非空，缺哪个字段门就报哪个。按上面的清账结果归拢：被排除项进 `constraints`，了结不了的挂进 `open_questions`。
+**补完交出面。**顶层 `distillate` 五字段（`problem` 标量 / 四列表条目 `{text, src}`）逐字段过一遍并落盘——它是交给 `diy-prd` 的下游契约，`--final` 校验存在、非空且条目形态，缺哪个字段门就报哪个。按上面的清账结果归拢：被排除项进 `constraints`（`src` 逐条落 VD 或结构段位锚），了结不了的挂进 `open_questions`。存量缺 ID 的用户/价值条目由引擎出 warning 不阻塞——新写必铸 `VD-###`。
 
 ## 2. 润色
 

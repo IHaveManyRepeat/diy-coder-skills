@@ -20,14 +20,14 @@ Progress: `Scope → 02–05 (dimension) → [Synthesis]`
 填本记录的 `synthesis`（`--final` 要求三键齐全）：
 
 - `executive_summary` —— 2–3 段：范围、最关键的 findings、以及战略含义。它是产物的总览——源模板的 "Research Overview" 占位角色由它承担。
-- `key_points` —— 决策者必须记住的 3–7 条：目标达成情况及其证据、最重要的建议、以及实质性风险。
-- `open_questions` —— 研究缺口、局限，以及再做哪些调研能解决。来源局限与低置信区落在这里，绝不抹平；起草期带 `[假设]` 前缀的推断在定稿前必须落到这里。
+- `key_points` —— 决策者必须记住的 3–7 条：目标达成情况及其证据、最重要的建议、以及实质性风险。每条铸 `RK-###`，形状 `{id, text}`。
+- `open_questions` —— 研究缺口、局限，以及再做哪些调研能解决。来源局限与低置信区落在这里，绝不抹平；起草期带 `[假设]` 前缀的推断在定稿前必须落到这里。每条铸 `RO-###`，形状 `{id, text}`。
 
 源技能的三维度长文结构（目录、编号章节、附录）由这条 YAML 记录承接：每一章的内容都是一条带 `area` 与来源的 finding，执行摘要 = `synthesis.executive_summary`，方法学 = `scope`（该字段注释即 scope and methodology）；**检索轨迹本身不落盘**（过程叙事留在对话里）。检索覆盖范围若本身就是局限（只跑 N 条查询 / 只覆盖某区域），按规则 3 写成 `synthesis.open_questions` 的局限条目。绝不把同样的话在别处重写一遍。
 
 ## 汇入 distillate（交出面）
 
-`synthesis` 是本记录的综述；顶层 `distillate` 是跨全部 `researches[]` 的汇裁面——交给 `diy-prd` 的下游契约，本步落盘。把本记录的下游相关结论归拢进五字段：`problem`（研究问题）、`target_users`（结论指向的受众）、`value_props`（已验证的机会点）、`constraints`（证据支持的边界与限制，含「Not <X>: because <Y>」被排除项）、`open_questions`（跨记录仍开放的缺口，与本记录 `synthesis.open_questions` 对得上）。首条记录收尾时建段，后续记录收尾时并入；只声明交什么，字段级映射的唯一出处是 `diy-prd` 的输入清单。`--final` 校验它存在且五字段非空，缺字段门不放行。
+`synthesis` 是本记录的综述；顶层 `distillate` 是跨全部 `researches[]` 的汇裁面——交给 `diy-prd` 的下游契约，本步落盘。把本记录的下游相关结论归拢进五字段：`problem`（研究问题，标量）、`target_users`（结论指向的受众）、`value_props`（已验证的机会点）、`constraints`（证据支持的边界与限制，含「Not <X>: because <Y>」被排除项）、`open_questions`（跨记录仍开放的缺口，与本记录 `synthesis.open_questions` 对得上）。后四字段条目化为 `{text, src}`——`src` 指向本产物内的 RF/RK/RO 锚，只引用不复制上游文本。首条记录收尾时建段，后续记录收尾时并入；只声明交什么，字段级映射的唯一出处是 `diy-prd` 的输入清单。`--final` 校验它存在且五字段非空，缺字段门不放行。
 
 ## 来源文档与质检
 

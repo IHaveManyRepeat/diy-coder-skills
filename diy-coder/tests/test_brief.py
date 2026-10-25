@@ -63,10 +63,12 @@ BRIEF_YAML = NL.join([
     "  solution: 薄主文件 + 步骤文件 + 领域引擎",
     "  pitch: 把 BMAD 技能改造成 diy 形态。",
     "  users:",
-    "  - who: 独立开发者",
+    "  - id: VD-001",
+    "    who: 独立开发者",
     "    need: 一条命令拿回校验结论",
     "  value:",
-    "  - point: 确定性下沉到引擎",
+    "  - id: VD-002",
+    "    point: 确定性下沉到引擎",
     "    evidence: 引擎测试通过",
     "  open_questions:",
     "  - 是否需要多实例支持",
@@ -77,13 +79,17 @@ BRIEF_YAML = NL.join([
     "distillate:",
     "  problem: 手工迁移逐字对照成本高",
     "  target_users:",
-    "  - 独立开发者",
+    "  - text: 独立开发者",
+    "    src: VD-001",
     "  value_props:",
-    "  - 确定性下沉到引擎",
+    "  - text: 确定性下沉到引擎",
+    "    src: VD-002",
     "  constraints:",
-    "  - 仅本批 5 技能",
+    "  - text: 仅本批 5 技能",
+    "    src: brief.extra_sections[0]",
     "  open_questions:",
-    "  - 是否需要多实例支持",
+    "  - text: 是否需要多实例支持",
+    "    src: brief.open_questions[0]",
     "decisions:",
     "- id: BD-001",
     "  date: '2026-09-14'",
@@ -108,18 +114,22 @@ BRIEF_FINAL_YAML = (BRIEF_YAML
                     .replace("revisions: []",
                              NL.join(["revisions: []", "review_refs: [ER-001]"])))
 
-# 交出面块（--final 校验对象；Q-103 夹具改写锚——移除/清字段用）
+# 交出面块（--final 校验对象；Q-103 夹具改写锚——移除/清字段用；批 5a：{text, src}）
 DISTILLATE_BLOCK = NL.join([
     "distillate:",
     "  problem: 手工迁移逐字对照成本高",
     "  target_users:",
-    "  - 独立开发者",
+    "  - text: 独立开发者",
+    "    src: VD-001",
     "  value_props:",
-    "  - 确定性下沉到引擎",
+    "  - text: 确定性下沉到引擎",
+    "    src: VD-002",
     "  constraints:",
-    "  - 仅本批 5 技能",
+    "  - text: 仅本批 5 技能",
+    "    src: brief.extra_sections[0]",
     "  open_questions:",
-    "  - 是否需要多实例支持",
+    "  - text: 是否需要多实例支持",
+    "    src: brief.open_questions[0]",
 ]) + NL
 
 # 配套评审台账（diy-editorial-review 形态）：target 基准 = project-root 相对 + 正斜杠
@@ -293,10 +303,53 @@ class CheckValidationTests(EngineCase):
         self.assertTrue(any(v["code"] == "ENUM_INVALID" and "created" in v["where"]
                             for v in data["violations"]))
 
-    # trace: 任务书 §2.5 用例 3（--final 定稿记录 exit 0，含评审证据链齐备）
+    # trace: 批 5a——VD 唯一/顺序、src 在场、缺 ID 存量 warning
+    def test_vd_ids_unique_ordered_and_src(self):
+        # VD 重复 → DUPLICATE_ID
+        bad = BRIEF_YAML.replace("  - id: VD-002", "  - id: VD-001")
+        self.write("diy-output/brief.yaml", bad)
+        r = self.check()
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("DUPLICATE_ID", {x["code"] for x in json.loads(r.stdout)["violations"]})
+        # 顺序递增：users=VD-002 后接 value=VD-001 → ENUM_INVALID
+        order = BRIEF_YAML.replace("  - id: VD-001" + NL, "  - id: VD-002" + NL) \
+                          .replace("  - id: VD-002" + NL, "  - id: VD-001" + NL, 1)
+        # 上面会先改 users 为 VD-002，再把第一处 VD-002（即 users）改回 VD-001——需手工构造
+        order = BRIEF_YAML.replace("  - id: VD-001", "  - id: VD-002", 1) \
+                          .replace("  - id: VD-002", "  - id: VD-001", 1)
+        # 简洁做法：直接对调两行 id
+        order = BRIEF_YAML.replace("id: VD-001", "id: VD-002X") \
+                          .replace("id: VD-002", "id: VD-001") \
+                          .replace("id: VD-002X", "id: VD-002")
+        # users=VD-002, value=VD-001 → 逆序
+        order = BRIEF_YAML.replace("  - id: VD-001", "  - id: VD-002")  # 两处都变 VD-002 → 重复
+        order = NL.join(
+            ("  - id: VD-002" + NL) if "id: VD-001" in line
+            else (("  - id: VD-001" + NL) if "id: VD-002" in line else line)
+            for line in BRIEF_YAML.splitlines(True))
+        self.write("diy-output/brief.yaml", order)
+        r2 = self.check()
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
+        # src 指不在场的 VD → UNKNOWN_ID（--final）
+        d = BRIEF_FINAL_YAML.replace("    src: VD-002", "    src: VD-999")
+        self.write_final(d)
+        r3 = self.check("--final")
+        self.assertEqual(r3.returncode, 1, r3.stdout)
+        hits = [x for x in json.loads(r3.stdout)["violations"] if x["code"] == "UNKNOWN_ID"]
+        self.assertTrue(any("VD-999" in x["msg"] for x in hits), r3.stdout)
+        # 缺 ID（users/value 无 id）→ warning 不阻塞（删 id 键、保留条目本体）
+        legacy = BRIEF_YAML.replace("  - id: VD-001" + NL + "    who: 独立开发者",
+                                    "  - who: 独立开发者") \
+                           .replace("  - id: VD-002" + NL + "    point: 确定性下沉到引擎",
+                                    "  - point: 确定性下沉到引擎")
+        self.assertNotEqual(legacy, BRIEF_YAML, "夹具锚点未命中")
+        self.write("diy-output/brief.yaml", legacy)
+        r4 = self.check()
+        self.assertEqual(r4.returncode, 0, r4.stdout + r4.stderr)
+        warns = json.loads(r4.stdout)["warnings"]
+        self.assertTrue(any("VD-###" in w["msg"] for w in warns), r4.stdout)
 
-    # 批 3 追裁②（2026-10-15）：created/updated 非空门——留空＝未盖章红
-    # （brief 不在 CHECK_TYPES，防忘跑 stamp 闭环断口在此补齐）
     def test_check_rejects_empty_created(self):
         self.write("diy-output/brief.yaml",
                    BRIEF_YAML.replace("created: '2026-09-14'", "created: ''"))
@@ -305,6 +358,7 @@ class CheckValidationTests(EngineCase):
         self.assertFalse(data["ok"])
         self.assertTrue(any(v["code"] == "EMPTY_FIELD" and "created" in v["where"]
                             for v in data["violations"]))
+
     def test_check_final_legal_record_passes(self):
         self.write_final()
         r = self.check("--final")
@@ -358,7 +412,10 @@ class CheckValidationTests(EngineCase):
                             for x in json.loads(r2.stdout)["violations"]), r2.stdout)
         # 列表字段空 → 点名 distillate.constraints（五字段非空）
         empty_list = DISTILLATE_BLOCK.replace(
-            "  constraints:" + NL + "  - 仅本批 5 技能" + NL, "  constraints: []" + NL)
+            "  constraints:" + NL
+            + "  - text: 仅本批 5 技能" + NL
+            + "    src: brief.extra_sections[0]" + NL,
+            "  constraints: []" + NL)
         self.assertNotEqual(empty_list, DISTILLATE_BLOCK, "夹具锚点未命中")
         self.write_final(BRIEF_FINAL_YAML.replace(DISTILLATE_BLOCK, empty_list))
         r3 = self.check("--final")
@@ -511,12 +568,14 @@ class FinalEvidenceTests(EngineCase):
         engine = shutil.copyfile(ENGINE, os.path.join(fake, "brief.py"))
         shutil.copy2(os.path.join(HERE, "..", "skills", "diy-product-brief", "scripts", "brief_checks.py"),
                      os.path.join(fake, "brief_checks.py"))
+        shutil.copy2(os.path.join(HERE, "..", "skills", "diy-product-brief", "scripts", "brief_ids.py"),
+                     os.path.join(fake, "brief_ids.py"))
         # 引擎副本跨技能 import diyc_lib（parents[2] 同构），沙盒补拷库四件
         # （lib 入口 + base/report/docs 分域件）
         lib = os.path.join(self.root, "skills", "diy-tools", "scripts")
         os.makedirs(lib, exist_ok=True)
         for name in ("diyc_lib.py", "diyc_lib_base.py",
-                     "diyc_lib_report.py", "diyc_lib_docs.py"):
+                     "diyc_lib_report.py", "diyc_lib_docs.py", "diyc_distillate.py"):
             shutil.copy2(os.path.join(HERE, "..", "skills", "diy-tools", "scripts", name),
                          os.path.join(lib, name))
         r = subprocess.run([sys.executable, engine, "check", "--final",

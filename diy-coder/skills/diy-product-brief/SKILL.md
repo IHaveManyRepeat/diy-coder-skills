@@ -56,13 +56,14 @@ brief:
   problem: string                          # 痛点、谁有感、今天怎么应付
   solution: string                         # 体验与结果，不是实现
   pitch: string                            # 独立成篇的 2-3 段叙事
-  users: [{who, need}]                     # 主要用户：是谁、要什么
-  value: [{point, evidence?}]              # 差异点，以及成功怎么度量
+  users: [{id: VD-###, who, need}]         # 主要用户：是谁、要什么；VD 与 value 共用文件级序列（按文档块顺序铸造、只增不改不重排）
+  value: [{id: VD-###, point, evidence?}]  # 差异点，以及成功怎么度量；同上共用 VD 序列
   open_questions: [string]                 # 未知项：就摆在已知项旁边
   assumptions: [string]                    # 起草期带 [假设] 前缀；已定稿时必空
   extra_sections: [{name, content}]        # 形状随产品——默认结构装不下的章节
-distillate: {problem, target_users, value_props: [<string>], constraints: [<string>], open_questions: [<string>]}
+distillate: {problem, target_users: [{text, src}], value_props: [{text, src}], constraints: [{text, src}], open_questions: [{text, src}]}
                                            # 交出面：交给 diy-prd 的下游契约（字段级映射定义在 diy-prd 侧，本技能只声明交什么）；
+                                           # problem 标量；四列表条目 {text, src}——src 指 VD 锚或结构段位，只引用不复制；
                                            # constraints = 硬限制与被排除项（能写成「Not <X>: because <Y>」的照此写），供 PRD 落 out_of_scope
 decisions:                                 # 规范记忆：每个决策、变更与推翻，发生即记
   - {id: BD-001, date: YYYY-MM-DD, decision, rationale, status: 生效|已反转}   # BD-### 顺序递增、稳定，永不重编号或重用；date 是该次决策的日子，不随 updated 变

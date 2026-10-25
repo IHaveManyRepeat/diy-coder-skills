@@ -45,7 +45,7 @@ Progress: `Ignition → Press Release → Customer FAQ → [Internal FAQ] → Ve
 
 向 `notes` 追加一条（`{stage: 4, content}`），写过程叙事：面板的问题是怎么过下来的，战略定位判定背后的教练过程。
 
-然后更新 `distillate` 的下游事实：资源与时间线估计、技术依赖，以及任何被否选项（写成 `Not <X>: because <Y>`）进 `distillate.constraints`；未解风险，以及每个未知项连同它的"要弄清它需要什么"，进 `distillate.open_questions`。
+然后更新 `distillate` 的下游事实：资源与时间线估计、技术依赖，以及任何被否选项（写成 `Not <X>: because <Y>`）进 `distillate.constraints`；未解风险，以及每个未知项连同它的"要弄清它需要什么"，进 `distillate.open_questions`。四列表条目写 `{text, src}`——`src` 指向相关 `PQ-###` 或 press_release 固定键，不复制上游文本。
 
 ## 本阶段完成
 

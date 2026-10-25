@@ -140,6 +140,11 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("零产出", self.raw, "缺源未声明零产出")
         self.assertIn("diy-wds-brief", self.raw, "非产品站未路由到 diy-wds-brief")
 
+    # trace: 批 5a §7-7——OS 摄取声明（实现类禁做按 OS-###/src 从 prd out_of_scope 摄取）
+    def test_out_of_scope_os_ingestion_declared(self):
+        self.assertIn("OS-###", self.raw, "缺 OS-### 摄取声明")
+        self.assertIn("out_of_scope", self.raw, "缺 prd out_of_scope 摄取锚")
+
     # trace: C·3a §3.1 ★ 裁定 7 订正（pages[].id 值域按来源线定）
     def test_page_id_domain_per_line(self):
         self.assertIn("SC-<nn>.P<n>", self.raw, "WDS 线页 ID 域未落")

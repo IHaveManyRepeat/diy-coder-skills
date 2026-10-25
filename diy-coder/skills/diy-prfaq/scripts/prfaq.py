@@ -143,7 +143,7 @@ def cmd_check(args):
                 check_previous(faq_ids(data), args.previous, show, root, violations)
             if args.final:
                 check_final_duties(data, doc, data.get("project"), stage, show,
-                                   violations)
+                                   violations, warnings)
 
     counts = {
         "stage": stage,

@@ -47,7 +47,7 @@ Progress: `Ignition → Press Release → [Customer FAQ] → Internal FAQ → Ve
 
 向 `notes` 追加一条（`{stage: 3, content}`），写过程叙事：客户问题是怎么逐个过下来的，取舍判定在当时感觉如何。
 
-然后更新 `distillate` 的下游事实：取舍决定（发布阻断 / 快速跟进 / 接受）与范围信号进 `distillate.constraints`——否决写成 `Not <X>: because <Y>`；影响采纳的竞争情报，已定的进 `distillate.constraints`、仍开放的进 `distillate.open_questions`。
+然后更新 `distillate` 的下游事实：取舍决定（发布阻断 / 快速跟进 / 接受）与范围信号进 `distillate.constraints`——否决写成 `Not <X>: because <Y>`；影响采纳的竞争情报，已定的进 `distillate.constraints`、仍开放的进 `distillate.open_questions`。四列表条目写 `{text, src}`——`src` 指向相关 `PQ-###` 或 press_release 固定键，不复制上游文本。
 
 ## 本阶段完成
 
