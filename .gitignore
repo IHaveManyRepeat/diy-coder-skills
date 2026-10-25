@@ -17,3 +17,6 @@ diy-output/
 
 # 技能质量分析产物（本地保留可查阅，不入库）
 .analysis/
+
+# story-flow 立项对标资产（本地保留，不入库）
+story-pipeline/
