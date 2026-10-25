@@ -8,6 +8,8 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import nonempty, v, walk_strings  # noqa: E402
+from diyc_distillate import (SRC_ID_RE, SRC_PATH_RE,  # noqa: E402
+                             check_distillate_entries, check_src)
 
 DIMENSIONS = ("市场", "技术", "领域")
 STATUSES = ("草稿", "已定稿")
@@ -22,9 +24,6 @@ RK_RE = re.compile(r"RK-\d{3}")
 RO_RE = re.compile(r"RO-\d{3}")
 # 条目级稳定 ID：finding=RF / synthesis 要点=RK / 待决=RO；src 锚只认这三前缀（本产物内）
 ANCHOR_ID_RE = re.compile(r"(RF|RK|RO)-\d{3}")
-# src 语法：ID 形态（RF/RK/RO 之外也放过——跨产物 ID 形态）或点路径（a.b.c）
-SRC_ID_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
-SRC_PATH_RE = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+(\[\d+\])*$")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 URL_RE = re.compile(r"https?://\S+")
 
@@ -90,55 +89,6 @@ def check_anchor_ids(found):
 def local_anchor_set(data):
     """本文件全部合法 RF/RK/RO 锚集合（src 在场性核验用）。"""
     return {"%s-%03d" % (p, n) for p, n, _w in collect_anchor_ids(data)}
-
-
-def check_src(src, where, local_ids, final, warnings, violations):
-    """src 按批 5a §3 矩阵：①本产物内 ID 不在场＝违规 ④语法不合＝违规；
-    跨产物 ID/结构键缺源文件信息时只做语法与本产物内核验。"""
-    if not nonempty(src):
-        violations.append(v("EMPTY_FIELD", where + ".src",
-                            "src 缺失（{text, src} 条目必带 src 锚）"))
-        return
-    s = str(src).strip()
-    m = ANCHOR_ID_RE.fullmatch(s)
-    if m:  # 本产物内锚 RF/RK/RO：必须在场
-        if s not in local_ids:
-            violations.append(v("UNKNOWN_ID", where + ".src",
-                                "src %s 不在场（本产物内 RF/RK/RO 锚须真实存在）" % s))
-        return
-    if SRC_ID_RE.fullmatch(s):  # 跨产物 ID 形态：语法合法；跨产物解析归 prd 侧
-        return
-    if SRC_PATH_RE.fullmatch(s):  # 点路径：语法合法
-        return
-    violations.append(v("ENUM_INVALID", where + ".src",
-                        "src 须为 ID 形态（RF/RK/RO 或跨产物前缀）或点路径，实为 %s" % s))
-
-
-def check_distillate_entries(value, where, local_ids, final, warnings, violations):
-    """distillate 列表条目：--final 硬校验 {text, src} 形态；起草期有形状错也报。"""
-    if not isinstance(value, list):
-        violations.append(v("EMPTY_FIELD", where, "须为列表"))
-        return
-    if not value:
-        violations.append(v("EMPTY_FIELD", where, "为空（至少 1 条）"))
-        return
-    for i, item in enumerate(value):
-        iw = "%s[%d]" % (where, i)
-        if not isinstance(item, dict):
-            if final:
-                violations.append(v("EMPTY_FIELD", iw,
-                                    "条目须为 {text, src} 映射（--final 硬校验）"))
-            else:
-                warnings.append(v("EMPTY_FIELD", iw,
-                                  "条目为字符串旧形态；新写须 {text, src}（--final 将拒）"))
-            continue
-        extra = set(item) - {"text", "src"}
-        if extra:
-            violations.append(v("EMPTY_FIELD", iw,
-                                "条目混入非法键：%s（恰为 {text, src}）" % sorted(extra)))
-        if not nonempty(item.get("text")):
-            violations.append(v("EMPTY_FIELD", iw + ".text", "text 缺失或为空"))
-        check_src(item.get("src"), iw, local_ids, final, warnings, violations)
 
 
 # trace: 源技能引用纪律（每条断言带来源）——sources 非空 + url http(s) + accessed 日期
@@ -339,7 +289,8 @@ def check_distillate_final(distillate, show, local_ids, warnings):
             violations.append(v("EMPTY_FIELD", where,
                                 "--final 要求 distillate.%s 非空（至少 1 条）" % key))
             continue
-        check_distillate_entries(value, where, local_ids, True, warnings, violations)
+        check_distillate_entries(value, where, ANCHOR_ID_RE, "RF/RK/RO", local_ids,
+                                 True, warnings, violations)
     return violations
 
 

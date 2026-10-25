@@ -575,7 +575,7 @@ class FinalEvidenceTests(EngineCase):
         lib = os.path.join(self.root, "skills", "diy-tools", "scripts")
         os.makedirs(lib, exist_ok=True)
         for name in ("diyc_lib.py", "diyc_lib_base.py",
-                     "diyc_lib_report.py", "diyc_lib_docs.py"):
+                     "diyc_lib_report.py", "diyc_lib_docs.py", "diyc_distillate.py"):
             shutil.copy2(os.path.join(HERE, "..", "skills", "diy-tools", "scripts", name),
                          os.path.join(lib, name))
         r = subprocess.run([sys.executable, engine, "check", "--final",

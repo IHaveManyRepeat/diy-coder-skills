@@ -8,10 +8,9 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import nonempty, v  # noqa: E402
+from diyc_distillate import check_distillate_entries, check_src  # noqa: E402
 
 VD_RE = re.compile(r"VD-\d{3}")
-SRC_ID_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
-SRC_PATH_RE = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+(\[\d+\])*$")
 
 
 def check_pairs(value, where, keys, label, violations, optional=(), warnings=None):
@@ -79,49 +78,3 @@ def check_vd_ids(found):
 
 def local_vd_set(data):
     return {"VD-%03d" % n for n, _w in collect_vd_ids(data)}
-
-
-def check_src(src, where, local_ids, final, warnings, violations):
-    """src 按批 5a §3 矩阵：本产物内 VD 不在场＝违规；语法不合＝违规。"""
-    if not nonempty(src):
-        violations.append(v("EMPTY_FIELD", where + ".src",
-                            "src 缺失（{text, src} 条目必带 src 锚）"))
-        return
-    s = str(src).strip()
-    m = re.fullmatch(r"VD-\d{3}", s)
-    if m:
-        if s not in local_ids:
-            violations.append(v("UNKNOWN_ID", where + ".src",
-                                "src %s 不在场（本产物内 VD 锚须真实存在）" % s))
-        return
-    if SRC_ID_RE.fullmatch(s) or SRC_PATH_RE.fullmatch(s):
-        return
-    violations.append(v("ENUM_INVALID", where + ".src",
-                        "src 须为 ID 形态或点路径，实为 %s" % s))
-
-
-def check_distillate_entries(value, where, local_ids, final, warnings, violations):
-    """distillate 列表条目：--final 硬校验 {text, src}；起草期字符串旧形态 warning。"""
-    if not isinstance(value, list):
-        violations.append(v("EMPTY_FIELD", where, "须为列表"))
-        return
-    if not value:
-        violations.append(v("EMPTY_FIELD", where, "为空（至少 1 条）"))
-        return
-    for i, item in enumerate(value):
-        iw = "%s[%d]" % (where, i)
-        if not isinstance(item, dict):
-            if final:
-                violations.append(v("EMPTY_FIELD", iw,
-                                    "条目须为 {text, src} 映射（--final 硬校验）"))
-            else:
-                warnings.append(v("EMPTY_FIELD", iw,
-                                  "条目为字符串旧形态；新写须 {text, src}（--final 将拒）"))
-            continue
-        extra = set(item) - {"text", "src"}
-        if extra:
-            violations.append(v("EMPTY_FIELD", iw,
-                                "条目混入非法键：%s（恰为 {text, src}）" % sorted(extra)))
-        if not nonempty(item.get("text")):
-            violations.append(v("EMPTY_FIELD", iw + ".text", "text 缺失或为空"))
-        check_src(item.get("src"), iw, local_ids, final, warnings, violations)

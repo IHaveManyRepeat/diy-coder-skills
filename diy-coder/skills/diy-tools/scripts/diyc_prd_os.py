@@ -8,11 +8,10 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_check_docs_lib import dup, nonempty, req  # noqa: E402
+from diyc_distillate import SRC_ID_RE, SRC_PATH_RE, src_syntax_ok  # noqa: E402 (re-export)
 
 # 批 5a：OS-### 自产约束 ID；src 语法（ID 形态或点路径）
 OS_RE = re.compile(r"OS-\d{3}")
-SRC_ID_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
-SRC_PATH_RE = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+(\[\d+\])*$")
 
 
 def check_src(src, w, report):
@@ -23,7 +22,7 @@ def check_src(src, w, report):
         report.add("EMPTY_FIELD", w + ".src", "src 出现时不得为空")
         return
     s = str(src).strip()
-    if SRC_ID_RE.fullmatch(s) or SRC_PATH_RE.fullmatch(s):
+    if src_syntax_ok(s):
         return
     report.add("ENUM_INVALID", w + ".src",
                "src 须为 ID 形态或点路径，实为 %s" % s)

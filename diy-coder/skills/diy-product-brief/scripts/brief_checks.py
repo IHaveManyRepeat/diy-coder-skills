@@ -55,8 +55,9 @@ def check_text_list(value, where, label, violations):
             violations.append(v("EMPTY_FIELD", "%s[%d]" % (where, i), "%s 条目为空" % label))
     return value
 
-from brief_ids import (VD_RE, check_distillate_entries, check_pairs,  # noqa: E402
+from brief_ids import (VD_RE, check_pairs,  # noqa: E402
                        check_vd_ids, collect_vd_ids, local_vd_set)
+from diyc_distillate import check_distillate_entries  # noqa: E402
 
 def check_brief_section(brief, where, final, violations, warnings=None):
     if brief is None:
@@ -225,7 +226,7 @@ def check_distillate_final(distillate, where, violations, local_ids=None, warnin
             violations.append(v("EMPTY_FIELD", w,
                                 "--final 要求 distillate.%s 非空（至少 1 条）" % key))
             continue
-        check_distillate_entries(value, w, local_ids, True, warnings, violations)
+        check_distillate_entries(value, w, VD_RE, "VD", local_ids, True, warnings, violations)
 
 def previous_ids(previous, project_root, violations):
     """读旧稿快照的 BD-### 集合；读失败记违规并返回 None。"""
