@@ -3,11 +3,13 @@
 
 子命令：
   collect  开工前体检的确定性部分（只读检测，绝不写文件）：
-             1 门禁（源技能 step-01 文档发现的门禁化）：prd.yaml / epics.yaml / stories.yaml
-               三件套在场，且 epics / stories 的 project.status 为 已定稿；不满足 →
-               零产出 exit 1 + 结构化拒绝回执（violations 带码 + gate.route 给路由）。
-               architecture.yaml / design.yaml 缺席不拒（源 step-04「无 UX 文档」分支保留；
-               源 step-01 §4「Missing Documents (WARNING)」→ architecture 缺席出 warning）。
+             1 门禁（源技能 step-01 文档发现的门禁化）：prd.yaml / architecture.yaml /
+               epics.yaml / stories.yaml 在场，且 epics / stories 的 project.status 为
+               已定稿；不满足 → 零产出 exit 1 + 结构化拒绝回执（violations 带码 +
+               gate.route 给路由）。architecture 一档（批 5e §3-D）：缺席/损坏 → gate
+               拒跑、route diy-architecture；只判在场/可解析，不要求已定稿。
+               design.yaml 缺席维持现状（零检查零 warning；源 step-04「无 UX 文档」
+               分支保留）。
              2 需求清点单：读结构化 prd.yaml（features[].requirements[] 全量 FR + priority +
                归属 feature；nfrs[]）与 epics / stories 计数——替换源技能 step-02「人工通读
                md 提取全量 FR/NFR」的确定性下沉（diy 产物即结构化单一源）。
@@ -44,7 +46,7 @@ from diyc_lib import display_path, diyc_script_path, emit_via, nonempty, v  # no
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from readiness_checks import cmd_check  # noqa: E402
-from readiness_lib import ARCH_FILE, DIYC_TYPES, compute_coverage, doc_summaries, gate_check, load_docs, read_requirements  # noqa: E402
+from readiness_lib import DIYC_TYPES, compute_coverage, doc_summaries, gate_check, load_docs, read_requirements  # noqa: E402
 
 # ---------------------------------------------------------------- diyc 委派
 
@@ -141,16 +143,6 @@ def cmd_collect(args):
     payload["gate"] = {"passed": passed, "files": payload["docs"], "route": route}
     payload["violations"] = violations
 
-    arch = docs[ARCH_FILE]
-    if arch["err"] is not None:
-        warnings.append(v("UNPARSABLE_YAML",
-                          display_path(os.path.join(out, ARCH_FILE), root),
-                          "architecture.yaml 不可解析，架构对齐评估受限"))
-    elif not arch["present"]:
-        # 源 step-01 §4「Missing Documents (WARNING)」：缺席只降评估完整性，不拒
-        warnings.append(v("MISSING_FILE", display_path(os.path.join(out, ARCH_FILE), root),
-                          "architecture.yaml 未找到：架构对齐评估将不完整（不阻断体检）"))
-
     if not passed:
         payload["warnings"] = warnings
         emit_via(payload, args.json, human_collect)
@@ -195,7 +187,7 @@ def human_collect(payload):
         return
     counts = payload["counts"]
     coverage = payload["coverage"]
-    print("门禁通过：prd / epics / stories 齐备且定稿。")
+    print("门禁通过：prd / architecture 在场，epics / stories 齐备且定稿。")
     print("需求清点：FR %d（必须 %d）· NFR %d · epic %d · story %d · AC %d"
           % (counts["frs"], counts["must_frs"], counts["nfrs"],
              counts["epics"], counts["stories"], counts["acs"]))

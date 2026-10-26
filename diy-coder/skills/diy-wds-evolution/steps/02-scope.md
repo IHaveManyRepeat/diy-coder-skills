@@ -2,8 +2,8 @@
 
 Progress: `[1 载分析 → 2 定义变更 → 3 微旅程映射 → 4 范围估算 → 5 场景落盘与呈批（用户关卡 2）] → ./03-design.md`
 
-**Read (input):** 本产物 `rounds[EV-<nn>].analysis` 的 `root_cause` / `hypothesis` / `selection`（上一文件已落盘）；`data/kaizen-principles.md` 的「小批量」纪律；用户对「改哪一页、改到什么程度」的回答。
-**Write (output):** `rounds[EV-<nn>].scope`（源 [S] 场景文档 6 段）+ `rounds[EV-<nn>].status: 范围`；给用户的一次变更呈批（**用户关卡 2**）。
+**Read (input):** 本产物 `rounds[EV-<nn>].analysis` 的 `root_cause` / `hypothesis` / `selection`（上一文件已落盘）；`{output_dir}/analysis.yaml`（**按需，非必读**——第 4 步估范围已声明依赖时才读）；`data/kaizen-principles.md` 的「小批量」纪律；用户对「改哪一页、改到什么程度」的回答。
+**Write (output):** `rounds[EV-<nn>].scope`（源 [S] 场景文档 6 段）+ `rounds[EV-<nn>].status: 范围`；依赖锚有增补时同步写轮级 `analysis_refs`（键位与一档语义见 SKILL.md 结构段与第 4 步接线句）；给用户的一次变更呈批（**用户关卡 2**）。
 
 你是**范围的守门人**。这一步的全部价值是**把「想要」压成「这一次只做这一件」**——源侧反复强调 Kaizen 的规模判据是「一次一条工作流里的一段」，超了就退回。
 
@@ -85,6 +85,14 @@ Progress: `[1 载分析 → 2 定义变更 → 3 微旅程映射 → 4 范围估
 - **风险三档**：`Low`（纯视觉）/ `Medium`（行为改变）/ `High`（结构性改变）
 
 **`High` 的处理**（源侧把 Kaizen 的规模判据压在「1–2 周」）：`High` **不禁止**，但必须在本步**明说「这已经超出一次 Kaizen 的常规体量」**并把拆分选项摆给用户——拆，还是就承认这是一次 Kaikaku（源 `data/existing-product-guide.md` 的术语：改革式的大改属 Phases 1–7，不属本技能）。
+
+**接线句（S 相·引用＋推定分离，已裁口径）**：已声明依赖（轮级 `analysis_refs`，与 A 相共享）时读 `{output_dir}/analysis.yaml`——
+- `components_touched` 按 `analysis.yaml.components[]` 的 `AN-<nn>` 锚**引用**：`new` / `modified` / `removed` 三分**由当次勘察判定**，不搬产物字段（产物无此三字段）；
+- `data_changes` 由 `data_flow` / `dependencies` ＋当次勘察**推定**，不搬产物字段；
+- `scope.risk` ＝**本次变更**风险（`Low`|`Medium`|`High`），**不直接搬** `risks[].severity`（高 / 中 / 低）——语义差已裁：scope 三字段是「变更×代码库」的关系属性、随轮落 `rounds[].scope`；`analysis.yaml` 是多轮共用的实体记录。
+- **依赖已声明而 `analysis.yaml` 缺席 / 损坏 / 锚悬空 → 停手显式报错（一档）**——`check` 机械核 `MISSING_FILE` / `UNPARSABLE_YAML` / `UNKNOWN_ID`；不依赖的轮次不写声明、不受阻。
+
+**步骤纪律（引用 `analysis.yaml` 五条，01-analyze 同款）**：① 只有本轮范围与 `analysis.yaml.question` 相关才可引其 AN 锚——**引擎不判语义**，会话须显式核对；② 只引 `project.status: 已定稿` 的 analysis；若引草稿，须在 `analysis.sources[]` / `open_questions` 明示「证据未定稿」；③ `analysis.yaml` 是**单问产物**——不同问题新跑 `diy-analyze`，不得拿旧分析充数；④ 不依赖轮次不写 `analysis_refs`、不读 `analysis.yaml`；⑤ `AN-<nn>` 唯一 / 顺序有效性归 `diy-analyze` 终门，本技能只核引用锚在场，不重复实现该校验。
 
 **产出键**：`scope.pages_affected[]` / `scope.components_touched` / `scope.data_changes` / `scope.risk`。
 

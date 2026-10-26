@@ -172,6 +172,8 @@ KEY_LABELS = {
     "prototype": "结构稿", "implementation": "实现路径", "design_ref": "关联页面",
     # trace: 批 5b（cm_refs——design.yaml 顶层 cm_refs 引用位，同 feature_refs 同构）
     "cm_refs": "设计思维引用",
+    # trace: 批 5e（analysis_refs——wds-evolution 轮级 A/S 分析依赖声明，AN-<nn> 锚）
+    "analysis_refs": "分析引用",
     "unit": "基准单位", "family_base": "正文字体", "family_heading": "标题字体",
     "bg": "背景", "surface": "表面", "text": "文字", "text_muted": "次要文字",
     "accent": "强调色", "accent_text": "强调色文字",

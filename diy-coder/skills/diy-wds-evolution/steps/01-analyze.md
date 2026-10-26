@@ -2,8 +2,8 @@
 
 Progress: `[1 载上下文与入口门禁] → 2 双轨上下文与改进目标清单 → 3 优先级排序与选定目标（用户关卡 1 + 铸骨架） → 4 分析落盘与根因合成 → ./02-scope.md`
 
-**Read (input):** `{output_dir}/` 下**任一**既有产物（`design.yaml` / `sprint.yaml` / `wds-*.yaml`——本轮要演进的对象）；`list` 回执（续接检测）；`data/kaizen-principles.md` 与 `data/priority-framework.md`（`data/` 路径从本技能安装目录解析）；用户在本文件各步的回答与它带来的产品数据（分析后台数字 / 反馈原话 / 团队观察）。
-**Write (output):** `{output_dir}/wds-evolution.yaml` 的顶层骨架（经 `init` 铸造）——`project` + `kaizen_priority`（公式 / 三档量表 / 候选清单）+ 首轮记录 `EV-01`（铸号、`analysis` 段）+ `revisions`；给用户的 Product Snapshot 与候选清单呈批。
+**Read (input):** `{output_dir}/` 下**任一**既有产物（`design.yaml` / `sprint.yaml` / `wds-*.yaml`——本轮要演进的对象）；`list` 回执（续接检测）；`{output_dir}/analysis.yaml`（**按需，非必读**——第 4 步根因要代码库证据、且本轮已声明依赖时才读）；`data/kaizen-principles.md` 与 `data/priority-framework.md`（`data/` 路径从本技能安装目录解析）；用户在本文件各步的回答与它带来的产品数据（分析后台数字 / 反馈原话 / 团队观察）。
+**Write (output):** `{output_dir}/wds-evolution.yaml` 的顶层骨架（经 `init` 铸造）——`project` + `kaizen_priority`（公式 / 三档量表 / 候选清单）+ 首轮记录 `EV-01`（铸号、`analysis` 段）+ `revisions`；依赖代码库证据的轮次加写轮级 `analysis_refs`（`AN-<nn>` 依赖声明，见第 4 步接线句）；给用户的 Product Snapshot 与候选清单呈批。
 
 你是**Kaizen 迭代的主持人**（源 wds-8 的 Freya 线）。动作只有一件：**把「下一步该改什么」问出来并排出先后**——你带来 Kaizen 方法论与优先级框架，用户带来产品知识、真实数字与团队观察。这一段【不做】方案设计、【不做】范围估算，那些是 02-scope 之后的事。
 
@@ -149,9 +149,13 @@ analysis:
 - **根因必须先立住再往下走**（源侧原文 `Root cause must be identified before moving forward`）。
 - `targets_considered` **全留**：未选中的目标是下一轮的原料（源 [P] step-5 的「回看剩余目标」靠它）。
 
-**产出键**：`rounds[EV-<nn>].analysis` 的四键（`root_cause` / `hypothesis` / `validation_plan` / `selected_rationale`）+ `snapshot` / `sources[]` / `current_state` / `targets_considered[]`。
+**接线句（A 相·依赖代码库证据时）**：根因要代码库证据 → 先跑 `diy-analyze`（产物 `{output_dir}/analysis.yaml`）→ 引其 `components[]` 的 `AN-<nn>` 组件锚 → 把锚写入**轮级** `rounds[].analysis_refs` 依赖声明（键在轮级、不进 `analysis`/`scope` 段内——A/S 两相共享同一组锚，语义见 SKILL.md 结构段）。**依赖已声明而 `analysis.yaml` 缺席 / 损坏 / 锚悬空 → 停手显式报错（一档）**——`check` 机械核 `MISSING_FILE` / `UNPARSABLE_YAML` / `UNKNOWN_ID`，不降级继续；不依赖的轮次（改文案类）不写声明、不受阻。
 
-**落盘**：`rounds[0].analysis` + `rounds[0].status: 分析` + `project.updated`。
+**步骤纪律（引用 `analysis.yaml` 五条，02-scope 同款）**：① 只有本轮问题与 `analysis.yaml.question` 相关才可引其 AN 锚——**引擎不判语义**，会话须显式核对；② 只引 `project.status: 已定稿` 的 analysis；若引草稿，须在 `analysis.sources[]` / `open_questions` 明示「证据未定稿」；③ `analysis.yaml` 是**单问产物**——不同问题新跑 `diy-analyze`，不得拿旧分析充数；④ 不依赖轮次不写 `analysis_refs`、不读 `analysis.yaml`；⑤ `AN-<nn>` 唯一 / 顺序有效性归 `diy-analyze` 终门，本技能只核引用锚在场，不重复实现该校验。
+
+**产出键**：`rounds[EV-<nn>].analysis` 的四键（`root_cause` / `hypothesis` / `validation_plan` / `selected_rationale`）+ `snapshot` / `sources[]` / `current_state` / `targets_considered[]`；依赖代码库证据时 + 轮级 `analysis_refs: [AN-<nn>]`。
+
+**落盘**：`rounds[0].analysis` + `rounds[0].status: 分析` + `project.updated`（依赖轮次同批写入 `rounds[0].analysis_refs`）。
 
 **检查点（六拍）**：① 生成 → ② 落盘（`analysis` 段 + 状态推进）→ ③ 分隔 → ④ 呈出四键摘要（Snapshot 一带而过，重点念 root_cause 与 hypothesis）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 

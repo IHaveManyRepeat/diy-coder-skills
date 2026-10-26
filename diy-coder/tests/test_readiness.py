@@ -2,12 +2,13 @@
 """diy-readiness-check 确定性引擎 e2e 测试（B1 批 W4，任务书 §2.5/§6）。
 
 覆盖：
-- 用例 1：门禁拒绝（缺 stories.yaml / epics project.status 非已定稿）→ exit 1 + 结构化拒绝
-          + 路由 + 零产出
-- 用例 2：collect 需求清点（FR/NFR 全量 + 优先级 + 归属 feature；epic/story/AC 计数）
+- 用例 1：门禁拒绝（缺 stories.yaml / 缺 architecture.yaml / epics project.status
+          非已定稿）→ exit 1 + 结构化拒绝 + 路由 + 零产出
+- 用例 2：collect 需求清点（FR/NFR 全量 + 优先级 + 归属 feature；epic/story/AC 计数）；
+          architecture 在场 + design 缺席 → exit 0 零 warning
 - 用例 3：collect 委派 diyc（真跑子进程；必须 FR 缺口同时出现在 diyc.check.violations
           与本引擎 coverage.gaps —— 委派不重实现规则）
-- 用例 4：collect 在 diyc 缺席时降级（TOOL_MISSING warning + 不崩 + 仍 exit 0）
+- 用例 4：collect 在 diyc 缺席时降级（architecture 就位；TOOL_MISSING warning + 不崩 + 仍 exit 0）
 - 用例 5：check 合法记录 --final exit 0 唯一放行；违规码（verdict 一致性 / severity 枚举 /
           evidence 缺失 / 零假设 / counts 与集合一致）
 - 用例 6：SKILL.md 契约冒烟（母本 §1 / §2 / §3 / §4 / §5 / §6 中文定稿逐字 + 四段中文标题
@@ -118,6 +119,14 @@ STORIES_YAML = NL.join([
     "  status: 待办",
 ]) + NL
 
+ARCH_YAML = NL.join([
+    "project:",
+    "  name: mini",
+    "  status: 已定稿",
+    "  created: '2026-01-01'",
+    "  updated: '2026-01-02'",
+]) + NL
+
 READINESS_YAML = NL.join([
     "project:",
     "  name: mini",
@@ -190,10 +199,11 @@ class EngineCase(unittest.TestCase):
 
 class GateTests(EngineCase):
 
-    # trace: 任务书 §6 门禁（三件套缺席 → 零产出退出 + 路由）
+    # trace: 任务书 §6 门禁（三件套缺席 → 零产出退出 + 路由；architecture 就位）
     def test_gate_refuses_missing_stories_with_zero_output(self):
         self.write("diy-output/prd.yaml", PRD_YAML)
         self.write("diy-output/epics.yaml", EPICS_YAML)
+        self.write("diy-output/architecture.yaml", ARCH_YAML)
         r = self.collect()
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
         self.assertNotIn("Traceback", r.stderr)
@@ -204,11 +214,27 @@ class GateTests(EngineCase):
         self.assertIn("stories.yaml", data["violations"][0]["where"])
         self.assertTrue(data["gate"]["route"])
         self.assertNotIn("readiness.yaml", self.out_files(), "拒绝路径不得产出 readiness.yaml")
-        self.assertEqual(self.out_files(), ["epics.yaml", "prd.yaml"])
+        self.assertEqual(self.out_files(), ["architecture.yaml", "epics.yaml", "prd.yaml"])
+
+    # trace: 批 5e §3-D（readiness←architecture 一档甲式：缺席 → exit 1 零产出 + route）
+    def test_gate_refuses_missing_architecture_with_route(self):
+        self.write_trio()
+        r = self.collect()
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        data = json.loads(r.stdout)
+        self.assertFalse(data["ok"])
+        self.assertFalse(data["gate"]["passed"])
+        self.assertEqual([x["code"] for x in data["violations"]], ["MISSING_FILE"])
+        self.assertIn("architecture.yaml", data["violations"][0]["where"])
+        self.assertIn("diy-architecture", data["gate"]["route"])
+        self.assertNotIn("readiness.yaml", self.out_files(), "拒绝路径不得产出 readiness.yaml")
+        self.assertEqual(self.out_files(), ["epics.yaml", "prd.yaml", "stories.yaml"])
 
     # trace: 任务书 §6 门禁（epics/stories 须 project.status: 已定稿）
     def test_gate_refuses_non_final_epics(self):
         self.write_trio(epics=EPICS_YAML.replace("status: 已定稿", "status: 草稿", 1))
+        self.write("diy-output/architecture.yaml", ARCH_YAML)
         r = self.collect()
         self.assertEqual(r.returncode, 1, r.stdout)
         data = json.loads(r.stdout)
@@ -231,6 +257,7 @@ class CollectTests(EngineCase):
     #        ure；epic/story/AC 计数）
     def test_collect_inventory_reports_requirements(self):
         self.write_trio()
+        self.write("diy-output/architecture.yaml", ARCH_YAML)
         r = self.collect()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
@@ -247,9 +274,23 @@ class CollectTests(EngineCase):
         self.assertEqual(data["counts"]["acs"], 1)
         self.assertEqual(data["docs"]["design"]["found"], False)
 
+    # trace: 批 5e §3-D（architecture 在场 + design 缺席 → exit 0；design 维持零检查零 warning）
+    def test_collect_passes_with_architecture_present_design_absent(self):
+        self.write_trio()
+        self.write("diy-output/architecture.yaml", ARCH_YAML)
+        r = self.collect()
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        data = json.loads(r.stdout)
+        self.assertTrue(data["ok"])
+        self.assertTrue(data["gate"]["passed"])
+        self.assertEqual(data["docs"]["architecture"]["found"], True)
+        self.assertEqual(data["docs"]["design"]["found"], False)
+        self.assertEqual(data["warnings"], [], data["warnings"])
+
     # trace: 任务书 §2.3/§6 collect ③④（跨文档核对委派 diyc；缺口两侧同现）
     def test_collect_delegates_diyc_and_surfaces_gap(self):
         self.write_trio(stories=STORIES_YAML.replace(NL + "    - FR-1.1", ""))
+        self.write("diy-output/architecture.yaml", ARCH_YAML)
         r = self.collect()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
@@ -262,9 +303,10 @@ class CollectTests(EngineCase):
         # diyc 真跑：回执 counts 在场（stories 22 行级计数）
         self.assertIn("stories", data["diyc"]["check"]["counts"])
 
-    # trace: 任务书 §2.3（diyc 缺席 → 结构化 warning 降级，不崩）
+    # trace: 任务书 §2.3（diyc 缺席 → 结构化 warning 降级，不崩；architecture 就位过 gate）
     def test_collect_degrades_when_diyc_missing(self):
         self.write_trio()
+        self.write("diy-output/architecture.yaml", ARCH_YAML)
         sys.path.insert(0, os.path.join(SKILL_DIR, "scripts"))
         old_bytecode = sys.dont_write_bytecode
         sys.dont_write_bytecode = True  # 不把 __pycache__ 落进技能目录
@@ -289,9 +331,9 @@ class CollectTests(EngineCase):
         self.assertTrue(data["ok"])
         self.assertFalse(data["diyc"]["available"])
         self.assertEqual(data["diyc"]["check"]["violations"], [])
-        # 降级面：architecture 缺席 warning（源 step-01 §4）+ diyc 缺席 warning，不崩
+        # 降级面：architecture 已过 gate（一档在场），只剩 diyc 缺席 warning，不崩
         self.assertEqual([w["code"] for w in data["warnings"]],
-                         ["MISSING_FILE", "TOOL_MISSING"], data["warnings"])
+                         ["TOOL_MISSING"], data["warnings"])
 
 
 class CheckValidationTests(EngineCase):

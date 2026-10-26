@@ -362,7 +362,8 @@ class SkillShapeTests(unittest.TestCase):
 
     def test_boundary_sentences(self):
         text = self.skill_text()
-        self.assertIn("arch-analyze", text)
+        self.assertNotIn("arch-analyze", text)
+        self.assertIn("一次一问", text)
         self.assertIn("只记既有事实", text)
 
 
@@ -382,6 +383,12 @@ class StepsShapeTests(unittest.TestCase):
             self.assertIn("Progress: ", text)
             self.assertGreaterEqual(text.count("## 第 "), 1, name)
             self.assertIn("**收尾与路由**：", text)
+
+    def test_no_arch_analyze_route_in_steps(self):
+        """批5e §7-4③：steps 面零 arch-analyze 路由（防回归）。"""
+        text = io.open(os.path.join(ANALYZE_DIR, "steps", "01-define.md"),
+                       encoding="utf-8").read()
+        self.assertNotIn("arch-analyze", text)
 
     def test_shared_skeleton_verbatim_in_all_eight_files(self):
         """裁定 1：分析/提取骨架逐字共用——两技能八份步骤文件全覆盖。"""

@@ -18,6 +18,7 @@ ARCH_FILE = "architecture.yaml"
 CONTEXT_FILE = "story-context.yaml"
 
 DIYC_ROUTE = "diy-epics-stories"
+ARCH_ROUTE = "diy-architecture"
 SC_RE = re.compile(r"SC-\d{3}")
 STORY_RE = re.compile(r"S-(\d+)")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -75,7 +76,7 @@ def missing_warning(out_dir, filename, note, project_root):
 # ---------------------------------------------------------------- 门禁
 
 def gate_check(docs, out_dir, project_root, story):
-    """门禁：stories.yaml 在场/可解析/定稿，且目标 story 存在。
+    """门禁：stories.yaml 在场/可解析/定稿、目标 story 存在，architecture.yaml 在场/可解析。
 
     返回 (passed, violations, route, story_entry, suggestions)。
     """
@@ -102,6 +103,17 @@ def gate_check(docs, out_dir, project_root, story):
         return (False, [v("UNKNOWN_ID", show + " stories",
                           "目标 story %s 在 stories.yaml 中不存在" % story)],
                 "确认 story ID；若故事尚未定义，先跑 %s 补建" % DIYC_ROUTE, None, id_sort(todo))
+    # 三档总则一档：architecture.yaml 是护栏源——只判在场/可解析（不要求 已定稿）
+    arch = docs[ARCH_FILE]
+    arch_show = display_path(os.path.join(out_dir, ARCH_FILE), project_root)
+    if not arch["present"]:
+        return (False, [v("MISSING_FILE", arch_show,
+                          "architecture.yaml 不存在；先跑 %s 产出架构决策护栏" % ARCH_ROUTE)],
+                "先跑 %s 产出 architecture.yaml，再重跑本技能" % ARCH_ROUTE, None, [])
+    if arch["err"] is not None:
+        return (False, [v("UNPARSABLE_YAML", arch_show,
+                          "YAML 解析失败：%s" % arch["err"])],
+                "先修复 architecture.yaml 的 YAML 语法，再重跑本技能", None, [])
     return True, [], None, story_entry, []
 
 # ---------------------------------------------------------------- 采集

@@ -77,6 +77,20 @@ class CrossSkillImportGuardTests(unittest.TestCase):
                       "code-quality.md 第⑤条红线句（公共函数唯一去处）被删")
         self.assertIn("技能间不互相 import 对方脚本", docs,
                       "code-quality.md 第⑤条红线句（技能间不互相 import）被删")
+
+    def test_upstream_tiers_section_present(self):
+        with open(CODE_QUALITY, "r", encoding="utf-8") as f:
+            docs = f.read()
+        self.assertIn("上游产物依赖三档", docs,
+                      "code-quality.md「上游产物依赖三档」节标题被删")
+        self.assertIn("一档", docs,
+                      "code-quality.md 三档关键词（一档）被删")
+        self.assertIn("二档", docs,
+                      "code-quality.md 三档关键词（二档）被删")
+        self.assertIn("TOOL_MISSING", docs,
+                      "code-quality.md 三档关键词（TOOL_MISSING）被删")
+        self.assertIn("NO_VCS", docs,
+                      "code-quality.md 三档关键词（NO_VCS）被删")
         with open(CLAUDE_MD, "r", encoding="utf-8") as f:
             md = f.read()
         self.assertIn("复用纪律", md,

@@ -12,7 +12,7 @@ outputs: readiness.yaml
 
 # diy-readiness-check — 开工前对齐体检（YAML 单一源）
 
-你是需求追溯专家——成功与否，看的是在实现开工前揪出别人留下的规划失误。输入：`prd.yaml` + `epics.yaml` + `stories.yaml`（`architecture.yaml` / `design.yaml` 在场则一并核对）。产出：`{output_dir}/readiness.yaml` 里的一条记录。你只评估与路由——**绝不修补上游文档**。
+你是需求追溯专家——成功与否，看的是在实现开工前揪出别人留下的规划失误。输入：`prd.yaml` + `epics.yaml` + `stories.yaml` + `architecture.yaml`（一档：缺席/损坏拒跑、route `diy-architecture`，只判在场/可解析）；`design.yaml` 在场则一并核对（可选）。产出：`{output_dir}/readiness.yaml` 里的一条记录。你只评估与路由——**绝不修补上游文档**。
 
 ## 激活时
 
@@ -22,7 +22,7 @@ outputs: readiness.yaml
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 目标文件 `{output_dir}/readiness.yaml`：只在铸下一个 `IR-###`、或按 `id:` 定位修订一条记录时才打开；需求计数与覆盖一律取 `collect` 回执，绝不重读 `prd.yaml` 手数。本 schema 不定义 `detail` 字段——没有可跳过的内容。
-3. 硬门（`collect` 机械判定）：`{output_dir}/prd.yaml` 必须在场，且 `{output_dir}/epics.yaml` / `{output_dir}/stories.yaml` 的 `project.status: 已定稿`。
+3. 硬门（`collect` 机械判定）：`{output_dir}/prd.yaml` / `{output_dir}/architecture.yaml` 必须在场（architecture 缺席/损坏 → gate 拒跑、route `diy-architecture`，不要求已定稿），且 `{output_dir}/epics.yaml` / `{output_dir}/stories.yaml` 的 `project.status: 已定稿`。
    - 满足 → 继续第 4 步。
    - 不满足 → `collect` exit 1、**零产出**：转述它的一行理由与 `gate.route`，然后停下——拒绝永不成为记录。
 4. 确定性开场——门禁 + 需求清点 + 覆盖矩阵 + 委派 diyc 的跨文档核对：

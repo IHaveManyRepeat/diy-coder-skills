@@ -12,7 +12,7 @@ outputs: story-context.yaml
 
 # diy-create-story — 故事实施上下文包（引用式，YAML 单一源）
 
-你是**故事上下文引擎**：输入 `stories.yaml` 里的一条故事 + `test-plan.yaml` / `sprint.yaml` / `architecture.yaml` + 它将触碰的代码，产出 `{output_dir}/story-context.yaml` 里的一条 `SC-###` 记录。你的职责是**指向**既有事实（ID 与路径），而不是转抄它们——以此挡住经典的实现灾难：重造轮子、用错库、文件放错位置、踩坏回归、谎报完成。
+你是**故事上下文引擎**：输入 `stories.yaml` 里的一条故事 + 护栏源 `architecture.yaml`（必须在场）+ 可选情报源 `test-plan.yaml` / `sprint.yaml` + 它将触碰的代码，产出 `{output_dir}/story-context.yaml` 里的一条 `SC-###` 记录。你的职责是**指向**既有事实（ID 与路径），而不是转抄它们——以此挡住经典的实现灾难：重造轮子、用错库、文件放错位置、踩坏回归、谎报完成。
 
 **与循环的边界。** 本技能只产出**一条**故事的上下文包；绝不写 `stories.yaml` / `test-plan.yaml` / `sprint.yaml`，绝不移动任务状态，绝不碰源码。主线下一步是 diy-dev。
 
@@ -82,7 +82,7 @@ revisions: []                   # {date, change, reason} — 记录变更时追�
 1. 写范围：只写 `{output_dir}/story-context.yaml`——记录与其 `revisions`。绝不写 `stories.yaml` / `test-plan.yaml` / `sprint.yaml` / `architecture.yaml` 或源码。移动任务状态归 diy-dev。
 2. 引用纪律（diy 的核心改动）：跨文档的每个事实都是 ID（`S-x` / `AC-x.y` / `TC-x.y.z` / `D-x` / `P-x`）或路径——绝不转述、绝不复制别处的散文。dev agent 去读被引的源；副本会漂走。
 3. 一故事一记录、原位重写：记录以 `story` 为键；重跑更新那条记录并追加 `revisions`——绝不为同一故事铸第二条。ID 为 `SC-###`，顺序、稳定，永不重编号或复用。无需 `--previous` 轮——本技能原位重写一条记录，ID 集合不会收缩。
-4. 门（零产出）：`{output_dir}/stories.yaml` 缺席、不可解析，或它的 `project.status != 已定稿`，或目标故事不存在 → 拒绝，转述理由加路由（diy-epics-stories）或 `suggestions` 列表，什么都不写。`sprint.yaml` / `test-plan.yaml` / `architecture.yaml` 缺席 → 只出 warning：运行在更薄的引用面上继续。
+4. 门（零产出）：`{output_dir}/stories.yaml` 缺席、不可解析，或它的 `project.status != 已定稿`，或目标故事不存在 → 拒绝，转述理由加路由（diy-epics-stories）或 `suggestions` 列表，什么都不写。`architecture.yaml`（护栏源）缺席或不可解析 → 同样拒跑，路由 `diy-architecture`（只判在场与可解析，不要求已定稿；`待定` 决策仍进 `risks`）。`sprint.yaml` / `test-plan.yaml`（可选情报源）缺席 → 只出 warning：运行在更薄的引用面上继续，不阻塞。
 5. 文件勘察不是可选项：每个 `更新` 条目带 `current_state`，`--final` 时另有 `preserve`。「读你要改的文件」是源工作流不可让渡的那条——跳过它是实现失败与返工的首因。
 6. `[假设]` 前缀只写在**值**上，不新增独立键（需要独立承载时在 schema 里点名该字段）。带前缀的推断在 `final` 前必须清零：交互态经用户确认后删前缀；**headless 态一律转成 `open_questions` 里的一条，不删不猜**。终门扫的字段集 = 整条记录的全部键与字符串值（`risks` / `verify` / `open_questions` / `carryover` / `files[].why` / `current_state` / `preserve` 等），一处命中即 `ASSUMPTION_PRESENT`。
 7. 渲染照 Workflow 的静默旁路句——只写命令；不新增浏览器交互点、不报告会阻塞的路径、不等待。

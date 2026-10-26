@@ -17,10 +17,12 @@ STORIES_FILE = "stories.yaml"
 ARCH_FILE = "architecture.yaml"
 DESIGN_FILE = "design.yaml"
 
-# 门禁三件套（文件名，project.status 须为 已定稿）；architecture/design 缺席不拒
-GATE_FILES = ((PRD_FILE, False), (EPICS_FILE, True), (STORIES_FILE, True))
-ROUTE_BY_FILE = {PRD_FILE: "diy-prd", EPICS_FILE: "diy-epics-stories",
-                 STORIES_FILE: "diy-epics-stories"}
+# 门禁四件（文件名，must_final=project.status 须为 已定稿）；architecture 一档只判
+# 在场/可解析（must_final=False，route diy-architecture）；design 缺席不检不警、不入门禁
+GATE_FILES = ((PRD_FILE, False), (ARCH_FILE, False),
+              (EPICS_FILE, True), (STORIES_FILE, True))
+ROUTE_BY_FILE = {PRD_FILE: "diy-prd", ARCH_FILE: "diy-architecture",
+                 EPICS_FILE: "diy-epics-stories", STORIES_FILE: "diy-epics-stories"}
 DIYC_TYPES = ("prd", "epics", "stories")
 
 VERDICTS = ("就绪", "有风险就绪", "未就绪")
@@ -62,7 +64,7 @@ def doc_summaries(docs):
 # ---------------------------------------------------------------- 门禁
 
 def gate_check(docs, out_dir, project_root):
-    """门禁：三件套在场且 epics/stories 定稿。返回 (passed, violations, route)。"""
+    """门禁：prd/architecture 在场、epics/stories 在场且定稿。返回 (passed, violations, route)。"""
     violations = []
     skills = []
     for filename, must_final in GATE_FILES:
@@ -90,7 +92,9 @@ def gate_check(docs, out_dir, project_root):
     route = None
     if violations:
         unique = list(dict.fromkeys(skills))
-        route = ("先跑 %s 产出并定稿上游文档，再重跑本技能"
+        # 通用句不写「并定稿」：architecture must_final=False 不得吃定稿措辞（定稿义务
+        # 已在 STATUS_MISMATCH 逐条 msg 里）
+        route = ("先跑 %s 产出上游文档，再重跑本技能"
                  % " / ".join(unique) if unique else
                  "先修复上游文档（解析失败或状态未定稿），再重跑本技能")
     return (not violations), violations, route

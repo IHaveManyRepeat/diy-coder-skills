@@ -7,8 +7,8 @@
                project.status == 已定稿，且 --story 指向的 story 存在；不满足 → 零产出 exit 1
                + 结构化拒绝回执（violations 带码 + gate.route 给路由）。story 悬空时回执附
                suggestions（候选 story ID，供会话降级为用户选择）。
-               sprint.yaml / test-plan.yaml / architecture.yaml 缺席不拒（源输入表 fallback
-               语义：上游未生成则引用面为空，降级为 warning）。
+               architecture.yaml 缺席/损坏拒跑（一档护栏源，route diy-architecture）；
+               sprint.yaml / test-plan.yaml 缺席不拒（二档可选源，降级为 warning）。
              2 AC 清点：目标 story 的全部 acceptance_criteria（id/given/when/then/refs +
                可选 design_ref）+ epic（该 story 的 epic——回执字段，供记录的 epic 字段
                直接取用，会话不必手工回读 stories.yaml）——替换源 step-2「人工通读 epics
@@ -29,7 +29,7 @@
            存在 + current_state 非空 / 同一 story 仅一条记录（按 story 键原位重写）。
            --final 附加：status=已定稿、zero [假设]、files 非空、verify 非空、
            更新 型 preserve 非空、open_questions 空或逐条 [CLOSED] 显式闭合。
-           上游缺席（stories 拒跑；test-plan/architecture 出 warning）时相关解析降级。
+           上游缺席（stories / architecture 拒跑；test-plan 出 warning）时相关解析降级。
 
 分工裁定（任务书 §2.2/§2.3/§3）：story-context 属新产物类型，不进 diyc.py check 的硬编码
 类型集；本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}]

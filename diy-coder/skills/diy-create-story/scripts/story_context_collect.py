@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import display_path, emit_via, items, v  # noqa: E402
 
-from story_context_lib import ARCH_FILE, SPRINT_FILE, STORIES_FILE, TEST_PLAN_FILE, ac_ids, base_payload, gate_check, git_intel, load_docs, missing_warning, read_decisions, read_prior, read_tcs, story_map  # noqa: E402
+from story_context_lib import SPRINT_FILE, STORIES_FILE, TEST_PLAN_FILE, ac_ids, base_payload, gate_check, git_intel, load_docs, missing_warning, read_decisions, read_prior, read_tcs, story_map  # noqa: E402
 
 def cmd_collect(args):
     root = os.path.abspath(args.project_root)
@@ -35,8 +35,7 @@ def cmd_collect(args):
     payload["suggestions"] = suggestions
 
     for name, note in ((SPRINT_FILE, "sprint.yaml 缺席：前序情报与任务定位降级，story 选择退化为显式指定"),
-                       (TEST_PLAN_FILE, "test-plan.yaml 缺席：TC 引用面为空（TDD 门将拦下缺覆盖任务，先跑 diy-test-design）"),
-                       (ARCH_FILE, "architecture.yaml 缺席：决策引用面为空")):
+                       (TEST_PLAN_FILE, "test-plan.yaml 缺席：TC 引用面为空（TDD 门将拦下缺覆盖任务，先跑 diy-test-design）")):
         entry = docs[name]
         if entry["err"] is not None:
             warnings.append(v("UNPARSABLE_YAML", display_path(os.path.join(out, name), root),

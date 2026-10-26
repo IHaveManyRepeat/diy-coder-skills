@@ -21,11 +21,14 @@
 违规码：**零新增**，全部复用 `batch3-contract.md` §3 冻结集
 （`MISSING_FILE` / `UNPARSABLE_YAML` / `DUPLICATE_ID` / `UNKNOWN_ID` / `ENUM_INVALID` /
 `EMPTY_FIELD` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）。
-模态语义复用两处（在此声明）：
+模态语义复用三处（在此声明）：
   ① `MISSING_FILE` 在 `init` 上承载「**入口门禁**：无任何既有产物可演进」——源侧该情形
      由「口头接力」承担（census-5 §6.2），diy 侧升级为硬门；
   ② `STATUS_MISMATCH` 承载「`--final` 时 `project.status` 非 `已定稿`」「轮次未达 `已交付`」
-     「本轮增量判据存在 `未通过`」三类。
+     「本轮增量判据存在 `未通过`」三类；
+  ③ 轮级 `analysis_refs` 依赖声明的一档硬报错（批 5e §7-2 甲）：缺席 `MISSING_FILE` /
+     损坏 `UNPARSABLE_YAML` / 锚悬空 `UNKNOWN_ID` / 形态不良 `ENUM_INVALID`——
+     见 `validate_analysis_refs`（空或缺席 → 不检不阻）。
 
 写盘纪律：`init` 是**唯一写盘**命令；`list` / `show` / `check` 全程只读。
 原子写 = 全文 load → 就地改 → 同目录临时文件 + `os.replace`（同 `diyc_lib.save_yaml_atomic`
@@ -49,7 +52,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wds_evolution_checks import (
     ENTRIES, FACTORS, FACTOR_WEIGHT, INCREMENT_SCOPE, PRODUCT, ROUND_STATUS,
     build_counts, emit, gate_present, load_product_or_report, load_yaml_soft,
-    norm, product_path, rounds_of, validate
+    norm, product_path, rounds_of, validate, validate_analysis_refs
 )
 
 
@@ -193,6 +196,7 @@ def cmd_check(args):
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts={})
     validate(data, violations, warnings, bool(args.final))
+    validate_analysis_refs(data, args.output_dir, violations)
     return receipt("check", not violations, instance=None, project_root=args.project_root,
                    output_dir=norm(args.output_dir), violations=violations,
                    warnings=warnings, counts=build_counts(data))

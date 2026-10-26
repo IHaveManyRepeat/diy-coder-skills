@@ -514,6 +514,72 @@ class CheckTests(Base):
         self.assertEqual(rc, 0, rec)
 
 
+class AnalysisRefsTests(Base):
+    """批 5e §7-2 甲：轮级 `analysis_refs` 依赖声明与一档硬报错（引擎校验）。"""
+
+    def setUp(self):
+        super().setUp()
+        self.write_artifact("design.yaml")
+        self.init_ok()
+
+    def codes(self, rec):
+        return [x["code"] for x in rec["violations"]]
+
+    def check(self, *extra):
+        return run_cli("check", *extra, "--project-root", self.root,
+                       "--output-dir", self.out, "--json")
+
+    def set_refs(self, refs):
+        data = self.load_product()
+        data["rounds"][0]["analysis_refs"] = refs
+        self.dump_product(data)
+
+    def write_analysis(self, ids=("AN-01",)):
+        self.write_artifact("analysis.yaml", {
+            "project": {"name": "fx", "status": "已定稿"},
+            "components": [{"id": i, "name": i} for i in ids]})
+
+    def test_refs_legal_resolves_and_passes(self):
+        """① 声明非空＋analysis.yaml 在场且锚在 components[].id → exit 0。"""
+        self.write_analysis(("AN-01",))
+        self.set_refs(["AN-01"])
+        rc, rec, _, _ = self.check()
+        self.assertEqual(rc, 0, rec)
+        self.assertEqual(rec["violations"], [])
+
+    def test_refs_declared_but_analysis_missing_is_missing_file(self):
+        """② 声明非空＋analysis.yaml 缺席 → MISSING_FILE、exit 1（一档拒）。"""
+        self.set_refs(["AN-01"])
+        rc, rec, _, _ = self.check()
+        self.assertEqual(rc, 1)
+        self.assertIn("MISSING_FILE", self.codes(rec))
+
+    def test_dangling_anchor_is_unknown_id(self):
+        """③ 锚悬空（不在 components[].id）→ UNKNOWN_ID、exit 1。"""
+        self.write_analysis(("AN-01",))
+        self.set_refs(["AN-02"])
+        rc, rec, _, _ = self.check()
+        self.assertEqual(rc, 1)
+        self.assertIn("UNKNOWN_ID", self.codes(rec))
+
+    def test_absent_or_empty_refs_skips_check(self):
+        """④ analysis_refs 缺席或空列表 → 不检不阻（exit 0，且无 analysis.yaml 也不报）。"""
+        rc, rec, _, _ = self.check()
+        self.assertEqual(rc, 0, rec)
+        self.set_refs([])
+        rc, rec, _, _ = self.check()
+        self.assertEqual(rc, 0, rec)
+        self.assertEqual(rec["violations"], [])
+
+    def test_bad_ref_shape_is_enum_invalid(self):
+        """形态不良（非 `AN-<nn>`）→ ENUM_INVALID（照本文件 EV-<nn> 形态先例，零新增码）。"""
+        self.write_analysis(("AN-01",))
+        self.set_refs(["AN-1"])
+        rc, rec, _, _ = self.check()
+        self.assertEqual(rc, 1)
+        self.assertIn("ENUM_INVALID", self.codes(rec))
+
+
 class OutputDirFallbackTests(Base):
     """⑩ 回归 V3-01：省略 `--output-dir` 时缺省须回落 `{project-root}/diy-output`。
 
@@ -649,6 +715,25 @@ class ContractSmokeTests(unittest.TestCase):
                 self.assertIn("检查点（六拍）", text)
                 self.assertIn("diy-elicit", text)
                 self.assertIn("diy-party-mode", text)
+
+    def test_steps_wire_analysis_yaml_dependency(self):
+        """批 5e §3-E：两 step 的 A/S 接线句在场（analysis.yaml / AN-<nn> / 一档报错 / 五条纪律）。"""
+        for name in ("01-analyze.md", "02-scope.md"):
+            with self.subTest(step=name):
+                with open(os.path.join(STEPS_DIR, name), encoding="utf-8") as fh:
+                    text = fh.read()
+                self.assertIn("analysis.yaml", text)
+                self.assertIn("AN-<nn>", text)
+                self.assertIn("analysis_refs", text)
+                self.assertIn("停手显式报错", text)   # 一档硬报错语义
+                self.assertIn("diy-analyze", text)
+                self.assertIn("步骤纪律", text)       # 五条纪律锚
+        # S 相字段映射口径（§7-6 甲）：三分由当次勘察判定 + 不搬 risks[].severity
+        with open(os.path.join(STEPS_DIR, "02-scope.md"), encoding="utf-8") as fh:
+            scope_text = fh.read()
+        self.assertIn("当次勘察判定", scope_text)
+        self.assertIn("risks[].severity", scope_text)
+        self.assertIn("不直接搬", scope_text)
 
     def test_data_files_carry_kaizen_core(self):
         with open(os.path.join(DATA_DIR, "kaizen-principles.md"), encoding="utf-8") as fh:

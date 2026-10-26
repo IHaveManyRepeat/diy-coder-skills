@@ -17,7 +17,7 @@ Progress: `[Target] → Artifacts → Code Survey → Compose → Finish`
 
 ## 门禁优先（零产出拒绝）
 
-`collect` 跑门禁。exit 1 时本次运行在开始前就结束：转述回执的一行理由与其 `gate.route`（diy-epics-stories）或 `suggestions` 列表，然后停下、什么都不写。拒绝永不变成记录；上游缺席，绝不靠「换一条故事来打包」绕过。
+`collect` 跑门禁。exit 1 时本次运行在开始前就结束：转述回执的一行理由与其 `gate.route`（stories 缺席/损坏/未定稿或故事悬空 → diy-epics-stories；architecture 缺席/损坏 → diy-architecture）或 `suggestions` 列表，然后停下、什么都不写。拒绝永不变成记录；上游缺席，绝不靠「换一条故事来打包」绕过。
 
 ## 跑开场
 

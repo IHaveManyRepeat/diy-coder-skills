@@ -7,14 +7,14 @@ Progress: `[文档发现] → 需求清点 → 覆盖校验 → UX 对齐 → �
 
 ## 先过门（拒绝即零产出）
 
-`collect` 已经跑过门。exit 1 时本轮在开始前就结束：转述回执的一行理由与它的 `gate.route`（diy-prd / diy-epics-stories），然后停下、什么都不写。拒绝永不成为记录；上游文档缺席，也绝不靠改评别的文档绕过去。
+`collect` 已经跑过门。exit 1 时本轮在开始前就结束：转述回执的一行理由与它的 `gate.route`（diy-prd / diy-architecture / diy-epics-stories），然后停下、什么都不写。拒绝永不成为记录；上游文档缺席，也绝不靠改评别的文档绕过去。
 
 ## 清点真实文档集
 
 文档清单取自回执的 `docs` 块——不要手工重扫目录：
 
 - `prd`、`epics`、`stories` —— 必须在场，且 epics/stories 的 `project.status: 已定稿`（门的要求）。
-- `architecture` —— 可选：缺席以 warning 进回执；带进总评，不阻断。
+- `architecture` —— 必须在场：缺席/损坏拒跑（gate 一档，route `diy-architecture`；只判在场/可解析，不要求已定稿）。
 - `design` —— 可选：缺席是合法状态；第 4 步判定 UX 是否被隐含并要求告警。
 
 记录里的 `scope` = 实际清点到的文档，取 `[prd, architecture, epics, stories, design]` 的子集。

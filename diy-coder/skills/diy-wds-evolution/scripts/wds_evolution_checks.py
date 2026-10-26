@@ -28,6 +28,9 @@ CRITERION_VERDICTS = ("通过", "未通过")
 # 本轮的判据四类——源 `delivery-templates.md` 的 TS-XXX 测试场景族 HP-/REG-/EC-/A11Y- 逐字保留
 CRITERION_KINDS = ("HP", "REG", "EC", "A11Y")
 STATUS_VALUES = ("草稿", "已定稿")
+# 批 5e §7-2 甲：轮级 analysis_refs 的锚形态与源产物（diy-analyze 的单问产物）
+AN_REF_RE = re.compile(r"^AN-\d{2}$")
+ANALYSIS_PRODUCT = "analysis.yaml"
 
 # 入口门禁的扫描面：既有产物任一在场即放行（本技能自己的产物不算；`.yml` 与 `.yaml` 同态）
 GATE_FILES = ("design.yaml", "design.yml", "sprint.yaml", "sprint.yml")
@@ -334,6 +337,49 @@ def _find_assumption(node, where=""):
             if hit:
                 return hit
     return None
+
+
+def validate_analysis_refs(data, output_dir, violations):
+    """轮级 `analysis_refs` 依赖声明（批 5e §7-2 甲：A/S 一档硬报错）。
+
+    缺席/空 → 不检不阻；非空 → 形态 `AN-<nn>`（不良记 `ENUM_INVALID`，照 `EV-<nn>`
+    形态先例）＋ `analysis.yaml` 可解析（缺席 `MISSING_FILE`、损坏 `UNPARSABLE_YAML`）
+    ＋锚在 `components[].id` 在场（悬空 `UNKNOWN_ID`）。边界＝只核可解析性与锚在场：
+    不核 `project.status`、不核问题/范围语义相关性（归两 step 步骤纪律）。
+    """
+    declared, well_formed = False, []
+    for idx, rnd in enumerate(rounds_of(data)):
+        if not isinstance(rnd, dict):
+            continue
+        refs = rnd.get("analysis_refs")
+        if refs in (None, "") or (isinstance(refs, list) and not refs):
+            continue                      # 缺席/空 → 不检不阻
+        declared = True
+        where = "rounds[{}].analysis_refs".format(idx)
+        for ref in (refs if isinstance(refs, list) else [refs]):
+            if isinstance(ref, str) and AN_REF_RE.match(ref):
+                well_formed.append((where, ref))
+            else:
+                violations.append(v("ENUM_INVALID", where,
+                                    "ID 形态应形如 AN-<nn>：{}".format(ref)))
+    if not declared:
+        return
+    path = os.path.join(output_dir, ANALYSIS_PRODUCT)
+    doc, err, code = load_yaml_soft(path)
+    if err:
+        label = "重复键" if code == "DUPLICATE_KEY" else ("缺失" if err == "missing" else "解析失败")
+        violations.append(v("MISSING_FILE" if err == "missing" else "UNPARSABLE_YAML",
+                            norm(path), "已声明分析依赖：YAML {}：{}".format(label, err)))
+        return
+    if not isinstance(doc, dict):
+        violations.append(v("UNPARSABLE_YAML", norm(path), "已声明分析依赖：顶层不是映射"))
+        return
+    ids = {str(c["id"]) for c in (doc.get("components") or [])
+           if isinstance(c, dict) and c.get("id") not in (None, "")}
+    for where, ref in well_formed:
+        if ref not in ids:
+            violations.append(v("UNKNOWN_ID", where,
+                                "{} 不在 {} 的 components[].id 内".format(ref, ANALYSIS_PRODUCT)))
 
 
 def build_counts(data):

@@ -299,6 +299,29 @@ class GateTests(EngineCase):
         self.assertIn("S-3", data["suggestions"], "候选应为未完成（status 非 已完成）的 story")
         self.assertFalse(os.path.exists(os.path.join(self.out, "story-context.yaml")))
 
+    # trace: 批5e §7-1 甲（architecture 一档护栏源：缺席 → gate 拒跑 route diy-architecture）
+    def test_refuses_when_architecture_missing(self):
+        self.write("diy-output/stories.yaml", STORIES_YAML)
+        r = self.collect("S-3")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        data = json.loads(r.stdout)
+        self.assertFalse(data["ok"])
+        self.assertEqual([v["code"] for v in data["violations"]], ["MISSING_FILE"])
+        self.assertIn("diy-architecture", data["gate"]["route"])
+        self.assertFalse(os.path.exists(os.path.join(self.out, "story-context.yaml")),
+                         "拒绝路径必须零产出")
+
+    # trace: 批5e §7-1 甲（architecture 一档护栏源：损坏 → UNPARSABLE_YAML 拒跑）
+    def test_refuses_when_architecture_unparsable(self):
+        self.write("diy-output/stories.yaml", STORIES_YAML)
+        self.write("diy-output/architecture.yaml", "project: {[broken")
+        r = self.collect("S-3")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        data = json.loads(r.stdout)
+        self.assertEqual([v["code"] for v in data["violations"]], ["UNPARSABLE_YAML"])
+        self.assertFalse(os.path.exists(os.path.join(self.out, "story-context.yaml")),
+                         "拒绝路径必须零产出")
+
 
 class CollectTests(EngineCase):
     """用例 3/4/5：collect 回执面。"""
@@ -358,14 +381,15 @@ class CollectTests(EngineCase):
         self.assertFalse(data["git"]["available"])
         self.assertIn("NO_VCS", [w["code"] for w in data["warnings"]])
 
-    # trace: 任务书 §3（optional 上游缺席仅 warning）
+    # trace: 任务书 §3（optional 上游缺席仅 warning；architecture 一档由 gate 管，不再计入）
     def test_missing_optional_upstreams_warn_only(self):
         self.write("diy-output/stories.yaml", STORIES_YAML)
+        self.write("diy-output/architecture.yaml", ARCH_YAML)
         r = self.collect("S-3")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         data = json.loads(r.stdout)
         codes = [w["code"] for w in data["warnings"]]
-        self.assertEqual(codes.count("MISSING_FILE"), 3, data["warnings"])
+        self.assertEqual(codes.count("MISSING_FILE"), 2, data["warnings"])
         self.assertEqual(data["tcs"], [])
 
 
