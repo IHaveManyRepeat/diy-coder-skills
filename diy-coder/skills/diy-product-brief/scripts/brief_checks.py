@@ -259,7 +259,7 @@ def review_script_path():
 def check_review_evidence(data, root, out, path, show, violations, warnings):
     """--final 的六条证据校验：`review_refs` 非空 → 台账在场 → ID 在 `reviews[]` 内 →
     该记录 `status: 已定稿` → `target` 归一化后指向本 `brief.yaml` → `lenses` 两透镜齐全
-    （忠实源 `doc_standards` 的两条 append-only 标准提供者语义）。派发不可用（环境缺兄弟
+    （两透镜＝diy-editorial-review 的结构评审＋文风评审）。派发不可用（环境缺兄弟
     引擎）→ `TOOL_MISSING` 降级：六条一并转 warning、放行；与「技能在场而记录缺失或不合格
     → 硬拒」分工不重叠——前者是环境问题、后者是产物问题。"""
     script = review_script_path()
