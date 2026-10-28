@@ -287,6 +287,14 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
   - 人工预发现样本②（2026-10-04 用户发现）：cis-method 四分支收尾**「交付摘要」句** 4 处——`steps/02-innovation.md:265` / `03-problem.md:285` / `04-design.md:209` / `05-story.md:272`，骨架逐字同构「5. 交付摘要：一句话给「…」，附未决问题（无则写「无」）」，仅分支要素串不同（近似变体，锚定「交付摘要」）；`03-problem.md:251` 另有指涉式引用。**与 §9 回复纪律 / diy-help 游离「精准简练」句同精神**——「一句话给」即收尾播报简练纪律的实例化。统一与否随近似组一并人裁；若统一，归 §9（管回复文字）还是分支自定（要素串分支专有）待裁；其他技能收尾播报句（research / brainstorm 等）由 discover 普查覆盖。
   - 保证面：逐字重复组−已收编=空 可作断言；近似组语义判定归人裁（保证=引擎关卡唯一，不变）。
 
+**〔2026-10-27 激活头下沉追加裁点·登记待裁〕**（用户提出「把需要 AI 做判断的事变成执行代码获取，用代码取指定内容以减少文本」；实测规模＝`diyc.py resolve` 49/50 SKILL.md·161 处＋`communication_language` 47 文件·50 处；判据＝本段已裁处置序「能下沉关卡者优先下沉」）——三条随批 8 任务书审核门一并裁：
+
+1. **缺省链全下沉**：语言缺省链（document→communication→两缺标志）下沉 `resolve` 回执——回执给最终值＋fallback 标志；「两缺跟随当前消息语言＋收尾说明」保留为 AI 最后一步机械动作（回执标志触发，不再让 AI 读 yaml 自推缺省链）。
+2. **头文本缩成一行＋标记对注入**：每技能激活头通用段缩为「跑 `resolve --json` 照回执行事」一行，走母本标记对注入（技能内手维护通用文本≈0）；技能头只留技能特有部分（激活参数／产物名／入口）。与已登记配套下沉项（回执扩语言两键）同批落。
+3. **通用行为指令单点承载**：「全程用 `communication_language` 对话／机器锚点逐字保留」等行为句注入**项目 CLAUDE.md**（10-17 已裁通道 B 同载体），不再 49 份各抄。
+
+协调（同句面三批联动·扩位本段既有协调句）：本句同时踩批 6（`FR-4.5/D-9` 编号锚禁入）＋批 9（`.claude` 路径硬编码）＋批 8（文本本体）——排序随批 8 任务书定，避免同句改多遍。
+
 ## 待办：50 技能正文逐项化（攒批，待办任务 #1~#8 已建，任务书缓建——与其他攒批合并排期，现在不动）
 
 裁定（2026-10-03）：SKILL.md 正文＋steps/ 厚子文件**全部**逐项化——编号列表、一条一个步骤（最小语义单元）、连续行不空行、机器锚点（ID/枚举值/文件名）逐字保留；四段结构与 frontmatter 不动；行数上限 90 → 250。样例＝diy-help「激活时」10 条版（用户认可）。
@@ -349,6 +357,19 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 裁定（2026-10-16 用户）：②形态/窄屏＝**窄屏隐藏**（隐藏阈值实施时定）；③覆盖面＝**全部产物页显示**（不设章节数阈值）；①TOC 深度＝方向裁「按不同产物分别列」、具体层数待定；④锚点实现＝方向裁「按每个产物各自定」、不搞统一机制；**落位（排哪批）未裁**、本段继续悬置。
 
+**〔2026-10-27 用户二裁〕**：①层数＝**逐产物定一张层数表**（非统一一级/两级；表随任务评估呈核后定）；②落位＝**暂缓**——先看任务情况（层数表＋改动面＋预估）再裁是否入夜队列。
+
+**〔2026-10-27 层数表已呈〕**：41 产物逐行表落 `.analysis/2026-10-27-toc/层数表-逐产物过目.md`（结构三路探查＋`key_label()` 实测标签）；拟 2 级 11／1 级 30；待用户逐行过目报改动后定稿，再裁入队。副产两条观察另立下段。
+
+## 待办：WDS/openapi 键标签缺位＋卡内标题 id 重复（2026-10-27 TOC 层数表评估副产，登记待办，现在不动）
+
+登记来源：`.analysis/2026-10-27-toc/层数表-逐产物过目.md` 观察项——viewer `key_label()` 实测（非猜测）。
+
+1. **键标签缺位（零裸键族）**：wds-brief 顶层 `intake`/`client_profile`/`alignment`/`signoff` 及多数子键、wds-trigger 顶层 `business_goals`/`personas`/`driver_patterns`/`feature_impact`/`effect_map` 及子键、wds-scenarios `page_inventory`/`scenarios`/`scope.page_strategy`、openapi 顶层 `openapi`/`x-project`/`info`——`key_label()` 回落英文原键，**页面 h2/h3 标题现状即英文**（TOC 只镜像标题、不背锅也不放大）。改动面（做时）：`viewer_labels.py` KEY_LABELS 补键＋`test_viewer_labels` 断言跟改；精确清单以对 41 产物实际渲染标题复扫为准（〔推定〕子节先核在场性）。
+2. **卡内子键标题 id 重复（现状非 TOC 引入）**：卡片内子键标题铸 `slugify(key)`（`viewer_render.py:186`），同 slug 跨卡重复（如 architecture 每张决策卡的「备选方案」）——HTML id 不唯一、锚跳取首个匹配。TOC 已裁排除卡内标题（不放大问题），页面本身冲突仍在。处置待裁：卡内标题不铸 id vs 加父卡前缀（如 `D-01-alternatives`）。〔2026-10-28 用户裁·全名制（父卡前缀），入第七批夜队列 Q-130〕〔同日整批挂起（先撤后恢复保留队列·Q-130）：viewer_render.py 在批6 C 清单 7 行·批6 完工后重审（见「第七批整批挂起」待办段）；裁向（全名制）仍有效〕
+
+**排次待裁**：先修两件再做 TOC ／ 与 TOC 同批施工 ／ TOC 先行（标签缺位时 WDS 页目录条目呈英文）——随层数表定稿一并裁。〔2026-10-28 用户裁·甲＝先修（键标签 Q-129＋卡内 id Q-130）再做 TOC；TOC 仍压层数表定稿＋入队裁定〕〔同日 Q-129/Q-130 整批挂起（保留队列）：viewer_labels.py 在批6 C 清单 26 行·批6 完工后重审（见「第七批整批挂起」待办段）；排次甲与全名制裁向仍有效〕
+
 改动面：viewer.py（`page()` 骨架＋CSS＋section 渲染加锚）＋viewer tests。与「index 产物排序」「openapi 行锚」批同文件（viewer.py），可同批施工。
 
 ## 待办：BMAD 记忆文件实存细看（2026-10-13 用户提出，登记待查，现在不动）
@@ -384,6 +405,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - `diy-test-framework/steps/06-finish.md:35`：「下一步读 `diy-test-author/SKILL.md`（若已建；未建则以摘要中的路由行交接）」——条件分支删，改直连。
 
 普查分流（全库 grep「未建」5 处/4 文件）：diy-wds-system 三处（SKILL.md:80＋`complexity-router.md:6/:64`）系 `object-types/workflow.md` 真未建的事实登记（非滞后），归「去源路径锚·迁移痕迹零正文」批处置；diy-bmb-module `03-validate.md:29` 是引擎 warning 违规码语义说明（活机制文本），不动。
+
+**〔2026-10-28 改判·wds-system 三处已直删〕**：用户裁定「不需要这两个内容了」——[K]/[P] 侧引用的内容已被 C·3 吸收（k-sketch.md 直译）/流程被 diy 步骤重写取代，登记无消费点，当场删除三处「未建」句（complexity-router.md:6 续行·:64 列表项·SKILL.md:80 括注）；sync 已同步、test_wds_system 66 绿。原「归去源锚批」口径对此三处作废（批 6 清单 batch6-inventory-C.md:739/:751 对应行预演时销账）；bmb-module 一处维持不动。〔2026-10-28 核对归批6：SKILL.md:83 在批6 C 清单（改写自含）·steps/06-finish.md:35 已补入 C 清单——两处随批6 门②一并改；夜队列 Q-131 挂起保留（批6 完工后重审·大概率销号，见「第七批整批挂起」待办段）〕
 
 ## 待办：diy-review steps 步骤深化（2026-10-04 用户提出，2026-10-11 三候选均立项·②③实施子项待裁，现在不动）
 
@@ -463,6 +486,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 ②引擎升级——方案 A 开工后枚举并入 YAML 单点派发；①回查降为兜底关卡，不撤。
 
 改动面（做①时）：`diyc_check_docs.py`（面清单＋extract＋断言）＋`tests/test_diyc_check.py`；viewer 标签接线随①范围定。
+
+**〔2026-10-27 用户裁定·viewer 接线入①〕**：①改动面定＝`diyc_check_docs` 族（面清单＋extract＋断言）＋`test_diyc_check.py`＋**viewer 标签接线入**（value 标签表运行时读枚举常量·`viewer_labels.py`＋`test_viewer_labels.py` 入 scope）。施工口径＝viewer 直接 import `diyc_check_docs_lib` 枚举常量段（`diyc*` 共享底座前缀豁免在案·己批守卫零违例·常量零搬移）。已入夜队列 Q-126（2026-10-27）。
 
 ### 待办：窗口输出通用内容统一——通用行同源跟改＋输出 UX 原则（2026-10-16 组7 裁定②登记·2026-10-21 通用行已销：夜队列 Q-110 `7cbb83c`；UX 原则文案随母本批）
 
@@ -555,7 +580,15 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **改动面（做时）**：diy-analyze SKILL/steps＋`diy-wds-evolution` 两 step＋`diyc_check_docs.py`（check_openapi）＋`story_context.py`＋`readiness.py`＋批 4a 任务书一行＋各测试面（先裁后动）。协调：evolution 两 step 与逐项化批同文件；批 4a F-x 行随 4a 开工重锚回填。
 
-**〔v4·批5e 已销 2026-10-25〕**：本批只销 analyze 收口（4 句死路由按 §7-4 逐句异构：:27 改拒绝口径、:73 与 01-define:55 整句去掉、test 改 `assertNotIn` 防回归）＋evolution A/S 接线（轮级 `analysis_refs` 可选键＋引擎 `validate_analysis_refs` 三报，§7-2 甲；S 相引用＋推定分离，§7-6 甲）＋create-story/readiness 判档（architecture 一档甲式 gate 拒跑 route `diy-architecture`；sprint/test-plan 二档维持）＋总则立法（`docs/code-quality.md`「上游产物依赖三档」节，§7-3 甲；bmb-builder 收编已另登「升级事项」）。**`check_openapi` 子项已随批 4a 落地，非本批返工**。§7-7 备选附全库普查清单（50 技能 92 边只登记不施工）：`.analysis/2026-10-07-execution-plan/upstream-deps-census-5e.md`，余留待后续批＝openapi 激活门两条（引擎一档已落、激活面仍软拒问用户）。§7-8：C 表不自动改——analyze 定位已收口为「单问、套件内自理、不路由套件外技能」，用途/边界描述是否更新由用户定。
+**〔v4·批5e 已销 2026-10-25〕**：本批只销 analyze 收口（4 句死路由按 §7-4 逐句异构：:27 改拒绝口径、:73 与 01-define:55 整句去掉、test 改 `assertNotIn` 防回归）＋evolution A/S 接线（轮级 `analysis_refs` 可选键＋引擎 `validate_analysis_refs` 三报，§7-2 甲；S 相引用＋推定分离，§7-6 甲）＋create-story/readiness 判档（architecture 一档甲式 gate 拒跑 route `diy-architecture`；sprint/test-plan 二档维持）＋总则立法（`docs/code-quality.md`「上游产物依赖三档」节，§7-3 甲；bmb-builder 收编已另登「升级事项」）。**`check_openapi` 子项已随批 4a 落地，非本批返工**。§7-7 备选附全库普查清单（50 技能 92 边只登记不施工）：`.analysis/2026-10-07-execution-plan/upstream-deps-census-5e.md`，余留待后续批＝openapi 激活门两条（引擎一档已落、激活面仍软拒问用户）。〔2026-10-28 用户裁改硬·入第七批夜队列 Q-127〕§7-8：C 表不自动改——analyze 定位已收口为「单问、套件内自理、不路由套件外技能」，用途/边界描述是否更新由用户定。
+
+## 待办：analysis_refs 裸字符串收紧（2026-10-27 用户裁定，小件，现在不动）
+
+登记来源：批 5e 完工呈报非阻断观察①——`wds_evolution_checks.py:359` 对非列表自动包单元素列表，裸串 `analysis_refs: AN-01` 能过门，与 SKILL.md:55 schema 声明的列表形态脱钩。
+
+裁定（2026-10-27 用户）：**收紧**——裸字符串报 `ENUM_INVALID`（消息注明「应为列表形态」）。波及面已核：测试用例全列表形态（零冲突）、viewer 仅键标签（零波及）、5e 新键无存量产物。
+
+改动面（做时）：`wds_evolution_checks.py` `validate_analysis_refs` 1 行＋`test_wds_evolution.py` 补 1 用例。形态＝夜队列小件（照 Q-124 先例不立书）。**未开工·待用户点头**。
 
 ## 待办：diy-overnight 开工权收紧——不明示不开工＋最后一步交提示词（2026-10-19 用户提出，登记待办，现在不动）
 
@@ -611,6 +644,19 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 2. **bug-log 故障模式反哺 AC 判据**——同构先例成立（review 落 bug-log 喂故障假设）；最小形态＝条件 L1 判据（bug-log 在场时逐 pattern 出 AC 或 skip）＋L3 派发模板对照句，零机械门；触面＝跨技能条件读＋epics-stories 判据扩，须独立呈裁。AC 治本批已在判据文件留「条件判据」空节骨架。
 3. **AC 实现前冻结＋变更审**（BI-029）——实现后改 AC 须过变更审，防「按 buggy 代码反推 AC」；触实现期边界（dev/review/sprint 状态机），须独立呈裁。
 4. **产品类 story 拍板硬门**（PA-008）——story schema 无「验收面分类」字段，判定不可机械化；配额＋出厂摘要行已兜住主要风险；触发＝story schema 若增设验收面分类字段再复活。
+
+## 待办：第七批夜队列整批挂起·批6 完工后重审（2026-10-28 用户裁定，提醒位，现在不动）
+
+登记来源：第七批七件（Q-125~Q-131，`queue-2026-10-27-204240.yaml`）scope 全数撞批6 三清单（batch6-inventory-A/B/C.md——批6 扫面 99 文件基本清光文本类小件）。2026-10-28 用户裁：整批恢复保留队列（status=阻塞·reason 齐·期间不得开工），**批6 完工后用户回头处理**。
+
+批6 完工时逐件审，处置三选一：
+- **销号**＝改动面已被批6 直接改掉（如 Q-131 两处均在 C 清单、Q-128 的 06-finish:33 action=删）
+- **解挂重跑**＝批6 改后仍需该件补做（如 Q-129 键标签补全系批6 不做的新功能）
+- **重排改稿**＝批6 句面变动大，basis 行号/引文须重锚后再跑
+
+七件速览：Q-125 analysis_refs 收紧／Q-126 枚举一致性①／Q-127 openapi 激活面改硬（裁向有效）／Q-128 test-gate 滞后句（C:81 action=删）／Q-129 键标签补全（排次甲裁向有效）／Q-130 卡内 id 全名制（裁向有效）／Q-131 test-framework 未建清理（两处已入 C 清单）。
+
+提醒机制＝本段（批6 完工呈报时对读）＋memory `feedback-queue-candidates-check-batch6`。
 
 ## 升级事项（可选·不排期·需要才做）
 
