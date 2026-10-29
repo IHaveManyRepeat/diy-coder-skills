@@ -100,7 +100,7 @@ def check_record(index, record, final, story_ids, where_base):
         violations.append(v("ENUM_INVALID", where + ".date",
                             "date 须为 YYYY-MM-DD，实为 %s" % date))
 
-    # §8.3 裁定：change_type 为开放字符串（commit|branch|PR|<自由文本>，默认 change）——
+    # change_type 为开放字符串（commit|branch|PR|<自由文本>，默认 change）——
     # 可选、出现时非空即可；禁封闭枚举（用户自然语言命名不得被误判）
     change_type = record.get("change_type")
     if change_type is not None and not nonempty(change_type):

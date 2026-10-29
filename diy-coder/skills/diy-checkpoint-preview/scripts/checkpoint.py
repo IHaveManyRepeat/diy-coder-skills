@@ -9,23 +9,23 @@
             4 四者皆无 → 零产出 exit 1 + 结构化拒绝回执（含路由）
           只读检测，绝不写文件。环境健壮性：目录非 git 仓库 / 无提交 / 无 diff
           一律返回空候选 + 结构化原因，不崩溃。
-          裸提交候选附意图判定（BMAD step-01:54）：提交信息 subject < 10 词 →
+          裸提交候选附意图判定：提交信息 subject < 10 词 →
           inferred: true + 原因；工作区改动 / range 无单一提交信息 → null + 原因。
   check   校验 {output_dir}/checkpoint.yaml（顶层 project + checkpoints 集合，形状对齐
           bug-log.yaml）：schema / 枚举 / story 引用可解析 / change_type 出现时非空；
           --final 附加定稿义务（checkpoints 非空、concern 非空、decision 已定且非 讨论、
           status 已落 已定稿、next 非空、零 [假设]）。exit 0 唯一放行。
 
-分工裁定（任务书 §2.3）：checkpoint 属新产物类型，不进 diyc.py check 的硬编码类型集；
+分工裁定：checkpoint 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态（同 design.py 分工），契约同构：exit 0 唯一放行 / --json 单行回执 /
-violations[{code, where, msg}] + counts。违规码复用 batch3-contract §3 冻结集，
+violations[{code, where, msg}] + counts。违规码复用冻结集，
 新增 NO_TARGET（门禁拒绝专用）。
 
 禁手写实例解析：引擎不做 --instance / 白名单 / 目录推导；--output-dir 必填，
 由调用方传入（SKILL.md 从 diyc.py resolve 取）。产物与产物 ID 由 diy-checkpoint-preview
 会话（LLM）创作——CK-0nn 由 LLM 铸造、本引擎只校验格式与唯一性。
 """
-# trace: 迁移计划 §二 验收 #3（前置门禁零产出退出）/#4（ID 链接入）/#12（领域引擎接线）
+# trace: 前置门禁零产出退出 + ID 链接入 + 领域引擎接线
 import argparse
 import json
 import os
@@ -57,7 +57,7 @@ def cmd_check(args):
     elif not isinstance(data, dict):
         violations.append(v("EMPTY_FIELD", show, "顶层不是映射（须为 project + checkpoints）"))
     else:
-        # §8.2 裁定：project 形状为 {name, created, updated}，状态挂记录级（不要求 project.status）
+        # project 形状为 {name, created, updated}，状态挂记录级（不要求 project.status）
         project = data.get("project")
         if project is not None and not isinstance(project, dict):
             violations.append(v("EMPTY_FIELD", show + " project", "project 不是映射"))

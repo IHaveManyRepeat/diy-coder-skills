@@ -129,7 +129,7 @@ def cmd_methods(args):
         picked = [row for row in picked if row["category"] == category]
         if not picked and category not in REACHABLE_CATEGORIES[method] and not args.all:
             warnings.append(v("ENUM_INVALID", "methods --category",
-                              "「%s」类不在 %s 的默认可达集（源侧工作流未接入该类）；"
+                              "「%s」类不在 %s 的默认可达集（工作流未接入该类）；"
                               "加 --all 可见其全部条目" % (category, method)))
     if args.random is not None:
         if not is_int(args.random) or args.random < 1:

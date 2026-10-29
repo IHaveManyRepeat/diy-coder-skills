@@ -11,10 +11,10 @@
            取自 `{project-root}/diy-coder.yaml` 的 `project.name`，缺配置回退项目目录名）；
            序号规则 = 既有最大号 + 1，三位零填充（MP-001 起），不重编不重用。
            同一 slug 已存在 → DUPLICATE_ID 拒绝并指认既有 MP-xxx（**同 slug 更新走记录
-           就地编辑，不新建**——承源侧 anti-zombie 合并思想的记录级形态）。slug 缺失
+           就地编辑，不新建**——anti-zombie 合并思想的记录级形态）。slug 缺失
            （无头常态）→ stderr 一行 `missing_slug` 语义说明 + EMPTY_FIELD 拒绝、零产出。
            骨架里除 id/slug/title/status/date 外全是空值（空串/空列表）——空值即「未写」，
-           承源侧「先把骨架灌进文档、把写作纪律写进文档本身」的手法。
+           「先把骨架灌进文档、把写作纪律写进文档本身」的手法。
 
   check    校验 `{output_dir}/module-plan.yaml`（**零写面**：不写任何被校验技能的文件，
            frontmatter 亦然；本子命令只读、绝不落盘）。校验面四层：
@@ -35,7 +35,7 @@
               本技能零写面改不了——不得判红）。双向对称**只判「本计划内技能之间」**：
               A.followedBy ∋ B 要求 B.precededBy ∋ A（反之亦然），不对称 → `SET_MISMATCH`；
               两侧任一未声明该字段 → 不判（不判不可读数据）；对端在计划外 → warning。
-              链接指向既不在计划内、又未装 → 违规 `UNKNOWN_ID`（补源侧「指向真实能力」等价面）。
+              链接指向既不在计划内、又未装 → 违规 `UNKNOWN_ID`（补「指向真实能力」等价面）。
            ④ `--previous`（**判 yes**：技能清单收缩 = 计划变更，须机械留痕）：配对键 = 记录
               `slug`（**记录重铸 MP-### 时仍能配对**）；旧稿有而新稿无的技能条目 → `ID_UNSTABLE`，
               除非该条目在新稿里保留并标 `dropped: true`（计划内移除的显式留痕）。旧稿不可读 →
@@ -48,9 +48,9 @@
   路径令牌（承纪律 2）：路径参数里的 `{project-root}` **由引擎按 `--project-root` 自解析**
   （唯一例外）；其余任何 `{...}` 令牌一律拒绝并报 `TOKEN_UNRESOLVED`、零写入。
 
-规则来源：违规码复用 batch3-contract §3 冻结集（MISSING_FILE / UNPARSABLE_YAML /
+规则来源：违规码复用冻结集（MISSING_FILE / UNPARSABLE_YAML /
 DUPLICATE_ID / UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT / STATUS_MISMATCH /
-SET_MISMATCH 共 9 个）+ 本批点名的新增码 3 个：**`NAME_ILLEGAL`（技能名非法）/
+SET_MISMATCH 共 9 个）+ 新增码 3 个：**`NAME_ILLEGAL`（技能名非法）/
 `ID_UNSTABLE`（技能清单收缩）/ `TOKEN_UNRESOLVED`（未解析路径令牌）**。回执契约对齐既有先例：
 exit 0 唯一放行 / --json 单行 JSON（ensure_ascii=False）/ 共同键 {ok, command, project_root,
 output_dir, violations[{code,where,msg}], warnings（与 violations 同形，人读态渲染为 WARN）,
@@ -154,7 +154,7 @@ def cmd_check(args):
 def human_check(payload):
     if payload["ok"]:
         counts = payload["counts"]
-        print("PASS：%s 校验通过（计划 %d 条 · 技能 %d 个 · 本批新建 %d 个）"
+        print("PASS：%s 校验通过（计划 %d 条 · 技能 %d 个 · 新建 %d 个）"
               % (payload["output_dir"] + "/" + PLAN_FILE, counts["plans"],
                  counts["skills"], counts["new_skills"]))
     human_lines(payload)

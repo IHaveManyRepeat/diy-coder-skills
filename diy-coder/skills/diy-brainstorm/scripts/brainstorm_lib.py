@@ -20,7 +20,7 @@ LIB_COLUMNS = ("category", "technique_name", "description")
 
 STATUS_ENUM = ("草稿", "进行中", "已完成")
 APPROACH_ENUM = ("用户自选", "AI 推荐", "随机", "渐进流")
-# 记录级状态机与续接锚点同档（裁定 1：current_step 是续接点，不是进度装饰）
+# 记录级状态机与续接锚点同档（current_step 是续接点，不是进度装饰）
 STEP_BY_STATUS = {"草稿": (1,), "进行中": (2, 3, 4), "已完成": (5,)}
 ASSUMPTION_MARK = "[假设]"
 PROJECT_FIELDS = ("name", "created", "updated")
@@ -72,7 +72,7 @@ def library_categories(rows):
     return seen
 
 def sample_cross_category(rows, count):
-    """跨类别优先抽样：按类分桶后轮转取，各类耗尽再补齐——保证组合多样（源 02c 语义）。"""
+    """跨类别优先抽样：按类分桶后轮转取，各类耗尽再补齐——保证组合多样。"""
     buckets = {}
     for row in rows:
         buckets.setdefault(row["category"], []).append(row)
@@ -95,7 +95,7 @@ def sample_cross_category(rows, count):
 # ---------------------------------------------------------------- 命令面
 
 def emit(payload, as_json, summary_line=None):
-    """打印回执并返回 exit code：0 = 放行，1 = 有违规（契约 §3）。"""
+    """打印回执并返回 exit code：0 = 放行，1 = 有违规。"""
     if as_json:
         print(json.dumps(payload, ensure_ascii=False))
     else:

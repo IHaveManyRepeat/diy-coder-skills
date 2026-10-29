@@ -45,7 +45,7 @@ python "{project-root}/.claude/skills/diy-bmb-builder/scripts/bmb_builder.py" sc
 
 落点默认 `{project-root}/.claude/skills/<skill-name>/`（**一步到位，落此即用**）；要把它变成套件的一部分（进 git 分发）才加 `--to-source` 落 `{project-root}/diy-coder/skills/<skill-name>/`（技能名须带 `diy-` 前缀）。`--dirs` 只 stub 这次真的需要的目录（`steps` 是默认，`references` / `scripts` / `assets` 按需加）。
 
-起手 SKILL.md 已带四段骨架与母本冻结句，接着写**能跑通的最小版本**：写目的地，不写路线。其余一切结构**先都不加**，直到一次对比挣来它。Edit 意图要覆盖既有技能时：目标是**破坏性操作**——交互态先拿到用户明确确认才加 `--force`；**无头态不给 `--force`**，改跑 `diyc.py defer-add --reason 破坏性操作` 入队、明示、停。`--force` 有硬护栏：命中套件已建技能名或禁改面，即使 `--force` 也拒。
+起手 SKILL.md 已带四段骨架与冻结句，接着写**能跑通的最小版本**：写目的地，不写路线。其余一切结构**先都不加**，直到一次对比挣来它。Edit 意图要覆盖既有技能时：目标是**破坏性操作**——交互态先拿到用户明确确认才加 `--force`；**无头态不给 `--force`**，改跑 `diyc.py defer-add --reason 破坏性操作` 入队、明示、停。`--force` 有硬护栏：命中套件已建技能名或禁改面，即使 `--force` 也拒。
 
 ## 在真输入上跑
 

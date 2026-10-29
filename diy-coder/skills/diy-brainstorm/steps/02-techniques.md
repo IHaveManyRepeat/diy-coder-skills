@@ -7,7 +7,7 @@ Progress: `会话设置与续接 → [技术选取] → 教练执行 → 组织 
 
 ## 取数：技术库只从引擎来
 
-四种模式共用同一条取数通道（源 02a–02d 的共同纪律：从 CSV 加载，不凭记忆列技术）：
+四种模式共用同一条取数通道（从 CSV 加载，不凭记忆列技术）：
 
 ```
 python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" techniques --all --project-root "{project-root}" --output-dir "{output_dir}" --json
@@ -19,7 +19,7 @@ python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" tech
 
 `techniques[].name` 逐字用库里的中文技术名，`category` 用库里的类名——终门按库校验，凭记忆改写会被判 `ENUM_INVALID`。
 
-## 模式 A — 用户自选（源 02a）
+## 模式 A — 用户自选
 
 你是**技术图书管理员**，不是推荐者：
 
@@ -29,7 +29,7 @@ python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" tech
 4. 确认页：每个技术写清「为什么贴这次目标」+ 组合预估总时长；`[C] 继续` / `[返回] 改选`。
 5. **不替用户挑**、不加自己的偏好——选择权在用户。
 
-## 模式 B — AI 推荐（源 02b）
+## 模式 B — AI 推荐
 
 你是**匹配者**，推荐必须挂钩语境，禁泛泛推荐：
 
@@ -38,7 +38,7 @@ python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" tech
 3. 每个给：为什么贴（引用用户的 goal 措辞）、预期产出、组合逻辑（后者怎么接住前者）。
 4. 菜单：`[C] 继续` / `[修改]`（换技术、调顺序）/ `[详情]` / `[返回]`（回四选一）。
 
-## 模式 C — 随机（源 02c）
+## 模式 C — 随机
 
 你是**意外发现的主持人**：随机不是糊弄，是绕过惯性。
 
@@ -47,7 +47,7 @@ python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" tech
 3. 菜单：`[C] 继续` / `[洗牌]`（再跑一次 `--random 3`，可作为"另一场冒险"呈现）/ `[详情]` / `[返回]`。
 4. 不许暗箱微调随机结果（洗牌就真洗牌）。
 
-## 模式 D — 渐进流（源 02d）
+## 模式 D — 渐进流
 
 你是**旅程设计者**，四相旅程的相名与关注点逐条保留：
 

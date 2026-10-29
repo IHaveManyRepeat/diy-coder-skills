@@ -15,7 +15,7 @@ python "{project-root}/.claude/skills/diy-bmb-builder/scripts/bmb_builder.py" ch
 
 三个都 `exit 0` 才继续。`where` / `msg` 指哪修哪，修完重跑（**不要跳过、不要只改回执**）。**同一个违规修三次还不好 → 停并上报**：把它记成 `mlog` 的 `gap`，写清卡在哪、你试过什么，然后交给用户——不要进入无休止的自我修补。
 
-三条判据各有侧重：`prepass` 查结构与语言（阶段文件落点、禁用段、残留标记、四段、步骤编号、直白度）；`scan` 查机械形态（绝对路径、越界引用、脚本合规）；`check --final` 查**四项**——结构合规（四段 + `SKILL.md ≤90 行`）/ 母本句式逐字 / 自足性 / frontmatter 六字段。token 计数只作信息面（`prepass --set metrics` 出数），不构成门禁。
+三条判据各有侧重：`prepass` 查结构与语言（阶段文件落点、禁用段、残留标记、四段、步骤编号、直白度）；`scan` 查机械形态（绝对路径、越界引用、脚本合规）；`check --final` 查**四项**——结构合规（四段 + `SKILL.md ≤90 行`）/ 句式逐字 / 自足性 / frontmatter 六字段。token 计数只作信息面（`prepass --set metrics` 出数），不构成门禁。
 
 **自己是精简的，才有资格教精简**：过门前确认这个技能自己也过得去 leanness 那一关；`SKILL.md` 超 90 行就把最大的自足段落搬到 `steps/` 或 `scripts/`，而不是压缩成要解码的句子。
 

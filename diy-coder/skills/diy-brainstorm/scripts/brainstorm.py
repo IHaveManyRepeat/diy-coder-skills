@@ -31,7 +31,7 @@
              `actions[].idea` 的引用必须落在本记录 `ideas[].id` 内 / `techniques[].category`
              ∈ 库内类名。`--final` 附加：`status: 已完成` 且零 `[假设]`（定稿前清零，未决项落
              `open_questions`）。`--id BS-xxx` 把记录级扫描收窄到一条（找不到 → `UNKNOWN_ID`）。
-             `--previous` 版本对账（2026-10-20 改判，2026-10-21 扩到三级）：比对
+             `--previous` 版本对账：比对
              `{output_dir}/brainstorm.yaml.prev`，三失败分支 = `ID_UNSTABLE`（旧稿有、新稿无的
              会话记录 / 记录内想法·主题聚类·行动计划标识）/ `MISSING_FILE`（.prev 缺失）/
              `UNPARSABLE_YAML`（.prev 不可解析）；某级从无 id 迁到有 id 的那一轮（迁移轮）跳过
@@ -42,7 +42,7 @@
              `.prev` 在场**不覆盖**——先对账（同 `--previous` 三失败分支），不过 exit 1 零写入，
              过才覆盖为本轮基线；首拍（.prev 缺席）直拍。
 
-分工裁定（任务书 §2.2 形 A）：brainstorm.yaml 属新产物类型，不进 diyc.py check 的硬编码
+分工裁定：brainstorm.yaml 属新产物类型，不进 diyc.py check 的硬编码
 类型集；契约同构——exit 0 唯一放行 / `--json` 单行回执（`ensure_ascii=False`）/ 无 `--json`
 走中文人读行（每违规一行 `CODE where: msg` + 汇总行）/ 回执共同键
 {ok, command, project_root, output_dir, violations[{code, where, msg}], warnings, counts}，
@@ -51,7 +51,7 @@
 写回纪律：全文 load → 就地改 → 追加/合并 → `yaml.safe_dump(allow_unicode=True,
 sort_keys=False, default_flow_style=False)` → 同目录临时文件 + `os.replace`（注释不保留）。
 
-违规码：复用 batch3-contract §3 冻结集——本引擎在用 `MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：复用冻结集——本引擎在用 `MISSING_FILE` / `UNPARSABLE_YAML` /
 `UNKNOWN_ID` / `ENUM_INVALID` / `EMPTY_FIELD` / `DUPLICATE_ID` / `STATUS_MISMATCH` /
 `ASSUMPTION_PRESENT` 共 8 个（冻结九码里的 `SET_MISMATCH` 随 `ideas[].no` 退场不再触发——
 稳定 ID 不重编号，空号合法，「连续不跳号」约束随之作废），**冻结九码一字不动**；技能级新增码
@@ -64,13 +64,13 @@ sort_keys=False, default_flow_style=False)` → 同目录临时文件 + `os.repl
 ② `ENUM_INVALID` 兼作「`ideas[].no` 与 id 并存」——冻结集里没有「废字段残留」码，最近义项是
    字段取值/形态不合法。
 
-`--previous` 判 **yes**（2026-10-20 改判，原「追加式台账不适用 `--previous`」作废）：
+`--previous` 判 **yes**：
 `BI-###` / `BT-###` / `BA-###` 未来成为 prd 的外部引用锚，素材单元丢失即跨文件断链（下游
 `UNKNOWN_ID` 只能发现、不能恢复，prd 里也没有素材原文）——必须有 `.prev` 完整快照兜底。每轮
 开工 `snapshot` 拍 `.prev`（在场不覆盖、先对账后拍）；`check [--final] --previous` 走三失败
 分支；迁移轮按级跳过比对；`revisions`（改因留痕）与 `.prev`（兜底快照）两机制并存、不互替。
 """
-# trace: 迁移计划 §二 验收 #2（产物 schema + BS-### 稳定 ID）/#3（门禁零产出退出）
+# trace: 产物 schema + BS-### 稳定 ID；门禁零产出退出
 #        /#4（ID 链接入：BS-### + 想法序号）/#12（领域引擎接线：a 实例委托 d/e 写权边界）
 import argparse
 import io

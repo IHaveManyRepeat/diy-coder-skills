@@ -23,7 +23,7 @@ outputs: —
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 硬门：`{output_dir}/sprint.yaml` 的 `project.status: 已定稿`。不满足 → 停下，一行说明缺什么，路由 `diy-sprint`。
 3. 定目标：显式 story ID（本次调用的参数——交互侧由用户给出，无头侧由 runner 的提示词给出）；没有就取第一条非终态任务。`已完成` / `已阻塞` 的目标一律拒绝并点明其状态——终态即无活可干。
-4. TDD 门（继承自 diy-dev）：`test_refs` 每一条都要在 test-plan.yaml 里解析得到；解析不到 → 置 `已阻塞`，`blocked_reason` 点名那些缺失/损坏的 TC ID（AC-9.2：歧义转阻塞，不靠猜）——HALT 写 `transition --to 已阻塞 --reason`（见 HALT 协议），零实现产出。`test_refs` 为空只有在该 story 于 test-plan.yaml 中确有 TC 时才算违规（引用集未同步）；AC 缺口全部裁 `已豁免` / `接受缺口` 的故事没有 TC，`test_refs: []` 是合法记录。
+4. TDD 门（继承自 diy-dev）：`test_refs` 每一条都要在 test-plan.yaml 里解析得到；解析不到 → 置 `已阻塞`，`blocked_reason` 点名那些缺失/损坏的 TC ID（歧义转阻塞，不靠猜）——HALT 写 `transition --to 已阻塞 --reason`（见 HALT 协议），零实现产出。`test_refs` 为空只有在该 story 于 test-plan.yaml 中确有 TC 时才算违规（引用集未同步）；AC 缺口全部裁 `已豁免` / `接受缺口` 的故事没有 TC，`test_refs: []` 是合法记录。
 `{output_dir}/sprint.yaml / stories.yaml / test-plan.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
@@ -78,13 +78,13 @@ loop:
 ## 规则
 
 1. **只编排，不复制。** dev 阶段行为（先红后绿、最小实现、trace 注释、证据行、绿前 `static_checks`）严格照 diy-dev；审查阶段行为（L1-L4 层、四条路由、判决规则）严格照 diy-review。
-2. **要么终态，要么不结束。** 本次运行只以目标 `已完成` 或 `已阻塞` 收场（AC-9.1）。
-3. **HALT 协议（FR-3.6）。** 每次状态迁移在发生的那一刻写进 sprint.yaml，并 bump `project.updated`（刷今天）——由 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" transition --story <S-x> --to <状态> [--reason TEXT] [--rounds N] --json` 执行；`待审查→已完成` 例外，只有 `done` 命令能写。每次 HALT 写都带上当前返工轮次 `--rounds N`，中断也不丢；`loop.outcome` 只在终态出现（`已阻塞` 经 `transition --to 已阻塞`，`已完成` 经 `done`）。任何时刻中断，盘上留下的都是真实状态，下一次调用从它恢复（幂等：既有证据条目保留，只跑缺失的 TC）。
-4. **返工轮次有上限、跨运行续算。** 封顶 2 轮（R-4 上限）；`rounds` 取既有 `loop.rounds` 续算、中断恢复**不重置**；到顶仍未决 → `已阻塞`，`blocked_reason` 点名 findings 与轮次。
+2. **要么终态，要么不结束。** 本次运行只以目标 `已完成` 或 `已阻塞` 收场。
+3. **HALT 协议。** 每次状态迁移在发生的那一刻写进 sprint.yaml，并 bump `project.updated`（刷今天）——由 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" transition --story <S-x> --to <状态> [--reason TEXT] [--rounds N] --json` 执行；`待审查→已完成` 例外，只有 `done` 命令能写。每次 HALT 写都带上当前返工轮次 `--rounds N`，中断也不丢；`loop.outcome` 只在终态出现（`已阻塞` 经 `transition --to 已阻塞`，`已完成` 经 `done`）。任何时刻中断，盘上留下的都是真实状态，下一次调用从它恢复（幂等：既有证据条目保留，只跑缺失的 TC）。
+4. **返工轮次有上限、跨运行续算。** 封顶 2 轮；`rounds` 取既有 `loop.rounds` 续算、中断恢复**不重置**；到顶仍未决 → `已阻塞`，`blocked_reason` 点名 findings 与轮次。
 5. **规格缺陷 → 已阻塞。** 修 stories.yaml / test-plan.yaml 归人与上游技能，不归执行者。
 6. **自动模式不跑证伪轮。** diy-review 可选的收尾证伪轮只由用户触发，本技能不跑；也不额外记录——它没跑不算 finding。
 7. **写范围收窄。** 只写目标任务的条目：周期里的各状态、`loop` 摘要，以及其阶段产出的 evidence / review 块。绝不碰其他任务，绝不改写 `test_refs`。
-8. **终态写抵达真源——真源回填（BUG-012）。** `done` 命令（`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" done --story <S-x> --rounds N --json`）把 `待审查 → 已完成` 连同回填当一个原子批次做完：sprint.yaml 里任务 `status: 已完成` 且 `loop: {at, rounds, outcome: 已完成}`，stories.yaml 里该故事 `status: 已完成`，test-plan.yaml 里本次跑绿的每个 TC `status: 通过`（dev 阶段已按 diy-dev 写过，终态写做对账），并 bump 所有被触及的 `project.updated`。`已阻塞` 只是 sprint 层结论——不写 `stories.yaml`、不写 `test-plan.yaml`：故事未交付，什么也不算通过。**为什么：** 2026-09-13 证伪轮发现无头链已到 sprint 终态、真源却停在 `待办`。
+8. **终态写抵达真源。** `done` 命令（`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" done --story <S-x> --rounds N --json`）把 `待审查 → 已完成` 连同回填当一个原子批次做完：sprint.yaml 里任务 `status: 已完成` 且 `loop: {at, rounds, outcome: 已完成}`，stories.yaml 里该故事 `status: 已完成`，test-plan.yaml 里本次跑绿的每个 TC `status: 通过`（dev 阶段已按 diy-dev 写过，终态写做对账），并 bump 所有被触及的 `project.updated`。`已阻塞` 只是 sprint 层结论——不写 `stories.yaml`、不写 `test-plan.yaml`：故事未交付，什么也不算通过。**为什么：** 证伪轮曾发现无头链已到 sprint 终态、真源却停在 `待办`。
 9. **调度归 runner。** 无头串行驱动由 `runner.py` 负责（安装形态 `.claude/skills/diy-tools/scripts/runner.py`，**由人手动执行**）——签名 `python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" [--project-root <目录>] [--instance <实例名>] [--claude-cmd <命令…>] [--max-retries N] [--allow <白名单条目>] [--deny <拒止条目>] [--skip-augment | --augment-only | --reopen-failed] [--skip-post | --post-only]`（post 面：全部任务终态后自动连跑 diy-e2e-tests → diy-test-review → diy-test-gate，结论落各自产物不重开任务，review/gate 记录落草稿待人核定稿；`--post-only` 只跑三连不驱动主循环）。示例：`python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" --project-root "{project-root}"`。它逐条 spawn 本技能的无头运行；本技能自己绝不挑下一个任务。
 10. 任何判断性取值都在 YAML 值上带 `[假设]` 前缀。
 

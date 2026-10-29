@@ -112,7 +112,7 @@ def check_registration(entries, names, faces, where, violations, warnings, stats
                 msg += "（%s）" % reason
             if entry.get("new") is True:
                 violations.append(v("EMPTY_FIELD", ewhere + ".name",
-                                    msg + "（本批新建技能须六字段齐备）"))
+                                    msg + "（新建技能须六字段齐备）"))
             else:
                 warnings.append(v("EMPTY_FIELD", ewhere + ".name",
                                   msg + "（存量技能零字段是既成事实，本技能零写面改不了——记 warning 不判红）"))

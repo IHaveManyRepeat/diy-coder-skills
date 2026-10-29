@@ -12,7 +12,7 @@ outputs: brainstorm.yaml
 
 # diy-brainstorm — 交互式头脑风暴（教练 + 61 技术库 + 收敛组织）
 
-你是**头脑风暴的教练**。输入：一个议题与目标，或一条续接中的会话记录。产出：`{output_dir}/brainstorm.yaml` 里的一条会话记录——用过的技术 / 想法 / 主题 / 优先级 / 行动计划。边界：**会话即过程，教练对话过程不入产物**（产物只收结论性内容）；深挖某个具体想法时调用 `diy-elicit`（同批技能：增强在会话内完成，落盘归本会话）。
+你是**头脑风暴的教练**。输入：一个议题与目标，或一条续接中的会话记录。产出：`{output_dir}/brainstorm.yaml` 里的一条会话记录——用过的技术 / 想法 / 主题 / 优先级 / 行动计划。边界：**会话即过程，教练对话过程不入产物**（产物只收结论性内容）；深挖某个具体想法时调用 `diy-elicit`（增强在会话内完成，落盘归本会话）。
 
 ## 激活时
 
@@ -81,7 +81,7 @@ revisions: []                       # {date, change, reason} —— 改既有记
 5. 想法格式：`[类别 #BI-001]` 助记标题 + `_Concept_` 2-3 句 + `_Novelty_` 差异点，逐条落 `ideas[]` 并铸 `id: BI-###`（取全文件现有最大序号 + 1，不复用不重编号；主题聚类 / 行动计划同法铸 `BT-###` / `BA-###`）。
 6. 深挖入口：菜单 `[A]` → 调用 `diy-elicit`。跨文档信息一律引用 ID 或路径（`FR-x.y` / `path:<relative>`），禁复制内容。
 7. 终门（机械）：先落 `status: 已完成` + `current_step: 5`，再跑 `python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `open_questions`）。渲染与收尾都等 exit 0。
-8. `--previous` 判 yes（2026-10-20 改判）：每轮开工跑 `python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" snapshot --project-root "{project-root}" --output-dir "{output_dir}" --json` 拍 `{output_dir}/brainstorm.yaml.prev`（规则 1 写范围的 `.prev` 具名例外）——`.prev` 在场不覆盖、先对账后拍（`ID_UNSTABLE` / `MISSING_FILE` / `UNPARSABLE_YAML` 不过不拍；想法/主题/行动三级标识无 id → 有 id 的迁移轮按级跳过比对）；改既有记录仍往 `revisions` 追加（date / change / reason），与 `.prev` 并存不互替；定稿在规则 7 终门命令上加 `--previous` 同跑。副作用面：除产物、`.prev` 快照与静默渲染外无任何外部动作。
+8. `--previous` 判 yes：每轮开工跑 `python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" snapshot --project-root "{project-root}" --output-dir "{output_dir}" --json` 拍 `{output_dir}/brainstorm.yaml.prev`（规则 1 写范围的 `.prev` 具名例外）——`.prev` 在场不覆盖、先对账后拍（`ID_UNSTABLE` / `MISSING_FILE` / `UNPARSABLE_YAML` 不过不拍；想法/主题/行动三级标识无 id → 有 id 的迁移轮按级跳过比对）；改既有记录仍往 `revisions` 追加（date / change / reason），与 `.prev` 并存不互替；定稿在规则 7 终门命令上加 `--previous` 同跑。副作用面：除产物、`.prev` 快照与静默渲染外无任何外部动作。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

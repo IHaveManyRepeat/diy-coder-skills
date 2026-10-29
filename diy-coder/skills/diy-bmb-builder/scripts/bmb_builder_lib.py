@@ -125,7 +125,7 @@ SKILL_TEMPLATE = "\n".join([
     "",
 ])
 
-# 静态禁改面（§2.6 的根脚本与目录名；已建技能名由引擎自身位置动态合成）
+# 静态禁改面（根脚本与目录名；已建技能名由引擎自身位置动态合成）
 STATIC_PROTECTED = frozenset([
     "install.py", "viewer.py", "help.py", "runner.py", "diyc.py", "diyc_lib.py",
     "diyc_check.py", "diyc_writeback.py", "exp-sync.py", "diy-coder.yaml",

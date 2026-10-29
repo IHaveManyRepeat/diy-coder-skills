@@ -4,9 +4,9 @@
 机制（技能工厂的 Build / Edit / Analyze 三意图共用这一个引擎）——
 
   scaffold  建技能目录骨架：`--name N` 归一到 hyphen-case（≤64），SKILL.md 从内置模板起手
-            （四段中文标题 + 母本 §1/§2/§3/§4/§6 冻结句），按 `--dirs` stub 子目录。
+            （四段中文标题 + 冻结句），按 `--dirs` stub 子目录。
             落点：默认 `{project-root}/.claude/skills/`（安装面，落此即用）；`--to-source` 落
-            套件源 `{project-root}/diy-coder/skills/`（进 git 分发），该层缺席 → MISSING_FILE
+            套件源树（进 git 分发），该层缺席 → MISSING_FILE
             拒绝且**不代建父目录**；`--to-source` 与 `--dest` 互斥（同给 = 用法错误 exit 2）。
             目标已存在 → FILE_CONFLICT 拒绝；`--force` 才允许 rmtree 重建。
             **--force 硬护栏**：目标名命中 `diy-coder/skills/` 下已建技能名、或命中本套件
@@ -45,28 +45,27 @@
             只追加、不重写历史；读改写走临时文件 + fsync + `os.replace`（崩不半写）。
             回执恒为一行 JSON，含共同键 + `{file, n, appended}` 三附加键（人读态与 --json 无关）。
 
-  check     产物技能终门。基础项（中途可跑）：SKILL.md 在场；四段中文标题齐备；母本
-            §1/§2/§3/§4/§6 锚串逐字在场；frontmatter 六字段（phase/precededBy/followedBy/
+  check     产物技能终门。基础项（中途可跑）：SKILL.md 在场；四段中文标题齐备；锚串逐字在场；frontmatter 六字段（phase/precededBy/followedBy/
             required/line/outputs）+ name/description 齐备且形态合法；**自足性**——技能根相对
             引用（`steps/` `references/` `scripts/` `assets/`）必须落在技能目录内，越界引用
             （`../`）判内容依赖违规。`--final` 附加结构终门：SKILL.md ≤90 行、`steps/` 至少
             一个步骤文件、每步 H1 `# Step N — <中文步名>` + `**Read (input):**`/`**Write (output):**`
             行 + 步号连续 + 每步结尾点名下一个要读的文件（末步声明不再读）。
             **自足性豁免清单**（内容面判据，非字面「禁一切跨目录引用」）：`{project-root}` 令牌
-            路径（母本 §1 的 diyc.py 调用、§3 的 diy-coder.yaml、§5 的 viewer 调用）、
+            路径（diyc.py 调用、diy-coder.yaml、viewer 调用）、
             `{output_dir}` 产物路径、`path:<relative>` 引用式路径——三者一律豁免。
 
   render    由脚本把 `findings.json` 渲染成 `skill-analysis-report.md` + `.html`（十二件
             报告集里的最后两件）。**绝不手写 HTML**；findings.json 形状不对或主体仍是占位
             则拒绝渲染（零产出）。
 
-违规码：复用 batch3-contract §3 冻结集（MISSING_FILE / UNPARSABLE_YAML / EMPTY_FIELD /
-ENUM_INVALID / SET_MISMATCH）；本批点名的新增码中本引擎用到 NAME_ILLEGAL（名字/文件名形态非法；
+违规码：复用冻结集（MISSING_FILE / UNPARSABLE_YAML / EMPTY_FIELD /
+ENUM_INVALID / SET_MISMATCH）；新增码中本引擎用到 NAME_ILLEGAL（名字/文件名形态非法；
 `mlog --file` 只收纯文件名——含路径分隔符、`.`/`..`、空白名一律拒绝，否则 `--dir` 的边界形同虚设）、
 FILE_CONFLICT（目标已存在 / 破坏性护栏 / 内容依赖越界）、TOKEN_UNRESOLVED（未解析 `{...}` 令牌
 与残留模板标记）；未用到 UNKNOWN_ID / ID_UNSTABLE（本技能无 ID 集合面，`--previous` 判 no）。
-另有一个**套件既有码** `INTERNAL_ERROR`：不在 §3 冻结清单内，也非本批新造——沿用 `diyc.py`
-批次 3.5 P2 的顶层兜底先例（未预期异常转回执，不让异常裸奔、不静默吞错），故在此登记。
+另有一个**套件既有码** `INTERNAL_ERROR`：不在冻结清单内，非新造——沿用 `diyc.py`
+顶层兜底先例（未预期异常转回执，不让异常裸奔、不静默吞错），故在此登记。
 回执共同键 {ok, command, project_root, output_dir, violations[{code,where,msg}], warnings[], counts}；
 warnings 与 violations 同形；where 正斜杠、相对 project-root；exit 0 唯一放行，1 = 违规/被拒绝，
 2 = 用法错误（argparse），3 = template 残留 `{if-}` 标记。`--output-dir` 全部子命令必填

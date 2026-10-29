@@ -21,7 +21,7 @@ python "{project-root}/.claude/skills/diy-bmb-builder/scripts/bmb_builder.py" ml
 <技能名> — <Build|Edit|Analyze> 完成
 - 落点：<技能目录>（安装面 / 套件源）
 - 文件：SKILL.md（N 行）+ steps/ X 个 + scripts/ Y 个
-- 终门：check --final exit 0（四段 / ≤90 行 / 母本逐字 / 自足 / 六字段）
+- 终门：check --final exit 0（四段 / ≤90 行 / 逐字 / 自足 / 六字段）
 - 评测：<跑了哪种模式 + 结论 | 未跑（opt-in）| 降级原因>
 - 日志：{output_dir}/build-logs/<skill-name>.md
 ```
@@ -30,7 +30,7 @@ Analyze 意图的摘要换成：grade、verdict、severity 计数、最值钱的
 
 ## 分发说明
 
-技能目录是**自足的**（NFR-4）：`SKILL.md` + `steps/` + `scripts/` 自带全部内容，运行期只依赖目标机上已装的 diy-coder 套件（`diyc.py` / `viewer.py` 那些套件级工具，以及 `{project-root}` 令牌路径）。
+技能目录是**自足的**：`SKILL.md` + `steps/` + `scripts/` 自带全部内容，运行期只依赖目标机上已装的 diy-coder 套件（`diyc.py` / `viewer.py` 那些套件级工具，以及 `{project-root}` 令牌路径）。
 
 **分发 = 拷贝目录**：把这个目录拷到任何已经装好 diy-coder 套件的项目 `.claude/skills/` 下即生效，不需要打包格式、不需要安装脚本、不需要再跑一次同步。反过来说：目标机上没有 diy-coder 套件时，本技能造出来的技能会缺它调用的套件级工具——这是要提前讲清的前提。
 

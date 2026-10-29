@@ -26,7 +26,7 @@ WORKTREE_REF = "WORKTREE"
 
 CK_RE = re.compile(r"CK-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-# BMAD step-01-orientation.md:54 —— "commit message is terse (under 10 words)" → 标 [inferred]
+# 提交信息简洁（< 10 词）→ 标 [inferred]
 TERSE_WORDS = 10
 
 # ---- git 层（只读；任何失败都降级为结构化原因，不抛异常） ----
@@ -68,7 +68,7 @@ def commit_subject(root, ref):
     return out.strip() or None
 
 def intent_flag(root, commit_ref):
-    """BMAD step-01 bare-commit 语义：意图源 = 提交信息；terse（< 10 词）→ 标 [inferred]。
+    """裸提交意图语义：意图源 = 提交信息；terse（< 10 词）→ 标 [inferred]。
 
     返回 (inferred, reason)：True/False = 已判定；None = 无单一提交信息可判定
     （工作区未提交改动 / range），交由人从 diff 核对。

@@ -43,11 +43,11 @@ outputs: analysis.yaml
 
 ## 结构
 
-`{output_dir}/analysis.yaml` —— 唯一源头；顶层设 `project.status`（母本 §8 两值口径）：
+`{output_dir}/analysis.yaml` —— 唯一源头；顶层设 `project.status`：
 
 ```yaml
 project: {name, created, updated, status}   # status: 草稿|已定稿；created 建文件时设、此后不改
-question: {text, scope, output_format, time_box, codebase}   # 源 step-01 的四项定义 + 被分析路径
+question: {text, scope, output_format, time_box, codebase}   # 四项定义 + 被分析路径
 architecture: {summary, tech_stack: [], overview, mermaid: "<字符串>", patterns: [], layers: []}
 components: [{id: AN-01, name, layer, responsibility, location, status}]
                      # layer: 展示层|应用层|领域层|基础设施层|未分层；status: 已核实|待核实

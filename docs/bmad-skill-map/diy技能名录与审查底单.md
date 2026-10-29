@@ -174,7 +174,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | test-author「未建」滞后表述清理（2 处条件分支；wds-system 三处真未建归去源锚批） | diy-test-framework SKILL＋steps |
 | 单独技能 | diy-test-gate viewer 滞后句清理（06-finish:33「走通用降级渲染·标签缺口由主 agent 登记」——C·2 2026-09-21 已补齐 test-gate 标签，句面失实） | diy-test-gate steps/06-finish.md |
 | 单独技能 | diy-test-gate dev 仓引用漏网 6 处清理（迁移计划 §十三:459×4·§二验收×1·SKILL.md:67 裸节号；普查标记词未命中 §形态——与既有 4 处同族合计 10 处/8 文件，**随去源锚专批一起改**，待用户点头开工） | diy-test-gate SKILL＋steps/05＋scripts/gate.py＋gate_check.py |
-| 单独技能 | 变异配置显式化（test-plan `mutation:{enabled,tool?}` 段·默认开日常任务级·任务级/发版级 override·借位条款退役） | test-design/augment SKILL＋diyc 校验＋tests |
+| 单独技能 | 变异配置显式化（test-plan `mutation:{enabled,tool?}` 段·默认开日常任务级·任务级/发版级 override·借位条款退役） | test-design/augment SKILL＋diyc 校验＋tests〔v4·批1 已销 ec13e67＝借位退役＋mutation 段；schema/override 见 test-design SKILL:74/:109；引擎形状校验 test_diyc_check:776——2026-10-28 核实补注·行滞后〕 |
 | 单独技能 | wds-assets 风格库汉化（2026-10-05 用户点名 content-styles＋design-styles 两目录；实测：content-styles 10 件全英文、design-styles 6 件全英文、presentation-formats 7 件标题已中文正文疑英文待核、styles/index.md 已中文。**卡名与文件名是引用键**（SKILL:59 `style:{design,content,format 卡名}`＋steps 02/05 消费）——只汉化叙述、键逐字保留，steps 零改动。待用户点头开工）〔v4·汉化插队已销 2026-10-13〕 | diy-wds-assets data/styles＋presentation-formats |
 | 单独技能 | diy-spec-scan 加方法驱动分支穷举（ECH 化·2026-10-05 用户裁定「卡点法还不够」＋**方案全定 1A+3B·无待裁项**：①穷举独立成 step（如 02b-exhaustive）不并入 03——与 diy-review 双透镜并列同构·两法 findings 去重复用 02「同一处只报一次」·判据参考 diy-review lenses.md「边界类从内容自身推·不套固定清单」；②**穷举默认跑（opt-out·2026-10-05 裁）**——除非用户明示不用穷举·对齐 editorial-review 两透镜默认全跑 `--lens` 收窄先例；③**载体已裁＝`source: 卡点\|穷举` 字段**——type 保持八类·引擎 FINDING_TYPES 零改·summary 分法计数（selfcheck B 部分机制评价原料）。**未开工·待用户点头**）〔v4·批2a 已销 2026-10-11〕 | diy-spec-scan SKILL＋steps＋引擎＋tests |
 | 单独技能 | diy-selfcheck 硬门放开「要照做的事」→ 任意文档可审（2026-10-05 用户点名 prd/架构/epic/story/任意文档；BMAD AR/ECH 文档面能力补缺·Story 2.1 实用过 AR 定稿兜底；**方案已裁 2A+4a**：spec-scan 硬门同步放开为「可读非空」·两技能形态统一·selfcheck 预演片对纯文档不降级；纯文档时 spec-scan 跳过 02 预演只跑穷举+03+04（依赖 1A）；kind 扩「任务书\|技能\|规格\|文档」——引擎不校验语义 kind·仅改 SKILL.md 文案零引擎改动。**未开工·待用户点头**）〔v4·批2b 已销 2026-10-11·引擎零改＝4a 收窄——改动面列之『引擎』在册未触〕 | diy-selfcheck SKILL＋steps＋diy-spec-scan SKILL＋steps＋引擎＋tests |
@@ -360,6 +360,10 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 **〔2026-10-27 用户二裁〕**：①层数＝**逐产物定一张层数表**（非统一一级/两级；表随任务评估呈核后定）；②落位＝**暂缓**——先看任务情况（层数表＋改动面＋预估）再裁是否入夜队列。
 
 **〔2026-10-27 层数表已呈〕**：41 产物逐行表落 `.analysis/2026-10-27-toc/层数表-逐产物过目.md`（结构三路探查＋`key_label()` 实测标签）；拟 2 级 11／1 级 30；待用户逐行过目报改动后定稿，再裁入队。副产两条观察另立下段。
+
+**〔2026-10-28 层数表已裁定·定稿〕**：5 产物升 3 级（brief/prfaq/analysis/wds-brief/wds-trigger）＋2 级 6 维持＋1 级 30 维持；**openapi 补展示六章**（x-project 元数据/info/功能标签/安全要求/路径/组件——现状 `viewer_openapi.py` 仅总览+详情两章，六章＝渲染面新增随 TOC 批做）。影子仓 `d07184c`（呈核版）＋`f4ae71e`（裁定回填）。改动面＝viewer_pages.py＋viewer_render.py(CSS)＋viewer_openapi.py＋viewer tests；排次甲（Q-129/Q-130 先行）不变、两件仍随批6 挂起。
+
+**〔2026-10-28 用户裁·入队〕**：TOC 批入第八夜队列 **Q-133**（`.analysis/overnight/queue-2026-10-28-2112.yaml`·预估 60min）；标阻塞——前置 Q-129/Q-130 挂起（第七批）＋本件文件亦在批6 C 清单，批6 完工重审后随令开工。
 
 ## 待办：WDS/openapi 键标签缺位＋卡内标题 id 重复（2026-10-27 TOC 层数表评估副产，登记待办，现在不动）
 
@@ -672,17 +676,6 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 候选：新技能把好用工具安装进项目——代码分析工具（如 ruff/rg/knip 类）、各技能运行必备的外部工具；一次巡检缺啥装啥。
 - 触发：实际开新项目或技能报缺工具时再做。
 
-### viewer HTML 任务复制按钮（2026-10-12 登记）
-
-- 候选：viewer 渲染的 HTML 页面对任意任务加一个复制按钮——点击后把该任务内容复制到剪贴板，粘贴进 Claude Code 这类工具里继续处理；不限产物类型（不管是什么产物）。
-- 事实：渲染脚本＝`diy-viewer/scripts/viewer.py`（产 index.html 等页）；按钮属纯前端交互。
-- 已裁（2026-10-13，三项）：
-  - **复制内容形态＝转成提示词文案**（不复制原文 YAML/JSON）——文案必带**产物文件路径＋条目 ID**，使 AI 据以打开对应文件、定位该 ID 对应内容，再按用户粘贴后口述的意图（解释/修改等）处理。
-  - **按钮位置＝表格内每个 ID 旁**（非每任务卡一个）。
-  - **交互＝单击复制**。
-  - 文案具体措辞随任务书拟。
-- 触发：需要把 viewer 里看到的任务直接喂给 AI 工具时再做。
-
 ### bmb-builder 收编三档总则（2026-10-25 登记）
 
 - 候选：把 `docs/code-quality.md`「上游产物依赖三档」总则内容放入 diy-bmb-builder——以后经工厂造/改技能时，创建动作发生即自动享受判档经验（规则跟着创建动作走）。
@@ -690,9 +683,17 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 形态随做时定：02-build 步骤挂引用句 vs suite-texts 注入（批 8 窗口）。
 - 触发：bmb-builder 下次接触窗口或批 8 母本注入批开工时，二选一顺带落。
 
+**〔2026-10-28 用户裁定·形态闭合〕**：**甲＝02-build 步骤挂引用句**（不等批 8 母本机制）。与下节「改技能通道制度化」同窗合并入队（同动 builder SKILL/steps）。
+
+**〔2026-10-28 已入队〕**：合并件 Q-132（`queue-2026-10-28-2112.yaml`）·status=阻塞（bmb-builder 族在批6 A 清单·批6 完工后开工）。
+
 ### 改技能通道制度化（2026-10-25 用户裁向，登记待办，现在不动）
 
 - 裁向：以后改 diy 技能**必须走 diy-bmb-builder（Edit 意图）通道**；通道 SKILL/steps 内置「正文规范清单」——源路径锚/拍板引语/任务批名词/迁移决策记录四类禁入（同批 6 四类）；大改配套任务书流程。
 - 三层纵深：批 6 清存量（正文 500+ 处）→ 复扫词表常态化 guard 拦增量（批 6 §8 已裁追加判据）→ 本条收入口（改技能动作本身走规范通道）。
 - 强制形态待裁：软约束（SKILL 正文规范句＋lint gate 检查）vs 硬约束（hook 拦 `skills/**` 写操作引导走通道）。
 - 触发：bmb-builder 下次接触窗口或批 6 完工时顺带落；与「bmb-builder 收编三档总则」条同窗可合并处理。
+
+**〔2026-10-28 用户裁定·强制形态闭合〕**：**检查脚本门（两案之外第三形态）**——改完技能后跑一个检查脚本核对本次改动（四类禁入零在场），不加 hook；理由＝hook 绑 Claude Code 宿主，换 agent/宿主即失效，脚本宿主无关。SKILL/steps 规范句仍写（通道内声明清单），保证落点＝脚本机械检查。词表与批 6 §8 复扫 guard 同源复用、不另造。脚本落点/调用方式（builder 收尾必跑 vs 独立命令随查）随任务书定。
+
+**〔2026-10-28 已入队〕**：合并件 Q-132（同上节·`queue-2026-10-28-2112.yaml`）。

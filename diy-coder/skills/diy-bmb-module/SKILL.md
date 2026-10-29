@@ -65,7 +65,7 @@ plans:
 revisions: []                          # {date, change, reason} —— 改既有条目时追加
 ```
 
-`skills[].name` 写**完整技能名（含 `diy-` 前缀）**——与 frontmatter 引用形态、安装目录名同一个空间，零前缀算术（`diy-` 前缀不由 builder 侧另补）。`new: true` 标记「本批新建」（六字段齐备的判定面）、`dropped: true` 标记「计划内移除」（`--previous` 判据），两者默认 `false`。
+`skills[].name` 写**完整技能名（含 `diy-` 前缀）**——与 frontmatter 引用形态、安装目录名同一个空间，零前缀算术（`diy-` 前缀不由 builder 侧另补）。`new: true` 标记「计划内新建」（六字段齐备的判定面）、`dropped: true` 标记「计划内移除」（`--previous` 判据），两者默认 `false`。
 
 ## 规则
 

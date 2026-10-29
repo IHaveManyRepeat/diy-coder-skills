@@ -89,7 +89,7 @@ def cmd_check(args):
     for key in ("text", "scope", "output_format", "time_box"):
         if not str(question.get(key) or "").strip():
             vio.append(v("EMPTY_FIELD", "question.%s" % key,
-                         "为空——源 step-01 的四项定义不得省"))
+                         "为空——四项定义不得省"))
 
     arch = doc.get("architecture") or {}
     for key in ("summary", "overview"):

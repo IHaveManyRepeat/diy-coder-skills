@@ -7,7 +7,7 @@
   show   单条组件（`--id AN-nn`）/ 整份摘要
   check  骨架完备 + 枚举合法 + ID 纪律；`--final` 另核「已定稿 + 零 `[假设]` + 四段非空」
 
-违规码：**复用 batch3-contract §3 冻结集**——`MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：**复用冻结集**——`MISSING_FILE` / `UNPARSABLE_YAML` /
 `EMPTY_FIELD` / `ENUM_INVALID` / `DUPLICATE_ID` / `UNKNOWN_ID` / `SET_MISMATCH` /
 `STATUS_MISMATCH` / `ASSUMPTION_PRESENT`；**本技能零新增违规码**。
   - `MISSING_FILE` 承载门禁（代码库路径不存在 / 不是目录 / 不可读——统一按「前置物不可用」判）
@@ -17,7 +17,7 @@
 `warnings` 用**描述性码**（非违规码，不进冻结集）：`ALREADY_EXISTS`。
 
 实例解析由 SKILL.md 层完成（`diyc.py resolve`）；本引擎只吃 `--output-dir`，
-不解析实例（对齐 §2.2「`--instance` 一律不做」）。
+不解析实例。
 """
 import argparse
 import os
@@ -60,7 +60,7 @@ def cmd_init(args):
                             % codebase))
     if not str(args.question or "").strip():
         violations.append(v("EMPTY_FIELD", "question.text",
-                            "分析问题为空——先成文再动手（源 step-01 第 1 指令）"))
+                            "分析问题为空——先成文再动手"))
     path = os.path.join(out_dir, "analysis.yaml")
     if os.path.isfile(path):
         old, err = load_yaml_safe(path)
@@ -157,7 +157,7 @@ def build_parser():
 
     p_init = sub.add_parser("init", help="铸 analysis.yaml 骨架（唯一写盘）")
     common(p_init, need_out=True)
-    p_init.add_argument("--question", required=True, help="分析问题（源 step-01 第 1 指令）")
+    p_init.add_argument("--question", required=True, help="分析问题")
     p_init.add_argument("--scope", default="", help="范围边界")
     p_init.add_argument("--output-format", default="", help="期望产出形制")
     p_init.add_argument("--time-box", default="", help="时间盒")

@@ -27,7 +27,7 @@ Progress: `[路由与续接] → 创新策略 / 问题求解 / 设计思维 / �
 | 创新策略 | `./02-innovation.md` | 9 | 第 3 / 5 / 8 步 |
 | 问题求解 | `./03-problem.md` | 9 | 第 5 / 8 步 |
 | 设计思维 | `./04-design.md` | 7 | 第 3 / 5 / 7 步 |
-| 叙事 | `./05-story.md` | 10 | 无（源侧为零） |
+| 叙事 | `./05-story.md` | 10 | 无 |
 
 ## 二、续接检测
 
@@ -79,7 +79,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 ```
 
 - 默认只回**该分支工作流实际引用的类**（创新策略 25 / 问题求解 30 / 设计思维 15 / 叙事 25——叙事分支按类呈现全部 25 条）。
-- `--all` 列该 `method` 的全部条目（**不跨分支**）——库含源侧未接入工作流的条目；`--category "<中文类名>"` 在结果集上按类过滤（类名须是该分支的合法类，否则 `ENUM_INVALID`）；`--random N` 从默认结果集抽 N 条（`N` 超出 → 全给 + warning）。
+- `--all` 列该 `method` 的全部条目（**不跨分支**）——库含未接入工作流的条目；`--category "<中文类名>"` 在结果集上按类过滤（类名须是该分支的合法类，否则 `ENUM_INVALID`）；`--random N` 从默认结果集抽 N 条（`N` 超出 → 全给 + warning）。
 - 分支文件里点名的方法一律**逐字用库里的 `name` / `category`**；凭记忆列方法会被终门判 `ENUM_INVALID`。
 
 ## 六、进入分支

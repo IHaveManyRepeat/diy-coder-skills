@@ -15,22 +15,22 @@ from diyc_lib import display_path, methods_path, nonempty, v, violation_line, wa
 
 CIS_FILE = "cis-method.yaml"
 METHODS_FILE = "cis-methods.csv"
-# 表头冻结（§0 裁定 5(a)：6 列，保英文；多出的 `method` 判别列是四库归并的新增列）
+# 表头冻结（6 列，保英文；多出的 `method` 判别列是四库归并的新增列）
 LIB_COLUMNS = ("method", "category", "name", "slug", "description", "prompts")
 
 METHOD_ENUM = ("创新策略", "问题求解", "设计思维", "叙事")
 STATUS_ENUM = ("草稿", "进行中", "已完成")
 ASSUMPTION_MARK = "[假设]"
 
-# 分支步数（源侧 workflow 的 step 数）与 `已完成` 的 current_step 域
+# 分支步数（workflow 的 step 数）与 `已完成` 的 current_step 域
 BRANCH_STEPS = {"创新策略": 9, "问题求解": 9, "设计思维": 7, "叙事": 10}
-# 问题求解源侧第 9 步 `optional="true"`：跳过时第 8 步收尾（源侧「optional 缺省则终结指令前移」）
+# 问题求解第 9 步 `optional="true"`：跳过时第 8 步收尾（「optional 缺省则终结指令前移」）
 COMPLETED_STEPS = {"创新策略": (9,), "问题求解": (8, 9), "设计思维": (7,), "叙事": (10,)}
 
 # 注入项：不由任何 step 产出、而由模板首部或运行环境注入的占位符（四项，一律不入必填表）
 INJECTION_KEYS = ("date", "user_name", "agent_role", "agent_name")
 
-# 分支必填键表：每分支 = 每个源 step 的第一个「非注入」<template-output> 键（9+9+7+9 = 34）
+# 分支必填键表：每分支 = 每个步骤的第一个「非注入」<template-output> 键（9+9+7+9 = 34）
 STEP_KEYS = {
     "创新策略": ("company_name", "market_landscape", "current_business_model",
                  "disruption_vectors", "innovation_initiatives", "option_a_name",
@@ -45,8 +45,8 @@ STEP_KEYS = {
              "complete_story", "short_version", "best_channels", "resolution"),
 }
 
-# 各分支 `deliverable` 合法键全集（源 `template.md` 占位符去注入项）——**只用于「多余键」
-# 的 warning**（非封闭集，不阻断）；键名逐字取自源模板，与 W2 分支文件的「本分支结构」节同源。
+# 各分支 `deliverable` 合法键全集（模板占位符去注入项）——**只用于「多余键」
+# 的 warning**（非封闭集，不阻断）；键名逐字取自模板，与 W2 分支文件的「本分支结构」节逐字一致。
 BRANCH_KEYS = {
     "创新策略": (
         "company_name", "strategic_focus", "current_situation", "strategic_challenge",
@@ -87,7 +87,7 @@ BRANCH_KEYS = {
         "refinement_opportunities", "additional_versions", "feedback_plan"),
 }
 
-# 23 个冻结中文类名（§0 裁定 5(d)：三工位逐字一致；同名跨分支由 method 列消歧）
+# 23 个冻结中文类名（三工位逐字一致；同名跨分支由 method 列消歧）
 CATEGORY_ENUM = {
     "创新策略": ("市场分析", "商业模式", "颠覆", "战略", "价值链", "技术"),
     "问题求解": ("诊断", "分析", "综合", "评估", "实施", "创意"),
@@ -95,7 +95,7 @@ CATEGORY_ENUM = {
     "叙事": ("转变", "战略", "说服", "分析", "情感"),
 }
 
-# 可达集：源侧工作流实际接入的类别（保真照搬；叙事 = 源侧缺陷修复后按类呈现全部 25 条）
+# 可达集：工作流实际接入的类别（叙事分支按类呈现全部 25 条）
 REACHABLE_CATEGORIES = {
     "创新策略": ("市场分析", "商业模式", "颠覆", "战略", "价值链"),
     "问题求解": ("诊断", "分析", "综合", "评估", "实施", "创意"),
@@ -113,7 +113,7 @@ def load_methods(project_root):
 
     表头须逐字等于冻结表头（缺列 / 列名不符 / 改序 → `UNPARSABLE_YAML`，msg 点名）；
     每行的 `method` 与 `category` 逐行核对冻结枚举（跨工位漂移在此暴露）；
-    `slug` 仅叙事分支填（源 `story-types.csv` 的 `story_type` 无他处可落，单列承载）。
+    `slug` 仅叙事分支填（`story_type` 无他处可落，单列承载）。
     """
     path = methods_path(__file__, METHODS_FILE)
     show = display_path(path, project_root)
@@ -152,7 +152,7 @@ def load_methods(project_root):
                     continue
                 if method == "叙事" and not item["slug"]:
                     violations.append(v("EMPTY_FIELD", where + " slug",
-                                        "叙事分支的 slug（源 story_type）不得为空"))
+                                        "叙事分支的 slug 不得为空"))
                     continue
                 rows.append(item)
     except (csv.Error, OSError, UnicodeDecodeError) as e:
@@ -166,7 +166,7 @@ def load_methods(project_root):
 # ---------------------------------------------------------------- 回执与产物读取
 
 def emit(payload, as_json, summary_line=None, body_lines=None):
-    """打印回执并返回 exit code：0 = 放行，1 = 有违规/被拒绝（契约 §3）。"""
+    """打印回执并返回 exit code：0 = 放行，1 = 有违规/被拒绝。"""
     if as_json:
         print(json.dumps(payload, ensure_ascii=False))
         return 0 if payload.get("ok") else 1
@@ -184,7 +184,7 @@ def emit(payload, as_json, summary_line=None, body_lines=None):
     return 0 if payload.get("ok") else 1
 
 def out_dir_or_violation(payload, args, command):
-    """只读子命令的 --output-dir：可省（§2.2），读产物的子命令省了须明确报缺。"""
+    """只读子命令的 --output-dir：可省，读产物的子命令省了须明确报缺。"""
     if nonempty(args.output_dir):
         return os.path.abspath(args.output_dir), None
     return None, v("EMPTY_FIELD", "--output-dir",

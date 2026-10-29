@@ -43,11 +43,11 @@ def check_deliverable(record, where, method, status, step):
             # 注入项由模板首部/运行环境注入，不是任何 step 的产出（叙事分支的 agent_role /
             # agent_name 是 agent 线残留，diy 侧整裁）——落进 deliverable 即无源字段。
             warnings.append(v("ENUM_INVALID", "%s.deliverable.%s" % (where, key),
-                              "%s 是注入项（非步骤产出，源侧由模板首部/运行环境注入），"
+                              "%s 是注入项（非步骤产出，由模板首部/运行环境注入），"
                               "不得写进 deliverable" % key))
         elif key not in BRANCH_KEYS[method]:
             warnings.append(v("ENUM_INVALID", "%s.deliverable.%s" % (where, key),
-                              "不在 %s 分支的模板键表内（源侧键表为建议结构，非封闭集；"
+                              "不在 %s 分支的模板键表内（模板键表为建议结构，非封闭集；"
                               "放行但请确认不是串分支）" % method))
     return violations, warnings
 
@@ -121,7 +121,7 @@ def check_record(index, record, final, show):
         else:
             legal = COMPLETED_STEPS[method]
         if step not in legal:
-            note = "（问题求解第 9 步源侧 optional，跳过时第 8 步收尾）" if method == "问题求解" else ""
+            note = "（问题求解第 9 步 optional，跳过时第 8 步收尾）" if method == "问题求解" else ""
             violations.append(v("STATUS_MISMATCH", where + ".current_step",
                                 "status: %s 要求 current_step ∈ %s，实为 %s%s（续接锚点必须"
                                 "与会话阶段同档）"

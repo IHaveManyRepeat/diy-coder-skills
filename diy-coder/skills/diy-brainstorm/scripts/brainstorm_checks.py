@@ -340,7 +340,7 @@ def _face(record, key, legacy=None):
     return {x.get(legacy) for x in items if is_int(x.get(legacy))}
 
 def check_previous(prev_doc, records, show, prev_show):
-    """ID 稳定对账（Q-109 三失败分支之 ID_UNSTABLE，2026-10-21 扩到三级）：旧稿有、新稿无的
+    """ID 稳定对账（三失败分支之 ID_UNSTABLE，三级）：旧稿有、新稿无的
     会话记录 / 记录内想法·主题聚类·行动计划标识 → ID_UNSTABLE；某级从无 id 迁到有 id 的那一轮
     （迁移轮）跳过该级比对，首拍 / 迁移不误报。"""
     violations = []
