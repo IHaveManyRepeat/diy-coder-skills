@@ -1,4 +1,4 @@
-"""diy-viewer openapi 页专属渲染（v4·批4b）：总览横表＋功能分组详情竖表＋行锚。
+"""diy-viewer openapi 页专属渲染：总览横表＋功能分组详情竖表＋行锚。
 
 总览＝索引（一屏扫读、找接口，7 列横表）；详情＝说明书（按功能标签分组、每接口
 一张两列竖表，能放的都放）。行锚挂详情接口标题 `id=operationId`（4a 引擎查重保证
@@ -13,10 +13,10 @@ from viewer_render import cell, key_label, render_table
 
 UNGROUPED = "未分组"
 
-# 核心行（无值写「—」）；其余选填行无值隐藏（任务书 §1.4）
+# 核心行（无值写「—」）；其余选填行无值隐藏
 _CORE = ("method", "path", "operationId", "summary")
 
-# 详情行键序（能放的都放——任务书 §1.4 列举序）
+# 详情行键序（能放的都放）
 _DETAIL_ORDER = (
     "method", "path", "operationId", "summary", "description", "tags", "x-fr",
     "deprecated", "parameters", "requestBody", "responses", "security",
@@ -218,7 +218,7 @@ def _detail_text(key: str, item: dict, data: dict, top_security) -> str | None:
     if key == "security":
         sec = op.get("security")
         if sec is None or sec == top_security:
-            return None  # 仅与顶层不同时展示（任务书 §1.4）
+            return None  # 仅与顶层不同时展示
         return _security_detail(sec) or None
     if key == "externalDocs":
         return _external_docs(op.get("externalDocs")) or None

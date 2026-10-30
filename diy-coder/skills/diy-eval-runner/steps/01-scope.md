@@ -7,7 +7,7 @@ Progress: `[定范围] → 执行 → 汇报与终门`
 
 ## 定位 target
 
-用户显式给的路径优先；对话里已出现的技能名（"评测一下 diy-elicit"）按安装面 `{project-root}/.claude/skills/<名>/` 与套件源 `diy-coder/skills/<名>/` 两处找。两处都没有、或目录里没有 `SKILL.md` → **一行拒绝**（点名缺什么）+ 零产出 + 停：`run` 会在门禁处回 `MISSING_FILE`。
+用户显式给的路径优先；对话里已出现的技能名（"评测一下 diy-elicit"）按安装面 `{project-root}/.claude/skills/<名>/` 查找。两处都没有、或目录里没有 `SKILL.md` → **一行拒绝**（点名缺什么）+ 零产出 + 停：`run` 会在门禁处回 `MISSING_FILE`。
 
 ## 发现用例文件
 

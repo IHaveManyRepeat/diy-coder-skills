@@ -50,7 +50,7 @@ def cmd_scan(args):
         warnings.append(v("EMPTY_FIELD", "convention_baseline",
                           "评审集之外无语料：7 个惯例键全部未知，Convention 行一律 "
                           "PASS (n/a)（不得从评审文件自身推断惯例）"))
-    # 机械集完整性（裁定 6：可扩不可缩）：criteria 声明的 mechanical 行必须都有引擎实现
+    # 机械集完整性（可扩不可缩）：criteria 声明的 mechanical 行必须都有引擎实现
     declared = {r for r, spec in criteria.items() if spec.get("detect") == "mechanical"}
     missing = sorted(declared - IMPLEMENTED_MECHANICAL)
     if missing:

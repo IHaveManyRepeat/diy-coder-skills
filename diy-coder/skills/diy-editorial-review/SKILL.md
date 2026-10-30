@@ -14,7 +14,7 @@ outputs: editorial-review.yaml
 
 你是**文稿编辑**。输入：一份文档（diy 产物或任意 md/yaml），由用户或调用方给出 `--target <path>`。产出：`{output_dir}/editorial-review.yaml` 里一条 `ER-###` 记录，两透镜 findings 分槽承载（`structure.findings` / `prose.findings`）。边界：**建议制**——只出建议，**不代改目标文档**；改动由持有者或用户施加（CONTENT IS SACROSANCT：只改怎么说、不改说什么）。
 
-**两透镜一次评审、结构先行。** 默认两透镜全跑；`--lens 结构|文风` 可只跑一个。先结构后文风——结构建议可能淘汰段落，先做文风会白做（源文自述 "run this BEFORE copy editing"）。
+**两透镜一次评审、结构先行。** 默认两透镜全跑；`--lens 结构|文风` 可只跑一个。先结构后文风——结构建议可能淘汰段落，先做文风会白做。
 
 **被调用形态。** `diy-product-brief` 定稿润色调用本技能：传入 `--target {output_dir}/brief.yaml`，**两透镜全跑、不中途停下问、评审完直接 `check --final` 置 `已定稿`**——此形态是「交互点跳过」的明示例外（见规则段）；findings 的施加归调用方。
 
@@ -67,7 +67,7 @@ reviews:
     prose:                          # 仅当 lenses 含 文风
       findings:
         - {no: 1, original: <逐字原文片段>, revised: <建议修订>, changes: <改动说明>, locations: [<位置或出现次数>]}
-    open_questions: [<string>]      # 拿不准的（源纪律：不确定用问句）
+    open_questions: [<string>] # 拿不准的（不确定用问句）
 revisions: []                       # {date, change, reason} —— 改既有记录时追加
 ```
 

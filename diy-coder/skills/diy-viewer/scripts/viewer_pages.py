@@ -17,7 +17,7 @@ from viewer_render import (COPY_JS, CSS, PANE_JS, TOOLTIP_JS, badge, build_templ
 
 
 def page(title: str, body: str, nav: str = "", source: str = "") -> str:
-    # trace: B4 新鲜度 meta：页脚落生成时间与来源目录（含实例名），.view 落后于 YAML 一眼可见
+    # trace: 新鲜度 meta：页脚落生成时间与来源目录（含实例名），.view 落后于 YAML 一眼可见
     stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     src = f" · 来源 {esc(source)}" if source else ""
     foot = f'<footer class="foot">生成于 {stamp}{src}</footer>'
@@ -81,7 +81,7 @@ def get_meta(data) -> dict:
 
 def _parse_created(raw):
     """created 两格式解析（`YYYY-MM-DD` | `YYYY-MM-DD HH:MM:SS`）；纯日期补当日
-    零点（底单三项裁定：存量纯日期不回填、按当日零点参与排序）。缺失/空白/
+    零点（存量纯日期不回填、按当日零点参与排序）。缺失/空白/
     形状或数值非法 → None（排序面走链序兜底，不炸）。"""
     if not isinstance(raw, str):
         return None
@@ -124,7 +124,7 @@ def _dynamic_ranks(all_docs: list) -> dict:
 
 
 def sort_docs(all_docs: list) -> list:
-    """三桶全局序（底单 :387 段三项裁定落形）：桶一＝created 可解析组按值升序
+    """三桶全局序：桶一＝created 可解析组按值升序
     （值并列或不可解析者按链序位兜底排，非链排链后）；桶二＝非链产物（按文件
     名字母序）；桶三＝缺 created 组排最后（组内按链序位、无位按文件名）。动态
     挂位并入链序位参与兜底。返回新列表，不改入参。"""
@@ -202,8 +202,8 @@ def render_augment_panel(data, others: list) -> str:
 
 
 def render_doc_page(name: str, data, others: list, source: str = "") -> str:
-    _refs._RENDER_DOC = name  # trace: B1 文档级标签覆盖上下文
-    set_render_source(source)  # trace: Q-003 复制按钮取 output_dir 相对路径（含实例名）
+    _refs._RENDER_DOC = name  # trace: 文档级标签覆盖上下文
+    set_render_source(source)  # 复制按钮取 output_dir 相对路径（含实例名）
     docs_by_name = {name: data}
     for _n, _d in others:
         docs_by_name[_n] = _d
@@ -228,11 +228,11 @@ def render_doc_page(name: str, data, others: list, source: str = "") -> str:
         body += render_augment_panel(data, others)  # trace: 2026-09-13 裁定 补测待裁断面板
     if name == "openapi":
         body += render_openapi_section(data)
-    # trace: v4·批4b 裁⑤——openapi 页跳过通用 paths 树与顶层 tags 表（总览＋详情已承载，
+    # openapi 页跳过通用 paths 树与顶层 tags 表（总览＋详情已承载，
     # 否则三层重复）；其余顶层键（x-project/openapi/info/security/components 及未识别键）
     # 保留通用渲染，即兜底区
     _skip = {"paths", "tags"} if name == "openapi" else set()
-    # 批 5a：三源 distillate 四列表与 prd out_of_scope 走专用渲染
+    # 三源 distillate 四列表与 prd out_of_scope 走专用渲染
     if name in _DISTILLATE_DOCS and isinstance(data, dict):
         dist = data.get("distillate")
         if isinstance(dist, dict):
@@ -281,7 +281,7 @@ def build_index(docs: list, errors=None, source: str = "", extra_cards=()) -> st
             f'<span class="sub"> {esc(name)}.yaml</span></div>'
             f'<div class="sub">{status_html} {open_html} {esc(meta.get("updated", ""))}</div></a>'
         )
-    # trace: C·12 W2——清单页/时间轴页的索引卡片（只在对应页面渲染时由 main 传入，只增不改）
+    # 清单页/时间轴页的索引卡片（只在对应页面渲染时由 main 传入，只增不改）
     cards.extend(extra_cards)
     if not cards:
         body = '<p class="dim">未找到 YAML 文档。</p>'
@@ -328,7 +328,7 @@ def build_assets_page(groups: dict, source: str = "") -> str:
 
 
 def collect_timeline(docs: list) -> list:
-    """跨产物决策时间轴数据（Layer 1 裁定归入 C·12）：聚合全部产物的 revisions
+    """跨产物决策时间轴数据：聚合全部产物的 revisions
     为 (date, 产物名, 条目) 并按 date 升序（ISO 日期字典序即时间序；缺 date 排最前）。
     与单产物页内的修订历史折叠块（render_value 的 revisions 分支）互不影响。"""
     items = []

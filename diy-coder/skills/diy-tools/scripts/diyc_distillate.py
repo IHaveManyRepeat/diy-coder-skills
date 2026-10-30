@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """distillate {text, src} 条目公共校验件 —— src 语法/在场性矩阵与条目形状单源。
 
-批 5a 四技能（research/brief/prfaq）check_src/check_distillate_entries 四胞胎抽合
-（2026-10-25 用户裁随 Q-122）；各技能脚本照 diyc_lib 先例 sys.path 引入。
+四技能（research/brief/prfaq）check_src/check_distillate_entries 四胞胎抽合
+各技能脚本照 diyc_lib 先例 sys.path 引入。
 """
 
 import re
@@ -23,7 +23,7 @@ def src_syntax_ok(s):
 
 
 def check_src(src, where, local_re, local_name, local_ids, final, warnings, violations):
-    """src 按批 5a §3 矩阵：本产物内锚不在场＝违规；语法不合＝违规；
+    """src 校验矩阵：本产物内锚不在场＝违规；语法不合＝违规；
     跨产物 ID/结构键缺源文件信息时只做语法与本产物内核验。
     local_re＝本域锚正则；local_name＝文案锚名；调用方传本域常量。"""
     if not nonempty(src):

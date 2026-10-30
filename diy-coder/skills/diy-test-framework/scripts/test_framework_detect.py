@@ -179,7 +179,7 @@ def template_coverage(suggested, stack):
     reason = None
     if not framework_supported or not ci_supported:
         reason = ("移动端面（Maestro 设备流 / 设备实验场 runner）无模板覆盖——"
-                  "按任务书 §5 裁定 5 + §12.11：HALT + 一行报告 + 登记，不降级 LLM 手写。"
+                  "HALT + 一行报告 + 登记，不降级 LLM 手写。"
                   if stack["type"] == "移动端" else "profile 无模板目录")
     return {"profiles": sorted(BROWSER_PROFILES + tuple("backend-%s" % p for p in BACKEND_PROFILES)),
             "ci_platforms": list(CI_PLATFORMS), "ci_classes": ["browser", "backend"],

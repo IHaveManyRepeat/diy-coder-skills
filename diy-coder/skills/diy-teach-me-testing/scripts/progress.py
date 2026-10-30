@@ -34,11 +34,11 @@ session id（1-7）对齐，禁混为一文件。引擎负责全部机械判定�
               置 summary = {generated: true, path: completion-summary.md, date: 当日}
               （05-completion 专线；P 须解析到 {output_dir}/completion-summary.md 且文件在场，
               且 7 节已修满）。
-          任一形态落盘后一律按裁定 2 三式重算派生字段；**写前跑一遍与 check 同源的校验**
+          任一形态落盘后一律按三式重算派生字段；**写前跑一遍与 check 同源的校验**
           （写通道与门禁同源：引擎不写一份会被 check 判违规的进度）。
 
   check   schema / session id 集合与 curriculum 一致（整数 1-7）/ 派生字段与真值一致
-          （基准 = 裁定 2 三式：sessions_completed = status==已完成 计数、
+          （基准 = 三式：sessions_completed = status==已完成 计数、
           completion_percentage = floor(completed*100/7 + 0.5)、next_recommended = 最小未完成
           id，全完成 → null）/ score 范围与状态（0-100 整数、非已完成恒 null、session 7
           恒 null）/ session 7 完成判据（status==已完成 → topics_explored >=
@@ -51,25 +51,25 @@ session id（1-7）对齐，禁混为一文件。引擎负责全部机械判定�
 LLM 手写与真值不符 → SET_MISMATCH。命令面互斥组由 argparse 强制；旗标组合错误（如 --score 配
 --learner）走用法错误 exit 2。
 
-违规码：复用 batch3-contract §3 冻结集——本引擎用到 MISSING_FILE / UNPARSABLE_YAML /
+违规码：复用冻结集——本引擎用到 MISSING_FILE / UNPARSABLE_YAML /
 UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD / STATUS_MISMATCH / SET_MISMATCH / TOOL_ERROR 共 8 个。
 **新增 1 码：`ALREADY_EXISTS`**（init 面：进度文件已存在 → 拒绝并指引 resume；冻结集里没有
 「目标已存在」语义的码，DUPLICATE_ID 只指 ID 重复，复用会误导读回执的人）。
 --previous 不适用：进度按 curriculum 固定 session 键幂等 upsert，无 ID 集合收缩面。
 
-任务书偏离（须主 agent 仲裁，2 条）：
+规格偏离（须主 agent 仲裁，2 条）：
 
 ① update --session 在 §7 冻结签名 `[--score S] [--notes P] [--status S]` 之外**增补可选旗标
 `[--topics N]`**。理由：§7 的运行态 schema 要求 session 7 以 `topics_explored >= min_topics`
 作为完成判据、且该字段「仅 session 7 非空」，但冻结命令面没有任何通道能写它——不加此旗标则
 session 7 永远无法经引擎完成，7/7 结业门与 check --final 三条件均不可达（单一写通道纪律又禁止
 LLM 手写 YAML）。增补是**纯加性**的：冻结签名中的三个旗标语义一字未动，仅多一个可选入口
-（2026-09-18 已追认，任务书变更登记 ⑤）。
+（已追认）。
 
 ② init 在 §7 冻结签名 `[--role R]` 之外**增补可选旗标 `[--recover]`**（V 能力清点 T-6，乙类：
 功能性缺陷）。理由：损坏的进度文件让每条命令都只能报错——`status` / `update` / `check` 读不动
 它，`init` 又因「已存在」一律拒绝，而单一写通道纪律禁止 LLM 手改 YAML ⇒ **损坏即死锁，需人工
-干预且无步骤承载**（源 `instructions.md:110-113` 有「检测 + 自动备份 + 提供 fresh start」）。
+干预且无步骤承载**（「检测 + 自动备份 + 提供 fresh start」）。
 该旗标把恢复收归引擎：备份（逐字节副本）→ 重建，人只发命令、不碰 YAML。**纯加性**：不带
 `--recover` 时逐字保持原行为（文件可用 → ALREADY_EXISTS 拒绝），且文件可用时带 `--recover`
 同样拒绝——「进度文件已存在 → 强制 resume」纪律一字未松。
@@ -92,7 +92,7 @@ from progress_update import cmd_check, cmd_update  # noqa: E402
 
 # ---------------------------------------------------------------- 命令行面
 
-# trace: B3 diy-teach-me-testing 命令行面（--output-dir 必填；update 三形态互斥）
+# trace: 命令行面（--output-dir 必填；update 三形态互斥）
 def build_parser():
     ap = argparse.ArgumentParser(
         description="diy-teach-me-testing 领域引擎：学习进度生成（init）/ 仪表盘与校验（status）"
@@ -158,7 +158,7 @@ def build_parser():
     k.set_defaults(func=cmd_check)
     return ap
 
-# trace: B3 diy-teach-me-testing 旗标组合纪律（形态专属旗标配错形态 → 用法错误 exit 2）
+# trace: 旗标组合纪律（形态专属旗标配错形态 → 用法错误 exit 2）
 def check_flag_forms(parser, args):
     session_flags = ("status", "score", "notes", "topics")
     learner_flags = ("role", "experience", "goals", "pain_points")
@@ -184,7 +184,7 @@ def check_flag_forms(parser, args):
     if not given(session_flags):
         parser.error("--session 形态须至少给 --status / --score / --notes / --topics 之一")
 
-# trace: B3 diy-teach-me-testing 入口（stdout/stderr 固定 UTF-8；退出码由子命令返回）
+# trace: 入口（stdout/stderr 固定 UTF-8；退出码由子命令返回）
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")

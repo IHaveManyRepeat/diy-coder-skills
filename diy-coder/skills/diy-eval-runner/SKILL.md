@@ -58,7 +58,7 @@ outputs: run 目录（`{output_dir}/eval-runs/`）——零 YAML 产物
 6. 写面恰好两处：`{output_dir}/eval-runs/` 内的 run 目录、收尾会话摘要。零任务状态写面（不改 `sprint.yaml`）、零缺陷入库（不写 `bug-log.yaml`）、不碰被测技能的任何文件、不写用例（用例归 `diy-bmb-builder` 的 eval beat 或用户）。
 7. 边界四对：**vs `diy-test-review`**——被评对象不同，本技能评技能提示词（产物 = run 目录），它评测试代码（`test-review.yaml` 的 RV-###）；**vs `diy-test-gate`**——本技能不触项目实现、不算覆盖率、零门禁决策，它以 story 的 AC 为覆盖基准；**vs `diy-review`**——它审实现代码（L1–L4）并改任务状态，本技能零任务状态写面；**vs `runner.py`**（工具非技能）——`runner.py` 是 headless 循环编排，本技能是技能评测，引用编排器一律写 `runner.py` 全名。
 
-- **零渲染。** 本技能**零 YAML 主产物**（run 目录全是 JSON / 文本）→ 无渲染步骤：不调用 viewer、不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点（母本 §5 不适用）。
+- **零渲染。** 本技能**零 YAML 主产物**（run 目录全是 JSON / 文本）→ 无渲染步骤：不调用 viewer、不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点。
 
 所有代码引用一律 project-root 相对 `path:line`（基准 = `{project-root}`，不随会话 CWD 变化；正斜杠；越界的文件用绝对路径）。
 

@@ -23,10 +23,10 @@ CONTRAST_PAIRS = (
 )
 TEXT_CONTRAST_MIN = 4.5
 
-# ---- 裁定 C12-1（2026-09-28）：design.yaml 顶层两键——形态/默认主题由「不并」改判「有承载」 ----
+# ---- design.yaml 顶层两键——形态/默认主题由「不并」改判「有承载」 ----
 FORM_FACTORS = ("响应式 Web", "移动端", "桌面", "多端")  # 目标表面（写在什么上），与 frontend_framework 互补
 MODES = ("亮", "暗", "双模")  # 默认主题模式；双模 触发 tokens 明暗对审计联动
-# ---- C·7 裁定 2（2026-10-02）：pages[].meta 可选内容键（meta-content 判据级承载）----
+# ---- pages[].meta 可选内容键（meta-content 判据级承载）----
 META_KEYS = ("title", "description", "og_image")  # 三子键全可选；在场则须非空字符串
 
 OPEN_QUESTION_STATUSES = ("待办", "已解决")
@@ -100,7 +100,7 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail �
     base_name = os.path.basename(args.design)
     tokens = (design.get("tokens") or {}).get("color") or {}
     pages = design.get("pages") or []
-    # C·13 联动（裁定 2/3）：触控下限按 form_factor 分档（桌面 24，其余/缺省 44）
+    # 触控下限按 form_factor 分档（桌面 24，其余/缺省 44）
     touch_min = touch_target_min_for(design.get("form_factor"))
     # 维度一：对比度（既有，不得删改/降级）
     for fg, bg in CONTRAST_PAIRS:
@@ -116,7 +116,7 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail �
                 violations.append(v("contrast", "%s tokens.color.%s/%s" % (base_name, fg, bg),
                                     "%s(%s) on %s(%s) = %.2f:1 < %.1f:1" % (
                                         fg, tokens[fg], bg, tokens[bg], ratio, TEXT_CONTRAST_MIN)))
-    # 维度一（续）·双模暗色配对（§7-5② 部分解冻）：对 dark 六角色算同款 5 组，阈值同 4.5:1；
+    # 维度一（续）·双模暗色配对：对 dark 六角色算同款 5 组，阈值同 4.5:1；
     # 回执 contrast_pairs 以 dark.<role> 形态原样枚举暗色对（checked/counts 计数含）；单模零暗色对
     dark_pairs = []
     dark = tokens.get("dark")
@@ -197,7 +197,7 @@ def cmd_check(args):  # trace: S-14 AC-14.3 TC-14.3.1 TC-14.3.3 自检：fail �
 # ---------------------------------------------------------------- validate
 
 def _validate_open_questions(design, base_name, violations):
-    """open_questions 结构校验（裁定 8）：id/question/status/answer 四字段与状态联动。"""
+    """open_questions 结构校验：id/question/status/answer 四字段与状态联动。"""
     seen = set()
     for i, item in enumerate(design.get("open_questions") or []):
         where = "%s open_questions[%d]" % (base_name, i)
@@ -228,7 +228,7 @@ def _validate_open_questions(design, base_name, violations):
                                 "open_questions[%d] 已解决但 answer 为空（回答必写）" % i))
 
 def _validate_final_gate(design, base_name, violations):
-    """终门联动（裁定 8）：已定稿 要求零 待办。"""
+    """终门联动：已定稿 要求零 待办。"""
     if str((design.get("project") or {}).get("status") or "").strip() != "已定稿":
         return
     for i, item in enumerate(design.get("open_questions") or []):
@@ -251,8 +251,8 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 TC-14.3.3 design.yaml �
     if not str(design.get("frontend_framework") or "").strip():
         violations.append(v("EMPTY_FIELD", base_name + " frontend_framework",
                             "frontend_framework 为空（从 architecture stack 选定；纯 HTML 项目写 html）"))
-    # 裁定 C12-1：顶层两键在场 + 值域（专项码首例——顶层键错误与条目字段错误不同层级，
-    # 下游需要可 grep 的稳定锚）；§7-5①：dark 子块仅 双模 可有且必填
+    # 顶层两键在场 + 值域（专项码首例——顶层键错误与条目字段错误不同层级，
+    # 下游需要可 grep 的稳定锚）；dark 子块仅 双模 可有且必填
     form_factor = design.get("form_factor")
     if form_factor is None or (isinstance(form_factor, str) and not form_factor.strip()):
         violations.append(v("FORM_FACTOR_MISSING", base_name + " form_factor",
@@ -292,7 +292,7 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 TC-14.3.3 design.yaml �
     if not pages:
         violations.append(v("EMPTY_FIELD", base_name + " pages", "pages 为空"))
     violations += page_id_violations(pages, base_name)
-    required = required_states(design.get("form_factor"))  # §7-5③：移动端 悬停 → 按压
+    required = required_states(design.get("form_factor"))  # 移动端 悬停 → 按压
     for page in pages:
         pid = page.get("id")
         states = page.get("states") or []
@@ -318,7 +318,7 @@ def cmd_validate(args):  # trace: S-14 AC-14.1 TC-14.1.1 TC-14.3.3 design.yaml �
         if impl and not os.path.isfile(os.path.join(base, str(impl))):
             violations.append(v("MISSING_FILE", "%s pages[%s].implementation" % (base_name, pid),
                                 "%s 实现稿缺失：%s" % (pid, impl)))
-        # C·7 裁定 2 / SS-030-06：meta 可选——在场才判，机械判仅一层
+        # meta 可选——在场才判，机械判仅一层
         # （子键在场须非空字符串；空串与非字符串均 EMPTY_FIELD、msg 区分两态；
         #  不用 UNPARSABLE_YAML——那是 YAML 解析层。缺失不违规：「公开站点应填」
         #  是引导判据（p-specify 两层分写），不进 validate——防把文学判断伪装成机械判定）

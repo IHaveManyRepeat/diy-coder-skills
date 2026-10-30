@@ -3,12 +3,12 @@
 
 子命令：
   collect  质量门的确定性采集（只读，零写盘）：
-             0 前置门禁（任务书 §4）：stories.yaml / test-plan.yaml（须 project.status:
+             0 前置门禁：stories.yaml / test-plan.yaml（须 project.status:
                已定稿）/ prd.yaml 三件套在场且可解析；`--story S-x` 给出时须在 stories.yaml
                可解析；AC 集为空 → 拒绝。任一项不满足 → 零产出 exit 1 + 结构化拒绝
                （violations + gate.route 给路由）。
              1 矩阵 join：AC（stories）× TC（test-plan）× 证据台账（sprint 任务
-               test_refs / evidence）。覆盖判定表逐 TC（任务书 §4）：
+               test_refs / evidence）。覆盖判定表逐 TC：
                ① status: 失败 → blocker 不计（失败胜，即使同 TC 留有 green 记录）；
                ② status: 通过 且有 evidence（该 story 任务的台账条目 red/green 均非空；
                   test_refs 只用于查台账归属）→ 已验证；
@@ -33,7 +33,7 @@
              3c 跨层重复覆盖候选（G-2）：同一 AC 下「同一 technique + 同一 kill_target」
                在 ≥2 个 type 层级各有用例 → `coverage.duplicates`（可接受重叠 / 跨层冗余的
                判定与合并建议留在 steps/03 → `gate.recommendations`）。
-             4 软指标六项（soft_metrics，任务书 §4 口径，带 分子 / 分母 / algorithm）。
+             4 软指标六项（soft_metrics，带 分子 / 分母 / algorithm）。
              5 NFR 证据面（nfr_inputs）：四域 + 阈值载体实测（prd / architecture /
                test-plan 三处候选源均无结构化阈值载体）+ prd NFR 条目参考面 + 合规五标准
                静态清单（G-3，第五个走查维度）+ 跨域风险合成的两条规则（G-4）——两者都是
@@ -42,7 +42,7 @@
              6 mutation 面：读 {output_dir}/mutation-report.yaml，缺席 → score=null +
                warning（日常口径；`--final` 时必须，见 check 面 MISSING_FILE）；
                在场 → 取全部 run 的 score 最小值（保守口径）。
-             7 跨文档核对委托（任务书 §2.3）：子进程 `diyc.py check --type test-plan
+             7 跨文档核对委托：子进程 `diyc.py check --type test-plan
                --final --json`——rc 0|1 均为正常回执，其 violations 进 diyc.violations
                （计入本技能判定，不当失败吞掉）；diyc 缺席 / rc=2 / 回执不可解析 →
                TOOL_MISSING / TOOL_ERROR 结构化降级，不崩。
@@ -57,7 +57,6 @@
            合规五标准逐条记账（G-3：行形态 + 聚合 FAIL>PARTIAL>PASS 重算）、跨域合成
            候选的落点（G-4：命中而 findings / recommendations 无 `<域>×<域>` 行即违例）；
            mutation-report 缺席日常只记 warning、`--final` 时判 MISSING_FILE
-           （迁移计划 §十三:459「缺席日常 n/a、--final 时必须」）。
     check 只重算「同记录内可机械重算」的量（判据 actual、totals、by_level、overall_risk、
     非功能致命、P0 未覆盖、变异得分）——不重跑 collect 的覆盖判定表（那是
     collect 与 steps/03 LLM 复核的职责），避免二份实现。
@@ -70,8 +69,6 @@ WAIVER_INCOMPLETE / WAIVER_INAPPLICABLE / THRESHOLD_UNSOURCED / UNKNOWN_THRESHOL
 能力补齐轮 4 码：EVIDENCE_STALE / COMPLIANCE_UNRECORDED /
 COMPLIANCE_AGGREGATE_MISMATCH / CROSS_DOMAIN_UNRECORDED）。
 """
-# trace: 迁移计划 §二 验收 #3（前置门禁零产出退出）/#4（ID 链接入）/#12（diyc 接线）
-# trace: 任务书 §4 W2（门禁 / collect 判定表与软指标）/ §2.2 引擎契约
 import argparse
 import os
 import sys

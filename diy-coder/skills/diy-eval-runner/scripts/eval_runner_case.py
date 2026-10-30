@@ -45,7 +45,7 @@ def find_adapter(explicit, anchor_dir):
 
 
 def validate_load_signal(load_signal):
-    """子串式 load_signal 直接拒跑（源侧硬规则）。
+    """子串式 load_signal 直接拒跑。
 
     运行时的 init 事件会把发现的每个技能名列出来，整篇子串匹配的触发率永远 100%。
     """
@@ -120,7 +120,7 @@ def resolve_fixtures(files, project_root, cases_dir, warnings, where):
 
 
 def compose_prompt(case):
-    """`state_prefix` 前置到 input —— 单发把技能按到流程中段（源侧关键发明）。"""
+    """`state_prefix` 前置到 input —— 单发把技能按到流程中段。"""
     text = str(case.get("input", ""))
     prefix = case.get("state_prefix")
     if prefix:

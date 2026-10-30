@@ -7,28 +7,26 @@
           唯一性 / 条目级锚 RF/RK/RO 全局唯一与顺序递增 / 每条 finding 的 sources 非空
           且 url 为 http(s)、accessed 为 YYYY-MM-DD。
           --id RS-xxx 只校验指定记录（未命中 → UNKNOWN_ID）；--previous PATH 比对旧稿
-          RS-### 集合，旧有新无 → ID_UNSTABLE（Update 防丢记录，任务书 B1 §2.2）。
+          RS-### 集合，旧有新无 → ID_UNSTABLE（Update 防丢记录）。
           --final 附加定稿义务：零 [假设]、synthesis 三键非空、findings 非空、
-          status 已落「已定稿」（定稿门须咬住记录状态，同 P1 样板 check_final_duties 语义）、
-          顶层 distillate 交出面存在且五字段非空（四列表条目恰为 {text, src}——批 5a
+          status 已落「已定稿」（定稿门须咬住记录状态）、
+          顶层 distillate 交出面存在且五字段非空（四列表条目恰为 {text, src}——
           形态例外，--final 硬校验；文档级，下游 PRD 输入）。exit 0 唯一放行。
 
-分工裁定（任务书 B1 §2.2）：research 属新产物类型，不进 diyc.py check 的硬编码类型集；
+分工裁定：research 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态（同 diy-checkpoint-preview/scripts/checkpoint.py 分工），契约同构：
 exit 0 唯一放行 / 1 = 违规或被拒 / 2 = 用法错误（argparse）/ --json 单行回执（ensure_ascii=False）
-/ violations[{code, where, msg}] + counts。违规码全部复用 batch3-contract §3 冻结集
+/ violations[{code, where, msg}] + counts。违规码全部复用套件冻结集
 （MISSING_FILE UNPARSABLE_YAML DUPLICATE_ID UNKNOWN_ID ENUM_INVALID EMPTY_FIELD
 ASSUMPTION_PRESENT ID_UNSTABLE STATUS_MISMATCH），无新增码。
 
-引用纪律的机制位置（源技能核心价值：每条断言带来源）：findings[].sources 为空、url 非
-http(s)、accessed 非日期一律违规——来源缺失不得以「训练数据已知」补位（三份源技能
-MANDATORY EXECUTION RULES 同款：NEVER generate content without web search verification）。
+引用纪律的机制位置（每条断言带来源）：findings[].sources 为空、url 非
+http(s)、accessed 非日期一律违规——来源缺失不得以「训练数据已知」补位。
 
 禁手写实例解析：引擎不做 --instance / 白名单 / 目录推导；--output-dir 必填，由调用方传入
 （SKILL.md 从 diyc.py resolve 取）。产物与产物 ID 由 diy-research 会话（LLM）创作——
 RS-0nn 由 LLM 铸造、本引擎只校验格式与唯一性。本引擎只读，不写任何文件。
 """
-# trace: 迁移计划 §二 验收 #3（拒绝路径零产出）/#4（ID 链稳定）/#12（领域引擎接线）
 import argparse
 import json
 import os

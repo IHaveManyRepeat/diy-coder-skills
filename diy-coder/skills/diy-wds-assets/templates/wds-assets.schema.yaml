@@ -20,10 +20,10 @@ stage: 线框|页面稿|UI件|图标|图片|动效|文案|演示|收尾   # **�
 
 activities:                 # **恒 8 条**（W P U I M V C S）；init 铸壳，不增不删
   - id: AS-01               # 两位序号，按 code 顺序固定（AS-01=W … AS-08=S）
-    code: W|P|U|I|M|V|C|S   # 源 8 活动码去掉已裁的 [E]；S = 演示（第 9 活动，裁定 7）
+    code: W|P|U|I|M|V|C|S   # S = 演示（第 9 活动）
     name: 线框               # 中文名：线框 / 页面稿 / UI 件 / 图标 / 图片 / 动效 / 文案 / 演示
     status: 未开始|进行中|已评审|已跳过   # 记录级推进锚点；已定稿时不允许停在 未开始/进行中
-    scope: all|select|missing|priority|category|batch|type   # 源侧范围选择（按活动取其一；可空）
+    scope: all|select|missing|priority|category|batch|type   # 范围选择（按活动取其一；可空）
     style:                  # 本活动的风格选择（读目录后按名选；不读的风格轴留 null）
       design: <design-styles 卡名>      # 6 选 1：brutalist/corporate/editorial/minimal/organic/playful
       content: <content-styles 卡名>    # 10 选 1（按批，可不同批不同卡）；不适用留 null
@@ -49,7 +49,7 @@ activities:                 # **恒 8 条**（W P U I M V C S）；init 铸壳�
           empowerment_frame: {current, badass, aha_moment, capability_reframe, cognitive_load}
           structural_order: {section_why, section_how, section_what, flow_validation}
           final: {versions, chosen, rationale, traceability}
-        assets:             # **路径引用**（裁定 12）——不嵌二进制；**直出产物为主**（W/P/S→html · U→html/css · I→svg · M 插画→svg）
+        assets:             # **路径引用**——不嵌二进制；**直出产物为主**（W/P/S→html · U→html/css · I→svg · M 插画→svg）
           - {path: assets/wireframes/home-desktop.html, format: html|svg|css|json|md|png}   # 路径必须落在 assets/<本活动目录>/；有路径 = 该文件真实存在（收尾双向对表核，见 steps/09-finish.md）
         review:             # 各活动的检查表结论（见各 step 文件）
           checks: [<逐条结论>]   # 一致性 / 合规 / 无障碍 / 隐喻 等（按活动）
@@ -67,7 +67,7 @@ presentation:               # 第 9 活动（AS-08）的成品记录；7 配方�
     recipe: SD|EX|PD|CT|IN|VM|CV   # 七值封闭集（见 data/presentation-formats/index.md）
     audience: <给谁看 / 场合 / 时长 / 已有认知 / 要他做什么>
     format_card: data/presentation-formats/sd-slides.md   # 指到选中的配方卡
-    frames:                 # 6 步共享骨架的产物形态；不 1:1 建 7 条流（裁定 7）
+    frames:                 # 6 步共享骨架的产物形态；不 1:1 建 7 条流
       - {n: 1, job: inform|persuade|transition, headline: <一句话>, notes: <备注 / 画面说明 / 数据来源>}
     assets: [{path: assets/presentation/<name>.html, format: html}]
     review:

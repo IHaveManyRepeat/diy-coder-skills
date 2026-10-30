@@ -28,7 +28,7 @@ Progress: `[Clarify & Route] → One-Shot`（由 step 1 的早期出口抵达；
 
 ## 建轨迹
 
-把记录填到能独立充当这次改动的轻量轨迹：`title` 取自澄清后的意图，`type`、`route: 一次成型`、`date`，以及完全照 `./05-present.md` 所述构建的 `review_order`（按关注点不按文件；入口点领读；外围收尾；每看点 `{path, line, why}`）。其中 `code_map` ＝ 改动文件一行一条（`path` / `role`）；`tasks` ≥1 条——能过终门的最小集：`--final` 要求 tasks 非空且全 `done: true`，改动即任务、写完置 done。这比源技能的一次成型轨迹更厚（源只有 frontmatter + intent + 带看顺序）：diy 的记录要过与全路线同一道机械门，故 acceptance、verification 与 review 也住在这里。
+把记录填到能独立充当这次改动的轻量轨迹：`title` 取自澄清后的意图，`type`、`route: 一次成型`、`date`，以及完全照 `./05-present.md` 所述构建的 `review_order`（按关注点不按文件；入口点领读；外围收尾；每看点 `{path, line, why}`）。其中 `code_map` ＝ 改动文件一行一条（`path` / `role`）；`tasks` ≥1 条——能过终门的最小集：`--final` 要求 tasks 非空且全 `done: true`，改动即任务、写完置 done。这比最小的一次成型轨迹更厚：diy 的记录要过与全路线同一道机械门，故 acceptance、verification 与 review 也住在这里。
 
 ## 落定与收尾
 

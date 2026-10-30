@@ -132,7 +132,7 @@ def _bug_add(args):
     return _receipt(args, True, updated=doc["project"]["updated"], id=new_id, file=rel)
 
 
-# ---- stamp（v4 批 3·二裁全量程序盖章：C 组 AI 建产物「时间键留空＋跑 stamp」） ----
+# ---- stamp ----
 
 def _stamp(args):
     """产物时间盖章：created 缺则补秒级真值、已有不动（「建文件时设此后不改」
@@ -157,7 +157,6 @@ def _stamp(args):
 # ---- defer-add（2026-09-15 副作用纪律修订） ----
 
 def _defer_add(args):
-    # trace: 2026-09-15 副作用纪律修订（B3 任务书 §0 纪律 5 / 迁移计划 §十三）——
     # 保留确认类动作入队（不阻塞任务）：reason 枚举校验 + DA 序号铸造 + 追加写
     entry, viol = _read_entry(args, "defer-add")
     if viol:
@@ -223,7 +222,6 @@ def _defer_add(args):
 
 
 def _defer_set(args):
-    # trace: 迁移计划 §五 C·8②——待确认动作的 status 翻转命令，队列的出口侧。
     # 入队（defer-add）把保留确认类动作由"阻塞任务"改为"留痕待办"；本命令是它的
     # 消费端：用户确认并自行执行后标 已完成，裁定不做后标 已拒绝。只允许
     # 待办 → 已完成|已拒绝 单向（已是终态再翻转一律拒绝，不静默改历史）；

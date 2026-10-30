@@ -44,7 +44,7 @@ class SemanticChecker(HTMLParser):  # trace: S-14 AC-14.3 语义 HTML 启发式�
         self.input_unlabeled = len([i for i in self._pending_inputs
                                     if i not in self._label_for])
 
-# ---- 无障碍扩展（源 steps-h/step-03「Define Accessibility Tests」四项中，对比度与屏幕阅读器
+# ---- 无障碍扩展（四项判据中，对比度与屏幕阅读器
 #      已由既有 contrast / semantic-html 承载；本组补「触控目标 ≥44px」与「键盘可达」） ----
 
 _INTERACTIVE_TAGS = frozenset(("button", "input", "select", "textarea", "summary"))
@@ -57,7 +57,7 @@ _RULE_RE = re.compile(r"(?P<sel>[^{}]+)\{(?P<body>[^{}]*)\}", re.DOTALL)
 _BOX_DECL_RE = re.compile(
     r"(?P<prop>min-width|min-height|width|height)\s*:\s*(?P<val>\d+(?:\.\d+)?)px",
     re.IGNORECASE)
-# C·13：动效声明（CSS 属性形态，带冒号；-webkit- 前缀不收——宁漏不误报）与动效降级字样
+# 动效声明（CSS 属性形态，带冒号；-webkit- 前缀不收——宁漏不误报）与动效降级字样
 _MOTION_DECL_RE = re.compile(r"(?<!-)(?:animation|transition)\s*:", re.IGNORECASE)
 _REDUCED_MOTION_RE = re.compile(r"prefers-reduced-motion")
 # 间距声明（自定义属性 --* 的定义位不算：那是 token 自身，不是使用位）
@@ -87,7 +87,7 @@ def small_box_decls(text, minimum=TOUCH_TARGET_MIN):
     return out
 
 def touch_target_min_for(form_factor):
-    """触控下限分档（C·13 呈核 2/3/8）：桌面 = 24；其余（含缺键/表外值）= 44。"""
+    """触控下限分档：桌面 = 24；其余（含缺键/表外值）= 44。"""
     if form_factor == "桌面":
         return TOUCH_TARGET_MIN_DESKTOP
     return TOUCH_TARGET_MIN
@@ -124,7 +124,7 @@ class A11yChecker(HTMLParser):
                     "%s 的 tabindex=\"-1\" 移出 Tab 序——键盘不可达（源判据：交互元素均可 Tab 到达）"
                     % tag))
             elif tabindex.isascii() and tabindex.isdigit() and int(tabindex) > 0:
-                # C·13：正 tabindex 强改 Tab 序（tabindex="0" 自然序合法不报）
+                # 正 tabindex 强改 Tab 序（tabindex="0" 自然序合法不报）
                 self.violations.append(v(
                     "a11y-focus-order", self.where,
                     "%s 的 tabindex=\"%s\" 为正值——正 tabindex 强改 Tab 序，应以 DOM 阅读顺序为准"
@@ -158,12 +158,12 @@ class A11yChecker(HTMLParser):
         return self.violations
 
 def collect_a11y_extras(where, text, touch_min=TOUCH_TARGET_MIN):
-    """无障碍扩展入口（C·13：touch_min 由 cmd_check 按 form_factor 分档后传入）。"""
+    """无障碍扩展入口（touch_min 由 cmd_check 按 form_factor 分档后传入）。"""
     sc = A11yChecker(where, touch_min)
     sc.feed(text)
     sc.close()
     out = sc.finish()
-    # C·13 floor ③（Reduce Motion）：动效声明在场且全文无降级字样（宁漏不误报：
+    # floor ③（Reduce Motion）：动效声明在场且全文无降级字样（宁漏不误报：
     # -webkit- 前缀与 transition-* 子属性不收；降级块不解析结构、字样在场即认可）
     if _MOTION_DECL_RE.search(text) and not _REDUCED_MOTION_RE.search(text):
         out.append(v("a11y-reduced-motion", where,
@@ -171,7 +171,7 @@ def collect_a11y_extras(where, text, touch_min=TOUCH_TARGET_MIN):
                      "——Reduce Motion 用户无法跳过动效（源判据：动效须可跳过）"))
     return out
 
-# ---- 设计系统校验 ds-token-*（源 steps-h/step-03「Define token verification」：色值 / 字阶 / 间距走 token）----
+# ---- 设计系统校验 ds-token-*（色值 / 字阶 / 间距走 token）----
 
 def collect_spacing_values(design):
     """合法间距值集合：tokens.spacing.unit + scale（px 口径，逐字比较）。"""
@@ -215,13 +215,13 @@ def collect_ds_violations(design, where, text):
     return out
 
 def required_states(form_factor):
-    """必填四态按 form_factor 取值（§7-5③）：移动端 无 hover、触控用 按压；其余形态四态逐字不动。"""
+    """必填四态按 form_factor 取值：移动端 无 hover、触控用 按压；其余形态四态逐字不动。"""
     return REQUIRED_STATES_TOUCH if form_factor == "移动端" else REQUIRED_STATES
 
 def page_gate_violations(base, page, rel, states_code, file_code, required=None):
     """页级门（同 validate 判据）：四态缺一 / 结构稿缺失。transition 的 GATE_FAILED 复用本函数。
 
-    required = 必填态集，按 form_factor 取值（§7-5③）；缺省 REQUIRED_STATES（非移动端既有行为逐字不动）。
+    required = 必填态集，按 form_factor 取值；缺省 REQUIRED_STATES（非移动端既有行为逐字不动）。
     """
     out = []
     names = {s.get("name") for s in page.get("states") or [] if isinstance(s, dict)}

@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
 from diyc_check_docs_lib import dup, nonempty, req  # noqa: E402
 from diyc_distillate import SRC_ID_RE, SRC_PATH_RE, src_syntax_ok  # noqa: E402 (re-export)
 
-# 批 5a：OS-### 自产约束 ID；src 语法（ID 形态或点路径）
+# OS-### 自产约束 ID；src 语法（ID 形态或点路径）
 OS_RE = re.compile(r"OS-\d{3}")
 
 
@@ -31,7 +31,7 @@ def check_src(src, w, report):
 
 
 def check_out_of_scope(doc, rel, counts, report):
-    # 批 5a：out_of_scope 两形态——恰好 {src}（继承）或恰好 {id: OS-###, statement}（自产）
+    # out_of_scope 两形态——恰好 {src}（继承）或恰好 {id: OS-###, statement}（自产）
     os_items = doc.get("out_of_scope")
     if os_items is not None:
         if not isinstance(os_items, list):

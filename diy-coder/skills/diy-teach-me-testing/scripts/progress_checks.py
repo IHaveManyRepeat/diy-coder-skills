@@ -16,7 +16,7 @@ from progress_lib import DATE_RE, DERIVED_FIELDS, EXPERIENCE_ENUM, NOTES_DIR, PR
 
 # ---------------------------------------------------------------- 校验（check 与 status 同源）
 
-# trace: B3 diy-teach-me-testing 日期字段形态（null 或 YYYY-MM-DD）
+# trace: 日期字段形态（null 或 YYYY-MM-DD）
 def check_date(value, where, label):
     if value is None:
         return []
@@ -25,7 +25,7 @@ def check_date(value, where, label):
                   % (label, value))]
     return []
 
-# trace: B3 diy-teach-me-testing notes 路径口径（相对、正斜杠、归属 notes/、命名 notes/session-<NN>.md）
+# trace: notes 路径口径（相对、正斜杠、归属 notes/、命名 notes/session-<NN>.md）
 def notes_path_problem(value, session_id):
     text = str(value)
     if "\\" in text or text.startswith("/") or re.match(r"^[A-Za-z]:", text):
@@ -39,7 +39,7 @@ def notes_path_problem(value, session_id):
         return "命名须为 notes/session-<NN>.md（NN = 两位零填充 session id），实为 %s" % text
     return None
 
-# trace: B3 diy-teach-me-testing 单节校验（id 对齐 / 状态枚举 / 日期 / score / topics / notes）
+# trace: 单节校验（id 对齐 / 状态枚举 / 日期 / score / topics / notes）
 def check_session(index, session, show, index_by_id, out_dir, project_root):
     where = "%s sessions[%d]" % (show, index)
     if not isinstance(session, dict):
@@ -136,7 +136,7 @@ def check_session(index, session, show, index_by_id, out_dir, project_root):
                                     % notes))
     return violations
 
-# trace: B3 diy-teach-me-testing learner 自洽（枚举 / 形态 / assessed 非空 → role 与 experience 须在）
+# trace: learner 自洽（枚举 / 形态 / assessed 非空 → role 与 experience 须在）
 def check_learner(learner, show):
     where = show + " learner"
     if not isinstance(learner, dict):
@@ -167,7 +167,7 @@ def check_learner(learner, show):
                                     % key))
     return violations
 
-# trace: B3 diy-teach-me-testing summary 自洽（generated 真假两态；path 口径与文件在场）
+# trace: summary 自洽（generated 真假两态；path 口径与文件在场）
 def check_summary(summary, show, out_dir):
     where = show + " summary"
     if not isinstance(summary, dict):
@@ -201,7 +201,7 @@ def check_summary(summary, show, out_dir):
         violations.append(v("EMPTY_FIELD", where + ".date", "generated 为真时 date 不得为空"))
     return violations
 
-# trace: B3 diy-teach-me-testing revisions 形态（{date, change, reason} 三字段非空）
+# trace: revisions 形态（{date, change, reason} 三字段非空）
 def check_revisions(revisions, show):
     where = show + " revisions"
     if not isinstance(revisions, list):
@@ -219,7 +219,7 @@ def check_revisions(revisions, show):
         violations += check_date(entry.get("date"), ew + ".date", "修订日期")
     return violations
 
-# trace: B3 diy-teach-me-testing 进度文件全量校验（status 与 check 同源，--final 加三条件）
+# trace: 进度文件全量校验（status 与 check 同源，--final 加三条件）
 def validate(data, curriculum, show, out_dir, project_root, final=False):
     if not isinstance(data, dict):
         return [v("EMPTY_FIELD", show,
@@ -270,7 +270,7 @@ def validate(data, curriculum, show, out_dir, project_root, final=False):
                                 "%s 缺失（派生字段由引擎写）" % key))
         elif data.get(key) != real[key]:
             violations.append(v("SET_MISMATCH", "%s %s" % (show, key),
-                                "%s=%s 与 sessions[] 真值 %s 不符（基准 = 裁定 2 三式，"
+                                "%s=%s 与 sessions[] 真值 %s 不符（基准 = 三式，"
                                 "派生字段只由引擎写）"
                                 % (key, data.get(key), real[key])))
     if final:

@@ -10,14 +10,14 @@ from diyc_check_docs_lib import HTTP_METHODS as _CHECK_HTTP_METHODS  # noqa: E40
 
 BADGE_KEYS = {"status", "priority", "state"}
 ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "technique", "gate", "class", "subclass", "source", "augment", "severity",
-                          # trace: C·11 W3（§5.1）——B7b 五产物的枚举键补入（12 行 / 11 distinct：
+                          # 五产物的枚举键补入（12 行 / 11 distinct：
                           # scope 在 wds-assets 与 wds-evolution 两产物重复登记）。值域见各 SKILL.md 结构节
                           "design_system_mode", "complexity", "category", "mode", "code",
                           "scope", "stage", "recipe", "format", "prompt_lang", "entry",
-                          # trace: C·12 W2（裁定 C12-2 ③）——design 族新增顶层两键（值域四值/三值，
+                          # design 族新增顶层两键（值域四值/三值，
                           # 见 diy-design 引擎 validate）；进枚举表 = 值域白名单 + 徽章判定
                           "form_factor", "modes",
-                          # trace: Q-105（用户裁定）——cis-method sessions[].method 四分支值
+                          # cis-method sessions[].method 四分支值
                           # （创新策略|问题求解|设计思维|叙事，见 SKILL.md schema）；
                           # 同名键装 HTTP 动词的三个产物已在 FREE_TEXT_FIELDS 例外登记
                           "method"}
@@ -25,14 +25,14 @@ ENUM_KEYS = BADGE_KEYS | {"type", "decision", "layer", "route", "verdict", "tech
 # 依据：diy-architecture SKILL.md:43 decision=what was chosen；diy-review SKILL.md:31 type=short tag；
 # diy-design SKILL.md:65 route=/path
 FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design", "route"),
-                    # trace: C·2 假诊断清零——枚举键装非枚举内容的四处：
+                    # 枚举键装非枚举内容的四处：
                     # brief 的 BD 决策是一句自由文本；readiness/change-proposal/test-review
                     # 的 route 装的是技能名（diy-*），不是 design 族的路由串
                     ("brief", "decision"), ("readiness", "route"),
                     ("change-proposal", "route"), ("test-review", "route"),
                     # test-gate 的 source 含日期（「用户会话 2026-09-21」）——无法静态登记白名单
                     ("test-gate", "source"),
-                    # trace: C·11 W3（§5.1 连带）——新入 ENUM_KEYS 的键在别处装非枚举内容，
+                    # 新入 ENUM_KEYS 的键在别处装非枚举内容，
                     # 不登记就会把诊断打到那些产物上（同键异义，逐条给出产物出处）：
                     # scope：analysis 的范围边界、augment 的采样实现面、evolution 的本轮增量口径、
                     # readiness 的实点到文档清单（列表值）、research 的范围与方法学
@@ -49,15 +49,15 @@ FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design"
                     # （Button…Spacer），全局 type=类型 在此不是枚举——不登记则每次渲染刷 26 行
                     # 诊断（R-02），且其中一个类型名恰与 6 分类值同名（Form）会被误标成「表单」
                     ("wds-design-system", "type"),
-                    # trace: v4 批 4a——openapi 的 type 是 OpenAPI/JSON-Schema 机器锚点
+                    # openapi 的 type 是 OpenAPI/JSON-Schema 机器锚点
                     # 值域（securityScheme: apiKey/http/oauth2…；schema: object/string/
                     # integer…），非本产品枚举域；不登记则 components 渲染每次刷 unmapped enum
                     ("openapi", "type"),
-                    # trace: v4 批 4b——format 同族（JSON-Schema format 锚点：date-time/
+                    # format 同族（JSON-Schema format 锚点：date-time/
                     # password 等），与 wds-assets 的 format 枚举同键异义；不登记则
                     # components 渲染刷 unmapped enum（diy-lab 实测两条），照 4a type 先例
                     ("openapi", "format"),
-                    # trace: Q-105——method 入 ENUM_KEYS 后，装 HTTP 动词（get/post…）的
+                    # method 入 ENUM_KEYS 后，装 HTTP 动词（get/post…）的
                     # 三个产物面按 (文档, 键) 例外：api_refs[].method 是接口复合锚，不是
                     # cis-method 的四分支值域（test-plan ← test-design/augment/e2e；
                     # stories ← epics-stories 的 AC 锚；story-context ← create-story 平铺锚）
@@ -92,7 +92,7 @@ BADGE_CLASSES = {
     "待证据阻塞": "dim", "已反转": "dim", "未知": "dim", "未开始": "dim",
     "格式不支持": "dim", "自动生成": "dim", "超出范围": "dim",
     "可并行": "dim", "锦上添花": "dim",
-    # trace: C·3a 收口链④（任务书 §2.3：页状态收敛为单真源 5 值）——design.yaml 的
+    # 页状态收敛为单真源 5 值——design.yaml 的
     # `pages[].status` 与 `open_questions[].status` 的增量值；极性照 R3 口径分档
     # （进行中 / 待审 → warn · 非激活终态 → dim · 终态正向 → ok）。
     # 未开始 / 已批准 是既有映射，不动（补映射 ≠ 改既有映射）
@@ -101,7 +101,7 @@ BADGE_CLASSES = {
 }
 KEY_RE = re.compile(r"[^a-z0-9]+")
 META_KEYS = ("project", "x-project")
-# trace: Q-115——HTTP 动词值域单点同源（check 引擎常量）；此前两处字面量各持一份，
+# HTTP 动词值域单点同源（check 引擎常量）；此前两处字面量各持一份，
 # 漂移无门。渲染侧保持 set 语义（viewer_pages 成员判定）。
 HTTP_METHODS = set(_CHECK_HTTP_METHODS)
 
@@ -130,13 +130,13 @@ KEY_LABELS = {
     "reason": "原因", "decision": "处理决定", "note": "备注", "notes": "备注",
     "method": "方法", "path": "路径", "operationId": "操作 ID",
     "summary": "摘要", "x-fr": "关联需求",
-    # trace: v4 批 4a——openapi 接口契约扩展面（tags/通用错误 $ref/securitySchemes/
+    # openapi 接口契约扩展面（tags/通用错误 $ref/securitySchemes/
     # security）；未补键即英文裸键（零裸键纪律）。schema 见 diy-openapi/SKILL.md:结构
     "tags": "功能标签", "security": "安全要求", "securitySchemes": "鉴权方案",
     "responses": "响应定义", "schemas": "数据模型", "$ref": "引用",
     "x-decision": "关联决策", "in": "传参位置", "properties": "属性",
     "required": "必填字段",
-    # trace: v4 批 4b——openapi 详情竖表行键（两层展示落形，零裸键纪律）；
+    # openapi 详情竖表行键（两层展示落形，零裸键纪律）；
     # 键名是 OpenAPI 机器锚点，产物保留英文、仅展示层译名（4a 先例）。
     # schema 单数不在列：全局表已有 selfcheck 语义「结构版本」，openapi 侧
     # schema 文本内联进请求体/响应行，不作行键，避免同键异义覆盖
@@ -170,21 +170,21 @@ KEY_LABELS = {
     "color": "颜色", "spacing": "间距", "typography": "字号", "scale": "缩放",
     "pages": "页面", "states": "状态", "signals": "信号",
     "prototype": "结构稿", "implementation": "实现路径", "design_ref": "关联页面",
-    # trace: 批 5b（cm_refs——design.yaml 顶层 cm_refs 引用位，同 feature_refs 同构）
+    # cm_refs——design.yaml 顶层 cm_refs 引用位，同 feature_refs 同构
     "cm_refs": "设计思维引用",
-    # trace: 批 5e（analysis_refs——wds-evolution 轮级 A/S 分析依赖声明，AN-<nn> 锚）
+    # analysis_refs——wds-evolution 轮级 A/S 分析依赖声明，AN-<nn> 锚
     "analysis_refs": "分析引用",
     "unit": "基准单位", "family_base": "正文字体", "family_heading": "标题字体",
     "bg": "背景", "surface": "表面", "text": "文字", "text_muted": "次要文字",
     "accent": "强调色", "accent_text": "强调色文字",
-    # trace: C·3a 收口链④（§2.3：新增 3 键 + 从属字段 1 个）——本批增量键的中文标签。
+    # 新增 3 键 + 从属字段 1 个——增量键的中文标签。
     # open_questions 复用既有的「待决问题」（形状同 prd 同名键）；token_scope 取引擎与
     # SKILL.md 的自述语义「audit 的跳过清单」（design.py:693 / diy-design SKILL.md 规则段），
     # 不要读成「令牌作用域」；removed_reason 是自由文本（不进 ENUM_KEYS → 不做徽章，
     # 徽章化会把「被 v2 首页取代」这类原因句误标）
     "token_scope": "令牌豁免路径", "removed_reason": "移除原因",
-    # trace: C·12 W2（裁定 C12-1/C12-2 ③）——design 族新增顶层两键的中文标签。
-    # 语义照任务书 §0 表：form_factor = 目标表面（「写在什么上」）；modes = 默认主题模式。
+    # design 族新增顶层两键的中文标签。
+    # 语义：form_factor = 目标表面（「写在什么上」）；modes = 默认主题模式。
     # dark 是 tokens.color 下的暗色覆盖子块（§7-5① 明暗对形状）——零裸键纪律（用户裁定
     # 2026-10-01 收严）：dark 自身 + 六角色（bg/surface/text/text_muted/accent/accent_text，
     # 六者既有标签在上方 design 族区）共七键必须全部中文，漏登记直出英文键名 = 显示缺陷
@@ -195,10 +195,10 @@ KEY_LABELS = {
     "would_guess": "会猜成什么", "impact": "猜错后果", "suggestion": "建议裁定",
     "severity": "严重度", "units_total": "单元总数", "units_scanned": "已扫描单元数",
     "by_source": "分法计数", "卡点": "卡点", "穷举": "穷举", "交叉认证": "交叉认证",
-    # deferred-actions 族（副作用纪律保留确认队列，§五 C·8）；
+    # deferred-actions 族（副作用纪律保留确认队列）；
     # actions 是顶层列表键，渲染成 h2 标题（与 tasks / bugs 同款）
     "action": "动作", "command": "命令", "skill": "技能", "actions": "动作清单",
-    # trace: C·2 缺口 2 落地（2026-09-21）——B3/B4/B5 批产物键普查补齐（test-gate /
+    # 产物键普查补齐（test-gate /
     # test-framework / test-review / learning-progress / brainstorm / spec-kernel /
     # editorial-review / module-plan）。语义依据各技能 SKILL.md 结构节与引擎骨架常量；
     # viewer 递归渲染全部层级，故含嵌套键。同键异义者见 DOC_KEY_LABELS
@@ -259,14 +259,14 @@ KEY_LABELS = {
     "total": "合计", "totals": "合计", "unit_layer": "单元层",
     "unresolved": "未决条目", "vision": "批次愿景", "waivers": "豁免记录",
     "walkthrough": "三向走查", "what": "缺失内容",
-    # trace: C·2——diyc-baseline（diy-tools 的豁免台账）键补齐，此前整页英文裸奔
+    # diyc-baseline（diy-tools 的豁免台账）键补齐，此前整页英文裸奔
     "baseline": "基线", "code": "违规码", "where": "位置",
     "on": "批准日期", "by": "批准人",
-    # trace: C·2（V 验证补漏）——mutation-report（diy-augment 的变异运行记录）此前无类型名、
+    # mutation-report（diy-augment 的变异运行记录）此前无类型名、
     # 键全裸奔。schema 见 diy-augment/SKILL.md:34
     "runs": "运行记录", "killed": "杀死数", "survivors": "幸存变异体",
     "equivalents": "等价变异体", "mutant": "变异体",
-    # trace: C·2 缺口 2 落地（2026-09-21）——B1/B2 批产物键普查补齐（research / brief /
+    # 产物键普查补齐（research / brief /
     # prfaq / checkpoint / readiness / project-context / story-context / retrospective /
     # change-proposal / spec / investigation）。语义依据各技能 SKILL.md 结构节与引擎骨架常量
     "a": "回答", "ac_refs": "关联验收标准", "acceptance": "验收判据", "accessed": "访问日期", "acs": "验收标准数",
@@ -309,7 +309,7 @@ KEY_LABELS = {
     "timeline_impact": "时间线影响", "tree": "目录树", "url": "网址", "value": "价值要点", "value_props": "价值主张",
     "verification": "验证记录", "verify": "完成判据", "watch": "观测结果", "who": "用户角色",
     "why_separate": "分离理由", "wins": "亮点", "would_resolve": "解开条件",
-    # trace: C·11 W3（§5.1）——B7b 批产物键补齐（59 条，机械重数见回报：登记源并集 − 假阳性
+    # 产物键补齐（59 条，机械重数见回报：登记源并集 − 假阳性
     # in/out + 实测补漏 related/pr）。键取自各产物 YAML 实测（骨架 + 富内容）+ 各 SKILL.md
     # 结构节；同键异义者不在此表（走 DOC_KEY_LABELS）
     # wds-design-system：11 段组件模板 + 前缀表 / 分类表 / 令牌命名空间
@@ -335,7 +335,7 @@ KEY_LABELS = {
     "codebase": "代码库路径", "data_flow": "数据流", "layers": "分层", "location": "位置",
     "mermaid": "Mermaid 图", "output_format": "输出形态", "overview": "总览",
     "tech_stack": "技术栈", "time_box": "时间盒",
-    # v4 批 2c——selfcheck.yaml（diy-selfcheck 主产物，schema 骨架照批 2c 任务书 §3）：
+    # selfcheck.yaml（diy-selfcheck 主产物）：
     # 此前缺失的键渲染英文裸键（零裸键纪律）。id/date/status/summary/findings/target/
     # path/n/source/severity/claim/actual/confidence/total/by_source/revisions/change/
     # reason/project 已有全局标签，不在本块重复
@@ -345,9 +345,9 @@ KEY_LABELS = {
     "shards": "分片数", "ss_ref": "关联预演条目", "issue": "问题",
     "round1": "第一轮复扫", "round2": "第二轮复扫", "cleared": "清零项",
     "ref_checked": "已核引用数", "ref_false": "失实引用数", "landing": "落点",
-    # trace: Q-105（底单 :367 ⑧）——cis-method 四分支 deliverable 键补齐（115 缺 + deliverable）。
+    # cis-method 四分支 deliverable 键补齐（115 缺 + deliverable）。
     # 键表逐条取自 steps/02~05「本分支结构」节；键名是 schema 机器锚点，产物保留英文、
-    # 仅展示层译名（C·11 W3 先例）。constraints/timeline/action_items/resolution 已有全局标签，不重复。
+    # 仅展示层译名。constraints/timeline/action_items/resolution 已有全局标签，不重复。
     # cis-method 创新策略 分支 deliverable 键
     "business_model_innovation": "商业模式创新", "company_name": "公司名称", "competitive_dynamics": "竞争动态", "current_business_model": "现有商业模式",
     "current_situation": "现状", "decision_gates": "决策门", "disruption_vectors": "颠覆向量", "innovation_initiatives": "创新举措",

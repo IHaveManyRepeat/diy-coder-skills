@@ -48,7 +48,7 @@ Progress: `[Scope] → <dimension> 02–05 → Synthesis`
 
 日期口径：project 两键留空、跑 `diyc stamp --type research` 盖秒级章（created 此后不改；updated 每次写回后刷）；记录的 `date` 是**本条动作的日子**（= 建这条记录那天），不随 `updated` 变。
 
-源技能的命名规则按新载体承接：源技能写 `<dimension>-<slug>-research-<date>.md`、从主题派生路径安全 slug；diy 产物是一个固定文件，故 `dimension` + `topic` + `date` 即其身份，不派生路径、不派生 slug。
+命名规则按新载体承接：diy 产物是一个固定文件，`dimension` + `topic` + `date` 即其身份，不派生路径、不派生 slug。
 
 ## 确认与继续
 

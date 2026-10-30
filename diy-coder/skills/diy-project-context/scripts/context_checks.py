@@ -120,7 +120,7 @@ def check_records(items, where, required_keys, violations):
 
 def check_integration(integration, where, violations):
     if integration is None:
-        return  # 多部件才填（源 step-8 条件步）：单部件项目缺席合法
+        return  # 多部件才填：单部件项目缺席合法
     if not isinstance(integration, list):
         violations.append(v("EMPTY_FIELD", where, "integration 不是列表"))
         return

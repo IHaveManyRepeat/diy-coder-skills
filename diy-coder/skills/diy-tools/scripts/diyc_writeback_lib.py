@@ -42,7 +42,7 @@ BUG_ID_RE = re.compile(r"BUG-(\d+)\Z")
 DEFER_REASONS = ("用户配置", "破坏性操作", "越界改动", "仅人工可做")
 DEFER_REQUIRED = ("skill", "action", "reason")
 DEFER_ID_RE = re.compile(r"DA-(\d+)\Z")
-# 翻转目标（§五 C·8②）：待办 是唯一可翻转态，这两个是终态
+# 翻转目标：待办 是唯一可翻转态，这两个是终态
 DEFER_RESOLVED = ("已完成", "已拒绝")
 
 # ---- 通用小件 ----
@@ -92,7 +92,7 @@ def _load(args, name):
     try:
         doc = lib.load_yaml(path)
     except DuplicateKeyError as e:
-        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（重复键≠解析失败）
         return None, path, lib.v("DUPLICATE_KEY", rel,
                                  f"{rel} 重复键（{e}）——修复后重跑")
     except yaml.YAMLError as e:

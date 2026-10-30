@@ -14,7 +14,7 @@ python "{project-root}/.claude/skills/diy-eval-runner/scripts/eval_runner.py" ru
 - `--mode` 可重复（一次 run 可同时要 baseline 与 quality）；不给即 `quality`。
 - 引擎建 run 目录并写公共根三件（`run.json` / `execution-summary.json` / `.memlog.md`）、逐 case stage 与执行、即时落 `timing.json`（完成瞬间写盘，后崩不丢测量）。
 - 记住回执里的 `run_dir`——后续每一步都用它，别用时间戳臆造。
-- **发现同 label 的未完成 run 只提示不续跑**（`INCOMPLETE_RUN` warning）：本批不做 `--resume`、不自动合并、不覆盖既有目录。
+- **发现同 label 的未完成 run 只提示不续跑**（`INCOMPLETE_RUN` warning）：不做 `--resume`、不自动合并、不覆盖既有目录。
 
 ## 清场环境契约（引擎实现，你只需知道它为何可信）
 

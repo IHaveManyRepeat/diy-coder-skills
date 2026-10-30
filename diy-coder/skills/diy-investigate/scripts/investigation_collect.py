@@ -43,7 +43,7 @@ def parse_git_log(text):
     return commits
 
 def probe_vcs(root, since, project_root):
-    """VCS 情报（源 Outcome 2「version control」/ Outcome 4 git log 首扫）。
+    """VCS 情报（git log 首扫）。
     返回 (vcs 块, warnings)。不可用/失败一律 NO_VCS warning 降级。"""
     where = display_path(root, project_root) or "."
     vcs = {"available": False, "head": None, "commits": [], "since": since}

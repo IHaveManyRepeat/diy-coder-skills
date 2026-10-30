@@ -8,28 +8,26 @@
     check       [--final] [--output-dir D]                                                    只读
     similarity  --visual <high|medium|low> --functional <…> --behavioral <…> --contextual <…> 只读零写盘
 
-★ **第五子命令 `similarity` 是本批对 §2.2「四子命令」的一处登记性偏离**（回报 §8 ⑥ 已列）：
-  任务书 §3 W1 卡「额外负担」第 5 条要求「**实现聚合段**」（重复检测的四维等级 → 百分比 →
-  等级 → 推荐），而 §2.2 冻结「四子命令」——两条并存的最小满足 = 加一个**只读、零写盘**的
-  第五子命令。先例：B7a 的 `diy-wds-trigger` 亦在四子命令之外加了 `metrics`。**不写盘**。
+★ **第五子命令 `similarity` 是对「四子命令」的一处登记性偏离**：
+  「**实现聚合段**」（重复检测的四维等级 → 百分比 → 等级 → 推荐）需要第五子命令。
+  先例：B7a 的 `diy-wds-trigger` 亦在四子命令之外加了 `metrics`。**不写盘**。
 
 机制与规则来源（逐条）：
-  · 组件 ID `[prefix]-[NNN]`、26 前缀表、6 分类表 —— 源 `wds-7/steps-c/step-08b:56–122`
-  · 相似度聚合（四维权重 30/30/25/15、High/Medium/Low = 1.0/0.6/0.2、6 级阈值）
-    —— 源 `wds-7/steps-c/step-03:56–167`（**只实现聚合段**；输入段不可机械，归人工判定，见步骤文件）
-  · 上游门禁（`wds-scenarios.yaml` 的 `project.status: 已定稿`）—— 任务书 §2.3.1 冻结
-  · `tokens` 派生自 `design.yaml.tokens`（引用不复述）—— 裁定 5（用户 2026-09-21 拍板）
-  · `design_system_mode` 默认 `on` —— 裁定 17（计划 §四 :232 的反转口径）
+  · 组件 ID `[prefix]-[NNN]`、26 前缀表、6 分类表
+  · 相似度聚合（四维权重 30/30/25/15、High/Medium/Low = 1.0/0.6/0.2、6 级阈值）（**只实现聚合段**；输入段不可机械，归人工判定，见步骤文件）
+  · 上游门禁（`wds-scenarios.yaml` 的 `project.status: 已定稿`）
+  · `tokens` 派生自 `design.yaml.tokens`（引用不复述）
+  · `design_system_mode` 默认 `on`
 
-违规码：**复用 batch3-contract §3 冻结集**（`MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：**复用冻结集**（`MISSING_FILE` / `UNPARSABLE_YAML` /
 `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` /
-`SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ B6 已批码 `TOKEN_UNRESOLVED`。**本批零新增码。**
+`SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ 已批码 `TOKEN_UNRESOLVED`。**零新增码。**
   ★ 两处**语义复用**（登记）：
     · `SET_MISMATCH` 承载四类：① 同前缀编号跳号 / 不连续；② 组件 `category` 与
       前缀表里同前缀那一行的 `category` 不一致；③ `init` 见到既有产物（**约定：不覆盖，
       只刷 `project.updated`，并出 warning** —— 与 B7a `diy-wds-brief` 的
       `init --project-type 与既有产物不符` 同款用法）；④ `check` 反向扫零引用令牌
-      （**仅 warning**，不阻断：源侧允许备用令牌）。
+      （**仅 warning**，不阻断：允许备用令牌）。
     · `TOKEN_UNRESOLVED` 承载：组件 `token_refs` 的 `命名空间.名` 在本产物声明的
       命名空间表（`tokens.namespaces`）里解析不到，**或** `派生` 模式下本产物的名字
       超出了 `design.yaml.tokens` 的键集（引用漂移）。
@@ -121,7 +119,7 @@ def cmd_init(args, project_root: Path) -> dict:
         color_names = ["accent", "accent_text", "bg", "surface", "text", "text_muted"]
         typo_names = ["family_base", "family_heading", "scale"]
         warnings.append(v("MISSING_FILE", display_path(output_dir / DESIGN, project_root),
-                          "`design.yaml` 不在场——token 降级为独立定义（裁定 5 的可选读降级）"))
+                          "`design.yaml` 不在场——token 降级为独立定义（可选读降级）"))
 
     doc = {
         "project": {"name": upstream.get("name") or output_dir.name,
@@ -207,7 +205,7 @@ def cmd_similarity(args, project_root: Path) -> dict:
     """重复检测的**聚合段**（可机械段）：四维等级 → 百分比 → 等级 → 推荐。
 
     ★ 只此一段可机械。**输入段（规格 + 候选 → 四维 High/Medium/Low）不可机械**——
-      源侧只有散文示例、无字段级比对规则（源 step-02:94–199 全是 `Example`），
+      只有散文示例、无字段级比对规则（step-02 全是 `Example`），
       故「四维等级」由会话按四维属性表逐维判定并经用户确认后传入本命令。
     """
     where = "similarity --visual/--functional/--behavioral/--contextual"
@@ -251,7 +249,7 @@ def cmd_check(args, project_root: Path) -> dict:
     warnings = []
     if not (output_dir / DESIGN).exists():
         warnings.append(v("MISSING_FILE", display_path(output_dir / DESIGN, project_root),
-                          "`design.yaml` 不在场——token 按独立定义核（裁定 5 的可选读降级）"))
+                          "`design.yaml` 不在场——token 按独立定义核（可选读降级）"))
     warnings += orphan_token_warnings(doc, project_root, output_dir)
     namespaces = ((doc.get("tokens") or {}).get("namespaces") or {})
     violations = check_document(doc, project_root, output_dir, set(upstream["pages"]),

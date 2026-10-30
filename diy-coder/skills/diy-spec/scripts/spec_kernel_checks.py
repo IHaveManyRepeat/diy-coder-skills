@@ -29,7 +29,6 @@ def record_where(show, index, record):
         return "%s specs[%s]" % (show, rid)
     return "%s specs[%d]" % (show, index)
 
-# trace: B4 diy-spec 验收 #2/#4（CAP 结构 + intent/success 双非空 + 记录内唯一 + retired 布尔）
 def check_capabilities(items, where, violations):
     """CAP 结构：intent / success 双非空、CAP-N 格式、记录内唯一、retired 布尔（Spec Law 1/6）。"""
     if not isinstance(items, list):
@@ -260,7 +259,6 @@ def prev_index(data):
         index.setdefault(str(record["slug"]), {"id": record.get("id"), "caps": caps})
     return index
 
-# trace: B4 diy-spec 验收 #12c（--previous：本批唯一判 yes —— CAP 稳定不重用的机械保障）
 def check_previous(data, previous, root, show, violations, scope_slugs=None):
     """--previous：按 slug 配对，旧稿 CAP 旧有新无且未标 retired → ID_UNSTABLE。
 

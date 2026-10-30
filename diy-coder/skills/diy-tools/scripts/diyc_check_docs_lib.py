@@ -6,7 +6,7 @@ import re
 import diyc_lib
 from diyc_lib import items
 
-# v4 批 3（§7-3b）：created/updated 格式断言——两格式兼容（纯日期 | 日期＋空格＋
+# created/updated 格式断言——两格式兼容（纯日期 | 日期＋空格＋
 # 时分秒；存量纯日期仍合法）。兼防忘跑 stamp 闭环：C 组产物留空（空串）/乱写即红；
 # 键缺席归各 checker 的 project 非空门分工，此处不重复
 TIME_RE = re.compile(r"\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?")
@@ -26,7 +26,7 @@ def check_project_times(doc, rel, report):
                        "时间键须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %r"
                        "（留空＝未盖章，跑 diyc stamp --type <类型>）" % (value,))
 
-# 裁定 22（C·3a · W9）：`affects` 的 SC/P 域须经 `Docs` 读 wds-scenarios——注册项
+# `affects` 的 SC/P 域须经 `Docs` 读 wds-scenarios——注册项
 # （`DOC_FILES["wds-scenarios"]`）已于 2026-09-28 收口期归位 `diyc_lib.py`，此处不再就地补登记。
 
 # 枚举（逐条对照各 SKILL.md Schema 节的机器锚）

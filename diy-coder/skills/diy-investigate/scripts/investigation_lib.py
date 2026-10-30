@@ -19,7 +19,7 @@ GRADES = ("已确证", "已推断", "假设中")
 AVAILABILITIES = ("可得", "部分可得", "缺失")
 HYPOTHESIS_STATUSES = ("待验证", "已确证", "已推翻")
 CONFIDENCES = ("高", "中", "低")
-BACKLOG_PRIORITIES = ("高", "中", "低")           # SS-022-12：数据采集项的自然刻度
+BACKLOG_PRIORITIES = ("高", "中", "低")           # 数据采集项的自然刻度
 BACKLOG_STATUSES = ("待办", "已完成", "无法获取")
 INPUT_KINDS = ("工单", "归档", "日志", "描述", "范围", "提交")
 

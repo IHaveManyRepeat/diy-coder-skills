@@ -15,7 +15,7 @@ CRITERIA_FILE = "criteria.yaml"
 STORIES_FILE = "stories.yaml"
 TEST_PLAN_FILE = "test-plan.yaml"
 
-# 裁定 1（源实现逐字）：文件级行以 `file` 取代行号（身份 = row @ file）
+# 文件级行以 `file` 取代行号（身份 = row @ file）
 FILE_LEVEL_ROWS = frozenset({"H5", "H6", "H7", "H8", "L4"})
 # 源评分账本（数值口径不得漂移）
 DEDUCTION_WEIGHTS = {"CRITICAL": 10, "HIGH": 5, "MEDIUM": 2, "LOW": 1}
@@ -75,7 +75,7 @@ EXCLUDE_DIRS = {".git", ".claude", ".analysis", "node_modules", "__pycache__",
                 ".venv", "venv", "dist", "build", ".pytest_cache", ".tox",
                 ".mypy_cache", "coverage", ".idea", ".vscode"}
 
-# 机械集（裁定 6：可扩不可缩；本表与 criteria.yaml 的 detect: mechanical 行一致）
+# 机械集（可扩不可缩；本表与 criteria.yaml 的 detect: mechanical 行一致）
 IMPLEMENTED_MECHANICAL = frozenset({"C1", "C2", "C3", "H1", "H5", "H6", "H7", "H8",
                                     "H9", "L4"})
 C1_RE = re.compile(r"\b(?:test|it|describe)\.(?:skip|todo)\b|\bxit\b|\bxdescribe\b|"

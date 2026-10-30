@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diyc kind —— 扫描目标类型判定（kind 判据表引擎化，Q-113）。
+"""diyc kind —— 扫描目标类型判定。
 
 三阶判据链的第②阶（规则表机械判）由本模块承载；①用户明示照录与
 ③ambiguous 先问一次留在技能提示词层（spec-scan 01-collect / selfcheck 01-freeze）。
@@ -26,7 +26,6 @@
 - ambiguous 布尔：无命中或多类冲突为 true。
 纯判定不碰存在性门（表名匹配对不存在的路径同样成立；结构判仅在路径为目录时生效）。
 """
-# trace: Q-113 kind 判据表引擎化（2026-10-21 用户裁定；底单「kind 判据表引擎化」段）
 
 import os
 import sys

@@ -56,7 +56,7 @@ def check_priority(priority, known_personas, known_drivers, show, final, out):
 
 
 def max_score(persona_count):
-    """评分满分（源 `06c:84`）：主人物 5 + 其他每人 3。"""
+    """评分满分：主人物 5 + 其他每人 3。"""
     return SCORE_PRIMARY["高"] + SCORE_OTHER["高"] * max(persona_count - 1, 0)
 
 
@@ -76,12 +76,12 @@ def recompute_score(scores):
 
 
 def check_features(features, persona_count, show, final, out):
-    """特征影响段（裁定 10）：Primary 5/3/1、其他 3/1/0、Must-Have 阈值。"""
+    """特征影响段：Primary 5/3/1、其他 3/1/0、Must-Have 阈值。"""
     if not final:
         return
     if not nonempty(features):
         out.append(v("EMPTY_FIELD", show + ".feature_impact",
-                     "为空——裁定 10 保留特征影响分析（先设计哪个功能由它回答）"))
+                     "为空——保留特征影响分析（先设计哪个功能由它回答）"))
         return
     ceiling = max_score(persona_count)
     for index, record in enumerate(features):
@@ -126,7 +126,7 @@ def check_features(features, persona_count, show, final, out):
 
 
 def check_effect_map(graph, goals, personas, show, final, out):
-    """Effect Map 段（裁定 7 收编的构图纪律）。"""
+    """Effect Map 段（构图纪律）。"""
     if not isinstance(graph, dict):
         if final:
             out.append(v("EMPTY_FIELD", show + ".effect_map",
@@ -160,7 +160,7 @@ def check_effect_map(graph, goals, personas, show, final, out):
                      "应为 %d 条 = 目标数 + 2×人物数）" % (len(have), len(want))))
     if sorted(str(x) for x in as_list(graph.get("class_defs"))) != sorted(CLASS_DEFS):
         out.append(v("SET_MISMATCH", "%s.effect_map.class_defs" % show,
-                     "四类样式须逐字取自源 `08g:63-66`（businessGoal / platform / targetGroup / "
+                     "四类样式须逐字（businessGoal / platform / targetGroup / "
                      "drivingForces 四条）"))
     diagram = graph.get("diagram")
     if isinstance(diagram, str) and diagram.strip():
@@ -229,7 +229,6 @@ def check_document(data, show, args):
     check_features(features, len(personas), show, args.final, violations)
     check_effect_map(as_dict(data.get("effect_map")), goals, personas, show, args.final,
                      violations)
-    # 越界情形（与 metrics 同一实现源；裁定 6 的三组口径）——`--final` 时升级为违规
     if args.final:
         for where, msg in count_findings(data, show, require_present=True)[0]:
             violations.append(v("EMPTY_FIELD", where, msg))
@@ -261,7 +260,7 @@ def check_document(data, show, args):
 def cmd_metrics(args):
     """计数体检：人物群 2–4、每人 3–5 正 + 3–5 负、连接数 = 目标数 + 2×人物数。
 
-    越界一律 **warning**（源侧「展示端自适应」口径），exit 0；缺产物 / 坏产物 / 未知 ID
+    越界一律 **warning**，exit 0；缺产物 / 坏产物 / 未知 ID
     才是违规。
     """
     payload = receipt_base("metrics", args, args.output_dir)

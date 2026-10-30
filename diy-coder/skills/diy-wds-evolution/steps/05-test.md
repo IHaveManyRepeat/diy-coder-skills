@@ -7,7 +7,7 @@ Progress: `[1 载测试上下文 → 2 备测试环境 → 3 逐条执行 → 4 
 
 你是**本轮增量的验收者**。**范围只到本轮**：判据来自 `design.acceptance_criteria[]`，**不做全量回归验收、不重跑历史轮次的判据清单**。
 
-〔**裁定 10（本技能的 [T] 边界）**〕源 `wds-5` 另有一条**全量验收**（[T] Acceptance Testing，754 行）——它归 `diy-dev` 的 **WDS 模式**，**不归本技能**。两者产物不同：那条产**全量验收报告**，本技能产**本轮增量的逐条结论**。故本文件的所有判据面都锚在 `acceptance_criteria[]` 上；`test.scope` 的冻结值 `本轮增量` 由 `check --final` **机械核对**——写成别的值直接判 `ENUM_INVALID`。
+〔**本技能的 [T] 边界**〕**全量验收**归 `diy-dev` 的 **WDS 模式**，**不归本技能**。两者产物不同：那条产**全量验收报告**，本技能产**本轮增量的逐条结论**。故本文件的所有判据面都锚在 `acceptance_criteria[]` 上；`test.scope` 的冻结值 `本轮增量` 由 `check --final` **机械核对**——写成别的值直接判 `ENUM_INVALID`。
 
 ## 第 1 步 —— 载测试上下文（源 [T] step-01）
 
@@ -66,7 +66,7 @@ Progress: `[1 载测试上下文 → 2 备测试环境 → 3 逐条执行 → 4 
 
 - **响应式**：规格 `design.responsive` 点到的断点逐档看
 - **边界**：空态 / 长文案 / 错误态
-- **回归**：**本页**其它部分没被弄坏（源侧的「回归」在本技能里**只指本页面的邻近功能**；跨页面的全量回归属 `diy-dev` 的 **WDS 模式**）
+- **回归**：**本页**其它部分没被弄坏（「回归」在本技能里**只指本页面的邻近功能**；跨页面的全量回归属 `diy-dev` 的 **WDS 模式**）
 - **跨浏览器**：项目要求写了才测
 
 **产出键**：`test.criteria[]`（每条 `{criterion, how, expected, actual, verdict}`）。
@@ -85,7 +85,7 @@ Progress: `[1 载测试上下文 → 2 备测试环境 → 3 逐条执行 → 4 
 
 ```yaml
 test:
-  scope: 本轮增量                                  # 冻结值（裁定 10）
+  scope: 本轮增量                                  # 冻结值
   environment: {branch, url, data_needed}
   summary: <X/Y 条判据通过>
   criteria:
@@ -95,9 +95,8 @@ test:
   failures_handled: [{criterion, route: 本分支修|回设计|记下轮, note}]   # 第 5 步
 ```
 
-**`kind` 四类逐字保源**（源 `data/delivery-templates.md` 的 TS-XXX 测试场景族）：`HP`（happy path，源 `HP-*`）· `REG`（回归，源 `REG-*`）· `EC`（边界情形，源 `EC-*`）· `A11Y`（无障碍，源 `A11Y-*`）。**源侧的 `TS-XXX` 独立编号族不再保留**（记录地址 = 轮次 `EV-<nn>` + 判据下标，多一套编号只会漂移）；四类的**分类能力**逐类保留，`check --final` 逐条核 `kind` 在场且合法。
+**`kind` 四类**：`HP`（happy path）· `REG`（回归）· `EC`（边界情形）· `A11Y`（无障碍）。**`TS-XXX` 独立编号族不再保留**（记录地址 = 轮次 `EV-<nn>` + 判据下标，多一套编号只会漂移）；四类的**分类能力**逐类保留，`check --final` 逐条核 `kind` 在场且合法。
 
-〔**源侧处置（报告产物的形态）**〕源侧此处产 `test-reports/TR-XXX-…md`（散 md、路径与活动文件冲突——见 `02-scope.md` 第 1 步的路径归一段）。**diy 处置 = 进本产物 `rounds[].test`**，不建散 md、不建子目录（承 B7a 裁定 12 的「只产 YAML」口径）。
 
 **产出键**：`rounds[EV-<nn>].test` 整段（`scope` / `environment` / `summary` / `criteria[]` / `issues[]` / `recommendation` / `failures_handled[]`）。
 

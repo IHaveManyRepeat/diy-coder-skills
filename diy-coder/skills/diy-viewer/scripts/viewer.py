@@ -102,7 +102,7 @@ def load_docs(paths) -> tuple:
 
 
 def nested_instance_dirs(out_dir: Path) -> list:
-    # trace: B5① 主线目录无 YAML 而其下存在含 YAML 的子目录 → 疑似实例目录（忘传 --instance）
+    # trace: 主线目录无 YAML 而其下存在含 YAML 的子目录 → 疑似实例目录（忘传 --instance）
     try:
         return sorted(
             d.name for d in out_dir.iterdir()
@@ -113,7 +113,7 @@ def nested_instance_dirs(out_dir: Path) -> list:
 
 
 def select_explicit_docs(all_docs: list, files, out_dir: Path, errors: list) -> tuple:
-    # trace: B5② 显式路径优先：路径存在 → 直接按该路径渲染该文件；不存在 → 回落 basename
+    # trace: 显式路径优先：路径存在 → 直接按该路径渲染该文件；不存在 → 回落 basename
     # 在解析根内查找；路径存在但在解析根之外 → stderr 警告后仍渲染给定文件
     # （不得静默替换为同名文件）。显式文档覆盖同名条目，其后仍参与 ID 索引与导航。
     req: set = set()
@@ -179,7 +179,7 @@ def main() -> int:
         print(f"[diy-viewer] output path is not a directory: {out_dir}", file=sys.stderr)
         return 1
 
-    # trace: B5① 主线空而其下存在实例目录 → 把「忘传 --instance」变成一行可见诊断
+    # trace: 主线空而其下存在实例目录 → 把「忘传 --instance」变成一行可见诊断
     if not any(out_dir.glob("*.yaml")):
         inst_dirs = nested_instance_dirs(out_dir)
         if inst_dirs:
@@ -188,7 +188,7 @@ def main() -> int:
 
     # ID 链接索引与跨文档导航必须基于全量文档构建，即使本次只渲染子集。
     all_docs, errors = load_docs(sorted(out_dir.glob("*.yaml")))
-    # trace: C·11 W3（§5.2 诊断档 / 裁定 12）——`assets/<活动>/` 下的产物渲染不到（viewer 只扫
+    # `assets/<活动>/` 下的产物渲染不到（viewer 只扫
     # 顶层 *.yaml，非递归是防同名互覆的既定口径）→ 有内容就给一行诊断，让「有东西没渲染」可见。
     # 只报不改：渲染成功仍 rc=0
     assets_dir = out_dir / "assets"
@@ -197,14 +197,14 @@ def main() -> int:
     except OSError:
         has_assets = False
     if has_assets:
-        # C·12 收口订正（用户裁定 A）：清单页落地后「未渲染」成假事实——HTML 产物不进
+        # 清单页落地后「未渲染」成假事实——HTML 产物不进
         # YAML 渲染管线，但已列入 assets 清单页；「点开查看」锚保留（断言同步改）
         print(f"[diy-viewer] note: {assets_dir} 下有已列入清单页的资产（HTML 产物不进 YAML "
               f"渲染管线）—— 见 assets 清单页，页面里的资产链接可直接点开查看", file=sys.stderr)
     docs = all_docs
     if args.files:
         docs, all_docs = select_explicit_docs(all_docs, args.files, out_dir, errors)
-    # trace: v4 批 3——select 之后重排（select_explicit_docs 的显式路径 append 条目
+    # select 之后重排（select_explicit_docs 的显式路径 append 条目
     # 也要参与排序，故不放 sort_docs 调用后）；三消费点（index 卡片序 / others 导航序 / 渲染循环序）全走
     # all_docs 序，docs 是其子集，照排序后序重新过滤保持同序
     all_docs = sort_docs(all_docs)
@@ -212,7 +212,7 @@ def main() -> int:
         keep = {n for n, _ in docs}
         docs = [(n, d) for n, d in all_docs if n in keep]
 
-    # trace: B4 来源展示：output_dir 相对项目根路径（含实例名）
+    # trace: 来源展示：output_dir 相对项目根路径（含实例名）
     try:
         source_disp = out_dir.relative_to(root).as_posix()
     except ValueError:
@@ -220,9 +220,9 @@ def main() -> int:
 
     view_dir = out_dir / cfg["view_dir"]
     view_dir.mkdir(parents=True, exist_ok=True)
-    # trace: C·11 W3（§5.2 链接档 / 裁定 11）——资产相对链接前缀 = 页面所在目录 → output_dir；
+    # 资产相对链接前缀 = 页面所在目录 → output_dir；
     # 默认 view_dir=`.view`（一层）即 `../`，配置成多级目录时按级数补足（否则链接打不开）
-    # trace: C·12 W2——_OUT_DIR 同步赋值（doc_path_value 的 design 族路径存在性基准）
+    # _OUT_DIR 同步赋值（doc_path_value 的 design 族路径存在性基准）
     # （状态定义在 viewer_refs 模块，跨件写走模块属性形态）
     view_depth = [p for p in Path(cfg["view_dir"]).parts if p not in (".", "")]
     _refs._ASSET_REL_PREFIX = "../" * len(view_depth)
@@ -259,7 +259,7 @@ def main() -> int:
                         source=source_disp)
         f.write_text(body, encoding="utf-8")
         written.append(f)
-    # trace: C·12 W2（裁定 C12-2 ①）——assets 产物清单页：assets/ 有文件才渲染（空/缺失静默）；
+    # assets 产物清单页：assets/ 有文件才渲染（空/缺失静默）；
     # 时间轴页（Layer 1 裁定）：全部产物 revisions 皆空不渲染。两页均只增不改既有页面
     extra_cards = []
     asset_groups = collect_asset_files(out_dir / "assets")

@@ -10,7 +10,7 @@ detect   语言无关的栈探测（只读）。清单表（`LANG_MANIFESTS`）�
          既有框架配置 → `existing.framework`；CI 平台（.github/workflows/*.yml / .gitlab-ci.yml /
          Jenkinsfile / azure-pipelines.yml / .harness/pipeline.yaml / .circleci/config.yml）→
          `existing.ci`；`suggested` = 选型建议（框架 / 平台 / 脚手架 profile）；`templates` 给出
-         模板覆盖面（移动端面**无模板覆盖**，据任务书 §5 裁定 5 与 §12.11：HALT + 登记）；
+         模板覆盖面（移动端面**无模板覆盖**：HALT + 登记）；
          `git` = 仓库事实（`.git` 在场 / origin 远端名；源 ci/step-01 §1「Git repository required」）；
          `context` = 架构文档与 auth 线索（源 fw/step-01 §2「Check for architecture docs /
          Note auth requirements」）——只报事实，不做推断。
@@ -45,7 +45,7 @@ check [--final]  台账 schema / 枚举 / files[].path 形态 / 生成文件存�
 
 违规码
 ------
-复用 batch3-contract §3 冻结集：`MISSING_FILE` `UNPARSABLE_YAML` `DUPLICATE_ID` `UNKNOWN_ID`
+复用冻结集：`MISSING_FILE` `UNPARSABLE_YAML` `DUPLICATE_ID` `UNKNOWN_ID`
 `ENUM_INVALID` `EMPTY_FIELD` `ENTRY_INVALID` `ASSUMPTION_PRESENT`。
 新增（本引擎专用，已在回报中登记）：
   - `FILE_CONFLICT`   scaffold 目标已存在且内容不同（不覆盖既有文件）→ 回滚 + 整条拒绝。
@@ -59,12 +59,12 @@ check [--final]  台账 schema / 枚举 / files[].path 形态 / 生成文件存�
 warning 专用扩展码：`TEMPLATE_UNSUPPORTED`（detect 专用：栈已识别但 `templates/` 未覆盖，
 面 = 移动端；告警随门禁 HALT 一起给出，不单列违规）。
 
-分工裁定（任务书 §2.3 / §5）：test-framework.yaml 是新产物类型，不进 diyc.py check 的硬编码
+分工：test-framework.yaml 是新产物类型，不进 diyc.py check 的硬编码
 类型集；本引擎沿用领域引擎形态（同 checkpoint.py / e2e.py）。实例解析委托 SKILL.md 侧的
 `diyc.py resolve`；本引擎不做 --instance / 白名单 / 目录推导，`--output-dir` 必填。
 产物与产物 ID（TF-###）由 LLM 会话铸造，本引擎只校验格式与唯一性。
 """
-# trace: B3 diy-test-framework 验收 #3（前置门禁零产出退出）/#4（ID 链接入）/#12（领域引擎接线）
+# trace: 前置门禁零产出退出 / ID 链接入 / 领域引擎接线
 # trace: S-2 AC-2.2 CI 三方对齐（correct-course path: 口径 + test-plan static_checks 链）
 import argparse
 import os

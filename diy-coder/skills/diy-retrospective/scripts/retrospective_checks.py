@@ -188,7 +188,7 @@ def check_critical_path(record, where):
     return violations
 
 def check_readiness(record, where, final):
-    """就绪度五维：键必须在场；值非空为 --final 义务（源 step-9 五问）。"""
+    """就绪度五维：键必须在场；值非空为 --final 义务。"""
     violations = []
     readiness = record.get("readiness")
     if not isinstance(readiness, dict):

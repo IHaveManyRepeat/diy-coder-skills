@@ -17,7 +17,7 @@ from progress_lib import ENTRY_ASSESS, ENTRY_COMPLETION, ENTRY_HUB, ENTRY_INIT, 
 
 # ---------------------------------------------------------------- init
 
-# trace: B3 diy-teach-me-testing 空白进度骨架（7 节全未开始；派生字段由引擎写）
+# trace: 空白进度骨架（7 节全未开始；派生字段由引擎写）
 def blank_progress(curriculum, name, role):
     stamp = now()
     index_by_id = curriculum_index(curriculum)
@@ -48,7 +48,7 @@ def blank_progress(curriculum, name, role):
         "revisions": [],
     }
 
-# trace: B3 diy-teach-me-testing init 子命令（建 7 节 + notes/ 目录；已存在 → ALREADY_EXISTS；
+# trace: init 子命令（建 7 节 + notes/ 目录；已存在 → ALREADY_EXISTS；
 # T-6 损坏件 → 报错指路，带 --recover 才「备份 + 重建」）
 def cmd_init(args):
     root = os.path.abspath(args.project_root)
@@ -109,7 +109,7 @@ def cmd_init(args):
     emit_via(payload, args.json, human_init)
     return 0
 
-# trace: B3 diy-teach-me-testing init 人读态（恢复路径额外播报备份路径）
+# trace: init 人读态（恢复路径额外播报备份路径）
 def human_init(payload):
     if payload["ok"]:
         print("PASS：学习进度已建立 %s（%d 节全未开始 + notes/ 目录）"
@@ -122,8 +122,6 @@ def human_init(payload):
 
 # ---------------------------------------------------------------- status
 
-# trace: B3 diy-teach-me-testing 分流表直出（裁定 3 唯一入口；判定输入 = 本回执；
-# T-6：文件缺席与文件不可用一律回 init 步——恢复的唯一出口在那里）
 def entry_step(present, data):
     if not present or not isinstance(data, dict):
         return ENTRY_INIT
@@ -138,7 +136,7 @@ def entry_step(present, data):
         return ENTRY_HUB
     return ENTRY_HUB if generated is True else ENTRY_COMPLETION
 
-# trace: B3 diy-teach-me-testing 仪表盘数据（每节状态 / 下一个推荐 / 完成度；供 Hub 与分流）
+# trace: 仪表盘数据（每节状态 / 下一个推荐 / 完成度；供 Hub 与分流）
 def dashboard(data):
     sessions = data.get("sessions") if isinstance(data.get("sessions"), list) else []
     rows = []
@@ -160,7 +158,7 @@ def dashboard(data):
                     "path": summary.get("path"), "date": summary.get("date")},
     }
 
-# trace: B3 diy-teach-me-testing status 子命令（读 + 校验 + 仪表盘 + 分流；只读命令）
+# trace: status 子命令（读 + 校验 + 仪表盘 + 分流；只读命令）
 def cmd_status(args):
     root = os.path.abspath(args.project_root)
     out = os.path.abspath(args.output_dir)
@@ -201,7 +199,7 @@ def cmd_status(args):
     emit_via(payload, args.json, human_status)
     return 0 if payload["ok"] else 1
 
-# trace: B3 diy-teach-me-testing status 人读态（进度概览 + 逐节 + 推荐）
+# trace: status 人读态（进度概览 + 逐节 + 推荐）
 def human_status(payload):
     if payload["ok"]:
         dash = payload["dashboard"]

@@ -1,8 +1,7 @@
 # 对象类型：Image（对象级规格清单 · 参考层）
 
 **用途**：`[P] Specify` 第 3 步与 `[M]` 活动逐对象定类型时，按本清单**逐项写规格**。
-**规则**：本件是**参考层**——**不产独立产物、不铸对象级 ID**（对象级载体是 `src` 的框架代码 + `design.yaml` 的 `states[].signals`）。**本件不含对象级 ID、不含 Figma 字段**；§7 对照表里的「删」行是**源侧对账痕迹**，不是待办。
-**改写说明**：源 `wds-4-ux-design/data/object-types/templates/image.md`（165 行）按裁定 4 改写——① **删 `OBJECT ID` 段**（源格式 `{page}-{section}-{element}-image`）；② **删 Figma 字段**（本件源侧实测 **0 处**；Design System 的组件字段一并归 `diy-wds-system`）；③ 交互问答脚手架（`<ask>Choice [1/2/3]:</ask>` + 「哪个既有 pattern / 新 pattern 叫什么」两分支）**改为下方规格项清单**；④ 「`Return to 4c-03`」幽灵步骤号引用**删**（普查 D3，该步骤号在本体系不存在）。
+**规则**：本件是**参考层**——**不产独立产物、不铸对象级 ID**（对象级载体是 `src` 的框架代码 + `design.yaml` 的 `states[].signals`）。**本件不含对象级 ID、不含 Figma 字段**；§7 对照表里的「删」行是**对账痕迹**，不是待办。
 
 ---
 
@@ -87,19 +86,3 @@ pages:
       - {name: 加载中, signals: [形状: 同比例灰色占位]}
       - {name: 错误,  signals: [文字: 图片没能载入, 图标: 破图]}
 ```
-
-## 7. 落点对照表（源字段 → diy 键）
-
-| 源字段（image.md） | diy 落点 | 说明 |
-| --- | --- | --- |
-| `image_description` | 用途项（§2 第 1 项） | — |
-| `object_id` | **删** | 裁定 7 |
-| `design_system_component` / `component_status` | **归 `diy-wds-system`** | 图片 pattern（Hero / Avatar / Card）若成库，归它的 `components[]` |
-| 图片文件名 / 路径 | 结构稿 `src`；资产落点见 `diy-wds-assets` | **不复制**远程资源的本地副本到技能目录 |
-| `alt_text_en` / `alt_text_sv` | 替代文本项（逐语言一条） | §3 的写法表 |
-| `is_decorative` | 用途项 = 装饰 → 空 `alt` + `role` | — |
-| `width` / `height` / `aspect_ratio` / `object_fit` | 尺寸与宽高比项 | 宽高必填（防抖动） |
-| `mobile_size` / `tablet_size` / `desktop_size` / `retina_path` | 响应式尺寸项 / 高清项 | 可选 |
-| `placeholder_type` / `lazy_loading` | 加载态项 / 加载策略项 | — |
-| `loading_state` / `error_fallback` / `loaded_animation` | `pages[].states[]` 三态信号 | 错误态回退必填 |
-| `Return to 4c-03`（源 `:165` 末行） | **删** | 幽灵步骤号（普查 D3）；diy 的回报路径由 `steps/` 的路由句承担 |

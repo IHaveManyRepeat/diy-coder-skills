@@ -3,30 +3,26 @@
 
 机制与规则来源
 --------------
-- 契约：`batch3-contract.md` §2.2/§3/§5/§7（子命令面、回执 schema、违规码冻结集、
-  原子写纪律、代码惯例）。本引擎是本技能终门的**唯一**执行者——WDS 型产物一律走本引擎的
+- 契约：子命令面、回执 schema、违规码冻结集、原子写纪律、代码惯例（冻结不改）。本引擎是本技能终门的**唯一**执行者——WDS 型产物一律走本引擎的
   `check`，**不得**改用 `diyc.py check --type`（`CHECK_TYPES` 是主线 8 型封闭集）。
-- 产物：`{output_dir}/wds-evolution.yaml`（B7b 任务书 §2.3；主体段 `rounds[]` + `kaizen_priority`，
+- 产物：`{output_dir}/wds-evolution.yaml`（主体段 `rounds[]` + `kaizen_priority`，
   记录 ID `EV-<nn>`）。
-- 门禁（任务书裁定 9）：本技能是**入口技能**（`precededBy: []`）——门禁 = **既有产物任一在场**
+- 门禁：本技能是**入口技能**（`precededBy: []`）——门禁 = **既有产物任一在场**
   （`design.yaml` / `sprint.yaml` / `wds-*.yaml`，**本技能自己的产物除外**——它是要被演进的对象之外的东西）。
-- 裁定 10：[T] 只验**本轮增量**（全量验收归 `diy-dev` 的 WDS 模式）→ `rounds[].test.scope` 冻结值
+- [T] 只验**本轮增量**（全量验收归 `diy-dev` 的 WDS 模式）→ `rounds[].test.scope` 冻结值
   `本轮增量`，`check --final` 机械核对。
 - Kaizen 优先级框架（本技能相对 `diy-dev` 的不可替代内容）：`Priority = Impact × Effort × Learning`，
   三因子各取 `high|medium|low`（权重 5/3/1），`score` 必须等于三因子权重之积——
-  **源侧两处表述互斥在此归一**：`kaizen-principles.md` 把 Effort 的 High 记作「1–2 天」（省力最优）、
-  `steps-a/step-01` 的表把 High 记作「1-2 days」——故三因子**一律「越大越好」**，
-  `score` 高 = 优先；**不是**「工作量越大越优先」。
+  **三因子一律越大越好**：`score` 高 = 优先；**不是**「工作量越大越优先」。
 
-违规码：**零新增**，全部复用 `batch3-contract.md` §3 冻结集
+违规码：**零新增**，全部复用冻结集
 （`MISSING_FILE` / `UNPARSABLE_YAML` / `DUPLICATE_ID` / `UNKNOWN_ID` / `ENUM_INVALID` /
 `EMPTY_FIELD` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）。
 模态语义复用三处（在此声明）：
-  ① `MISSING_FILE` 在 `init` 上承载「**入口门禁**：无任何既有产物可演进」——源侧该情形
-     由「口头接力」承担（census-5 §6.2），diy 侧升级为硬门；
+  ① `MISSING_FILE` 在 `init` 上承载「**入口门禁**：无任何既有产物可演进」——升级为硬门；
   ② `STATUS_MISMATCH` 承载「`--final` 时 `project.status` 非 `已定稿`」「轮次未达 `已交付`」
      「本轮增量判据存在 `未通过`」三类；
-  ③ 轮级 `analysis_refs` 依赖声明的一档硬报错（批 5e §7-2 甲）：缺席 `MISSING_FILE` /
+  ③ 轮级 `analysis_refs` 依赖声明的一档硬报错：缺席 `MISSING_FILE` /
      损坏 `UNPARSABLE_YAML` / 锚悬空 `UNKNOWN_ID` / 形态不良 `ENUM_INVALID`——
      见 `validate_analysis_refs`（空或缺席 → 不检不阻）。
 
@@ -72,7 +68,6 @@ def cmd_init(args):
                        output_dir=norm(args.output_dir), violations=violations,
                        warnings=warnings, counts=counts)
 
-    # 入口门禁（裁定 9）：既有产物任一在场
     hits = gate_present(args.output_dir)
     if not hits:
         violations.append(v("MISSING_FILE", where,

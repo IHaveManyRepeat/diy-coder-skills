@@ -699,9 +699,8 @@ class ContractTests(Base):
             self.assertIn(phrase, text, phrase)
         # run 目录「永不删除、覆盖、轮转」
         self.assertIn("永不删除、覆盖、轮转", text)
-        # 零 YAML + 母本 §5 不适用的理由
+        # 零 YAML（无渲染理由）
         self.assertIn("零 YAML", text)
-        self.assertIn("§5 不适用", text)
         # 终门 = check --run-dir（无 --final）
         self.assertIn("check --run-dir", text)
         self.assertNotIn("--final", text, "run 目录追加式，无定稿态")

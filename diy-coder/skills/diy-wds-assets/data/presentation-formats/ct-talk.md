@@ -24,7 +24,7 @@ Build a conference talk or workshop presentation. Include speaker notes per slid
 
 中文对照：制作一场大会演讲或工作坊演示。为每页幻灯片配演讲者备注，面向现场观众设计（大字号、少文字），并组织「钩子—建立张力—兑付」的叙事结构。
 
-> **纯增量能力**（源侧 8 活动无任何「备注 / 旁白」字段）：`notes` 是本活动对源资产的净增——逐页的演讲者备注写进 `frames[].notes`，`CT` 配方**必填**。
+> **纯增量能力**（8 活动无任何「备注 / 旁白」字段）：`notes` 是本活动的净增——逐页的演讲者备注写进 `frames[].notes`，`CT` 配方**必填**。
 
 ## Best For
 > **适用场景**——英文原文保留。

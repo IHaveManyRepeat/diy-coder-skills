@@ -146,7 +146,7 @@ def cmd_run(args):
         adapter = dict(adapter or {})
         adapter["invocation"] = list(args.invocation)
 
-    # 门禁④：子串式 load_signal 拒跑（源侧硬规则）
+    # 门禁④：子串式 load_signal 拒跑
     if "trigger" in modes and adapter is not None:
         msg = validate_load_signal(adapter.get("load_signal"))
         if msg:
@@ -197,7 +197,7 @@ def cmd_run(args):
     os.makedirs(runs_base, exist_ok=True)
     run_dir = unique_run_dir(runs_base, label)
 
-    # 续接提示（不自动续跑、不合并、不覆盖；本批不做 --resume）
+    # 续接提示（不自动续跑、不合并、不覆盖；不做 --resume）
     for name in sorted(os.listdir(runs_base)):
         cand = os.path.join(runs_base, name)
         if not name.endswith("-%s" % label) or not os.path.isdir(cand):
@@ -291,7 +291,7 @@ def cmd_run(args):
                     runs.append(hit)
                 per_query[idx] = runs
             if ran:
-                # 预检之后命令仍不可解析（竞态/被清出 PATH）：不静默——按源侧语义记
+                # 预检之后命令仍不可解析（竞态/被清出 PATH）：不静默——按 adapter-missing 记
                 # adapter-missing，本轮不出触发率
                 reason = "invocation 命令在运行期不可解析：%s" % invocation[0]
                 warnings.append(v("MODE_SKIPPED", "trigger", "%s——本 mode 无触发率可出。" % reason))

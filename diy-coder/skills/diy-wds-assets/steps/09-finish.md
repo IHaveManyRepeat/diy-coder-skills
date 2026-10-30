@@ -5,9 +5,9 @@ Progress: `[1 全活动质检] → [2 提示词导出包（需导出者）] → 
 **Read (input):** `{output_dir}/wds-assets.yaml` 全部记录（`activities[]` / `prompts[]` / `presentation[]`）；`{output_dir}/assets/<活动>/` 下的**实体产物**（双向对表用）；`{output_dir}/wds-scenarios.yaml` 的 `scenarios[].pages[]`（**覆盖率对表**：哪些页一件资产都没有）；`data/iteration-refinement.md`；`data/stop-red-flags.md`；`templates/prompt-export.template.md`；`check` 回执。
 **Write (output):** 质检结论与修复；`prompts[]` 的 `exported` 翻转与导出文件（需导出者）；`project.status: 已定稿`；`project.updated` 刷今天；`revisions`；给用户的交付摘要与路由。
 
-你是**收尾的主持人**（各活动源 workflow 的 AFTER COMPLETION + 源 `workflow.md:98–103` 的提示词导出兜底）。前三步是本技能的质量门槛（资产对表 + 需导出提示词的落地），第四步才是定稿与终门。
+你是**收尾的主持人**（各活动 workflow 的 AFTER COMPLETION + 提示词导出兜底）。前三步是本技能的质量门槛（资产对表 + 需导出提示词的落地），第四步才是定稿与终门。
 
-**本段纪律**：① **不许橡皮图章**——逐条过，不合格回对应步骤文件修；② **产物已由各活动直出**（裁定 6：不接任何外部服务）——**只有需导出的条目（照片类等）才走第 2 步**，已存在的 `prompts[]` 条目一样要翻转 `exported`；③ **终门唯一放行 = `check --final` 的 `exit 0`**。
+**本段纪律**：① **不许橡皮图章**——逐条过，不合格回对应步骤文件修；② **产物已由各活动直出**（不接外部服务）——**只有需导出的条目（照片类等）才走第 2 步**，已存在的 `prompts[]` 条目一样要翻转 `exported`；③ **终门唯一放行 = `check --final` 的 `exit 0`**。
 
 ## 第 1 步 —— 全活动质检（跨活动一致 + 覆盖率）
 
@@ -39,12 +39,12 @@ Progress: `[1 全活动质检] → [2 提示词导出包（需导出者）] → 
 
 ## 第 2 步 —— 提示词导出包（**需导出者：照片类通道 + 用户可选**）
 
-**先说清**：本技能**不连任何外部服务**（裁定 6，用户拍板：「我直接出 html 就行了」）。**产物已由各活动直接产出**（HTML / SVG / CSS 等文本形态）；**需要导出的只有本技能产不出的那类**——照片类图片、`G` 级 AI 视频、用户点名要带走提示词的条目。**导出 = 由用户在外生成后回填**，这一步是那些条目的**出口**，不是所有条目的必经路。
+**先说清**：本技能**不连任何外部服务**。**产物已由各活动直接产出**（HTML / SVG / CSS 等文本形态）；**需要导出的只有本技能产不出的那类**——照片类图片、`G` 级 AI 视频、用户点名要带走提示词的条目。**导出 = 由用户在外生成后回填**，这一步是那些条目的**出口**，不是所有条目的必经路。
 
-**逐条导成可粘贴文件**：按 `templates/prompt-export.template.md` 的骨架（改造自源 `stitch-prompt.template.md`，**已去 Stitch 服务绑定与配额段**），把每条 `prompts[]` 条目落成一份 `.md`：
+**逐条导成可粘贴文件**：按 `templates/prompt-export.template.md` 的骨架（**已去 Stitch 服务绑定与配额段**），把每条 `prompts[]` 条目落成一份 `.md`：
 - **落点**：`{output_dir}/assets/<活动>/prompts/<条目名>.md`（与 `prompts[].file` 一致）；
 - **内容**：资产名 / 服务目标 / 规格锚（页面 ID / 尺寸 / 令牌）→ 正文提示词整段 → 交付回填说明；
-- **回填约定**：用户在外生成后的产物放回 **`{output_dir}/assets/<活动>/`**（子目录、不入库，裁定 12），并把路径写进对应条目的 `items[].assets[].path`——**YAML 只存路径引用，不嵌二进制**。
+- **回填约定**：用户在外生成后的产物放回 **`{output_dir}/assets/<活动>/`**（子目录、不入库），并把路径写进对应条目的 `items[].assets[].path`——**YAML 只存路径引用，不嵌二进制**。
 
 **翻转导出状态**（机制不变）：**所有已存在的 `prompts[]` 条目**从 `false` 翻 `true`（**已导出的才是可交付状态**，终门对所有条目核这一条）；回填完成的条目在 `items[].assets[]` 补路径。**注意别漏对齐**：`prompts[].id` 必须与来源 `items[].id` 同号（第 4 步落同号条目），否则终门判 `SET_MISMATCH`。
 
@@ -56,11 +56,11 @@ Progress: `[1 全活动质检] → [2 提示词导出包（需导出者）] → 
 
 读全并照做本文件 `## 第 3 步 —— 迭代纪律：3 轮精修与 4 条红旗`。
 
-## 第 3 步 —— 迭代纪律：3 轮精修与 4 条红旗（**裁定 6 的摘留，逐条保留**）
+## 第 3 步 —— 迭代纪律：3 轮精修与 4 条红旗
 
-**先说清为什么**：本技能已把外部的 Figma / Stitch 通道全裁（裁定 6），但有**三条与外部服务无关的纪律**必须留下——它们描述的是「**怎么迭代**」与「**什么时候该停**」。逐条在会话里过。
+逐条在会话里过。
 
-### 3.1 三 轮 迭 代 精 修（源 `prototype-to-figma-workflow.md` 的迭代环，摘留全文见 `data/iteration-refinement.md`）
+### 3.1 三 轮 迭 代 精 修（摘留全文见 `data/iteration-refinement.md`）
 
 迭代三拍（**外部的 Figma 那一拍换成「本地直出并改 HTML（照片类在外生成）」**，语义不变）：
 1. **基本版**——先出能用但不精致的件（功能对、样子糙）。**评估**：功能对吗？精致吗？
@@ -69,7 +69,7 @@ Progress: `[1 全活动质检] → [2 提示词导出包（需导出者）] → 
 
 **判据**：一轮结束时必须能回答「这一轮改了什么值、为什么」；答不出来就不是精修，是瞎调。
 
-### 3.2 四 条 红 旗（源 `when-to-extract-decision-guide.md:517–535`，完整版见 `data/stop-red-flags.md`）
+### 3.2 四 条 红 旗（完整版见 `data/stop-red-flags.md`）
 
 **任何一条亮起 → 停下来问用户，不继续做**：
 - 🚩 **过早优化**——概念还没验证就在打磨（先验功能，后打磨）；
@@ -105,7 +105,7 @@ python "{project-root}/.claude/skills/diy-wds-assets/scripts/wds_assets.py" chec
 
 **交付摘要**（会话内，不落盘）：项目名 / 各活动条目数 / **直出产物数（双向对表结果）** / 已导出提示词数 / 已回填资产数 / 覆盖率 / 未做的活动与理由 / **红灯记录**（有则点名）。
 
-**路由一句话**：本技能是 **WDS 线的链条终点**——源侧 `E-Assets` 的消费者为零（普查实测），diy 侧无回填口（`diy-design` 的 WDS 线分支读 `wds-scenarios.yaml` 与 `wds-design-system.yaml`，不读本产物）；本线此前四个产物（`wds-brief` / `wds-trigger` / `wds-scenarios` / `wds-design-system`）与本产物一起等下一位消费者。
+**路由一句话**：本技能是 **WDS 线的链条终点**——`E-Assets` 的消费者为零（普查实测），diy 侧无回填口（`diy-design` 的 WDS 线分支读 `wds-scenarios.yaml` 与 `wds-design-system.yaml`，不读本产物）；本线此前四个产物（`wds-brief` / `wds-trigger` / `wds-scenarios` / `wds-design-system`）与本产物一起等下一位消费者。
 
 **本文件到此结束**——不再读任何 `steps/` 文件。
 

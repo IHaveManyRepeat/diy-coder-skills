@@ -15,7 +15,7 @@ Progress: `Clarify & Route → Plan → [Implement] → Review → Present`
 
 ## 接下记录
 
-把记录置 `status: 进行中`。这是 spec 局部状态：改动在故事环之外，别处什么都不动。当改动同时触及 `sprint.yaml` 里已有的故事时，那个任务的状态仍由 diyc 拥有——用 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type sprint --json` 核跨文档真相并转述回执；绝不从这里写 `sprint.yaml`。（源技能在此处同步 `sprint-status.yaml`；diy 没有这个文件。）
+把记录置 `status: 进行中`。这是 spec 局部状态：改动在故事环之外，别处什么都不动。当改动同时触及 `sprint.yaml` 里已有的故事时，那个任务的状态仍由 diyc 拥有——用 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type sprint --json` 核跨文档真相并转述回执；绝不从这里写 `sprint.yaml`。（diy 无 `sprint-status.yaml`。）
 
 ## 实现
 

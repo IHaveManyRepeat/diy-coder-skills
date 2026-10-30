@@ -44,7 +44,7 @@ def stamp() -> str:
 
 
 def now() -> str:
-    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值（v4 批 3）。"""
+    """YYYY-MM-DD HH:MM:SS（本地时区）——created/updated 秒级真值。"""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -120,7 +120,7 @@ def walk_strings(node, path):
 
 
 def check_tokens(node, where):
-    """未解析 `{...}` 令牌：白名单外一律 TOKEN_UNRESOLVED（沿用 B6 已批码）。"""
+    """未解析 `{...}` 令牌：白名单外一律 TOKEN_UNRESOLVED。"""
     violations = []
     for path, text in walk_strings(node, where):
         for token in TOKEN_RE.findall(text):
@@ -161,7 +161,7 @@ def next_record_id(records, id_re, prefix):
 
 class DuplicateKeyError(yaml.YAMLError):
     """YAML 重复键（违规码 DUPLICATE_KEY；性质区分于解析失败 UNPARSABLE_YAML——重复键≠解析失败，
-    底单 :364 ⑤）。继承 YAMLError：既有 except YAMLError 调用点零改动兼容（未接线处按解析失败
+    ）。继承 YAMLError：既有 except YAMLError 调用点零改动兼容（未接线处按解析失败
     处理、消息含键位）；需区分的调用点先 except DuplicateKeyError。"""
 
     def __init__(self, key, mark=None):
@@ -364,7 +364,7 @@ def resolve_output_dir(project_root, instance) -> str:
 
 
 def args_output_dir(args):
-    """回执里的 output_dir 统一正斜杠（对齐 batch3-contract §3 的 where 口径）。
+    """回执里的 output_dir 统一正斜杠（对齐冻结契约的 where 口径）。
 
     与 resolve_output_dir 同名异物各司其职：本函数吃 CLI --output-dir 旗标（缺省回落
     <project_root>/diy-output），不读配置、无 instance 概念——analyze/reverse 回执面。

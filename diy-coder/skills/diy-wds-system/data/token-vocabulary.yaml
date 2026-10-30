@@ -1,32 +1,26 @@
-# 令牌词汇表 —— 四套源词汇归一到一套（diy-wds-system 冻结资产；裁定 5 连带②）
+# 令牌词汇表 —— 四套词汇归一到一套（diy-wds-system 冻结资产）
 #
-# 上位约束（裁定 5，用户 2026-09-21 拍板）：
+# 上位约束：
 #   `design.yaml` 的 `tokens` 是**唯一风格源**，设计系统从其**反向派生**——本产物只存
 #   「令牌名 + 指向」，**不存值**（引用不复述）。故本表是**名层**，值层一律解析到
 #   `design.yaml.tokens.{color,spacing,typography}`。
 #
-# 源侧四套并行词汇表（census-3 §3.4 / D15，逐条给位置）：
-#   V1 9 元  `space-3xs … space-3xl` —— wds-4/data/guides/DESIGN-LOOP-GUIDE.md:92
-#   V2 7 元  `zero, sm, md, lg, xl, 2xl, 3xl` —— wds-4/steps-p/step-08-spacing-typography.md:82
-#   V3 8 元  V2 + `flex` —— wds-4/templates/page-specification.template.md:163
-#   V4 数值阶 `spacing-0,1,2,3,4,6,8,12,16` —— wds-7/templates/design-tokens.template.md:81–89
 #
 # ── 归一为一套：`space-*` 语义名，10 个 ──
 # 依据（三条，逐条可核）：
 #   ① **取超集 → 零信息损失**：V2/V3 的 7 个语义步是 V1 的子集（去掉 `3xs`/`2xs`）
 #      再加 `zero`；V4 是同一刻度的**另一种写法**（数值阶）。取 V1 为骨架 + 补 `space-0`
 #      即同时覆盖四套，**不新增任何 V1 没有的语义层**（KISS）。
-#   ② **带命名空间前缀 → 不跨桶撞名**：V2/V3 的裸名 `sm`/`md`/`lg` 与源侧
+#   ② **带命名空间前缀 → 不跨桶撞名**：V2/V3 的裸名 `sm`/`md`/`lg` 与
 #      `design-tokens.template.md:96–106` 的**断点** `sm: 640px` / `md: 768px` 同名——
 #      同一份 YAML 里两个桶抢三个名字（实测）。加 `space-` 前缀后无歧义。
-#      这同时满足裁定 5 的机械要求：引擎核 `components[].token_refs` 时必须能**无歧义解析**。
 #   ③ **对称且封闭**：V1 以 `space-md` 为轴左右各 4 级（3xs/2xs/xs/sm ← md → lg/xl/2xl/3xl），
 #      是四套里唯一自洽闭合的刻度；V1 缺席的 `zero` 用 `space-0` 补（源 V3 明令要求零间距也要有名字：
 #      `Zero spacing (overlap / flush) MUST be documented`，模板 :169）。
 #
 # 两处归一期的口径订正（**非裁能力，登记**）：
 #   · V3 的 `flex` **不是间距值**（是布局模式，不是一个长度）→ 移出 spacing 桶，
-#     由 `components[].styling.layout` 承载。源侧把它塞进 `size` 位是缺陷。
+#     由 `components[].styling.layout` 承载。
 #   · V4 的数值阶**降为值层**（`n × unit`，`unit` 逐字取 `design.yaml.tokens.spacing.unit`）
 #     ——不再作为第二套名层；要表达刻度外的值就调 `scale`，不新造名字。
 schema_version: 1
@@ -51,7 +45,7 @@ namespaces:
     rule: 逐字取 design.yaml.tokens.color 的键集（既有形态：bg / surface / text / text_muted / accent / accent_text）
   typography:
     rule: 逐字取 design.yaml.tokens.typography 的键集（family_base / family_heading / scale）——
-          字号档名由 design.yaml 的 scale 决定，本技能不另立 `text-*` / `heading-*` 两套（源侧正是两套，V4）
+          字号档名由 design.yaml 的 scale 决定，本技能不另立 `text-*` / `heading-*` 两套
   spacing:
     rule: 本表 single_set（上面 10 个名字），值按 step 下标解析到 design.yaml.tokens.spacing.scale
 

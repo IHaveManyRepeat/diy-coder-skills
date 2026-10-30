@@ -10,10 +10,10 @@
   本模块        共用：常量、只读索引（stories / test-plan / sprint / prd 的 join 源）、
                  回执输出。**本层不做实例解析、不推导目录、不写盘。**
 
-违规码：复用 batch3-contract §3 冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
+违规码：复用冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
 UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT / SET_MISMATCH /
 STATUS_MISMATCH / EVIDENCE_MISSING / PENDING_DECISION）+ diyc 委派降级码 TOOL_MISSING /
-TOOL_ERROR（B1 diy-readiness-check 先例）。本技能新增码（本批申报，见回报）：
+TOOL_ERROR。本技能新增码：
   DECISION_INCONSISTENT  门决策与两组判据 / NFR 域状态 / overlay 不自洽
   CRITERION_STALE        判据 actual/result 与从同记录机械重算的值不一致
   WAIVER_INCOMPLETE      waiver 缺 8 键契约中的键（或值为空）
@@ -26,9 +26,6 @@ TOOL_ERROR（B1 diy-readiness-check 先例）。本技能新增码（本批申�
   COMPLIANCE_AGGREGATE_MISMATCH  标准聚合行与逐域观察行重算不符（FAIL>PARTIAL>PASS）
   CROSS_DOMAIN_UNRECORDED   跨域风险合成候选命中而未落 recommendations / findings（--final）
 """
-# trace: 任务书 §2.2 引擎契约（exit 0 唯一放行 / --json 单行回执 / 回执共同键 / --output-dir 必填）
-# trace: 任务书 §2.3（diyc 委派：rc 0|1 均为正常回执；rc=2 / 不可解析 / 缺席 → 结构化降级）
-# trace: 任务书 §4（mutation 面多 run 保守聚合 = 全部 run 的 score 最小值）
 import json
 import os
 import re
@@ -260,7 +257,7 @@ def evidence_index(sprint):
 
 
 def judge_tc(tc, evidence):
-    """覆盖判定表逐 TC（任务书 §4）→ 五值之一。"""
+    """覆盖判定表逐 TC → 五值之一。"""
     status = str(tc.get("status") or "").strip().lower()
     if status == "失败":
         return "blocked"

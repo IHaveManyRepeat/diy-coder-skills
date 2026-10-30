@@ -2,15 +2,15 @@
 """diy-wds-trigger 确定性引擎：产物列举（list）/ 整份或单条详情（show）/ 顶层骨架铸造（init）
 / wds-trigger.yaml 校验（check [--final]）/ 计数体检（metrics）。
 
-机制：本技能是 **WDS 线的第二环**（源 `wds-2-trigger-mapping`）——把业务目标映射到用户心理
-（Effect Mapping，源侧方法出处 Balic & Domingues / inUse）。产物 `{output_dir}/wds-trigger.yaml`
+机制：本技能是 **WDS 线的第二环**——把业务目标映射到用户心理
+（Effect Mapping，方法出处 Balic & Domingues / inUse）。产物 `{output_dir}/wds-trigger.yaml`
 是**单记录多段**的内容型产物：`business_goals[]` / `personas[]`（内嵌驱动因素）/
 `driver_patterns` / `priority` / `feature_impact[]` / `effect_map`，各段由会话（LLM）逐步编辑
-写回；本引擎只做确定性的两件事：**铸造顶层骨架**与**机械校验**。分工写死（任务书 §2.2）：
+写回；本引擎只做确定性的两件事：**铸造顶层骨架**与**机械校验**。分工写死：
 `project.name` / `created` 与 `mode` / `entry` 由 `init` 铸造后不再由 LLM 改；五个子命令里
 **只有 `init` 写盘**。
 
-单记录形态的直接后果（承任务书 §0.2 裁定 2）：母本 §8 的两值口径**直接适用**——顶层
+单记录形态的直接后果：两值口径**直接适用**——顶层
 `project.status: 草稿|已定稿`。`list` 至多回一条；`show` 不带 `--id` 时整份全文返回、
 带 `--id` 时按键寻址单条记录。
 
@@ -36,7 +36,7 @@
            `stage: 收尾` + 上游简报仍在场且已定稿 + 各段按下列键表齐备 + 零 `[假设]`。
            exit 0 唯一放行。
 
-  metrics  人物/驱动因素**机械体检**（不阻断，承源侧「展示端自适应」口径）：人物群 2–4、每人
+  metrics  人物/驱动因素**机械体检**（不阻断）：人物群 2–4、每人
            3–5 正 + 3–5 负、Effect Map 连接数 = 目标数 + 2×人物数；越界 → **warning**
            （exit 0）。`--id TG-<n>` 只窄化「每人驱动因素」那一族（群数与连接数是文档级，
            恒核）；不存在 → `UNKNOWN_ID`。
@@ -44,17 +44,17 @@
 必填键表（`check --final`）：
 - `project`: name / created / updated / status（`草稿|已定稿`）
 - `stage` ∈ 模式/目标/驱动/优先级/特征/成品/收尾（**续接锚点**；`已定稿` ⟺ `收尾`）
-- `mode` ∈ W/S/D（源侧硬规则：模式由用户显式选择，禁止代选）；`entry` ∈ 工作坊/既有产物
+- `mode` ∈ W/S/D（硬规则：模式由用户显式选择，禁止代选）；`entry` ∈ 工作坊/既有产物
 - `business_goals[]`: **恰 1 条 `kind: 愿景` 且为首条**（Effect Map 的 `BG0` 节点）+
   **3–5 条 `kind: 目标`**；每条 id（`BG-<n>`）+ statement 非空；目标条目另需 metric /
   target / timeline 三键
-- `personas[]` **2–4 条**（裁定 6）：id（`TG-<n>`）/ name / role / priority（主|其他，
+- `personas[]` **2–4 条**：id（`TG-<n>`）/ name / role / priority（主|其他，
   **恰一条「主」**）/ summary / context / goals / frustrations / current_behavior；
   `priority: 主` 者另需 `transformation.{before, after}`
-- `personas[].driving_forces`（**嵌在人物内，不设顶层并列段——裁定 16**）：
+- `personas[].driving_forces`（**嵌在人物内，不设顶层并列段**）：
   `positive[]` **3–5 条**（每条 id `DF-<n>.<m>+` / statement / why / **promise**）+
   `negative[]` **3–5 条**（每条 id `DF-<n>.<m>-` / statement / why / **answer**）
-- `driver_patterns`: shared / unique / tensions 三键（裁定 16 的共/独/张力）；
+- `driver_patterns`: shared / unique / tensions 三键（共/独/张力）；
   shared 与 unique 非空，tensions 可空；引用的驱动因素 ID 必须可解析
 - `priority`: ranked_personas（覆盖全部人物恰一次，每条带 why）/ ranked_drivers（非空，带 why）/
   focus_statement.{top_group（= 排名第一的人物）, must（非空）, should, could}
@@ -67,24 +67,24 @@
   connections **恰为** BG→PLATFORM ∪ PLATFORM→TG ∪ TG→DF（配对严格）
 - `revisions`: 列表（无修订写空列表）
 
-跨技能读契约（任务书 §2.3.1 冻结）：本技能是 **WDS 线第二环**——入口门禁 = 上游
+跨技能读契约：本技能是 **WDS 线第二环**——入口门禁 = 上游
 `{output_dir}/wds-brief.yaml` 的 `project.status: 已定稿`（读 `brief.core` / `brief.content` /
 `brief.visual` / `brief.platform` 四组键）；下游 `diy-wds-scenarios` 读本产物的
 `business_goals[]` / `personas[]`（`TG-<n>` + 其驱动因素） / `priority`，门禁 = 本产物的
 `project.status: 已定稿`。**驱动因素数组按优先级降序排列，前 3 条即下游读取的 Top 3**。
 
-违规码（复用 batch3-contract §3 冻结集 + B6 已批码，**本批不新增码**；两处语义复用在此登记）：
+违规码（复用冻结集 + 已批码，**零新增码**；两处语义复用在此登记）：
 ① `SET_MISMATCH` 承载「`init` 的 `--mode` 与既有产物不符」「`feature_impact[].score` 与评分表
 重算不符」「`scores.others` 条数与人物数不匹配」「驱动因素 ID 的序号与所属人物不符」——
 最近义项是「取值/形状与来源不匹配」；② `STATUS_MISMATCH` 承载「`project.status` 与 `stage`
 不同档」「上游简报未定稿」「`feature_impact[].decision` 与 Must-Have 判据不符（含主人物高影响
 却被判「可选」）」「`project.status: 已定稿` 而骨架段仍空」——最近义项是「状态/结论不自洽」。
 
-`--previous` 判 **no**（裁定 18）：本产物是**单记录多段**，段与记录只增不减（重跑即就地补段，
+`--previous` 判 **no**：本产物是**单记录多段**，段与记录只增不减（重跑即就地补段，
 不收缩集合）——不存在「旧有新无」的 ID 集合可比对；改既有内容往 `revisions` 追加。
 
-契约（承 batch3-contract §3 / 任务书 §2.2）：exit 0 唯一放行 / 1 = 违规或被拒绝 /
-2 = 用法错误（argparse 默认）/ 本批无 exit 3；`--json` → 单行回执（`ensure_ascii=False`），
+契约：exit 0 唯一放行 / 1 = 违规或被拒绝 /
+2 = 用法错误（argparse 默认）/ 无 exit 3；`--json` → 单行回执（`ensure_ascii=False`），
 无 `--json` → 中文人读行（每违规一行 `CODE where: msg` + 汇总行）；回执共同键
 `{ok, command, project_root, output_dir, instance, violations, warnings, counts}`
 （`instance` 恒 `null` 但**键在位**，`warnings` 与 `violations` 同形），`where` 正斜杠、
@@ -101,9 +101,6 @@ default_flow_style=False)` → 同目录临时文件 + `os.replace`（注释不�
 `diyc.py check --type <WDS 型> --previous`——`diyc.py` 的 `CHECK_TYPES` 是 8 型封闭集，
 WDS 型不在其中（`test_suite_texts.py` 有守卫会直接判红）。
 """
-# trace: 迁移计划 §二 验收 #1（薄主文件 + 厚 steps）/#2（产物 schema + TG-<n>）
-#        /#3（前置门禁：读上游 wds-brief.yaml 的 project.status: 已定稿）/#4（ID 唯一性与顺序性）
-#        /#8（frontmatter 六字段）/#12（领域引擎接线：b 终门 / c --previous 判 no / e 写权边界）
 import argparse
 import json
 import os
@@ -222,7 +219,7 @@ def cmd_init(args):
     mode = str(args.mode).strip() if args.mode is not None else ""
     if not nonempty(mode):
         violations.append(v("EMPTY_FIELD", "init --mode",
-                            "模式未选：源侧硬规则——模式必须由用户显式选择（W 工作坊 / "
+                            "模式未选：硬规则——模式必须由用户显式选择（W 工作坊 / "
                             "S 建议降级 / D 代做降级），不得代选"))
     else:
         enum_check(mode, MODE_ENUM, "init --mode", "mode", violations)
@@ -362,7 +359,7 @@ def main():
     common(ini, output_required=True)
     ini.add_argument("--mode", required=True,
                      help="参与模式（必填：W|S|D；空值 → EMPTY_FIELD 零产出，"
-                          "源侧禁止代选）")
+                          "禁止代选）")
     ini.add_argument("--entry", default=None,
                      help="入口（工作坊|既有产物，默认 工作坊）")
     ini.set_defaults(func=cmd_init)

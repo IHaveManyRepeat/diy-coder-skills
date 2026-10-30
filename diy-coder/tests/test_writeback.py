@@ -23,7 +23,7 @@ class WritebackTermsTests(unittest.TestCase):
     # trace: S-7 AC-7.1 TC-7.1.2
     def test_dev_contract_backfills_test_plan(self):
         dev = io.open(SKILL_DEV, encoding="utf-8").read()
-        self.assertIn("真源回填", dev, "diy-dev 缺真源回填条款")
+        self.assertIn("终态写抵达真源", dev, "diy-dev 缺终态写条款")
         self.assertIn("test-plan.yaml", dev)
         self.assertIn("status: 通过", dev, "缺 TC 状态回填动作")
         self.assertIn("project.updated", dev, "缺 updated 提升")
@@ -32,12 +32,12 @@ class WritebackTermsTests(unittest.TestCase):
     def test_dev_clause_not_duplicated(self):
         # 对抗审查 R6：条款被重复插入两次时 assertIn 天然查不出
         dev = io.open(SKILL_DEV, encoding="utf-8").read()
-        self.assertEqual(dev.count("真源回填"), 1, "diy-dev 真源回填条款重复插入")
+        self.assertEqual(dev.count("终态写抵达真源"), 1, "diy-dev 终态写条款重复插入")
 
     # trace: S-9 AC-9.1 TC-9.1.2
     def test_build_loop_contract_backfills_terminal_sources(self):
         loop = io.open(SKILL_LOOP, encoding="utf-8").read()
-        self.assertIn("真源回填", loop, "diy-build-loop 缺真源回填条款")
+        self.assertIn("终态写抵达真源", loop, "diy-build-loop 缺终态写条款")
         self.assertIn("stories.yaml", loop)
         self.assertIn("status: 已完成", loop, "缺故事终态回填")
         self.assertIn("test-plan.yaml", loop)

@@ -11,19 +11,19 @@
   违规项 schema = `{code, where, msg}`（`where` 正斜杠、路径型相对 project-root）。
 
 ★ **第五子命令 `prompts` 是对 §2.2「四子命令」的一处登记性偏离**（V3-12）：
-  任务书 §3 要求「提示词导出索引」独立成面——`prompts[]` 的 `exported` 翻转与导出文件是
-  本技能**照片类资产通道 + 用户可选项**（裁定 6：不接任何外部服务；其余产物由各活动直出），
+  「提示词导出索引」独立成面——`prompts[]` 的 `exported` 翻转与导出文件是
+  本技能**照片类资产通道 + 用户可选项**（不接外部服务；其余产物由各活动直出），
   而 §2.2 冻结「四子命令」（init / list / show / check）——两条并存的最小满足 = 加一个
   **只读、零写盘**的第五子命令。
-  先例：B7a 的 `diy-wds-trigger` 亦在四子命令之外加了 `metrics`；本批 `diy-wds-system`
+  先例：`diy-wds-trigger` 亦在四子命令之外加了 `metrics`；`diy-wds-system`
   同款加 `similarity`。**不写盘**。
 - 退出码：0 放行 / 1 违规 / 2 用法错误。
 - 违规码：**复用冻结集**（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID / UNKNOWN_ID /
   EMPTY_FIELD / ENUM_INVALID / STATUS_MISMATCH / SET_MISMATCH / ASSUMPTION_PRESENT）
-  + B6 已批码 TOKEN_UNRESOLVED。**本批不新增码**。
+  + 已批码 TOKEN_UNRESOLVED。**不新增码**。
 - 写范围：`{output_dir}/wds-assets.yaml`（唯一写盘面）；
-  `{output_dir}/assets/<活动>/` 下的产物由会话写（裁定 12），本引擎只校验其路径引用。
-- 跨技能机械核（任务书 §2.3.1 的**必读键** `scenarios[].pages[].id`）：`items[].pages[]` 逐条
+  `{output_dir}/assets/<活动>/` 下的产物由会话写，本引擎只校验其路径引用。
+- 跨技能机械核（**必读键** `scenarios[].pages[].id`）：`items[].pages[]` 逐条
   核形态 `SC-<nn>.P<n>`（不合 → `SET_MISMATCH`）并解析到上游 `wds-scenarios.yaml` 的页面清单
   （解析不到 → `UNKNOWN_ID`）；`check` 与 `init` **同门禁**（上游缺席 / 未定稿 → 停止）。
 - 文档化陷阱：产物是 WDS 型，**不得**改用 `diyc.py check --type`（主线 8 型封闭集）。
@@ -133,7 +133,7 @@ def cmd_list(args, report: Report):
 
 
 def find_record(doc: dict, ident: str):
-    """按 ID 找记录：活动 / 条目 / 演示记录 / 提示词条目——**与 `check` 同一 ID 空间**（裁定 9）。"""
+    """按 ID 找记录：活动 / 条目 / 演示记录 / 提示词条目——**与 `check` 同一 ID 空间**。"""
     for act in doc.get("activities") or []:
         if act.get("id") == ident:
             return act

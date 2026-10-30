@@ -5,9 +5,9 @@ Progress: `[1 场景索引呈出] → 2 页面覆盖矩阵与覆盖率核对 →
 **Read (input):** `./04-outline.md` 的放行（全部场景 `status: 已大纲`）；`{output_dir}/wds-scenarios.yaml` 的 `scenarios[]` 全部记录与 `page_inventory[]`；`show` / `check` 回执里的覆盖矩阵（**机械来源**，见第 2 步）。
 **Write (output):** 会话内的**场景索引**（摘要表 + 逐条要点）与**页面覆盖矩阵**；若查出归类问题，就地编辑记录/页清单修掉。
 
-你是**总览的主持人**（源 step-06）。源侧这一步产一份 `00-ux-scenarios.md` 索引文件；**diy 侧不落第二份载体的 md**——索引就是 `scenarios[]` 本身，本步做的是**把它读回来核对并呈现**。
+你是**总览的主持人**。这一步的原产物是一份 `00-ux-scenarios.md` 索引文件；**diy 侧不落第二份载体的 md**——索引就是 `scenarios[]` 本身，本步做的是**把它读回来核对并呈现**。
 
-**本段纪律**：① **核对不许跳过**——覆盖矩阵是三条骨律之三的机械门，漏一页就是漏一个页面没有设计位；② **不改场景内容**（源 `FORBIDDEN to modify any scenario files during this step`）——发现归类错就回 02/04 改，本步只做索引与核对；③ **数据以记录为准**，不凭记忆报数。
+**本段纪律**：① **核对不许跳过**——覆盖矩阵是三条骨律之三的机械门，漏一页就是漏一个页面没有设计位；② **不改场景内容**——发现归类错就回 02/04 改，本步只做索引与核对；③ **数据以记录为准**，不凭记忆报数。
 
 ## 第 1 步 —— 场景索引呈出（源 step-06 第 1–2 指令）
 
@@ -31,9 +31,9 @@ Progress: `[1 场景索引呈出] → 2 页面覆盖矩阵与覆盖率核对 →
 - 生意得到：<一句>
 ```
 
-**取数口径**：这张表的数据**逐条回读记录**（`show` 整份全文，或直接读产物）；**不凭记忆填**。摘要表的列就是 `list` 回执的六字段（源侧摘要表同构）。
+**取数口径**：这张表的数据**逐条回读记录**（`show` 整份全文，或直接读产物）；**不凭记忆填**。摘要表的列就是 `list` 回执的六字段。
 
-〔**源侧缺陷修复**〕源 step-06 还要求写「Next Phase：这些大纲喂给 Phase 4 设计」一节并落 md；diy 侧**只保留其中真正有承载位的那句**：本链的下一环是 C·3 的 `diy-design`，交接锚 = 每条记录的 `design_intent` 与 `trigger_map_context`（06-finish 第 3 步拍定）。`00-ux-scenarios.md` 与 `validation-report.md` **都不落盘**（单一源 + 单一终门，裁定 12 / 15）。
+本链的下一环是下游设计技能，交接锚 = 每条记录的 `design_intent` 与 `trigger_map_context`（06-finish 第 3 步拍定）。`00-ux-scenarios.md` 与 `validation-report.md` **都不落盘**（单一源 + 单一终门）。
 
 **落盘**：本步无写盘（索引是**派生视图**，不是第二份源）。
 
@@ -50,7 +50,7 @@ Progress: `[1 场景索引呈出] → 2 页面覆盖矩阵与覆盖率核对 →
 python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py" show --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-回执的 `coverage` 键就是矩阵：`matrix[]` 逐行给 `page` / `scenario` / `purpose_in_flow`，`rate` 给 `X/Y`，三个差集给 `unassigned`（漏配）/ `repeated`（重复分配）/ `unknown`（清单外的页）。**把它呈给用户**（源侧矩阵表同构）：
+回执的 `coverage` 键就是矩阵：`matrix[]` 逐行给 `page` / `scenario` / `purpose_in_flow`，`rate` 给 `X/Y`，三个差集给 `unassigned`（漏配）/ `repeated`（重复分配）/ `unknown`（清单外的页）。**把它呈给用户**：
 
 ```
 ## 页面覆盖矩阵
@@ -71,13 +71,12 @@ python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py
 - [ ] **覆盖矩阵完整**——`page_inventory[]` 里没有一页落空（`unassigned` 空）；
 - [ ] **没有一页出现在两条场景上**（`repeated` 空），也没有清单外的页（`unknown` 空）。
 
-〔**源侧缺陷修复**〕源 step-06 的第 3 指令核的是「文件链接是否指对」——diy 侧**没有文件链接可核**（裁定 12：不建目录树），改为核**记录级父子引用完整性**（上表第 2 项）。同一条纪律换了载体，不是丢了。
 
 **查出问题**：漏页 → 回 02-strategy 补链或回 04-outline 补页；重复 → 回 02-strategy 定归属；清单外的页 → 先回 `page_inventory[]` 补条。**改完重跑本节**。
 
 ### 2.3 覆盖率口径（`--final` 的硬线）
 
-`rate` 必须是 `N/N`（100%）——**这是 06-finish 终门的前置**，不是「差不多就行」。P1 场景至少一条（源侧覆盖核查四项之一，02-strategy 已过一遍，此处复核）。
+`rate` 必须是 `N/N`（100%）——**这是 06-finish 终门的前置**，不是「差不多就行」。P1 场景至少一条（覆盖核查四项之一，02-strategy 已过一遍，此处复核）。
 
 **落盘**：本步无写盘（修的是既有记录/页清单，改完重跑 `check` 确认）。
 

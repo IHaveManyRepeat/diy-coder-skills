@@ -12,7 +12,7 @@ from eval_runner_lib import (  # noqa: E402
     ENTRY_TYPES, emit, memlog_now, norm, receipt, resolve_path_arg,
 )
 
-# --------------------------------------------------------------- memlog（与 W1 同构）
+# --------------------------------------------------------------- memlog
 
 def memlog_split(text):
     lines = text.splitlines()
@@ -77,7 +77,7 @@ def memlog_set_complete(path):
 def cmd_mlog(args):
     """memlog：原子追加、只追加。
 
-    每次操作**恒发一行 JSON ack**（与 W1 的 mlog 同构）：共同键 + 命令级附加键
+    每次操作**恒发一行 JSON ack**：共同键 + 命令级附加键
     `{file, n, appended}`（另带 `action`），人读态与 `--json` 开关都不改这条形状——
     调用方永远不必回读文件就知道新状态。
     """
@@ -96,7 +96,7 @@ def cmd_mlog(args):
 
     def finish(ok, n=0, appended=False, as_json=True):
         """成功的 ack = 共同键 + `{file, n, appended}`（恒发一行 JSON，与人读态无关）；
-        被拒路径只回共同键 + `file` / `action`，并照 §2.2 的 `--json` 开关——与 W1 同形。"""
+        被拒路径只回共同键 + `file` / `action`，并照 `--json` 开关。"""
         payload["ok"] = bool(ok)
         payload["counts"] = {"n": n}
         if ok:

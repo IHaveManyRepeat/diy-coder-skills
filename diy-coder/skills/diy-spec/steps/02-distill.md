@@ -24,7 +24,7 @@ Progress: `输入与定位 → [蒸馏] → 两遍自校验 → 终门与交付`
 - **Non-goals**——至少一条显式划出范围之外的东西；缺席等于让下游技能自行填补真空。
 - **Success signal**——一到两句：**世界变化的时刻**，不是仪表盘读数；具体到能写一个测试或跑一次演示。
 
-## Spec Law 8 条（自校对面，step 3 逐条走）
+## Spec Law 8 条
 
 1. 每条 capability 同时有 `intent` 与 `success`——缺一不成能力。
 2. `intent` 描述 WHAT 而非 HOW；实现处方归 `artifacts`。

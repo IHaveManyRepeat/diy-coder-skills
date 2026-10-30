@@ -15,13 +15,13 @@
     无参           默认 `--random 5`（首屏 5 个候选）
     --json         单行 JSON 回执（ensure_ascii=False）
 
-形 B 契约（任务书 §2.2「形态分派表」）：只收 `[--json]`——**免** `--project-root` /
+形 B 契约：只收 `[--json]`——**免** `--project-root` /
 `--output-dir`（本引擎无 `{output_dir}` 语义）；库路径按引擎自身位置推算
 （`Path(__file__).resolve().parent` → `parent.parent/methods.csv`，即技能目录根、与
-`scripts/` 平级），两种安装布局（源码 `diy-coder/skills/` 与安装 `.claude/skills/`）同构。
+`scripts/` 平级），两种安装布局（安装面 `{project-root}/.claude/skills/`）同构。
 回执共同键豁免 `project_root` / `output_dir` / `violations` 三键，改为
 `{ok, command, counts}`；载荷键 `methods:[{num, category, method_name, description,
-output_pattern}]`（成功）与失败键 `msg` 属 SS-028-04「归 W」自定的实现细节——形 B 无
+output_pattern}]`（成功）与失败键 `msg` 属「归 W」自定的实现细节——形 B 无
 `violations` 位，故诊断码统一走 `msg` 首 token（--json 态）与 stderr 人读行（两种态）。
 exit 码：0 唯一放行；筛选类非法值 → 1；argparse 级用法错误 → 2。人读态 = 每条方法一行
 `N. 方法名｜类名｜描述｜output_pattern` + 末尾一行 `OK methods <计数摘要>`；失败时 stderr
@@ -30,7 +30,7 @@ exit 码：0 唯一放行；筛选类非法值 → 1；argparse 级用法错误 
 只读保证：本模块只用标准库（argparse / csv / json / os / random / sys），**无任何写盘
 设施**——不开只写句柄、不做原子替换、不建临时文件，命令面只有 `methods` 一条。
 
-规则来源：诊断码取 batch3-contract §3 冻结集（`MISSING_FILE` / `EMPTY_FIELD` /
+规则来源：诊断码取冻结集（`MISSING_FILE` / `EMPTY_FIELD` /
 `ENUM_INVALID`），**无新增码**。
 """
 import argparse
@@ -49,7 +49,7 @@ LIBRARY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 LIBRARY_PATH = os.path.normpath(LIBRARY_PATH)
 
 
-# trace: B4 diy-elicit 方法库装载（只读）；返回 (rows, error)；error = (code, msg)
+# trace: 方法库装载（只读）；返回 (rows, error)；error = (code, msg)
 def load_library(path):
     if not os.path.isfile(path):
         return [], ("MISSING_FILE", "方法库不在场：%s" % path)
@@ -81,7 +81,7 @@ def load_library(path):
     return rows, None
 
 
-# trace: B4 diy-elicit 随机抽 N（跨类别优先：先每类取一条，再补足；同一条不重复）
+# trace: 随机抽 N（跨类别优先：先每类取一条，再补足；同一条不重复）
 def sample_cross_category(rows, count):
     order = list(range(len(rows)))
     random.shuffle(order)
@@ -104,7 +104,7 @@ def sample_cross_category(rows, count):
     return picked
 
 
-# trace: B4 diy-elicit 回执输出（--json 单行 / 人读行）
+# trace: 回执输出（--json 单行 / 人读行）
 def emit(payload, as_json, human_lines):
     if as_json:
         print(json.dumps(payload, ensure_ascii=False))
@@ -113,7 +113,7 @@ def emit(payload, as_json, human_lines):
             print(line)
 
 
-# trace: B4 diy-elicit 失败收口（诊断码走 msg 首 token + stderr 人读行；形 B 无 violations 位）
+# trace: 失败收口（诊断码走 msg 首 token + stderr 人读行；形 B 无 violations 位）
 def refuse(args, error, counts):
     code, msg = error
     print("%s %s" % (code, msg), file=sys.stderr)
@@ -123,7 +123,7 @@ def refuse(args, error, counts):
     return 1
 
 
-# trace: B4 diy-elicit methods 子命令（库加载 / 随机抽 N / 按类筛选 / 全列；只读）
+# trace: methods 子命令（库加载 / 随机抽 N / 按类筛选 / 全列；只读）
 def cmd_methods(args):
     rows, error = load_library(LIBRARY_PATH)
     categories = sorted({row["category"] for row in rows})
@@ -151,7 +151,7 @@ def cmd_methods(args):
     return 0
 
 
-# trace: B4 diy-elicit 正整数字面（非法 N → argparse 用法错误 exit 2）
+# trace: 正整数字面（非法 N → argparse 用法错误 exit 2）
 def positive_int(text):
     try:
         value = int(text)
@@ -162,7 +162,7 @@ def positive_int(text):
     return value
 
 
-# trace: B4 diy-elicit 命令行面（形 B：只收 --json；筛选三旗标互斥）
+# trace: 命令行面（形 B：只收 --json；筛选三旗标互斥）
 def build_parser():
     parser = argparse.ArgumentParser(
         description="diy-elicit 只读方法库引擎：加载 / 随机抽 N（跨类别优先）/ 按类筛选 / 全列"
@@ -180,7 +180,7 @@ def build_parser():
     return parser
 
 
-# trace: B4 diy-elicit 入口（stdout/stderr 固定 UTF-8；退出码由子命令返回）
+# trace: 入口（stdout/stderr 固定 UTF-8；退出码由子命令返回）
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")

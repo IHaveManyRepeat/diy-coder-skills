@@ -25,9 +25,9 @@ FR-1.2 (必须) — NOT FOUND
 
 以 `stories.yaml` 的 `acceptance_criteria[].refs` 为准：FR 由 AC 引用覆盖，绝不靠叙述相似。某条 story 的文本明显服务某 FR、其 AC 却没引用，就是一条 finding（`area: stories`、`route: diy-epics-stories`）——引用才是契约。
 
-**反方向。** 源工作流还会点出史诗里声称、PRD 却从未要求的 FR。diyc 只裁 AC `refs` 的解析，故意放着 `epics.feature_refs` 与 `stories.epic` 不管（`diyc_check_docs.py:12` —— 不在那次裁定的范围内），所以搭矩阵时若见某 epic 声称的 feature ID（`F-x`）`prd.yaml` 没定义、或某 story 点了不存在的 epic（`E-x`），就是一条 finding，`route: diy-epics-stories`。就在矩阵旁边报告你看到的——绝不为此重扫全文档集。
+**反方向。** 也要点出史诗里声称、PRD 却从未要求的 FR。diyc 只裁 AC `refs` 的解析，故意放着 `epics.feature_refs` 与 `stories.epic` 不管（`diyc_check_docs.py:12` —— 不在解析规则范围内），所以搭矩阵时若见某 epic 声称的 feature ID（`F-x`）`prd.yaml` 没定义、或某 story 点了不存在的 epic（`E-x`），就是一条 finding，`route: diy-epics-stories`。就在矩阵旁边报告你看到的——绝不为此重扫全文档集。
 
-## 每个缺口都要记录（源 step-3 §5）
+## 每个缺口都要记录
 
 对每条未覆盖的 FR：
 
@@ -43,7 +43,7 @@ FR-1.2 (必须) — NOT FOUND
 | 无任何 epic/story 承接 | `epics` | `diy-epics-stories` |
 | 该 FR 应从 PRD 撤下 | `prd` | `diy-prd` |
 
-**Skip line 先于判档**（B7）：应该级 FR 未覆盖时，先读 `stories.yaml` 顶层 `notes:` 里逐行的 skip line（`<FR-x.y>: <为什么故意不覆盖>`）——有 skip line = 已刻意声明，不落 finding；没有 skip line 的才按产品价值判档（仍未覆盖且有产品价值 → `高`）。
+**Skip line 先于判档**：应该级 FR 未覆盖时，先读 `stories.yaml` 顶层 `notes:` 里逐行的 skip line（`<FR-x.y>: <为什么故意不覆盖>`）——有 skip line = 已刻意声明，不落 finding；没有 skip line 的才按产品价值判档（仍未覆盖且有产品价值 → `高`）。
 
 Severity：未覆盖的**必须**级 FR → `严重`；未覆盖的应该/可选 FR 有真实产品价值 → `高`；刻意推迟或低价值 → `中`/`低`，理由写进 `message`。
 

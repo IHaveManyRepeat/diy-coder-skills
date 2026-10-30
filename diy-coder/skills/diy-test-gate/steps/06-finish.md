@@ -30,7 +30,7 @@ exit 0 是唯一放行；每条违规修掉并重跑。`--final` 会额外要求
 python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"
 ```
 
-（resolved 实例时附 `--instance <name>`。）viewer 对 `test-gate.yaml` 走通用降级渲染，标签缺口由主 agent 登记，不在本技能补。
+（resolved 实例时附 `--instance <name>`。）
 
 ## 摘要（给用户，一段话 + 四行）
 

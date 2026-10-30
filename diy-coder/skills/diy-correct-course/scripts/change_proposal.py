@@ -3,15 +3,15 @@
 
 子命令：
   collect  执行期变更的影响面采集（只读，绝不写文件）：
-             1 门禁（源 step-1 HALT 判据的机械面）：prd.yaml / epics.yaml / stories.yaml
+             1 门禁（HALT 判据的机械面）：prd.yaml / epics.yaml / stories.yaml
                三件套在场且 project.status 均为 已定稿；不满足 → 零产出 exit 1 +
                结构化拒绝回执（violations 带码 + gate.route 给路由）。
                architecture.yaml / openapi.yaml / design.yaml 缺席不拒（源「Architecture、
                UI/UX 可选」）→ warning。
-             2 影响面摘要：读六产物（任务书 §5）的 ID 级摘要——prd features/FR/NFR、epics、
+             2 影响面摘要：读六产物的 ID 级摘要——prd features/FR/NFR、epics、
                stories + AC、architecture decisions、openapi operations、design pages。
                摘要只带 ID / 标题级信息，不复制内容（引用式纪律）。
-             3 跨文档核对委托（任务书 §2.3）：子进程跑 `diyc.py check --type
+             3 跨文档核对委托：子进程跑 `diyc.py check --type
                prd|architecture|openapi|epics|stories --final --json`——diyc 是跨文档机械核对
                的唯一入口，本引擎不重实现其规则；回执违规并入 diyc.check.violations 证据键
                （影响证据，不在此判死）。diyc 缺席 / 失败 → TOOL_MISSING / TOOL_ERROR 降级
@@ -31,15 +31,14 @@
            scope 与 handoff 一致性（轻微→单技能直改 / 中等→backlog 重组 /
            重大→规划层）。exit 0 唯一放行。
 
-分工裁定（任务书 §2.2/§5）：change-proposal 属新产物类型，不进 diyc.py check 的硬编码
+分工裁定：change-proposal 属新产物类型，不进 diyc.py check 的硬编码
 类型集；本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}]
 + counts；where 正斜杠、相对 project-root）；--previous 不实现（提案记录追加式，同 key 原位
-更新，无 ID 集合收缩风险，对齐 P1 §8.5 与 B1 记账先例）。违规码全部复用 batch3-contract
-§3 冻结集；新增 TOOL_MISSING / TOOL_ERROR（diyc 委派降级专用，同 readiness 先例）。
+更新，无 ID 集合收缩风险）。违规码全部复用冻结集；新增 TOOL_MISSING / TOOL_ERROR（diyc 委派降级专用，同 readiness 先例）。
 只出提案、不改真源：本引擎与技能都不写 prd / epics / stories / architecture / openapi /
 design / sprint —— 真源修改由各产物所属技能的 update 模式执行。
 """
-# trace: 迁移计划 §二 验收 #3（前置门禁零产出退出）/#4（ID 链接入）/#12（diyc 接线）
+# trace: 前置门禁零产出退出 + ID 链接入 + diyc 接线
 import argparse
 import json
 import os

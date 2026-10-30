@@ -193,7 +193,7 @@ def mutation_block(out, warnings, today=None):
 
     `score` 的量纲是**百分数整数**（0–100，e.g. 90 = 90%），与 `HARD_CRITERIA` 的
     `("变异得分", ">=90%")` 同一量纲——report 里若写小数（0.9）会被 `int()` 截成 0，
-    故 `diy-augment` 的 schema 明写百分数（C·9 统一，2026-09-22）。
+    故 `diy-augment` 的 schema 明写百分数。
 
     `candidates` 是全部 run 的等价体候选标识（扁平化），供 `gate_check` 把 waivers 里的
     `mutant:<id>` ref 匹配回具体 run。**裁定的落点在 waivers、不在本文件**：此处只报候选

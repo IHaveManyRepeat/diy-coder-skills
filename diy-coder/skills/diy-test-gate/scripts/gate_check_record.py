@@ -114,7 +114,7 @@ def check_gate_decision(record, where, violations, warnings, criteria, domains,
                         waived, coverage_items, ctx, waived_mutants=None):
     """硬判据重算 + decision 自洽（overlay / 域状态 / 两组判据）。
 
-    `waived_mutants` ＝ waivers 里已批准的等价变异体标识（C·9）：`变异得分` 用它
+    `waived_mutants` ＝ waivers 里已批准的等价变异体标识：`变异得分` 用它
     从保守分重算为裁定分——未裁定的候选仍留在分母，只有用户登记过的那部分出分母。
     """
     gate = record.get("gate") if isinstance(record.get("gate"), dict) else {}
@@ -319,7 +319,6 @@ def check_record(index, record, final, show, ctx, violations, warnings):
             violations.append(v("STATUS_MISMATCH", where + ".status",
                                 "--final 要求 status 已落「已定稿」（实为 %s）"
                                 % (record.get("status") or "缺失")))
-        # rule: 迁移计划 §十三:459「mutation-report.yaml 缺席日常 `n/a`、`--final` 时必须」
         if not (ctx.get("mutation") or {}).get("present"):
             violations.append(v("MISSING_FILE",
                                 where + ".gate.hard_criteria.变异得分",

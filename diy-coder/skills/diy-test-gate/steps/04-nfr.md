@@ -23,7 +23,7 @@ Progress: `Preflight → Oracle → Matrix & Gaps → [NFR] → Gate → Finish`
 **阈值唯一合法来源 = 用户在会话里显式给出。** 2026-09-15 实核：`prd.yaml` 的 NFR 条目 / `architecture.yaml` 的决策 / `test-plan.yaml` 三处候选源**都没有结构化阈值载体**——它们能提供意图（「登录要快」），不能提供数字（「P95 < 200ms」）。
 
 - 用户没给数字 → `target: UNKNOWN`，该域**至少 `CONCERNS`**（`UNKNOWN` 阈值域记 `PASS` 会被 `check` 判 `UNKNOWN_THRESHOLD_PASS` 违例）。
-- 每条 `thresholds[]` 必须写 `source`，形态只认「用户会话 `<YYYY-MM-DD>`」（可附用户引用的出处字符串作追溯，例如 `用户会话 2026-09-15（用户引用 SLA 文档 §3.2）`）。写「行业惯例」「一般要求」「默认 99.9%」一律 `THRESHOLD_UNSOURCED` 拒收。
+- 每条 `thresholds[]` 必须写 `source`，形态只认「用户会话 `<YYYY-MM-DD>`」（可附用户引用的出处字符串作追溯，例如 `用户会话 <YYYY-MM-DD>`）。写「行业惯例」「一般要求」「默认 99.9%」一律 `THRESHOLD_UNSOURCED` 拒收。
 - 拿不到证据 → 不猜，写 `gaps: [{what: <缺什么>, why: <为什么要它 / 谁该提供>}]`。缺口是**交付物**，不是失败。
 
 `measured` 是实测或可查记录（跑过的命令、监控面板读数、用户提供的报告）；没测就留空并把该域压到 `CONCERNS`——**没测过不等于达标**。
@@ -45,7 +45,7 @@ Progress: `Preflight → Oracle → Matrix & Gaps → [NFR] → Gate → Finish`
 - `adr.passed` = 有证据的条数。strong 线 ≥26/29 **只进展示与 `recommendations`**，不进 `gate` 判据——不要把它当分数线。
 - 「缺口」与「未评估」的条目：能落到四域的写进对应域 `findings`；其余写 `nfr.gaps`（`what` = 哪条 ADR，`why` = 缺什么证据、谁提供）。
 
-清单是**技能内静态资产**，不读 BMAD 原文、不联网：`{skill-root}/adr-checklist.yaml`。
+清单是**技能内静态资产**，不读外部原文、不联网：`{skill-root}/adr-checklist.yaml`。
 
 ## 第五个走查维度：合规标准审计（SOC2 / GDPR / HIPAA / PCI-DSS / ISO27001）
 
@@ -71,7 +71,7 @@ Progress: `Preflight → Oracle → Matrix & Gaps → [NFR] → Gate → Finish`
 | `可靠性×可维护性` | 两域均 `CONCERNS` / `FAIL` | 低覆盖 / 缺观测可能掩盖可靠性回归 |
 | `安全×可靠性` | `安全` = `FAIL` 且 `可靠性` ≠ `PASS` | 安全缺陷可能演变为可靠性事故 |
 
-**命中即必须落点**：在 `gate.recommendations` 或相关域 `findings` 写一行「`<域>×<域>: <判定与理由>`」——**判定不成立也要写明为什么不成立**（`check --final` 命中而两处都无线 → `CROSS_DOMAIN_UNRECORDED`）。源 `impact` 的 `CRITICAL` 在 diy 三值尺度（`HIGH|MEDIUM|NONE`）压缩为 `HIGH`，写进那一行。
+**命中即必须落点**：在 `gate.recommendations` 或相关域 `findings` 写一行「`<域>×<域>: <判定与理由>`」——**判定不成立也要写明为什么不成立**（`check --final` 命中而两处都无线 → `CROSS_DOMAIN_UNRECORDED`）。`impact` 的 `CRITICAL` 在 diy 三值尺度（`HIGH|MEDIUM|NONE`）压缩为 `HIGH`，写进那一行。
 
 合成结论**只进 `recommendations` / `findings`，不进 `gate` 判据**——它不新开判据、不单独抬档（要抬档就得有判据落点：域状态或软指标，否则 `check` 判 `DECISION_INCONSISTENT`）。
 

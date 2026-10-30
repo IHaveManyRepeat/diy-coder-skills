@@ -100,7 +100,7 @@ revisions: []
 
 ## 教练笔记捕获 → `notes` + distillate
 
-两个去处、两件事——分开。**`notes` 是过程叙事**（源工作流 `<!-- coaching-notes-stage-1 -->` 块的 diy 形态，必须在上下文压缩后活下来）；**`distillate` 是机器契约**，由下游 `diy-prd` 消费，所以保持干净摘要、不带过程评论。
+两个去处、两件事——分开。**`notes` 是过程叙事**（必须在上下文压缩后活下来）；**`distillate` 是机器契约**，由下游 `diy-prd` 消费，所以保持干净摘要、不带过程评论。
 
 本阶段向 `notes` 追加一条：
 
@@ -126,7 +126,7 @@ notes:
 
 两个子代理的返回字段各有落点，交互态与 headless 态**同一套规则**，不因模式而变：
 
-- `documents_found` → `distillate.constraints` 一条溯源 bullet（本次实际用到的源文档；diy 没有 frontmatter `inputs` 字段，这条轨迹必须活下来，下游才能追溯某条主张的来源）。
+- `documents_found` → `distillate.constraints` 一条溯源 bullet（本次实际用到的源文档；这条轨迹必须活下来，下游才能追溯某条主张的来源）。
 - `key_insights` / `market_context` / `timing_and_opportunity` / `competitive_landscape` → 按内容归 `distillate.problem` / `value_props` / `constraints`；还没落定的 → `distillate.open_questions`。
 - `user_market_context` / `user_sentiment` → `distillate.target_users`；成不了结论的观察 → `distillate.open_questions`。
 - `risks_and_considerations` → `distillate.open_questions`（未决风险）或 `distillate.constraints`（已裁定的限制）。

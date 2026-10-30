@@ -18,8 +18,8 @@ Progress: `[Clarify & Route] → Plan → Implement → Review → Present`（�
 ## 载入上下文（引用，绝不复制）
 
 - 读意图所需的结构化产物——`stories.yaml` / `architecture.yaml` / `epics.yaml` / `design.yaml`（在场时）——并按 ID 引用（`S-x`、`D-x`、`AC-x.y`）。绝不把文档正文贴进记录：diy 的单一源是产物，记录只携带引用。
-- 当意图是 epic 里的一个 story、且想要更完整的实现上下文时，diy 的上下文包是 diy-create-story 的 `story-context.yaml`——建议它，绝不在此内联其内容。（源技能把它缓存为每 epic 一个 markdown 文件；diy 读结构化产物，故不编译缓存。）
-- 不改任何状态：本技能绝不写 `sprint.yaml`。当改动触及已在环内的故事，跨文档真相归 diyc（`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type sprint --json`），sprint 状态始终由 diyc 拥有。（源技能同步一个 `sprint-status.yaml`；diy 没有这个文件。）
+- 当意图是 epic 里的一个 story、且想要更完整的实现上下文时，diy 的上下文包是 diy-create-story 的 `story-context.yaml`——建议它，绝不在此内联其内容。（diy 读结构化产物，故不编译缓存。）
+- 不改任何状态：本技能绝不写 `sprint.yaml`。当改动触及已在环内的故事，跨文档真相归 diyc（`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type sprint --json`），sprint 状态始终由 diyc 拥有。（diy 无 `sprint-status.yaml`。）
 
 ## 澄清
 

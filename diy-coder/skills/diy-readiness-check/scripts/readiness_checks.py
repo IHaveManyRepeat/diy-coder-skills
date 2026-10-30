@@ -240,7 +240,7 @@ def cmd_check(args):
     elif not isinstance(data, dict):
         violations.append(v("EMPTY_FIELD", show, "顶层不是映射（须为 project + checks）"))
     else:
-        # 裁定：project 形状 {name, created, updated}；状态挂记录级（对齐 checkpoint 先例）
+        # project 形状 {name, created, updated}；状态挂记录级
         project = data.get("project")
         if project is not None and not isinstance(project, dict):
             violations.append(v("EMPTY_FIELD", show + " project", "project 不是映射"))

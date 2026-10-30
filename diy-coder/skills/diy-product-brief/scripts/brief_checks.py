@@ -20,11 +20,11 @@ DISTILLATE_SCALARS = ("problem",)
 DISTILLATE_LISTS = ("target_users", "value_props", "constraints", "open_questions")
 
 BD_RE = re.compile(r"BD-\d{3}")
-# v4 批 3（§7-3b/d）：时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
+# 时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?")
 
 def normalize_rel(value, project_root):
-    """target 归一化（任务书 §12.1 ①ⓒ(5)，**四步顺序不可换**）：① `os.path.normpath`
+    """target 归一化（**四步顺序不可换**）：① `os.path.normpath`
     → ② `replace("\\", "/")` 统一正斜杠（Windows 下 ① 产反斜杠）→ ③ 转为相对
     `project_root` 的形式 → ④ 返回比较用串。两侧——ER 记录的 `target` 与本
     `brief.yaml`——各跑一次再一次比较；指向别处的记录不构成本文档的证据。"""
@@ -191,7 +191,7 @@ def check_project(project, where, violations, final):
     elif final and str(status) != "已定稿":
         violations.append(v("STATUS_MISMATCH", where + ".status",
                             "--final 要求 project.status 为「已定稿」（先落定稿，再跑门禁）"))
-    # 批 3 追裁②（2026-10-15）：补非空门——留空＝未盖章（防忘跑 diyc stamp 闭环断口）
+    # 补非空门——留空＝未盖章（防忘跑 diyc stamp 闭环断口）
     for key in ("created", "updated"):
         value = project.get(key)
         if not nonempty(value):
@@ -201,11 +201,9 @@ def check_project(project, where, violations, final):
             violations.append(v("ENUM_INVALID", "%s.%s" % (where, key),
                                 "%s 须为 YYYY-MM-DD 或 YYYY-MM-DD HH:MM:SS，实为 %s" % (key, value)))
 
-# trace: 夜队列 Q-103（底单 :361 ②：check --final 加 distillate 存在＋五字段非空校验）
-# trace: 批 5a——target_users 条目化入 LISTS；四列表条目 {text, src} 硬校验（--final）
 def check_distillate_final(distillate, where, violations, local_ids=None, warnings=None):
     """--final 交出面义务：`distillate` 在场（映射）且五字段非空——`problem` 标量非空；
-    四列表条目恰为 `{text, src}`（--final 硬校验）；src 按批 5a §3 矩阵。起草期不查。"""
+    四列表条目恰为 `{text, src}`（--final 硬校验）。起草期不查。"""
     if not isinstance(distillate, dict):
         violations.append(v("EMPTY_FIELD", where + " distillate",
                             "--final 要求 distillate 非空（交出面：下游 PRD 输入）"))
@@ -255,7 +253,6 @@ def review_script_path():
         os.path.abspath(__file__))))
     return os.path.join(skills_root, *REVIEW_SCRIPT_REL)
 
-# trace: B4 任务书 §12.1 ①ⓒ（--final 评审证据链：review_refs → editorial-review.yaml 的 ER-###）
 def check_review_evidence(data, root, out, path, show, violations, warnings):
     """--final 的六条证据校验：`review_refs` 非空 → 台账在场 → ID 在 `reviews[]` 内 →
     该记录 `status: 已定稿` → `target` 归一化后指向本 `brief.yaml` → `lenses` 两透镜齐全

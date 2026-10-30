@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """diy-project-context 确定性引擎：棕地扫描（scan）+ project-context.yaml 校验（check）。
 
-来源与分工（B1 批任务书 §7；能力蓝本 = bmad-document-project + bmad-generate-project-context）：
+来源与分工（能力蓝本 = bmad-document-project + bmad-generate-project-context）：
   scan   只读扫描，绝不写文件：部件探测（多部件/单仓识别）、项目类型分类
          （documentation-requirements.csv 的 key_file_patterns 判据）、清单解析
          （package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml / requirements.txt /
@@ -13,23 +13,22 @@
          只报**实际存在**的那些（深入档的阅读面，见 CRITICAL_DIRS）。
          scan_level 三档：快速=模式分析不读源码；
          深入=加源文件计数（读面 = `critical_dirs`）；穷尽=再加 LOC（读文件，受文件数/字节上限约束）。
-         部件/类型判定是启发式——LLM 在步骤 01 与用户确认（源 full-scan step-1 同样要求确认）。
+         部件/类型判定是启发式——LLM 在步骤 01 与用户确认。
   check  校验 {output_dir}/project-context.yaml：schema / 枚举 / scan.parts 非空 /
          rules 的 PC-### 唯一与类别枚举；--previous 比对旧稿 PC-### 集合（rescan 防丢规则，
          旧有新无 → ID_UNSTABLE）；--final 附加定稿义务（zero [假设]、rules 非空且每条
          rule/why/where 非空、stack 非空）。exit 0 唯一放行。
 
-新码登记（batch3-contract §3 冻结集之外）：
+新码登记（套件冻结集之外）：
   - 违规码：无——全部复用冻结集（MISSING_FILE / UNPARSABLE_YAML / ENUM_INVALID / EMPTY_FIELD /
     DUPLICATE_ID / UNKNOWN_ID / ID_UNSTABLE / ASSUMPTION_PRESENT）。
   - warning 码：MANIFEST_UNPARSED（探测到清单但无内置解析器或解析失败：降级 + 结构化 warning，
     由 LLM 在步骤 01/02 向用户补齐，绝不静默）。
 
-禁手写实例解析（任务书 §2.2）：引擎不做 --instance / 白名单 / 目录推导；--output-dir 必填，
-由调用方传入（SKILL.md 从 diyc.py resolve 取）。源 project-scan-report.json 不迁——进度状态
-落 {output_dir}/project-context.yaml 的 scan 字段，不建任何状态散文件（任务书 §0 纪律 1）。
+禁手写实例解析：引擎不做 --instance / 白名单 / 目录推导；--output-dir 必填，
+由调用方传入（SKILL.md 从 diyc.py resolve 取）。进度状态
+落 {output_dir}/project-context.yaml 的 scan 字段，不建任何状态散文件。
 """
-# trace: B1 diy-project-context 验收 #3（门禁零产出）/#4（ID 链）/#12（领域引擎接线）
 import argparse
 import os
 import sys

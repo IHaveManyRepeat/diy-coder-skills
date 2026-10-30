@@ -348,7 +348,7 @@ class CodeRegistryTests(unittest.TestCase):
         docstring = text.split('"""')[1]
         self.assertIn("INTERNAL_ERROR", docstring, "模块 docstring 须登记 INTERNAL_ERROR")
         self.assertIn("未预期异常", docstring, "登记须说明它是什么面")
-        self.assertIn("batch3-contract §3 冻结集", docstring, "登记须说明它与冻结集的关系")
+        self.assertIn("复用冻结集", docstring, "登记须说明它与冻结集的关系")
 
 
 class DestinationTests(EngineCase):

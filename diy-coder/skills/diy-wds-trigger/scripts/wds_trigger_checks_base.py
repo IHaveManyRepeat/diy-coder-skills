@@ -19,10 +19,8 @@ MODE_ENUM = ("W", "S", "D")
 ENTRY_ENUM = ("工作坊", "既有产物")
 FINAL_STAGE = STAGE_ENUM[-1]
 
-# 母本 §8 两值口径：单记录产物 → 顶层 `project.status`（裁定 2，零偏离）
 STATUS_ENUM = ("草稿", "已定稿")
 
-# 裁定 6：三组互斥口径取「采集端」较宽侧——驱动因素 3–5/类、人物群 2–4
 DRIVER_RANGE = (3, 5)
 PERSONA_RANGE = (2, 4)
 GOAL_RANGE = (3, 5)
@@ -30,14 +28,12 @@ GOAL_RANGE = (3, 5)
 GOAL_KIND_ENUM = ("愿景", "目标")
 PERSONA_PRIORITY_ENUM = ("主", "其他")
 LEVEL_ENUM = ("高", "中", "低")
-# 裁定 10：Feature Impact 保留（Primary 5/3/1、其他 3/1/0、Must-Have 阈值）
 DECISION_ENUM = ("必须", "应该", "可选")
 SCORE_PRIMARY = {"高": 5, "中": 3, "低": 1}
 SCORE_OTHER = {"高": 3, "中": 1, "低": 0}
 MUST_HAVE_SLACK = 3
 
-# §2.3 冻结的主体段（缺一不可）；`driver_patterns` 是跨群模式，**不与 `personas[]` 并列放
-# `driving_forces[]`**（裁定 16）
+# §2.3 冻结的主体段（缺一不可）；`driver_patterns` 是跨群模式，**不与 `personas[]` 并列放 `driving_forces[]`**
 TOP_KEYS = ("business_goals", "personas", "driver_patterns", "priority", "feature_impact",
             "effect_map")
 GOAL_KEYS = ("id", "kind", "statement")
@@ -45,21 +41,20 @@ GOAL_TARGET_KEYS = ("metric", "target", "timeline")
 PERSONA_KEYS = ("id", "name", "role", "priority", "summary", "context", "goals",
                 "frustrations", "current_behavior", "driving_forces")
 DRIVER_KEYS = ("id", "statement", "why")
-DRIVER_POSITIVE_KEY = "promise"     # 源侧：正向驱动因素各带 `[Product] Promise`
-DRIVER_NEGATIVE_KEY = "answer"      # 源侧：负向驱动因素各带 `[Product] Answer`
+DRIVER_POSITIVE_KEY = "promise"     # 正向驱动因素各带 `[Product] Promise`
+DRIVER_NEGATIVE_KEY = "answer"      # 负向驱动因素各带 `[Product] Answer`
 PATTERN_KEYS = ("shared", "unique", "tensions")
 PRIORITY_KEYS = ("ranked_personas", "ranked_drivers", "focus_statement")
 FEATURE_KEYS = ("id", "name", "scores", "score", "decision", "rationale")
 EFFECT_MAP_KEYS = ("derived_from", "format", "direction", "config", "nodes", "connections",
                    "class_defs", "diagram")
 
-# Effect Map 构图纪律（裁定 7：08a–08h 收编为唯一定义）——四类样式色值逐字取自源 `08g:63-66`
 CLASS_DEFS = ("classDef businessGoal fill:#f3f4f6,color:#1f2937,stroke:#d1d5db,stroke-width:2px",
               "classDef platform fill:#e5e7eb,color:#111827,stroke:#9ca3af,stroke-width:3px",
               "classDef targetGroup fill:#f9fafb,color:#1f2937,stroke:#d1d5db,stroke-width:2px",
               "classDef drivingForces fill:#f3f4f6,color:#1f2937,stroke:#d1d5db,stroke-width:2px")
-DRIVER_EMOJI = ("✅", "❌")         # 正向 / 负向驱动因素（源 `08e`）
-PLATFORM_NODE = "PLATFORM"          # 恒单个（源 `08a`）
+DRIVER_EMOJI = ("✅", "❌")         # 正向 / 负向驱动因素
+PLATFORM_NODE = "PLATFORM"          # 恒单个
 
 GOAL_RE = re.compile(r"^BG-\d+$")
 PERSONA_RE = re.compile(r"^TG-\d+$")
@@ -161,12 +156,12 @@ def _range_finding(seq, low, high, where, label, require_present):
 
 
 def connection_shape(goals, personas):
-    """Effect Map 连接数口径（源 `08f:70-77`）：目标数 + 2×人物数。"""
+    """Effect Map 连接数口径：目标数 + 2×人物数。"""
     return len(goals) + 2 * len(personas)
 
 
 def expected_connections(goals, personas):
-    """Effect Map 的连接（源 `08f`）：BG→PLATFORM ∪ PLATFORM→TG ∪ TG→DF（配对严格）。"""
+    """Effect Map 的连接：BG→PLATFORM ∪ PLATFORM→TG ∪ TG→DF（配对严格）。"""
     return (["BG%d --> PLATFORM" % i for i in range(len(goals))]
             + ["PLATFORM --> TG%d" % i for i in range(len(personas))]
             + ["TG%d --> DF%d" % (i, i) for i in range(len(personas))])
@@ -227,7 +222,7 @@ def check_goals(goals, show, final, out):
         text = str(ident).strip() if isinstance(ident, str) else ""
         if not GOAL_RE.match(text):
             out.append(v("ENUM_INVALID", where + ".id",
-                         "ID 形态越界：%s（须为 BG-<n>，裁定 8）" % (text or "空")))
+                         "ID 形态越界：%s（须为 BG-<n>）" % (text or "空")))
         if text in seen:
             out.append(v("DUPLICATE_ID", where + ".id", "ID 重复：%s" % text))
         seen.add(text)
@@ -249,7 +244,7 @@ def check_goals(goals, show, final, out):
         low, high = GOAL_RANGE
         if not (low <= targets <= high):
             out.append(v("EMPTY_FIELD", "%s.business_goals" % show,
-                         "业务目标须 %d–%d 条（源侧 SMART 目标口径），实为 %d"
+                         "业务目标须 %d–%d 条（SMART 目标口径），实为 %d"
                          % (low, high, targets)))
 
 
@@ -268,7 +263,7 @@ def driver_index(data, out, show):
         where = "%s.personas[%d]" % (show, pindex)
         if not PERSONA_RE.match(pid):
             out.append(v("ENUM_INVALID", where + ".id",
-                         "ID 形态越界：%s（须为 TG-<n>，裁定 8）" % (pid or "空")))
+                         "ID 形态越界：%s（须为 TG-<n>）" % (pid or "空")))
         forces = as_dict(record.get("driving_forces"))
         for key in ("positive", "negative"):
             direction = "+" if key == "positive" else "-"
@@ -281,7 +276,7 @@ def driver_index(data, out, show):
                 match = DRIVER_RE.match(ident)
                 if match is None:
                     out.append(v("ENUM_INVALID", dw + ".id",
-                                 "ID 形态越界：%s（须为 DF-<n>.<m>+ / DF-<n>.<m>-，裁定 8）"
+                                 "ID 形态越界：%s（须为 DF-<n>.<m>+ / DF-<n>.<m>-）"
                                  % (ident or "空")))
                     continue
                 if match.group(3) != direction:
@@ -306,7 +301,7 @@ def resolve_ids(values, known, where, label, out):
         elif isinstance(item, dict):
             ident = str(item.get("id") or "").strip()
             if not nonempty(item.get("why")):
-                out.append(v("EMPTY_FIELD", where, "%s 的排序必须给 why（源侧硬要求）" % label))
+                out.append(v("EMPTY_FIELD", where, "%s 的排序必须给 why（硬要求）" % label))
         else:
             continue
         if ident and ident not in known:
@@ -314,7 +309,7 @@ def resolve_ids(values, known, where, label, out):
 
 
 def check_personas(data, show, final, out):
-    """人物段：2–4 条、必填键、恰一条「主」、驱动因素嵌在人物内（裁定 16）。"""
+    """人物段：2–4 条、必填键、恰一条「主」、驱动因素嵌在人物内。"""
     personas = as_list(data.get("personas"))
     seen = set()
     mains = 0
@@ -351,7 +346,7 @@ def check_personas(data, show, final, out):
 
 
 def check_patterns(patterns, known, show, final, out):
-    """跨群模式段（裁定 16）：共 / 独 / 张力。ID 解析恒核，键齐备只在 `--final`。"""
+    """跨群模式段：共 / 独 / 张力。ID 解析恒核，键齐备只在 `--final`。"""
     if not isinstance(patterns, dict):
         out.append(v("EMPTY_FIELD", show + ".driver_patterns",
                      "须为映射（shared / unique / tensions）"))

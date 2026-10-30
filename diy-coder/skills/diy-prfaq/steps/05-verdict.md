@@ -40,7 +40,7 @@ Progress: `Ignition → Press Release → Customer FAQ → Internal FAQ → [Ver
 
 ## Headless 模式输出
 
-把这段 JSON 作为本次运行的收尾（源工作流另发一份 detail-pack 路径；diy 是单一源，所以 distillate 就活在文档里）：
+把这段 JSON 作为本次运行的收尾（单一源：distillate 就活在文档里）：
 
 ```json
 {"status": "complete",

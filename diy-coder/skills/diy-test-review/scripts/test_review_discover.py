@@ -173,7 +173,7 @@ def build_corpus(review_files, root, out):
 
 
 def build_baseline(corpus, sampled, root):
-    """5 机械键 {adopted, status}；2 判读键只标 judged_by: llm（裁定 3）。"""
+    """5 机械键 {adopted, status}；2 判读键只标 judged_by: llm。"""
     keys = {}
     for key in MECHANICAL_KEYS:
         patterns = KEY_PATTERNS[key]
@@ -191,7 +191,7 @@ def build_baseline(corpus, sampled, root):
 
 
 def mechanical_scan(files, pacts, root):
-    """机械集检出（裁定 6）：C1/C2/C3/H1/H5/H6/H7/H8/H9/L4。
+    """机械集检出：C1/C2/C3/H1/H5/H6/H7/H8/H9/L4。
 
     行级行报告命中行号；文件级行（FILE_LEVEL_ROWS）line 为 null。
     """
@@ -315,7 +315,7 @@ def _pact_interaction_warnings(files, root):
     """R-4（源 step-03a §1b）：单 `it()` 内含 >1 `addInteraction()` → advisory。
 
     该条**无 registry row**（源列在四个 registry 身份之外）⇒ 只出 warning、不给
-    severity、不进账本，由 03 步写进 `recommendations` 散文（来源：Rust FFI 非确定性
+    severity、不进账本，由 03 步写进 `recommendations` 散文（Rust FFI 非确定性
     丢 interaction）。单块内计数，避免多 it 文件被整片误判。
     """
     warnings = []

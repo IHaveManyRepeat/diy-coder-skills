@@ -65,7 +65,7 @@ git checkout -b evolution/<场景名 slug>
 1. **定位文件**——受影响页 / 件的实现文件在哪（沿 `components[].file` 与 `pages_affected[]` 找）
 2. **读现有实现**——真读，不猜
 3. **识别技术栈模式**——框架 / 样式方案 / 状态管理各是什么（**记下来，第 4 步照它写**）
-4. **记下既有设计令牌 / 主题配置**——**改动用既有令牌，不新造色值/字阶**（源侧原文 `Note any existing design tokens`；新造值会在 [T] 与后续轮次里变成漂移源）
+4. **记下既有设计令牌 / 主题配置**——**改动用既有令牌，不新造色值/字阶**（新造值会在 [T] 与后续轮次里变成漂移源）
 
 **呈出实施计划**（源 [I] step-03 的三栏，呈给用户看一眼再动手）：改哪些文件 / 要不要新文件 / 复杂度估计。
 
@@ -84,13 +84,12 @@ git checkout -b evolution/<场景名 slug>
 **四条（源 [I] step-04 的 1–4，逐条守住）**：
 
 1. **跟随既有模式**——照第 3 步记下的栈模式写，**不引入新模式**
-2. **最小改动**——只改规格点到的地方（源侧原文 `Only change what the specification calls for`）
+2. **最小改动**——只改规格点到的地方
 3. **增量提交**——一个逻辑改动一个提交（**提交信息写清这一改对应哪条验收判据**）
 4. **边写边验**——每改完一处就本地验一次，不要攒到最后
 
 **每改一个文件，说清改了什么、为什么**（源 [I] step-04 尾句）。
 
-〔**源侧处置（硬编码命令）**〕源 `workflow-implement.md:35` 直接下 `git checkout -b …` 且**无任何副作用边界声明**（census-5 §5-⑤-5）。diy 侧保留这条能力，但**补上三档处置**（见本文件抬头）与「非 git 仓库不做任何 git 动作」的兜底。
 
 **产出键**：`implement.files[]`（每个文件一段：路径 / 改了什么 / 为什么）。
 
@@ -108,7 +107,7 @@ git checkout -b evolution/<场景名 slug>
 
 1. **Diff 全部改动**：`git diff evolution/<场景名>..main`（非 git 项目 → 用第 4 步的 `implement.files[]` 逐文件核对）
 2. **对规格**：`design.acceptance_criteria[]` **逐条**问「现在满足了吗」（不满足的当场补，别推给 [T]）
-3. **无意外副作用**：清单外的页 / 件是否仍工作？（源侧原文 `other pages/components still work?`）
+3. **无意外副作用**：清单外的页 / 件是否仍工作？
 4. **清干净**：无调试代码、无注释掉的整块、无无关改动
 
 **产出键**：`implement.self_review: {diff_checked, criteria_addressed: [], side_effects: [], cleanup: <做了/未做>}`。

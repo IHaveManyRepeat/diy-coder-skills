@@ -57,7 +57,7 @@ researches:
       - {id: RF-###, area: <本维度分析步句柄表里取，如 customer-behavior / regulatory>, claim, sources: [{title, url, accessed}], confidence: 高|中|低}
     synthesis: {executive_summary, key_points: [{id: RK-###, text}], open_questions: [{id: RO-###, text}]}
 distillate: {problem, target_users: [{text, src}], value_props: [{text, src}], constraints: [{text, src}], open_questions: [{text, src}]}
-                                # 交出面（B1）：跨全部 researches[] 记录的汇总裁面——本技能只声明交这五个字段，
+                                # 交出面：跨全部 researches[] 记录的汇总裁面——本技能只声明交这五个字段，
                                 # 不重定义摄取规则；字段级映射的唯一出处 = diy-prd 的输入清单
                                 # problem = 研究问题（标量）；value_props = 已验证的机会点；constraints = 证据支持的边界与限制
                                 # 四列表条目 {text, src}：src 指本产物内 RF/RK/RO 锚，只引用不复制上游文本

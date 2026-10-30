@@ -1,6 +1,6 @@
 # Kaizen 原则（改善）
 
-`diy-wds-evolution` 的方法底座。源 = `.claude/skills/wds-8-product-evolution/data/kaizen-principles.md`（276 行）+ 同目录 `kaizen-iteration-guide.md`（167 行的孤岛件）——**这是本技能相对 `diy-dev` 的唯一不可替代内容**：六个活动（A/S/D/I/T/P）的设计纪律都能从 `diy-design` / `diy-dev` 借，只有这一套借不到。
+`diy-wds-evolution` 的方法底座——**这是本技能相对 `diy-dev` 的唯一不可替代内容**：六个活动（A/S/D/I/T/P）的设计纪律都能从 `diy-design` / `diy-dev` 借，只有这一套借不到。
 
 ---
 
@@ -20,7 +20,7 @@ Ship → Monitor → Learn → Improve → Ship → Monitor → Learn…
 | 发生次数 | 持续、不停 | 一次性转型 |
 | 对应 | **本技能（棕地演进）** | 新产品开发（Greenfield） |
 
-**入口术语（源 `data/existing-product-guide.md` 的两入口，该文件唯一不可替代段）**：
+**入口术语（两入口）**：
 
 - **Greenfield**（从零建、无既有约束）对 **Brownfield**（在既有系统与约束里做）
 - 本技能只接 **Brownfield**；从零建走 `diy-wds-brief`（官网线）或 `diy-prd`（产品线）
@@ -78,7 +78,7 @@ Kaizen 的产出**一半是数字、一半是认知**。只盯结果时，失败
 
 ## 四、小改动会复利
 
-源侧给出的轨迹（四个月九轮，逐月）：
+给出的轨迹（四个月九轮，逐月）：
 
 ```
 第 1 月：功能 X 引导（使用率 +40%）

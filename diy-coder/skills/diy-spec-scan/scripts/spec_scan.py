@@ -40,7 +40,7 @@
            原文」这条本技能的立身纪律变成不可能。非 quote 字段若需提及该标记，写全角
            ［假设］（全角不是该禁令的字面量）。exit 0 唯一放行。
 
-规则来源：违规码全部复用 batch3-contract §3 冻结集——本引擎用到 MISSING_FILE /
+规则来源：违规码全部复用冻结集——本引擎用到 MISSING_FILE /
 UNPARSABLE_YAML / DUPLICATE_ID / ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT /
 SET_MISMATCH / SCAN_TRUNCATED 共 8 个，**无新增码**（UNKNOWN_ID 本技能无适用面，不产出）。
 回执契约对齐 B1/B2 批既有先例：exit 0 唯一放行 / --json 单行 JSON（ensure_ascii=False）/

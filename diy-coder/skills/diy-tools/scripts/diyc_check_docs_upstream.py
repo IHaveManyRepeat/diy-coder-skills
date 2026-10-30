@@ -103,7 +103,7 @@ def _wds_scenario_ids(docs) -> tuple:
     """wds-scenarios.yaml 的 SC-<nn> / SC-<nn>.P<n> ID 集 → (ids, err)。
 
     ID 形态由段1 的 W1 定义（`diy-wds-scenarios` 规则 6：场景 `SC-<nn>`、页面
-    `SC-<nn>.P<n>`，废止独立 `P-*` 前缀）——本处只消费、不重定义（裁定 22）。
+    `SC-<nn>.P<n>`，废止独立 `P-*` 前缀）——本处只消费、不重定义。
     err=None 且 ids 空 = 文件缺席（主线项目常态，调用方不告警）；文件在场但
     损坏/形状异常 → err 非空（错误经 `Docs.yaml_err` 透出，不静默吞）。
     """
@@ -125,7 +125,7 @@ def _wds_scenario_ids(docs) -> tuple:
 def _affects_known(docs, report) -> tuple:
     """affects 的解析域 → (known, resolvable)。
 
-    主线 prd.yaml 的 FR/NFR ∪ WDS 线 wds-scenarios.yaml 的 SC/P（裁定 22：第四条真链路，
+    主线 prd.yaml 的 FR/NFR ∪ WDS 线 wds-scenarios.yaml 的 SC/P（第四条真链路，
     与既有三条同型）。两源俱不可用 → resolvable=False，跳过该子检查并告警（不虚报通过）。
     """
     wds_ids, wds_err = _wds_scenario_ids(docs)
@@ -214,7 +214,7 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
                        "affects 缺失或为空（须列出影响的 FR/NFR 或 SC/P ID）")
         elif affects_resolvable:
             # team-lead 裁定：decisions[].affects[] 必须在主线 prd.yaml（FR/NFR）或
-            # WDS 线 wds-scenarios.yaml（SC-<nn> / SC-<nn>.P<n>，裁定 22）可解析 → UNKNOWN_ID
+            # WDS 线 wds-scenarios.yaml（SC-<nn> / SC-<nn>.P<n>）可解析 → UNKNOWN_ID
             for j, ref in enumerate(affects):
                 if not is_str(ref) or not ref:
                     report.add("EMPTY_FIELD", "%s.affects[%d]" % (w, j), "affects 项缺失或非字符串")
@@ -242,8 +242,8 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
 def check_openapi(doc, rel, docs, final, report) -> dict:
     """openapi.yaml：轻量 3.1 结构自检（契约 §4.2 硬点）+ x-fr / 功能 tags 引用解析。
 
-    v4 批 4a：每 operation 通用错误 $ref（components/responses）＋功能 tags（F-x
-    解析到 prd features）＋ securitySchemes/security 在场（终门硬门·批 4a §7-2）。
+    每 operation 通用错误 $ref（components/responses）＋功能 tags（F-x
+    解析到 prd features）＋ securitySchemes/security 在场（终门硬门）。
     prd 缺席/损坏：x-fr 与 F-x 解析一并改硬 violation（三档总则一档·§7-1 ⑪——
     同函数两处口径不得分裂，废 warning 跳过）。
     """
@@ -291,7 +291,7 @@ def check_openapi(doc, rel, docs, final, report) -> dict:
     prd = docs.doc("prd")
     prd_available = prd is not None
     if not prd_available:
-        # 三档总则一档（批 4a §7-1 ⑪）：prd 缺席/损坏 → 硬 violation（exit 1），
+        # 三档总则一档：prd 缺席/损坏 → 硬 violation（exit 1），
         # x-fr 与 F-x 两处解析口径同函数一并改硬，不再 warning 跳过
         report.add("UNKNOWN_ID", rel,
                    "prd.yaml 缺失或损坏：x-fr 与功能 tags 的 F-x 引用无法解析"

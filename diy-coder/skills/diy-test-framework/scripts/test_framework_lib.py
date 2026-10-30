@@ -108,7 +108,7 @@ DA_RE = re.compile(r"DA-\d{3}")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 PLACEHOLDER_RE = re.compile(r"\{\{([A-Z][A-Z0-9_]*)\}\}")
 HEADER_RE = re.compile(r"^\s*(?:#|//|<!--)\s*placeholders:\s*(.*?)\s*(?:-->)?\s*$")
-# 命令匹配边界（任务书 §5 裁定 4：挡 `npm run lint` 误配 `npm run lint:fix`）
+# 命令匹配边界（挡 `npm run lint` 误配 `npm run lint:fix`）
 COMMAND_BOUNDARIES = " \t\n\r;|&\"'`"
 # 回执 pending_commands 的取值来源（顺序即输出顺序）
 PENDING_COMMAND_KEYS = ("INSTALL_CMD", "BROWSER_INSTALL", "LINT_CMD", "TEST_CMD")
@@ -145,7 +145,7 @@ def load_json_safe(path):
 
 
 def path_form_error(rel):
-    """路径形态校验（correct-course `path:` 口径，任务书 §5 裁定 4）：相对 / 正斜杠 / 无 `.` `..` 段。"""
+    """路径形态校验（correct-course `path:` 口径）：相对 / 正斜杠 / 无 `.` `..` 段。"""
     if not isinstance(rel, str) or not rel.strip():
         return "路径为空"
     if rel.startswith("/") or re.match(r"^[A-Za-z]:", rel):
@@ -158,7 +158,7 @@ def path_form_error(rel):
 
 
 def command_in_text(tool, text):
-    """命令匹配算法（任务书 §5 裁定 4）：空白归一化、大小写敏感、独立命令形态（边界字符集）。"""
+    """命令匹配算法：空白归一化、大小写敏感、独立命令形态（边界字符集）。"""
     needle = " ".join(str(tool).split())
     if not needle:
         return False

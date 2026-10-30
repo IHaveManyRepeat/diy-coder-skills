@@ -24,7 +24,7 @@ Craft an investor pitch presentation. Build a narrative arc (problem → solutio
 
 中文对照：打造一份投资人路演演示。搭建叙事弧线（问题 → 方案 → 进展 → 融资请求），设计让数字跳出来的数据可视化，并贯彻精致、专业的视觉语言。
 
-> **输入来源**：`wds-brief.yaml` 的 `brief.core`（愿景 / 定位 / 业务模式 / 目标用户 / 成功标准 / 竞争格局）逐项对得上四拍——这是 diy 侧「演示跨域可容」的真正依据（census-4 §7-③）。
+> **输入来源**：`wds-brief.yaml` 的 `brief.core`（愿景 / 定位 / 业务模式 / 目标用户 / 成功标准 / 竞争格局）逐项对得上四拍——这是 diy 侧「演示跨域可容」的真正依据。
 
 ## Best For
 > **适用场景**——英文原文保留。

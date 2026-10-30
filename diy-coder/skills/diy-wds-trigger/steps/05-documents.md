@@ -5,15 +5,15 @@ Progress: `[1 成品成稿与交叉核对] → 2 Effect Map 构图 → ./06-fini
 **Read (input):** `./04-features.md` 的放行（六个主体段齐）；`templates/trigger-map.template.md`（**唯一完整 Mermaid 骨架**——第 2 步逐条照它填）；用户对成品视图与图的确认。
 **Write (output):** `effect_map` 全段（`derived_from` / `format` / `direction` / `config` / `nodes` / `connections` / `class_defs` / `diagram`）；对六个主体段的补齐与交叉核对修正；`stage` 推进到 `成品`。
 
-你是**成稿与构图的主持人**（源 Saga 线）。本文件承载源侧的**两个主步**：文档生成（`07a`–`07f`）与 Mermaid 效果图（`08a`–`08h`）。
+你是**成稿与构图的主持人**（Saga 线）。本文件承载**两个主步**：文档生成（`07a`–`07f`）与 Mermaid 效果图（`08a`–`08h`）。
 
 ## 第 1 步 —— 成品成稿与交叉核对（源 step-07a–07f）
 
 **先说清为什么**：讲清「为什么还要再走一遍」——前面各步是分头落的段，这一步把**段与段之间**对一次表，并把成品视图摆给用户看。用你自己的话讲。
 
-**源侧产物 → diy 落点**（源侧生成 7 份 md 文档；diy 的成品是**一个 YAML + viewer 渲染**，逐条对照如下）：
+**原产物 → diy 落点**（原形态生成 7 份 md 文档；diy 的成品是**一个 YAML + viewer 渲染**，逐条对照如下）：
 
-| 源侧 md | 承载内容 | diy 落点 |
+| 原 md | 承载内容 | diy 落点 |
 | --- | --- | --- |
 | `00-trigger-map.md`（hub） | 图 + 各节页内摘要 + 导航 + Flywheel + How to Read | **`wds-trigger.yaml` 本身 + viewer 渲染**（单记录就是 hub：六个主体段即六节）；「页内摘要」= `summary` / `rationale` 等既有键，**不另建一节** |
 | `01-Business-Goals.md` | 愿景 + 三档目标 + Flywheel + 成功指标对齐 | `business_goals[]`（顺序 = 优先级 = Flywheel 的因果序） |
@@ -21,11 +21,11 @@ Progress: `[1 成品成稿与交叉核对] → 2 Effect Map 构图 → ./06-fini
 | `05-Key-Insights.md` | 战略含义 9 节 | **去重收口**（见下） |
 | `06-Feature-Impact.md` | 特征影响 | `feature_impact[]`（`04-features.md`） |
 
-**`05-Key-Insights.md` 的 9 节去处（源侧缺陷修订，逐条给落点）**：Header → 不落；Flywheel → `business_goals[]` 顺序；Primary Development Focus → `priority.focus_statement.must`；Critical Success Factors → 会话内呈出（不落盘）；Design Implications → **每条驱动因素的 `promise` / `answer`**（源侧「按页面分区的 must do」在 diy 由驱动因素承诺承载，不另立散文节）；Emotional Transformation Goals → `personas[].transformation`；Design Focus Statement → `priority.focus_statement`；Development Phases → 会话内呈出；Related Documents Footer → 不落（单文件无互链）。源侧该 md 与 hub 的「页内摘要」**大面积重复**（源侧 07a:106-117 与 07f 双写），diy 按单一源收口，**内容不丢、载体合并**。
+**`05-Key-Insights.md` 的 9 节去处（逐条给落点）**：Header → 不落；Flywheel → `business_goals[]` 顺序；Primary Development Focus → `priority.focus_statement.must`；Critical Success Factors → 会话内呈出（不落盘）；Design Implications → **每条驱动因素的 `promise` / `answer`**（「按页面分区的 must do」由驱动因素承诺承载，不另立散文节）；Emotional Transformation Goals → `personas[].transformation`；Design Focus Statement → `priority.focus_statement`；Development Phases → 会话内呈出；Related Documents Footer → 不落（单文件无互链）。该 md 与 hub 的「页内摘要」**大面积重复**（同一内容两处双写），按单一源收口，**内容不丢、载体合并**。
 
-**★ 交叉一致性核对（源 `07a:126-134` 的 Cross-Validation Check，逐条做，不符就改）**：
+**★ 交叉一致性核对（Cross-Validation Check，逐条做，不符就改）**：
 
-1. `business_goals[0].statement` 的愿景与 `wds-brief.yaml` 的 `brief.core.vision` **逐字符相同**——**找不到原文就问用户，不得转述**（源 `07a:80` 硬规则）。
+1. `business_goals[0].statement` 的愿景与 `wds-brief.yaml` 的 `brief.core.vision` **逐字符相同**——**找不到原文就问用户，不得转述**（硬规则）。
 2. 人物名在 `personas[]` / `priority.ranked_personas` / `driver_patterns` 三处**拼写一致**。
 3. 驱动因素条数与 `driver_patterns` 的引用一致；引用 ID 全部可解析。
 4. 优先级顺序在 `personas[]`（`priority` 分档）/ `priority.ranked_personas`（排序）/ `business_goals[]`（顺序）三处**不矛盾**。
@@ -38,9 +38,9 @@ Progress: `[1 成品成稿与交叉核对] → 2 Effect Map 构图 → ./06-fini
 
 读全并照做本文件 `## 第 2 步 —— Effect Map 构图`。
 
-## 第 2 步 —— Effect Map 构图（源 step-08a–08h，**收编的唯一定义**）
+## 第 2 步 —— Effect Map 构图（**唯一定义**）
 
-**载体口径（裁定 7，先读）**：**`wds-trigger.yaml` 是单一源，Mermaid 是派生视图**。图**不单独落盘 md**——它落 `effect_map.diagram`（人读用）与 `effect_map` 的结构键（机器核对用）。源侧 `08a`–`08h` 的构图纪律（配置 / 节点模板 / emoji 规则 / 连接数校验 / 4 类样式）**全部收编在本节**，是本技能对构图的**唯一定义**；源侧 `data/mermaid-formatting-guide.md`（无消费方、与步骤正文重复且数字互斥）**已裁**，`templates/trigger-map.template.md`（唯一完整骨架）**已收编为本技能 `templates/` 下的同名文件**。
+**载体口径（先读）**：**`wds-trigger.yaml` 是单一源，Mermaid 是派生视图**。图**不单独落盘 md**——它落 `effect_map.diagram`（人读用）与 `effect_map` 的结构键（机器核对用）。构图纪律（配置 / 节点模板 / emoji 规则 / 连接数校验 / 4 类样式）**全部收编在本节**，是本技能对构图的**唯一定义**；`templates/trigger-map.template.md` 为本技能 `templates/` 下的同名骨架。
 
 ### 一、配置与结构（源 08a）
 
@@ -53,7 +53,7 @@ flowchart LR
 
 节注释按左→右六段排：`%% Business Goals (Left)` / `%% Central Platform` / `%% Target Groups (Right)` / `%% Driving Forces (Far Right)` / `%% Connections` / `%% Styling`。
 
-**节点 ID**（**保源侧 0 基口径**，与产物 ID 的对照见 SKILL.md「结构」段末）：
+**节点 ID**（**用 0 基口径**，与产物 ID 的对照见 SKILL.md「结构」段末）：
 
 - 业务目标 `BG0`、`BG1`…（顺序对应 `business_goals[]` 的数组序，**`BG0` 在顶**）
 - 平台 `PLATFORM`（**恒单个**）
@@ -72,7 +72,7 @@ BGX["<br/>EMOJI 标题全大写<br/><br/>要点1<br/>要点2<br/>要点3<br/><br
 - **平台 `PLATFORM`**（源 08c）：`<br/>` 起 → emoji + **产品名全大写** → 空行 → 品类 / 一句话定位 → 空行 → **转型陈述（跨 3–5 行，讲清 before → after）** → `<br/><br/>` 收尾。
 - **目标群 `TGX`**（源 08d）：`<br/>` 起 → emoji + **人名全大写** → **优先级全大写**（PRIMARY TARGET / SECONDARY TARGET；2 群时只有前两个）→ 空行 → **3–4 条特征** → `<br/><br/>` 收尾。**记下每群的 emoji —— DF 节点必须用同一个。**
 - **驱动因素 `DFX`**（源 08e）：`<br/>` 起 → **与对应 TG 相同的 emoji** + `PERSONA'S DRIVERS` 全大写 → 空行 → `WANTS`（**标题不带 emoji**）→ 每条正向一行、行首 ✅ → 空行 → `FEARS`（**标题不带 emoji**）→ 每条负向一行、行首 ❌ → `<br/><br/>` 收尾。
-  **条数口径**：源侧「exactly 3」与采集端 3–5 冲突（裁定 6）——**本节按 `driving_forces` 的实际条数渲染**（3–5 条都合法），**不再截断到 3**；这是「展示端自适应」的落地处。驱动因素文本**尽量 40 字符内**。
+  **条数口径**：「exactly 3」与采集端 3–5 冲突——**本节按 `driving_forces` 的实际条数渲染**（3–5 条都合法），**不再截断到 3**；这是「展示端自适应」的落地处。驱动因素文本**尽量 40 字符内**。
 
 **落盘**：`effect_map.nodes`（四组节点 ID 序列，与记录数一一对应）。
 
@@ -99,7 +99,7 @@ classDef targetGroup fill:#f9fafb,color:#1f2937,stroke:#d1d5db,stroke-width:2px
 classDef drivingForces fill:#f3f4f6,color:#1f2937,stroke:#d1d5db,stroke-width:2px
 ```
 
-应用：`class BG0,BG1 businessGoal` / `class PLATFORM platform` / `class TG0,TG1 targetGroup` / `class DF0,DF1 drivingForces`（节点数按实际改）。**平台边框 3px、其余 2px**；全部节点用浅灰底 + 深灰字，**不得自创配色**。源侧 `quality-checklist` 要求的 `primaryGoal` 金色高亮类**不存在**（源侧缺陷：与 `08b:84`「优先级不得用特殊样式」互斥）——**本批不实现该类**。
+应用：`class BG0,BG1 businessGoal` / `class PLATFORM platform` / `class TG0,TG1 targetGroup` / `class DF0,DF1 drivingForces`（节点数按实际改）。**平台边框 3px、其余 2px**；全部节点用浅灰底 + 深灰字，**不得自创配色**。`primaryGoal` 金色高亮类**不实现**（与「优先级不得用特殊样式」互斥）。
 
 **落盘**：`effect_map.class_defs`（恰四条，逐字）。
 

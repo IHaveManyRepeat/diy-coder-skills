@@ -1,8 +1,7 @@
 # 对象类型：Button（对象级规格清单 · 参考层）
 
 **用途**：`[P] Specify` 第 3 步与 `[M]` 活动逐对象定类型时，按本清单**逐项写规格**——本件回答「一个按钮有哪些项要说清」，不回答「怎么跟用户一问一答」（问答流程在 `steps/p-specify.md`，裸路径按本技能安装目录解析）。
-**规则**：本件是**参考层**——**不产独立产物、不铸对象级 ID**（对象级载体是 `src` 的框架代码 + `design.yaml` 的 `states[].signals`）。**本件不含对象级 ID、不含 Figma 字段**；§8 对照表里的「删」行是**源侧对账痕迹**，不是待办。
-**改写说明**：源 `wds-4-ux-design/data/object-types/templates/button.md`（345 行）按裁定 4 改写——① **删 `OBJECT ID` 段**（源格式 `{page}-{section}-{element}-button`，与裁定 7「对象级三级 ID 不进 diy」冲突）；② **删 Figma 字段**（X4 已裁）；③ 交互问答脚手架（`<ask>Choice [1-6]:</ask>` 类）**改为下方规格项清单**；④ 「返回 4c-03」等幽灵步骤号引用**删**（普查 D3，该步骤号在本体系不存在）。
+**规则**：本件是**参考层**——**不产独立产物、不铸对象级 ID**（对象级载体是 `src` 的框架代码 + `design.yaml` 的 `states[].signals`）。**本件不含对象级 ID、不含 Figma 字段**；§8 对照表里的「删」行是**对账痕迹**，不是待办。
 
 ---
 
@@ -62,13 +61,13 @@
 6. 用户**看到**什么（可见的反馈，不是内部日志）；
 7. 要不要导航（要的话写目标页 ID：主线 `P-n` / WDS 线 `SC-<nn>.P<n>`）。
 
-**缺一不可**：第 5 问（失败路径）在源侧范例里是「在表单上方显示错误」这类**具体到可见行为**的描述——写「处理错误」等于没写。
+**缺一不可**：第 5 问（失败路径）要给出「在表单上方显示错误」这类**具体到可见行为**的描述——写「处理错误」等于没写。
 
 ## 6. 无障碍与校验（可机械核对的部分）
 
 | 项 | 判据 |
 | --- | --- |
-| 触控目标 | ≥ 44×44（源 `INLINE-TESTING-GUIDE` 的可测项口径） |
+| 触控目标 | ≥ 44×44 |
 | 焦点可见 | 键盘可达且有可见焦点环（对比度按 3:1 起） |
 | 名称 | 纯图标按钮有 `aria-label`；有文字时用文字 |
 | 对比度 | 底/字配对走 `check` 的 `contrast` 判据（≥4.5:1），**配对集合以引擎回执 `checked.contrast_pairs` 为准，不自拟子集** |
@@ -95,17 +94,3 @@ pages:
 </button>
 <!-- 悬停/激活/禁用靠 CSS 的 :hover / :active / [disabled]；加载中把 label 换成「正在保存…」并 disabled -->
 ```
-
-## 8. 落点对照表（源字段 → diy 键）
-
-| 源字段（button.md） | diy 落点 | 说明 |
-| --- | --- | --- |
-| `button_description` / `button_type` | `states[].signals` + 结构稿语义元素 | 类型不再单独存一个字段——语义由元素与信号共同表达 |
-| `object_id`（`{page}-{section}-{element}-button`） | **删** | 裁定 7：对象级三级 ID 不进 diy |
-| `design_system_component` / `component_status` | **归 `diy-wds-system`** | 组件身份与库映射在它的 `components[]` |
-| `figma_component_name` | **删** | 裁定 4 硬要求② |
-| `button_text`（逐语言） | 结构稿文本节点 | 文案真源是 `design.yaml` 的规格（结构稿由它再生） |
-| `default_*` / `hover_*` / `active_*` / `disabled_*` / `loading_*` | `states[].signals` | 逐态至少一条非色彩信号 |
-| `interaction_flow`（7 步） | 结构稿行为注释 + `stories.yaml` 的 AC | 引 ID 不复述 |
-| `prerequisites` | `states[].signals` 的错误/禁用态 | — |
-| `Return to 4c-03` | **删** | 幽灵步骤号（普查 D3）；diy 的回报路径由 `steps/` 的路由句承担 |

@@ -55,7 +55,7 @@ specs:
     title: <string>
     type: 新功能|缺陷修复|重构|杂务
     route: 一次成型|计划-编码-审查
-    status: 草稿|就绪|进行中|审查中|已完成|已阻塞   # 就绪 = 源技能语汇 ready-for-dev
+    status: 草稿|就绪|进行中|审查中|已完成|已阻塞
     date: YYYY-MM-DD            # 本条动作的日子，不随 updated 变
     baseline: <commit-sha|NO_VCS>   # 首次改动代码前记下
     intent: {problem, approach}     # 批准后冻结——只有人能改
@@ -83,7 +83,7 @@ revisions: []                      # {date, change, reason}——既有记录被
 3. `intent` 一经人批准即冻结：只有人能重新议它。其余各节都可改，每次改动追加一条 `change_log`（finding / amended / avoided / keep）——绝不编辑既有条目。
 4. 审查是 diy-review 的，绝不另立第二套：L1 正确性 / L2 边界 / L3 覆盖审计，每条 finding 恰好路由一次。`意图缺口` → 回人重议；`规格缺陷` → 改非冻结段再重新推导；`小修` → 现在修；`后置` → `deferred`。轮次上限 5，超了 HALT 升级。
 5. 验证是硬底线：记录前进到 `审查中` 而 `verification.commands` 为空，会被引擎拒绝（`EMPTY_FIELD`）。命令是跑出来的、不是想出来的——`result` 记实际发生了什么。
-6. 跨文档机制归 diyc（`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type <T> --final --json`，改动触及的故事环取 `--type sprint`）；绝不在此重实现它的规则。从源技能裁改的对应关系：`compile-epic-context`（BMAD 的 md 缓存）→ 结构化产物 + diy-create-story 的 `story-context.yaml`；`sync-sprint-status`（BMAD 的 `sprint-status.yaml`）→ diyc 管理的 `sprint.yaml`。绝不引用未安装的技能。
+6. 跨文档机制归 diyc（`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type <T> --final --json`，改动触及的故事环取 `--type sprint`）；绝不在此重实现它的规则。对应关系：`compile-epic-context` → 结构化产物 + diy-create-story 的 `story-context.yaml`；`sync-sprint-status` → diyc 管理的 `sprint.yaml`。绝不引用未安装的技能。
 7. 代码之外没有自动化：绝不 commit、绝不 push、绝不打开编辑器——收尾只给一行建议。渲染按工作流里的静默旁路句执行——只写命令；不新增浏览器交互点、不报告阻塞路径、不等待。
 8. 终门（机械）：先写 `{output_dir}/spec.yaml` 的 `project.status: 已定稿` 与记录的 `status: 已完成`——`已定稿` / `已完成` 是门检查的对象，不是门的产物；**`project.status` 是文件水位线**：只有在场每条 `SP-###` 都已 `已完成` 且过终门后才为 `已定稿`；新增或重开任何记录时先把它回 `草稿`，该记录 `已完成` 后再置 `已定稿` 重跑终门——再跑 `python "{project-root}/.claude/skills/diy-quick-dev/scripts/spec.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--output-dir` 必填、无缺省；加 `--id SP-xxx` 只门一条记录——文件级 `project.status` 照查）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾等 exit 0。
 

@@ -11,15 +11,9 @@
   tokens 「不抄像素」判据的机械面：按出现次数分流——**重复值（≥2）可作 token，
          单次值一律不得作 token**（对齐 `design.py audit` 的 `one-off-*` 口径）
 
-★ **第五子命令 `tokens` 是本批对 §2.2「四子命令」的一处登记性偏离**（W4 回报必答 ④ 已列）：
-  §2.2 冻结「`init` / `list` / `show` / `check` 四子命令」，而裁定 13 要求把「不抄像素」判据
-  落成机械面（**允许重复值作 token、禁止单次值**，复用套件 `one-off-*` 口径）——两条并存的
-  最小满足 = 在四子命令之外加一个**只读、零写盘**的第五子命令。先例：`diy-wds-system` 的
-  `similarity`（本批）与 B7a `diy-wds-trigger` 的 `metrics` 亦为同款登记项。**不写盘**。
-
-违规码：复用 batch3-contract §3 冻结集——`MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：复用套件冻结集——`MISSING_FILE` / `UNPARSABLE_YAML` /
 `EMPTY_FIELD` / `ENUM_INVALID` / `DUPLICATE_ID` / `UNKNOWN_ID` / `SET_MISMATCH` /
-`STATUS_MISMATCH` / `ASSUMPTION_PRESENT` + **本技能新增 2 个**（裁定 13 的写权边界，
+`STATUS_MISMATCH` / `ASSUMPTION_PRESENT` + **本技能新增 2 个**（写权边界，
 需新码故在 docstring 标注并单独列出）：
   - **`TARGET_UNREACHABLE`**（新）：外部目标不可访问——URL 形态非 http(s) / 截图路径
     不存在或不可读。门禁不满足即零产出。
@@ -51,7 +45,7 @@ def skeleton(name):
                     "status": "草稿"},
         "direction": "",
         "frontend_framework": "",
-        # C·15（清偿 C·12 欠账）：两键空串——逆向形态 init 时未知不预设默认值；
+        # 两键空串——逆向形态 init 时未知不预设默认值；
         # design.py:747/:754 空串≡缺失同码，键位拓扑同 tokens_doc()
         "form_factor": "",
         "modes": "",
@@ -69,7 +63,7 @@ def cmd_init(args):
     violations = []
     if args.track not in TRACKS:
         violations.append(v("ENUM_INVALID", "--track",
-                            "取值非法：%r（裁定 11 只留 External 两轨：%s）"
+                            "取值非法：%r（只留 External 两轨：%s）"
                             % (args.track, "|".join(TRACKS))))
     elif args.track == "url":
         if not URL_RE.match(str(args.target or "").strip()):
@@ -86,7 +80,7 @@ def cmd_init(args):
     if os.path.isfile(path):
         violations.append(v("OVERWRITE_REFUSED", "design.yaml",
                             "已存在，拒绝覆盖：本技能只在**初始生成**时写 "
-                            "design.yaml（裁定 13）；改走 diy-design 的 Update，"
+                            "design.yaml；改走 diy-design 的 Update，"
                             "差异写成 revisions 建议并路由 diy-design"))
     if violations:
         return emit(receipt("init", False, args.project_root, out_dir, violations),
@@ -195,7 +189,7 @@ def build_parser():
 
     p_init = sub.add_parser("init", help="铸 design.yaml 骨架（唯一写盘；已存在即拒绝）")
     common(p_init, need_out=True)
-    p_init.add_argument("--track", required=True, help="url | screenshots（裁定 11）")
+    p_init.add_argument("--track", required=True, help="url | screenshots")
     p_init.add_argument("--target", required=True, help="外部目标 URL 或截图路径")
     p_init.set_defaults(func=cmd_init)
 

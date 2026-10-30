@@ -17,7 +17,7 @@ from progress_lib import EXPERIENCE_ENUM, PROGRESS_FILE, RECOVERY_HINT, ROLE_ENU
 
 # ---------------------------------------------------------------- update
 
-# trace: B3 diy-teach-me-testing update --session 归一化（路径口径 + 文件在场）
+# trace: update --session 归一化（路径口径 + 文件在场）
 def resolve_notes(value, session_id, out_dir, out_show):
     text = str(value)
     if os.path.isabs(text):
@@ -33,7 +33,7 @@ def resolve_notes(value, session_id, out_dir, out_show):
                         "%s/%s 不在场（先落笔记 md 再写回）" % (out_show, text))]
     return text, []
 
-# trace: B3 diy-teach-me-testing update --session 主干（幂等 upsert + 重做修订）
+# trace: update --session 主干（幂等 upsert + 重做修订）
 def apply_session(args, data, index_by_id, out_dir, out_show):
     sid = args.session
     if sid not in index_by_id:
@@ -120,7 +120,7 @@ def apply_session(args, data, index_by_id, out_dir, out_show):
               "to": status, "redo": redo}
     return new_data, change, []
 
-# trace: B3 diy-teach-me-testing update --learner 主干（画像采集专线；置 assessed = 当日）
+# trace: update --learner 主干（画像采集专线；置 assessed = 当日）
 def apply_learner(args, data):
     learner = data.get("learner") if isinstance(data.get("learner"), dict) else {}
     role = args.role if args.role is not None else learner.get("role")
@@ -141,7 +141,7 @@ def apply_learner(args, data):
                            "pain_points": pains, "assessed": today()}
     return new_data, {"kind": "learner"}, []
 
-# trace: B3 diy-teach-me-testing update --summary 主干（结业门 7/7 + 路径口径 + 文件在场）
+# trace: update --summary 主干（结业门 7/7 + 路径口径 + 文件在场）
 def apply_summary(args, data, out_dir, out_show, root):
     session_ids = data.get("sessions") if isinstance(data.get("sessions"), list) else []
     if data.get("sessions_completed") != len(session_ids):
@@ -171,7 +171,7 @@ def apply_summary(args, data, out_dir, out_show, root):
     new_data["summary"] = {"generated": True, "path": SUMMARY_FILE, "date": today()}
     return new_data, {"kind": "summary"}, []
 
-# trace: B3 diy-teach-me-testing update 子命令（唯一写通道；写前跑与 check 同源的校验）
+# trace: update 子命令（唯一写通道；写前跑与 check 同源的校验）
 def cmd_update(args):
     root = os.path.abspath(args.project_root)
     out = os.path.abspath(args.output_dir)
@@ -237,7 +237,7 @@ def cmd_update(args):
     emit_via(payload, args.json, human_update)
     return 0
 
-# trace: B3 diy-teach-me-testing update 人读态
+# trace: update 人读态
 def human_update(payload):
     if payload["ok"]:
         print("PASS：写回成功（%s）· 完成 %s/7 节 · %s%% · 下一个推荐：%s"
@@ -247,7 +247,7 @@ def human_update(payload):
 
 # ---------------------------------------------------------------- check
 
-# trace: B3 diy-teach-me-testing check 子命令（门禁：exit 0 唯一放行）
+# trace: check 子命令（门禁：exit 0 唯一放行）
 def cmd_check(args):
     root = os.path.abspath(args.project_root)
     out = os.path.abspath(args.output_dir)
@@ -281,7 +281,7 @@ def cmd_check(args):
     emit_via(payload, args.json, human_check)
     return 0 if payload["ok"] else 1
 
-# trace: B3 diy-teach-me-testing check 人读态
+# trace: check 人读态
 def human_check(payload):
     if payload["ok"]:
         print("PASS：进度文件校验通过（%s）· 完成 %s/7 节 · %s%%%s"

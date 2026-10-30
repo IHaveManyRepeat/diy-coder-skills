@@ -7,7 +7,7 @@ Progress: `[1 分型闸] → 2 业务模式 → 3 对外合同 11 节 → 4 服�
 
 你是**签核文档的起草人**。输入：一份已被干系人接受的对齐文档 + 一个商业关系。产出：`signoff` 段里的**一型**——对外合同 / 服务协议 / 内部审批，或明确「不签核」。
 
-**用户拍板口径（裁定 13）**：**三型全留**——对外合同、服务协议、内部审批都迁，不砍分支。**源侧两处已知缺陷在本文件一并修掉**（裁定 5「断链——可修」类）：① `service-agreement` **源侧无构建步**（05a–05l 只按合同模板建节，`service-agreement.md` 仅在 05l 收尾处被提一句）→ 本文件第 4 步**补齐 12 节构建步**；② `05f Availability` 在源合同模板里**没有对应节** → 本文件把它**补成第 6 节**并标清适用条件。
+**用户拍板口径**：**三型全留**——对外合同、服务协议、内部审批都迁，不砍分支。**两处已知缺陷在本文件一并修掉**：① `service-agreement` **无构建步**（05a–05l 只按合同模板建节，`service-agreement.md` 仅在 05l 收尾处被提一句）→ 本文件第 4 步**补齐 12 节构建步**；② `05f Availability` 在合同模板里**没有对应节** → 本文件把它**补成第 6 节**并标清适用条件。
 
 ## 第 1 步 —— 分型闸（源 04a）
 
@@ -17,7 +17,7 @@ Progress: `[1 分型闸] → 2 业务模式 → 3 对外合同 11 节 → 4 服�
 
 1. **对外合同** —— 你是顾问/承接方，**客户**已经认可了对齐文档。
 2. **服务协议** —— 你是创始人/业主，**供应商**已经认可了对齐文档。
-3. **内部审批** —— 这是**公司内部项目**，干系人已经认可。〔源侧补充：公司已有自己的审批格式，可以贴上来我按它调〕
+3. **内部审批** —— 这是**公司内部项目**，干系人已经认可。〔公司已有自己的审批格式，可以贴上来我按它调〕
 4. **不签核** —— 现在不需要正式文书。
 
 **用户选「不签核」也是合法结果**（源明示不得逼签）：一行说明「对齐文档随时可以拿去分享，日后要签再回来」→ 落 `signoff.type: 不签核` / `status: 未开始` / 三段留空 → `intake.stage: 核心` → 直接读 `./04-core.md`，**本文件到此结束**。
@@ -59,14 +59,14 @@ Progress: `[1 分型闸] → 2 业务模式 → 3 对外合同 11 节 → 4 服�
 | 3 | `scope_of_work` | Scope of Work | 从 `alignment.path_forward` 取；**显式三段**：交付物清单 / 含什么（In Scope）/ **不含什么（Out of Scope）**——防范围蔓延 |
 | 4 | `payment_terms` | Payment Terms | 总额 / 付款结构 / 付款日程 / 方式（转账、支票…）/ 到期日 / 逾期条款 / 付款条件（是否先付） |
 | 5 | `timeline` | Timeline | 何时干、关键里程碑、交付日期 |
-| 6 | `availability` | Availability（源 05f） | **条件节：仅 `pricing_model: 长期聘用` 时必填**——其余模式（固定价 / 计时 / 混合）**整节可缺省**（引擎接受缺省，不判违规）；键若已在场则照常校验（留空报 `EMPTY_FIELD`）。内容：营业时段 / 响应时间 / 会议可用性 / 紧急请求是否加价。**★ 源侧缺陷修复**：源 05f 写的这一节在源合同模板里**没有对应节**——本批补为第 6 节；本条条件即源 05f 原文「Only applies to retainer model - skip for other models」 |
+| 6 | `availability` | Availability | **条件节：仅 `pricing_model: 长期聘用` 时必填**——其余模式（固定价 / 计时 / 混合）**整节可缺省**（引擎接受缺省，不判违规）；键若已在场则照常校验（留空报 `EMPTY_FIELD`）。内容：营业时段 / 响应时间 / 会议可用性 / 紧急请求是否加价。 |
 | 7 | `confidentiality` | Confidentiality | 双向保密：保密范围 / 例外（已公开、独立研发、法律要求）/ 期限（几年） |
 | 8 | `not_to_exceed` | Not to Exceed | **按模式条件**：固定价必填上限 / 计时可选 / 长期聘用不适用。含变更单（Change Order）机制——超范围工作须先签变更单 |
 | 9 | `work_initiation` | Work Initiation | 何时可开工（合同签毕 / 特定日期 / 收到首款 / 书面通知 / 其他）+ 防「未授权开工」 |
 | 10 | `terms_and_conditions` | Terms & Conditions | 变更与修改 / 知识产权归属 / 终止（提前几天书面通知、已完工作照付）/ 争议解决方式与地点 / 适用法律与管辖 / 合同语言与优先文本 |
 | 11 | `approval` | Approval | 双方签署位：客户方（签名 / 姓名 / 日期）+ 承接方（签名 / 姓名 / 日期） |
 
-**源模板有三节没有对应构建步**（Why It Matters / Expected Outcomes / Risks and Considerations，模板 §6–§8）——**本批不另设构建步**：这三节的内容就是对齐文档的 `why_it_matters` / `value_we_create` / `cost_of_inaction`，组装成稿时**直接引用、不复制**（单一源；viewer 渲染时由 `alignment` 段供给）。
+**模板有三节没有对应构建步**（Why It Matters / Expected Outcomes / Risks and Considerations）——**不另设构建步**：这三节的内容就是对齐文档的 `why_it_matters` / `value_we_create` / `cost_of_inaction`，组装成稿时**直接引用、不复制**（单一源；viewer 渲染时由 `alignment` 段供给）。
 
 **落盘**：`signoff.external_contract.sections.<键>` 逐节写；`pricing_model` 已在第 2 步落位。
 
@@ -74,9 +74,8 @@ Progress: `[1 分型闸] → 2 业务模式 → 3 对外合同 11 节 → 4 服�
 
 读全并照做本文件 `## 第 4 步 —— 服务协议构建（12 节）`。
 
-## 第 4 步 —— 服务协议构建（源侧无构建步 → 本批补齐）
+## 第 4 步 —— 服务协议构建
 
-**★ 源侧缺陷修复**：源 `wds-0-alignment-signoff` 的 05* 十二步只按**合同**模板建节，`service-agreement.template.md`（277 行 / 12 节）**从未被任何步骤加载**——用户在 04a 选了「服务协议」，走完 05a–05l 拿到的仍是一份项目合同。**本批补一条独立构建步**：同一批引导问句，节名与侧重按服务协议模板走。
 
 逐节构建（**一次一节**，节表固定 12 节）：`project_overview`（同合同第 1 节）→ `scope_of_services`（服务范围与交付物；比合同的「工作范围」更偏**持续服务**而非一次性交付）→ `our_commitment`（我们的承诺）→ `timeline` → `why_it_matters`（从 `alignment.why_it_matters` 取）→ `expected_outcomes`（从 `alignment.value_we_create` 取）→ `service_terms`（**服务协议独有节**：付款条款 + 交付物验收 + 知识产权）→ `risks_and_considerations`（从 `alignment.cost_of_inaction` + `our_commitment` 取）→ `confidentiality` → `not_to_exceed`（条件同合同第 8 节）→ `terms_and_conditions` → `approval`。
 
@@ -100,7 +99,7 @@ Progress: `[1 分型闸] → 2 业务模式 → 3 对外合同 11 节 → 4 服�
 
 ## 第 6 步 —— 定稿落盘（源 05l + 06b）
 
-1. **整份回顾**：逐节念一遍给用户听（源侧的最后一个质量闸：「有没有要改的？」），改完再问一次。
+1. **整份回顾**：逐节念一遍给用户听（「有没有要改的？」），改完再问一次。
 2. **落定稿标记**：`signoff.<被选中的型>.finalized: true` + `signoff.status: 已定稿`。
 3. **推进**：`intake.stage: 核心`。
 4. **说明后续**：双方签署后本段才算真签下（本技能只负责**起草与定稿**，不代签、不代发）；签完 → 进简报核心段。
@@ -137,12 +136,12 @@ signoff:
 
 **② 为何不另立产物文件**——三条，按硬度排序：
 
-1. **同一份对齐结论只该有一个源头**。三型文书都是从同一份 `alignment` 长出来的（合同第 1 节取 `realization` + `recommended_solution`，服务协议取 `why_it_matters`，内部审批取 `value_we_create`）。另立文件 = 同一事实两处落盘，正是本批要修的源侧病（源侧 contract.md / service-agreement.md / signoff.md / pitch.md 四份并立，且输出根有 6 套——census-1 §4）。**单一产物 = 单一源**。
-2. **每阶段一个 YAML 是本线的既定形态**（裁定 2）。三个 WDS 技能各一个 YAML，`diyc.py resolve` 的 `output_dir` 是唯一读写根；本合同段只占 `wds-brief.yaml` 的一个子段，不新增路径、不新增 `outputs` 声明。
+1. **同一份对齐结论只该有一个源头**。三型文书都是从同一份 `alignment` 长出来的（合同第 1 节取 `realization` + `recommended_solution`，服务协议取 `why_it_matters`，内部审批取 `value_we_create`）。另立文件 = 同一事实两处落盘（四份文书并立、输出根 6 套的教训）。**单一产物 = 单一源**。
+2. **每阶段一个 YAML 是本线的既定形态**。三个 WDS 技能各一个 YAML，`diyc.py resolve` 的 `output_dir` 是唯一读写根；本合同段只占 `wds-brief.yaml` 的一个子段，不新增路径、不新增 `outputs` 声明。
 3. **签核段天然只有一型**。一次分型闸只有一个赢家——三段并列但**只填一段**，它不构成「多条记录」，不需要独立文件的承载量。真到文档体量成为问题时（比如合同真的长到几百行），升格动作是「`sections` 值改写成 `path:line` 引用 + 另出 md」，**那时再改也不返工**——因为键名与节表已经冻结。
 
-**③ viewer 标签需求**——`wds-brief` 类型**不在** `viewer.py` 的 `DOC_LABELS`（32 条）内（`迁移计划.md:203` 已登记为 3 条确定缺口之一）。本段的具体需求：
+**③ viewer 标签需求**——`wds-brief` 类型**不在** `viewer.py` 的 `DOC_LABELS`（32 条）内。本段的具体需求：
 
 - **文档标签**：`wds-brief` → 「WDS 战略简报」（页标题与索引卡片，缺口 2 的通用降级只会回落英文 stem）。
 - **键标签**：`signoff` / `external_contract` / `service_agreement` / `internal` / `pricing_model` / `finalized` 需进 `KEY_LABELS`；`intake.stage` / `signoff.type` / `alignment.status` 的三个中文枚举值需进 `VALUE_LABELS`。
-- **枚举着色的一个硬需求**：`signoff.type` / `alignment.status` / `intake.stage` 的值全是中文，但**键名不在 `ENUM_KEYS`** 内（现表只有 `status` / `type` 等裸名）——**不报 `unmapped enum`，也不着色**。若要让它们着色，须把 `signoff.type` 这类复合键名加进 `ENUM_KEYS` 或让 `VALUE_LABELS` 兜底。**本批只登记需求、不改 viewer**（`viewer.py` 属禁改面，改动排 C）。
+- **枚举着色的一个硬需求**：`signoff.type` / `alignment.status` / `intake.stage` 的值全是中文，但**键名不在 `ENUM_KEYS`** 内（现表只有 `status` / `type` 等裸名）——**不报 `unmapped enum`，也不着色**。若要让它们着色，须把 `signoff.type` 这类复合键名加进 `ENUM_KEYS` 或让 `VALUE_LABELS` 兜底。**此处只登记需求、不改 viewer**。

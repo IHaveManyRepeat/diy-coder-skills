@@ -32,4 +32,4 @@ exit 0 是唯一放行；修掉每一条报告的违规并重跑（`FILE_CONFLIC
 
 ## 播报与下一步
 
-本技能到此结束——下一步读 `diy-test-author/SKILL.md`（若已建；未建则以摘要中的路由行交接）。
+本技能到此结束——下一步读 `diy-test-author/SKILL.md`。

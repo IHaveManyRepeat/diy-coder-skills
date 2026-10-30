@@ -16,7 +16,7 @@ DOC_FILES = {
     "sprint": "sprint.yaml",
     "design": "design.yaml",
     "bug-log": "bug-log.yaml",
-    # 裁定 22（C·3a · W9）：WDS 线场景大纲纳入注册表——`diyc_check_docs.py` 的
+    # WDS 线场景大纲纳入注册表——`diyc_check_docs.py` 的
     # architecture `affects` 域要解析 `SC-<nn>` / `SC-<nn>.P<n>`，须经 `Docs` 唯一入口
     # 读（契约 §5 禁旁路读文件）。此前由消费方就地 `setdefault` 补登记（两处真相），
     # 2026-09-28 收口期归位到此处；全库无迭代消费方，加键为纯增量。
@@ -70,7 +70,7 @@ class Docs:
         path = os.path.join(self.output_dir, fname)
         data, code, err = load_yaml_checked(path)
         if err:
-            # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+            # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（重复键≠解析失败）
             label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
             self._errs[name] = "YAML %s: %s" % (label, err)
             self._err_codes[name] = code

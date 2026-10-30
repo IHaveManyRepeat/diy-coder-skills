@@ -21,7 +21,7 @@
                   title/problem/solution/users 非空、每条 decision 有 rationale、distillate
                   交出面在场且五字段非空（problem/target_users/value_props/constraints/
                   open_questions）。exit 0 唯一放行。
-          --final 附加评审证据链（任务书 §12.1 ①ⓒ 六条）：顶层 review_refs 非空（缺失或空 →
+          --final 附加评审证据链（六条）：顶层 review_refs 非空（缺失或空 →
                   EVIDENCE_MISSING）；{output_dir}/editorial-review.yaml 在场（缺席 →
                   MISSING_FILE）；每个 ID 在该台账 reviews[] 内（否则 UNKNOWN_ID）；该记录
                   status: 已定稿（否则 STATUS_MISMATCH）；其 target 归一化后指向本 brief.yaml
@@ -31,10 +31,10 @@
                   兄弟 diy-editorial-review 引擎）→ TOOL_MISSING warning 降级：六条一并转
                   warning、--final 放行（环境问题；技能在场而记录缺失或不合格仍硬拒）。
 
-分工裁定（任务书 §2.2/§2.3）：brief 属新产物类型，不进 diyc.py check 的硬编码类型集；
+分工裁定：brief 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态（同 checkpoint.py / design.py），契约同构：exit 0 唯一放行 /
 --json 单行回执 / violations[{code, where, msg}] + warnings + counts。违规码全部复用
-batch3-contract §3 冻结集（MISSING_FILE UNPARSABLE_YAML EMPTY_FIELD ENUM_INVALID
+套件冻结集（MISSING_FILE UNPARSABLE_YAML EMPTY_FIELD ENUM_INVALID
 DUPLICATE_ID ID_UNSTABLE ASSUMPTION_PRESENT STATUS_MISMATCH EVIDENCE_MISSING
 UNKNOWN_ID），无新增码；降级 warning 码 TOOL_MISSING（兄弟引擎缺席专用，同 readiness 先例）。
 
@@ -42,7 +42,6 @@ UNKNOWN_ID），无新增码；降级 warning 码 TOOL_MISSING（兄弟引擎缺
 （SKILL.md 从 diyc.py resolve 取）。产物与产物 ID 由 diy-product-brief 会话（LLM）创作——
 BD-0nn 由 LLM 铸造、本引擎只校验格式与唯一性；引擎全程只读，不写任何文件。
 """
-# trace: B1 diy-product-brief 验收 #3（前置门禁零产出退出）/#4（ID 链接入）/#12（领域引擎接线）
 import argparse
 import json
 import os

@@ -1,19 +1,17 @@
-# diy-test-review 规则注册表 —— 逐行留档自源技能
-# 源：.claude/skills/bmad-testarch-test-review/steps-c/criteria-registry.md（35 行）
-# 迁移裁定（任务书 §6）：
-#   · 私有库绑定行 M9 / M10 / L9 → disabled: true 留档（纯裁剪，diy 不绑 @seontechnologies/*）
+# diy-test-review 规则注册表
+# 注：
 #   · 有效规则集 = 32 行（disabled 行不得出现在产物 findings 中）
 #   · detect 是机械/语义分界的唯一权威：mechanical 行由 test_review.py `scan` 直接产出，
 #     semantic 行由 LLM 判定（severity 仍由引擎按本表复算，LLM 不填）
 #   · basis 三类门：必查（每文件必查）/ 视情况（文件确实做该行为才查）/
 #     惯例（仓库既有惯例才查，按 class 降档：新现 → 降一档 floor LOW；
 #     缺失 / 未知 → 该行不成立、不得成条目）
-#   · dimensions 照源四个 worker 表的行归属（源表未归属行：H9 / M8 / L2 / L8 → 空映射）
+#   · dimensions 行归属：H9 / M8 / L2 / L8 → 空映射
 #   · bonus_guard = bonus 六类与该表规则行的矛盾复核映射（score 用）
 # 字段：
 #   row            规则 ID（C1-C7 / H1-H9 / M1-M10 / L1-L9）
-#   criterion      规则名（源文逐字）
-#   severity       源表钉死的档位（引擎复算的唯一来源）
+#   criterion      规则名
+#   severity       固定档位（引擎复算的唯一来源）
 #   basis          必查 | 视情况 | 惯例
 #   gate           门的判据（源文 Gate 列；convention 行写惯例键名）
 #   convention_key convention 行的惯例键（对应 scan baseline 的 key；其余行 null）
@@ -21,7 +19,7 @@
 #   dimensions     该行命中的展示维度（可多值，照源 worker 表）
 #   bonus_guard    该行命中导致哪些 bonus 类不得给分
 #   disabled       true = 裁剪留档，不入有效集
-source: bmad-testarch-test-review/steps-c/criteria-registry.md
+source: 本技能内置（规则条目见本文件）
 rules:
   - row: C1
     criterion: Disabled test

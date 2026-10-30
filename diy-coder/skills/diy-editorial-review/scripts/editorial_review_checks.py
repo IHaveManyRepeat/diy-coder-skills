@@ -16,7 +16,7 @@ from editorial_review_text import ASSUMPTION, CATEGORIES, LENGTH_TARGETS, LENSES
 
 # ---------------------------------------------------------------- check：台账校验
 
-# trace: B4 diy-editorial-review check（顶层结构：project 三键 + reviews + revisions）
+# trace: check（顶层结构：project 三键 + reviews + revisions）
 def check_top_level(data, show):
     violations = []
     project = data.get("project")
@@ -37,7 +37,7 @@ def check_top_level(data, show):
                                 "%s 不是列表" % key))
     return violations
 
-# trace: B4 diy-editorial-review check（reviews[].id 形态 ER-### 与全局唯一）
+# trace: check（reviews[].id 形态 ER-### 与全局唯一）
 def check_review_id(rid, where, seen):
     if not nonempty(rid):
         return [v("EMPTY_FIELD", where, "id 缺失（须为 ER-###）")]
@@ -49,7 +49,7 @@ def check_review_id(rid, where, seen):
     seen.add(text)
     return []
 
-# trace: B4 diy-editorial-review check（target 基准：project-root 相对 + 正斜杠 + 无 `path:` 前缀）
+# trace: check（target 基准：project-root 相对 + 正斜杠 + 无 `path:` 前缀）
 def target_form_error(value):
     text = str(value)
     if os.path.isabs(text) or re.match(r"^[A-Za-z]:[\\/]", text):
@@ -60,7 +60,7 @@ def target_form_error(value):
         return "target 不得带 `path:` 前缀（就是路径本身）：%s" % text
     return None
 
-# trace: B4 diy-editorial-review check（序号取值：YAML 1.1 的裸键 `no` 被 PyYAML 解析成布尔 False，两形同读）
+# trace: check（序号取值：YAML 1.1 的裸键 `no` 被 PyYAML 解析成布尔 False，两形同读）
 def seq_no(finding):
     if not isinstance(finding, dict):
         return None
@@ -68,7 +68,7 @@ def seq_no(finding):
         return finding["no"]
     return finding.get(False)
 
-# trace: B4 diy-editorial-review check（findings 记录内序号：自 1 起连续、不重号、不跳号）
+# trace: check（findings 记录内序号：自 1 起连续、不重号、不跳号）
 def check_sequence(findings, where, label):
     violations = []
     seen = []
@@ -96,7 +96,7 @@ def check_sequence(findings, where, label):
                             % (label, "、".join(str(n) for n in missing))))
     return violations
 
-# trace: B4 diy-editorial-review check（structure.findings[]：六分类 / 章节名 / 理由 / 影响词数）
+# trace: check（structure.findings[]：六分类 / 章节名 / 理由 / 影响词数）
 def check_structure_findings(where, findings):
     violations = check_sequence(findings, where, "structure.findings")
     for i, finding in enumerate(findings):
@@ -126,7 +126,7 @@ def check_structure_findings(where, findings):
                                 "%s 的 impact_words 须为整数，实为 %r" % (label, impact)))
     return violations
 
-# trace: B4 diy-editorial-review check（prose.findings[]：原文 / 修订 / 说明 / 位置）
+# trace: check（prose.findings[]：原文 / 修订 / 说明 / 位置）
 def check_prose_findings(where, findings):
     violations = check_sequence(findings, where, "prose.findings")
     for i, finding in enumerate(findings):
@@ -150,7 +150,7 @@ def check_prose_findings(where, findings):
                                         "%s 的 locations[%d] 为空" % (label, j)))
     return violations
 
-# trace: B4 diy-editorial-review check（structure 槽：五模型 / 削减估计 / 达标判断 / --final 对账）
+# trace: check（structure 槽：五模型 / 削减估计 / 达标判断 / --final 对账）
 def check_structure_slot(slot, where, final):
     violations = []
     model = slot.get("model")
@@ -192,7 +192,7 @@ def check_structure_slot(slot, where, final):
                             "不符（PRESERVE 的负值参与求和）" % (reduction, sum(impacts))))
     return violations
 
-# trace: B4 diy-editorial-review check（lenses 与两槽一致性：声明与在场双向对账 → SET_MISMATCH）
+# trace: check（lenses 与两槽一致性：声明与在场双向对账 → SET_MISMATCH）
 def check_lens_slots(review, where):
     violations = []
     raw = review.get("lenses")
@@ -222,7 +222,7 @@ def check_lens_slots(review, where):
                                 % (slot, lens)))
     return violations, lenses
 
-# trace: B4 diy-editorial-review check（单条 review 全量校验 + --final 义务）
+# trace: check（单条 review 全量校验 + --final 义务）
 def check_review(index, review, show, root, final, seen_ids):
     where = "%s.reviews[%d]" % (show, index)
     if not isinstance(review, dict):
@@ -291,7 +291,7 @@ def check_review(index, review, show, root, final, seen_ids):
                                 "--final 要求零 [假设]；未决项落 open_questions，不用假设标记"))
     return violations
 
-# trace: B4 diy-editorial-review check（回执计数：review / 两透镜 findings / 分类分布）
+# trace: check（回执计数：review / 两透镜 findings / 分类分布）
 def review_counts(reviews):
     structure = prose = 0
     by_category = {}

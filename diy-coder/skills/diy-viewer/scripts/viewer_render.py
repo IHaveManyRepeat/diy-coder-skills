@@ -39,7 +39,7 @@ def value_html(k: str, v) -> str:
 
 
 def badge(key: str, v) -> str:
-    # trace: B3 值感知——值不在词汇表（决策自由文本/route URL 等）→ 回落 cell() 纯文本；
+    # trace: 值感知——值不在词汇表（决策自由文本/route URL 等）→ 回落 cell() 纯文本；
     # None 与非标量同样回落 cell()（「—」/降级），不再输出字面 None
     if v is not None and not isinstance(v, (dict, list)):
         s = str(v).strip()
@@ -66,7 +66,7 @@ def _copy_file_ref() -> str:
 
 
 def copy_button(rid: str) -> str:
-    # trace: Q-003——表格 ID 旁复制按钮，单击复制「文件 + 条目 ID」定位提示词（文案 A）
+    # 表格 ID 旁复制按钮，单击复制「文件 + 条目 ID」定位提示词（文案 A）
     return (f'<button class="copy-id" type="button" data-file="{esc(_copy_file_ref())}" '
             f'data-id="{esc(rid)}" title="复制定位提示词">复制</button>')
 
@@ -105,7 +105,7 @@ def render_dict_fields(d: dict) -> str:
             return ref_cell(str(v))
         return value_html(k, v)
 
-    # trace: 批 2a ⑥甲（用户裁补）——行头键原文本身就是值词且渲染不换词（如 by_source 的
+    # 行头键原文本身就是值词且渲染不换词（如 by_source 的
     # 卡点/穷举/交叉认证）→ 中性徽章；英文键名（type/priority 值词表也收英文）键标签异文，
     # 不符合同文条件，维持纯文本表头
     def head(k):
@@ -149,7 +149,7 @@ def render_detail(node) -> str:
 
 def build_templates() -> str:
     """全量 ID 详情模板：点击编号链接时填充右侧面板。"""
-    # trace: B1 详情模板按节点归属文档切换标签上下文（跨文档打开面板时 type 仍按源文档语义）
+    # trace: 详情模板按节点归属文档切换标签上下文（跨文档打开面板时 type 仍按源文档语义）
     # （状态定义在 viewer_refs 模块，跨件写/读走模块属性形态）
     parts = []
     for i, h in _refs.ID_INDEX.items():
@@ -162,11 +162,11 @@ def build_templates() -> str:
 
 
 def render_value(key: str, v, depth: int) -> str:
-    # trace: C·2——空修订史不渲染：revisions 是全产物通用段，新建产物常态为空列表，
+    # 空修订史不渲染：revisions 是全产物通用段，新建产物常态为空列表，
     # 逐页留一块「展开修订历史（0 项）」纯属噪音（有记录才折叠展示）
     if key == "revisions" and isinstance(v, list) and not v:
         return ""
-    # trace: Q-111——retired 键在场即已裁废弃：活跃面照常、废料收折叠区（ret 侧 key 置空防二次标题/递归）
+    # retired 键在场即已裁废弃：活跃面照常、废料收折叠区（ret 侧 key 置空防二次标题/递归）
     if isinstance(v, list) and any(isinstance(x, dict) and "retired" in x for x in v):
         act, ret = _refs.split_retired(v)
         body = _render_value_raw(key, act, depth) if act else ""
@@ -226,7 +226,7 @@ def _render_value_raw(key: str, v, depth: int) -> str:
                 cards.append(f'<div class="card"{anchor}>{render_value("", x, depth + 1)}</div>')
             return title + "".join(cards)
         # trace: 对抗审查修复——列表标量命中值词表（signals: icon/motion 等）时中文化，未命中原样；
-        # 批 2a ⑥甲（用户裁补）——枚举键（如 spec-scan source）的列表元素逐个出中性徽章，
+        # 枚举键（如 spec-scan source）的列表元素逐个出中性徽章，
         # 与标量 badge 路径同规则：值命中词表 → 徽章，未命中 → 维持中文化纯文本
         lis = []
         for x in v:

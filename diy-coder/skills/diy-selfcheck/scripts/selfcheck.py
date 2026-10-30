@@ -17,7 +17,7 @@ check 记一次自检（SC-### 号段同文件内唯一）。引擎只做机械�
                findings[] 元素：n 必填（disposals 对账键）、source 为非空数组且每元素
                ∈ 预演|引用核对|对抗（越界 ENUM_INVALID）、layer 在场时 ∈ 盲猎|边界猎手|
                验收审计（ENUM_INVALID）。
-             --final 附加六义务（底单字面；**status 门不加**——已定稿不是终门检查对象）——
+             --final 附加六义务（**status 门不加**——已定稿不是终门检查对象）——
                ① b_review 非空（B 部分必出）→ DUTY_B_REVIEW_MISSING
                ② summary.ref_checked 与 summary.ref_false 在场（在场即可，不核数值关系）
                   → DUTY_SUMMARY_REF_MISSING
@@ -54,7 +54,7 @@ from diyc_lib import display_path, emit_via, load_yaml_safe, v, violation_line  
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from selfcheck_checks import ASSUMPTION, check_final_duties, check_one, check_top_level, doc_counts, load_spec_ids, walk_strings  # noqa: E402
 
-# 违规码冻结集（自建 12 码；测试冻结，增删须同批改测试）
+# 违规码冻结集（自建 12 码；测试冻结，增删须同步改测试）
 VIOLATION_CODES = ("EMPTY_FIELD", "ENUM_INVALID", "ID_FMT", "ID_DUP",
                    "MISSING_FILE", "UNPARSABLE_YAML",
                    "DUTY_B_REVIEW_MISSING", "DUTY_SUMMARY_REF_MISSING",

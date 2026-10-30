@@ -30,7 +30,7 @@ LEGAL_EDGES = frozenset({
 # 页级门的落点边（不重跑 check）：→ 待验收 / 已批准 须先满足该页的 validate 判据
 GATED_TARGETS = ("待验收", "已批准")
 
-# ---------------------------------------------------------------- transition（裁定 6/14）
+# ---------------------------------------------------------------- transition
 
 def write_prev_snapshot(path):
     """重写既有产物前落 .prev 快照（逐字节复制 + 同目录 tmp + os.replace）。"""
@@ -169,11 +169,11 @@ def cmd_transition(args):  # trace: S-14 AC-14.1 页状态迁移写回（9 条�
     new_doc = {**doc, "pages": [new_page if p is page else p for p in pages],
                "project": {**project, "updated": stamp}}
     if dst == "已移除" or (src, dst) == ("已批准", "结构稿中"):
-        # 破坏性边才追加 revisions（裁定 14）：纯推进不记
+        # 破坏性边才追加 revisions：纯推进不记
         new_doc["revisions"] = list(doc.get("revisions") or []) + [
             {"date": today(), "change": args.page, "reason": reason or ("%s → %s" % (src, dst))}]
     warnings = dangling_design_refs(path, args.page) if dst == "已移除" else []
-    write_prev_snapshot(path)  # 重写前落 .prev 快照（裁定 15）
+    write_prev_snapshot(path)  # 重写前落 .prev 快照
     save_yaml_atomic(path, new_doc)
     result = receipt("transition", True, file=rel, page=args.page, violations=[], warnings=warnings,
                      counts={"pages": len(new_doc["pages"]),

@@ -250,7 +250,6 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn(axis, self.raw, "可测性维度缺轴：%s" % axis)
         for probe in ("可播种", "可 mock", "追踪"):
             self.assertIn(probe, self.raw, "可测性维度缺判据：%s" % probe)
-        self.assertIn("bmad-testarch-test-design", self.raw, "未点名维度来源（系统级模式）")
         self.assertIn("整维沉默", self.raw, "缺「沉默即 finding」的判据")
         self.assertIn("不新增产物键", self.raw, "两维未守 §2.3「不新建产物键」")
 

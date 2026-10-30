@@ -13,14 +13,14 @@
          或新稿仍留该 id 且标 retired）；`--final` 附加：`status: 已定稿` + 零 `[假设]`
          + `verdict` 两段非空（自校验义务已履行）。exit 0 唯一放行。
 
-分工裁定（任务书 §2.3）：spec-kernel 是新产物类型，不进 diyc.py check 的硬编码类型集；
+分工裁定：spec-kernel 是新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态，契约同构：exit 0 唯一放行 / `--json` 单行回执 /
 `violations[{code, where, msg}]` + `counts`；写回命令回执另含 `updated`。违规码全部复用
-batch3-contract §3 冻结集（**未新增码**）：`MISSING_FILE` / `UNPARSABLE_YAML` /
+套件冻结集（**未新增码**）：`MISSING_FILE` / `UNPARSABLE_YAML` /
 `DUPLICATE_ID` / `UNKNOWN_ID` / `ENUM_INVALID` / `EMPTY_FIELD` / `ASSUMPTION_PRESENT` /
 `STATUS_MISMATCH` / `ID_UNSTABLE`。
 
-事实裁定（B4 建议档归 W 项，回报第 5 项）：
+事实裁定：
   · #42「五字段非空」的判据 = `why` / `capabilities`（≥1 条且 intent + success 双非空）/
     `non_goals`（≥1 条，Spec Law 4）/ `success_signal` 逐字非空；`constraints` **键在场
     且为列表**，空列表放行——Spec Law 3 是品质判据（凑一条不淘汰设计的约束 = decoration，
@@ -37,9 +37,8 @@ batch3-contract §3 冻结集（**未新增码**）：`MISSING_FILE` / `UNPARSAB
 禁手写实例解析：引擎不做 `--instance` / 白名单 / 目录推导；`--output-dir` 必填（每个子命令
 各自接收），由调用方传入（SKILL.md 从 `diyc.py resolve` 取）。内容面（五字段 / CAP /
 artifacts / verdict）由 LLM 直编 YAML；引擎只做骨架与校验——**`CAP-N` 由 LLM 铸造**、
-引擎校验格式与唯一性（任务书 §2.4 铸造权分派）。
+引擎校验格式与唯一性。
 """
-# trace: B4 diy-spec 验收 #2（产物 schema + SK-### 稳定前缀）/#3（门禁零产出）/#4（CAP-N + retired + --previous）/12b（终门指向自带引擎）
 import argparse
 import os
 import sys
@@ -51,7 +50,6 @@ from diyc_lib import display_path, emit_via, load_yaml_safe, nonempty, now, proj
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from spec_kernel_checks import SK_RE, SPEC_FILE, check_previous, check_record  # noqa: E402
 
-# trace: B4 diy-spec 验收 #2/#3（SK-### 由引擎铸造；同 slug 拒绝 = 零写入门禁）
 def cmd_new(args):
     root = os.path.abspath(args.project_root)
     out = args.output_dir

@@ -7,13 +7,13 @@ Progress: `[1 质检四维] → [2 五维校验并入] → [3 交接与设计意
 
 你是**收尾的主持人**（源 step-07 / step-08 / step-09 + `steps-v` 五步）。前两步是本技能的**质量门槛**，第三步把交接契约拍定，第四步才是定稿与终门。
 
-**本段纪律**：① **不许橡皮图章**（源 `Rubber-stamping without thorough checking` 列为失败面）——逐条过、不合格回对应步骤文件修；② **本技能只设 `design_status` 初值**，设计期的推进归 C·3 的 `diy-design`；③ **终门唯一放行 = `check --final` 的 `exit 0`**。
+**本段纪律**：① **不许橡皮图章**——逐条过、不合格回对应步骤文件修；② **本技能只设 `design_status` 初值**，设计期的推进归 `diy-design`；③ **终门唯一放行 = `check --final` 的 `exit 0`**。
 
 ## 第 1 步 —— 质检四维（源 step-07 四张评分表）
 
-**先说清为什么**：讲清「为什么要自己给自己打分」——源侧这一步的价值是**在交接前把已知的软处找出来**，别等下游卡住才发现。用你自己的话讲。
+**先说清为什么**：讲清「为什么要自己给自己打分」——这一步的价值是**在交接前把已知的软处找出来**，别等下游卡住才发现。用你自己的话讲。
 
-**逐场景打分**（四张表与源 step-07 同构；**阈值取源侧最小值**，不合格回去修，修完重跑本节）：
+**逐场景打分**（四张评分表；**阈值取最小值**，不合格回去修，修完重跑本节）：
 
 **一、完整性（7 项；最低 6/7）**
 - [ ] `transaction` 以用户目的陈述，不是功能名
@@ -33,7 +33,7 @@ Progress: `[1 质检四维] → [2 五维校验并入] → [3 交接与设计意
 - [ ] 入口现实（不是「用户打开应用」）
 - [ ] 业务目标连接显式（不是默认的）
 
-**三、避坑（7 项；**7/7 全避**——本维度零容忍；裁定 6 取 checklist 权威版）**
+**三、避坑（7 项；**7/7 全避**——本维度零容忍）**
 - [ ] 阳光路径里没有边界情形
 - [ ] 命名对人（目标优先），不是对功能
 - [ ] 心理状态在场（不只是动作）
@@ -48,7 +48,6 @@ Progress: `[1 质检四维] → [2 五维校验并入] → [3 交接与设计意
 - [ ] 一条场景一件事（不塞第二个 job）
 - [ ] 驱动因素显式挂上（盼与怕都点名）
 
-〔**源侧缺陷修复**〕源 step-07 正文的「避坑」只列 6 条、`6/6`，与 `data/quality-checklist.md` 的 7 条、`7/7` 互斥（census-2 B2）。本批取 **checklist 的权威版 7 项**，阈值 `7/7`（裁定 6）。
 
 **落盘**：不合格项**回对应文件修**（页的问题回 04-outline，链的问题回 02-strategy），改完重跑本步与 `check`。
 
@@ -57,9 +56,9 @@ Progress: `[1 质检四维] → [2 五维校验并入] → [3 交接与设计意
 
 读全并照做本文件 `## 第 2 步 —— 五维校验并入`。
 
-## 第 2 步 —— 五维校验并入（源 `steps-v` 五步；**裁定 15**）
+## 第 2 步 —— 五维校验并入
 
-〔**裁定 15 的落地**〕源侧带一条独立的校验子流程（`workflow-validate.md` + `steps-v/` 五步 / 751 行）并产一份 `validation-report.md`。**diy 侧裁掉独立子流程与报告产物**（终门 = `check --final`，复检 = 重跑 `check`；另立 md 报告 = 双实现）——**五个校验维度与阈值全部保留下表**，逐条在会话里过。
+〔**校验不另立子流程与报告**〕终门 = `check --final`，复检 = 重跑 `check`；另立 md 报告 = 双实现——**五个校验维度与阈值全部保留下表**，逐条在会话里过。
 
 **组 A 场景覆盖（源 v-01，3 项）**
 - [ ] 上游每条业务目标至少被一条场景承接
@@ -115,11 +114,11 @@ Progress: `[1 质检四维] → [2 五维校验并入] → [3 交接与设计意
 
 ## 第 3 步 —— 交接与设计意图拍定（源 step-08 + step-09）
 
-### 3.1 设计意图逐场景拍定（源 step-09 第 2 指令；**裁定 17 的交接契约**）
+### 3.1 设计意图逐场景拍定
 
 逐条问用户「这条场景怎么进设计」，五选一写进 `scenarios[].design_intent`：
 
-| 值 | 含义（源侧原话） |
+| 值 | 含义（原话） |
 | --- | --- |
 | `K` | Sketch——用户自己画，智能体后面解读 |
 | `C` | Discuss——逐页做创意对话 |
@@ -127,17 +126,17 @@ Progress: `[1 质检四维] → [2 五维校验并入] → [3 交接与设计意
 | `D` | Dream Up——智能体整条做出来，用户看结果 |
 | `L` | Later——到设计阶段再定 |
 
-同时把 `design_status` 落成初值 `not-started`（方向已定、还没开工）。**这两个键 + `trigger_map_context` 就是交给 C·3 `diy-design` 的全部锚点**（本技能只设初值，推进归设计线）。
+同时把 `design_status` 落成初值 `not-started`（方向已定、还没开工）。**这两个键 + `trigger_map_context` 就是交给下游设计技能的全部锚点**（本技能只设初值，推进归设计线）。
 
 ### 3.2 设计日志的 diy 口径（源 step-08；**单一源纪律**）
 
-〔**源侧缺陷修复**〕源 step-08 要把进度与决策**追加**进 `_progress/00-design-log.md`（源 `FORBIDDEN to overwrite` / 逐条列举、禁 `etc.`）。diy 侧**不建这份散 md**：**进度 = 记录级 `status` + `project.updated`；决策与用户改动 = `revisions`**——写 `revisions` 时**只追加、不动既有条目**，`change` 点名 `SC-<nn>` 而不复制内容，`reason` 写为什么。源侧「逐条列举、不许 `etc.`」的纪律由**记录集本身**承接（每条场景各占一条记录，不可能被摘要吞掉）。
+**进度 = 记录级 `status` + `project.updated`；决策与用户改动 = `revisions`**——写 `revisions` 时**只追加、不动既有条目**，`change` 点名 `SC-<nn>` 而不复制内容，`reason` 写为什么。
 
 ### 3.3 交接摘要（源 step-09 第 1、3 指令）
 
 呈出**一页交接包**（会话内，不落盘）：① 完成摘要（项目名 / 场景数 / 逐条摘要表 / 覆盖率 / 质检结论）；② 各场景的 `design_intent` 与本线止点说明：
 
-> **WDS 线止于本步。** 下游设计（源侧 Phase 4）在 diy 侧是 **`diy-design` 的 WDS 线分支**——它接手时吃的是主线 `prd.yaml` 与页面规格**两路输入**，本产物定稿（`project.status: 已定稿`）后即由它消费（页 ID `SC-<nn>.P<n>`、`design_intent`、`trigger_map_context` 三键是交接锚）。
+> **WDS 线止于本步。** 下游设计在 diy 侧是 **`diy-design` 的 WDS 线分支**——它接手时吃的是主线 `prd.yaml` 与页面规格**两路输入**，本产物定稿（`project.status: 已定稿`）后即由它消费（页 ID `SC-<nn>.P<n>`、`design_intent`、`trigger_map_context` 三键是交接锚）。
 
 ③ 未决项（写进 `revisions`，一条一句；无则写「无」）。
 
@@ -159,15 +158,15 @@ Progress: `[1 质检四维] → [2 五维校验并入] → [3 交接与设计意
 python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`--final` 核：`project.status: 已定稿` + 全部记录 `status: 已大纲` + 各记录键表齐备（含裁定 17 的三键）+ 覆盖 100% + 零 `[假设]` + `design_status` 为初值。**按回执 `where` 就地修、重跑，不得跳过**；渲染与收尾都等 `exit 0`。
+`--final` 核：`project.status: 已定稿` + 全部记录 `status: 已大纲` + 各记录键表齐备（含交接契约三键）+ 覆盖 100% + 零 `[假设]` + `design_status` 为初值。**按回执 `where` 就地修、重跑，不得跳过**；渲染与收尾都等 `exit 0`。
 
 ### 4.3 渲染（静默旁路）
 
 `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
-### 4.4 源 `workflow.xml` 的 32 闸抽取清单（**裁定 14 K7**：先抽清单，再裁文件）
+### 4.4 32 闸抽取清单
 
-源 `workflow.xml`（450 行）与 9 个 md 步骤**双写**且口径已分叉（census-2 C6/B2/B6）→ **文件裁**，但 32 个 `<gate>` 是质量门槛素材，逐条抽取并落到下表位置（**本清单即其唯一落点**）：
+32 个 `<gate>` 是质量门槛素材，逐条抽取并落到下表位置（**本清单即其唯一落点**）：
 
 | # | 源闸（`type`） | 落点 |
 | --- | --- | --- |
@@ -184,16 +183,16 @@ python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py
 | 11 | `coverage-check`（all-pages-assigned-no-repetition） | 引擎覆盖矩阵 `repeated` + 05-overview 四项核对 |
 | 12 | `user-confirms`（场景计划） | **用户关卡 2**（`03-plan.md` 第 1 步呈批） |
 | 13 | `quality-gates-pass`（all-7） | `04-outline.md` 第 2 步的 7 道闸 |
-| 14 | `file-created`（场景文件） | **裁**（裁定 12）→ 改为「`scenarios[]` 记录落盘」（04-outline 第 3 步） |
-| 15 | `page-folder-created` | **裁**（裁定 12）→ 改为「`pages[]` 记录落盘」（04-outline 第 3 步 3.2） |
+| 14 | `file-created`（场景文件） | **裁** → 改为「`scenarios[]` 记录落盘」（04-outline 第 3 步） |
+| 15 | `page-folder-created` | **裁** → 改为「`pages[]` 记录落盘」（04-outline 第 3 步 3.2） |
 | 16 | `all-scenarios-complete` | 引擎 `--final`：全部记录 `status: 已大纲` |
-| 17 | `file-created`（00-ux-scenarios.md） | **裁**（裁定 12/15）→ 改为会话内索引呈出（05-overview 第 1 步） |
+| 17 | `file-created`（00-ux-scenarios.md） | **裁** → 改为会话内索引呈出（05-overview 第 1 步） |
 | 18 | `links-verified` | **裁**（无文件链接）→ 改为**父子引用完整性**（引擎核 `SC-<nn>` ↔ `SC-<nn>.P<n>`） |
 | 19 | `coverage-matrix-complete` | 引擎覆盖矩阵（`check` / `show` 的 `coverage.matrix`） |
 | 20 | `user-confirms`（总览） | 六拍检查点 |
 | 21 | `quality-threshold`（完整性 6/7） | 本文件第 1 步「一、完整性」 |
 | 22 | `quality-threshold`（质量 5/7） | 本文件第 1 步「二、质量」 |
-| 23 | `quality-threshold`（避坑 7/7） | 本文件第 1 步「三、避坑」（裁定 6 权威版） |
+| 23 | `quality-threshold`（避坑 7/7） | 本文件第 1 步「三、避坑」 |
 | 24 | `quality-threshold`（实践 2/4） | 本文件第 1 步「四、最佳实践」 |
 | 25 | `user-confirms`（质检摘要） | 六拍检查点 |
 | 26 | `file-read-before-write`（设计日志） | **裁**（散 md 已裁）→ 改为「写 `revisions` 前先回读记录」 |

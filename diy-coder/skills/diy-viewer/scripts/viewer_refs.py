@@ -12,25 +12,25 @@ from viewer_labels import ENUM_KEYS, FREE_TEXT_FIELDS, KEY_LABELS
 ID_RE = re.compile(r"\b[A-Z]{1,4}-\d+(?:\.\d+)*\b")
 ID_FULL_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
 # trace: S-15 AC-15.1 design_ref（AC 绑定 design.yaml 页面引用）入引用链，悬空即标红
-# trace: Q-111——replaced_by（TC.retired 替代用例 ID）入引用链：悬空即标红（UNKNOWN_ID 对位可见）
+# replaced_by（TC.retired 替代用例 ID）入引用链：悬空即标红（UNKNOWN_ID 对位可见）
 REF_KEYS = {"affects", "refs", "depends_on", "feature_refs", "story", "test_refs", "ac", "epic", "x-fr", "design_ref", "replaced_by", "cm_refs",
-            # trace: Q-112（三级稳定 ID）——brainstorm 五键由 no/索引改引 BI-###：命中即链到
+            # brainstorm 五键由 no/索引改引 BI-###：命中即链到
             # 想法卡片、悬空即标红（UNKNOWN_ID 对位可见）。键仅 brainstorm 在用，全局加不误伤；
             # 迁移期整数引用不经 is_id_string / all-str 守卫，仍走纯文本路径
             "ideas", "idea", "top", "quick_wins", "breakthroughs"}
 # 资产路径字段（doc, key）：diy-wds-assets 的 assets[].path 是 **output_dir 相对**路径
-# （引擎核 `path.startswith("assets/<活动>/")`），渲染成相对链接（裁定 11/12）。
+# （引擎核 `path.startswith("assets/<活动>/")`），渲染成相对链接。
 # 同键 path 在 openapi 是 API 路由（/users）、在 spec-scan 是扫描目标——一律不从全局映射
 ASSET_PATH_FIELDS = {("wds-assets", "path")}
 ASSET_PATH_RE = re.compile(r"^assets/[A-Za-z0-9][A-Za-z0-9._/-]*$")
-# trace: C·12 W2（裁定 C12-2 ②）——design 族两键装 output_dir 相对文件路径（结构稿 HTML /
+# design 族两键装 output_dir 相对文件路径（结构稿 HTML /
 # 实现文件）。与 wds-assets 的 assets/<活动>/ 前缀不同，路径根不定型（prototypes/、src/），
 # ASSET_PATH_RE 罩不住，故独立判定（判据见 doc_path_value）：文件确在 output_dir 下 → 直链；
 # 其余纯文本。两分支一律跳过 ID linkify——cell() → linkify() 的 ID_RE 会在路径中段命中
-# 页 ID 形态（P-1）把 prototypes/P-1.html 腰斩成指向页锚的错链（c3a-fidelity §7.3 第 2 条）
+# 页 ID 形态（P-1）把 prototypes/P-1.html 腰斩成指向页锚的错链
 DOC_PATH_FIELDS = {("design", "prototype"), ("design", "implementation")}
 # 过程性字段默认折叠（FR-4.1 可读性，D-10 后白话化纪律）：结论常驻、过程按需展开。
-# revisions 依「修订历史留痕」裁定（迁移计划 §已定补充，2026-09-13 用户拍板）：
+# revisions 依「修订历史留痕」：
 # 「viewer 渲染为默认折叠的修订历史卡片（沿用 detail 折叠做法）」
 FOLDED_KEYS = {"evidence", "findings", "revisions"}
 FOLDED_NOTE_LEN = 80
@@ -46,15 +46,15 @@ ORPHAN_IDS: set = set()
 # 当前渲染文档名（B1 文档级标签覆盖的查表上下文）；模板按节点归属文档逐条切换
 _RENDER_DOC = ""
 _UNMAPPED_SEEN: set = set()
-# 资产相对链接前缀（裁定 11）：页面落在 {output_dir}/<view_dir>/，故默认视图目录（一层）即
+# 资产相对链接前缀：页面落在 {output_dir}/<view_dir>/，故默认视图目录（一层）即
 # `../`；main 按 view_dir 实际深度覆盖，view_dir 为空（页面与产物同目录）时为 ``
 _ASSET_REL_PREFIX = "../"
-# 当前解析根 output_dir（C·12 W2）：doc_path_value 的文件存在性判定基准，main 赋值
+# 当前解析根 output_dir：doc_path_value 的文件存在性判定基准，main 赋值
 _OUT_DIR: Path = Path()
 
 
 def _diag_unmapped(value) -> None:
-    # trace: B1/B3 未映射枚举诊断（只打 stderr，不改输出）：契约漂移一行可见
+    # trace: 未映射枚举诊断（只打 stderr，不改输出）：契约漂移一行可见
     s = str(value)
     if not s or s in _UNMAPPED_SEEN:
         return
@@ -63,17 +63,17 @@ def _diag_unmapped(value) -> None:
 
 
 def is_enum_key(k: str) -> bool:
-    # trace: B1/B3 枚举判定带文档上下文：自由文本字段不做徽章尝试、不报漂移诊断
+    # trace: 枚举判定带文档上下文：自由文本字段不做徽章尝试、不报漂移诊断
     return k in ENUM_KEYS and (_RENDER_DOC, k) not in FREE_TEXT_FIELDS
 
 
-# trace: Q-111——retired 键族标签补充（viewer_labels.py 不在本批 scope；全局表缺键在此收口，
+# retired 键族标签补充（全局表缺键在此收口，
 # 零裸键纪律：replaced_by 直出英文＝显示缺陷）。retired/reason 全局表已收（已退休/原因），复用。
 KEY_LABELS_EXT = {"replaced_by": "替代用例"}
 
 
 def key_label(k: str) -> str:
-    # trace: B1 文档级覆盖优先（bug-log type→小类），再回落全局表（type→类型）
+    # trace: 文档级覆盖优先（bug-log type→小类），再回落全局表（type→类型）
     label = DOC_KEY_LABELS.get(_RENDER_DOC, {}).get(k)
     if label is None:
         label = KEY_LABELS.get(k)
@@ -87,14 +87,14 @@ def key_label(k: str) -> str:
 
 
 def split_retired(items: list):
-    """Q-111：列表条目按 retired 键在场拆分（在场＝已裁废弃）——(活跃, 废弃)。"""
+    """列表条目按 retired 键在场拆分（在场＝已裁废弃）——(活跃, 废弃)。"""
     active = [x for x in items if not (isinstance(x, dict) and "retired" in x)]
     retired = [x for x in items if isinstance(x, dict) and "retired" in x]
     return active, retired
 
 
 def folded_section(inner: str, n: int) -> str:
-    """Q-111：废弃条目折叠区（默认收起；沿用 detail 折叠样式，标签走 key_label）。"""
+    """废弃条目折叠区（默认收起；沿用 detail 折叠样式，标签走 key_label）。"""
     label = key_label("retired")
     return (f'<details class="detail"><summary>展开{gloss(esc(label))}（{n} 项）</summary>'
             f'<div class="d-body">{inner}</div></details>')
@@ -191,7 +191,7 @@ def dangling_ref(i: str) -> str:
 
 
 def resolve_src_text(src, docs_by_name: dict):
-    """批 5a：按 src 锚取母体文本——ID 走 ID_INDEX.node 的可读文本；结构键走点路径。
+    """按 src 锚取母体文本——ID 走 ID_INDEX.node 的可读文本；结构键走点路径。
 
     返回 (text, err)：text 为找到的字符串（可空串）；err 非空表示悬空/不可解析。
     docs_by_name: {doc_name: data} 由 viewer_pages 传入（点路径解析用）。
@@ -287,8 +287,8 @@ def ref_cell(i: str) -> str:
 
 def render_ref_list(items: list) -> str:
     """ID 引用列表：已登记 ID 出链接；未登记但形如 ID 的标红；其余回落纯文本。"""
-    # trace: C·2 假悬空修复（V 独立验证后修订）——判序**先查索引，再判形态**：
-    # ① 索引命中即链——覆盖 spec-scan 的 `SS-001-01` 这类三段短横 ID（is_id_string 的
+    # 判序**先查索引，再判形态**：
+    # ① 索引命中即链——覆盖 `SS-001-01` 这类三段短横 ID（is_id_string 的
     #    `[A-Z]{1,4}-\\d+` 不认它，若先判形态会把它降级成文本、再被 linkify 半匹配成
     #    指向 `SS-001` 的错链）
     # ② 未命中且形如 ID → 悬空标红，与 collect_dangling 的守卫对称
@@ -325,12 +325,12 @@ def linkify(text: str) -> str:
 
 
 def is_asset_path(k: str) -> bool:
-    # trace: C·11 W3（§5.2）——资产路径按 (文档, 键) 定位，不做全局映射
+    # 资产路径按 (文档, 键) 定位，不做全局映射
     return (_RENDER_DOC, k) in ASSET_PATH_FIELDS
 
 
 def asset_link(v) -> str:
-    """资产路径 → 相对链接（裁定 11：`../` + output_dir 相对路径）。
+    """资产路径 → 相对链接（`../` + output_dir 相对路径）。
     只在值确为 `assets/` 下的相对路径时出链接：绝对路径、越级路径与自由文本一律回落纯文本。"""
     s = str(v).strip()
     if ASSET_PATH_RE.match(s) and ".." not in s:
@@ -339,7 +339,7 @@ def asset_link(v) -> str:
 
 
 def is_doc_path(k: str) -> bool:
-    # trace: C·12 W2（裁定 C12-2 ②）——design 族路径键按 (文档, 键) 定位，同 ASSET_PATH_FIELDS
+    # design 族路径键按 (文档, 键) 定位，同 ASSET_PATH_FIELDS
     return (_RENDER_DOC, k) in DOC_PATH_FIELDS
 
 

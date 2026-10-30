@@ -16,8 +16,7 @@
              并报累计 run 目录数。**终门 = check --run-dir D**——run 目录追加式，无「定稿态」，
              故本引擎不做 `--final` 旗标。
   mlog       memlog 三子命令（init / append / set-complete）：原子追加、只追加、每次操作
-             恒发一行 JSON ack `{ok, file, n, appended}`（与 W1 的 mlog 逐字同构——
-             `--dir D` + `--file NAME` 由调用方显式给，不靠 `--dir` 反推文件名）。
+             恒发一行 JSON ack `{ok, file, n, appended}`（`--dir D` + `--file NAME` 由调用方显式给，不靠 `--dir` 反推文件名）。
 
 纪律（本引擎实现的硬规则）：
   · **隔离契约**：子进程环境从零构建、绝不继承——只有 `PATH` + 全新空 `HOME`
@@ -28,11 +27,11 @@
     其余任何 `{...}` 令牌一律拒绝（`TOKEN_UNRESOLVED`）。adapter 的 `invocation` 模板
     （`{prompt}` / `{query}` / `{cwd}`）是另一命名空间，不在此列。
   · **run 目录永不删除、覆盖、轮转**：同名（同秒同 label）已存在时另铸后缀目录，绝不覆写。
-  · **降级不静默**：`invocation` 解析为空 → 只 stage、结果记 `skipped`（源侧行为保留）；
+  · **降级不静默**：`invocation` 解析为空 → 只 stage、结果记 `skipped`；
     invocation 命令不在 PATH（无头下即 `runner.py` 白名单未覆盖该命令族）→ warning +
     跳过该 mode 并明示（**不入队**——确认是当场决策，队列语义是「用户稍后自行执行」）。
 
-违规码：复用 batch3-contract §3 冻结集（MISSING_FILE EMPTY_FIELD ENUM_INVALID UNKNOWN_ID
+违规码：复用套件冻结集（MISSING_FILE EMPTY_FIELD ENUM_INVALID UNKNOWN_ID
 SET_MISMATCH）；本引擎新增（本行即登记）：
   TOKEN_UNRESOLVED   路径参数含未解析的 `{...}` 令牌（`{project-root}` 除外）
   UNPARSABLE_JSON    run 目录里的 JSON 回执/产物不可解析（run.json / execution-summary.json
@@ -50,19 +49,17 @@ SET_MISMATCH）；本引擎新增（本行即登记）：
   AGAINST_FALLBACK   `aggregate` 缺省基准 config 不在场 → 退回 run 的另一个非 `skill` config
 
 引擎自定义回执键（命令级附加键，不进共同键）：`mlog` 的 ack `{ok, file, n, appended}`
-（与 W1 的 mlog 逐字同构：恒发一行 JSON，共同键 + `file` / `action` / `n` / `appended`）；
+（恒发一行 JSON，共同键 + `file` / `action` / `n` / `appended`）；
 `aggregate` 的
 `configs` / `delta` / `against` / `subject`；`check` 的 `run_dir` / `skipped_modes`；
 `run` 的 `run_id` / `run_dir` / `modes`。
 
-契约同构（batch3-contract §3）：exit 0 唯一放行 / 1 = 违规或被拒绝 / 2 = 用法错误（argparse
+契约同构：exit 0 唯一放行 / 1 = 违规或被拒绝 / 2 = 用法错误（argparse
 默认）；`--json` 单行回执（ensure_ascii=False）；无 `--json` 中文人读行（每违规一行
 `CODE where: msg` + 汇总行）；`where` 正斜杠、相对 project-root；`--project-root` 全部
 子命令都收（默认 `.`）；`--output-dir` 必填于会写盘的子命令（`run` 与 `mlog`），只读子命令
 （`check` / `aggregate`）收到即回显、缺席时由 run 目录结构推导或不填（仅回执完整性用）。
 """
-# trace: B5 diy-eval-runner 验收 #2 / #3 / #7 / #12 / #13（四模式真跑 + 零 YAML 主产物 +
-#        终门 check --run-dir + 降级路径不入队）
 import argparse
 import os
 import sys
@@ -125,8 +122,8 @@ def main(argv=None):
     c.set_defaults(func=cmd_check)
 
     m = sub.add_parser("mlog", help="memlog：init / append / set-complete（只追加，恒发一行 ack）")
-    m.add_argument("--dir", required=True, help="memlog 所在目录（W3 = run 根目录）")
-    m.add_argument("--file", required=True, help="文件名，由调用方显式给（W3 = .memlog.md）")
+    m.add_argument("--dir", required=True, help="memlog 所在目录")
+    m.add_argument("--file", required=True, help="文件名，由调用方显式给")
     m.add_argument("action", choices=("init", "append", "set-complete"), help="操作")
     m.add_argument("--type", default=None,
                    help="append 的条目类型（合法集 %s；越界由引擎判 ENUM_INVALID、exit 1）"
@@ -135,7 +132,7 @@ def main(argv=None):
     m.add_argument("--subject", default=None, help="init 的主题")
     m.add_argument("--project-root", default=".", help="项目根（默认 .）")
     m.add_argument("--output-dir", required=True,
-                   help="产物目录（必填——mlog 会写盘；与 W1 的 mlog 同形）")
+                   help="产物目录（必填——mlog 会写盘）")
     m.add_argument("--json", action="store_true", help="保留旗标（mlog 恒发一行 JSON ack）")
     m.set_defaults(func=cmd_mlog)
 

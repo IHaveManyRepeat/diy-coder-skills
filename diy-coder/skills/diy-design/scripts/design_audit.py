@@ -24,7 +24,7 @@ def in_token_scope(path, scopes):
     return False
 
 def resolve_token_scope(design, src):
-    """token_scope 解析为归一绝对路径：相对项按 --src 解析、绝对项原样（裁定 10）。
+    """token_scope 解析为归一绝对路径：相对项按 --src 解析、绝对项原样。
 
     解析基 = `--src` 所在位置：目录形态即 src 本身（文档口径：`--src` 取项目根 src 或
     prototypes/）；文件形态取 dirname(src)——否则相对项会拼成 `<文件>/<相对项>` 这种
@@ -64,7 +64,7 @@ def cmd_audit(args):  # trace: S-15 AC-15.2 TC-15.2.1 TC-14.3.2 one-off 色值/�
                     args.json)
     hex_ok = collect_token_hexes(design)
     fs_ok = collect_font_sizes(design)
-    dark_pair = dark_pair_violation(design, os.path.basename(args.design))  # 裁定 C12-1：modes 核心消费价值
+    dark_pair = dark_pair_violation(design, os.path.basename(args.design))  # modes 核心消费价值
     if dark_pair:
         violations.append(dark_pair)
     scopes = resolve_token_scope(design, args.src)

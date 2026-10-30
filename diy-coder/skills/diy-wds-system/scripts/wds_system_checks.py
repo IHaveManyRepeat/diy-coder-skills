@@ -130,7 +130,7 @@ def read_product(output_dir: Path, project_root: Path):
 
 
 def read_design(output_dir: Path):
-    """可选读 `design.yaml`（裁定 5 的派生源头）→ (tokens, present)。"""
+    """可选读 `design.yaml`（派生源头）→ (tokens, present)。"""
     path = output_dir / DESIGN
     if not path.exists():
         return None, False
@@ -216,7 +216,6 @@ def check_component(rec, idx, prefix_map, categories, page_ids, where_base,
             bad.append(v("UNKNOWN_ID", "%s[%d].used_in[%d]" % (where_base, idx, j),
                          "%s 不在 wds-scenarios.yaml 的页面清单里" % pid))
 
-    # token_refs → 命名空间解析（裁定 5 的机械兑现面）
     for j, ref in enumerate(rec.get("token_refs") or []):
         token_where = "%s[%d].token_refs[%d]" % (where_base, idx, j)
         m2 = TOKEN_REF_RE.match(ref) if isinstance(ref, str) else None
@@ -245,7 +244,7 @@ def check_component(rec, idx, prefix_map, categories, page_ids, where_base,
                              "定稿态不许留空段 %r" % key))
         if not rec.get("variants"):           # VA-03a：列表段，`--final` 要求至少 1 条
             bad.append(v("EMPTY_FIELD", "%s[%d].variants" % (where_base, idx),
-                         "定稿态不许变体清单为空（源侧「变体齐备」的 diy 判据）"))
+                         "定稿态不许变体清单为空（「变体齐备」判据）"))
     return bad
 
 
@@ -351,7 +350,7 @@ def orphan_token_warnings(doc, project_root, output_dir) -> list:
     """反向扫「无孤儿令牌」（`steps/02-import.md` 第 4 项）：`tokens.namespaces` 里零引用的名字。
 
     引用面 = `components[].token_refs[]`（唯一令牌引用机制）；逐命名空间聚合成一条
-    **warning**（不阻断：源侧允许备用令牌）。
+    **warning**（不阻断：允许备用令牌）。
     """
     referenced = set()
     for rec in doc.get("components") or []:

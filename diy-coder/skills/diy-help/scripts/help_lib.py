@@ -19,7 +19,7 @@ SKILL.md 的 frontmatter 六字段**——两处不重复任何一条事实）�
   提示由用户选定（本脚本不自动合并），线由 --line 指定。
 - 登记表或技能 frontmatter 异常一律硬失败——本脚本是导航的唯一权威，
   宁可停手报错，也不给错的位置。
-- 只读导航，零写回。实例解析对齐 FR-4.5/D-9。
+- 只读导航，零写回。实例解析由工具脚本执行。
 """
 # trace: S-13 AC-13.1 AC-13.2 TC-13.1.1 TC-13.1.2 TC-13.2.1
 import io
@@ -36,8 +36,7 @@ from diyc_lib_base import DuplicateKeyError, load_yaml_text  # noqa: E402
 
 DEFAULT_STATUS_PATH = ("project", "status")
 
-# 技能根 = 本脚本所在技能目录的上一级。仓内 = diy-coder/skills/；
-# 安装后 = {project-root}/.claude/skills/ —— 两种布局同式，故不依赖 --project-root。
+# 技能根 = 本脚本所在技能目录的上一级。安装后 = {project-root}/.claude/skills/ —— 故不依赖 --project-root。
 _HERE = os.path.dirname(os.path.abspath(__file__))
 SKILLS_DIR = os.path.dirname(os.path.dirname(_HERE))
 REGISTRY_PATH = os.path.join(os.path.dirname(_HERE), "registry.yaml")
@@ -52,7 +51,7 @@ def _fail(msg):  # 登记表/技能声明异常一律硬失败（本脚本是导
     sys.exit(1)
 
 
-def load_registry(path=REGISTRY_PATH):  # trace: C·1 登记表驱动——链序与提示文案的唯一来源
+def load_registry(path=REGISTRY_PATH):  # 登记表驱动——链序与提示文案的唯一来源
     """读登记表并校验形状；任何异常一律硬失败（不降级）。"""
     if not os.path.isfile(path):
         _fail("找不到登记表 %s（技能安装不完整？）" % path)
@@ -96,7 +95,7 @@ def load_registry(path=REGISTRY_PATH):  # trace: C·1 登记表驱动——链�
     return reg
 
 
-def read_frontmatter(skill):  # trace: C·1 节点事实来自技能自声明（六字段封闭集）
+def read_frontmatter(skill):  # 节点事实来自技能自声明（六字段封闭集）
     """读某技能 SKILL.md 的 frontmatter；help 只用其中两项：outputs / required。"""
     path = os.path.join(SKILLS_DIR, skill, "SKILL.md")
     if not os.path.isfile(path):
@@ -120,7 +119,7 @@ def read_frontmatter(skill):  # trace: C·1 节点事实来自技能自声明（
     return fm
 
 
-def chain_nodes(reg, line):  # trace: C·1 表（链序）+ frontmatter（产物/必做性）→ 扫描节点
+def chain_nodes(reg, line):  # 登记表（链序）+ frontmatter（产物/必做性）→ 扫描节点
     """组装某条线的扫描节点。节点只取引擎需要的三项，其余登记字段引擎不读。"""
     notes = reg["lines"][line].get("notes") or {}
     status_paths = reg["lines"][line].get("status_paths") or {}
@@ -174,13 +173,12 @@ def read_status(path, status_path=DEFAULT_STATUS_PATH):  # trace: S-13 AC-13.1 T
         if alt not in probes:
             probes.append(alt)
     malformed = False
-    for probe in probes:  # trace: F-A1 声明路径读不到 → 回落姊妹 meta 位置
+    for probe in probes:  # 声明路径读不到 → 回落姊妹 meta 位置
         node = doc
         broken = False
         for i, key in enumerate(probe):
             if not isinstance(node, dict):
-                # trace: 对抗审查修复——中段键值是标量（如 project: 3）判形状异常，
-                # 不再静默回落 unknown（真 shape 错应可见为 unparsable）
+                # 中段键值是标量（如 project: 3）判形状异常，不再静默回落 unknown
                 broken = i > 0 and node is not None and node != ""
                 node = None
                 break
@@ -188,7 +186,7 @@ def read_status(path, status_path=DEFAULT_STATUS_PATH):  # trace: S-13 AC-13.1 T
         if broken:
             malformed = True
             continue
-        if isinstance(node, (dict, list)):  # trace: F-A3c status 值形状异常（容器）
+        if isinstance(node, (dict, list)):  # status 值形状异常（容器）
             malformed = True
             continue
         if node is not None and node != "":
@@ -211,14 +209,14 @@ def scan_chain(output_dir, chain):  # trace: S-13 AC-13.1 TC-13.1.1 TC-13.1.2 �
                 notes.append(node["note"])
                 continue
             return completed, skill, None, notes
-        if len(exists) != len(files):  # trace: F-A3a 多文件节点半写（声明文件只落一部分）按未开始处理
+        if len(exists) != len(files):  # 多文件节点半写（声明文件只落一部分）按未开始处理
             return completed, skill, None, notes
         status_path = node.get("status_path", DEFAULT_STATUS_PATH)
         statuses = {f: read_status(os.path.join(output_dir, f), status_path) for f in exists}
         unfinal = {f: s for f, s in statuses.items() if s != "已定稿"}
         if unfinal:
             f, s = sorted(unfinal.items())[0]
-            if s in ("unparsable", "unknown"):  # trace: F-A3c 半写/损坏与写作中分流，动作按 status 值分支
+            if s in ("unparsable", "unknown"):  # 半写/损坏与写作中分流，动作按 status 值分支
                 action = "修复 %s 后重跑（半写或损坏，无法读出有效 status）" % f
             else:
                 action = "继续 %s 直至 %s 定稿（status: 已定稿）" % (skill, f)
@@ -237,7 +235,7 @@ def scan_sprint(output_dir, exec_skill, queue_file):  # trace: S-13 AC-13.1 TC-1
         _fail("任务队列 %s 不在（链已判其已定稿）——登记表与产物不一致" % queue_file)
     sprint = load_yaml(path)
     tasks = sprint.get("tasks")
-    # trace: F-A3d tasks 为空列表与 null 同判阻断（空 sprint 不是可执行链）
+    # tasks 为空列表与 null 同判阻断（空 sprint 不是可执行链）
     if not isinstance(tasks, list) or not tasks or not all(isinstance(t, dict) for t in tasks):
         blocked = {
             "file": queue_file,

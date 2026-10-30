@@ -1,14 +1,14 @@
-# Trigger Map 骨架（Effect Map 的唯一定义 · 收编自源 `wds-2-trigger-mapping/templates/trigger-map.template.md`）
+# Trigger Map 骨架（Effect Map 的唯一定义）
 
 > **用法**：本文件是**填值参照**，不是产物。填充目标是 `{output_dir}/wds-trigger.yaml` 的 `effect_map` 段
 > （`nodes` / `connections` / `class_defs` / `diagram`）。**构图纪律的完整说明在 `steps/05-documents.md` 第 2 步**
 > ——本文件是它的可填骨架，两处冲突时以步文件为准。
 >
-> **两形态（裁定 7）**：`wds-trigger.yaml` 是**单一源**，Mermaid 是**派生视图**。本骨架的 `〈…〉` 占位符一律从 YAML
-> 的既有键取、**填完不留占位符**（引擎把产物里的未解析 `{…}` 令牌判 `TOKEN_UNRESOLVED`）；源侧原文件用的是
-> Handlebars `{{…}}` 渲染语法——把渲染语言当自然语言写进指令，源侧 21 行已登记为缺陷，diy 不沿用。
+> **两形态**：`wds-trigger.yaml` 是**单一源**，Mermaid 是**派生视图**。本骨架的 `〈…〉` 占位符一律从 YAML
+> 的既有键取、**填完不留占位符**（引擎把产物里的未解析 `{…}` 令牌判 `TOKEN_UNRESOLVED`）；原文件用的是
+> Handlebars `{{…}}` 渲染语法——把渲染语言当自然语言写进指令是缺陷，diy 不沿用。
 >
-> **条数自适应（裁定 6）**：驱动因素按 `driving_forces` 的实际条数渲染（每人正负各 3–5 条）；
+> **条数自适应**：驱动因素按 `driving_forces` 的实际条数渲染（每人正负各 3–5 条）；
 > 目标群按 `personas[]` 的实际条数（2–4），**不假定恰三层**。
 
 ---
@@ -64,14 +64,14 @@ flowchart LR
     class DF0,DF1 drivingForces
 ```
 
-**必守十条**（源 `08h` 的质检清单，逐条见 `steps/05-documents.md` 第 2 步五）：
+**必守十条**（质检清单，逐条见 `steps/05-documents.md` 第 2 步五）：
 
 1. 配置三行逐字（`base` 主题 / `Inter, system-ui, sans-serif` / `14px` / `flowchart LR`）。
 2. 每节点 `<br/>` 起、`<br/><br/>` 收。
 3. 标题全大写；**无 HTML 标签**（粗体 / 斜体一律不用）。
 4. 每群的 emoji 在 TG 与 DF 两处**同一个**；`WANTS` / `FEARS` 标题**不带 emoji**。
 5. 正向一律 ✅、负向一律 ❌。
-6. 驱动因素条数与产物一致（**不再截断到 3**：源侧「exactly 3」与采集端「3–5」冲突，本批取 3–5）。
+6. 驱动因素条数与产物一致（**不再截断到 3**：「exactly 3」与采集端「3–5」冲突，取 3–5）。
 7. 连接只用 `-->`；`TG<i> → DF<i>` 配对严格。
 8. 连接数 = 目标数 + 2×人物数（`check` 与 `metrics` 都会核）。
 9. 四条 `classDef` 逐字；平台边框 3px、其余 2px；**优先级只靠纵向顺序**，不得为某个节点加特殊样式。
@@ -79,7 +79,7 @@ flowchart LR
 
 ---
 
-## 三、emoji 取法（源 08b / 08d / 08c 的选型表，收编于此）
+## 三、emoji 取法
 
 | 位置 | 取法 |
 | --- | --- |

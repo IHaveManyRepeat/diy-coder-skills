@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diyc check 任务级规则：sprint 状态机 / review 验收台账（契约 §4.2）。"""
+"""diyc check 任务级规则：sprint 状态机 / review 验收台账。"""
 
 import os
 
@@ -72,7 +72,7 @@ def _check_previous(typ, doc, previous, rel, root, report):
         return
     prev, prev_code, err = load_yaml_checked(previous)
     if err:
-        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（重复键≠解析失败）
         report.add(prev_code, prev_rel, "旧稿%s：%s"
                    % ("重复键" if prev_code == "DUPLICATE_KEY" else "解析失败", err))
         return
@@ -125,8 +125,8 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
         if stories_available else {}
     tcs_by_id = docs.tcs() if tp_available else {}
     tc_status = {tid: t.get("status") for tid, t in tcs_by_id.items()}
-    # Q-121 主防线：sprint test_refs ∩ retired TC ≠ ∅ → 违规（retired 键在场即废弃，
-    # 与 test-plan 侧 Q-111 同判）——废弃用例不进执行面，强制废弃时须同步移出 test_refs
+    # 主防线：sprint test_refs ∩ retired TC ≠ ∅ → 违规（retired 键在场即废弃，
+    # 与 test-plan 侧同判）——废弃用例不进执行面，强制废弃时须同步移出 test_refs
     tc_retired = {tid: t.get("retired") for tid, t in tcs_by_id.items()
                   if "retired" in t}
 
@@ -175,7 +175,7 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
                 report.add("UNKNOWN_ID", "%s.test_refs[%d]" % (w, j),
                            "%s 在 test-plan.yaml 中不存在" % ref)
             elif ref in tc_retired:
-                # rule: Q-121 废弃用例不进执行面（check 期主防线；green 回写期兜底跳过）
+                # rule: 废弃用例不进执行面（check 期主防线；green 回写期兜底跳过）
                 entry = tc_retired[ref]
                 reason = entry.get("reason") if isinstance(entry, dict) else None
                 report.add("SET_MISMATCH", "%s.test_refs[%d]" % (w, j),
@@ -188,7 +188,7 @@ def check_sprint(doc, rel, docs, story_filter, final, report) -> dict:
         status = t.get("status")
         if status in ("待办", "进行中") and stories_available and story in story_ids:
             # rule: diy-sprint/SKILL.md:Design Discipline（TDD gate 默认姿态：缺覆盖 → 已阻塞）
-            # 唯一定义源：Docs.story_covered()（契约 §4.2；已豁免/接受缺口 豁免由该函数承载）
+            # 唯一定义源：Docs.story_covered()（已豁免/接受缺口 豁免由该函数承载）
             covered, missing = docs.story_covered(story)
             if not covered:
                 report.add("PENDING_UNCOVERED", w,
@@ -325,7 +325,7 @@ def _ledger(t, w, docs, tp_available, tc_status, report):
 
 
 def check_review(doc, rel, docs, story_filter, report) -> dict:
-    """review：review 块裁决校验 + 待审查/已完成 任务台账（契约 §4.2）。"""
+    """review：review 块裁决校验 + 待审查/已完成 任务台账。"""
     counts = {"findings_by_layer": {}, "findings_by_route": {}}
     all_tasks = d.items(doc, "tasks", of_type=dict)
     if story_filter:

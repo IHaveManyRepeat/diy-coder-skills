@@ -14,7 +14,7 @@ Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 | `P0 覆盖` | `100%` | P0 AC 的 covered / total（covered = `FULL` / `UNIT-ONLY` / `INTEGRATION-ONLY`） |
 | `总覆盖` | `100%` | 全部 AC 的 covered / total |
 | `P1 覆盖` | `100%` | P1 AC；**无 P1 时记 `100%` + `通过`**（源 effectiveP1=100 口径） |
-| `变异得分` | `>=90%` | 回执 `mutation.score`（`mutation-report.yaml` 全部 run 的**最小值**）；报告缺席 → 日常记 `n/a` + warning、**`--final` 时判 `MISSING_FILE`**（迁移计划 §十三:459 原文「缺席日常 `n/a`、`--final` 时必须」）。**已批准等价体的重算**：`waivers` 里出现过 `mutant:<标识>` 时，用 `killed / (total − 已批准数) × 100` 重算并**取代**报告里的值——报告写的是候选全留分母的**保守分**（`diy-augment` 无从知道裁定结果），裁定分只能在本步重算。另：报告里 `critical.score` 非 100% → 直接判 `CRITERION_STALE`（关键路径 100% 是硬判据） |
+| `变异得分` | `>=90%` | 回执 `mutation.score`（`mutation-report.yaml` 全部 run 的**最小值**）；报告缺席 → 日常记 `n/a` + warning、**`--final` 时判 `MISSING_FILE`**。**已批准等价体的重算**：`waivers` 里出现过 `mutant:<标识>` 时，用 `killed / (total − 已批准数) × 100` 重算并**取代**报告里的值——报告写的是候选全留分母的**保守分**（`diy-augment` 无从知道裁定结果），裁定分只能在本步重算。另：报告里 `critical.score` 非 100% → 直接判 `CRITERION_STALE`（关键路径 100% 是硬判据） |
 | `非功能致命` | `0` | FAIL 域数 − `waivers` 已豁免域数（`安全` 域 FAIL **不可豁免**） |
 | `P0 未覆盖` | `0` | priority = P0 且 coverage = `NONE` 的行数 |
 
@@ -48,7 +48,7 @@ Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 ## Overlay
 
 1. **合成 oracle**（引擎强制）：`oracle.source: 合成` 且 `confidence ≠ 高` → 覆盖全绿也只能到 `CONCERNS`。这是源 oracle-confidence overlay 的 diy 形态，别绕。
-2. **弱证据 / live-only**（你的判断，源 live-only overlay 的 diy 对应物）：某 AC 的覆盖**只**由判定表 ③（`status: 通过` 但无红绿台账，即 `diy-e2e-tests` / `diy-augment` 追加用例那种「不可重跑、无台账」的来源）支撑时——把它写进 `gate.blockers`（`kind: 覆盖`）与 `recommendations`，说明「不可重跑、复核成本高」。
+2. **弱证据 / live-only**（你的判断，live-only overlay 的 diy 对应物）：某 AC 的覆盖**只**由判定表 ③（`status: 通过` 但无红绿台账，即 `diy-e2e-tests` / `diy-augment` 追加用例那种「不可重跑、无台账」的来源）支撑时——把它写进 `gate.blockers`（`kind: 覆盖`）与 `recommendations`，说明「不可重跑、复核成本高」。
    **不自动抬档**：diy 的 ③ 有合法来源，一刀切会把合法路径全打成 CONCERNS；要抬档就必须有判据落点（该风险体现为某条软指标失败或某域 CONCERNS），否则 `check` 会判 `DECISION_INCONSISTENT`。
 
 ## 豁免（用户交互点，仅人工授权写入）

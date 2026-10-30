@@ -44,8 +44,8 @@ RECIPES = {
 }
 FRAME_JOBS = ["inform", "persuade", "transition"]
 PRINCIPLE_COUNT = 8
-PRESENTATION_ACTIVITY = "AS-08"     # 第 9 活动：presentation[] 的 ID 空间（裁定 10）
-# AS-07 文案条目的六段（键名逐字取 `steps/07-content.md:10` 自己的声明，裁定 17 c）
+PRESENTATION_ACTIVITY = "AS-08"     # 第 9 活动：presentation[] 的 ID 空间
+# AS-07 文案条目的六段
 CONTENT_ACTIVITY = "AS-07"
 CONTENT_KEYS = (
     "content_purpose", "trigger_map_context", "awareness_strategy",
@@ -55,7 +55,7 @@ ITEM_ID_RE = re.compile(r"^AS-(\d{2})\.(\d{1,3})$")
 PAGE_ID_RE = re.compile(r"^SC-\d{2}\.P\d+$")
 TOKEN_RE = re.compile(r"\{([^{}\n]+)\}")
 SKILL_DIR = Path(__file__).resolve().parent.parent
-# 模板位清单的提取口径（裁定 16 ③；C·11 V-A F-1 扩面到全部模板）：
+# 模板位清单的提取口径：
 # 逐模板按各自结构取「要填的位」——两模板的骨架与注记结构不同：
 # · prompt-export：骨架在围栏代码块内；围栏外说明段含 `{output_dir}` 路径写法（:92），非模板位
 # · content-output：文件本身即骨架（活文档），正文位在围栏外；`>` 引用注记（含 `{output_dir}` / `{…}`）非模板位
@@ -234,7 +234,7 @@ def read_design_system(report: Report, output_dir: Path):
 
 
 def template_slots(report: Report) -> set:
-    """模板位清单（裁定 16 ③；C·11 V-A F-1 扩面）：解析 `templates/` 下各模板「要填的位」`{...}`。
+    """模板位清单：解析 `templates/` 下各模板「要填的位」`{...}`。
 
     **解析提取、不硬编码**——模板改动后违规判据随之变（这层耦合约已登记，见回报）。
     逐模板按结构取口径（见 `TEMPLATE_SPECS` 注释）：`prompt-export` 只取**围栏代码块**内；
@@ -261,7 +261,7 @@ def template_slots(report: Report) -> set:
 
 
 def scan_raw_tokens(text: str, report: Report, path: Path):
-    """占位符残留核（裁定 16 ③）：`{...}` **∈ 模板位清单 → 违规**（说明该位没被填掉）。
+    """占位符残留核：`{...}` **∈ 模板位清单 → 违规**（说明该位没被填掉）。
 
     判据方向与旧版相反：旧的「∉ 白名单（2 token）→ 违规」把无差别正则当成了「模板位填没填」
     的判据，于是 prompt 里合法的 JSON 示例（`{"breakpoint": "1440"}`）被误杀。改判后

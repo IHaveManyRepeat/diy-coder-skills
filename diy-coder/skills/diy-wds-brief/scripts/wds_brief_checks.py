@@ -19,11 +19,11 @@ STRATEGIC_ENUM = ("full", "simplified", "skip")
 STAGE_ENUM = ("分诊", "对齐", "签核", "核心", "内容", "视觉", "收尾")
 INTAKE_KEYS = ("project_type", "complexity", "brief_level", "strategic_analysis", "stage")
 
-# 母本 §8 两值口径：单记录产物 → 顶层 `project.status`（裁定 2，零偏离）
+# 单记录产物 → 顶层 `project.status`（零偏离）
 STATUS_ENUM = ("草稿", "已定稿")
 FINAL_STAGE = STAGE_ENUM[-1]            # 已定稿 ⟺ stage: 收尾（反向不成立，见 check_document）
 
-# 签核段（裁定 13：三型并列，全留）
+# 签核段（三型并列，全留）
 SIGNOFF_TYPE_ENUM = ("不签核", "对外合同", "服务协议", "内部审批")
 SIGNOFF_STATUS_ENUM = ("未开始", "构建中", "已定稿")
 RETAINER_MODEL = "长期聘用"             # 唯一触发合同 `availability` 条件必填的定价模式
@@ -37,7 +37,7 @@ ALIGNMENT_SECTIONS = ("realization", "why_it_matters", "how_we_see_it_working",
                       "paths_we_explored", "recommended_solution", "path_forward",
                       "value_we_create", "cost_of_inaction", "our_commitment", "summary")
 
-# 客户画像四域（census-1 真能力 F；源模板把「决策文化/协作风格」并进 collaboration）
+# 客户画像四域（源模板把「决策文化/协作风格」并进 collaboration）
 CLIENT_PROFILE_KEYS = ("organization", "key_people", "internal_drivers", "collaboration")
 
 # 简报四段（§2.3）：本四段的键名同时是**跨技能读契约**（§2.3.1，三方逐键核对）
@@ -64,29 +64,25 @@ PLATFORM_REQUIREMENTS_KEYS = ("tech_stack", "integrations", "contact_strategy",
                              "multilingual")
 PLATFORM_REQUIREMENTS_SIMPLIFIED = ("tech_stack",)
 
-# 签核三型节表（源侧实值；三张表合计 30 节）
-# 对外合同 11 节 = `wds-0-alignment-signoff/workflow.md:98-111` 的 05a-05k 正文节
-# （`availability` 源 05f 写的节在合同模板中**不存在**——本批补齐并登记为源侧缺陷修复；
-#  其中 `availability` 是条件节，见下方 `CONTRACT_CONDITIONAL`）
+# 签核三型节表（三张表合计 30 节）
+# 对外合同 11 节 = `steps/03-signoff.md` 第 3 步节表（逐节落 `signoff.external_contract.sections`）
 CONTRACT_SECTIONS = ("project_overview", "business_model", "scope_of_work", "payment_terms",
                      "timeline", "availability", "confidentiality", "not_to_exceed",
                      "work_initiation", "terms_and_conditions", "approval")
-# 服务协议 12 节 = `templates/service-agreement.template.md` 的节（源侧**无构建步**，
-# 05* 只按合同模板建节、`service-agreement.md` 仅在 05l 收尾处被提及——本批补齐构建步）
+# 服务协议 12 节 = `steps/03-signoff.md` 第 4 步节表（逐节落 `signoff.service_agreement.sections`）
 SERVICE_SECTIONS = ("project_overview", "scope_of_services", "our_commitment", "timeline",
                     "why_it_matters", "expected_outcomes", "service_terms",
                     "risks_and_considerations", "confidentiality", "not_to_exceed",
                     "terms_and_conditions", "approval")
-# 内部审批 7 节 = `steps-c/step-06a-build-internal-signoff.md:68-104` 的 Section 1-7
-# （源侧把「风险/保密/路径」并成第 7 节 Optional Sections）
+# 内部审批 7 节 = `steps/03-signoff.md` 第 5 步节表
+# （「风险/保密/路径」并成第 7 节 Optional Sections）
 INTERNAL_SECTIONS = ("project_overview", "goals_and_metrics", "budget_and_resources",
                      "ownership", "approval_and_signoff", "timeline_and_milestones",
                      "optional_sections")
-# 合同**条件节**表：节 → 触发它必填的定价模式。源 05f 的 `Step-Specific Rules` 原文
-# 「Only applies to retainer model - skip for other models」——故 `availability` 只在
+# 合同**条件节**表：节 → 触发它必填的定价模式。`availability` 只在
 # `pricing_model: 长期聘用` 时计入必填集，其余模式接受缺省（键在场则照常校验）。
 # 本表与 `steps/03-signoff.md` 第 3 步第 6 行的「条件节：仅 `pricing_model: 长期聘用` 时
-# 必填——其余模式整节可缺省」逐字一致（V-01 修复）。
+# 必填——其余模式整节可缺省」逐字一致。
 CONTRACT_CONDITIONAL = {"availability": RETAINER_MODEL}
 
 ASSUMPTION_MARK = "[假设]"
@@ -141,7 +137,7 @@ def brief_summary(data):
 
 
 def check_signoff(signoff, where, final, out):
-    """签核段（裁定 13）：type 枚举 + 分型齐备（三型节表）。"""
+    """签核段：type 枚举 + 分型齐备（三型节表）。"""
     if not isinstance(signoff, dict):
         out.append(v("EMPTY_FIELD", where, "signoff 不是映射（三型并列：external_contract / "
                                            "service_agreement / internal）"))

@@ -10,22 +10,21 @@ import yaml
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import load_yaml, v, violation_line  # noqa: E402
-# §7-5①：双模的明暗对 = tokens.color.dark 子块六角色（亮基暗覆盖），判据见 dark_pair_violation
+# 双模的明暗对 = tokens.color.dark 子块六角色（亮基暗覆盖），判据见 dark_pair_violation
 DARK_ROLES = ("bg", "surface", "text", "text_muted", "accent", "accent_text")
 
-# ---- 页状态机（裁定 5/6/14）：5 值收敛 + 9 条合法边 ----
+# ---- 页状态机：5 值收敛 + 9 条合法边 ----
 PAGE_STATUSES = ("未开始", "结构稿中", "待验收", "已批准", "已移除")
 
-# 无障碍：触控目标下限（源 steps-h/step-03「Minimum 44x44px interactive areas」）
+# 无障碍：触控目标下限
 TOUCH_TARGET_MIN = 44
-# C·13 裁定（呈核 2/3/8）：触控下限按 form_factor 分档——桌面 24（WCAG 2.5.8 AA Target
-# Size Minimum，本批唯一新外部判据）；移动端 44（源硬数 44pt/48dp）；响应式 Web/多端 44
+# 触控下限按 form_factor 分档——桌面 24（WCAG 2.5.8 AA Target Size Minimum）；移动端 44；响应式 Web/多端 44
 # （最严端——静态扫描不模拟媒体查询，双档并判等价按 44 判）；缺键/表外值 44（存量零漂移）
 TOUCH_TARGET_MIN_DESKTOP = 24
 
 NL = "\n"
 
-# ---------------------------------------------------------------- 回执与违规（契约 §2.4）
+# ---------------------------------------------------------------- 回执与违规
 
 def receipt(command, ok, file=None, violations=None, warnings=None, counts=None, **extra):
     """回执基础构造：公共键在前、命令专有键在后（公共键一个不少、专有键一个不删）。"""
@@ -131,7 +130,7 @@ def read_design(path):
     design, problems = coerce_design(doc)
     return design, [v("UNPARSABLE_YAML", norm_path(path), p) for p in problems]
 
-# ---------------------------------------------------------------- ID 稳定对账（裁定 15）
+# ---------------------------------------------------------------- ID 稳定对账
 
 def page_ids(doc):
     """取文档里的页 ID 集（稳定 ID 契约的对象是 pages[].id，非空字符串才算）。"""
@@ -222,7 +221,7 @@ def contrast(a, b):  # trace: S-14 AC-14.3 对比度比率（亮/暗有序）
 _FONT_SIZE_RE = re.compile(r"font-size:\s*([^;{}]+)")
 
 def dark_pair_violation(design, base_name):
-    """双模明暗对判据（§7-5①）：tokens.color.dark 六角色全合法 hex 才算成对。
+    """双模明暗对判据：tokens.color.dark 六角色全合法 hex 才算成对。
 
     双模缺 dark / dark 非映射 / 角色残 / 值非 hex → MODES_TOKEN_PAIR_MISSING
     （validate 与 audit 同判据——audit 是 modes 的核心消费价值）；单模不触发
@@ -251,7 +250,7 @@ def collect_token_hexes(design):  # trace: S-15 AC-15.2 TC-14.3.2 token 色值�
     colors = (design.get("tokens") or {}).get("color") or {}
     hexes = set()
     for value in colors.values():
-        # §7-5① dark 子块展开：嵌套 dict（dark 六角色）不再被静默跳过——暗色 hex 进白名单，
+        # dark 子块展开：嵌套 dict（dark 六角色）不再被静默跳过——暗色 hex 进白名单，
         # 否则 audit 会把暗色 token 自判 one-off-color（打自己）
         for item in (value.values() if isinstance(value, dict) else (value,)):
             try:

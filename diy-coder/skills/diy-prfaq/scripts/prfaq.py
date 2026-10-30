@@ -3,7 +3,7 @@
 
 子命令：
   headless  校验 headless 模式的输入 schema：customer / problem / stakes / solution
-            四项在场且非空（源 SKILL.md "Mode detection" 的确定性部分；"含糊"属 LLM
+            四项在场且非空（"含糊"属 LLM
             语义判断，不在引擎内）。缺项 → exit 1 + 具名缺口（gaps）+ 指引，零产出
             （只读门禁，绝不写文件）。
   check     校验 {output_dir}/prfaq.yaml（单文档形态，顶层 project + prfaq + distillate
@@ -15,14 +15,13 @@
             九键非空、verdict 非空且 strength 在枚举内、distillate 存在且五字段非空、
             零 [假设]。exit 0 唯一放行。
 
-分工裁定（任务书 §2.2 / P1 先例）：prfaq 属新产物类型，不进 diyc.py check 的硬编码类型集；
+分工裁定：prfaq 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态，契约同构：exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}]
-+ counts。违规码全部复用 batch3-contract §3 冻结集——本引擎无新增码。
++ counts。违规码全部复用套件冻结集——本引擎无新增码。
 禁手写实例解析：引擎不做 --instance / 白名单 / 目录推导；--output-dir 必填，由调用方传入
 （SKILL.md 从 diyc.py resolve 取）。产物文档与 PQ ID 由 diy-prfaq 会话（LLM）创作，
 本引擎只校验格式与唯一性，不铸造 ID、不写回。
 """
-# trace: 迁移计划 §二 验收 #2（产物 schema）/#3（门禁零产出）/#4（稳定 ID 比对）/#12（领域引擎接线）
 import argparse
 import json
 import os
@@ -38,7 +37,7 @@ from prfaq_checks import CONCEPT_TYPES, ESSENTIAL_KEYS, PRFAQ_FILE, check_distil
 # ---- headless 输入门禁 ----
 
 def cmd_headless(args):
-    """源 SKILL.md Mode detection：只校验输入 schema 的在场/非空；缺项零产出 + 具名缺口。"""
+    """只校验输入 schema 的在场/非空；缺项零产出 + 具名缺口。"""
     gaps = [key for key in ESSENTIAL_KEYS
             if not nonempty(getattr(args, key.replace("-", "_")))]
     violations = [

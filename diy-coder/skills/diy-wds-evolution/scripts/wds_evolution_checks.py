@@ -12,7 +12,6 @@ from diyc_lib import v  # noqa: E402
 from diyc_lib_base import DuplicateKeyError, load_yaml_text  # noqa: E402
 
 PRODUCT = "wds-evolution.yaml"
-# VA-09（.yml 扩面）连带（C·11 V-A E3）：自产物的两种拼写都不算门禁上游
 PRODUCT_STEM = PRODUCT.rsplit(".", 1)[0]
 ROUND_RE = re.compile(r"^EV-(\d{2})$")
 ROUND_STATUS = ("草稿", "分析", "范围", "设计", "实现", "验证", "已交付")
@@ -25,10 +24,8 @@ PHASE_LABEL = {"analysis": "A 分析", "scope": "S 范围", "design": "D 设计"
                "implement": "I 实现", "test": "T 验证", "delivery": "P 交付"}
 INCREMENT_SCOPE = "本轮增量"
 CRITERION_VERDICTS = ("通过", "未通过")
-# 本轮的判据四类——源 `delivery-templates.md` 的 TS-XXX 测试场景族 HP-/REG-/EC-/A11Y- 逐字保留
 CRITERION_KINDS = ("HP", "REG", "EC", "A11Y")
 STATUS_VALUES = ("草稿", "已定稿")
-# 批 5e §7-2 甲：轮级 analysis_refs 的锚形态与源产物（diy-analyze 的单问产物）
 AN_REF_RE = re.compile(r"^AN-\d{2}$")
 ANALYSIS_PRODUCT = "analysis.yaml"
 
@@ -275,7 +272,7 @@ def validate(data, violations, warnings, final):
             if isinstance(test, dict):
                 if test.get("scope") != INCREMENT_SCOPE:
                     violations.append(v("ENUM_INVALID", where + ".test.scope",
-                                        "裁定 10：只验本轮增量，取值应为 {}".format(
+                                        "只验本轮增量，取值应为 {}".format(
                                             INCREMENT_SCOPE)))
                 criteria = test.get("criteria")
                 if not isinstance(criteria, list) or not criteria:
@@ -340,7 +337,7 @@ def _find_assumption(node, where=""):
 
 
 def validate_analysis_refs(data, output_dir, violations):
-    """轮级 `analysis_refs` 依赖声明（批 5e §7-2 甲：A/S 一档硬报错）。
+    """轮级 `analysis_refs` 依赖声明（A/S 一档硬报错）。
 
     缺席/空 → 不检不阻；非空 → 形态 `AN-<nn>`（不良记 `ENUM_INVALID`，照 `EV-<nn>`
     形态先例）＋ `analysis.yaml` 可解析（缺席 `MISSING_FILE`、损坏 `UNPARSABLE_YAML`）

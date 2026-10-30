@@ -5,7 +5,7 @@ Progress: `[epic 发现] → 深度分析 → 连续性 → 回顾讨论 → 行
 **Read (input):** `{output_dir}/epics.yaml` 与 `{output_dir}/stories.yaml`（epic 清单）；其后跑出的 `collect` 回执。
 **Write (output):** `{output_dir}/retrospective.yaml` 里的草稿记录（`id` / `epic` / `status` / `date` / `partial` / 各空节）。
 
-## 选 epic——三级，按序（源自源技能的 step-1 选取逻辑）
+## 选 epic——三级，按序
 
 1. **引擎侧建议。** 扫 `stories.yaml`，取编号最大、且至少有一条 `status: 已完成` 故事的 epic——那就是刚做完的 epic；作为建议呈现。
 2. **用户说了算。** 用户点名另一个 epic → 就是它，不再争论。
@@ -22,9 +22,9 @@ python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py
 引擎管门与数字：
 
 - **门（exit 1，零产出）：** `{output_dir}/stories.yaml` 与 `{output_dir}/epics.yaml` 在场且各自 `project.status: 已定稿`；epic 在 `epics.yaml` 可解析；其下至少一条 `已完成` 故事。被拒时转述回执的一行理由与 `gate.route`（diy-epics-stories），然后停下——拒绝永不变成记录。
-- **其余一切取回执，绝不手工重读产物：** `stories`（total / done / pending）、`metrics`、`bugs`、`coverage`、`prev_actions`、`first_retro`、`next_epic`。这就是源技能「读遍每个故事文件再数」那一步的 diy 化——结构化产物加一趟机械跑批，不是手工点数。
+- **其余一切取回执，绝不手工重读产物：** `stories`（total / done / pending）、`metrics`、`bugs`、`coverage`、`prev_actions`、`first_retro`、`next_epic`。「读遍每个故事文件再数」的 diy 化——结构化产物加一趟机械跑批，不是手工点数。
 
-## 收尾校验与 partial 分支（源技能 step-1，三选项）
+## 收尾校验与 partial 分支
 
 读回执的 `stories[].pending`：
 
@@ -66,7 +66,7 @@ python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py
 
 机器锚点（ID、计数、文件名）一律照抄回执——绝不凭眼睛重算。`partial: true` 蕴含 epic 未完成；未完成却没有 `partial: true` 是起草错误。
 
-## 铺陈 epic（源技能 step-5 的指标块）
+## 铺陈 epic
 
 任何讨论之前，用一条消息把 epic 摆出来——全部取自回执，绝不重打：
 

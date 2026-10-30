@@ -36,7 +36,7 @@ def check_enum(record, where, key, allowed, required=True):
     return []
 
 def check_intent(record, where):
-    """frozen 核心：approval 后只有人类能改（源 <frozen-after-approval> 的 Intent 段）。"""
+    """frozen 核心：approval 后只有人类能改。"""
     intent = record.get("intent")
     if intent is None:
         return [v("EMPTY_FIELD", where + ".intent", "intent 缺失（problem + approach）")]
@@ -114,7 +114,7 @@ def check_acceptance(record, where, final):
     return violations
 
 def check_change_log(record, where):
-    """源 Spec Change Log：append-only，每条记录触发finding / 修正内容 / 避开的坏态 / KEEP。"""
+    """Spec Change Log：append-only，每条记录触发finding / 修正内容 / 避开的坏态 / KEEP。"""
     raw = record.get("change_log")
     if raw is None or not isinstance(raw, list):
         return [v("EMPTY_FIELD", where + ".change_log",
@@ -235,14 +235,14 @@ def check_review_order(record, where, status):
     if raw is None:
         if str(status) == "已完成":
             return [v("EMPTY_FIELD", where + ".review_order",
-                      "status=已完成 要求 review_order 非空（源 Suggested Review Order）")]
+                      "status=已完成 要求 review_order 非空")]
         return []
     if not isinstance(raw, list):
         return [v("EMPTY_FIELD", where + ".review_order", "review_order 不是列表")]
     violations = []
     if str(status) == "已完成" and not raw:
         violations.append(v("EMPTY_FIELD", where + ".review_order",
-                            "status=已完成 要求 review_order 非空（源 Suggested Review Order）"))
+                            "status=已完成 要求 review_order 非空"))
     for i, concern in enumerate(raw):
         cw = "%s.review_order[%d]" % (where, i)
         if not isinstance(concern, dict):

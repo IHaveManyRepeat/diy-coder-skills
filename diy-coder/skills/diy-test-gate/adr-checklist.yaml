@@ -1,6 +1,5 @@
 # diy-test-gate 静态资产：ADR Quality Readiness Checklist（8 类 29 条）
 #
-# 来源：bmad-testarch-nfr/resources/knowledge/adr-quality-readiness-checklist.md
 #       （源文标题「Standardized 8-category, 29-criteria framework」）
 # 用途：steps/04-nfr.md 的证据走查清单；gate.py 读 rows 长度做 adr.rows 重算基准。
 # 纪律：criterion 是**问句**——答案只能是「有证据 / 无证据」，不猜阈值；

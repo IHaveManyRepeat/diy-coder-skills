@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-"""diyc 写回命令模块（批次 3 / W3）：transition、green、done、bug-add、reconcile。
+"""diyc 写回命令模块：transition、green、done、bug-add、reconcile。
 
-把散落在各 SKILL.md 提示词里的多文件手改 YAML 收敛为原子脚本操作。规则来源
-（.analysis/2026-09-13-cross-skill/batch3-contract.md）：
+把散落在各 SKILL.md 提示词里的多文件手改 YAML 收敛为原子脚本操作。规则（冻结契约）：
 
-- §4.5 transition：diy-build-loop HALT 状态迁移，合法边表冻结；待审查→已完成 故意不在
-  边表——强制走 done 命令做真源回填（BUG-012 机制化）。（2026-09-18 修订，SS-012-04：
+- transition：diy-build-loop HALT 状态迁移，合法边表冻结；待审查→已完成 故意不在
+  边表——强制走 done 命令做真源回填（BUG-012 机制化）。
   已完成→进行中 这条边清 `augment`——重开即清旧 verdict，与 runner.py --reopen-failed
-  同语义；冻结契约 batch3-contract.md §4.5 的「不清 augment」括号注由此作废。）
-- §4.6 green：diy-dev / diy-build-loop 红绿证据写回——sprint 任务 evidence 追加
+  同语义。）
+- green：diy-dev / diy-build-loop 红绿证据写回——sprint 任务 evidence 追加
   （同 tc 替换，HALT 续跑幂等）+ test-plan 该 TC status: 通过 回填。
 - §4.7 done：待审查→已完成 终态写——sprint / stories / test-plan 三真源同批回填。
 - §4.8 bug-add：diy-review 缺陷入库——枚举校验 + BUG- 序号铸造（现有最大 +1，三位补零）。

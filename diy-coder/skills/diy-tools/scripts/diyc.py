@@ -10,7 +10,7 @@
   未预期内部异常（含配置读取失败）→ INTERNAL_ERROR 回执（exit 1，--json 面单行 JSON，
   绝不空 stdout；用法错误 SystemExit 不被捕获，原语义保持）。
 - baseline（已知遗留台账）：审计命令（check/trace/static）收口后应用 diyc_lib.apply_baseline
-  ——命中 (code, where) 降级 known、悬空条目 BASELINE_STALE；写回命令不消费（D1-D4 裁定 2026-09-13）；
+  ——命中 (code, where) 降级 known、悬空条目 BASELINE_STALE；写回命令不消费；
   `baseline-add` 为唯一写入口（D3：仅用户裁定后调用，条目重复/文件损坏拒绝，零半写）。
 """
 # trace: S-6 AC-6.2 S-16 AC-16.1
@@ -28,11 +28,7 @@ from diyc_trace import _human_trace, cmd_trace  # noqa: E402
 
 CHECK_TYPES = ("prd", "architecture", "openapi", "epics", "stories",
                "test-plan", "sprint", "review", "mutation-report")
-# v4 批 3（二裁·全量程序盖章）：C 组 AI 建产物「时间键留空＋跑 stamp」的类型面。
 # CHECK_TYPES 封闭集不扩（prfaq 等 check 门不达的类型不强进）
-# 批 3 追裁①（2026-10-15）：清单外 10 家纳入——investigate/project-context/
-# quick-dev/readiness-check/research/retrospective/checkpoint-preview/
-# correct-course/create-story/selfcheck 的产物同为 AI 建文件（无引擎或引擎纯读）。
 # spec 键供 diy-quick-dev（与 diy-spec 共写 spec.yaml：引擎已程序铸 created，
 # quick-dev 追加记录后跑 stamp 刷 updated）
 STAMP_TYPES = ("prd", "architecture", "openapi", "prfaq", "test-plan",
@@ -147,7 +143,7 @@ def _human_static(result) -> list:
 # ---------------------------------------------------------------- baseline-add
 
 def cmd_baseline_add(args) -> dict:
-    # trace: baseline 台账唯一写入口（D1-D4 用户裁定 2026-09-13；仅用户裁定后调用）
+    # baseline 台账唯一写入口（仅用户裁定后调用）
     base_rel = rel_path(args.project_root,
                          os.path.join(args.output_dir, diyc_lib.BASELINE_FILE))
     entry, violations = diyc_lib.baseline_add(
@@ -163,7 +159,7 @@ def cmd_baseline_add(args) -> dict:
 
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(
-        prog="diyc", description="diy-coder 产物检查器/写回器（统一脚本化，批次 3）")
+        prog="diyc", description="diy-coder 产物检查器/写回器")
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--project-root", default=".", help="项目根目录")
     common.add_argument("--instance", default=None, help="实例名（FR-4.5/D-9）")

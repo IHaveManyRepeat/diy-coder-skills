@@ -5,10 +5,10 @@
 机制：本技能是 **WDS 线的入口**（三源合一：wds-0-project-setup 分诊 + wds-0-alignment-signoff
 对齐签核 + wds-1-project-brief 战略简报）。产物 `{output_dir}/wds-brief.yaml` 是**单记录、
 多段**的内容型产物——各段由会话（LLM）逐步编辑写回，本引擎只做确定性的两件事：**铸造顶层
-骨架**与**机械校验**。分工写死（任务书 §2.2）：`project.name` / `created` 与 `intake` 的分诊
+骨架**与**机械校验**。分工写死：`project.name` / `created` 与 `intake` 的分诊
 结论由 `init` 铸造后不再由 LLM 改；四个子命令里**只有 `init` 写盘**，`check` 只校验不写。
 
-单记录形态的两个直接后果（承任务书 §0.2 裁定 2 / §2.2 注）：
+单记录形态的两个直接后果：
 ① **无记录级 ID**（不是 B6 那种「一个文件装 N 条记录」的集合）→ 母本 §8 的两值口径
    **直接适用**：顶层 `project.status: 草稿|已定稿`，零偏离；取数工具里的「ID 铸号递增」
    用例对本技能**不适用**，代之以「重复 `init` 不覆盖已有骨架」。
@@ -52,31 +52,31 @@
   7 节（三张节表与条件节表见下方常量）
 - `revisions`: 列表（无修订写空列表）
 
-跨技能读契约（任务书 §2.3.1 冻结，**本技能是链的起点**）：下游 `diy-wds-trigger` 读
+跨技能读契约（**本技能是链的起点**）：下游 `diy-wds-trigger` 读
 `brief.core`（vision / positioning / target_users / product_concept）· `brief.content.
 content_language` · `brief.visual.visual_direction`（6 维）· `brief.platform.
 platform_requirements`，门禁 = 本产物的 `project.status: 已定稿`。**这四组键名是三方唯一
 契约**，本引擎的必填键表与之一一对应——改键名必须同步 W2/W3。
 
-违规码：复用 batch3-contract §3 冻结集——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：复用冻结集——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
 `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT` / `SET_MISMATCH`
-共 7 个；**`TOKEN_UNRESOLVED` 沿用 B6 的已批新增码与判定流程**（本批**不新增任何码**）。
+共 7 个；**`TOKEN_UNRESOLVED` 沿用已批新增码与判定流程**（**不新增任何码**）。
 两处语义复用在此登记：① `SET_MISMATCH` 承载「`init` 的 `--project-type` 与既有产物不符」
 （最近义项是「集合/取值不匹配」，与 `bmb_module` 的同码用途同族）；② `ENUM_INVALID` 兼作
 `list --status` 非法取值码（同族先例同款用法）。
 
-`--previous` 判 **no**（裁定 18）：本产物是**单记录多段**，段只增不减（重跑即就地补段，
+`--previous` 判 **no**：本产物是**单记录多段**，段只增不减（重跑即就地补段，
 不收缩集合）——不存在「旧有新无」的 ID 集合可比对；改既有段往 `revisions` 追加。
 
-契约（承 batch3-contract §3 / 任务书 §2.2）：exit 0 唯一放行 / 1 = 违规或被拒绝 /
-2 = 用法错误（argparse 默认）/ 本批无 exit 3；`--json` → 单行回执（`ensure_ascii=False`），
+契约：exit 0 唯一放行 / 1 = 违规或被拒绝 /
+2 = 用法错误（argparse 默认）/ 无 exit 3；`--json` → 单行回执（`ensure_ascii=False`），
 无 `--json` → 中文人读行（每违规一行 `CODE where: msg` + 汇总行）；回执共同键
 `{ok, command, project_root, output_dir, instance, violations, warnings, counts}`
 （`instance` 恒 `null` 但**键在位**，`warnings` 与 `violations` 同形），`where` 正斜杠、
 相对 project-root；**写盘命令（`init`）回执另含 `updated`**，只读子命令不含。
 `--project-root`（默认 `.`）全部子命令都收；`--output-dir` **写盘子命令必填**（不设默认、
 **不得**私读 `diy-coder.yaml` 当默认），只读子命令可省（省了则回执为 `null`，需读产物的
-子命令明确报缺而不静默按空处理）。**`--instance` 一律不做**（裁定 9）：实例由 SKILL.md
+子命令明确报缺而不静默按空处理）。**`--instance` 一律不做**：实例由 SKILL.md
 委托 `diyc.py resolve` 解析后以 `--output-dir` 形式传入，签名表内不出现它。
 写回纪律：全文 load → 就地改 → `yaml.safe_dump(allow_unicode=True, sort_keys=False,
 default_flow_style=False)` → 同目录临时文件 + `os.replace`（注释不保留；复用
@@ -86,7 +86,6 @@ default_flow_style=False)` → 同目录临时文件 + `os.replace`（注释不�
 `diyc.py check --type <WDS 型> --previous`——`diyc.py` 的 `CHECK_TYPES` 是 8 型封闭集，
 WDS 型不在其中（`test_suite_texts.py` 有守卫会直接判红）。
 """
-# trace: 迁移计划 §二 验收 #1（薄主文件 + 厚 steps）/#2（产物 schema + 单记录无 ID）
 #        /#3（前置门禁：入口技能 = 分诊完成）/#6（viewer 标签缺口登记）
 #        /#8（frontmatter 六字段）/#12（领域引擎接线：b 终门 / c --previous 判 no / e 写权边界）
 import argparse

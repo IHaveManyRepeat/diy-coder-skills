@@ -2,7 +2,7 @@
 
 > **这一轴是什么**：**交付物形态**。7 张卡各自描述一种「做出来是什么东西」——幻灯片 / 解说脚本 / 路演 / 演讲 / 信息图 / 概念插画 / 单张图。
 >
-> **为什么单开一轴（裁定 7）**：`data/styles/design-styles/` 是**页面级视觉语言**（留白 / 描边 / 影），`data/styles/content-styles/` 是**单图形的成像技法**（写实 / 插画 / 水彩）——两轴是**视觉语言**。7 配方描述的是**交付物形态**（同一个 deck 可以是 Minimal 也可以是 Brutalist），塞进那两轴会把两种不同的维度混在一个目录里，未来第四类（小程序 / 邮件）会继续污染。故本轴独立。
+> **为什么单开一轴**：`data/styles/design-styles/` 是**页面级视觉语言**（留白 / 描边 / 影），`data/styles/content-styles/` 是**单图形的成像技法**（写实 / 插画 / 水彩）——两轴是**视觉语言**。7 配方描述的是**交付物形态**（同一个 deck 可以是 Minimal 也可以是 Brutalist），塞进那两轴会把两种不同的维度混在一个目录里，未来第四类（小程序 / 邮件）会继续污染。故本轴独立。
 
 | `recipe` | 卡 | 交付物形态 | 尺寸基准 | 评审侧重（8 原则里的哪几条） |
 | --- | --- | --- | --- | --- |
@@ -22,4 +22,3 @@
 
 **视觉语言与插图技法仍从另两轴取**：`data/styles/design-styles/`（整件气质）· `data/styles/content-styles/`（`VM` / `CV` 的成像技法）。
 
-**源与出处**：7 条配方逐字取自 `docs/bmad-skill-map/review/b6-fidelity.md` §九（源 `bmad-cis-agent-presentation-master/customize.toml:38–:71`），由 B6 移交、B7b 落地。**8 条视觉传达原则**（源 `customize.toml:27–:36`）落 `steps/08-presentation.md` 第 5 步的评审门——**不落人设字段**（人设条目不占批次）。

@@ -24,7 +24,7 @@ outputs: design.yaml
 2. 续接检测：跑 `list` 看页面清单——**只回 `id` / `name` / `route` / `states` / `prototype` / `status` 六字段，不读正文**：
    `python "{project-root}/.claude/skills/diy-reverse/scripts/reverse.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
    有记录 → **禁止重跑**：`design.yaml` 在场即已是别人的演进面，转第 3 步的写权分支；无记录 → 进第 3 步。
-3. 门禁（零产出退出）：**目标形态合法且（截图轨）路径在场可读**——两轨（裁定 11：源侧 Internal 模式已裁）：**`url` 轨** = 一个 http(s) 公开目标（引擎只核形态）；**`screenshots` 轨** = 已提供的截图文件（在场可读）。**真实可达性由会话在侦察前确认，失败即停手**（打开一次 / 读一次图）——形态非法 / 路径不在场 → 一行说明并**零产出停止**；**目标是你自己的代码库 → 路由 `diy-analyze`**（`init` 会把门机械兜住：`TARGET_UNREACHABLE`）。
+3. 门禁（零产出退出）：**目标形态合法且（截图轨）路径在场可读**——两轨：**`url` 轨** = 一个 http(s) 公开目标（引擎只核形态）；**`screenshots` 轨** = 已提供的截图文件（在场可读）。**真实可达性由会话在侦察前确认，失败即停手**（打开一次 / 读一次图）——形态非法 / 路径不在场 → 一行说明并**零产出停止**；**目标是你自己的代码库 → 路由 `diy-analyze`**（`init` 会把门机械兜住：`TARGET_UNREACHABLE`）。
 4. **写权边界**：`{output_dir}/design.yaml` **只在初始生成时写**（`init` 铸骨架）。已存在 → `init` 判 `OVERWRITE_REFUSED` 且**零写入**：把差异整理成 `revisions` **建议**在会话里呈出，**路由 `diy-design`**（生成权归本技能、演进权归 `diy-design` / `diy-dev`）。
 5. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/analysis.yaml / wds-design-system.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 6. 读 `steps/01-define.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
@@ -63,14 +63,14 @@ pages:
 revisions: []              # {date, change, reason}
 ```
 
-**「提取来源」无承载位**：既有 schema 没有来源字段（`source: {url, captured_at}` 之类），本批**不新增字段**——来源写进结构稿的头部注释 `<!-- 提取来源: <url> / <截图名> · 采集日 YYYY-MM-DD -->` 与会话呈出，**并登记为 C·3 的 schema 扩充项**（`diy.py` 不动）。
+**「提取来源」无承载位**：既有 schema 没有来源字段（`source: {url, captured_at}` 之类），**不新增字段**——来源写进结构稿的头部注释 `<!-- 提取来源: <url> / <截图名> · 采集日 YYYY-MM-DD -->` 与会话呈出。
 
 ## 规则
 
 1. **写范围**：只写 `{output_dir}/design.yaml`（**仅初始生成**）与 `{output_dir}/prototypes/<页 id>.html`；其余一律只读——不碰 `prd.yaml` / `wds-*.yaml` / `stories.yaml`，不搬目标站点的代码与资产进仓。
 2. **检查点四选项**（每步产出后，六拍不得省）：① 生成本步产出 → ② 落盘 → ③ 显示检查点分隔 → ④ 呈出本步产出 → ⑤ 出四选项 → ⑥ 等响应。
 3. **选项落点**：`[a]` → 调 `diy-elicit`；`[p]` → 调 `diy-party-mode`（两者**零写面**，返回后回第 ② 拍重落盘）；`[c]` → 进下一步；`[y]` → 后续跳过 ⑤⑥，**②③④ 照旧**。无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
-4. **写权边界（裁定 13）**：`design.yaml` 的初始生成权归本技能、演进权归 `diy-design` / `diy-dev`。已存在即**不覆盖**——`revisions` 建议 + 路由 `diy-design`；本技能**不改** `design.py`、不扩 schema。
+4. **写权边界**：`design.yaml` 的初始生成权归本技能、演进权归 `diy-design` / `diy-dev`。已存在即**不覆盖**——`revisions` 建议 + 路由 `diy-design`；本技能**不改** `design.py`、不扩 schema。
 5. **ID 形态**：页 ID 沿用既有 schema 的 `P-<n>`（**不得用 WDS 线的记录 ID 形态**），顺序铸号、不重编不复用；结构稿名与 `id` 同源（引擎核 `SET_MISMATCH`）。
 6. **「不抄像素」判据（复用 `one-off-*` 口径）**：候选值先过 `reverse.py tokens --values …`——**同一值出现 ≥2 次才可作 token，单次值一律不收**（它与 `design.py audit` 的 `one-off-color` / `one-off-font-size` 同判据）。**计数可机械、分组与命名是人工判定**；`status: 待核实` 的推断不写成事实。
 7. **终门（机械）**：先落 `project.status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-reverse/scripts/reverse.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`。随后**交叉核对一次既有设计域引擎**（schema 与易用性权威，只读）：`design.py validate` 与 `design.py check` 都必须 `exit 0`；两者不一致时以它为准修产物。渲染与收尾都等 `exit 0`。**本技能产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。

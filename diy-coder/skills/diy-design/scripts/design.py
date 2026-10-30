@@ -19,7 +19,7 @@ warnings[], counts{}, file}；退出码 0 成功 / 1 拒绝 / 2 用法错误）�
               → 已移除 必填 --reason；破坏性边追加 revisions[]）
 
 写回纪律（transition）：原样载入 → 就地改 → safe_dump(allow_unicode, sort_keys=False)
-→ 同目录 .tmp + os.replace 原子替换；校验不过零写入。实例解析对齐 FR-4.5/D-9。
+→ 同目录 .tmp + os.replace 原子替换；校验不过零写入。实例解析由 SKILL.md 层委托 `diyc.py resolve` 完成。
 """
 # trace: S-14 AC-14.1 AC-14.2 AC-14.3 TC-14.1.1 TC-14.2.1 TC-14.3.1
 import argparse
@@ -111,7 +111,7 @@ def build_parser():
     t.set_defaults(func=cmd_transition)
     return ap
 
-def main():  # trace: S-14 AC-14.1 子命令路由（utf-8 输出确定性）；D-10：compare 已删除
+def main():  # trace: S-14 AC-14.1 子命令路由（utf-8 输出确定性）
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
     args = build_parser().parse_args()

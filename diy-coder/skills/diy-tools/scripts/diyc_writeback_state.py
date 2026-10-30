@@ -45,7 +45,7 @@ def _transition(args):
     elif src == "已阻塞" and dst == "待办":
         new_task.pop("blocked_reason", None)  # 阻塞解除：清 reason
     elif src == "已完成" and dst == "进行中":
-        # 重开即清旧 verdict（SS-012-04，与 runner.py --reopen-failed 同语义）；
+        # 重开即清旧 verdict（与 runner.py --reopen-failed 同语义）；
         # 不清则留下「进行中 + 旧 augment」的陈旧组合，check 的枚举校验抓不到
         new_task.pop("augment", None)
     if args.rounds is not None:
@@ -120,7 +120,7 @@ def _green(args):
     rel_tp = _rel(args, _doc_path(args, "test-plan"))
     err = docs.yaml_err("test-plan")
     if err:
-        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（重复键≠解析失败）
         code = docs.yaml_err_code("test-plan") or "UNPARSABLE_YAML"
         label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
         return _fail(args, lib.v(code, rel_tp, f"{rel_tp} {label}：{err}"))
@@ -137,7 +137,7 @@ def _green(args):
         return _fail(args, lib.v("UNPARSABLE_YAML", rel_tp,
                                  f"{rel_tp} 的 test_cases 不是列表（形状异常）——修复后重跑"))
 
-    # Q-121 兜底：retired TC 跳过不写（evidence 与 test-plan status 回填均不落，其余照写）——
+    # 兜底：retired TC 跳过不写（evidence 与 test-plan status 回填均不落，其余照写）——
     # check 期主防线强制移出 test_refs，此为既有产物（test_refs 过时）的时间窗兜底，不打断开发循环
     active, skipped_retired = [], []
     for tc, red, green in zip(tcs, reds, greens):
@@ -191,7 +191,6 @@ def _green(args):
 # ---- done（§4.7） ----
 
 def _done(args):
-    # trace: S-9 AC-9.1 TC-9.1.2（待审查→已完成 终态；三真源同批回填，BUG-012）
     doc, path, viol = _load(args, "sprint")
     if viol:
         return _fail(args, viol)
@@ -223,7 +222,7 @@ def _done(args):
     rel_stories = _rel(args, _doc_path(args, "stories"))
     err = docs.yaml_err("stories")
     if err:
-        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（重复键≠解析失败）
         code = docs.yaml_err_code("stories") or "UNPARSABLE_YAML"
         label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
         return _fail(args, lib.v(code, rel_stories, f"{rel_stories} {label}：{err}"))

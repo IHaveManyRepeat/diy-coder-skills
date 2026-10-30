@@ -13,11 +13,11 @@ CTX_FILE = "project-context.yaml"
 
 SCAN_MODES = ("全量", "重扫", "深挖")
 SCAN_LEVELS = ("快速", "深入", "穷尽")
-# 规则类别 = 源 generate-project-context step-02/step-03 的七个规则域（Technology Stack &
+# 规则类别 = 七个规则域（Technology Stack &
 # Versions / Language / Framework / Testing / Quality & Style / Workflow / Critical Don't-Miss）
 RULE_CATEGORIES = ("技术栈", "语言", "框架", "测试", "质量", "工作流",
                    "反模式")
-# 部件类型 = documentation-requirements.csv 的项目类型列（11 行；源文宣称 12 类，CSV 实际 11 行）
+# 部件类型 = documentation-requirements.csv 的项目类型列（11 行）
 # + 未知（畸形/未解析清单的降级值，与 scan 回执自洽）
 PART_TYPES = ("网页", "移动端", "后端", "命令行", "库", "桌面端", "游戏", "数据",
               "扩展", "基础设施", "嵌入式", "未知")
@@ -88,7 +88,7 @@ FRAMEWORK_HINTS = (
     ("symfony/", "symfony"), ("spring-boot", "spring-boot"), ("flutter", "flutter"),
     ("axum", "axum"), ("actix-web", "actix"),
 )
-# 既有文档发现规则（源 full-scan step-2）：文件名 → 类别；再按目录语义兜底
+# 既有文档发现规则：文件名 → 类别；再按目录语义兜底
 DOC_NAME_RULES = (
     ("readme", ("readme.md", "readme.rst", "readme.txt")),
     ("contributing", ("contributing.md", "contributing.rst")),

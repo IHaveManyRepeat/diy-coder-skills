@@ -19,14 +19,14 @@ STAGES = (1, 2, 3, 4, 5)
 STRENGTHS = ("已锤炼", "欠火候", "地基裂缝")
 PROJECT_STATUSES = ("草稿", "已定稿")
 ESSENTIAL_KEYS = ("customer", "problem", "stakes", "solution")
-# 源 assets/prfaq-template.md 的九节结构（Press Release 锻造面）
+# 九节结构（Press Release 锻造面）
 PRESS_KEYS = ("headline", "subheadline", "opening", "problem", "solution",
               "leader_quote", "how_it_works", "customer_quote", "getting_started")
 DISTILLATE_SCALARS = ("problem",)
 DISTILLATE_LISTS = ("target_users", "value_props", "constraints", "open_questions")
 
 PQ_RE = re.compile(r"PQ-\d{3}")
-# v4 批 3（§7-3b/d）：时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
+# 时间格式两格式兼容——纯日期 | 日期＋空格＋时分秒（秒级真值）
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?")
 
 def faq_ids(data):
@@ -65,7 +65,7 @@ def check_project(project, show, violations):
         violations.append(v("ENUM_INVALID", show + " project.status",
                             "status 越界：%s（合法集 %s）"
                             % (status, "|".join(PROJECT_STATUSES))))
-    # 批 3 追裁②（2026-10-15）：created/updated 补非空门＋格式断——留空＝未盖章
+    # created/updated 补非空门＋格式断——留空＝未盖章
     # （防忘跑 diyc stamp 闭环断口）；两格式同 brief 口径
     for key in ("created", "updated"):
         value = project.get(key)
@@ -78,7 +78,7 @@ def check_project(project, show, violations):
                                 % (key, value)))
 
 def check_revisions(revisions, show, violations):
-    """revisions 段（§2.4 机制）：列表，条目 {date, change, reason} 三键非空。"""
+    """revisions 段：列表，条目 {date, change, reason} 三键非空。"""
     if revisions is None:
         return
     if not isinstance(revisions, list):
@@ -121,7 +121,7 @@ def check_stage(doc, where, violations):
     return stage
 
 def check_notes(notes, show, violations):
-    """notes 段（coaching notes 承载，2026-09-14 主 agent 改判）：出现时校验——
+    """notes 段（coaching notes 承载）：出现时校验——
     列表 + 条目 {stage: 1-5, content 非空}；缺席合法（起草期可先不加）。"""
     if notes is None:
         return
@@ -221,7 +221,7 @@ def local_pq_set(data):
 
 
 def check_final_duties(data, doc, project, stage, show, violations, warnings=None):
-    """--final 附加义务（任务书 §5）：stage=5 / status: 已定稿 / 九键 / verdict /
+    """--final 附加义务：stage=5 / status: 已定稿 / 九键 / verdict /
     distillate 存在且五字段非空（对称补＝与 brief/research 交出面同档）/ 零 [假设]。"""
     warnings = warnings if warnings is not None else []
     if stage != 5:

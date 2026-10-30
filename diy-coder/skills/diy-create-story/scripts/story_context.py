@@ -3,7 +3,7 @@
 
 子命令：
   collect  目标 story 的确定性采集（只读，绝不写文件）：
-             1 门禁（源技能 step-1「确定目标故事」的门禁化）：stories.yaml 在场、可解析、
+             1 门禁（「确定目标故事」的门禁化）：stories.yaml 在场、可解析、
                project.status == 已定稿，且 --story 指向的 story 存在；不满足 → 零产出 exit 1
                + 结构化拒绝回执（violations 带码 + gate.route 给路由）。story 悬空时回执附
                suggestions（候选 story ID，供会话降级为用户选择）。
@@ -11,17 +11,15 @@
                sprint.yaml / test-plan.yaml 缺席不拒（二档可选源，降级为 warning）。
              2 AC 清点：目标 story 的全部 acceptance_criteria（id/given/when/then/refs +
                可选 design_ref）+ epic（该 story 的 epic——回执字段，供记录的 epic 字段
-               直接取用，会话不必手工回读 stories.yaml）——替换源 step-2「人工通读 epics
-               分片提取故事基础」。
+               直接取用，会话不必手工回读 stories.yaml）——取代人工通读 epics 分片提取故事基础。
              3 TC 清点：test-plan.yaml 中 ac 属该 story AC 集的用例（id/ac/title/type/
                priority/technique/status）——源需人工核对，此处机械匹配。
              4 前序情报：stories.yaml 中编号最高且小于当前者（S-y, y < x）的 story 及其
-               sprint 任务 note/evidence/loop/blocked_reason——替换源 step-2「扫描
-               implementation_artifacts 找上一故事文件」。
+               sprint 任务 note/evidence/loop/blocked_reason——取代扫描前序故事的实现产物。
              5 决策清单：architecture.yaml decisions[] 的 {id, title, status, affects} 摘要级
-               ——替换源 step-3「通读架构文档提取护栏」的取材面（适用面判定留给会话）。
+               ——取代通读架构文档提取护栏的取材面（适用面判定留给会话）。
              6 git 情报：最近 5 次提交（hash/date/subject/files，每提交最多 20 个文件路径）
-               ——替换源 step-2 的 git 分析；VCS 不可用 / 无提交 → NO_VCS warning 降级，不崩。
+               ——取代 git 情报分析；VCS 不可用 / 无提交 → NO_VCS warning 降级，不崩。
   check    校验 {output_dir}/story-context.yaml（SC-### 集合，形状对齐 bug-log.yaml）：
            schema / id 格式与唯一 / story 解析（stories.yaml）/ epic 与 story 一致 /
            ac_refs ⊆ 该 story 的 AC / tc_refs 解析（test-plan.yaml）且归属该 story /
@@ -31,15 +29,15 @@
            更新 型 preserve 非空、open_questions 空或逐条 [CLOSED] 显式闭合。
            上游缺席（stories / architecture 拒跑；test-plan 出 warning）时相关解析降级。
 
-分工裁定（任务书 §2.2/§2.3/§3）：story-context 属新产物类型，不进 diyc.py check 的硬编码
+分工裁定：story-context 属新产物类型，不进 diyc.py check 的硬编码
 类型集；本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}]
 + counts；where 正斜杠、相对 project-root）；--output-dir 必填，实例解析由 SKILL.md 委托
 diyc.py resolve（引擎内不做）。--previous 不实现：记录按 story 键原位重写，SC ID 集合不会
-收缩（任务书 §2.2 逐技能记账）。违规码复用 batch3-contract §3 冻结集；新增 NO_VCS（VCS 情报
+收缩。违规码复用冻结集；新增 NO_VCS（VCS 情报
 不可用 / 无提交的降级专用，同 W5 diy-investigate 同名语义）。产物与 SC-### ID 由
 diy-create-story 会话（LLM）创作，本引擎只校验格式与唯一性；两个子命令都不写盘。
 """
-# trace: B2 diy-create-story 验收#3（前置门禁）/ #4（ID 链接入）/ #12（diyc 接线）
+# trace: 前置门禁 + ID 链接入 + diyc 接线
 import argparse
 import os
 import sys

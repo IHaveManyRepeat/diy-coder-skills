@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diyc mutate 行为模块 —— 变异执行的沙箱机制（迁移计划 §五 阶段 C 第 9 项 / C·9）。
+"""diyc mutate 行为模块 —— 变异执行的沙箱机制。
 
 职责边界（语言无关纪律）：本模块只做「建副本 → 跑命令 → 销毁 → 出回执」，
 **不解析任何工具的输出**——survivors / equivalents 的语义归 `diy-augment`。

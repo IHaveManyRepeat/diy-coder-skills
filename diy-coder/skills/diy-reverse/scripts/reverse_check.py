@@ -97,7 +97,7 @@ def cmd_check(args):
                      "为空——具名方向 + 一行理由 + 2–3 条反模式禁令"))
     if not str(doc.get("frontend_framework") or "").strip():
         vio.append(v("EMPTY_FIELD", "frontend_framework",
-                     "为空——取值路径见 diy-design SKILL 的 B9 条；纯 HTML 项目写 html"))
+                     "为空——取值路径 = `{output_dir}/architecture.yaml` 的 `stack[]` 里 `kind: frontend` 条目的 choice（缺席则停下问用户一次）；纯 HTML 项目写 html"))
 
     # 第二道：tokens 三段必填键 + 色值形态
     tokens = doc.get("tokens") or {}

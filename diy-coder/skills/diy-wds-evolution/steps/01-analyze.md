@@ -7,13 +7,13 @@ Progress: `[1 载上下文与入口门禁] → 2 双轨上下文与改进目标�
 
 你是**Kaizen 迭代的主持人**（源 wds-8 的 Freya 线）。动作只有一件：**把「下一步该改什么」问出来并排出先后**——你带来 Kaizen 方法论与优先级框架，用户带来产品知识、真实数字与团队观察。这一段【不做】方案设计、【不做】范围估算，那些是 02-scope 之后的事。
 
-**本段纪律（源 `steps-a/step-01` 的 Step-Specific Rules）**：① 问题必须**具体、可量、范围小**——「让它更好用」这类表述一律打回；② **先定义问题再谈方案**（源 `FORBIDDEN to jump to solutions before the problem is clearly defined`）；③ 每条目标都要挂到**一个人物或一个业务目标**上，挂不上的不进清单。
+**本段纪律**：① 问题必须**具体、可量、范围小**——「让它更好用」这类表述一律打回；② **先定义问题再谈方案**（`FORBIDDEN to jump to solutions before the problem is clearly defined`）；③ 每条目标都要挂到**一个人物或一个业务目标**上，挂不上的不进清单。
 
 ## 第 1 步 —— 载上下文与入口门禁（源 [A] step-01）
 
 **先说清为什么**：为什么先把产品的现状读一遍再动手——Kaizen 是在**既有系统与既有约束**里做小改，不是重画；现状读错，后面整轮都在替一个不存在的产品改东西。用你自己的话讲。
 
-**你是入口技能**（`precededBy: []`，任务书裁定 9）：源侧 `precededBy` 指向的实体不在本迁移范围，且源定位就是「**面向已存在产品的持续改进**」——输入是**已存在的产品**，不是某个指定上游产物。故门禁 = **既有产物任一在场**，不绑任何单一上游。
+**你是入口技能**（`precededBy: []`）：定位是「**面向已存在产品的持续改进**」——输入是**已存在的产品**，不是某个指定上游产物。故门禁 = **既有产物任一在场**，不绑任何单一上游。
 
 **读什么、读出什么**：
 
@@ -50,16 +50,15 @@ python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py
 
 **先说清为什么**：目标从哪来——不是拍脑袋，是**从产品自己吐出来的东西里捞**。用你自己的话讲。
 
-**双轨入口**（源 `steps-a/step-01` 第 1 指令；`init --entry` 的取值就是它）：**两轨的产物形态相同，采集面不同**。
+**双轨入口**（`init --entry` 的取值就是它）：**两轨的产物形态相同，采集面不同**。
 
 | 轨 | 判据 | 采集面 |
 | --- | --- | --- |
-| `存量接入` | 你**第一次**接手这个产品 | 源 `steps-a/step-02` 的 Context A：业务材料 / 用户材料 / 产品材料三栏 + **亲自把产品走一遍**（源 `First Impressions` 模板的四段：Onboarding / Core Features / Overall Impression） |
-| `上线后持续` | 产品是你（或团队）做出来的，正在线上迭代 | 源 `steps-a/step-02` 的 Context B：分析深潜（用量 / 分层 / 流失点）· 反馈归类（主题 / 频次 / 原话）· **回看原始设计意图**（当初为什么这么设计、哪些假设已变）· 竞品对照 |
+| `存量接入` | 你**第一次**接手这个产品 | Context A：业务材料 / 用户材料 / 产品材料三栏 + **亲自把产品走一遍**（四段：Onboarding / Core Features / Overall Impression） |
+| `上线后持续` | 产品是你（或团队）做出来的，正在线上迭代 | Context B：分析深潜（用量 / 分层 / 流失点）· 反馈归类（主题 / 频次 / 原话）· **回看原始设计意图**（当初为什么这么设计、哪些假设已变）· 竞品对照 |
 
-**本步的两条纪律**：① **存量接入轨必须亲身体验产品**（源侧把它列为 SYSTEM FAILURE 项）——只读文档不算；② 反馈归类**保留原话**，不要在这一步就改写成结论。
+**本步的两条纪律**：① **存量接入轨必须亲身体验产品**——只读文档不算；② 反馈归类**保留原话**，不要在这一步就改写成结论。
 
-〔**源侧缺陷处置（死分支复活，任务书 W3 卡）**〕源侧 `workflow.md:64` 的路由表声称 [A] 用 `steps-a/`，但 `workflow-analyze.md:19-64` 的 4 个内联步**从不加载任何步骤件**（全库 `grep "steps-a"` 仅 2 处命中、**零加载点**）——**361 行不可达**。且两套分解内容互不覆盖：内联版是「清单式」、`steps-a` 版是「Kaizen 双轨 + 优先级公式」。**diy 处置 = 合并而不是二选一**：活动文件的内联步序为**骨架**（它才是实际可达的那一套），`steps-a/` 的双轨采集、`Priority = Impact × Effort × Learning` 与 Context Synthesis 四键**逐条并入**本文件第 2/3/4 步——死分支的**内容全部落地、只是不再作为一份独立文件存在**。
 
 **改进目标清单（五源，源 [A] step-02 第 1 指令）**：逐源过一遍，**每条目标写「现象 + 数字或原话 + 影响的页/流」**：
 
@@ -83,7 +82,7 @@ python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py
 
 **先说清为什么**：为什么一次只做一条——Kaizen 的成本优势来自**小批量、快反馈**，并行三条会把「哪条起了作用」这个信息本身弄丢。用你自己的话讲。
 
-**Kaizen 优先级框架（源 `data/kaizen-principles.md`，全文落 `data/priority-framework.md`）**：
+**Kaizen 优先级框架（全文落 `data/priority-framework.md`）**：
 
 ```
 Priority = Impact × Effort × Learning
@@ -91,7 +90,6 @@ Priority = Impact × Effort × Learning
 
 三因子各取 `high|medium|low`（权重 5 / 3 / 1），`score` = 三档权重之积。**三因子一律「越大越好」**——`Effort` 的 `high` 指**省力度高**（源表逐字：「High = 1-2 days」），**不是**「活儿大」。故 `score` 高 = 该先做。
 
-〔**口径归一（源侧两处表述互斥）**〕`kaizen-principles.md` 把 Effort 的 High 记作「1-2 days」、`steps-a/step-01` 的表把 High 记作「1-2 days」而列头写 High/Medium/Low——两处的 High 都指向**最省力**，但字面「Effort 高」会被读成「工作量大」，与乘法公式自相矛盾。**diy 归一 = 三因子统一为「收益向」**：`effort` 的取值语义是「省力度」，`score` 高即优先。**框架名与公式逐字保留**（它是本技能相对 `diy-dev` 的不可替代内容）。
 
 **逐条排序与呈批（用户关卡 1）**：排出候选清单，呈出后**等点头**：
 
@@ -103,7 +101,7 @@ Priority = Impact × Effort × Learning
 | 1 | <目标> | high|medium|low | high|medium|low | high|medium|low | <积> |
 …
 
-**本轮先做哪一条？**（源侧口径：一次一条；其余进留存，下一轮再看）
+**本轮先做哪一条？**（一次一条；其余进留存，下一轮再看）
 ```
 
 **不得替用户选**（源 [A] step-3 原话 `Which target should we tackle first?`）。
@@ -128,11 +126,11 @@ python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py
 
 读全并照做本文件 `## 第 4 步 —— 分析落盘与根因合成`。
 
-## 第 4 步 —— 分析落盘与根因合成（源 [A] step-04 + 源 `steps-a/step-02` 第 4 指令）
+## 第 4 步 —— 分析落盘与根因合成
 
 **先说清为什么**：为什么「现象」还不够、非要一层根因——不找到根因的改进会在同一个地方反复打转，那正是 Muda（無駄）里的「返工」。用你自己的话讲。
 
-**Context Synthesis 四键（源 `steps-a/step-02` 的 Synthesis，两轨共用）**，写进 `rounds[0].analysis`：
+**Context Synthesis 四键（两轨共用）**，写进 `rounds[0].analysis`：
 
 ```yaml
 analysis:
@@ -146,7 +144,7 @@ analysis:
   selected_rationale: <为什么是这一条——引用 score 与用户的话，不复述排序表>
 ```
 
-- **根因必须先立住再往下走**（源侧原文 `Root cause must be identified before moving forward`）。
+- **根因必须先立住再往下走**。
 - `targets_considered` **全留**：未选中的目标是下一轮的原料（源 [P] step-5 的「回看剩余目标」靠它）。
 
 **接线句（A 相·依赖代码库证据时）**：根因要代码库证据 → 先跑 `diy-analyze`（产物 `{output_dir}/analysis.yaml`）→ 引其 `components[]` 的 `AN-<nn>` 组件锚 → 把锚写入**轮级** `rounds[].analysis_refs` 依赖声明（键在轮级、不进 `analysis`/`scope` 段内——A/S 两相共享同一组锚，语义见 SKILL.md 结构段）。**依赖已声明而 `analysis.yaml` 缺席 / 损坏 / 锚悬空 → 停手显式报错（一档）**——`check` 机械核 `MISSING_FILE` / `UNPARSABLE_YAML` / `UNKNOWN_ID`，不降级继续；不依赖的轮次（改文案类）不写声明、不受阻。

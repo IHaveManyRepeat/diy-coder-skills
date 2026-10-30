@@ -4,7 +4,7 @@
 分工：本模块只提供机制，不含检查规则（diyc_check）与写回动作（diyc_writeback）；
 CLI 定义与统一收口在 diyc.py。
 
-- 实例解析语义沿 diy-help/scripts/help.py 的 resolve_output_dir（批次 1 加固版）：
+- 实例解析语义沿 diy-help 的 resolve_output_dir：
   白名单 fullmatch 拒注入、配置损坏/形状异常降级默认 + warning、非法实例名 stderr + exit 1。
   唯一差异（契约 §3/§5 裁定）：仅 None 表示主线；显式空串按非法实例名拒绝（对齐 viewer
   R16-1 的 is None 严格语义），不复刻 help.py 的 falsy 回落——写回命令下空串常源于脚本
@@ -12,7 +12,7 @@ CLI 定义与统一收口在 diyc.py。
 - 原子写对齐 runner.py save_sprint 先例（同目录 tmp + os.replace，注释不保留）。
 - Docs 是所有跨文档核对的唯一索引入口；story_covered 是 TDD 门（PENDING_UNCOVERED）
   与 reconcile 复用的唯一定义源（契约 §4.2）。
-- baseline（已知遗留台账，D1-D4 用户裁定 2026-09-13）：{output_dir}/diyc-baseline.yaml，
+- baseline（已知遗留台账）：{output_dir}/diyc-baseline.yaml，
   命中 (code, where) 降级 known、悬空条目 BASELINE_STALE、文件损坏/条目非法整份不生效；
   仅审计命令（check/trace/static）消费（写回拒绝被豁免会静默放行，属高危失败模式）；
   写入仅经 baseline_add（D3：仅用户裁定后调用，加载校验通过才追加）。

@@ -2,7 +2,6 @@
 
 `data/kaizen-principles.md` 第三节的展开。**唯一权威**——步骤文件与产物键都回到这里。
 
-源 = `.claude/skills/wds-8-product-evolution/data/kaizen-principles.md` 的「Kaizen Prioritization Framework」节（276 行文件的主体段之一）+ 同技能 `steps-a/step-01-identify.md:92–104` 的同名三档表。
 
 ---
 
@@ -14,7 +13,7 @@ Priority = Impact × Effort × Learning
 
 三因子各取三档之一，**权重 5 / 3 / 1**，`score` = 三档权重之积（十个可能取值：{1, 3, 5, 9, 15, 25, 27, 45, 75, 125}）。
 
-**三因子一律「越大越好」**——见第三节的口径归一。
+**三因子一律「越大越好」**——`score` 高 = 优先；**不是**「工作量越大越优先」。
 
 ---
 
@@ -27,17 +26,6 @@ Priority = Impact × Effort × Learning
 | **Learning** | 验一个重要假设 | 核一个既有假定 | 只是增量式改善 |
 
 **读法**：`high` 的 Effort = **省力**（1–2 天）。把 `effort` 读成「工作量」会把公式读反。
-
----
-
-## 三、口径归一（源侧两处表述互斥）
-
-- 源 `kaizen-principles.md` 的表头写 `High / Medium / Low`，而正文把 Effort 的 `Low` 记作「1-2 days」、`High` 记作「1-2 weeks」；
-- 源 `steps-a/step-01-identify.md:96–100` 的同名表把 Effort 的 `High` 记作「1-2 days」、`Low` 记作「1-2 weeks」。
-
-**两处对 High/Low 的指向相反**，且公式是**乘法**——若按前一处读法（Effort 越大越优先），`score` 高就成了「最贵的先做」，与 Kaizen「小步快跑」自相矛盾。
-
-**diy 归一**：**三因子统一为收益向**——`effort` 的取值语义是**省力度**，`high` = 最省（1–2 天，取 `steps-a` 那一处的口径，它才是 [A] 活动实际可加载路径上的表）。**公式名与乘法形态逐字保留**（它是本技能的方法签名）。
 
 ---
 

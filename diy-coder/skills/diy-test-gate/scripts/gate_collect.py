@@ -22,7 +22,7 @@ from gate_lib import (  # noqa: E402
 
 
 def gate_check(root, out, args):
-    """前置门禁（任务书 §4）。返回 (docs, violations, route)。"""
+    """前置门禁。返回 (docs, violations, route)。"""
     show = lambda name: display_path(os.path.join(out, name), root)  # noqa: E731
     violations, docs = [], {}
 
@@ -174,7 +174,7 @@ def coverage_block(items):
 
 
 def soft_metrics_block(items, plan, ac_story):
-    """软指标六项（任务书 §4 口径）。"""
+    """软指标六项。"""
     total_acs = len(items)
     by_technique = {"business": 0, "boundary": 0, "negative": 0}
     p0_depth = p0_total = 0

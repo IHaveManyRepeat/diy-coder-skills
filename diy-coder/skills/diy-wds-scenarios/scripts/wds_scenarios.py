@@ -2,29 +2,29 @@
 """diy-wds-scenarios 确定性引擎：产物列举（list）/ 单条或整份详情（show）/ 骨架铸造（init）
 / wds-scenarios.yaml 校验（check [--final]，含**页面覆盖矩阵**的机械核对）。
 
-机制：本技能是 **WDS 链的第三环**（源 `wds-3-scenarios`：把触发图翻成场景大纲与页面树）。
+机制：本技能是 **WDS 链的第三环**（把触发图翻成场景大纲与页面树）。
 产物 `{output_dir}/wds-scenarios.yaml` 是**内容型产物**——`scope` / `page_inventory[]` /
 `scenarios[].pages[]` 由会话（LLM）逐步编辑写回，本引擎只做确定性的两件事：**铸造骨架**
 与**机械校验**（含覆盖矩阵）。四个子命令里**只有 `init` 写盘**。
 
-**裁定 12 的落地（本引擎最要紧的一条）**：源侧 step-05 会为每个场景建目录树
+**只产本 YAML（本引擎最要紧的一条）**：不为每个场景建目录树
 （`C-UX-Scenarios/[NN-slug]/`）+ 每个页面建文件夹与样板 md + `Sketches/` 空目录。
 diy 侧**只产本 YAML**：逐场景写 `scenarios[]` 记录、其下写 `pages[]` 记录——**不建任何目录树、
-不建 `Sketches/`**（那是 C·3 `diy-design` 的产物位）。故 `check` 的页面类判据全部落在
+不建 `Sketches/`**（那是下游设计技能的产物位）。故 `check` 的页面类判据全部落在
 **记录与引用**上，不落在文件系统上。
 
-**裁定 8 的 ID 体系（机械核对）**：场景 `SC-<nn>`（两位数、顺序递增、不重编不复用）；
+**ID 体系（机械核对）**：场景 `SC-<nn>`（两位数、顺序递增、不重编不复用）；
 页面 `SC-<nn>.P<n>`（**废止独立的 `P-*` 前缀**）；人物 `TG-<n>`（引用上游，不复制内容）。
-页面 `slug` 保留源侧 `NN.<p>-<page-slug>` 形态作**展示名**，但它必须与 ID **同源**——
+页面 `slug` 用 `NN.<p>-<page-slug>` 形态作**展示名**，但它必须与 ID **同源**——
 这一条由 `check` 机械核对（展示名与引用键漂移是本设计最可能的坏味道）。
 
-**裁定 17 的交接契约（必携三键）**：每条记录含 `design_intent`（`[K|C|S|D|L]`）+
+**交接契约（必携三键）**：每条记录含 `design_intent`（`[K|C|S|D|L]`）+
 `design_status`（初值 `not-started`；本技能**只设初值**，后续推进归 `diy-design` 的 WDS 线分支，
 故 `--final` 要求它**恰为初值**）+ `trigger_map_context`（`target_group: TG-<n>` +
 `drivers[]`：所消费的驱动因素 ID，形态取上游实值 `DF-<人物号>.<条号>+|-`，
 见 `diy-wds-trigger/SKILL.md` 结构段 + `business_goal: BG-<n>`）。
 **所消费的驱动必须属本记录的人物群**——引擎从驱动 ID 里认出人物号并与 `target_group` 比对，
-跨群引用判 `SET_MISMATCH`（这条替代了源侧「人工看有没有抄错群」）。
+跨群引用判 `SET_MISMATCH`。
 
 **三条骨律的机械落点**（源 step-05）：
 ① **阳光路径零分支** —— 结构保证：`pages[]` 是有序列表、页号连续、无分支键；
@@ -33,7 +33,7 @@ diy 侧**只产本 YAML**：逐场景写 `scenarios[]` 记录、其下写 `pages
 ③ **每页恰属一条战略链** —— **页面覆盖矩阵**：每条 `page_inventory[]` 的页在全部
    `scenarios[].pages[]` 里**恰出现一次**；漏配 / 重复分配 / 清单外的页各判一条。
 
-  list    列场景摘要——只回六字段（对照源 `00-ux-scenarios.md` 摘要表列：
+  list    列场景摘要——只回六字段（摘要表列：
           `id` / `name` / `persona` / `pages` / `priority` / `status`），**不读正文**。
           `persona` 列 = 记录的 `trigger_map_context.target_group`（单一源，不复制人物名）。
           产物缺席是新项目常态 → 空列表 + `ok: true`；`--status` 按记录级 `status` 过滤。
@@ -68,18 +68,18 @@ diy 侧**只产本 YAML**：逐场景写 `scenarios[]` 记录、其下写 `pages
 `personas[]`（`TG-<n>` + 其驱动因素）/ `priority`，门禁 = 其 `project.status: 已定稿`；
 **只读不写**（上游写权 100% 归 `diy-wds-trigger`）。
 
-违规码：复用 batch3-contract §3 冻结集——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：复用冻结集——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
 `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` /
 `SET_MISMATCH` / `ASSUMPTION_PRESENT` 共 9 个；`TOKEN_UNRESOLVED` 沿用 B6 的已批新增码与判定
-流程（**本批不新增任何码**）。三处语义复用在此登记：① `SET_MISMATCH` 承载「ID 跳号 / 页号
+流程（**零新增码**）。三处语义复用在此登记：① `SET_MISMATCH` 承载「ID 跳号 / 页号
 不连续 / slug 与 ID 不同源 / 覆盖矩阵违规」四类（最近义项 = 「集合或取值不匹配」）；
 ② `ENUM_INVALID` 兼作 `list --status` 非法取值码；③ `UNKNOWN_ID` 兼作「场景里出现页清单外的
 页」与「`show --id` 不存在」两用。
 
-`--previous` 判 **no**（裁定 18）：`scenarios[]` 与 `pages[]` **只增不减**（重跑即新增记录，
+`--previous` 判 **no**：`scenarios[]` 与 `pages[]` **只增不减**（重跑即新增记录，
 不收缩集合），不存在「旧有新无」的 ID 集合可比对；改既有记录往 `revisions` 追加。
 
-契约（承 batch3-contract §3 / 任务书 §2.2）：exit 0 唯一放行 / 1 = 违规或被拒绝 /
+契约：exit 0 唯一放行 / 1 = 违规或被拒绝 /
 2 = 用法错误（argparse 默认）；`--json` → 单行回执（`ensure_ascii=False`）；无 `--json`
 → 中文人读行。回执共同键 `{ok, command, project_root, output_dir, instance, violations,
 warnings, counts}`（`instance` 恒 `null` 但**键在位**，`warnings` 与 `violations` 同形），
@@ -96,9 +96,6 @@ default_flow_style=False)` → 同目录临时文件 + `os.replace`（复用 `di
 `diyc.py check --type <WDS 型> --previous`——`diyc.py` 的 `CHECK_TYPES` 是 8 型封闭集，
 WDS 型不在其中（`test_suite_texts.py` 有守卫会直接判红）。
 """
-# trace: 迁移计划 §二 验收 #1（薄主文件 + 厚 steps）/#2（产物 schema + SC-<nn>/SC-<nn>.P<n>）
-#        /#3（前置门禁：读 wds-trigger.yaml 的 project.status: 已定稿）/#4（ID 唯一性与顺序性）
-#        /#6（viewer 标签缺口登记）/#8（frontmatter 六字段）/#12（领域引擎接线：b 终门 / c --previous 判 no）
 import argparse
 import json
 import os

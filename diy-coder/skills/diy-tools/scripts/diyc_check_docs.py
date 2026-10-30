@@ -4,19 +4,18 @@
 规则逐条读取对应 SKILL.md 的 Schema、Discipline 与 Final requires 原文对齐，
 每条附 `# rule: <skill>/SKILL.md:<条款>` 注释；跨文档引用解析只经 diyc_lib.Docs
 （契约 §5，禁止旁路读文件）。入口 run() 在 diyc_check.py；本模块 check_* 纯函数
-就地追加违规并返回 counts（契约 §4.2）。另持枚举面一致性（Q-115）：跨技能枚举常量
+就地追加违规并返回 counts（契约 §4.2）。另持枚举面一致性：跨技能枚举常量
 的出现面清单封闭登记，逐面提取与常量断言集合相等，经通用门 check_project_times 挂载。
 
 裁量声明（已在回报中报 team-lead）：
 - 跨文档 UNKNOWN_ID 限于 team-lead 裁定的三条真链路（architecture.affects /
   openapi x-fr / stories refs）+ 契约钉住的 stories design_ref；
   epics.feature_refs、stories.epic 属同类链路但不在本次裁定范围，暂不查。
-- **第四条真链路（C·3a 裁定 22，2026-09-28）**：architecture.affects 的解析域
+- **第四条真链路**：architecture.affects 的解析域
   在主线 FR/NFR 之外并入 WDS 线的 SC-<nn> / SC-<nn>.P<n>（源 wds-scenarios.yaml），
   使 WDS 线决策不被终门误拒；其余类型不扩散。
 - prd open_questions 未答（answer 为空）在 --final 计 PENDING_DECISION。
 """
-# trace: 2026-09-13 批次 3（统一脚本化）——文档级规则，契约 §4.2
 
 import os
 import re
@@ -37,7 +36,7 @@ from diyc_check_docs_upstream import (check_architecture, check_epics,
 from diyc_lib import items, is_int  # noqa: E402
 
 
-# ------------------------------------------------- 枚举面一致性（Q-115·底单 :709-722 ①）
+# ------------------------------------------------- 枚举面一致性
 # 封闭世界：每个跨技能枚举登记「出现面」，逐面提取枚举文本与常量断言集合相等；
 # 漂移（面值 ≠ 常量）/ 缺值 / 清单外新面私加 = SET_MISMATCH。方案 A 未开工，此为兜底关卡。
 # 面形态（rel 相对 skills 根，正斜杠）：
@@ -269,7 +268,7 @@ def check_enum_faces(report, skills_root=None, registry=None, sweep_keys=None):
 
 def check_project_times(doc, rel, report):
     """全类型通用门（diyc_check.run 每类型必经）：
-    ① 枚举面一致性（Q-115 封闭世界回查）② project 时间键格式（lib）。"""
+    ① 枚举面一致性（封闭世界回查）② project 时间键格式（lib）。"""
     check_enum_faces(report)
     return _check_project_times(doc, rel, report)
 
@@ -300,7 +299,7 @@ def _tally(report, spot, block):
 
 
 def check_mutation_report(doc, rel, docs, final, report) -> dict:
-    """mutation-report.yaml —— diy-augment 的变异运行记录（C·9 纳入注册面）。
+    """mutation-report.yaml —— diy-augment 的变异运行记录。
 
     rule: diy-augment/SKILL.md:结构（Schema）。是套件里唯一由补测技能产、
     此前无校验器的产物——schema 漂移（score 口径、critical 形状）无人拦截。

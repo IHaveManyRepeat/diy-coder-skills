@@ -205,7 +205,7 @@ def load_known(output_dir, show, violations, warnings):
     return plan, known_ids, known_acs, stories_available
 
 def diyc_check_test_plan(script, project_root, output_dir):
-    """委派 diyc check --type test-plan（§2.3 跨文档核对唯一入口）。
+    """委派 diyc check --type test-plan（跨文档核对唯一入口）。
 
     返回 (block, warnings)：违规并入 block.check.violations（warning 面），不阻塞 exit。
     """

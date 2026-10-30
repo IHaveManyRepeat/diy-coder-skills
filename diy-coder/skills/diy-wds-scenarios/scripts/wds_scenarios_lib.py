@@ -16,9 +16,7 @@ TRIGGER_FILE = "wds-trigger.yaml"
 UPSTREAM_KEYS = ("business_goals", "personas", "priority")
 FINAL_UPSTREAM_STATUS = "已定稿"
 
-# 母本 §8 两值口径：单记录产品形态 → 顶层 `project.status`（裁定 2，零偏离）
 STATUS_ENUM = ("草稿", "已定稿")
-# 记录级子状态（裁定 2 的可选记录级域）：本技能定义为本条大纲的推进锚点
 RECORD_STATUS_ENUM = ("草稿", "已大纲")
 
 # 规模分析（源 step-02）四件
@@ -28,13 +26,11 @@ SCENARIO_FORMAT_ENUM = ("screen-flow", "storyboard", "mixed")
 # 大纲模式（源 step-02 推荐 → 源 step-05 实际实现的两态；`approach` 选填）
 APPROACH_ENUM = ("对话", "建议")
 
-# 交接契约（裁定 17）：设计意图五值 + 设计状态九值（初值 not-started）
 DESIGN_INTENT_ENUM = ("K", "C", "S", "D", "L")
 DESIGN_STATUS_INITIAL = "not-started"
 DESIGN_STATUS_ENUM = ("not-started", "discussed", "wireframed", "specified", "explored",
                       "building", "built", "approved", "removed")
 
-# ID 形态（裁定 8）
 SCENARIO_ID_RE = re.compile(r"^SC-\d{2}$")
 PAGE_ID_RE = re.compile(r"^SC-(\d{2})\.P(\d+)$")
 PAGE_SLUG_RE = re.compile(r"^(\d{2})\.(\d+)-")
@@ -162,7 +158,7 @@ def coverage_report(data):
 # ---------------------------------------------------------------- list / show
 
 def scenario_summary(record):
-    """`list` 只回六字段（对照源 `00-ux-scenarios.md` 摘要表列；不读正文）。"""
+    """`list` 只回六字段（摘要表列；不读正文）。"""
     context = record.get("trigger_map_context")
     context = context if isinstance(context, dict) else {}
     pages = record.get("pages")

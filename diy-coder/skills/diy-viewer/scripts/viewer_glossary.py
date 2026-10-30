@@ -12,7 +12,7 @@ VALUE_LABELS = {
     "单元": "单元", "集成": "集成", "端到端": "端到端",
     "已豁免": "已豁免", "接受缺口": "接受缺口",
     # test-gate 的门裁决三值：源 checklist 的英文术语（机器锚点逐字保留），
-    # 此前无值标签 → 渲染整页英文裸奔 + `unmapped enum` 诊断（C·9 落地实证抓出）
+    # 此前无值标签 → 渲染整页英文裸奔 + `unmapped enum` 诊断
     "PASS": "通过", "CONCERNS": "存疑", "FAIL": "不通过",
     "正确性": "正确性", "边界": "边界", "覆盖审计": "覆盖审计", "设计采用": "设计采用",
     "意图缺口": "意图缺口", "规格缺陷": "规格缺陷", "小修": "小修", "后置": "后置",
@@ -91,11 +91,11 @@ VALUE_LABELS = {
     "静态检查": "静态检查", "契约": "契约", "预热": "预热", "报告": "报告",
     "可维护性": "可维护性", "合成": "合成",
     "覆盖": "覆盖", "非功能需求": "非功能需求", "启发式": "启发式",
-    # trace: C·2——editorial-review 的建议类别存英文大写（引擎 editorial_review_checks.py
+    # editorial-review 的建议类别存英文大写（引擎 editorial_review_checks.py
     # 的 CATEGORIES 按原样校验，属机器锚点不可改），展示层给白话译名；判据见 steps/02-analyze.md:29-34
     "CUT": "整段删除", "MERGE": "合并章节", "MOVE": "调整位置",
     "CONDENSE": "显著压缩", "QUESTION": "待作者拍板", "PRESERVE": "显式保留",
-    # trace: C·11 W3（§5.1）——B7b 五产物的值级缺口（此前这些值全部回落纯文本 + 刷 unmapped）。
+    # 五产物的值级缺口（此前这些值全部回落纯文本 + 刷 unmapped）。
     # 采集口径同 R3：逐条取自各引擎值域常量，不另造词；英文机器锚点给展示层译名，中文值取同名标签。
     # wds-design-system：组件终态 / 复杂度（与 wds-brief 并集）/ 6 分类 / 令牌派生模式 / 开关键
     "在用": "在用", "已废弃": "已废弃",
@@ -136,7 +136,7 @@ VALUE_LABELS = {
     "仿生": "仿生", "内省之乐": "内省之乐", "创意": "创意", "协作": "协作",
     "戏剧化": "戏剧化", "文化": "文化", "深度分析": "深度分析", "狂野": "狂野",
     "结构化": "结构化", "量子": "量子",
-    # trace: Q-105（底单 :363 ④）——brainstorm 技术库 61 条技术名逐条入值表（brain-methods.csv
+    # brainstorm 技术库 61 条技术名逐条入值表（brain-methods.csv
     # 全量·techniques[].technique 取值随库）。采集口径同 R3：中文值同名标签；缺一即渲染 unmapped。
     "是而且接龙": "是而且接龙", "静默轮写": "静默轮写", "随机刺激": "随机刺激", "角色扮演": "角色扮演", "想法接力赛": "想法接力赛", "假如情景": "假如情景", "类比思维": "类比思维",
     "反转倒置": "反转倒置", "第一性原理": "第一性原理", "强制关联": "强制关联", "时间位移": "时间位移", "隐喻映射": "隐喻映射", "跨界授粉": "跨界授粉", "概念融合": "概念融合",
@@ -147,28 +147,28 @@ VALUE_LABELS = {
     "平行宇宙咖啡馆": "平行宇宙咖啡馆", "人格面具之旅": "人格面具之旅", "混沌工程": "混沌工程", "游击园艺式创意": "游击园艺式创意", "海盗法则头脑风暴": "海盗法则头脑风暴", "僵尸末日预案": "僵尸末日预案",
     "醉汉说史式复述": "醉汉说史式复述", "反方案": "反方案", "量子叠加": "量子叠加", "元素之力": "元素之力", "自然解法": "自然解法", "生态系统思维": "生态系统思维", "演化压力": "演化压力",
     "观察者效应": "观察者效应", "纠缠思维": "纠缠思维", "叠加坍缩": "叠加坍缩", "原住民智慧": "原住民智慧", "融合料理": "融合料理", "仪式创新": "仪式创新", "神话框架": "神话框架",
-    # trace: Q-105（底单 :367 ⑧）——cis-method method 四分支值域（SKILL.md schema 逐字）；
+    # cis-method method 四分支值域（SKILL.md schema 逐字）；
     # method ∈ ENUM_KEYS，缺值即刷 unmapped（装 HTTP 动词的 test-plan/stories/story-context
     # 已在 FREE_TEXT_FIELDS 例外，不走本表）。归类语义（分支名）→ 中性徽章，不进 BADGE_CLASSES
     "创新策略": "创新策略", "问题求解": "问题求解", "设计思维": "设计思维", "叙事": "叙事",
-    # trace: C·3a 收口链④——design.yaml 增量值入值域白名单（5 页状态 + open_questions 的已解决）。
+    # design.yaml 增量值入值域白名单（5 页状态 + open_questions 的已解决）。
     # 两表同源登记：极性在 BADGE_CLASSES、值域在本文档（缺一头会漏）
     "结构稿中": "结构稿中", "待验收": "待验收",
     "已移除": "已移除", "已解决": "已解决",
-    # trace: C·12 W2（裁定 C12-1 值域表逐字）——form_factor 四值 / modes 三值入值域白名单。
+    # form_factor 四值 / modes 三值入值域白名单。
     # 「移动端」已在类型/模式区（R3）；「桌面端」与本处「桌面」不同词，两不互扰。
     # 归类语义（非结论）→ 中性徽章，不进 BADGE_CLASSES（同 :65 口径）
     "响应式 Web": "响应式 Web", "桌面": "桌面", "多端": "多端",
     "亮": "亮", "暗": "暗", "双模": "双模",
-    # trace: v4 批 2c——selfcheck.yaml 值域（任务书 §3 骨架逐字）：
+    # selfcheck.yaml 值域：
     # source 三值（findings 元素·∈ ENUM_KEYS，缺值即刷 `unmapped enum`）＋
-    # layer 三值（对抗审查三层，02-dispatch 字面·layer ∈ ENUM_KEYS 同故——SS-004-08）；
+    # layer 三值（对抗审查三层，02-dispatch 字面·layer ∈ ENUM_KEYS 同故）；
     # target.kind 四值（kind ∉ ENUM_KEYS、值渲染纯文本，入表作值域留档，「文档」已在
     # 类型/模式区）。归类语义 → 中性徽章，照 2a 裁定值入表不入 BADGE_CLASSES
     "预演": "预演", "引用核对": "引用核对", "对抗": "对抗",
     "盲猎": "盲猎", "边界猎手": "边界猎手", "验收审计": "验收审计",
     "任务书": "任务书", "技能": "技能", "规格": "规格",
-    # trace: Q-107——architecture.stack[].kind 封闭七类（英文机器锚点，展示层译名；
+    # architecture.stack[].kind 封闭七类（英文机器锚点，展示层译名；
     # kind ∉ ENUM_KEYS（同键异义：spec-scan/selfcheck 的 kind 各有值域），只入值标签
     # 作展示词与徽章白名单，不触发 unmapped 诊断）。归类语义 → 中性徽章，不进 BADGE_CLASSES
     "frontend": "前端", "scaffold": "脚手架", "language": "语言",
@@ -181,7 +181,7 @@ DOC_LABELS = {
     "bug-log": "缺陷模式库", "design": "设计稿",
     "spec-scan": "规格歧义扫描",
     "deferred-actions": "待确认动作",
-    # trace: C·2 缺口 2 落地（2026-09-21）——B1–B5 批次新产物类型的中文名，
+    # 新产物类型的中文名，
     # 此前未知类型在页面标题/导航/索引卡片三处回落英文原名。命名取自各技能
     # SKILL.md frontmatter 的中文自述，不另造词
     "research": "联网调研", "brief": "产品简报", "prfaq": "PRFAQ 拷问",
@@ -191,24 +191,24 @@ DOC_LABELS = {
     "investigation": "取证调查",
     "test-gate": "质量门", "test-framework": "测试框架台账", "test-review": "测试质量审计",
     "learning-progress": "学习进度", "brainstorm": "头脑风暴",
-    # trace: Q-105（底单 :367 ⑧）——cis-method 中文名取自 SKILL.md 标题「创意方法引导器」
+    # cis-method 中文名取自 SKILL.md 标题「创意方法引导器」
     "cis-method": "创意方法引导器",
     "spec-kernel": "SPEC 内核", "editorial-review": "文稿双透镜评审",
     "module-plan": "技能批次计划", "diyc-baseline": "工具基线快照",
     "mutation-report": "变异测试报告",
-    # trace: C·11 W3（§5.1）——B7b 五产物逐个核对后实缺的 4 类（design 已在本文档上方）。
+    # 五产物逐个核对后实缺的 4 类（design 已在本文档上方）。
     # 命名逐字取自各 SKILL.md 的中文自述（设计系统段 / 资产工厂 / 棕地增量·Kaizen 迭代 /
     # 单问架构分析），不另造词
     "wds-design-system": "设计系统", "wds-assets": "资产工厂",
     "wds-evolution": "Kaizen 迭代", "analysis": "单问架构分析",
-    # trace: v4 批 3（三裁随批）——WDS 线三产物中文名，照裁定字面取
+    # WDS 线三产物中文名，照裁定字面取
     # （WDS 简报 / 触发映射 / 场景大纲），未登记则页面 h1 / 索引卡片回落英文原名
     "wds-brief": "WDS 简报", "wds-trigger": "触发映射", "wds-scenarios": "场景大纲",
-    # trace: v4 批 2c——selfcheck.yaml（diy-selfcheck 主产物）页面标题，
+    # selfcheck.yaml（diy-selfcheck 主产物）页面标题，
     # 未登记则页面 h1 / 索引卡片回落英文原名
     "selfcheck": "自检产物",
 }
-# trace: v4 批 3（§7-1 甲·内置硬编码，照 DOC_LABELS 先例；§7-2 主线在前
+# 内置硬编码，照 DOC_LABELS 先例；主线在前
 # 官网线在后；§2-6 三裁 23 键全序）——产物链逻辑生成序，作 created 并列或
 # 值不可比时的兜底序。editorial-review / selfcheck 不占静态位（§7-5 甲动态挂）。
 CHAIN_ORDER = (
@@ -233,7 +233,7 @@ DOC_KEY_LABELS = {
     # deferred-actions：target 在全局表缺位（checkpoint / correct-course / editorial-review
     # 各有自己的 target 语义），故只在本文档挂标签，不动全局
     "deferred-actions": {"target": "目标"},
-    # trace: C·2 缺口 2 落地（2026-09-21）——B2–B5 批同键异义的文档级覆盖。
+    # 同键异义的文档级覆盖。
     # 判据：全局标签在该文档会误导（读成另一个东西）时才覆盖，否则留全局
     # test-gate：全局 decision=处理决定（review 层），此处是门的三档裁决 PASS/CONCERNS/FAIL
     "test-gate": {"decision": "门裁决", "kind": "缺口类别", "what": "缺口描述"},
@@ -260,7 +260,7 @@ DOC_KEY_LABELS = {
     # module-plan：全局 purpose=项目定位（prd），此处是技能用途；
     # depends_on 在此装技能名（diy-<name>）而非 ID，标签须体现「技能」以免误读为 ID 链
     "module-plan": {"purpose": "技能用途", "depends_on": "依赖技能",
-                    "kind": "技能性质", "brief": "自足简述", "new": "本批新建"},
+                    "kind": "技能性质", "brief": "自足简述", "new": "本次新建"},
     # learning-progress：全局 notes=备注（短文），此处是课堂笔记文件相对路径；
     # 全局 sessions=会话记录（brainstorm），此处是 7 节课时
     "learning-progress": {"notes": "课堂笔记", "sessions": "课时记录"},
@@ -298,7 +298,7 @@ DOC_KEY_LABELS = {
     # wds-assets：全局 code=违规码（diyc-baseline 的豁免台账）在这里是活动的字母码
     # （W/P/U/I/M/V/C/S）——全局键不动，只覆盖本文档
     "wds-assets": {"code": "活动码"},
-    # trace: v4 批 2c——selfcheck：全局 kind=类别 在 target 里是被检目标类型四选一
+    # selfcheck：全局 kind=类别 在 target 里是被检目标类型四选一
     # （任务书|技能|规格|文档，同 spec-scan「目标类型」口径）；全局 layer=层 在此是对抗
     # 审查三层（盲猎/边界猎手/验收审计，02-dispatch），与 analysis 的架构分层不同义——
     # 两者全局键不动，只覆盖本文档

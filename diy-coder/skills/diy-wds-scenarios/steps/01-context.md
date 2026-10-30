@@ -5,9 +5,9 @@ Progress: `[1 载上下文与续接检测] → 2 规模分析与页清单（用�
 **Read (input):** 激活段的门禁回执（`wds-trigger.yaml` 已定稿）；`{output_dir}/wds-trigger.yaml` 的 `business_goals[]` / `personas[]`（`TG-<n>` + 其驱动因素）/ `priority`；`{output_dir}/wds-brief.yaml` 的 `brief.content.content_language.seo_keywords` 与 `brief.core`（站点类型 / 业务背景 / 平台约束 / 页数——**SEO 与站点上下文在此取，简报缺席则记 gap 不阻断**）；`list` 回执（续接检测）；用户在本文件各步的回答。
 **Write (output):** `{output_dir}/wds-scenarios.yaml` 的顶层骨架（经 `init` 铸造）——`project` + `scope`（站点类型）+ `page_inventory` 空表 + 首条记录 `SC-01` 铸号 + `revisions`；给用户的上下文摘要与规模分析呈批。
 
-你是**场景大纲的主持人**（源 wds-3 的 UX Scenario Facilitator）。角色分工源侧写得很清楚：**你问，用户定**——你带来场景思维与用户旅程经验，用户带来项目知识，两边是平等的。这一段只做两件事：把上游上下文读全、把规模与页清单摆到桌面上。
+你是**场景大纲的主持人**（UX Scenario Facilitator）。角色分工：**你问，用户定**——你带来场景思维与用户旅程经验，用户带来项目知识，两边是平等的。这一段只做两件事：把上游上下文读全、把规模与页清单摆到桌面上。
 
-**本段纪律**：① **不跳读前置产物**（源 `FORBIDDEN to skip reading any prerequisite artifact`）——站点类型与页数都要从简报与触发图里**读出来**，不许凭印象说；② **共用元素不进页清单**（页头 / 页脚 / 导航是全局件，源侧明令排除）；③ **站点类型决定场景格式**，判错会在 02-strategy 与 04-outline 两步上连错两环。
+**本段纪律**：① **不跳读前置产物**——站点类型与页数都要从简报与触发图里**读出来**，不许凭印象说；② **共用元素不进页清单**（页头 / 页脚 / 导航是全局件）；③ **站点类型决定场景格式**，判错会在 02-strategy 与 04-outline 两步上连错两环。
 
 ## 第 1 步 —— 载上下文与续接检测（源 step-01）
 
@@ -21,9 +21,8 @@ Progress: `[1 载上下文与续接检测] → 2 规模分析与页清单（用�
 | 同文件的 `personas[]` | 每个人物：`TG-<n>` / 姓名 / 优先级 / 其 `driving_forces`（正负各若干）/ 在飞轮里的角色 |
 | 同文件的 `priority` | 人物优先级（P1 起手）——它决定场景优先级 |
 | `{output_dir}/wds-brief.yaml`（**可选**，只读） | 站点类型 / 业务背景 / 平台约束 / 页数 / 导航结构（`brief.core` · `brief.platform.platform_requirements`） |
-| 同文件的 `brief.content.content_language.seo_keywords` | SEO 关键词图（缺则记 gap——源侧同样「缺则跳」） |
+| 同文件的 `brief.content.content_language.seo_keywords` | SEO 关键词图（缺则记 gap） |
 
-〔**源侧缺陷修复**〕源 step-01 读的是 `A-Product-Brief/product-brief.md` 与 `B-Trigger-Map/trigger-map.md` 两份 md；diy 侧一律改读**本链的两个 YAML 产物**（`wds-brief.yaml` / `wds-trigger.yaml`）。**触发图那份是硬门禁**（激活段已核 `project.status: 已定稿`）；**简报那份是可选读**——本技能的上游契约只冻结了触发图（§2.3.1），简报的 SEO 与站点上下文属**跨技能读契约的漏键**，本批按「在则读、缺则记 gap」处置并已在回报中登记，**不因它缺席而零产出**。
 
 **续接检测**（源 step-01 第 4 指令）：先跑
 
@@ -64,22 +63,20 @@ python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py
 - 简报里**提到**的每一页都要在；
 - 导航结构**隐含**的页（源例子：导航里有「服务」→ 服务总览页要在）都要在；
 - 业务目标**隐含**的页（源例子：目标里提到预约 → 预约页要在）都要在；
-- **共用元素不进清单**（页头 / 页脚 / 导航是全局件，源侧明令排除）；
+- **共用元素不进清单**（页头 / 页脚 / 导航是全局件）；
 - 呈现：「共 N 页 / 视图」+ 编号清单。
 
-〔**源侧缺陷修复（规模带收口）**〕源 step-02 与 `workflow.xml` 的规模带是 `<20 / 20–50 / 100+`——**50–99 页无归属带**。本批收口为 `small <20` / `medium 20–50` / `large >50`（把 100+ 并入 large），登记为源侧缺陷修复。
 
 ### 2.3 规模与页文档化策略（源 step-02 第 3–4 指令）
 
 - **规模带** → `scope.scale`：
   - `small`（<20 页）：**全面覆盖**——每一页都要在某条场景里露面；
   - `medium`（20–50 页）：**全面覆盖 + 自然分组**——按导航形态 / 服务类型 / 内容类目分组；
-  - `large`（>50 页）：**有选择的忽略**——先深做最有价值的那条工作流（源侧理由：学到的模式能复用到其余页）。
+  - `large`（>50 页）：**有选择的忽略**——先深做最有价值的那条工作流（理由：学到的模式能复用到其余页）。
 - **逐页 vs 模板化** → `scope.page_strategy`：页少而差异大 → **逐页**逐条写（`individual[]`）；页多而同构 → **模板化**（`templated[]` 写清是哪些同构组）。
 - **场景格式** → `scope.scenario_format`（见 2.1 表）。
 - **大纲模式**（选填 `scope.approach`）：`对话`（默认，你问用户答）或 `建议`（你按触发图与简报先给整套 8 问答案，用户改）——源 step-05 实际实现的就这两态，故在此推荐。
 
-〔**源侧缺陷修复**〕源 step-02 推荐模式写的是 `Dream / Suggest / Dialog` 三值，而 `Dialog` 在 wds-2 / wds-3 两源里**都不存在**（跨技能词汇冲突，census-2 B6）。本批按**本技能实际实现的两态**（`对话` / `建议`）归一，登记为源侧缺陷修复。
 
 ### 2.4 呈批（**用户关卡 1**，源 step-02 第 5 指令）
 
@@ -105,7 +102,7 @@ python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py
 **看着对吗？有没有漏页、或者该归组的？**
 ```
 
-**没拿到明确点头就不许往下走**（源 `Do not proceed until user confirms`）。
+**没拿到明确点头就不许往下走**。
 
 ### 2.5 铸骨架（`init`，门禁的机械兜底）
 

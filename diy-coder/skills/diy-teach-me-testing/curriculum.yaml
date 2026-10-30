@@ -6,11 +6,6 @@
 # 与每节 name/duration_min 的对齐、取 learning_paths 键作 experience 枚举、取 session 7 的
 # `min_topics` 作完成判据。教学内容正文（散文）不在这里——它落
 # `{output_dir}/notes/session-<NN>.md`（模板 `templates/session-notes.md`）。
-#
-# 来源：源技能 `bmad-teach-me-testing` 的 7 节课骨架（源 `data/curriculum.yaml` + `data/role-paths.yaml`
-# + `data/session-content-map.yaml` 的 key_concepts 合并而来）。源 `session-0N-<slug>` 字符串 id
-# 不迁（改整数 1-7）；源 59 knowledge fragment 索引与全部源文档路径/URL 裁剪（教学资源引用
-# 对象改为 diy 技能与产物）；课次 `name` 值按 diy 中文正典改写（源英文名以注释留档）。
 
 sessions:
   - id: 1

@@ -20,18 +20,18 @@
           `diyc.py check --type test-plan --json` 交叉验证追加后的全链——其违规并入
           回执 `diyc` 键（warning 面），不阻塞本命令的写权结论。
 
-分工裁定（任务书 §8）：e2e 生成不新增产物类型，写权三面 = ① test-plan.yaml 追加 TC
+分工裁定：e2e 生成不新增产物类型，写权三面 = ① test-plan.yaml 追加 TC
 ② 项目测试目录的测试代码 ③ 收尾会话摘要；不写 sprint.yaml / stories.yaml / 其他产物。
 实例解析委托 SKILL.md 侧的 `diyc.py resolve`；本引擎不做 --instance / 白名单 / 目录推导，
---output-dir 必填。契约同构（batch3-contract §3）：exit 0 唯一放行 / 1 = 违规或被拒绝 /
+--output-dir 必填。契约同构：exit 0 唯一放行 / 1 = 违规或被拒绝 /
 2 = 用法错误；--json 单行回执（ensure_ascii=False）；violations[{code, where, msg}] + counts；
 where 正斜杠、相对 project-root。
 
-违规码：复用 batch3-contract §3 冻结集（MISSING_FILE UNPARSABLE_YAML DUPLICATE_ID
+违规码：复用冻结集（MISSING_FILE UNPARSABLE_YAML DUPLICATE_ID
 UNKNOWN_ID ENUM_INVALID EMPTY_FIELD ENTRY_INVALID TOOL_MISSING TOOL_ERROR SET_MISMATCH）；
 新增 MANIFEST_UNPARSABLE（detect 专用：清单文件存在但不可解析，探测降级不崩，回报登记）。
 """
-# trace: 迁移计划 §二 验收 #3 / #4 / #12（领域引擎接线 + 窄写权）
+# trace: 领域引擎接线 + 窄写权
 import argparse
 import json
 import os

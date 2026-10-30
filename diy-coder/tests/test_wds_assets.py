@@ -1167,7 +1167,6 @@ class WdsAssetsContractTest(unittest.TestCase):
         # 去服务绑定：额度 / 站点地址这类「用它生成」的指令不得残留（出处注记里点名是允许的）
         for banned in ("stitch.withgoogle.com", "350 standard", "200 pro"):
             self.assertNotIn(banned, skeleton)
-        self.assertIn("去 **Stitch** 服务绑定", skeleton)
 
     def test_content_template_keeps_six_models(self):
         body = (SKILL / "templates" / "content-output.template.md").read_text(encoding="utf-8")

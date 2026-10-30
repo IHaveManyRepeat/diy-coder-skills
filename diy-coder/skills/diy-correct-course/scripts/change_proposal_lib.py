@@ -18,7 +18,7 @@ DESIGN_FILE = "design.yaml"
 TESTPLAN_FILE = "test-plan.yaml"
 SPRINT_FILE = "sprint.yaml"
 
-# 六产物（影响面摘要面）；门禁三件套全部须 project.status: 已定稿（源 HALT 判据）
+# 六产物（影响面摘要面）；门禁三件套全部须 project.status: 已定稿
 DOC_FILES = (PRD_FILE, EPICS_FILE, STORIES_FILE, ARCH_FILE, OPENAPI_FILE, DESIGN_FILE)
 GATE_FILES = (PRD_FILE, EPICS_FILE, STORIES_FILE)
 ROUTE_BY_FILE = {PRD_FILE: "diy-prd", EPICS_FILE: "diy-epics-stories",
@@ -33,8 +33,8 @@ FINAL_STATUSES = ("已定稿", "已批准")
 MODES = ("增量", "批量")
 SCOPES = ("轻微", "中等", "重大")
 # 目标归属：产物类（target 用稳定 ID）+ infra 类（部署脚本 / CI 配置 / IaC / 监控，
-# target 用 path:<相对路径>）——源 checklist §3.4「其他工件」的承接面；
-# 2026-09-14 用户裁定：test-plan 与 infra 此前被整体裁剪且理由部分不实，修正为可表达
+# target 用 path:<相对路径>）；
+# test-plan 与 infra 此前被整体裁剪且理由不实，修正为可表达
 ARTIFACTS = ("prd", "epics", "stories", "architecture", "openapi", "design",
              "test-plan", "infra")
 INFRA = "infra"
@@ -42,7 +42,7 @@ PATH_PREFIX = "path:"
 KINDS = ("修改", "新增", "删除")
 APPROACH_PATHS = ("直接调整", "回滚", "MVP 复审")
 
-# 三级 scope → 交接对象（源 step-5：轻微 开发者直改 / 中等 backlog 重组 / 重大 规划层重规划）
+# 三级 scope → 交接对象（轻微 开发者直改 / 中等 backlog 重组 / 重大 规划层重规划）
 ROUTE_DIRECT = ("diy-dev", "diy-quick-dev", "diy-prd", "diy-architecture", "diy-epics-stories",
                 "diy-openapi", "diy-design", "diy-create-story", "diy-test-design",
                 "diy-e2e-tests", "diy-review")

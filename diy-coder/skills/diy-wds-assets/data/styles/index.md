@@ -1,8 +1,6 @@
 # 风格库索引（两轴）
 
-> **为什么有这份索引**：源侧风格卡**没有 index、没有 manifest、没有 README**，注册表只存在于散文里（源 `workflow.md:107–122` 与 `:126–133`），实测已漂移过——`workflow.md:112` 只列了 5 个设计风格名 + `etc.`（漏 `Editorial`），实际有 6 张卡（census-4 缺陷 #18）。本索引把注册表变成**一份机械可核的清单**。
->
-> **卡的原样**：16 张卡自源侧 `data/styles/` 入库（源 413 行；卡是纯文本、无平台耦合、无 frontmatter），正文已译为中文、引用键保留英文。卡里的 `Prompt Keywords` 是**英文的**——**不要翻译**，它们要被整段贴进外部生成服务的提示词。
+> 卡里的 Prompt Keywords 保持**英文原样、不要翻译**——它们要被整段贴进外部生成服务的提示词。
 
 ## 一、`design-styles/`（6 张）—— 页面级视觉语言
 
@@ -15,7 +13,7 @@
 | [`organic.md`](design-styles/organic.md) | 自然曲线、柔和色、手作感 | 康养 / 食品 / 生活方式 |
 | [`playful.md`](design-styles/playful.md) | 活泼、圆润、鲜艳 | 消费级产品、教育、儿童 |
 
-**谁读**：`[W]` 线框（取「布局原则与间距感」）· `[P]` 页面稿（与令牌三向合并）· `[S]` 演示（**整件气质**，不碰产品令牌）。**谁不读**：`[U]` `[I]` `[V]` `[C]`（源侧实测：风格库实际只覆盖 3/6 个视觉活动）。
+**谁读**：`[W]` 线框（取「布局原则与间距感」）· `[P]` 页面稿（与令牌三向合并）· `[S]` 演示（**整件气质**，不碰产品令牌）。**谁不读**：`[U]` `[I]` `[V]` `[C]`（风格库实际只覆盖 3/6 个视觉活动）。
 
 ## 二、`content-styles/`（10 张）—— 单图形的成像技法
 
@@ -37,4 +35,4 @@
 
 ## 三、第三轴不在本目录
 
-`data/presentation-formats/`（7 张配方卡）是**交付物形态**轴，不是视觉语言轴——索引见 [`../presentation-formats/index.md`](../presentation-formats/index.md)（裁定 7）。
+`data/presentation-formats/`（7 张配方卡）是**交付物形态**轴，不是视觉语言轴——索引见 [`../presentation-formats/index.md`](../presentation-formats/index.md)。

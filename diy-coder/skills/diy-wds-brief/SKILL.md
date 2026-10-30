@@ -34,7 +34,7 @@ outputs: wds-brief.yaml
 
 1. `steps/01-intake.md` — 分诊与铸骨架：项目类型 / 复杂度 / 档位 → 客户画像四域 → 路由（是否走对齐签核）→ 门禁 → `init` 铸顶层骨架。
 2. `steps/02-alignment.md` — 对齐文档 10 节（The Realization → Summary）+ 起点选择 → 回述合成 → 呈批；不需要则整段跳过。
-3. `steps/03-signoff.md` — 签核三型全留：分型闸 → 业务模式 → 对外合同 11 节 / **服务协议 12 节（源侧无构建步，本批补齐）** / 内部审批 7 节 → 定稿。
+3. `steps/03-signoff.md` — 签核三型全留：分型闸 → 业务模式 → 对外合同 11 节 / **服务协议 12 节** / 内部审批 7 节 → 定稿。
 4. `steps/04-core.md` — 简报核心：愿景 / 定位 / 商业模式 / B2B 客户 / 目标用户 / 产品概念 / 成功指标 / 竞争格局 / 约束 / 平台策略 / 语气 → 定稿。
 5. `steps/05-content.md` — 内容段：初始化 / 品牌人格 / 语气 / 语言 / SEO 关键词 / 内容结构 → 定稿。
 6. `steps/06-visual.md` — 视觉段六维：灵感 / 既有品牌 / 参考 / 设计风格 / 布局与特效 / 影像 → 定稿。
@@ -77,9 +77,9 @@ revisions: []                               # {date, change, reason}
 4. **跳过标注**（单入口 + 每步可跳过）：`brief_level: simplified` 时简报四段按收窄键表走（核心 vision/target_users/constraints、内容 languages、视觉 design_style、平台 tech_stack），步文件标〔可跳过〕的小节由用户点头后整节跳过——**档位决定键表、键表由 `check --final` 机械核对**。
 5. **边界（WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：vs `diy-product-brief`——它供产品/应用主线（产 `brief.yaml`，下游 `prd.yaml`），本技能供官网/营销站线（产 `wds-brief.yaml`，下游 `diy-wds-trigger`），两线在 `diy-design` 交汇。vs `diy-prd`——起手分叉：产品/应用走它，官网/营销站走本技能。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。vs `diy-design` / `diy-dev`——**双源**：`diy-design` 吃主线 `prd.yaml` 或 WDS 线 `wds-scenarios.yaml`（本链第三环产物），`diy-dev` 的 WDS 模式吃 `design.yaml`（页 `SC-<nn>.P<n>`）；本链是 brief → trigger → scenarios 的独立短链。
 6. **终门（机械）**：先落 `project.status: 已定稿` + `intake.stage: 收尾`，再跑 `python "{project-root}/.claude/skills/diy-wds-brief/scripts/wds_brief.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。**WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
-7. **违规码**：复用冻结集（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT` / `SET_MISMATCH`）+ B6 的已批码 `TOKEN_UNRESOLVED`（**本批不新增码**）；`SET_MISMATCH` 承载「`init` 的 `--project-type` 与既有产物不符」——分诊结论是整链路由的根，改判走 `revisions` 并经用户确认。
+7. **违规码**：复用冻结集（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT` / `SET_MISMATCH`）+ 已批码 `TOKEN_UNRESOLVED`；`SET_MISMATCH` 承载「`init` 的 `--project-type` 与既有产物不符」——分诊结论是整链路由的根，改判走 `revisions` 并经用户确认。
 8. **无 `--previous` 轮**：单记录多段、段只增不减，无 ID 集合收缩面；改既有内容往 `revisions` 追加（date / change / reason），`change` 引用受影响段名而不复制内容。副作用面：除产物与静默渲染外无任何外部动作（`[a]` / `[p]` 调的是零写面技能）；产物内引用一律 project-root 相对 `path:line`。
-9. **本线风格与 HARM/HELP（源 Saga 线归位）**：问出「啊哈」的问题、同时把洞见结构化得精准——深听、自然回述、**推进前先确认理解**、一次一个问题（源 `wds-agent-saga-analyst` 的 `communication_style` 与 principle「对话式发现」）；「北极星文档」中**产品简报这一半归本技能**、触发图那一半归 `diy-wds-trigger`。**HARM**：产出看起来完整却不按键表与源步骤走——下游得回头纠正，比没有产出更糟；**HELP**：落笔前先把当前步文件与产物键表读进上下文，交付下游不必审计就能消费的段。
+9. **本线风格与 HARM/HELP**：问出「啊哈」的问题、同时把洞见结构化得精准——深听、自然回述、**推进前先确认理解**、一次一个问题；「北极星文档」中**产品简报这一半归本技能**、触发图那一半归 `diy-wds-trigger`。**HARM**：产出看起来完整却不按键表与源步骤走——下游得回头纠正，比没有产出更糟；**HELP**：落笔前先把当前步文件与产物键表读进上下文，交付下游不必审计就能消费的段。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

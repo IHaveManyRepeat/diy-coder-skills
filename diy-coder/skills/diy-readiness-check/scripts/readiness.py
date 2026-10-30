@@ -3,17 +3,16 @@
 
 子命令：
   collect  开工前体检的确定性部分（只读检测，绝不写文件）：
-             1 门禁（源技能 step-01 文档发现的门禁化）：prd.yaml / architecture.yaml /
+             1 门禁：prd.yaml / architecture.yaml /
                epics.yaml / stories.yaml 在场，且 epics / stories 的 project.status 为
                已定稿；不满足 → 零产出 exit 1 + 结构化拒绝回执（violations 带码 +
-               gate.route 给路由）。architecture 一档（批 5e §3-D）：缺席/损坏 → gate
+               gate.route 给路由）。architecture 一档：缺席/损坏 → gate
                拒跑、route diy-architecture；只判在场/可解析，不要求已定稿。
-               design.yaml 缺席维持现状（零检查零 warning；源 step-04「无 UX 文档」
-               分支保留）。
+               design.yaml 缺席维持现状（零检查零 warning）。
              2 需求清点单：读结构化 prd.yaml（features[].requirements[] 全量 FR + priority +
-               归属 feature；nfrs[]）与 epics / stories 计数——替换源技能 step-02「人工通读
+               归属 feature；nfrs[]）与 epics / stories 计数——「人工通读
                md 提取全量 FR/NFR」的确定性下沉（diy 产物即结构化单一源）。
-             3 跨文档核对委托（任务书 §2.3）：子进程跑 `diyc.py check --type prd|epics|stories
+             3 跨文档核对委托：子进程跑 `diyc.py check --type prd|epics|stories
                --final --json`——diyc 是跨文档机械核对的唯一入口，本引擎不重实现其规则；
                回执违规并入 diyc.check.violations 证据键（readiness 会话据此裁决，不在此判死）。
                diyc 缺席 / 子进程失败 → 结构化 warning 降级（TOOL_MISSING / TOOL_ERROR），不崩。
@@ -26,14 +25,13 @@
            status 已落 已定稿、verdict 非空、每条 finding 有 evidence、counts 与集合一致
            （findings_by_severity 与 coverage 守恒）、零 [假设]。exit 0 唯一放行。
 
-分工裁定（任务书 §2.2/§2.3/§6）：readiness 属新产物类型，不进 diyc.py check 的硬编码类型集；
+分工裁定：readiness 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}] + counts；
-where 正斜杠、相对 project-root）；--previous 不实现（报告追加式，对齐 P1 §8.5 先例）。
-违规码复用 batch3-contract §3 冻结集，新增 TOOL_MISSING / TOOL_ERROR（diyc 委派降级专用）。
+where 正斜杠、相对 project-root）；--previous 不实现（报告追加式）。
+违规码复用套件冻结集，新增 TOOL_MISSING / TOOL_ERROR（diyc 委派降级专用）。
 diyc 路径由引擎自身位置推算（skills/ 根，源码与安装两种布局同构）；产物与 IR-### ID 由
 diy-readiness-check 会话（LLM）创作，本引擎只校验格式与唯一性。
 """
-# trace: 迁移计划 §二 验收 #3（前置门禁零产出退出）/#4（ID 链接入）/#12（diyc 接线）
 import argparse
 import json
 import os

@@ -1,4 +1,4 @@
-"""diy-viewer 批 5a 专用渲染：distillate {text, src} 条目与 prd out_of_scope 两形态。"""
+"""diy-viewer 专用渲染：distillate {text, src} 条目与 prd out_of_scope 两形态。"""
 
 import viewer_refs as _refs
 from viewer_refs import dangling_ref, esc, gloss, key_label, ref_cell, resolve_src_text
@@ -6,7 +6,7 @@ from viewer_render import cell
 
 
 def _render_distillate_entries(key: str, entries: list, docs_by_name: dict) -> str:
-    """批 5a：distillate 四列表 {text, src} 专用渲染——text 列固定表头「内容」，src 走引用链。"""
+    """distillate 四列表 {text, src} 专用渲染——text 列固定表头「内容」，src 走引用链。"""
     rows = []
     for item in entries:
         if not isinstance(item, dict):
@@ -32,7 +32,7 @@ def _render_distillate_entries(key: str, entries: list, docs_by_name: dict) -> s
 
 
 def _render_out_of_scope(entries: list, docs_by_name: dict) -> str:
-    """批 5a：prd out_of_scope 两形态——继承 {src} 展开母体文本；自产 {id, statement} 照常。"""
+    """prd out_of_scope 两形态——继承 {src} 展开母体文本；自产 {id, statement} 照常。"""
     rows = []
     for item in entries:
         if not isinstance(item, dict):

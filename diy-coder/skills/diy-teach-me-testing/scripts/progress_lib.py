@@ -40,17 +40,17 @@ RECOVERY_HINT = ("；唯一出路 = 跑 init --recover（引擎先把原文件�
                  "再重建 7 节骨架；禁止手改 YAML 或自行删除）")
 BACKUP_STAMP = "%Y%m%d-%H%M%S"
 
-# trace: B3 diy-teach-me-testing 违规项构造（统一 {code, where, msg} 形态）
+# trace: 违规项构造（统一 {code, where, msg} 形态）
 
-# trace: B3 diy-teach-me-testing 非空判定（None / 空白字符串均视为空）
+# trace: 非空判定（None / 空白字符串均视为空）
 
-# trace: B3 diy-teach-me-testing 整数判定（布尔不得充当整数：true 不是 1）
+# trace: 整数判定（布尔不得充当整数：true 不是 1）
 
-# trace: B3 diy-teach-me-testing 日期口径（today = YYYY-MM-DD，对齐契约 §3）
+# trace: 日期口径（today = YYYY-MM-DD，对齐契约 §3）
 
-# trace: B3 diy-teach-me-testing YAML 安全装载：(data, err)；缺失 (None, None)、空 ({}, None)、损坏 (None, 原因)
+# trace: YAML 安全装载：(data, err)；缺失 (None, None)、空 ({}, None)、损坏 (None, 原因)
 
-# trace: B3 diy-teach-me-testing 原子写（全文 load → 就地改 → dump → 同目录 tmp + os.replace）
+# trace: 原子写（全文 load → 就地改 → dump → 同目录 tmp + os.replace）
 
 # trace: T-6 进度文件可用性探测（唯一判据，init 的恢复门与 status/update/check 的报错同源）
 def progress_damage(path):
@@ -70,9 +70,9 @@ def backup_progress(path):
     shutil.copy2(path, backup)
     return backup
 
-# trace: B3 diy-teach-me-testing 回执输出（--json 单行 / 人读行）
+# trace: 回执输出（--json 单行 / 人读行）
 
-# trace: B3 diy-teach-me-testing 人读态统一收尾（每条违规一行 CODE where: msg + 汇总行）
+# trace: 人读态统一收尾（每条违规一行 CODE where: msg + 汇总行）
 def print_human_tail(payload, headline=None):
     if payload.get("ok") and headline:
         print(headline)
@@ -88,7 +88,7 @@ def print_human_tail(payload, headline=None):
 
 # ---------------------------------------------------------------- curriculum（定义态）
 
-# trace: B3 diy-teach-me-testing 课程结构装载（定义态唯一源；session id 集合即对齐键）
+# trace: 课程结构装载（定义态唯一源；session id 集合即对齐键）
 def load_curriculum(project_root):
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         CURRICULUM_FILE)
@@ -121,13 +121,13 @@ def load_curriculum(project_root):
         return None, violations
     return data, []
 
-# trace: B3 diy-teach-me-testing curriculum 索引（id → 节定义；id 集合即运行态对齐基准）
+# trace: curriculum 索引（id → 节定义；id 集合即运行态对齐基准）
 def curriculum_index(curriculum):
     return {s["id"]: s for s in curriculum["sessions"]}
 
-# ---------------------------------------------------------------- 派生字段（裁定 2 三式）
+# ---------------------------------------------------------------- 派生字段
 
-# trace: B3 diy-teach-me-testing 派生三式（基准：check/status 的比对真值，唯一算法）
+# trace: 派生三式（基准：check/status 的比对真值，唯一算法）
 def compute_derived(session_ids, sessions):
     known = set(session_ids)
     done = set()

@@ -80,12 +80,12 @@ alignment:                  # 源 wds-0-alignment-signoff Phase 1–3（十节�
   our_commitment: <string>          # 时间 / 钱 / 人 / 技术 + 风险（粗估即可）
   summary: <string>                 # 要点（让读者自己下结论）
 
-signoff:                    # 裁定 13：**三型并列**，一次分型闸只填一型
+signoff:                    # **三型并列**，一次分型闸只填一型
   type: 不签核|对外合同|服务协议|内部审批
   status: 未开始|构建中|已定稿
   external_contract:        # 仅 type: 对外合同
     pricing_model: 固定价|计时|长期聘用|混合   # 源 04b；决定 payment_terms / not_to_exceed / availability 三节写法
-    sections:               # 源 05a–05k 的 11 节（availability 的补齐见步文件「★ 源侧缺陷修复」）
+    sections:
       project_overview: <string>      # 取 alignment.realization + recommended_solution
       business_model: <string>
       scope_of_work: {deliverables, in_scope, out_of_scope}   # 取 alignment.path_forward；范围三段缺一不可
@@ -98,7 +98,7 @@ signoff:                    # 裁定 13：**三型并列**，一次分型闸只�
       terms_and_conditions: {}        # 变更 / IP / 终止 / 争议 / 管辖 / 合同语言
       approval: {client, contractor}
     finalized: <bool>
-  service_agreement:        # 仅 type: 服务协议（源侧无构建步 → 本批补齐）
+  service_agreement:        # 仅 type: 服务协议
     pricing_model: 固定价|计时|长期聘用|混合
     sections:               # 按服务协议模板的 12 节
       project_overview: <string>

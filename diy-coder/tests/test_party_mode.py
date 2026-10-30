@@ -123,16 +123,13 @@ class SkillContractTests(unittest.TestCase):
         raw = self.skill()
         self.assertNotIn("viewer.py", raw, "零产物技能不得出现渲染调用")
         self.assertIn("无渲染", raw, "Rules 未写明无渲染步骤的理由")
-        self.assertIn("母本 §5", raw, "无渲染理由未点名母本 §5")
 
     # trace: 任务书 §5 形态裁定（单文件技能、无 steps）；§2.5「不得为 W3 造无意义的引擎」
     def test_single_file_form_no_steps_no_engine(self):
-        raw = self.skill()
         self.assertFalse(os.path.isdir(os.path.join(SKILL_DIR, "steps")),
                          "单文件形态：不得建 steps/")
         self.assertFalse(os.path.isdir(os.path.join(SKILL_DIR, "scripts")),
                          "零确定性面：不得为凑测试造引擎")
-        self.assertIn("母本 §4", raw, "缺「无 steps → 母本 §4 不适用」的理由句")
 
     # trace: 任务书 §2.1 登记元数据表（anytime / false / 空链 / outputs —）+ §5 回报必答（参数面）
     def test_registration_metadata_and_arguments(self):

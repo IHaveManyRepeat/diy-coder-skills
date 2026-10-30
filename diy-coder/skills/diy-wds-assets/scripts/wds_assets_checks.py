@@ -69,7 +69,7 @@ def check_activities(doc, report: Report, pages: set):
             elif f"AS-{match.group(1)}" != act.get("id"):
                 report.bad("SET_MISMATCH", iwhere, f"条目 ID {ident} 与父活动 {act.get('id')} 不同源")
             else:
-                # 只收形态合法且与父活动同源的 id（裁定 1）：非法形态已判过，不级联刷屏
+                # 只收形态合法且与父活动同源的 id：非法形态已判过，不级联刷屏
                 sequence.append((ident, int(match.group(2))))
             if ident in seen_ids:
                 report.bad("DUPLICATE_ID", iwhere, f"条目 ID 重复：{ident}")
@@ -257,7 +257,7 @@ def cmd_check(args, report: Report):
                         f"已定稿要求评审结论为 通过，实为 {verdict}",
                     )
                 if act.get("id") == CONTENT_ACTIVITY:
-                    # VA-03c（裁定 17 c）：`steps/07-content.md:10` 声称「引擎核六段在场与键齐」
+                    # VA-03c：`steps/07-content.md:10` 声称「引擎核六段在场与键齐」
                     content = item.get("content") if isinstance(item.get("content"), dict) else {}
                     missing = [key for key in CONTENT_KEYS if not nonempty(content.get(key))]
                     if missing:

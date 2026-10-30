@@ -85,7 +85,7 @@ revisions: []                        # {date, change, reason} —— 重做同�
 4. 门禁（源纪律保留）：进度文件已存在 → 强制 resume（必须经 `status` 回执分流）；**文件损坏（解析失败 / 结构不可用）→ 恢复只走 `init --recover`**（引擎先备份原文件再重建，禁手改 YAML，见 `steps/01-init.md`）；quiz 未达线 → 停下让用户选（R 复习 / C 带分继续），不自动通过——判线 `score >= 70`，`round(答对数*100/3)` 下 2/3 = 67 未达线；session 7 无 quiz，不适用。
 5. 终门（机械判定）：`python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 是唯一放行（7 节全 已完成 且 `summary.generated` 为真且摘要文件在场）；修掉每条违规并重跑，回执 `counts` 就是收尾证据。
 6. 教学内容纪律：正文按 diy 口径自著，讲 diy 技能与产物；**不夹带源平台品牌字样与外部 URL**；跨产物信息一律引用 ID（`AC-x.y` / `TC-x.y.z` / `FR-x.y` / `path:<relative>`），禁复制内容。
-7. 教学资源引用对象为 diy 测试链技能（`diy-test-framework` / `diy-test-author` / `diy-test-review` / `diy-test-gate` 与本技能同批 B3 落地）；无需 `--previous`——进度按 curriculum 固定 session 键幂等 upsert，无 ID 集合收缩面。
+7. 教学资源引用对象为 diy 测试链技能（`diy-test-framework` / `diy-test-author` / `diy-test-review` / `diy-test-gate`）；无需 `--previous`——进度按 curriculum 固定 session 键幂等 upsert，无 ID 集合收缩面。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

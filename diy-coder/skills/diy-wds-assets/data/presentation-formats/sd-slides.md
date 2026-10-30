@@ -24,7 +24,7 @@ Design a multi-slide presentation using Excalidraw frame-based layout. Apply aud
 
 中文对照：使用 Excalidraw 基于画框的版式设计多页演示。运用适合受众的视觉层级，每一帧执行 3 秒规则，全程使用一致的视觉语言。
 
-> **diy 机制的改动（裁定 7）**：保留「逐页版式 + 视觉层级 + 3 秒规则」，**弃 Excalidraw 帧文件格式**——本套件产物是 YAML / HTML，不是 `.excalidraw`。上句可作为提示词的风格段整段粘贴；「一帧 = 一页」由 `frames[]` 的 `n` 承载。生成物请要求 HTML / 图片，忽略 Excalidraw 文件格式那一句。
+> **diy 机制的改动**：保留「逐页版式 + 视觉层级 + 3 秒规则」，**弃 Excalidraw 帧文件格式**——本套件产物是 YAML / HTML，不是 `.excalidraw`。上句可作为提示词的风格段整段粘贴；「一帧 = 一页」由 `frames[]` 的 `n` 承载。生成物请要求 HTML / 图片，忽略 Excalidraw 文件格式那一句。
 
 ## Best For
 > **适用场景**——英文原文保留。

@@ -23,7 +23,7 @@ python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-ro
 
 resolved 实例时附 `--instance <name>`。
 
-## 保存并标记 epic 已回顾（源技能 step-11）
+## 保存并标记 epic 已回顾
 
 diy 里没有 `sprint-status.yaml`，也没有可翻的 retro 键：这条记录**就是**完成标记。`retros` 条目上的 `status: 已定稿`——加上它记下的这段过程——就是告诉下一个会话「此 epic 已回顾」的东西。绝不把状态写到别处（本技能对 `sprint.yaml` 零写入）。
 
@@ -39,9 +39,9 @@ diy 里没有 `sprint-status.yaml`，也没有可翻的 retro 键：这条记录
 - 重大变更检测的结论：零命中就明说下一 epic 的计划仍然成立；
 - 记录落在哪。
 
-开场先讲 epic 交付了什么——源技能在承诺之前先致意，本步照做：行动清单之前，`wins` 先得一句认可。庆祝不是装饰；它让同一份记录里的挑战可信。
+开场先讲 epic 交付了什么——在承诺之前先致意，本步照做：行动清单之前，`wins` 先得一句认可。庆祝不是装饰；它让同一份记录里的挑战可信。
 
-## 路由（源技能 step-8 / step-10 / step-12 的交接）
+## 路由
 
 - **`significant_changes` 非空** → 下一 epic 的计划可疑：路由 **diy-correct-course**，且交接形态是**一条 proposal 承载整批条目**——N 条 change 进同一条记录的 `impacts[]`（必要时加 `edits`），`mode: 批量`，绝不拆成 N 份提案。该 proposal 落定前，不动下一 epic 的工作。
 - **`critical_path` 非空** → 那些项在先；它们是下一 epic 首个故事的前置条件。

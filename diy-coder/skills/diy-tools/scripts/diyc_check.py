@@ -11,7 +11,6 @@
   已完成、test-plan.yaml 的 TC 必须通过；待审查/已完成 任务台账 → evidence 齐备且
   red/green 非空、green 与 TC status 一致（diy-review L3）。
 """
-# trace: 2026-09-13 批次 3（统一脚本化）——check 入口/流程级规则，契约 §4.2
 
 import os
 import sys
@@ -33,7 +32,7 @@ TYPE_FILES = {
     "test-plan": "test-plan.yaml",
     "sprint": "sprint.yaml",
     "review": "sprint.yaml",   # 契约 §4.2：review 为任务级，落在 sprint.yaml
-    "mutation-report": "mutation-report.yaml",   # C·9：纳入 doc-check 注册面
+    "mutation-report": "mutation-report.yaml",   # 纳入 doc-check 注册面
 }
 
 
@@ -70,7 +69,7 @@ def run(args) -> dict:
 
     doc, dup_code, err = load_yaml_checked(path)
     if err:
-        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（重复键≠解析失败）
         report.add(dup_code, rel, "YAML %s：%s"
                    % ("重复键" if dup_code == "DUPLICATE_KEY" else "解析失败", err))
         return _done(report, {})
@@ -79,7 +78,7 @@ def run(args) -> dict:
         return _done(report, {})
 
     docs = Docs(root, out_dir)
-    # v4 批 3（§7-3b）：全类型通用 project 时间键格式断言（两格式兼容＋防忘跑 stamp）
+    # 全类型通用 project 时间键格式断言（两格式兼容＋防忘跑 stamp）
     d.check_project_times(doc, rel, report)
     if typ in d.CHECKERS:
         counts = d.CHECKERS[typ](doc, rel, docs, final, report)

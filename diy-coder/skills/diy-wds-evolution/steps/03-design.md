@@ -7,7 +7,7 @@ Progress: `[1 载场景 → 2 择法三选一 → 3 设计变更 → 4 写规格
 
 你是**方案的设计者**。这一步只做一件事：把上一段那份「要变成什么样」**落到可实施的程度**——但不写代码（那是 04-implement 的事）。
 
-**本段纪律（源 `steps-d/step-01` 第 6a 的 Self-Review）**：① 每一个组件改动都要能被**改前 / 改后**两句话说完；② 边界情形（移动端 / 长文案 / 空态）**逐条过**，不许留给实现期即兴；③ 假设必须写出**失败判据**——只写成功判据的假设验不了伪。
+**本段纪律**：① 每一个组件改动都要能被**改前 / 改后**两句话说完；② 边界情形（移动端 / 长文案 / 空态）**逐条过**，不许留给实现期即兴；③ 假设必须写出**失败判据**——只写成功判据的假设验不了伪。
 
 ## 第 1 步 —— 载场景（源 [D] step-01）
 
@@ -41,11 +41,10 @@ Progress: `[1 载场景 → 2 择法三选一 → 3 设计变更 → 4 写规格
 | --- | --- | --- |
 | **Quick fix** | 小的视觉 / 文案改动 | **跳过第 3 步**，直接进第 4 步写规格 |
 | **Sketch first** | 布局或流改变 | 先画改前 / 改后，再写规格 |
-| **Generate design** | 明显的视觉改变 | 源侧此处指向 Phase 6 资产工具——**diy 侧的对应物是 `diy-wds-assets`**（本技能**不调用它**，只把「需要生成资产」记进规格的 `assets_needed`，由用户自行决定走哪条） |
+| **Generate design** | 明显的视觉改变 | **diy 侧的对应物是 `diy-wds-assets`**（本技能**不调用它**，只把「需要生成资产」记进规格的 `assets_needed`，由用户自行决定走哪条） |
 
 **产出键**：`design.approach: quick-fix|sketch-first|generate`（**由用户显式选**，不代选）。
 
-〔**源侧处置**〕源 [D] step-2 第三条写「Use Phase 6 asset generation tools」且**未点名任何技能**（源侧靠人设菜单派发）。diy 侧**不跨技能直调**（写权边界：各技能不代写别的技能的产物；本技能自己的写面含 `[I]` 在**目标项目**里的代码改动，见规则 1）——改为**记需求 + 给路由**。
 
 **落盘**：本步不写盘。
 
@@ -62,9 +61,9 @@ Progress: `[1 载场景 → 2 择法三选一 → 3 设计变更 → 4 写规格
 1. **Before 快照**——现状的刻画或截取（**引用 `scope.current_state`，不复述**）
 2. **After 概念**——期望态的刻画（新组件 / 新布局 / 新文案，逐项）
 3. **Diff 视图**——**显式标出**：布局 / 组件 / 内容 / 行为四栏各变什么
-4. **边界情形**——移动端？长文案？空态？（源侧原文三问，逐条答）
+4. **边界情形**——移动端？长文案？空态？（三问，逐条答）
 
-**迭代纪律**：呈给用户、收到反馈、改，**直到点头**（源 `Iterate until approved`）。
+**迭代纪律**：呈给用户、收到反馈、改，**直到点头**。
 
 **产出键**：`design.before_after: {before, after, diff: {layout, components, content, behavior}, edge_cases}`。
 
@@ -92,7 +91,7 @@ design:
   acceptance_criteria:                           # 源 Acceptance Criteria（从场景的成功判据落成可测条目）
     - {criterion: <一句可测的话>, source: <溯到 scope.success_criteria 或 journey.pain_points>}
   assets_needed: [<第 2 步选了 generate 时记的资产需求——不调用外部服务>]
-  hypothesis:                                    # 源 `design-templates.md` 的假设校验模板
+  hypothesis:                                    # 假设校验模板
     {statement: <假设>, assumptions: [], risks: [],
      success_criteria: [], failure_criteria: []}
 ```

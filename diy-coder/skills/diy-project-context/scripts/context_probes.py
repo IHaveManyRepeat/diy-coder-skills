@@ -207,7 +207,7 @@ def doc_kind(rel_path):
     return None
 
 def find_docs(root, project_root, parts, excludes=EXCLUDE_DIRS):
-    """既有文档发现（源 full-scan step-2 模式）：返回 [{part, path, kind}]，上限内置。"""
+    """既有文档发现：返回 [{part, path, kind}]，上限内置。"""
     found = []
     parts_by_path = {}
     for part in parts:

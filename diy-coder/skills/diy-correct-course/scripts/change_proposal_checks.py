@@ -192,7 +192,7 @@ def check_list_field(record, key, where):
     return []
 
 def check_scope_route(record, where, scope, handoff):
-    """scope 与 handoff.route 一致性（源 step-5 三级交接语义）。"""
+    """scope 与 handoff.route 一致性（轻微/中等/重大三级交接）。"""
     if not nonempty(scope) or str(scope) not in SCOPES:
         return []
     if not isinstance(handoff, dict):

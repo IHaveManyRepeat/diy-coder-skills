@@ -1,31 +1,31 @@
 # -*- coding: utf-8 -*-
 """diy-test-review 确定性引擎：机械扫描 + 评分账本 + 三向走查 + 产物校验。
 
-源能力蓝本：`bmad-testarch-test-review`（4 逻辑步；核心资产 criteria-registry.md
-35 规则——本技能逐行留档为 `criteria.yaml`：M9/M10/L9 标 disabled（私有库绑定裁剪），
-有效 32 行）。任务书 §6 的七条裁定全部落在此处：
+能力蓝本：测试评审（4 逻辑步；核心资产规则注册表
+35 规则——本技能规则表 `criteria.yaml`：M9/M10/L9 标 disabled（私有库绑定不适用），
+有效 32 行）。七条裁定全部落在此处：
 
-  1. **评分账本全部沉到引擎**（裁定 1）：`score` 是纯函数——LLM 只产出 findings
+  1. **评分账本全部沉到引擎**：`score` 是纯函数——LLM 只产出 findings
      （规则命中 + 位置 + 说明，**severity 不由 LLM 填**），引擎按 criteria.yaml 行值
      **复算 severity**、按 convention 行 class **降档**、按 `file:location:row` **去重**
      （文件级行 FILE_LEVEL_ROWS 以 `file` 取代行号）、算分并校验 LLM 声明不参与计分。
-  2. **convention 分类归属**（裁定 3）：`scan` 是机械可计数键的判定权威——5 个机械键
+  2. **convention 分类归属**：`scan` 是机械可计数键的判定权威——5 个机械键
      （priority_markers / test_ids / network_first / data_factories / fixtures）直接产出
      {adopted, status}，阈值照源三行（sampled<4 → 未知；adopted==0 → 缺失；
      adopted/sampled ≥ 0.5 → 已确立，否则 新现）；`bdd_naming` / `assertion_style`
      在源文明确无机械信号 → 回执只标 `judged_by: llm`，由 LLM 读采样文件判读。
      降档由 `score` 应用（新现 → 降一档 floor LOW；缺失 / 未知 → 该行不成立）。
-  3. **维度分复算**（裁定 4）：与账本同一次调用；每维 = max(0, 100 − Σ去重后该维命中
+  3. **维度分复算**：与账本同一次调用；每维 = max(0, 100 − Σ去重后该维命中
      severity 权重 {CRITICAL:20, HIGH:10, MEDIUM:5, LOW:2})；行↔维度映射承载于
      criteria.yaml 的 `dimensions` 字段；仅展示，不进账本、不进 recommendation。
-  4. **三向走查层**（裁定 5）：`walkthrough` 执行 AC ↔ 源码 ↔ 测试三向对账，四类缺口
+  4. **三向走查层**：`walkthrough` 执行 AC ↔ 源码 ↔ 测试三向对账，四类缺口
      （无实现 / 无测试 / 孤儿用例 / 从未运行）。**跨文档核对一律委派 diyc**：
      源码面委派 `diyc.py trace`、orphan_tc 面委派 `diyc.py check --type test-plan`；
      子进程 rc∈{0,1} 均为正常回执（1 = 上游有违规，其 violations 计入判定、不吞掉），
      rc=2 / 不可解析 / 缺席 → TOOL_MISSING / TOOL_ERROR warning 降级，不崩溃。
-  5. **机械/语义分界**（裁定 6）：`detect: mechanical|semantic` 是唯一权威；机械集初始 =
+  5. **机械/语义分界**：`detect: mechanical|semantic` 是唯一权威；机械集初始 =
      C1/C2/C3/H1/H5/H6/H7/H8/H9/L4（可扩不可缩，扩展须回报登记），由 `scan` 直接产出。
-  6. **findings.json 与 bonus**（裁定 7）：`score --findings` 消费 LLM 产出的
+  6. **findings.json 与 bonus**：`score --findings` 消费 LLM 产出的
      `{findings: [{file, line|null, row, class|null, note}], bonus: [{key, points, note}]}`；
      note 与额外键不参与计分；bonus 六类各 0/5、上限 30，并做与该表规则行的**矛盾复核**
      （映射承载于 criteria.yaml 的 `bonus_guard` 字段）。
@@ -34,22 +34,22 @@
 
 V 能力补项（2026-09-18，源 test-review 对账 `v-capability-inventory.md` §1.4；
 **加校验，不动评分账本**——severity 权重 / convention 降档 / bonus 六类三处零漂移）：
-  R-1 recommendations 排序纪律与 Top 10 上限（源 `steps-c/step-03f` §4）：排序判据
+  R-1 recommendations 排序纪律与 Top 10 上限：排序判据
       （维度分 < 70 → HIGH）由 LLM 在 05 步照条文施加，**上限 10 由 `check` 机械拦**。
-  R-2 convention **引用与实际语料独立复测**（源 `steps-c/step-02` §2b）：`basis:
+  R-2 convention **引用与实际语料独立复测**：`basis:
       convention` 的 finding 其 `class` 必须与 `convention_baseline.keys.<key>.status`
       一致（键映射 = criteria.yaml 行字段 `convention_key`）——status 为 absent/unknown
       时该行本不成立、不得成条目；引用不可核（基线缺该键）同样拒绝。`check` 面执行。
-  R-3 空 / 极简测试文件处置（源 `checklist.md` §Edge Cases）：空（无代码内容）→ 发现面
+  R-3 空 / 极简测试文件处置：空（无代码内容）→ 发现面
       归 excluded(out-of-scope) **不评分**，全部为空则走无测试文件的拒绝路径；极简
       （有内容零断言）→ `scan` warning "No meaningful tests"，须按 C4 成条目；
       `check` 另有拦阻：空文件不得出现在 `scope.paths`。
-  R-4 pact 附加上报（源 `steps-c/step-03a` §1b，低危）：单 `it()` 内含 >1
+  R-4 pact 附加上报（低危）：单 `it()` 内含 >1
       `addInteraction()` → `scan` warning（无 registry row，落 `recommendations` 散文）；
       配置经 `mergeConfig(` / `extends:` 组合致三条必需设置不可验证 → 合一降为 L4
       advisory（`pact-config-unverifiable`），带 `// tea:pact-ffi-safe` 标记则不报。
 
-命令面（任务书 §6 钉死）：
+命令面：
   scan        [--paths P]... [--project-root R] [--output-dir D] [--json]
               测试文件发现 + 机械项检出 + convention baseline 采样（评审集之外的既有
               语料、上限 40 文件、7 key）。无测试文件 → 拒绝（exit 1，零产出）。
@@ -64,19 +64,17 @@ V 能力补项（2026-09-18，源 test-review 对账 `v-capability-inventory.md`
               **recommendations 上限（R-1）** / **空文件不得计入评审集（R-3）**；
               --final 附加：零 [假设]、excluded 理由三值、scope 非空、记录已定稿。
 
-引擎契约（任务书 §2.2）：exit 0 唯一放行；1 = 违规/被拒绝；2 = 用法错误（argparse）；
+引擎契约：exit 0 唯一放行；1 = 违规/被拒绝；2 = 用法错误（argparse）；
 --json → 单行 JSON 回执（ensure_ascii=False），无 --json → 中文人读行。回执共同键
 {ok, command, project_root, output_dir, violations:[{code, where, msg}], warnings, counts}；
 --output-dir 必填、不设默认；不做 --instance / 目录推导（实例解析由 SKILL.md 委托
 `diyc.py resolve`）。`--previous` **不实现**：reviews[] 是追加式台账（RV-### 稳定不重用），
 无 ID 集合收缩面，与 P1/B1/B2 的"追加式产物判 no"先例一致。
 
-违规码：复用 batch3-contract §3 冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
+违规码：复用冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
 ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT / STATUS_MISMATCH / SET_MISMATCH /
-PENDING_DECISION）；**新增码仅两个**——`TOOL_MISSING` / `TOOL_ERROR`（diyc 委派降级专用，
-B1 diy-readiness-check 首创，本批沿用），无其他新码。
+PENDING_DECISION）；**新增码仅两个**——`TOOL_MISSING` / `TOOL_ERROR`（diyc 委派降级专用），无其他新码。
 """
-# trace: B3 diy-test-review #3 #4 #12
 import argparse
 import os
 import sys

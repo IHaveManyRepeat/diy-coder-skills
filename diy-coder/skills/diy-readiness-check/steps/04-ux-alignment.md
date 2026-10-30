@@ -7,7 +7,7 @@ Progress: `文档发现 → 需求清点 → 覆盖校验 → [UX 对齐] → �
 
 ## 文档状态
 
-diy 里设计/UX 的单一源是 `design.yaml`（页面 `P-x`、design tokens）。回执说明它在不在场；源工作流那次 `*ux*.md` 检索与它一一对应——别去找 markdown 版 UX 文件。
+diy 里设计/UX 的单一源是 `design.yaml`（页面 `P-x`、design tokens）。回执说明它在不在场——别去找 markdown 版 UX 文件。
 
 ## design.yaml 在场 —— 校验对齐
 
@@ -19,7 +19,7 @@ diy 里设计/UX 的单一源是 `design.yaml`（页面 `P-x`、design tokens）
 
 ## design.yaml 缺席 —— UX 是否被隐含？
 
-缺席是合法的（CLI、库、后端服务）——但绝不假设它（源 step-4 规则「Don't assume UX is not needed」）。判据与本套件同一口径：取 `diy-design` 探测器（`design.py detect`）的 `has_frontend`，不要自拟一套「用户可见」的读法：
+缺席是合法的（CLI、库、后端服务）——但绝不假设它不需要 UX。判据与本套件同一口径：取 `diy-design` 探测器（`design.py detect`）的 `has_frontend`，不要自拟一套「用户可见」的读法：
 
 ```bash
 python "{project-root}/.claude/skills/diy-design/scripts/design.py" detect --project-root "{project-root}"
@@ -27,7 +27,7 @@ python "{project-root}/.claude/skills/diy-design/scripts/design.py" detect --pro
 
 （resolved 实例时附 `--instance <name>`；脚本化时加 `--json`。）
 
-- `has_frontend: true`（PRD 检出前端面需求）而 `design.yaml` 缺席 → 一条 finding：`area: ux`、`severity: 中`、`route: diy-design`，`evidence` 取探测器命中的 FR ID——源工作流那条告警，保留。
+- `has_frontend: true`（PRD 检出前端面需求）而 `design.yaml` 缺席 → 一条 finding：`area: ux`、`severity: 中`、`route: diy-design`，`evidence` 取探测器命中的 FR ID——这条告警保留。
 - `has_frontend: false` → 没有隐含前端面需求，明说一句、什么都不记；第 6 步按干净面汇报。diy-design 用同一探测器且会声明 SKIP——两处结论一致，不会对打。
 
 ## 播报与下一步

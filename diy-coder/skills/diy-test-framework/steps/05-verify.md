@@ -21,7 +21,7 @@
 
 ## 3. 保留确认档：写时保护钩子（可选步骤，**只入队、不生成文件**）
 
-源技能的写时保护钩子（写入时拦截 `.only` / 硬等待 / 空断言一类反模式）带 1098 行脚本 + 三处注册，属 BMAD 生态资产（**已裁剪，本技能无 hook 模板**）。用户仍想要时，**不改** `.claude/settings.json`、也不手写脚本，只把这件事入队：
+写时保护钩子（写入时拦截 `.only` / 硬等待 / 空断言一类反模式）带 1098 行脚本 + 三处注册，属 BMAD 生态资产（**已裁剪，本技能无 hook 模板**）。用户仍想要时，**不改** `.claude/settings.json`、也不手写脚本，只把这件事入队：
 
 ```
 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" defer-add --entry '{"skill": "diy-test-framework", "action": "装写时保护钩子：需用户/后续技能提供 hook 脚本，再合并进 .claude/settings.json 的 hooks", "reason": "用户配置", "target": ".claude/settings.json"}' --project-root "{project-root}" --json

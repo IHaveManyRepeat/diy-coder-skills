@@ -32,7 +32,7 @@ outputs: spec-kernel.yaml
 全局步骤纪律：一次只加载一个 `steps/` 文件——绝不预载四个步骤文件；Front-load：一步的输出整块给出，不在步骤中间提问；跨文档信息一律引用 ID 或路径（`CAP-N` / `path:<relative>`），禁止复制内容。
 
 1. `steps/01-input.md` — 输入判定 + slug 解析 + 建/更判定；更新路径留旧稿副本（供终门 `--previous`）。
-2. `steps/02-distill.md` — 五字段蒸馏（Spec Law 8 条 + load-bearing 三透镜）+ artifacts 开条判据 + companions 双轨 + `sources[]`。
+2. `steps/02-distill.md` — 五字段蒸馏（load-bearing 三透镜）+ artifacts 开条判据 + companions 双轨 + `sources[]`。
 3. `steps/03-validate.md` — 两遍自校验：Pass 1 Coherence → Pass 2 Preservation（**不许静默丢弃**），判决落 `verdict`。
 4. `steps/04-finish.md` — 定稿 + `check --final` 终门 + 渲染 + 摘要与路由。
 
@@ -56,7 +56,7 @@ specs:
     capabilities:
       - {id: CAP-1, intent: <string>, success: <string>, retired: true|false}
     constraints: [<string>]         # 真能淘汰设计的才配
-    non_goals: [<string>]           # 至少 1 条（Spec Law 4）
+    non_goals: [<string>]           # 至少 1 条
     success_signal: <string>
     assumptions: [<string>]         # 未经确认的裁量落这里
     open_questions: [<string>]      # 修不了的缺口落这里
@@ -71,7 +71,7 @@ revisions: []                       # {date, change, reason}——改既有记�
 
 1. **边界（双向声明）。** 本技能的 `spec-kernel.yaml` 服务「需要一份被多方消费的契约」（记录独立于实现）；`diy-quick-dev` 的 `spec.yaml` 服务「小变更的执行通道」（记录随实现走）——两产物不同名、不同生命周期、**互不读写**。**diy-spec ≠ diy-prd**：`diy-prd` 产出完整产品需求文档（主链输入），本技能产出轻内核契约、任何阶段可用，不替代 PRD。
 2. 写范围：只写 `{output_dir}/spec-kernel.yaml`（记录与 `revisions`）。绝不碰 `spec.yaml`、上游源文档、adopted companions（只引用不改）。
-3. **CAP 纪律（Spec Law 6）。** `CAP-N` 记录内唯一、稳定、永不重编号、永不重用；退役**保留条目**并标 `retired: true`（痕迹的价值在于「退役的是什么」）——绝不删条目。改写既有记录前留旧稿副本并跑 `check --previous`：旧有新无且未标 `retired` → `ID_UNSTABLE`。
+3. **CAP 纪律。** `CAP-N` 记录内唯一、稳定、永不重编号、永不重用；退役**保留条目**并标 `retired: true`（痕迹的价值在于「退役的是什么」）——绝不删条目。改写既有记录前留旧稿副本并跑 `check --previous`：旧有新无且未标 `retired` → `ID_UNSTABLE`。
 4. 引用式纪律：跨文档信息一律引用 ID 或路径（`CAP-N` / `path:<relative>`），禁止复制内容；`sources[]` 只列被完全吸收的源文档，不列 decision log / README / 过程元数据。
 5. 五字段纪律：`intent` 说 WHAT 不说 HOW（实现处方归 artifacts）；约束真能淘汰设计；non-goals 至少一条；success 可测可演示；每条 load-bearing 声明都要落进产物——**不许静默丢弃**（仅包装性的内容落 `verdict.preservation.dropped`）。
 6. 稀疏输入二选一：**express**（尽力蒸馏，缺口全落 `open_questions[]`；无头默认并把选择记在 `verdict.coherence` 段末）或 **guided**（逐字段问用户）。真正过薄 → 停并建议 `diy-prd`；本技能蒸馏，不引导。

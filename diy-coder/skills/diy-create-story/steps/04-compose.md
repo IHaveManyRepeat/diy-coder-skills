@@ -19,7 +19,7 @@ Progress: `Target → Artifacts → Code Survey → [Compose] → Finish`
 
 ## 可选：外部检索
 
-源工作流的第 4 步（为最新库细节做联网检索）在此收敛。项目的技术栈事实住在 `architecture.yaml` 与 `project-context.yaml`，而无出处的「最新版本」说法烂得很快。若某条故事确实依赖这两份文档都没钉住的库行为，把它放进 `open_questions`，等 diy-dev 真正需要时去查该库自己的文档——绝不发明版本号、端点或 API 形状，绝不把发明的东西当既定事实写进上下文包。
+为最新库细节做联网检索在此收敛。项目的技术栈事实住在 `architecture.yaml` 与 `project-context.yaml`，而无出处的「最新版本」说法烂得很快。若某条故事确实依赖这两份文档都没钉住的库行为，把它放进 `open_questions`，等 diy-dev 真正需要时去查该库自己的文档——绝不发明版本号、端点或 API 形状，绝不把发明的东西当既定事实写进上下文包。
 
 ## 人工确认
 

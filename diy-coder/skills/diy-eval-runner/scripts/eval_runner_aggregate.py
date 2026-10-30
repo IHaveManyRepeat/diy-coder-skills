@@ -70,7 +70,7 @@ def load_records(run_dir, warnings):
 
 
 def delta_configs(subject, against):
-    """逐共享指标：delta = subject.mean − against.mean（源侧同形：B − A）。"""
+    """逐共享指标：delta = subject.mean − against.mean。"""
     out = {}
     for name in sorted(set(subject["metrics"]) & set(against["metrics"])):
         s, a = subject["metrics"][name], against["metrics"][name]
@@ -83,7 +83,7 @@ def delta_configs(subject, against):
 
 
 def aggregate_self_test():
-    """固定夹具校验 mean / n-1 标准差 / min / max / delta（源侧 --self-test 同款数值）。"""
+    """固定夹具校验 mean / n-1 标准差 / min / max / delta。"""
     config_a = [{"elapsed_s": 10.0, "total_tokens": 100},
                 {"elapsed_s": 12.0, "total_tokens": 200},
                 {"elapsed_s": 14.0, "total_tokens": 300}]

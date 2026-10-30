@@ -107,7 +107,7 @@ def check_pages(record, ref, ctx):
 
 
 def check_scenario(record, index, show, ctx):
-    """单条 `scenarios[]` 记录（含裁定 17 的三条交接契约键）。"""
+    """单条 `scenarios[]` 记录（含三条交接契约键）。"""
     ref = "scenarios[%d]" % index
     if not isinstance(record, dict):
         ctx["out"].append(v("EMPTY_FIELD", "%s %s" % (show, ref), "记录须为映射"))

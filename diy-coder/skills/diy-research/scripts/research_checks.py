@@ -91,7 +91,7 @@ def local_anchor_set(data):
     return {"%s-%03d" % (p, n) for p, n, _w in collect_anchor_ids(data)}
 
 
-# trace: 源技能引用纪律（每条断言带来源）——sources 非空 + url http(s) + accessed 日期
+# 引用纪律（每条断言带来源）——sources 非空 + url http(s) + accessed 日期
 def check_finding(finding, where, warnings):
     violations = []
     if not isinstance(finding, dict):
@@ -265,12 +265,10 @@ def check_record(index, record, final, where_base, warnings):
     return violations
 
 
-# trace: 夜队列 Q-103（底单 :361 ②：check --final 加 distillate 存在＋五字段非空校验）
-# trace: 批 5a——target_users 条目化入 LISTS；四列表条目 {text, src} 硬校验（--final）
 def check_distillate_final(distillate, show, local_ids, warnings):
     """--final 文档级交出面义务：顶层 `distillate` 在场（映射）且五字段非空——
     `problem` 标量非空；四列表条目恰为 `{text, src}`（形态例外，--final 硬校验）；
-    src 按批 5a §3 矩阵。起草期不查。"""
+    起草期不查。"""
     if not isinstance(distillate, dict):
         return [v("EMPTY_FIELD", show + " distillate",
                   "--final 要求 distillate 非空（交出面：下游 PRD 输入）")]

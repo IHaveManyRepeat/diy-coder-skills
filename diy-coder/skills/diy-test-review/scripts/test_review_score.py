@@ -148,7 +148,7 @@ def _dimension_scores(deduped, table):
 
 
 def compute_ledger(findings_doc, table):
-    """账本纯函数（裁定 1）：入口校验 → severity 复算 → 去重 → 账本 + 维度分。"""
+    """账本纯函数：入口校验 → severity 复算 → 去重 → 账本 + 维度分。"""
     violations, plain = _finding_violations(items(findings_doc, "findings"), table)
     deduped, duplicates = _dedupe(plain)
     counts = _severity_counts(deduped)

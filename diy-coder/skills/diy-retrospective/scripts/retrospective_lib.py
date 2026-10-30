@@ -38,7 +38,7 @@ DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 STORY_TOKEN_RE = re.compile(r"S-\d+")
 BUG_TOKEN_RE = re.compile(r"BUG-\d{3}")
 
-PATTERN_MIN_COUNT = 2  # 源 step-2：跨 story 才成模式（≥2 处证据）
+PATTERN_MIN_COUNT = 2  # 跨 story 才成模式（≥2 处证据）
 
 # ---------------------------------------------------------------- 文档装载
 
@@ -114,7 +114,7 @@ def ac_refs_of(story, key="refs"):
 # ---------------------------------------------------------------- 机械采集
 
 def epic_stories_block(epic, docs):
-    """该 epic 的 story 完成度块（源 step-1 完成度校验的机械面）。"""
+    """该 epic 的 story 完成度块。"""
     status = story_status_map(docs)
     ids = story_ids_of_epic(epic, docs)
     done = [i for i in ids if status.get(i) == "已完成"]
@@ -188,7 +188,7 @@ def collect_metrics(epic, docs):
     }
 
 def prev_actions(epic, docs):
-    """前一份 retro 的 action_items 回带（源 step-3 承诺跟踪的输入）。"""
+    """前一份 retro 的 action_items 回带（承诺跟踪的输入）。"""
     target = epic_number(epic)
     earlier = [e for e in epic_entries(docs)
                if nonempty(e.get("id")) and epic_number(e["id"]) < target]
@@ -213,7 +213,7 @@ def prev_actions(epic, docs):
     return False, out
 
 def next_epic_info(epic, docs):
-    """下一 epic 存在性 + 与当前 epic 的共享 FR（源 step-4 预览的机械钩子）。"""
+    """下一 epic 存在性 + 与当前 epic 的共享 FR。"""
     target = epic_number(epic)
     later = [e for e in epic_entries(docs)
              if nonempty(e.get("id")) and epic_number(e["id"]) > target]

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diyc 共享层回执与输出：receipt/emit/run_tool/baseline 台账（契约 §5）。"""
+"""diyc 共享层回执与输出：receipt/emit/run_tool/baseline 台账。"""
 
 import json
 import os
@@ -39,7 +39,7 @@ def read_sessions(path, show):
     if data is None and err is None:
         return None, [], []
     if err is not None:
-        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+        # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（重复键≠解析失败）
         return None, [v(code, show, "YAML %s：%s"
                         % ("重复键" if code == "DUPLICATE_KEY" else "解析失败", err))], []
     if not isinstance(data, dict):
@@ -188,7 +188,7 @@ def _scope(where) -> str:
 
 
 def apply_baseline(result, project_root, output_dir, allow_stale=True) -> None:
-    """审计命令回执的 baseline 后处理（就地改写 result；D1-D4 用户裁定 2026-09-13）。
+    """审计命令回执的 baseline 后处理（就地改写 result）。
 
     - 命中 (code, where) 精确匹配 → 移入 known（附 reason），不计违规、不影响 exit code；
     - 条目在本轮产出过同码违规的域（文件段）内仍未命中 → BASELINE_STALE

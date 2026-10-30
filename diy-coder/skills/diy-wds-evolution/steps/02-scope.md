@@ -5,11 +5,10 @@ Progress: `[1 载分析 → 2 定义变更 → 3 微旅程映射 → 4 范围估
 **Read (input):** 本产物 `rounds[EV-<nn>].analysis` 的 `root_cause` / `hypothesis` / `selection`（上一文件已落盘）；`{output_dir}/analysis.yaml`（**按需，非必读**——第 4 步估范围已声明依赖时才读）；`data/kaizen-principles.md` 的「小批量」纪律；用户对「改哪一页、改到什么程度」的回答。
 **Write (output):** `rounds[EV-<nn>].scope`（源 [S] 场景文档 6 段）+ `rounds[EV-<nn>].status: 范围`；依赖锚有增补时同步写轮级 `analysis_refs`（键位与一档语义见 SKILL.md 结构段与第 4 步接线句）；给用户的一次变更呈批（**用户关卡 2**）。
 
-你是**范围的守门人**。这一步的全部价值是**把「想要」压成「这一次只做这一件」**——源侧反复强调 Kaizen 的规模判据是「一次一条工作流里的一段」，超了就退回。
+你是**范围的守门人**。这一步的全部价值是**把「想要」压成「这一次只做这一件」**——Kaizen 的规模判据是「一次一条工作流里的一段」，超了就退回。
 
 **本段纪律（源 [S] 与 `steps-d/step-01` 的共同要求）**：① 一次变更 = **一页 / 一条流的一段**，不许「顺手也改一下」；② 成功判据必须**可量**（带数字与时点）；③ 边界要写**不做什么**——比写「做什么」更能挡住蔓延。
 
-〔**源侧缺陷处置（三套并存的步骤分解）**〕源侧有三套互不对应的分解：① 菜单 6 活动（本技能实际可跑的）；② 步骤件全局 1–6 号（`# Step 1: Identify Opportunity` … `# Step 6: Validate`）；③ `data/existing-product-guide.md:63-110` 的 **5 步 + Deploy** 流程图。**diy 处置 = 取 ① 为唯一权威**（它是路由表指向、唯一可执行的），② 的步骤件作为**内容来源**并入（A/S/D/T/P 五处，见各文件的合并表）；③ **裁**——它是 Phase-4 时代的遗留视图，与 ① 不对应（步骤名、步数、产物路径三者都不同），保留只会让模型在两套步序间漂移。**两入口的术语（Greenfield/Kaikaku 对 Brownfield/Kaizen）从 ③ 里摘出、落第 1 步与 `data/kaizen-principles.md`**——那一段是它唯一不可替代的内容。
 
 ## 第 1 步 —— 载分析（源 [S] step-01）
 
@@ -24,7 +23,6 @@ Progress: `[1 载分析 → 2 定义变更 → 3 微旅程映射 → 4 范围估
 | `.analysis.validation_plan` | 成功长什么样（后面 [T] 的判据溯它） |
 | `.analysis.selected_rationale` | 用户当时为什么点头（范围评审要能对上这句话） |
 
-〔**源侧缺陷处置（写盘路径冲突，任务书 W3 卡）**〕源侧活动文件写 `{output_folder}/evolution/{analysis,scenarios,specs,test-reports,deliveries}/`（7 处），而步骤件写 `C-UX-Scenarios/…` / `D-Design-System/…` / `deliveries/…yaml`（12+ 处，**全部无 `{output_folder}` 前缀**）——两套路径**互不覆盖**，且步骤件那套是 Phase-4 时代的目录布局（含 `03-Atomic-Components` 这类编号目录），diy 侧无对应物。**diy 处置 = 单一源**：全部落 `{output_dir}/wds-evolution.yaml` 的 `rounds[]`，**不建任何散 md、不建子目录**（承 B7a 裁定 12 的「只产 YAML」口径）。
 
 **产出键**：无（只读回上下文；根因与假设的复述留在会话里）。
 
@@ -84,7 +82,7 @@ Progress: `[1 载分析 → 2 定义变更 → 3 微旅程映射 → 4 范围估
 - **数据变更**：有没有 API 或数据模型要动
 - **风险三档**：`Low`（纯视觉）/ `Medium`（行为改变）/ `High`（结构性改变）
 
-**`High` 的处理**（源侧把 Kaizen 的规模判据压在「1–2 周」）：`High` **不禁止**，但必须在本步**明说「这已经超出一次 Kaizen 的常规体量」**并把拆分选项摆给用户——拆，还是就承认这是一次 Kaikaku（源 `data/existing-product-guide.md` 的术语：改革式的大改属 Phases 1–7，不属本技能）。
+**`High` 的处理**（Kaizen 的规模判据是「1–2 周」）：`High` **不禁止**，但必须在本步**明说「这已经超出一次 Kaizen 的常规体量」**并把拆分选项摆给用户——拆，还是就承认这是一次 Kaikaku（改革式的大改不属本技能）。
 
 **接线句（S 相·引用＋推定分离，已裁口径）**：已声明依赖（轮级 `analysis_refs`，与 A 相共享）时读 `{output_dir}/analysis.yaml`——
 - `components_touched` 按 `analysis.yaml.components[]` 的 `AN-<nn>` 锚**引用**：`new` / `modified` / `removed` 三分**由当次勘察判定**，不搬产物字段（产物无此三字段）；
@@ -122,7 +120,7 @@ scope:
   risk: Low|Medium|High
 ```
 
-**呈批（用户关卡 2）**：把上面六段整块呈出，`**没拿到明确点头不许往下走**`（源 `Present for user approval`）。点头后才落盘。
+**呈批（用户关卡 2）**：把上面六段整块呈出，`**没拿到明确点头不许往下走**`。点头后才落盘。
 
 **产出键**：`rounds[EV-<nn>].scope` 整段（源 6 段逐段对应到键）。
 

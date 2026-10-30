@@ -45,7 +45,7 @@ exit 0 是唯一放行。引擎校验 id 规则与续号、`ac` 在 `stories.yam
 
 渲染（静默旁路——不报路径等待、不阻塞；headless 静默渲染）：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
-摘要（就在对话里——本技能不另写摘要产物；BMAD 的 `test-summary.md` 由这份收尾报告加追加的用例取代）：
+摘要（就在对话里——本技能不另写摘要产物，收尾报告即摘要）：
 
 - 按 id 列出追加的用例，及其落地的文件（项目测试目录）。
 - 执行结果：跑了几条 / 过了几条 / 红了几条，每条仍红的写明已做的修复或观察值 vs 预期值。

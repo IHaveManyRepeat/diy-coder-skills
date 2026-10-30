@@ -5,13 +5,13 @@ Progress: `文档发现 → 需求清点 → 覆盖校验 → UX 对齐 → [史
 **Read (input):** 回执（`epics` / `stories` 的 `diyc.check.violations`、`counts`）；`epics.yaml` 与 `stories.yaml`——每条史诗与故事；脚手架检查用 `architecture.yaml`。
 **Write (output):** 质量类 finding（`area: epics` / `area: stories`）及其 severity。
 
-这次评审自主跑——质疑一切、一处不让（源 step-5 §8）。机械形状检查（ID、枚举、AC 引用可解析）已经随 `diyc.check.violations` 到场；下面是你判而 diyc 判不了的那一层。
+这次评审自主跑——质疑一切、一处不让。机械形状检查（ID、枚举、AC 引用可解析）已经随 `diyc.check.violations` 到场；下面是你判而 diyc 判不了的那一层。
 
 ## A. 史诗的用户价值
 
 逐条史诗问：标题是不是用户能做的一件事（而不是一个系统组件）？目标描述的是不是用户结果？单靠这条史诗，有没有人能受益？
 
-红旗 → finding（源 step-5 §2.A）：
+红旗 → finding：
 
 - "Setup Database" / "Create Models" —— 没有用户价值；
 - "API Development" / "Infrastructure Setup" —— 技术里程碑；
@@ -30,7 +30,7 @@ Progress: `文档发现 → 需求清点 → 覆盖校验 → UX 对齐 → [史
 
 **粒度。** 用户价值清晰；不靠将来某条 story 就能做完。"Setup all models" 不是用户故事；"Create login UI (depends on Story 1.3)" 是前向依赖——破坏独立性时 `严重`，只是粒度问题时 `高`。
 
-**验收标准。** Given/When/Then 结构；每条 AC 可独立测试；错误条件被覆盖；结果具体。含糊的判据（"user can login"）、缺错误路径、happy path 不完整、结果不可度量 → `高`（源 "major"）；纯格式噪音 → `中` / `低`。
+**验收标准。** Given/When/Then 结构；每条 AC 可独立测试；错误条件被覆盖；结果具体。含糊的判据（"user can login"）、缺错误路径、happy path 不完整、结果不可度量 → `高`；纯格式噪音 → `中` / `低`。
 
 ## D. 依赖
 
@@ -40,8 +40,8 @@ Progress: `文档发现 → 需求清点 → 覆盖校验 → UX 对齐 → [史
 
 ## E. 实现相关的专项检查
 
-- **脚手架（Starter template）**（源 step-5 §5.A）：取值路径 = 取 `architecture.yaml` 的 `stack[]` 里 `kind: scaffold` 那一条的 `choice`。找到 → 史诗 1 的故事 1 必须是基于它的初始项目搭建（clone、依赖、初始配置），缺失 → `高`。找不到（`stack[]` 里没有 `kind: scaffold` 条目）→ 该检查不成立：一行说明后跳过，**不落 finding**——绝不为凑检查去猜一个脚手架。
-- **绿地 vs 棕地**（源 step-5 §5.B）：绿地期望有初始搭建 story、开发环境配置与早期 CI/CD；棕地期望与既有系统的集成点、迁移/兼容 story。该有而缺 → `中`，并点名缺的是什么。
+- **脚手架（Starter template）**：取值路径 = 取 `architecture.yaml` 的 `stack[]` 里 `kind: scaffold` 那一条的 `choice`。找到 → 史诗 1 的故事 1 必须是基于它的初始项目搭建（clone、依赖、初始配置），缺失 → `高`。找不到（`stack[]` 里没有 `kind: scaffold` 条目）→ 该检查不成立：一行说明后跳过，**不落 finding**——绝不为凑检查去猜一个脚手架。
+- **绿地 vs 棕地**：绿地期望有初始搭建 story、开发环境配置与早期 CI/CD；棕地期望与既有系统的集成点、迁移/兼容 story。该有而缺 → `中`，并点名缺的是什么。
 
 ## F. 合规清单（逐史诗过）
 
@@ -55,7 +55,7 @@ Progress: `文档发现 → 需求清点 → 覆盖校验 → UX 对齐 → [史
 
 每个没勾上的框都落成一条带具体例子与一行整改建议的 finding——绝不是泛泛的抱怨。
 
-## Severity 对照表（源 step-5 §7）
+## Severity 对照表
 
 | 源档位 | diy `severity` |
 | --- | --- |

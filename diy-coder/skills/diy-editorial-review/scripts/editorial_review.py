@@ -3,18 +3,16 @@
 
 机制：本技能对同一份文稿跑两个透镜——结构透镜（删减 / 重组 / 简化的建议）与文风透镜
 （沟通障碍的三列修订建议），一次评审出一份 findings 台账（editorial-review.yaml 的
-reviews[]）。源技能（bmad-editorial-review-structure + -prose）把两件机械活留给了人：
+reviews[]）。两透镜（结构 + 文风）把两件机械活留给了人：
 
-  stats   目标文档结构统计（源 structure 透镜 Step 1/3 的 "section count / word count /
-          map the document structure: each major section with its word count" 是确定性统计）：
+  stats   目标文档结构统计（section count / word count / …）：
             .md / 纯文本 → `#` 是**文档标题**（不计词、不切节），节由行首 `##` / `###` 切
                             （`####` 及更深不算），标题文本作节名；第一节之前若有正文，
                             归一个以文件名为名的节；无 `##`/`###` → 整文档一个节、节名取文件名；
             .yaml / .yml  → 按顶层键切节（键名作节名），节词数 = 该键子树全部字符串的词数；
             词数口径（唯一一处定义，findings 的 impact_words 同此）：中文字符按 1 词计
             （中文无空格分词），西文按 `[A-Za-z0-9_]+` 分词计；标题行不计入所在节词数。
-            目标不存在 → MISSING_FILE；全文 < 3 词 → EMPTY_FIELD（源 HALT：「少于 3 词不足
-            以评审」）；无法按 UTF-8 解码 → MISSING_FILE（文档读不出来，等同不在场）。
+            目标不存在 → MISSING_FILE；全文 < 3 词 → EMPTY_FIELD；无法按 UTF-8 解码 → MISSING_FILE（文档读不出来，等同不在场）。
             同时校验本次评审的 `--lens`（结构|文风，可重复；缺省两透镜全跑）与
             `--reader-type`（人类|LLM，缺省 人类）——越界即 ENUM_INVALID，**在动手前**拒绝；
             回执原样给出 `lenses` / `reader_type`，记录侧照抄、不凭记忆重打。
@@ -42,10 +40,10 @@ reviews[]）。源技能（bmad-editorial-review-structure + -prose）把两件�
           `--id ER-xxx` 只校该条记录；给的 ID 不在场 → UNKNOWN_ID。
           **`--previous` 判 no**（追加式台账：reviews[] 只追加、无 ID 集合收缩面），不实现。
 
-规则来源：违规码全部复用 batch3-contract §3 冻结集——本引擎用到 MISSING_FILE /
+规则来源：违规码全部复用冻结集——本引擎用到 MISSING_FILE /
 UNPARSABLE_YAML / DUPLICATE_ID / UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD /
 ASSUMPTION_PRESENT / SET_MISMATCH / STATUS_MISMATCH 共 9 个，**无新增码**。回执契约对齐
-B1/B2/B3 批既有先例：exit 0 唯一放行 / --json 单行 JSON（ensure_ascii=False）/ 共同键
+既有先例：exit 0 唯一放行 / --json 单行 JSON（ensure_ascii=False）/ 共同键
 {ok, command, project_root, output_dir, violations[{code,where,msg}], warnings, counts}；
 where 一律正斜杠、相对 project-root；人读态每条违规一行 `CODE where: msg` + 末尾汇总行；
 --output-dir 必填（argparse required，无默认值）。分工裁定：本引擎不做实例解析、不做白名单、
@@ -65,7 +63,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from editorial_review_checks import check_review, check_top_level, review_counts  # noqa: E402
 from editorial_review_text import LENSES, READER_TYPES, REVIEW_FILE, YAML_SUFFIXES, read_target  # noqa: E402
 
-# trace: B4 diy-editorial-review stats（--lens / --reader-type 越界判定，见 §7 门禁：非法值 ENUM_INVALID）
+# trace: stats（--lens / --reader-type 越界判定：非法值 ENUM_INVALID）
 def check_scope_flags(lens_args, reader_type):
     violations = []
     lenses = []
@@ -82,7 +80,7 @@ def check_scope_flags(lens_args, reader_type):
         lenses = list(LENSES)
     return [name for name in LENSES if name in lenses], violations
 
-# trace: B4 diy-editorial-review stats 子命令（结构地图 + 门禁；只读，exit 0 唯一放行）
+# trace: stats 子命令（结构地图 + 门禁；只读，exit 0 唯一放行）
 def cmd_stats(args):
     root = os.path.abspath(args.project_root)
     out = os.path.abspath(args.output_dir)
@@ -106,8 +104,7 @@ def cmd_stats(args):
                 target["total_words"] = sum(section["words"] for section in sections)
                 if target["total_words"] < 3:
                     violations.append(v("EMPTY_FIELD", show,
-                                        "内容不足 3 词（实为 %d 词）：不足以评审，"
-                                        "源 HALT 同款门槛" % target["total_words"]))
+                                        "内容不足 3 词（实为 %d 词）：不足以评审，" "词数门槛" % target["total_words"]))
     payload = {
         "ok": not violations,
         "command": "stats",
@@ -124,7 +121,7 @@ def cmd_stats(args):
     emit_via(payload, args.json, human_stats)
     return 0 if payload["ok"] else 1
 
-# trace: B4 diy-editorial-review stats 人读态（结构地图 + 末尾汇总行）
+# trace: stats 人读态（结构地图 + 末尾汇总行）
 def human_stats(payload):
     target = payload["target"]
     if payload["violations"]:
@@ -142,7 +139,7 @@ def human_stats(payload):
           % (counts["sections"], counts["words"], counts["lines"],
              len(payload["violations"]), 0 if payload["ok"] else 1))
 
-# trace: B4 diy-editorial-review check 子命令（台账校验；exit 0 唯一放行）
+# trace: check 子命令（台账校验；exit 0 唯一放行）
 def cmd_check(args):
     root = os.path.abspath(args.project_root)
     out = os.path.abspath(args.output_dir)
@@ -186,7 +183,7 @@ def cmd_check(args):
     emit_via(payload, args.json, human_check)
     return 0 if payload["ok"] else 1
 
-# trace: B4 diy-editorial-review check 人读态（每条违规一行 `CODE where: msg` + 末尾汇总行）
+# trace: check 人读态（每条违规一行 `CODE where: msg` + 末尾汇总行）
 def human_check(payload):
     counts = payload["counts"]
     if payload["ok"]:
@@ -200,7 +197,7 @@ def human_check(payload):
           % (len(payload["violations"]), len(payload["warnings"]),
              0 if payload["ok"] else 1))
 
-# trace: B4 diy-editorial-review 命令行面（--output-dir 必填；引擎不做实例解析/目录推导）
+# trace: 命令行面（--output-dir 必填；引擎不做实例解析/目录推导）
 def build_parser():
     ap = argparse.ArgumentParser(
         description="diy-editorial-review 确定性引擎：目标文档结构统计（stats）+ "
@@ -233,7 +230,7 @@ def build_parser():
     k.set_defaults(func=cmd_check)
     return ap
 
-# trace: B4 diy-editorial-review 入口（stdout/stderr 固定 UTF-8；退出码由子命令返回）
+# trace: 入口（stdout/stderr 固定 UTF-8；退出码由子命令返回）
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")

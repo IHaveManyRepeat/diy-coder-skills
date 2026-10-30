@@ -108,7 +108,7 @@ def main():  # trace: S-13 AC-13.1 TC-13.1.1 组装位置/推荐/阻塞（零起
     sys.stderr.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description="diy-coder 工作流状态机导航")
     ap.add_argument("--project-root", default=".", help="项目根目录")
-    ap.add_argument("--instance", default=None, help="实例名（FR-4.5/D-9）")
+    ap.add_argument("--instance", default=None, help="实例名")
     ap.add_argument("--line", default=None, help="强制指定当前线（登记表 lines 的键）")
     ap.add_argument("--all-instances", action="store_true",
                     help="强制聚合 output_dir 下全部实例（含平铺根 (root) 行）")
@@ -124,7 +124,7 @@ def main():  # trace: S-13 AC-13.1 TC-13.1.1 组装位置/推荐/阻塞（零起
                 for n in lines_meta]
 
     output_dir = resolve_output_dir(args.project_root, args.instance)
-    # 聚合：显式 --all-instances，或平铺根无产物且存在含链产物的合规子目录（底单触发条件）
+    # 聚合：显式 --all-instances，或平铺根无产物且存在含链产物的合规子目录
     aggregate = False
     if args.instance is None:
         if args.all_instances:

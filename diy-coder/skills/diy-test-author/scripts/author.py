@@ -25,9 +25,9 @@
           ③ 红相形态：每个 test 体含 skip 且每个用例带 TC 锚（本次新生成文件，
              无「人手写遗留」豁免）。
 
-规则来源：`.claude/skills/bmad-testarch-atdd/checklist.md`（红相脚手架 / resilient
+规则来源：红相脚手架 / resilient
 selector / data factory / 单断言 / network-first / Given-When-Then / P0-P3 标签 /
-夹具 teardown 清理）与 `bmad-testarch-automate/checklist.md`
+夹具 teardown 清理
 （禁 waitForTimeout / 禁 isVisible 条件流 / 禁 page object / 禁硬编码数据 /
 确定性隔离 / try-catch 只许清理 / 禁调试语句 / 文件行数上限）。
 语言无关实现 = 按扩展名装载的 pattern 表（js/ts 族、py 族、其余语言的 generic 兜底族）。
@@ -41,7 +41,7 @@ GWT / 随机与时钟源 / try-catch）判在 test 体内——工厂文件里�
 其余语言降级为文件级规则（硬编码数据随行级规则判定，断言面、skip 形态、锚、
 优先级标签、用例名、GWT 与用例体内确定性项均不判）——该降级登记在回报中。
 
-违规码：复用 batch3-contract §3 冻结集（MISSING_FILE UNPARSABLE_YAML UNKNOWN_ID
+违规码：复用冻结集（MISSING_FILE UNPARSABLE_YAML UNKNOWN_ID
 ENUM_INVALID EMPTY_FIELD STATUS_MISMATCH）；本引擎新增（本行即登记）：
   PLACEHOLDER_ASSERTION  占位断言（expect(true) / assert True 一类）
   BRITTLE_SELECTOR       CSS / XPath 定位（应用 getByRole/getByLabel/getByText 语义定位）
@@ -65,15 +65,15 @@ ENUM_INVALID EMPTY_FIELD STATUS_MISMATCH）；本引擎新增（本行即登记�
   DEBUG_STATEMENT        测试代码里的 console.log / print / debugger 一类调试语句
   FIXTURE_NO_TEARDOWN    夹具自建数据无 teardown 清理
 
-分工裁定（任务书 §3 裁定 1/2）：本技能消费 diy-test-design 写的 TC，产出红相脚手架；
+分工：本技能消费 diy-test-design 写的 TC，产出红相脚手架；
 **零 YAML 写面**——本引擎不写任何文件，技能也不回填 TC status（脚手架不执行，没有实测
 结果可回填；TC status 由 diy-dev 的 TDD 循环经 `diyc.py green` 回填）。
 实例解析委托 SKILL.md 侧的 `diyc.py resolve`；本引擎不做 --instance / 白名单 / 目录推导，
---output-dir 必填（仅用于定位 test-plan.yaml）。契约同构（batch3-contract §3）：exit 0
+--output-dir 必填（仅用于定位 test-plan.yaml）。契约同构：exit 0
 唯一放行 / 1 = 违规或被拒绝 / 2 = 用法错误；--json 单行回执（ensure_ascii=False）；
 violations[{code, where, msg}] + counts；where 正斜杠、相对 project-root。
 """
-# trace: B3 diy-test-author 验收 #3 / #4 / #12（领域引擎 + TC 锚链 + 写权边界）
+# trace: 领域引擎 + TC 锚链 + 写权边界
 import argparse
 import os
 import sys

@@ -24,7 +24,7 @@ Design a creative information visualization. Choose the chart/diagram type that 
 
 中文对照：设计有创意的信息可视化。选择能让数据自己讲故事的图表类型，在数据之上叠加视觉叙事层，砍掉每一个不参与「传递信息—说服—过渡」的像素。
 
-> **与 `content-styles` 的接续**：`VM` / `CV` 之外的插画技法从 `data/styles/content-styles/` 取——源侧实测 `isometric` 卡的 `适用场景` 已直接写「数据可视化、流程图」，两轴天然接续，无需新机制。
+> **与 `content-styles` 的接续**：`VM` / `CV` 之外的插画技法从 `data/styles/content-styles/` 取——`isometric` 卡的 `适用场景` 已写「数据可视化、流程图」，两轴天然接续，无需新机制。
 
 ## Best For
 > **适用场景**——英文原文保留。

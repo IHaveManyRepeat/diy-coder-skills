@@ -10,16 +10,15 @@ by_level 重算 / 门决策自洽（硬判据 actual 重算 + 两组判据与 de
 `--final` 附加：status 已落 已定稿、basis 非空、hard / soft 两组判据齐、零 [假设]、
 合规五标准逐条记账、跨域合成候选的落点（G-4）；
 `mutation-report.yaml` 缺席日常记 `n/a` + warning、`--final` 时判 `MISSING_FILE`
-（迁移计划 §十三:459 原文「缺席日常 `n/a`、`--final` 时必须」——C·9 落地时补齐该义务）。
 
 本模块只重算「同记录内可机械重算」的量（判据 actual、totals、by_level、overall_risk、
 非功能致命、P0 未覆盖、变异得分、合规聚合）——不重跑 collect 的覆盖判定表
 （那是 `gate.py collect` 与 steps/03 LLM 复核的职责），避免二份实现。本模块不写盘。
 
-违约码：复用 batch3-contract §3 冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
+违约码：复用冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
 UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT / SET_MISMATCH /
 STATUS_MISMATCH / EVIDENCE_MISSING / PENDING_DECISION）+ diyc 委派降级码 TOOL_MISSING /
-TOOL_ERROR（B1 diy-readiness-check 先例）。本技能新增码（本批申报，见回报）：
+TOOL_ERROR。本技能新增码：
   DECISION_INCONSISTENT  门决策与两组判据 / NFR 域状态 / overlay 不自洽
   CRITERION_STALE        判据 actual/result 与从同记录机械重算的值不一致
   WAIVER_INCOMPLETE      waiver 缺 8 键契约中的键（或值为空）
@@ -32,7 +31,6 @@ TOOL_ERROR（B1 diy-readiness-check 先例）。本技能新增码（本批申�
   COMPLIANCE_AGGREGATE_MISMATCH  标准聚合行与逐域观察行重算不符（FAIL>PARTIAL>PASS）
   CROSS_DOMAIN_UNRECORDED   跨域风险合成候选命中而未落 recommendations / findings（--final）
 """
-# trace: 任务书 §4 check（schema / 门决策自洽 / waiver 契约 / 引用解析 / --final 附加义务）
 import os
 import sys
 

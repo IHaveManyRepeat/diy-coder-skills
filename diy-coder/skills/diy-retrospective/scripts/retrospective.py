@@ -3,17 +3,17 @@
 
 子命令：
   collect  --epic <E-x|N>  epic 收尾回顾的确定性部分（只读，绝不写文件）：
-             1 门禁（源技能 step-1「Epic Discovery」的门禁化）：stories.yaml / epics.yaml
+             1 门禁：stories.yaml / epics.yaml
                在场且 project.status 为 已定稿；目标 epic 在 epics.yaml 中可解析；该 epic
                至少 1 个 已完成 story。不满足 → 零产出 exit 1 + 结构化拒绝回执
                （violations 带码 + gate.route 给路由）。epic 未收尾（有 story 非 已完成）
-               不是拒绝：出 PENDING_DECISION 警告，partial 分流交会话（源 step-1 三分支：
+               不是拒绝：出 PENDING_DECISION 警告，partial 分流交会话（三分支：
                完成后再来 / partial 回顾 / 刷新 sprint）。
-             2 指标机械采集（替换源技能 step-2「人工通读 story md 数数」的确定性下沉）：
+             2 指标机械采集（「人工通读 story md 数数」的确定性下沉）：
                stories 完成度、sprint loop.rounds 合计、已阻塞 / augment: 失败 明细、
                bug-log 按 story→epic 归属的三分类计数、test-plan 对该 epic AC 的覆盖统计。
-             3 前一份 retro 的 action_items 回带（源 step-3 的承诺跟踪输入，供 prev_followup）；
-               下一 epic 存在性与共享 FR（源 step-4 预览的机械钩子）。
+             3 前一份 retro 的 action_items 回带（承诺跟踪输入，供 prev_followup）；
+               下一 epic 存在性与共享 FR（预览的机械钩子）。
   check    [--final] [--id RT-xxx]  校验 {output_dir}/retrospective.yaml（RT-### 集合，形状对齐
            bug-log.yaml）：schema / 枚举 / epic 与 patterns evidence 的引用解析（S-x / BUG-0xx）/
            action item 完整性（action+owner+done_when）/ prev_followup 指向同文件既往记录 /
@@ -21,16 +21,15 @@
            零 [假设]、metrics 与集合真值一致（SET_MISMATCH，与 collect 同一函数互证）、
            readiness 五键非空、action_items 非空。exit 0 唯一放行。
 
-分工裁定（任务书 §2.2/§2.3/§4）：retrospective 属新产物类型，不进 diyc.py check 的硬编码类型集；
+分工裁定：retrospective 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}] + counts；
 where 正斜杠、相对 project-root；--output-dir 必填，实例解析由 SKILL.md 委托 diyc.py resolve）；
 --previous 不实现——记录按 epic 追加、同 epic 重跑原位更新，无 ID 集合收缩风险（报告记账）。
-违规码复用 batch3-contract §3 冻结集，不新增。diy 改造要点：输入面是结构化产物
+违规码复用套件冻结集，不新增。diy 改造要点：输入面是结构化产物
 （sprint.yaml 的 note/evidence/loop/review.findings + bug-log.yaml + test-plan.yaml + stories.yaml），
-不是源技能的 story md 人工通读；指标由本引擎机械采集，会话不人工数数。
+不是 story md 人工通读；指标由本引擎机械采集，会话不人工数数。
 """
 
-# trace: B2 diy-retrospective 验收 #3（前置门禁零产出）/#4（ID 链接入）/#7（冒烟门禁路径）/#12（语言绑定与写权边界）
 import argparse
 import os
 import sys

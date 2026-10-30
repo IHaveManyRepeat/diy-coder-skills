@@ -11,13 +11,13 @@ from diyc_lib import items  # noqa: E402
 
 # ---------------------------------------------------------------- test-plan
 
-# Q-114（底单 :884/:889 + 2026-10-20/21 裁）：TC.producer 三生产方标识——前向强制，
+# TC.producer 三生产方标识——前向强制，
 # 存量零回填（当前无存量用例）。
 TC_PRODUCERS = ("test-design", "augment", "e2e")
 
 
 def _check_retired(report, where, tc, tc_ids) -> None:
-    """Q-111（底单 :902-904 三裁）：TC.retired 可选嵌套键——键在场性即裁决开关
+    """TC.retired 可选嵌套键——键在场性即裁决开关
     （缺席＝活跃、在场＝已裁废弃·人闸凭证）；双键必填、replaced_by 指向现存 TC、禁自指。"""
     # rule: diy-test-design/SKILL.md:Schema TC.retired（可选嵌套键·两轴正交·覆盖三层剔除）
     r = tc.get("retired")
@@ -102,7 +102,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                 ac_anchors[ac_id] = refs
 
     cases = items(doc, "test_cases", of_type=dict)
-    # Q-111：replaced_by 目标集（现存 TC ID，含废弃条目自身——链合法性不在机械门内）
+    # replaced_by 目标集（现存 TC ID，含废弃条目自身——链合法性不在机械门内）
     tc_ids = {t.get("id") for t in cases if is_str(t.get("id"))}
     if not cases:
         report.add("EMPTY_FIELD", rel + " test_cases", "test_cases 缺失或为空")
@@ -111,7 +111,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
     active_cases = 0
     for t in cases:
         w = "%s test_cases[%s]" % (rel, t.get("id") or "?")
-        # Q-111：键在场性即裁决开关——在场＝已裁废弃，覆盖类输入不收废料（虚报活跃数防护）
+        # 键在场性即裁决开关——在场＝已裁废弃，覆盖类输入不收废料（虚报活跃数防护）
         is_retired = "retired" in t
         req(report, w + ".id", t.get("id"), "case id")
         req(report, w + ".title", t.get("title"), "title")
@@ -139,7 +139,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
             counts["by_dimension"][t["dimension"]] = \
                 counts["by_dimension"].get(t["dimension"], 0) + 1
         enum(report, w + ".status", t.get("status"), TC_STATUSES, "status")
-        # Q-114：producer 必填（缺失 EMPTY_FIELD）+ 三值枚举（非法值 ENUM_INVALID）——
+        # producer 必填（缺失 EMPTY_FIELD）+ 三值枚举（非法值 ENUM_INVALID）——
         # 三生产方（diy-test-design/diy-augment/diy-e2e-tests）追加用例时落笔各自标识。
         # rule: diy-test-design/SKILL.md:Schema TC.producer（必填·前向强制·三生产方标识）
         if req(report, w + ".producer", t.get("producer"), "producer（三生产方标识）"):
@@ -169,7 +169,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
             report.add("EMPTY_FIELD", w + ".steps",
                        "steps 缺失或为空（用例须可执行：具体验证步骤 + 预期结果）")
     dup(report, tc_pairs, "case id")
-    counts["cases"] = active_cases  # Q-111：counts 剔除 retired（虚报活跃数防护）
+    counts["cases"] = active_cases  # counts 剔除 retired（虚报活跃数防护）
     counts["acs_covered"] = len(covered)
 
     checks = doc.get("static_checks")
@@ -238,7 +238,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
     #       dimension 对应；TC.dimension 须出现在其 AC 对应轴；已完成故事整段豁免）
     audit = doc.get("dimension_audit")
     tc_by_id = {t.get("id"): t for t in cases if is_str(t.get("id"))}
-    # Q-120：废弃不算覆盖——正向 audited 计入须有非 retired 的 tcs，反向不要求废弃 TC 在场
+    # 废弃不算覆盖——正向 audited 计入须有非 retired 的 tcs，反向不要求废弃 TC 在场
     retired_ids = {t.get("id") for t in cases
                    if "retired" in t and is_str(t.get("id"))}
     audited = set()
@@ -265,7 +265,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                 pairs.append(((ac_id, axis), ew))
                 if ac_id not in done_acs:
                     _tcs, _na = e.get("tcs"), e.get("not_applicable")
-                    # Q-120：计入条件＝not_applicable 在场，或 tcs 至少一条非 retired
+                    # 计入条件＝not_applicable 在场，或 tcs 至少一条非 retired
                     #（悬空 ID 不在 retired 集合，保持既有 UNKNOWN_ID 判定不误伤）；
                     # 全废弃＝该格未填（走缺审计格 SET_MISMATCH）；空/畸形格维持既有单错误行为
                     if not (isinstance(_tcs, list) and _tcs) or _na is not None:
@@ -315,7 +315,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
         for t in cases:
             tid, dim = t.get("id"), t.get("dimension")
             if "retired" in t:
-                continue  # Q-120：废弃 TC 不要求出现在 audit（废弃不算覆盖）
+                continue  # 废弃 TC 不要求出现在 audit（废弃不算覆盖）
             if not (is_str(tid) and dim in DIMENSIONS):
                 continue
             for ac_id in diyc_lib._ac_ids(t):
@@ -336,7 +336,7 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
             tc_anchor_hits = set()
             for t in cases:
                 if t.get("type") != "集成" or "retired" in t:
-                    continue  # Q-111：接口锚门剔除 retired（废弃不算覆盖）
+                    continue  # 接口锚门剔除 retired（废弃不算覆盖）
                 for anchor in (t.get("api_refs") or []):
                     if isinstance(anchor, dict):
                         tc_anchor_hits.add((anchor.get("operationId"),
@@ -352,19 +352,19 @@ def check_test_plan(doc, rel, docs, final, report) -> dict:
                                    "%s 的接口锚（%s %s）无 type: 集成 用例点名"
                                    "（带 api_refs 的 AC 接口用例必做）"
                                    % (ac_id, anchor.get("method"), anchor.get("path")))
-        # FH 被杀双口径（底单 :683 2026-10-16 裁·R2=A TC.status 机械判据）：
+        # FH 被杀双口径（TC.status 机械判据）：
         # 全部 TC 待办＝设计期引用口径（只查引用）；出现 通过/失败＝编码期收紧
         # （仅 status: 通过 的 TC 引用计数）。
         # rule: diy-test-design/SKILL.md:Final requires（双口径分时点·杀不掉的 FH 记
         #       [FH-GAP] 缺口交用户当轮裁决；两出口收口后终态仍是被杀或已删）
         if fh_ids:
-            # Q-111：相位探测同剔 retired——废弃条目的历史 通过/失败 不得把活跃面拖进编码期口径
+            # 相位探测同剔 retired——废弃条目的历史 通过/失败 不得把活跃面拖进编码期口径
             coding_phase = any(t.get("status") in ("通过", "失败") and "retired" not in t
                                for t in cases)
             killed = set()
             for t in cases:
                 if "retired" in t:
-                    continue  # Q-111：FH 被杀门剔除 retired（废弃不算覆盖·FH 侧红走既有 SET_MISMATCH）
+                    continue  # FH 被杀门剔除 retired（废弃不算覆盖·FH 侧红走既有 SET_MISMATCH）
                 if coding_phase and t.get("status") != "通过":
                     continue  # 编码期仅 status: 通过 的引用计数
                 kt = t.get("kill_target")

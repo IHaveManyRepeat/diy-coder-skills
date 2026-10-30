@@ -53,8 +53,8 @@ DISCIPLINE_ZH = ("- **写作纪律。** 主字段 = 大白话主句；数字/枚
                  "只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。")
 
 # 主线保真面（§2.2 diy-dev 行）逐条的机械抓手：条款关键词
-MAINLINE_TERMS = ("TDD 门（AC-7.2）", "test_refs", "先红后绿", "`skip` 是「待实现」标记",
-                  "最小实现", "# trace: S-9 AC-9.1 TC-9.1.1", "真源回填", "状态写权窄",
+MAINLINE_TERMS = ("TDD 门", "test_refs", "先红后绿", "`skip` 是「待实现」标记",
+                  "最小实现", "# trace: S-9 AC-9.1 TC-9.1.1", "终态写抵达真源", "状态写权窄",
                   "环转不了绿就诚实停下", "照设计稿采用——零重写", "设计稿代码",
                   "`[假设]` 前缀")
 
@@ -195,7 +195,7 @@ class SkillContractTests(unittest.TestCase):
     def test_mainline_contract_preserved(self):
         for term in MAINLINE_TERMS:
             self.assertIn(term, self.raw, "主线保真面缺条款：%s" % term)
-        self.assertEqual(self.raw.count("真源回填"), 1, "真源回填条款重复插入")
+        self.assertEqual(self.raw.count("终态写抵达真源"), 1, "终态写条款重复插入")
 
     # trace: C·3a §5.1（双模式分支：门禁单一判据 + 零产出 + 路由）
     def test_dual_mode_branch_declared(self):

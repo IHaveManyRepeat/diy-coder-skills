@@ -36,7 +36,7 @@ def _reconcile(args):
         rel = _rel(args, _doc_path(args, name))
         err = docs.yaml_err(name)
         if err:
-            # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤：重复键≠解析失败）
+            # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（重复键≠解析失败）
             code = docs.yaml_err_code(name) or "UNPARSABLE_YAML"
             label = "重复键" if code == "DUPLICATE_KEY" else "解析失败"
             vio.append(lib.v(code, rel, f"{rel} {label}：{err}"))
@@ -64,7 +64,7 @@ def _reconcile(args):
         try:
             existing = lib.load_yaml(sprint_path)
         except DuplicateKeyError as e:
-            # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分（底单 :364 ⑤）
+            # DUPLICATE_KEY 与 UNPARSABLE_YAML 区分
             return _fail(args, lib.v("DUPLICATE_KEY", srel,
                                      f"{srel} 重复键（{e}）——修复后重跑"))
         except yaml.YAMLError as e:

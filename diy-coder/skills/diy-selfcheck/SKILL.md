@@ -14,14 +14,14 @@ outputs: selfcheck.yaml
 
 你是**自检编排者**，不是扫描者：三个机制各司其职，你负责冻结、派发、合并、处置、收口。输入：一份给 AI 执行的规格或文档（任务书/规格/任意文档皆可）与它点名要读的参考。产出：`{output_dir}/selfcheck.yaml` 集合主产物（人读视图走 viewer 渲染）。**既检验规格质量，也检验机制本身**（dogfood 双重意义——只出 A 是普通审查，出 B 才算 dogfood）。
 
-**底子**：B3 任务书 §13 固化的编排（三机制 + 四保障 + 闭环时序），融合 B4 机器台账、B6 旧值复扫、B7 片间交叉置信度与拍板贯通三问、C·7 单执行者降级形态。
+**底子**：编排骨架 = 三机制 + 四保障 + 闭环时序，另含机器台账、旧值复扫、片间交叉置信度与拍板贯通三问、单执行者降级形态。
 
 **与 diy-spec-scan 的边界（双向）**：预演扫描机制与 `spec-scan.yaml` 机器台账归 diy-spec-scan——本技能派发**预演扫描片**时**让它按 diy-spec-scan 的纪律跑**（findings 落其产物、SS-### 顺序递增永不复用、`check --final` 终门）；本技能自己是编排者——主产物 `selfcheck.yaml` 由编排者写，分片短 YAML 归各子代理。单一目标想只跑预演扫描、不要编排闭环 → 直接用 diy-spec-scan。
 
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language`。全程用 `communication_language` 对话；产物叙述文字用 `document_output_language` 写，机器锚点（ID、行号、文件名）逐字保留。本技能不解析实例目录——实例解析由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录，主产物与分片一律落其下。
-2. 定位目标。用户显式给的路径优先；对话里已出现目标（"自检 B7 任务书"）直接取用。没有 → HALT：问一次，给「贴路径 / 贴内容 / 取消」三个选项。硬门：目标存在、可读、非空 → 入扫；不可读 / 空 → 一行说明后零产出退出。
+2. 定位目标。用户显式给的路径优先；对话里已出现目标（如「自检某任务书」）直接取用。没有 → HALT：问一次，给「贴路径 / 贴内容 / 取消」三个选项。硬门：目标存在、可读、非空 → 入扫；不可读 / 空 → 一行说明后零产出退出。
 3. 读取纪律：预载预算 = 本文件、上述配置、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
 4. 读 `steps/01-freeze.md` 并照做。每步结尾点名下一个要读的文件。
 
@@ -37,7 +37,7 @@ outputs: selfcheck.yaml
 
 ## 产物
 
-主产物 `{output_dir}/selfcheck.yaml`——集合形态，记录 `SC-###` 顺序递增永不复用（铸号规则见 `steps/01-freeze.md`），记录级 `status: 草稿|已定稿`，人读视图走 viewer 渲染。中间分片落 `{output_dir}/selfcheck/part-<片名>.yaml` 子目录（viewer 只 glob 根层 `*.yaml`，子目录不污索引）。B7b 口径：**分片写短 YAML、主产物由编排者写——子代理不写长结构化**。区块对写：anchor 版本锚（md5 + commit + 执行形态 + 分片数）→ target → findings 分级 → disposals 处置记录 → rescans 复扫凭证 → b_review 机制评价 → revisions 留痕。预演片 findings 的机器面走 diy-spec-scan 的 `spec-scan.yaml`（边界不动）；引用核对与对抗片的 findings 落主产物 `findings[]`（自有字段不撑破预演歧义八类枚举）。
+主产物 `{output_dir}/selfcheck.yaml`——集合形态，记录 `SC-###` 顺序递增永不复用（铸号规则见 `steps/01-freeze.md`），记录级 `status: 草稿|已定稿`，人读视图走 viewer 渲染。中间分片落 `{output_dir}/selfcheck/part-<片名>.yaml` 子目录（viewer 只 glob 根层 `*.yaml`，子目录不污索引）。**分片写短 YAML、主产物由编排者写——子代理不写长结构化**。区块对写：anchor 版本锚（md5 + commit + 执行形态 + 分片数）→ target → findings 分级 → disposals 处置记录 → rescans 复扫凭证 → b_review 机制评价 → revisions 留痕。预演片 findings 的机器面走 diy-spec-scan 的 `spec-scan.yaml`（边界不动）；引用核对与对抗片的 findings 落主产物 `findings[]`（自有字段不撑破预演歧义八类枚举）。
 
 ## 结构
 
@@ -69,10 +69,10 @@ checks:
 - **三机制读取边界各异，不按最严纪律自我设限**：预演片禁读实现（只读规格与其点名参考）；引用核对与对抗片必读实现与 git 状态。
 - **分片 agent 各写各的 part 文件，禁多 agent 写同一产物**；子代理指令须含「不复用被扫目标写作侧的上下文结论」——隔离 self-preference 是并行形态的核心价值。
 - **引用核对片必报总数**（核了 N 条外部引用 / M 条不实）——不报总数则覆盖率不可判。
-- **2–3 片独立命中 = 置信度最高**，分级与处置排序时优先（B3–B7 实证：三片同中条全是阻断或高）。
+- **2–3 片独立命中 = 置信度最高**，分级与处置排序时优先（实证：三片同中条全是阻断或高）。
 - **D 表逐条处置，无处置记录 = 扫描未闭环**：每条 finding 落 `disposals[]`——采纳 → 改被扫目标；驳回 → 写明理由。处置只改产物与被扫目标，处置后新 findings 走增量补扫、不重开扫描。
-- **处置后按旧值字符串全库复扫两轮**（B6 强制道：「逐条处置 ≠ 逐处改透」，三批 6 复扫抓 10 漏改）——每条被改旧值 grep 全库零在场（订正说明里引用的旧值本身除外），凭证落 `rescans`。
-- **用户拍板贯通三问**（B7b）：被扫目标承载用户拍板时，逐项查「哪些技能受影响 / 哪些既有条款要改 / 读写面有没有跟着变」。
+- **处置后按旧值字符串全库复扫两轮**（强制道：「逐条处置 ≠ 逐处改透」）——每条被改旧值 grep 全库零在场（订正说明里引用的旧值本身除外），凭证落 `rescans`。
+- **用户拍板贯通三问**：被扫目标承载用户拍板时，逐项查「哪些技能受影响 / 哪些既有条款要改 / 读写面有没有跟着变」。
 - **扫描期目标冻结**：处置必须改被扫目标时，锚点重记（新 md5 + commit）写回 `anchor` 并向 `revisions` 追加、旧锚点作废、按改动落点增量补扫。
 - **git 仅做冻结/解冻锚点**，其余零 git 操作；B 部分必出——落 `b_review`，评价哪个机制好用、哪个跑偏、缺什么。
 - **终门**：本技能产物一律走 `selfcheck.py check --final` 终门，不得改用 `diyc.py check --type`。

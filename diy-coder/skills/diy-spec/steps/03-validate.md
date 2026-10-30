@@ -7,15 +7,15 @@ Progress: `输入与定位 → 蒸馏 → [两遍自校验] → 终门与交付`
 
 每次 create 或 update 之后都要扫这两遍，再交付。
 
-## Pass 1 — Coherence（对 Spec Law 1–6 与 8）
+## Pass 1 — Coherence（覆盖 8 条中的 1–6 与 8）
 
-1. 逐条过 Spec Law 1–6、8：`intent` + `success` 是否成对、`intent` 是否说了 WHAT、每条 constraint 是否真淘汰设计、non-goals 是否至少一条、success signal 是否可测、CAP ID 是否稳定唯一（退役的**留条目、标 `retired: true`**，不删）、句子是否都承载内容。
+1. 逐条过 1–6、8 各条：`intent` + `success` 是否成对、`intent` 是否说了 WHAT、每条 constraint 是否真淘汰设计、non-goals 是否至少一条、success signal 是否可测、CAP ID 是否稳定唯一（退役的**留条目、标 `retired: true`**，不删）、句子是否都承载内容。
 2. 判弱但**输入支持得住**的 → 就地修，不发明输入里没有的内容。
 3. **未经直接确认的裁量** → 落 `assumptions[]`，一条一句讲清依据。
 4. **修不了的缺口** → 落 `open_questions[]`，写成一个人能直接回答的问句（如「离线播放是否在 CAP-2 范围内？」）。
 5. 稀疏输入的路径选择（express / guided，含无头默认）写在 `verdict.coherence` **段末一句**——它是 Pass 1 的输入判定，不是独立字段。
 
-## Pass 2 — Preservation（对 Spec Law 7）
+## Pass 2 — Preservation（覆盖第 7 条）
 
 拿 step 1 的输入清单，**逐条声明**走一遍：
 
