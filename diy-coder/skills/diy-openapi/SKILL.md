@@ -21,7 +21,7 @@ outputs: openapi.yaml
    缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
-2. 读 `{output_dir}/prd.yaml` 与 `{output_dir}/architecture.yaml`。任一份缺席、或其 `project.status` 不是 `已定稿` → 向用户预警并问是否照样继续。
+2. 读 `{output_dir}/prd.yaml` 与 `{output_dir}/architecture.yaml`。任一份缺席/损坏、或其 `project.status` 不是 `已定稿` → 拒跑、零产出：说明哪一份不满足，route 对应上游（prd.yaml 不满足 → route `diy-prd`；architecture.yaml 不满足 → route `diy-architecture`），然后停下——拒绝永不成为记录。
 3. 接口面判定：由 architecture 的 components/decisions 加 FR 集合推导。项目没有接口面（纯 CLI、库、技能集）→ 说明并停止——没有接口的 openapi.yaml 是虚构。
 4. 目标文件：`{output_dir}/openapi.yaml`。判意图：**Create**（文件缺席）或 **Update**（文件在场）。含糊时直接问。
 `{output_dir}/openapi.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
