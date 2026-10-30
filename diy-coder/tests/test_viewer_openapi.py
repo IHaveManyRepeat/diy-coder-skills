@@ -8,9 +8,14 @@
   ④ 详情竖表关键行在场（方法/路径/操作 ID/摘要/参数/请求体/响应）
   ⑤ 锚 id＝operationId 挂在接口标题；同一 operation 锚唯一
   ⑥ 「操作 ID」列仅一列；总览操作 ID 链接跳详情锚
-  ⑦ 无通用渲染 paths 重复节；顶层 tags 通用表跳过
+  ⑦ 无通用渲染 paths 重复节；tags 解除跳过＝功能标签章
   ⑧ 存量无 tags 产物渲染不丢行（未分组兜底）
   ⑨ 接口级 security 仅与顶层不同时展示
+
+Q-133 章节目录（TOC）追加断言（TocTests）：产物页左侧侧栏在场、层级深度按层数表
+（3级到 h4 / 1级仅 h2）、窄屏 CSS 隐藏、openapi 六章入目录、卡内标题排除。
+TOC 断言落在本文件（而非 test_viewer_open.py）——后者专测浏览器自动打开，本文件已有
+渲染夹具 _Fixture；此为任务书允许的「报备改落他 viewer 测试件」。
 """
 import os
 import re
@@ -141,6 +146,38 @@ OPENAPI_STOCK_DOC = NL.join([
     "  securitySchemes: {}",
 ])
 
+# TOC 层级夹具：brief＝3 级产物（列到 h4）——含 section 嵌套（非卡）产 h4、
+# widgets 卡内产 h4（照裁定排除）；prd＝1 级产物（仅列 h2）。
+BRIEF_DOC = NL.join([
+    "project:",
+    "  name: b",
+    "  created: '2026-10-27'",
+    "  updated: '2026-10-27'",
+    "  revisions: []",
+    "brief:",
+    "  section_a:",
+    "    sub_a:",
+    "      deep_a: 值",
+    "  open_questions:",
+    "    - Q-1 待决",
+    "widgets:",
+    "  - id: W-1",
+    "    meta:",
+    "      x: 1",
+])
+
+PRD_DOC = NL.join([
+    "project:",
+    "  name: p",
+    "  created: '2026-10-27'",
+    "  updated: '2026-10-27'",
+    "  revisions: []",
+    "features:",
+    "  section_a:",
+    "    sub_a:",
+    "      deep_a: 值",
+])
+
 
 class _Fixture(unittest.TestCase):
     def setUp(self):
@@ -242,12 +279,13 @@ class OpenapiTwoLayerTests(_Fixture):
                       "总览操作 ID 未链到详情锚")
         self.assertNotIn("copy-id", overview, "总览行不应挂复制按钮行锚")
 
-    def test_no_generic_paths_or_tags_section(self):
-        """⑦ 通用 paths 树与顶层 tags 表跳过（无三层重复）。"""
+    def test_no_generic_paths_section(self):
+        """⑦ 通用 paths 树跳过（总览＋详情已承载，无三层重复）；
+        tags 解除跳过＝六章之「功能标签」（顶层 tags 声明表，与总览功能组列不同源）。"""
         html = self.render_openapi()
         self.assertNotIn('<h2 id="paths">', html, "通用 paths 节未跳过")
-        self.assertNotIn('<h2 id="tags">', html, "顶层 tags 通用表未跳过")
         self.assertNotIn(">路径清单</h", html)
+        self.assertIn('<h2 id="tags">', html, "功能标签章（tags）未渲染")
         # 其余顶层键保留（components/security/info 通用渲染在场）
         for keep in ('<h2 id="components">', '<h2 id="security">', '<h2 id="info">'):
             self.assertIn(keep, html, "顶层键通用渲染误删：%s" % keep)
@@ -270,6 +308,54 @@ class OpenapiTwoLayerTests(_Fixture):
                           html.find('<h4 id="createUser">')]
         self.assertNotIn(">安全要求</td>", list_block,
                          "security 与顶层一致仍展示")
+
+
+class TocTests(_Fixture):
+    """Q-133 章节目录：侧栏在场、层级深度按层数表、窄屏隐藏、六章入目录、卡内排除。"""
+
+    def _render_toc(self, name, doc):
+        self.write(name + ".yaml", doc)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        html = self.page(name)
+        self.assertIn('<div class="with-toc">', html, "TOC 侧栏容器未在场")
+        self.assertIn('<nav class="toc"', html, "TOC nav 未在场")
+        if '<nav class="toc"' not in html:
+            return html, ""
+        return html, html.split('<nav class="toc"')[1].split('</nav>')[0]
+
+    def test_three_level_product_lists_h4(self):
+        """3 级产物（brief）TOC 列到 h4（非卡嵌套节）。"""
+        _, toc = self._render_toc("brief", BRIEF_DOC)
+        self.assertIn('class="lvl2"', toc)
+        self.assertIn('class="lvl3"', toc)
+        self.assertIn('class="lvl4"', toc, "3 级产物 TOC 未列到 h4")
+        self.assertIn('href="#brief-section-a-sub-a"', toc)
+
+    def test_one_level_product_only_h2(self):
+        """1 级产物（prd）TOC 仅列 h2，不列 h3/h4。"""
+        _, toc = self._render_toc("prd", PRD_DOC)
+        self.assertIn('class="lvl2"', toc)
+        self.assertNotIn('class="lvl3"', toc, "1 级产物 TOC 不应列 h3")
+        self.assertNotIn('class="lvl4"', toc, "1 级产物 TOC 不应列 h4")
+
+    def test_card_headings_excluded(self):
+        """卡内标题（widgets 列表条目内 h4）不入 TOC（照裁定排除）。"""
+        _, toc = self._render_toc("brief", BRIEF_DOC)
+        self.assertNotIn("W-1-meta", toc, "卡内标题不应入 TOC")
+
+    def test_narrow_screen_hidden_css(self):
+        """窄屏（<1024px）隐藏 TOC 的 CSS 在场。"""
+        html, _ = self._render_toc("brief", BRIEF_DOC)
+        self.assertIn("@media(max-width:1023px)", html)
+        self.assertIn(".with-toc>.toc{display:none}", html)
+
+    def test_openapi_six_chapters_in_toc(self):
+        """openapi 目录＝六章（路径由总览/详情承载）＋总览/详情，各铸 id 入目录。"""
+        _, toc = self._render_toc("openapi", OPENAPI_DOC)
+        for cid in ("x-project", "info", "tags", "security", "components",
+                    "api-overview", "api-detail"):
+            self.assertIn('href="#%s"' % cid, toc, "openapi 目录缺章：%s" % cid)
 
 
 if __name__ == "__main__":
