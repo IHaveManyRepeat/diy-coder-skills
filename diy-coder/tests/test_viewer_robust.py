@@ -435,5 +435,61 @@ class ViewerFreshnessMetaTests(_Fixture):
             self.assertIn("来源 diy-output", html, "%s 缺来源目录" % name)
 
 
+# --- Q-130 卡内子键标题 id 全名制（祖先上下文前缀防跨卡撞号）---
+
+MULTI_CARD_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 草稿",
+    "scope:",
+    "  page_strategy:",
+    "    layers: {ui: 组件库}",
+    "decisions:",
+    "- id: D-01",
+    "  title: 载体选择",
+    "  status: 已采纳",
+    "  alternatives:",
+    "  - name: Vue",
+    "    impact:",
+    "      effort: 低",
+    "  - name: Svelte",
+    "    impact:",
+    "      effort: 中",
+    "- id: D-02",
+    "  title: 部署",
+    "  status: 待定",
+    "  alternatives:",
+    "  - name: 裸机",
+    "    impact:",
+    "      effort: 高",
+])
+
+
+class ViewerHeadingIdFullnameTests(_Fixture):
+    # trace: Q-130——同键跨卡重复（alternatives/impact）铸造全名 id；section 锚零改动
+    def test_nested_heading_ids_are_fullname_and_unique(self):
+        self.write("architecture.yaml", MULTI_CARD_DOC)
+        p = run_viewer(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        _, body = self.page_body("architecture")
+        # 卡内子键带最近 id 祖先前缀（slugify 小写化）
+        self.assertIn('id="d-01-alternatives"', body, "D-01 子键未带 id 祖先前缀")
+        self.assertIn('id="d-02-alternatives"', body, "D-02 子键未带 id 祖先前缀")
+        self.assertNotIn('id="alternatives"', body, "裸键 id 仍在（跨卡撞号）")
+        # 无 id 祖先的深层嵌套走祖先键路径链兜底
+        self.assertIn('id="scope-page-strategy-layers"', body,
+                      "无 id 祖先未按键路径链铸造")
+        # 同卡同键撞号 → 计数后缀兜底（D-01 两张兄弟卡各带 impact）
+        self.assertIn('id="d-01-impact"', body, "同卡同键首个 id 缺失")
+        self.assertIn('id="d-01-impact-2"', body, "同卡同键未追加计数后缀")
+        # 卡外 section 锚（顶层键）零改动
+        for anchor in ('id="project"', 'id="scope"', 'id="decisions"'):
+            self.assertIn(anchor, body, "section 锚被改动：%s" % anchor)
+        # 页内全部 id 唯一
+        ids = re.findall(r'id="([^"]+)"', body)
+        dup = sorted({i for i in ids if ids.count(i) > 1})
+        self.assertEqual(dup, [], "页内 id 撞号：%s" % dup)
+
+
 if __name__ == "__main__":
     unittest.main()
