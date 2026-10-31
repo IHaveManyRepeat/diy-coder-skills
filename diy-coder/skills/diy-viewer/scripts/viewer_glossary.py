@@ -2,7 +2,10 @@
 
 import datetime
 
-from viewer_labels import BADGE_CLASSES
+from viewer_labels import BADGE_CLASSES  # noqa: F401  先导入以装配 diy-tools 脚本搜索路径
+from diyc_check_docs_lib import (CASE_TYPES, DEC_STATUSES, DIMENSIONS,  # noqa: E402
+                                 FR_PRIORITIES, GAP_DECISIONS, PRIORITIES,
+                                 RADII, TECHNIQUES, TC_STATUSES)
 
 VALUE_LABELS = {
     "草稿": "草稿", "已定稿": "已定稿", "待办": "待办",
@@ -174,6 +177,12 @@ VALUE_LABELS = {
     "frontend": "前端", "scaffold": "脚手架", "language": "语言",
     "test": "测试", "lint": "静态检查", "typecheck": "类型检查", "build": "构建",
 }
+# 接线（Q-126 单点同源）：面清单中文枚举的值域由 check 引擎常量登记（identity 标签，
+# 缺档=徽章失灵）；上方显式条目（译名/异义标签）优先，setdefault 不覆盖。
+for _enum_values in (TECHNIQUES, CASE_TYPES, PRIORITIES, TC_STATUSES, GAP_DECISIONS,
+                     DIMENSIONS, RADII, FR_PRIORITIES, DEC_STATUSES):
+    for _v in _enum_values:
+        VALUE_LABELS.setdefault(_v, _v)
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
     "stories": "故事列表", "test-plan": "测试计划", "openapi": "接口契约",

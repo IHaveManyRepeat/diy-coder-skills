@@ -10,13 +10,10 @@
 四类禁入（正文规范清单，细节与逐条正则以 PATTERNS 为准）：
   ①源路径锚  ②拍板引语  ③任务批名词  ④迁移决策记录
 
-词表口径＝复用安装面 guard（tests/test_source_anchor_guard.py）的十类 + EXEMPT 豁免键
-（2026-10-30 用户裁：直接复用其词表，不自带）。guard 测试件在 tests/ 面，生产脚本 import
-测试件属反向依赖、不健康；词表下沉公共处须动 guard 测试件（不在本任务 scope）——故本脚本
-内嵌复制其 PATTERNS/EXEMPT。已知单源风险：两份词表各改各的会漂移，后续统一候选＝词表下沉
-可共享位置、guard 与本脚本同引（晨报告裁）。本脚本自身落 skills/ 扫描面内，guard 逐字扫
-skills/** 的 .py/.md/.yaml/.csv，字面禁入词会被自扫命中——故禁入 token 一律以 chr() 码点
-在运行时拼装、源文件不含字面（构造避开，非 EXEMPT）。
+词表口径＝单源（2026-10-31 用户裁·词表下沉）：PATTERNS/EXEMPT 下沉
+diyc_body_rules.py（diy-tools 共享底座·diyc* 前缀跨技能 import 豁免在案），
+安装面 guard 与本脚本同引，改词只改彼处。公共表自身落 skills/ 扫描面内，
+禁入 token 一律以 chr() 码点运行时拼装、源文件不含字面（构造避开，非 EXEMPT）。
 
 违规码：复用 MISSING_FILE（目标缺席）；新增 BODY_RULE（正文命中四类禁入词一条记一条，
 豁免键除外）。回执共同键 {ok, command, project_root, output_dir, violations, warnings,
@@ -27,54 +24,15 @@ import argparse
 import io
 import json
 import os
-import re
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 
 from diyc_lib import v  # noqa: E402
+from diyc_body_rules import EXEMPT, PATTERNS  # noqa: E402  词表单源（diy-tools 共享底座）
 
 EXTS = (".py", ".md", ".yaml", ".csv")
-
-
-def _s(*codepoints):
-    """码点串 → 字符串（源文件零字面禁入词，运行时还原）。"""
-    return "".join(chr(c) for c in codepoints)
-
-
-# trace: diy-bmb-builder 正文禁入词表（复制自 test_source_anchor_guard.PATTERNS·十类·码点拼装防自扫）
-_YUAN, _CE = 0x6E90, 0x4FA7                       # 源 侧
-_BAO, _ZHEN, _ZHAO, _BAN = 0x4FDD, 0x771F, 0x7167, 0x642C  # 保 真 照 搬
-_SHOU, _BIAN, _ZI = 0x6536, 0x7F16, 0x81EA        # 收 编 自
-_CAI, _DING = 0x88C1, 0x5B9A                      # 裁 定
-_DOT = 0x2E                                        # .
-
-PATTERNS = [
-    (_s(_YUAN, _CE), re.compile(_s(_YUAN, _CE))),
-    ("trace 批次头", re.compile(r"# trace: B\d")),
-    ("batch3-" + "contract", re.compile("batch3-" + "contract")),
-    ("拍板引语式" + _s(_CAI, _DING), re.compile(_s(_CAI, _DING) + " ?[0-9]")),
-    ("批次号 C\xb7N", re.compile("C\xb7[0-9]")),
-    ("census" + "-", re.compile("census" + "-", re.IGNORECASE)),
-    (_s(_BAO, _ZHEN, _ZHAO, _BAN), re.compile(_s(_BAO, _ZHEN, _ZHAO, _BAN))),
-    (_s(_SHOU, _BIAN, _ZI) + "/" + _s(_CAI, _ZI),
-     re.compile(_s(_SHOU, _BIAN, _ZI) + "|" + _s(_CAI, _ZI))),
-    # 源+反引号路径锚（census 类①）——排除产品复合词（单一源/护栏源/来源 等）
-    (_s(_YUAN) + "+反引号锚", re.compile(
-        r"(?<!单一)(?<!两)(?<!护栏)(?<!情报)(?<!测试)(?<!来)(?<!真)(?<!数据)"
-        r"(?<!散)(?<!唯一)" + _s(_YUAN) + " `")),
-    ("\\" + _s(_DOT) + "analysis/ 目录引用",
-     re.compile("\\" + _s(_DOT) + "analysis/")),
-]
-
-# 豁免清单：(skills/ 相对路径, 命中原文)——逐条有裁定依据（复制自 guard EXEMPT）
-EXEMPT = {
-    # 乙-4 用户裁 2026-10-29：bmb-builder 产品行为＝分析报告落点约定
-    ("diy-bmb-builder/SKILL.md", _s(_DOT) + "analysis/"),
-    ("diy-bmb-builder/steps/03-analyze.md", _s(_DOT) + "analysis/"),
-    ("diy-bmb-builder/steps/05-finish.md", _s(_DOT) + "analysis/"),
-}
 
 
 # trace: diy-bmb-builder 正文扫描（walk 目标技能树；rel 口径对齐 guard＝技能名/相对路径）

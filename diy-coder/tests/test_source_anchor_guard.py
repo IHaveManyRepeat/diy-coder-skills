@@ -13,37 +13,17 @@
 """
 import io
 import os
-import re
+import sys
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = os.path.join(ROOT, "skills")
 EXTS = (".py", ".md", ".yaml", ".csv")
 
-# 扩展标记词（批 6 已清零族）；顺序无关，逐 pattern 独立断言
-PATTERNS = [
-    ("源侧", re.compile(r"源侧")),
-    ("trace 批次头", re.compile(r"# trace: B\d")),
-    ("batch3-contract", re.compile(r"batch3-contract")),
-    ("拍板引语式裁定", re.compile(r"裁定 ?[0-9]")),
-    ("批次号 C·N", re.compile(r"C·[0-9]")),
-    ("census 编号", re.compile(r"census-", re.IGNORECASE)),
-    ("保真照搬", re.compile(r"保真照搬")),
-    ("收编自/裁自", re.compile(r"收编自|裁自")),
-    # 源+反引号路径锚（census 类①）——排除产品复合词（单一源/护栏源/来源 等）
-    ("源+反引号锚", re.compile(
-        r"(?<!单一)(?<!两)(?<!护栏)(?<!情报)(?<!测试)(?<!来)(?<!真)(?<!数据)"
-        r"(?<!散)(?<!唯一)源 `")),
-    (".analysis/ 目录引用", re.compile(r"\.analysis/")),
-]
-
-# 豁免清单：(skills/ 相对路径, 命中原文) —— 逐条有裁定依据
-EXEMPT = {
-    # 乙-4 用户裁 2026-10-29：bmb-builder 产品行为＝分析报告落点约定
-    ("diy-bmb-builder/SKILL.md", ".analysis/"),
-    ("diy-bmb-builder/steps/03-analyze.md", ".analysis/"),
-    ("diy-bmb-builder/steps/05-finish.md", ".analysis/"),
-}
+# 词表单源（2026-10-31 裁）：PATTERNS/EXEMPT 下沉 diyc_body_rules（diy-tools 共享
+# 底座），与 bmb-builder check_body_rules.py 同引；本测试只留扫描逻辑。
+sys.path.insert(0, os.path.join(SKILLS, "diy-tools", "scripts"))
+from diyc_body_rules import EXEMPT, PATTERNS  # noqa: E402
 
 
 def _iter_files():
