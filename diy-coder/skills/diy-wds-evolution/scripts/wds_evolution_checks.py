@@ -339,9 +339,10 @@ def _find_assumption(node, where=""):
 def validate_analysis_refs(data, output_dir, violations):
     """轮级 `analysis_refs` 依赖声明（A/S 一档硬报错）。
 
-    缺席/空 → 不检不阻；非空 → 形态 `AN-<nn>`（不良记 `ENUM_INVALID`，照 `EV-<nn>`
-    形态先例）＋ `analysis.yaml` 可解析（缺席 `MISSING_FILE`、损坏 `UNPARSABLE_YAML`）
-    ＋锚在 `components[].id` 在场（悬空 `UNKNOWN_ID`）。边界＝只核可解析性与锚在场：
+    缺席/空 → 不检不阻；非空须为列表 → 逐项形态 `AN-<nn>`（非列表/不良记
+    `ENUM_INVALID`，照 `EV-<nn>` 形态先例）＋ `analysis.yaml` 可解析（缺席
+    `MISSING_FILE`、损坏 `UNPARSABLE_YAML`）＋锚在 `components[].id` 在场
+    （悬空 `UNKNOWN_ID`）。边界＝只核可解析性与锚在场：
     不核 `project.status`、不核问题/范围语义相关性（归两 step 步骤纪律）。
     """
     declared, well_formed = False, []
@@ -353,7 +354,11 @@ def validate_analysis_refs(data, output_dir, violations):
             continue                      # 缺席/空 → 不检不阻
         declared = True
         where = "rounds[{}].analysis_refs".format(idx)
-        for ref in (refs if isinstance(refs, list) else [refs]):
+        if not isinstance(refs, list):
+            violations.append(v("ENUM_INVALID", where,
+                                "应为列表形态，实为 {}".format(refs)))
+            continue                      # 非列表一律 ENUM_INVALID，不再自动包单元素列表
+        for ref in refs:
             if isinstance(ref, str) and AN_REF_RE.match(ref):
                 well_formed.append((where, ref))
             else:

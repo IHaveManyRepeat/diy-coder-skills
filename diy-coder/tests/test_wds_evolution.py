@@ -579,6 +579,14 @@ class AnalysisRefsTests(Base):
         self.assertEqual(rc, 1)
         self.assertIn("ENUM_INVALID", self.codes(rec))
 
+    def test_bare_string_refs_is_enum_invalid(self):
+        """裸串（非列表形态）→ ENUM_INVALID、exit 1（收紧：不再自动包单元素列表）。"""
+        self.set_refs("AN-01")
+        rc, rec, _, _ = self.check()
+        self.assertEqual(rc, 1)
+        self.assertIn("ENUM_INVALID", self.codes(rec))
+        self.assertTrue(any("列表形态" in x["msg"] for x in rec["violations"]))
+
 
 class OutputDirFallbackTests(Base):
     """⑩ 回归 V3-01：省略 `--output-dir` 时缺省须回落 `{project-root}/diy-output`。
