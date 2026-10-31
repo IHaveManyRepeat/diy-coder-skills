@@ -32,6 +32,7 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.abspath(os.path.join(HERE, "..", "skills", "diy-bmb-builder"))
 ENGINE = os.path.join(SKILL_DIR, "scripts", "bmb_builder.py")
+BODY_CHECK = os.path.join(SKILL_DIR, "scripts", "check_body_rules.py")
 SKILL_MD = os.path.join(SKILL_DIR, "SKILL.md")
 STEPS_DIR = os.path.join(SKILL_DIR, "steps")
 NL = "\n"
@@ -489,6 +490,75 @@ class RenderTests(EngineCase):
         proc = run_engine(["render", "--dir", run_dir, "--json"] + self.common())
         self.assertEqual(proc.returncode, 1)
         self.assertFalse(os.path.exists(os.path.join(run_dir, "skill-analysis-report.html")))
+
+
+class BodyRulesGateTests(unittest.TestCase):
+    """Q-132：改技能正文规范检查脚本（四类禁入零在场门）。
+
+    - 满载四类违规词的样本 → 红（exit 1 + BODY_RULE）；
+    - 干净样本 → 绿（exit 0 + ok）；
+    - 目标目录缺席 → MISSING_FILE；
+    - 引用句：02-build.md 与 SKILL.md 载 Edit 正文门命令 + 四类禁入 + 三档引用。
+    """
+
+    def _target(self, name, body):
+        tmp = tempfile.TemporaryDirectory(prefix="body-rules-")
+        self.addCleanup(tmp.cleanup)
+        tgt = os.path.join(tmp.name, name)
+        os.makedirs(tgt)
+        write(os.path.join(tgt, "SKILL.md"), body)
+        return tgt
+
+    def test_dirty_sample_is_red(self):
+        # 四类各埋一处（码点拼装避免本测试件正文自带字面禁入词）
+        dirty = (
+            "see the " + chr(0x6E90) + " " + "`docs/x.md` anchor\n"
+            "# trace: B3 head\n"
+            "refer to batch3-" + "contract clause\n"
+            "per " + chr(0x88C1) + chr(0x5B9A) + " 3 ruling\n"
+            "id C\xb77 batch\n"
+            "census" + "-x record\n"
+            "whole " + chr(0x4FDD) + chr(0x771F) + chr(0x7167) + chr(0x642C) + " block\n"
+            "absorbed " + chr(0x6536) + chr(0x7F16) + chr(0x81EA) + " / " + chr(0x88C1) + chr(0x81EA) + "\n"
+        )
+        tgt = self._target("dirty-skill", dirty)
+        proc = subprocess.run([sys.executable, BODY_CHECK, "--target", tgt, "--json"],
+                              capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertFalse(data["ok"])
+        self.assertGreaterEqual(data["counts"]["hits"], 8, "四类违规词应逐条命中")
+        self.assertTrue(all(item["code"] == "BODY_RULE" for item in data["violations"]))
+
+    def test_clean_sample_is_green(self):
+        tgt = self._target("clean-skill", "plain prose, no banned tokens here\n")
+        proc = subprocess.run([sys.executable, BODY_CHECK, "--target", tgt, "--json"],
+                              capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["counts"]["hits"], 0)
+
+    def test_missing_target_is_missing_file(self):
+        tmp = tempfile.TemporaryDirectory(prefix="body-rules-")
+        self.addCleanup(tmp.cleanup)
+        proc = subprocess.run([sys.executable, BODY_CHECK,
+                               "--target", os.path.join(tmp.name, "ghost"), "--json"],
+                              capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(proc.returncode, 1)
+        data = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertEqual(data["violations"][0]["code"], "MISSING_FILE")
+
+    def test_edit_channel_reference_sentences_present(self):
+        step = read(os.path.join(STEPS_DIR, "02-build.md"))
+        for anchor in ("check_body_rules.py", "上游产物依赖三档",
+                       chr(0x6E90) + "路径锚", "拍板引语", "任务批名词",
+                       chr(0x8FC1) + chr(0x79FB) + "决策记录", "任务书"):
+            self.assertIn(anchor, step, "02-build.md 缺 Edit 正文门/判档锚串 %r" % anchor)
+        skill = read(SKILL_MD)
+        for anchor in ("check_body_rules.py", chr(0x6E90) + "路径锚",
+                       "任务批名词", "上游产物依赖三档"):
+            self.assertIn(anchor, skill, "SKILL.md 缺 Edit 正文门锚串 %r" % anchor)
 
 
 if __name__ == "__main__":

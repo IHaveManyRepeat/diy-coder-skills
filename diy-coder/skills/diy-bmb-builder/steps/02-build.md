@@ -59,6 +59,20 @@ python "{project-root}/.claude/skills/diy-bmb-builder/scripts/bmb_builder.py" sc
 
 这是构建者的看家本事，全程开着，不要当成一个检查点。判定三问：**同样输入是否永远同样输出？能不能写一个通过/失败的单元测试？是否需要理解语义与语气？** 前两问为是 → 是脚本活（提取、计数、校验、比对、格式转换）；第三问为是 → 留在提示词里。命中信号动词就找脚本：validate / count / extract / convert / compare / scan for / against schema / list all / detect / diff。**预扫 JSON 模式**：凡是要模型读原始文件才能拿到的少量事实（行数、token、frontmatter、文件清单），改由一个脚本读、吐紧凑 JSON，提示词只消费数字。非标准库依赖先列出并征得用户同意再依赖。
 
+## 上游产物依赖先判档
+
+造/改的技能若要读上游产物（别的阶段或技能产出的文件），动手前判档：按 `{project-root}/diy-coder/docs/code-quality.md`「上游产物依赖三档」——一档硬依赖缺席拒跑、二档可选源缺席不阻塞、环境缺失降级 warning。判档结论写进产物技能自己的规则句；三档总则本体在 `code-quality.md`（dev 面单源），此处只挂引用、不复述。
+
+## 改技能正文规范（Edit 通道收尾门）
+
+改既有 diy 技能一律走本技能 Edit 意图。正文落盘后跑检查脚本，exit 0 才算改完（宿主无关的独立命令，不绑 hook）：
+
+```
+python "{project-root}/.claude/skills/diy-bmb-builder/scripts/check_body_rules.py" --target <技能目录> --json
+```
+
+四类禁入零在场：源路径锚 / 拍板引语 / 任务批名词 / 迁移决策记录。逐条词表与豁免键以脚本 `PATTERNS`/`EXEMPT` 为准（复用安装面 guard 口径），此处不复述清单细节。大改（成批改多文件、或牵动结构）配套任务书：先立任务书呈裁、按任务书流程走，不直接在技能正文上逐处改。
+
 ## 播报与下一步
 
 给用户看这版技能（`SKILL.md` 与各步骤文件的要点）+ 你在 memlog 里记的关键决定。确认形状对了 → 读全并照做 `04-gate.md`。
