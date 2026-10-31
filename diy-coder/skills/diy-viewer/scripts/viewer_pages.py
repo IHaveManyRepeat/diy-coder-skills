@@ -2,6 +2,7 @@
 
 import datetime
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 
 import viewer_refs as _refs
@@ -16,25 +17,86 @@ from viewer_render import (COPY_JS, CSS, PANE_JS, TOOLTIP_JS, badge, build_templ
                            slugify)
 
 
-def page(title: str, body: str, nav: str = "", source: str = "") -> str:
+# 章节目录（TOC）：左侧侧栏、窄屏隐藏；深度按层数表（3级=h2/h3/h4、2级=h2/h3、其余=仅 h2）。
+# 取数＝section 标题（带 id 且不在 .card 卡内——卡内标题属条目细节，照裁定排除）。
+_TOC_DEPTH = {"brief": 4, "prfaq": 4, "analysis": 4, "wds-brief": 4, "wds-trigger": 4,
+              "design": 3, "project-context": 3, "learning-progress": 3,
+              "wds-scenarios": 3, "wds-design-system": 3, "wds-evolution": 3}
+
+
+class _TocCollector(HTMLParser):
+    """收集带 id、不在 .card 卡内的 h2~h4 标题，按 max_level 截断。"""
+    _HLVLS = {"h2": 2, "h3": 3, "h4": 4}
+
+    def __init__(self, max_level: int):
+        super().__init__()
+        self.max_level, self.entries, self._card = max_level, [], 0  # entries=[(lvl,id,text)]
+        self._hlvl = self._hid = None
+        self._buf = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "div":
+            self._card += "card" in dict(attrs).get("class", "").split()
+        elif tag in self._HLVLS and self._card == 0:
+            lvl, aid = self._HLVLS[tag], dict(attrs).get("id")
+            if aid and 2 <= lvl <= self.max_level:
+                self._hlvl, self._hid, self._buf = lvl, aid, []
+
+    def handle_endtag(self, tag):
+        if tag == "div":
+            self._card = max(0, self._card - 1)
+        elif self._hlvl is not None and tag == "h%d" % self._hlvl:
+            self.entries.append((self._hlvl, self._hid, "".join(self._buf).strip()))
+            self._hlvl = None
+
+    def handle_data(self, data):
+        if self._hlvl is not None:
+            self._buf.append(data)
+
+
+def build_toc(body: str, name: str) -> str:
+    """按层数表深度收集 section 标题（排除卡内）→ nav 内容；0 条 → ""（不渲染容器）。"""
+    p = _TocCollector(_TOC_DEPTH.get(name, 2))
+    p.feed(body)
+    if not p.entries:
+        return ""
+    return '<span class="toc-title">章节目录</span><ul>' + "".join(
+        f'<li><a class="lvl{l}" href="#{esc(i)}">{esc(t)}</a></li>' for l, i, t in p.entries) + "</ul>"
+
+
+TOC_CSS = """
+.with-toc{display:flex;max-width:1340px;margin:0 auto;align-items:flex-start}
+.with-toc>.toc{position:sticky;top:0;flex:0 0 232px;width:232px;align-self:flex-start;max-height:100vh;overflow-y:auto;border-right:1px solid var(--line);background:#fff;padding:20px 14px;box-sizing:border-box}
+.with-toc>main{flex:1 1 auto;min-width:0;margin:0;max-width:1080px}
+.toc .toc-title{font-weight:700;color:var(--mut);font-size:.75em;letter-spacing:.08em;margin:0 0 8px}
+.toc ul{list-style:none;margin:0;padding:0}.toc li{margin:1px 0}
+.toc a{display:block;color:var(--ink);text-decoration:none;padding:3px 8px;border-radius:5px;font-size:.9em;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toc a:hover{background:#eef2f7;color:var(--accent)}.toc a.lvl2{font-weight:600}.toc a.lvl3{padding-left:20px}.toc a.lvl4{padding-left:32px;color:var(--mut)}
+@media(max-width:1023px){.with-toc>.toc{display:none}}
+"""
+
+
+def page(title: str, body: str, nav: str = "", source: str = "", toc: str = "") -> str:
     # trace: 新鲜度 meta：页脚落生成时间与来源目录（含实例名），.view 落后于 YAML 一眼可见
     stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     src = f" · 来源 {esc(source)}" if source else ""
     foot = f'<footer class="foot">生成于 {stamp}{src}</footer>'
+    if toc:
+        content = (f'<div class="with-toc"><nav class="toc" aria-label="章节目录">{toc}</nav>'
+                   f'<main>\n{body}\n{foot}\n</main></div>')
+    else:
+        content = f"<main>\n{body}\n{foot}\n</main>"
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
-<style>{CSS}</style>
+<style>{CSS}{TOC_CSS}</style>
 </head>
 <body>
 <header class="top"><div class="wrap"><h1>{esc(title)}</h1><nav>{nav}</nav></div></header>
-<main>
-{body}
-{foot}
-</main>
+{content}
 <aside id="refpane" aria-label="引用详情">
 <div class="rp-head"><h3 id="rp-title"></h3>
 <a class="src" id="rp-src" href="#">在原文档中打开 ↗</a>
@@ -228,10 +290,11 @@ def render_doc_page(name: str, data, others: list, source: str = "") -> str:
         body += render_augment_panel(data, others)  # trace: 2026-09-13 裁定 补测待裁断面板
     if name == "openapi":
         body += render_openapi_section(data)
-    # openapi 页跳过通用 paths 树与顶层 tags 表（总览＋详情已承载，
-    # 否则三层重复）；其余顶层键（x-project/openapi/info/security/components 及未识别键）
-    # 保留通用渲染，即兜底区
-    _skip = {"paths", "tags"} if name == "openapi" else set()
+    # openapi 页跳过通用 paths 树（总览＋详情已承载，否则三层重复）与 openapi 版本
+    # 标量（游离标题，非六章之一）；tags 解除跳过＝六章之「功能标签」（顶层 tags 声明
+    # 表，与总览的功能组列不同源、非重复）；其余顶层键（x-project/info/security/
+    # components 及未识别键）保留通用渲染，即六章＋兜底区
+    _skip = {"paths", "openapi"} if name == "openapi" else set()
     # 三源 distillate 四列表与 prd out_of_scope 走专用渲染
     if name in _DISTILLATE_DOCS and isinstance(data, dict):
         dist = data.get("distillate")
@@ -258,7 +321,9 @@ def render_doc_page(name: str, data, others: list, source: str = "") -> str:
     links = ['<a href="index.html">⌂ 首页</a>'] + [
         f'<a href="{esc(n)}.html">{gloss(esc(DOC_LABELS.get(n, n)))}</a>' for n, _ in others if n != name
     ]
-    return page(DOC_LABELS.get(name, name), body, " · ".join(links), source)
+    # 章节目录：按层数表深度收集 section 标题（排除卡内），0 条不渲染容器
+    toc_html = build_toc(body, name)
+    return page(DOC_LABELS.get(name, name), body, " · ".join(links), source, toc_html)
 
 
 def build_index(docs: list, errors=None, source: str = "", extra_cards=()) -> str:
