@@ -2,11 +2,8 @@
 """diy-help 状态机核心：读登记表 → 扫产物链 → 判定位置/推荐（单目录与聚合共用）。
 
 产物链（D-2 单一源；**链序与提示文案读 registry.yaml，节点的产物与必做性读该技能
-SKILL.md 的 frontmatter 六字段**——两处不重复任何一条事实）：
-  mainline：prd → architecture → openapi(可选) → design(可选) → epics+stories
-            → test-plan → sprint → <exec>
-  wds     ：wds-brief → wds-trigger → wds-scenarios → wds-system(可选)
-            → wds-assets(可选) → wds-evolution(可选) → <exec>
+SKILL.md 的 frontmatter 六字段**——两处不重复任何一条事实；链序本体以 registry.yaml
+`lines` 段为准，此处不复制。独立入口（非链）读顶层 `standalone` 段）：
 
 规则：
 - 第一个非「已定稿」节点即当前位置：文件缺失=未开始（推荐该节点 skill）；
@@ -320,7 +317,9 @@ def evaluate(output_dir, lines_meta, chains, branches, line_arg):
     return {
         "position": position,
         "line": line_name,
-        "branches": branches if len(started) > 1 else None,
+        # 两线并存只给线两项（standalone 项不用 --line 选，仅零起点候选在场）
+        "branches": ([b for b in branches if not b.get("standalone")]
+                     if len(started) > 1 else None),
         "output_dir": output_dir,
         "completed_steps": completed,
         "next_skill": next_skill,

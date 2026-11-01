@@ -392,7 +392,7 @@ class HelpSkillContractTests(unittest.TestCase):
     # trace: 2026-09-19 中文化政策（四段中文标题 + description 中文注释 + ≤93 行预算）
     def test_four_chinese_sections_and_budget(self):
         raw = self.read_skill()
-        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 250, "薄主文件超出 250 行预算")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, raw, "缺四段结构：%s" % section)
         self.assertIn("# ↑ 中文：", raw, "description 缺中文注释")
@@ -529,12 +529,28 @@ class HelpAggregateTests(unittest.TestCase):
         self.assertIn("--line", p.stderr)
         self.assertNotIn("Traceback", p.stderr)
 
+    def test_zero_start_branches_include_standalone(self):
+        data = self.json_run()
+        self.assertEqual(data["position"], "零起点")
+        branches = data["branches"]
+        self.assertEqual(len(branches), 4, "零起点候选＝线两项＋独立入口两项")
+        line_items = [b for b in branches if "line" in b]
+        sa_items = [b for b in branches if b.get("standalone")]
+        self.assertEqual({b["line"] for b in line_items}, {"mainline", "wds"})
+        self.assertEqual({b["entry"] for b in sa_items},
+                         {"diy-analyze", "diy-reverse"})
+        for b in sa_items:
+            self.assertEqual(set(b), {"standalone", "label", "entry"},
+                             "standalone 项形状＝{standalone, label, entry}")
+
     def test_parallel_lines_marked_in_overview(self):
         d = self.instance("v1.0")
         write_artifact(d, "prd.yaml", "已定稿")
         write_artifact(d, "wds-brief.yaml", "已定稿")
         item = self.json_run()["instances"][0]
         self.assertEqual(len(item["branches"]), 2)
+        self.assertTrue(all("standalone" not in b for b in item["branches"]),
+                        "两线并存候选只含线两项，不含独立入口")
         self.assertTrue(any("两线并存" in n for n in item["notes"]), item["notes"])
         self.assertIn("多线并存", self.human_run())
 

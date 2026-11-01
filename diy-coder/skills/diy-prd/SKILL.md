@@ -32,11 +32,11 @@ outputs: prd.yaml
 
 顺序：**口述背景 → 利害档位 → 工作模式**。2–3 轮进入工作，不是十轮。
 
-- **口述背景**。永远的第一步：请用户给口头背景，以及任何既有输入——粘贴或给路径均可，长文无妨。
-- **利害档位**。一问定档：`个人兴趣` / `内部` / `投资人` / `公开`——决定深度（`个人兴趣` ≈ 一页精华，`公开` = 全量严谨）。该值同时写进产物的 `project.strictness`（同一枚举）。
-- **工作模式**。二选一：
-  - **快速路径**——把剩余空档合并成 1–2 个问题，然后直接起草完整 prd.yaml，推断处带 `[假设]` 前缀；用户审阅后迭代。
-  - **陪跑路径**——逐节一起走，一次一节，用户作答、你成文。
+1. **口述背景**。永远的第一步：请用户给口头背景，以及任何既有输入——粘贴或给路径均可，长文无妨。
+2. **利害档位**。一问定档：`个人兴趣` / `内部` / `投资人` / `公开`——决定深度（`个人兴趣` ≈ 一页精华，`公开` = 全量严谨）。该值同时写进产物的 `project.strictness`（同一枚举）。
+3. **工作模式**。二选一：
+   - **快速路径**——把剩余空档合并成 1–2 个问题，然后直接起草完整 prd.yaml，推断处带 `[假设]` 前缀；用户审阅后迭代。
+   - **陪跑路径**——逐节一起走，一次一节，用户作答、你成文。
 
 ### 输入清单与摄取规则（单一定义在本技能）
 
@@ -67,11 +67,13 @@ outputs: prd.yaml
 
 ### 落盘与收尾
 
-1. Create 模式：写 `{output_dir}/prd.yaml`（`status: 草稿`）并告知路径。Update 模式：先 `cp {output_dir}/prd.yaml {output_dir}/prd.yaml.prev`，载入既有文件与用户的变更信号对账——刷新 `updated`、所有 ID 保持稳定——再写；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --previous {output_dir}/prd.yaml.prev --json`（exit 0 = 无记录丢失）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev` 文件。
-2. 立即渲染草稿供审阅。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
-3. 摊开每个 `[假设]` 与未决问题；迭代到用户确认。定稿前逐条批复 Q（`open_questions`，含从上游 prfaq 等继承的条目）是必经步骤，不可跳过。
-4. 终门（机械）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `status` 回退 `草稿`**，修完重走本步。Create 模式下首跑被回退属预期行为，不是异常或错误——按本步修完违规重跑即可。
-5. 收尾一行摘要：路径、状态、JSON 回执里的计数。
+1. Create 模式：写 `{output_dir}/prd.yaml`（`status: 草稿`）并告知路径。
+2. Update 模式：先 `cp {output_dir}/prd.yaml {output_dir}/prd.yaml.prev`，载入既有文件与用户的变更信号对账——刷新 `updated`、所有 ID 保持稳定——再写；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --previous {output_dir}/prd.yaml.prev --json`（exit 0 = 无记录丢失）。
+3. **非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev` 文件。
+4. 立即渲染草稿供审阅。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+5. 摊开每个 `[假设]` 与未决问题；迭代到用户确认。定稿前逐条批复 Q（`open_questions`，含从上游 prfaq 等继承的条目）是必经步骤，不可跳过。
+6. 终门（机械）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type prd --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `status` 回退 `草稿`**，修完重走本步。Create 模式下首跑被回退属预期行为，不是异常或错误——按本步修完违规重跑即可。
+7. 收尾一行摘要：路径、状态、JSON 回执里的计数。
 
 ## 结构
 
@@ -121,10 +123,10 @@ revisions: []                 # {date, change, reason} —— 改既有条目时
 
 ## 规则
 
-- **ID 链是硬契约。** `F-*` / `FR-*` / `NFR-*` / `OS-*` 一经铸造，永不重编号——下游产物（architecture、epics/stories、test-plan）按 ID 引用它们，绝不复制内容。Update 对账确曾改写既有条目时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 ID、不复制内容）——纯新增不算改既有。
-- 写能力，不写实现。技术选型归后续 architecture 步。
-- 篇幅随利害定。砍掉产品确实不需要的章节；砍时要给得出用户会接受的理由。
-- **每个未决决定都留在文件里。** 任何等用户确认的推断——包括 `strictness` 这类元数据级——都要带 `[假设]` 前缀写进 prd.yaml（前缀只写在**值**上，不新增独立键：`strictness: "[假设] 公开"`）。绝不只在对话里列确认项：用户在 HTML 里审阅，未决集合必须等于页面上黄底高亮的集合。用户批准后才可去掉前缀。
+1. **ID 链是硬契约。** `F-*` / `FR-*` / `NFR-*` / `OS-*` 一经铸造，永不重编号——下游产物（architecture、epics/stories、test-plan）按 ID 引用它们，绝不复制内容。Update 对账确曾改写既有条目时，往顶层 `revisions` 追加一条 `{date, change, reason}`（`change` 引用 ID、不复制内容）——纯新增不算改既有。
+2. 写能力，不写实现。技术选型归后续 architecture 步。
+3. 篇幅随利害定。砍掉产品确实不需要的章节；砍时要给得出用户会接受的理由。
+4. **每个未决决定都留在文件里。** 任何等用户确认的推断——包括 `strictness` 这类元数据级——都要带 `[假设]` 前缀写进 prd.yaml（前缀只写在**值**上，不新增独立键：`strictness: "[假设] 公开"`）。绝不只在对话里列确认项：用户在 HTML 里审阅，未决集合必须等于页面上黄底高亮的集合。用户批准后才可去掉前缀。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

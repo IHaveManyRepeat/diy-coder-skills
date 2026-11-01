@@ -122,6 +122,10 @@ def main():  # trace: S-13 AC-13.1 TC-13.1.1 组装位置/推荐/阻塞（零起
     chains = {name: chain_nodes(reg, name) for name in lines_meta}
     branches = [{"line": n, "label": lines_meta[n]["label"], "entry": lines_meta[n]["entry"]}
                 for n in lines_meta]
+    # 独立入口（standalone 段）：零起点候选追加两项；两线并存面由 evaluate 过滤
+    for item in reg.get("standalone") or []:
+        branches.append({"standalone": True, "label": item["label"],
+                         "entry": item["skill"]})
 
     output_dir = resolve_output_dir(args.project_root, args.instance)
     # 聚合：显式 --all-instances，或平铺根无产物且存在含链产物的合规子目录

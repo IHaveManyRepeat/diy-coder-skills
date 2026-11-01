@@ -48,15 +48,14 @@ outputs: —
 ```yaml
 # 产物链 = 登记表（diy-help/registry.yaml）的链序 + 各技能 frontmatter 的 outputs；
 #          status 一律读节点声明的路径
-主线 mainline：prd.yaml → architecture.yaml → openapi.yaml(可选) → design.yaml(可选)
-              → epics.yaml + stories.yaml（两文件齐全才算完成）
-              → test-plan.yaml → sprint.yaml → 任务执行
-WDS 线 wds  ：wds-brief.yaml → wds-trigger.yaml → wds-scenarios.yaml →（下游待登记）
+主线 mainline：链序见 registry.yaml `lines.mainline`
+WDS 线 wds  ：链序见 registry.yaml `lines.wds`
 # 回执键
 position: 零起点 | 第 N/M 步：<skill> | 阻塞于 <file> | 执行阶段 | 工作流完成
           # 非主线时带线名前缀（如「WDS 线（官网 / 营销站） 第 2/3 步：…」）
 line: 当前判定的线（mainline / wds / null=零起点）
-branches: [{line, label, entry}] | null   # 零起点或两线并存时给候选，其余为 null
+branches: [{line, label, entry} | {standalone: true, label, entry}] | null
+          # 零起点给候选（线两项＋独立入口两项）；两线并存只给线两项；其余为 null
 output_dir: 本次运行唯一的读写根
 completed_steps: [技能名]
 next_skill: 技能名 | null
@@ -78,5 +77,4 @@ instances: [{instance, position, line, branches, output_dir, completed_steps, ne
 2. **脚本是唯一权威。** 绝不发明回执之外的位置或技能。结果与用户认知相左时，带 `--json` 重跑一次并摊开原始数据——这是「只跑一次」的唯一例外；YAML 文件是真源，不是本技能。
 3. **回复纪律。** 用 `project.communication_language` 回复；10 行上限只约束我自己的附加说明，脚本输出（尤其 `blocked` 段）逐字转述不受行数限制——宁可超行数，也不得压缩或改写阻塞原因。
 4. **依赖。** 脚本要求宿主 Python 装有 PyYAML。报 `ModuleNotFoundError`（`No module named 'yaml'`）时照实报告并建议 `pip install pyyaml`——绝不静默降级。
-5. **分叉与并存。** `branches` 在场即用户要选线：零起点按**用途**分叉（产品/应用 → 主线入口；官网/营销站 → WDS 入口；分析/迁移现有系统 → 逆向入口）；两条线产物并存时**问用户选定当前工作线**，再用 `--line <线名>` 重跑——绝不自行合并两条线。`branches` 不在场就按回执单线走，不问。聚合时 `--line` 不适用（报错）——先 `--instance <版本>` 选定版本，再 `--line <线名>` 选线。
-
+5. **分叉与并存。** `branches` 在场即用户要选：零起点按**用途**分叉（产品/应用 → 主线入口；官网/营销站 → WDS 入口；分析现有代码库 → `diy-analyze`；迁移 / 逆向现有系统 → `diy-reverse`——独立入口项带 `standalone: true`，直接跑该技能、不用 `--line` 选；逆向产出的 `design.yaml` 即主线可选节点，后续走主线下游）；两条线产物并存时**问用户选定当前工作线**，再用 `--line <线名>` 重跑——绝不自行合并两条线（并存候选只含线两项）。`branches` 不在场就按回执单线走，不问。聚合时 `--line` 不适用（报错）——先 `--instance <版本>` 选定版本，再 `--line <线名>` 选线。

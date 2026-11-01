@@ -54,7 +54,6 @@ lines:
   wds:
     label: WDS 线（官网 / 营销站）
     entry: diy-wds-brief
-    # diy-analyze / diy-reverse 是独立入口（line: any），不属本链。
     exec: diy-dev
     exec_note: ""
     chain:
@@ -68,3 +67,13 @@ lines:
       diy-wds-system: "wds-design-system.yaml 不存在——若本项目需要组件库与令牌，可随时运行 diy-wds-system 建库；不需要可跳过"
       diy-wds-assets: "wds-assets.yaml 不存在——若本项目需要线框 / 页面稿 / 图标 / 文案 / 演示等资产，可随时运行 diy-wds-assets 生成；不需要可跳过"
       diy-wds-evolution: "wds-evolution.yaml 不存在——产品已有后续改进需求时，可运行 diy-wds-evolution 跑一轮 Kaizen 迭代；首轮建设期可跳过"
+
+# 独立入口（非链技能，frontmatter line: any）：不参与产物链导航——零起点候选时
+# 随 branches 给出（形状 {standalone, label, entry}，无 line 键、不用 --line 选）；
+# 两线并存场景 branches 不含本段。守卫＝tests/test_help_registry.py STANDALONE_SKILLS
+# 双向严格（新增独立入口须同批改测试名单）。
+standalone:
+  - skill: diy-analyze
+    label: 分析现有代码库（产出 analysis.yaml）
+  - skill: diy-reverse
+    label: 逆向现有系统（产出 design.yaml——即主线可选节点，后续走主线下游）

@@ -177,6 +177,9 @@ PREREQ_SKILLS = frozenset({
     "diy-brainstorm", "diy-cis-method", "diy-project-context",
 })
 
+# 批 7b：独立入口约定集合（顶层 standalone 段；非链、line: any、不用 --line 选）
+STANDALONE_SKILLS = frozenset({"diy-analyze", "diy-reverse"})
+
 
 class PrereqTests(unittest.TestCase):
     """顶层 prereq 段守卫：target 在 chain、名单双向严格、六字段齐、不在链上。"""
@@ -235,6 +238,62 @@ class PrereqTests(unittest.TestCase):
                 ln = frontmatter(skill).get("line")
                 self.assertIn(ln, (target_line, "any"),
                               "%s 的 line 须为 %s 或 any，实为 %s" % (skill, target_line, ln))
+
+
+class StandaloneTests(unittest.TestCase):
+    """顶层 standalone 段守卫：名单双向严格、已装、line: any、outputs 裸文件名、不占链/前置位。"""
+
+    def setUp(self):
+        self.reg = registry()
+        self.standalone = self.reg.get("standalone") or []
+
+    def _skills(self):
+        return [item.get("skill") for item in self.standalone]
+
+    def test_skills_match_convention_set(self):
+        skills = set(self._skills())
+        self.assertEqual(skills, STANDALONE_SKILLS,
+                         "standalone 段须恰为约定两件（双向严格）：%s" % sorted(skills))
+
+    def test_each_standalone_installed_with_six_fields(self):
+        for skill in self._skills():
+            with self.subTest(skill=skill):
+                self.assertTrue(
+                    os.path.isfile(os.path.join(SKILLS_DIR, skill, "SKILL.md")),
+                    "%s 未安装" % skill)
+                fm = frontmatter(skill)
+                self.assertIsNotNone(fm, "%s 无 frontmatter" % skill)
+                for f in SIX_FIELDS:
+                    self.assertIn(f, fm, "%s 缺六字段 %s" % (skill, f))
+
+    def test_line_is_any(self):
+        for skill in self._skills():
+            with self.subTest(skill=skill):
+                self.assertEqual(frontmatter(skill).get("line"), "any",
+                                 "%s 是独立入口，line 须为 any" % skill)
+
+    def test_outputs_are_bare_filenames(self):
+        for skill in self._skills():
+            with self.subTest(skill=skill):
+                out = str(frontmatter(skill).get("outputs") or "")
+                toks = [t.strip() for t in out.split("+") if t.strip()]
+                self.assertTrue(toks, "%s outputs 为空" % skill)
+                for t in toks:
+                    self.assertRegex(t, OUTPUT_TOKEN_RE,
+                                     "%s 的 outputs 含非文件名片段 %r" % (skill, t))
+
+    def test_not_in_any_chain_or_prereq(self):
+        chains = {s for line in self.reg["lines"].values() for s in line["chain"]}
+        prereq = set(self.prereq_skills())
+        for skill in self._skills():
+            with self.subTest(skill=skill):
+                self.assertNotIn(skill, chains,
+                                 "%s 是独立入口，不得同时在 chain 上" % skill)
+                self.assertNotIn(skill, prereq,
+                                 "%s 是独立入口，不得同时在 prereq.skills" % skill)
+
+    def prereq_skills(self):
+        return (self.reg.get("prereq") or {}).get("skills") or []
 
 
 if __name__ == "__main__":

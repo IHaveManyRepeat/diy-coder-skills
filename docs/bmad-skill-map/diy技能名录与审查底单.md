@@ -305,7 +305,9 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 约束：开工前建任务书（影子仓 diy-coder/.analysis/）＋diy-spec-scan 自扫＋过用户审核门（任务书立完≠开工授权）。
 
-**〔2026-11-01 部分销项〕v4·批7·内批 0 已销**（任务书 `.analysis/2026-10-07-execution-plan/taskbook-batch7a.md`·§7 七裁 2026-10-27 全落）：上限 90→250 落 `bmb_builder_lib.py:25` 常量＋bmb-builder 面字面零残留（引擎/技能/步骤）；P1 范式句固化（四段＋正文逐项化＋≤250）＋逐项化要点行＋标记对冻结句（规则 6＋02-build 呼应句）＋自身 ≤120 硬句入 bmb-builder SKILL.md；SKILL.md（67 行）＋steps 五件全部逐项化完工（母本冻结锚逐字零动·契约冒烟与 `check --final` 自证过）。测试面＝bmb 两测试文件跟改＋新增守卫 2 条（常量 250＋范式短语在场）＋散件 17 文件同值 90→250（断言＋消息＋描述注释全同步，零残留）。完工判据全过：开工基线 1893+272 零红 → 完工全量 **1895+272 零红**；`check --final` exit 0（5 steps/67 lines/零违规）；`check_body_rules` 门零违规；sync 50 技能冒烟过、涉改 8 件源装 md5 全同。**余内批 1~4 未做**（批 1＝prd＋help 样板含 steps 实改；批 2/3/4＝铺开），批 7 整批未收口。改动面未提交，待用户过目审核。
+**〔2026-11-01 部分销项〕v4·批7·内批 0 已销**（任务书 `.analysis/2026-10-07-execution-plan/taskbook-batch7a.md`·§7 七裁 2026-10-27 全落）：上限 90→250 落 `bmb_builder_lib.py:25` 常量＋bmb-builder 面字面零残留（引擎/技能/步骤）；P1 范式句固化（四段＋正文逐项化＋≤250）＋逐项化要点行＋标记对冻结句（规则 6＋02-build 呼应句）＋自身 ≤120 硬句入 bmb-builder SKILL.md；SKILL.md（67 行）＋steps 五件全部逐项化完工（母本冻结锚逐字零动·契约冒烟与 `check --final` 自证过）。测试面＝bmb 两测试文件跟改＋新增守卫 2 条（常量 250＋范式短语在场）＋散件 17 文件同值 90→250（断言＋消息＋描述注释全同步，零残留）。完工判据全过：开工基线 1893+272 零红 → 完工全量 **1895+272 零红**；`check --final` exit 0（5 steps/67 lines/零违规）；`check_body_rules` 门零违规；sync 50 技能冒烟过、涉改 8 件源装 md5 全同。已提交 `4efd913`。**余内批 1~4 未做**（批 1＝prd＋help 样板；批 2/3/4＝铺开），批 7 整批未收口。
+
+**〔2026-11-01 部分销项·二〕v4·批7·内批1（7b）样板块已销**（任务书 `taskbook-batch7b.md`·§7 八裁 2026-10-29 全落）：prd/help SKILL.md 逐项化完工（133／80 行·冻结块单锚零动·表格段按「表格档」原样保留）＋help 样例边界三类清单定稿（**编号段**＝激活时/工作流/规则；**bullet 段**＝结构段四条注/回执键分支枚举/工作模式二选一；**表格段**＝prd 输入清单与字段映射——7c 起带表技能沿用）＋scaffold 模板呈核零改（SKILL_TEMPLATE 对照 7a 范式五要点合规·§7-5 甲）。**分批行勘正**：「须含 steps/ 文件实改」按 §7-4 甲照实测确认落空——prd/help 均无 steps/，不为凑裁定造 steps；steps 实改先例已由 7a bmb-builder 五件满足，铺开批各技能 steps 面 7c 起再验。余 7c/7d/7e 铺开未做。
 
 ## 待办：diy-help 游离「精准简练」句移除（单独技能级，随母本注入批）
 
@@ -327,6 +329,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 动作：结构段 WDS 行对齐 registry，或改指 registry 为唯一源不复制链序（防再漂移）。可随逐项化批 0（help 是样板技能）一并动。
 
 约束：registry 受 test_help_registry.py 双向守卫 + bmb-module 镜像校验；先裁后动。
+
+**〔2026-11-01 部分销项〕v4·批7·内批1（7b）已销两件**（任务书 `.analysis/2026-10-07-execution-plan/taskbook-batch7b.md`·§7 八裁 2026-10-29 全落）：①逆向线登记闭环＝registry 顶层新增 `standalone` 段（diy-analyze／diy-reverse）＋help.py branches 零起点追加两项（形状 `{standalone: true, label, entry}`）＋两线并存面过滤只给线两项（help_lib evaluate）＋守卫 `STANDALONE_SKILLS` 钉名单双向严格（照 prereq 先例）＋test_help 零起点四项/并存不含 standalone 用例；「随 B7 登记」全库零残留。②结构段滞后＝乙2 彻底单源：主线/WDS 行改指 registry.yaml（「下游待登记」help SKILL 面零残留）＋help_lib.py 头 docstring 链序复制块删序留指向。原①②两动作行闭合；reverse 无需新下游，登记文案点明「design.yaml 即主线可选节点、后续走主线下游」（rule 5＋standalone label 双落点）。
 
 ## 待办：diy-lab 实测缺陷修复批（登记 2026-10-04·2026-10-21 部分销项：②~⑥⑧ 已落地；余 ① 随母本批、⑦ 随 Q-112）
 
