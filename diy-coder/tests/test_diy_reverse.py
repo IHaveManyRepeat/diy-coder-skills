@@ -451,7 +451,7 @@ class SkillShapeTests(unittest.TestCase):
 
     def test_main_file_is_thin_four_section(self):
         lines = self.skill_text().splitlines()
-        self.assertLessEqual(len(lines), 90, "SKILL.md 超 90 行硬阈值")
+        self.assertLessEqual(len(lines), 250, "SKILL.md 超 250 行硬阈值")
         for head in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(head, lines)
 

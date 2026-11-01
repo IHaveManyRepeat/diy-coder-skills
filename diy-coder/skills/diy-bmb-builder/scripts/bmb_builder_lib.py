@@ -22,7 +22,7 @@ REPORT_HTML = "skill-analysis-report.html"
 
 NAME_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 NAME_MAX = 64
-SKILL_MD_MAX_LINES = 90
+SKILL_MD_MAX_LINES = 250
 TOKEN_RE = re.compile(r"\{([a-zA-Z][a-zA-Z0-9_.-]*)\}")
 IF_MARKER_RE = re.compile(r"\{/?if-[a-zA-Z0-9_-]+\}")
 IF_BLOCK_RE = re.compile(r"\{if-([a-zA-Z0-9_-]+)\}(.*?)\{/if-\1\}", re.DOTALL)

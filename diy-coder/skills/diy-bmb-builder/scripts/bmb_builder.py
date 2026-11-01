@@ -48,7 +48,7 @@
   check     产物技能终门。基础项（中途可跑）：SKILL.md 在场；四段中文标题齐备；锚串逐字在场；frontmatter 六字段（phase/precededBy/followedBy/
             required/line/outputs）+ name/description 齐备且形态合法；**自足性**——技能根相对
             引用（`steps/` `references/` `scripts/` `assets/`）必须落在技能目录内，越界引用
-            （`../`）判内容依赖违规。`--final` 附加结构终门：SKILL.md ≤90 行、`steps/` 至少
+            （`../`）判内容依赖违规。`--final` 附加结构终门：SKILL.md ≤250 行、`steps/` 至少
             一个步骤文件、每步 H1 `# Step N — <中文步名>` + `**Read (input):**`/`**Write (output):**`
             行 + 步号连续 + 每步结尾点名下一个要读的文件（末步声明不再读）。
             **自足性豁免清单**（内容面判据，非字面「禁一切跨目录引用」）：`{project-root}` 令牌
@@ -157,7 +157,7 @@ def build_parser():
     k = sub.add_parser("check", help="产物技能终门（结构 / 母本逐字 / 自足 / 六字段）")
     k.add_argument("--target", required=True, help="技能目录")
     k.add_argument("--final", action="store_true",
-                   help="结构终门：另加 SKILL.md ≤90 行 + steps 形态与步尾点名")
+                   help="结构终门：另加 SKILL.md ≤250 行 + steps 形态与步尾点名")
     add_common(k)
     k.set_defaults(func=cmd_check)
 

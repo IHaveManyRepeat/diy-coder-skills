@@ -643,9 +643,9 @@ class SkillContractTests(unittest.TestCase):
         # 技能名与产物名在场
         self.assertIn("diy-brainstorm", raw)
         self.assertIn("brainstorm.yaml", raw)
-        # 输出体量：薄主文件 ≤ 90 行（验收 #1）
-        self.assertLessEqual(len(raw.replace("\r\n", "\n").rstrip("\n").split("\n")), 90,
-                             "SKILL.md 超 90 行（薄主文件硬约束）")
+        # 输出体量：薄主文件 ≤ 250 行（验收 #1）
+        self.assertLessEqual(len(raw.replace("\r\n", "\n").rstrip("\n").split("\n")), 250,
+                             "SKILL.md 超 250 行（薄主文件硬约束）")
 
 
 if __name__ == "__main__":

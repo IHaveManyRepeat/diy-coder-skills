@@ -15,7 +15,7 @@
 - ⑦ 回执键完整性（`instance` 键在位恒 null / `warnings` 与 `violations` 同形 / `where` 正斜杠）；
      只读子命令**不含** `updated`，`init` 含
 - ⑧ SKILL.md 契约冒烟（母本 §1/§2/§3/§4/§5/§6 六节逐字 + 终门句指向本引擎 + 产物路径声明句
-     + 四段 + ≤90 行 + steps 冻结名）
+     + 四段 + ≤250 行 + steps 冻结名）
 - ⑨ 本技能特有边界：`SC-<nn>` 与 `SC-<nn>.P<n>` 的**父子引用完整性**（前缀同源 / 页号连续 /
      `slug` 与 ID 同源）+ **页面覆盖矩阵机械判据**（每页恰属一条场景，重复/漏配即违规）
 
@@ -773,7 +773,7 @@ class SkillContractTests(unittest.TestCase):
         with io.open(SKILL_MD, encoding="utf-8") as handle:
             return handle.read()
 
-    # trace: 任务书 §2.1 / §8 验收 #8#9#11（六节在场 + 四段 + ≤90 行）
+    # trace: 任务书 §2.1 / §8 验收 #8#9#11（六节在场 + 四段 + ≤250 行）
     def test_skill_contract_smoke(self):
         raw = self.read_skill()
         for anchor, label in ((INSTANCE_ZH, "母本 §1 实例解析中文定稿"),
@@ -793,7 +793,7 @@ class SkillContractTests(unittest.TestCase):
         self.assertIsNone(PREVIOUS_CHECK_RE.search(raw),
                           "红线：不得教 diyc.py 会拒的 `check --type <型> --previous`")
         lines = raw.replace(NL + chr(13), NL).replace(chr(13) + NL, NL).rstrip(NL).split(NL)
-        self.assertLessEqual(len(lines), 90, "SKILL.md 超 90 行（薄主文件硬阈值）")
+        self.assertLessEqual(len(lines), 250, "SKILL.md 超 250 行（薄主文件硬阈值）")
 
     # trace: 任务书 §2.4（6 个步骤文件冻结名 + 一行指路一致）
     def test_step_files_frozen_names(self):

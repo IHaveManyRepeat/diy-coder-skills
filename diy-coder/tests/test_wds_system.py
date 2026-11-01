@@ -700,7 +700,7 @@ class TestContract(unittest.TestCase):
     def test_skill_md_is_thin_and_has_four_sections(self):
         text = SKILL_MD.read_text(encoding="utf-8")
         lines = text.splitlines()
-        self.assertLessEqual(len(lines), 90, "SKILL.md 超 90 行：%d" % len(lines))
+        self.assertLessEqual(len(lines), 250, "SKILL.md 超 250 行：%d" % len(lines))
         for sec in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(sec, text)
 

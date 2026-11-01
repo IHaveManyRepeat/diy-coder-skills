@@ -18,7 +18,7 @@
 - 用例 13：双向对称（SET_MISMATCH：计划内单向链接）+ 悬空指向（UNKNOWN_ID）+ 相位双轨
            （`any` 与 `anytime` 等价，不判不对称）
 - 用例 14：SKILL.md / steps 契约冒烟（母本 §1/§2/§3/§4/§5/§6/§7/§8 逐字 + 四段中文标题
-           ≤90 行 + frontmatter 六字段 + 零写面声明 + steps 形态）
+           ≤250 行 + frontmatter 六字段 + 零写面声明 + steps 形态）
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output；不依赖本机 git 状态。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_bmb_module.py" -v
 """
@@ -647,7 +647,7 @@ class SkillContractTests(unittest.TestCase):
     # trace: 四段结构 + 行数预算（验收 #1）+ 标题含技能名
     def test_four_chinese_sections_and_budget(self):
         raw = self.read_skill()
-        self.assertLessEqual(len(raw.splitlines()), 90, "薄主文件超出 90 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 250, "薄主文件超出 250 行预算")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, raw, "缺四段结构：%s" % section)
         for legacy in ("## On Activation", "## Workflow", "## Schema", "## Rules"):

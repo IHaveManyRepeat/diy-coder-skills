@@ -8,7 +8,7 @@
 - 用例 4：`--all` 条数 == methods.csv 数据行数 == 69（中文化后仍须 69）
 - 用例 5：方法库每条 description 与 output_pattern 非空（12 类不减）
 - 用例 6：契约冒烟（母本 §1 实例句逐字 + 零写面声明句在场；另加母本 §2 / §3 / §6 逐字、
-          四段中文标题、≤90 行、§5 非成员、引擎零写盘的行为证据）
+          四段中文标题、≤250 行、§5 非成员、引擎零写盘的行为证据）
 
 形 B 回执面（任务书 §2.2 形态分派表）：只收 `[--json]`（免 `--project-root` / `--output-dir`）、
 共同键豁免 `project_root` / `output_dir` / `violations` 三键改 `{ok, command, counts}`；
@@ -199,13 +199,13 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn(DEFAULT_CHAIN_ZH, raw, "缺母本 §3 缺省链")
         self.assertIn(INSTANCE_FLAG_ZH, raw, "缺母本 §3 实例触发条款")
 
-    # trace: 母本 §2（Rules 末尾）+ 四段中文标题 + ≤90 行 + §5/§4 非成员
+    # trace: 母本 §2（Rules 末尾）+ 四段中文标题 + ≤250 行 + §5/§4 非成员
     # （§6 精准简练断言已退役 2026-10-05：elicit 零产物豁免，登底单待办段）
     def test_skill_shape_and_discipline_blocks(self):
         raw = self.skill()
         self.assertIn(DISCIPLINE_ZH, raw, "缺母本 §2 中文定稿")
         self.assertTrue(raw.rstrip("\n").endswith(DISCIPLINE_ZH), "写作纪律块须置文件收尾行")
-        self.assertLessEqual(len(raw.splitlines()), 90, "薄主文件超出 90 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 250, "薄主文件超出 250 行预算")
         for section in SECTIONS_ZH:
             self.assertIn(section, raw, "SKILL.md 缺四段中文标题：%s" % section)
         self.assertNotIn(RENDER_ANCHOR_ZH, raw, "零产物技能无渲染步骤（母本 §5 非成员）")

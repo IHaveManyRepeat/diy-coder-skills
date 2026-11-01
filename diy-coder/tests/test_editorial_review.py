@@ -11,7 +11,7 @@
 - 用例 7：`check` 检出 reader_type 非法 → ENUM_INVALID（枚举中文化 人类|LLM）
 - 用例 8：`--final` 对未定稿记录拒绝 → STATUS_MISMATCH（同稿非 --final 放行）
 - 用例 9：契约冒烟（合法记录 check --final exit 0 + 回执键完整；SKILL.md 母本 §1 中文定稿
-          逐字 + 四段中文标题 ≤90 行 + 终门句指向 editorial_review.py + `--previous` 判 no）
+          逐字 + 四段中文标题 ≤250 行 + 终门句指向 editorial_review.py + `--previous` 判 no）
 夹具全部落 tempdir 自建；不读写本仓库真实 diy-output。
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_editorial_review.py" -v
 """
@@ -309,7 +309,7 @@ class ContractSmokeTests(EngineCase):
             raw = fh.read()
         self.assertIn(INSTANCE_ZH, raw, "SKILL.md 缺母本 §1 中文定稿（逐字）")
         self.assertNotIn(INSTANCE_EN_MARK, raw, "已转中文定稿，仍残留英文原形")
-        self.assertLessEqual(len(raw.splitlines()), 90, "薄主文件超出 90 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 250, "薄主文件超出 250 行预算")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, raw, "缺四段结构：%s" % section)
         self.assertIn("editorial_review.py", raw, "终门句未指向本技能引擎")

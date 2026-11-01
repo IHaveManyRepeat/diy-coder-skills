@@ -78,14 +78,14 @@ class SkillContractTests(unittest.TestCase):
         self.assertTrue(os.path.isfile(SKILL_MD), "缺 diy-party-mode/SKILL.md")
         return read(SKILL_MD)
 
-    # trace: 任务书 §5（四段中文标题 + 薄主文件 ≤90 行 + 标题含技能名）；母本 §2.1
+    # trace: 任务书 §5（四段中文标题 + 薄主文件 ≤250 行 + 标题含技能名）；母本 §2.1
     def test_four_chinese_sections_and_thin_main_file(self):
         raw = self.skill()
         for section in SECTIONS_ZH:
             self.assertIn(section, raw, "缺四段结构：%s" % section)
         for legacy in SECTIONS_EN_LEGACY:
             self.assertNotIn(legacy, raw, "英文段名残留：%s" % legacy)
-        self.assertLessEqual(len(raw.splitlines()), 90, "薄主文件超出 90 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 250, "薄主文件超出 250 行预算")
         self.assertTrue(re.search(r"^# diy-party-mode — ", raw, re.M),
                         "缺 H1 标题（须为 '# diy-party-mode — <中文名>'）")
 

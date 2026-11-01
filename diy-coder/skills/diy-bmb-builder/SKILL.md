@@ -44,21 +44,23 @@ outputs: 技能目录树（{project-root}/.claude/skills/<name>/）——零 YAM
 
 **零 YAML 主产物**：本技能不产出任何 YAML 文档。**三个写面**（「唯一读写根」的有据例外，理由：产物是技能树不是文档）：
 
-- **技能目录树** —— 默认 `{project-root}/.claude/skills/<name>/`（安装面，落此即用、不经 `install.py`）；`--to-source` 落 `{project-root}/diy-coder/skills/<name>/`（扩充套件本身、进 git 分发）。形态 = 套件 P1 范式：`SKILL.md`（四段、≤90 行）+ `steps/` 厚子文件 + 可选 `scripts/` + frontmatter 六字段。
+- **技能目录树** —— 默认 `{project-root}/.claude/skills/<name>/`（安装面，落此即用、不经 `install.py`）；`--to-source` 落 `{project-root}/diy-coder/skills/<name>/`（扩充套件本身、进 git 分发）。形态 = 套件 P1 范式：`SKILL.md`（四段、正文逐项化、≤250 行）+ `steps/` 厚子文件 + 可选 `scripts/` + frontmatter 六字段。逐项化要点＝编号列表、一条一个最小语义单元、连续行不空行、机器锚点逐字保留、四段与 frontmatter 不动。本技能自身行数目标 ≤120 行——增肥超现状 50% 须先呈核。
 - **构建日志** —— `{output_dir}/build-logs/<skill-name>.md`（`mlog` 只追加）。
 - **分析报告** —— `<被分析技能>/.analysis/<YYYY-MM-DD-HHmm>/`（只新建，不改被分析技能的既有文件）：`findings.json` + `lens-<名>.json` ×5 + `prepass-prompt-metrics.json` + `prepass-workflow-integrity.json` + `scan-path-standards.json` + `scan-scripts.json` + `skill-analysis-report.md` + `.html`——**十二件全落**（少一件即报告不完整）。
 
 ## 规则
 
 1. **写面恰三处**（上一节）；其余一律只读——不改被分析技能的任何文件，不碰 `install.py` / `viewer.py` / `runner.py` / `diyc*.py` / `diy-output/` 的其他产物。**本次运行读写根仍以 `diyc.py resolve` 的 `output_dir` 为准，外加本技能声明的三个写面**（有据例外）。
-2. **终门（机械判定）**：`python "{project-root}/.claude/skills/diy-bmb-builder/scripts/bmb_builder.py" check --target <技能目录> --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 是唯一放行；四项 = 结构合规（四段 + ≤90 行）/ 母本句式逐字 / 自足性 / frontmatter 六字段。**token 计数只作信息面**（`prepass --set metrics` 出数），不作门禁。
+2. **终门（机械判定）**：`python "{project-root}/.claude/skills/diy-bmb-builder/scripts/bmb_builder.py" check --target <技能目录> --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 是唯一放行；四项 = 结构合规（四段 + ≤250 行）/ 母本句式逐字 / 自足性 / frontmatter 六字段。**token 计数只作信息面**（`prepass --set metrics` 出数），不作门禁。
 3. **自足且可分发**：产物技能目录自带全部内容，**拷到任何已装 diy-coder 套件的项目即用**——分发 = 拷贝目录，不引入打包格式。自足判据在**内容面**（禁引用技能目录外的文档 / 资产当自己的内容）；套件级工具调用与 `{project-root}` 令牌路径、`{output_dir}` 产物路径、`path:<relative>` 引用路径一律豁免。
-4. **门禁与防覆盖 + 改技能正文门**：目标已存在默认拒绝（`FILE_CONFLICT`）。Edit 覆盖既有技能是**破坏性操作**：交互态须用户确认后才给 `--force`；**无头态不推进**——经 `diyc.py defer-add --reason 破坏性操作` 入队后明示并停。`--force` 硬护栏：命中套件已建技能名或禁改面，即使 `--force` 也拒绝。改既有 diy 技能一律走 Edit 意图；正文落盘后跑 `python "{project-root}/.claude/skills/diy-bmb-builder/scripts/check_body_rules.py" --target <技能目录> --json`，exit 0 才算改完——四类禁入＝源路径锚 / 拍板引语 / 任务批名词 / 迁移决策记录（词表与豁免键以脚本为准）。造/改技能涉上游产物依赖时按 `{project-root}/diy-coder/docs/code-quality.md`「上游产物依赖三档」判档（总则本体 dev 面单源，此处只挂引用）。大改配套任务书，按任务书流程走。
-5. **eval 不 fork**：评测一律调 `diy-eval-runner`（**产出归它、施加归本技能**）；本技能不自造评分逻辑、不算分档、不写 run 目录。
-6. **路径基准。** 所有代码引用一律 project-root 相对 `path:line`（基准 = `{project-root}`，不随会话 CWD 变化；正斜杠；越界的文件用绝对路径）。
-7. **渲染静默**：Analyze 的 md / html 由 `render` **脚本**产出——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点。**本技能无 YAML 产物 → 不调用 viewer**（脚本渲染的报告不是 viewer 面），JSON 免渲染。
-8. **三个边界**：vs `diy-spec-scan`——**歧义 ≠ 质量**，它预演执行找歧义、零改写；本技能 Analyze 出的是质量 findings + 改造建议。vs `diy-editorial-review`——**提示词工艺 ≠ 行文**，它改文稿行文与结构、最小干预；本技能判的是「这行值不值得留」。vs `diy-spec`——**技能树 ≠ 机器契约**，它产 `spec-kernel.yaml`（多方消费者、稳定 ID）；本技能产技能目录树，不要求先有 spec。
-9. 三意图都不产 YAML → **产物状态口径不适用**：没有 `project.status` 可写，过程状态在 memlog 与报告里。
+4. **门禁与防覆盖**：目标已存在默认拒绝（`FILE_CONFLICT`）。Edit 覆盖既有技能是**破坏性操作**：交互态须用户确认后才给 `--force`；**无头态不推进**——经 `diyc.py defer-add --reason 破坏性操作` 入队后明示并停。`--force` 硬护栏：命中套件已建技能名或禁改面，即使 `--force` 也拒绝。
+5. **改技能正文门**：改既有 diy 技能一律走 Edit 意图；正文落盘后跑 `python "{project-root}/.claude/skills/diy-bmb-builder/scripts/check_body_rules.py" --target <技能目录> --json`，exit 0 才算改完——四类禁入＝源路径锚 / 拍板引语 / 任务批名词 / 迁移决策记录（词表与豁免键以脚本为准）。造/改技能涉上游产物依赖时按 `{project-root}/diy-coder/docs/code-quality.md`「上游产物依赖三档」判档（总则本体 dev 面单源，此处只挂引用）。大改配套任务书，按任务书流程走。
+6. **标记对区间跳过**：母本注入的条款片段由同步引擎单源管理（以标记对包裹）——改写任何技能正文时跳过标记对区间（含填充与删除）。
+7. **eval 不 fork**：评测一律调 `diy-eval-runner`（**产出归它、施加归本技能**）；本技能不自造评分逻辑、不算分档、不写 run 目录。
+8. **路径基准。** 所有代码引用一律 project-root 相对 `path:line`（基准 = `{project-root}`，不随会话 CWD 变化；正斜杠；越界的文件用绝对路径）。
+9. **渲染静默**：Analyze 的 md / html 由 `render` **脚本**产出——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点。**本技能无 YAML 产物 → 不调用 viewer**（脚本渲染的报告不是 viewer 面），JSON 免渲染。
+10. **三个边界**：vs `diy-spec-scan`——**歧义 ≠ 质量**，它预演执行找歧义、零改写；本技能 Analyze 出的是质量 findings + 改造建议。vs `diy-editorial-review`——**提示词工艺 ≠ 行文**，它改文稿行文与结构、最小干预；本技能判的是「这行值不值得留」。vs `diy-spec`——**技能树 ≠ 机器契约**，它产 `spec-kernel.yaml`（多方消费者、稳定 ID）；本技能产技能目录树，不要求先有 spec。
+11. 三意图都不产 YAML → **产物状态口径不适用**：没有 `project.status` 可写，过程状态在 memlog 与报告里。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

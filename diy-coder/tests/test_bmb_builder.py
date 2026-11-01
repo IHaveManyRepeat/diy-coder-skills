@@ -9,7 +9,7 @@
            --to-source 与 --dest 互斥 → exit 2（用法错误）
 - 用例 4：回执键完整性（七共同键 / warnings 与 violations 同形 / 人读态 CODE where: msg + 汇总行）
 - 用例 5：契约冒烟（SKILL.md 母本 §1 中文定稿逐字 + 终门句指向本引擎 + 零 YAML 声明句 +
-           四段中文标题 ≤90 行 + check --final 自证 exit 0）
+           四段中文标题 ≤250 行 + check --final 自证 exit 0）
 - 用例 6：prepass 两套——metrics（token 计数与废话 grep）；integrity（根级编号前缀阶段名判违规）
 - 用例 7：mlog 追加的原子性与 ack 形状（{ok,file,n,appended} 恒一行 JSON + 只追加）
 - 用例 8：落点断言（默认 --dest 算出 {project-root}/.claude/skills + --force 硬护栏拒绝已建技能名）
@@ -24,6 +24,7 @@
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -221,7 +222,7 @@ class ContractSmokeTests(unittest.TestCase):
         self.assertIn("零 YAML", text, "缺零 YAML 产物声明句")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, text, "缺四段之一 %r" % section)
-        self.assertLessEqual(len(text.splitlines()), 90, "SKILL.md 须 ≤90 行")
+        self.assertLessEqual(len(text.splitlines()), 250, "SKILL.md 须 ≤250 行")
         for field in ("name:", "description:", "phase:", "precededBy:", "followedBy:",
                       "required:", "line:", "outputs:"):
             self.assertIn(field, text, "frontmatter 缺字段 %r" % field)
@@ -234,6 +235,17 @@ class ContractSmokeTests(unittest.TestCase):
         data = json.loads(proc.stdout)
         self.assertTrue(data["ok"])
         self.assertEqual(data["counts"]["steps"], 5, "steps 文件数应为 5")
+
+    def test_skill_md_max_lines_constant_is_250(self):
+        lib_src = read(os.path.join(SKILL_DIR, "scripts", "bmb_builder_lib.py"))
+        m = re.search(r"^SKILL_MD_MAX_LINES = (\d+)$", lib_src, re.M)
+        self.assertIsNotNone(m, "缺 SKILL_MD_MAX_LINES 常量定义")
+        self.assertEqual(int(m.group(1)), 250, "SKILL_MD_MAX_LINES 须为 250（上限放宽口径）")
+
+    def test_paradigm_phrases_in_skill_md(self):
+        text = read(SKILL_MD)
+        for phrase in ("正文逐项化", "≤250 行", "标记对", "≤120 行"):
+            self.assertIn(phrase, text, "范式句关键短语缺失：%r" % phrase)
 
 
 class PrepassTests(EngineCase):

@@ -718,7 +718,7 @@ class SkillContractTests(unittest.TestCase):
         with io.open(SKILL_MD, encoding="utf-8") as handle:
             return handle.read()
 
-    # trace: 任务书 §2.1 / §8 验收 #8#9#11（六节在场 + 四段 + ≤90 行）
+    # trace: 任务书 §2.1 / §8 验收 #8#9#11（六节在场 + 四段 + ≤250 行）
     def test_skill_contract_smoke(self):
         raw = self.read_skill()
         for anchor, label in ((INSTANCE_ZH, "母本 §1 实例解析中文定稿"),
@@ -737,7 +737,7 @@ class SkillContractTests(unittest.TestCase):
         self.assertIsNone(PREVIOUS_CHECK_RE.search(raw),
                           "红线：不得教 diyc.py 会拒的 `check --type <型> --previous`")
         lines = raw.replace(NL + chr(13), NL).replace(chr(13) + NL, NL).rstrip(NL).split(NL)
-        self.assertLessEqual(len(lines), 90, "SKILL.md 超 90 行（薄主文件硬阈值）")
+        self.assertLessEqual(len(lines), 250, "SKILL.md 超 250 行（薄主文件硬阈值）")
 
     # trace: 任务书 §8 验收 #8 / 裁定 4（frontmatter 六字段逐字取源实值）
     def test_frontmatter_six_fields_take_source_values(self):

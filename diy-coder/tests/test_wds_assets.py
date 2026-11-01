@@ -1023,7 +1023,7 @@ class WdsAssetsContractTest(unittest.TestCase):
 
     def test_main_file_is_thin_with_four_sections(self):
         text = self.skill_text()
-        self.assertLessEqual(len(text.splitlines()), 90)
+        self.assertLessEqual(len(text.splitlines()), 250)
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, text)
 

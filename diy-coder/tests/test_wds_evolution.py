@@ -666,7 +666,7 @@ class ContractSmokeTests(unittest.TestCase):
     def test_skill_md_line_budget(self):
         text = self.skill_text()
         lines = text.splitlines()
-        self.assertLessEqual(len(lines), 90, "SKILL.md 超 90 行硬阈值")
+        self.assertLessEqual(len(lines), 250, "SKILL.md 超 250 行硬阈值")
 
     def test_skill_md_four_sections(self):
         text = self.skill_text()

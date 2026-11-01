@@ -13,7 +13,7 @@
 - 用例 ④：aggregate 的 mean / n-1 标准差 / delta 公式 + `--self-test`
 - 用例 ⑤：`check --run-dir D` 终门——合法 run 放行；计数与实际目录不符 → SET_MISMATCH；
           quality 模式缺 `grading.json` → MISSING_FILE（补齐后放行）
-- 用例 ⑥：SKILL.md 契约冒烟（母本 §1/§2/§3/§4/§6 逐字 + 四段 + 六字段 + ≤90 行 +
+- 用例 ⑥：SKILL.md 契约冒烟（母本 §1/§2/§3/§4/§6 逐字 + 四段 + 六字段 + ≤250 行 +
           「永不删除、覆盖、轮转」声明 + §5 不适用的理由句 + 四对边界句 + 两条反自欺硬规则）
 - 用例 ⑦：未解析 `{...}` 令牌 → `TOKEN_UNRESOLVED`（`{project-root}` 由引擎自解析）
 - 用例 ⑧：`mlog`（与 W1 同构：`--dir` + `--file` + 恒发一行 ack `{ok, file, n, appended}`）
@@ -692,7 +692,7 @@ class ContractTests(Base):
         for field in ("name:", "description:", "phase:", "precededBy:",
                       "followedBy:", "required:", "line:", "outputs:"):
             self.assertIn(NL + field, text, field)
-        self.assertLessEqual(len(text.splitlines()), 90, "薄主文件 ≤90 行")
+        self.assertLessEqual(len(text.splitlines()), 250, "薄主文件 ≤250 行")
 
         # 两条反自欺硬规则必须在场
         for phrase in ("tool_use", "子串", "不给部分分", "举证责任", "反向"):

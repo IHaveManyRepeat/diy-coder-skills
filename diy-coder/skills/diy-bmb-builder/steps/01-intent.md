@@ -9,10 +9,10 @@ Progress: `[意图路由与开场] → 构建单循环 → 五透镜分析 → �
 
 三选一——**Build 造 / Edit 改 / Analyze 评**。用户说清了就用；没说清就问一次，给三个选项（造新的 / 改已有的 / 评已有的），等回话，别猜。判据：
 
-- 给的是一个**新东西的描述**（"我想要一个能……的技能"）→ Build。
-- 给的是**既有技能的路径** + 要改什么 → Edit。
-- 给的是**既有技能的路径** + 要评什么（"看看它怎么样"）→ Analyze。
-- 给的是**计划文件**（`module-plan.yaml`）→ 见下节。
+1. 给的是一个**新东西的描述**（"我想要一个能……的技能"）→ Build。
+2. 给的是**既有技能的路径** + 要改什么 → Edit。
+3. 给的是**既有技能的路径** + 要评什么（"看看它怎么样"）→ Analyze。
+4. 给的是**计划文件**（`module-plan.yaml`）→ 见下节「接计划文件」。
 
 `--headless` / `-H` 出现即置无头态：跳过所有交互提问，缺省值一律落 memlog 的 `assumption` 条目。
 
@@ -40,13 +40,13 @@ python "{project-root}/.claude/skills/diy-bmb-builder/scripts/bmb_builder.py" ml
 
 来意是计划文件时：先要求它 `status: 已定稿`。
 
-- 已定稿 → 按 `build_order` 逐个造，每个技能用 `skills[]` 里的自足 `brief` 当 Build 输入（brief 就是为了"不靠对话上下文直接交棒"而写的）。
-- 未定稿 → **停**，一行说明并指向 `diy-bmb-module`（计划器负责定稿；本技能不替它改计划）。
-- 计划里 `dropped: true` 的条目跳过；`build_order` 之外的条目不擅自补做。
+1. 已定稿 → 按 `build_order` 逐个造，每个技能用 `skills[]` 里的自足 `brief` 当 Build 输入（brief 就是为了"不靠对话上下文直接交棒"而写的）。
+2. 未定稿 → **停**，一行说明并指向 `diy-bmb-module`（计划器负责定稿；本技能不替它改计划）。
+3. 计划里 `dropped: true` 的条目跳过；`build_order` 之外的条目不擅自补做。
 
 ## 播报与下一步
 
 给用户一句话：意图、目标技能名与落点、本轮打算做什么。
 
-- Build / Edit → 读全并照做 `02-build.md`。
-- Analyze → 读全并照做 `03-analyze.md`。
+1. Build / Edit → 读全并照做 `02-build.md`。
+2. Analyze → 读全并照做 `03-analyze.md`。
