@@ -213,7 +213,7 @@ class AugmentSkillContractTests(unittest.TestCase):
         self.assertIn("开场一行声明本次采样的实现面", raw, "实现面采样未要求声明")
 
     # trace: B-16 SS-019-05（mutation 取值路径 + 「未配置」兜底 + 沙箱基线）
-    # C·9（2026-09-22）：SS-019-05 当时点出的「最坏路径无任何机械拦截」已补——沙箱从
+    # SS-019-05 当时点出的「最坏路径无任何机械拦截」已补——沙箱从
     # 「技能手留 git 基线」升级为 `diyc.py mutate` 机械建/销 + 脏度前后对比，断言随之升级。
     # trace: v4 批 1·变异显式化（2026-10-09 裁定：借位载体退役，配置读 test-plan mutation 段）
     def test_mutation_config_path_fallback_and_sandbox(self):
@@ -239,7 +239,7 @@ class AugmentSkillContractTests(unittest.TestCase):
                       "AC path 判据未写死")
 
     # trace: B-16 SS-019-04（score 公式自足 + 等价体裁定落点）
-    # C·9（2026-09-22）：SS-019-04 当年删 waivers 从句的理由是「全库无带 waivers 的门」——
+    # SS-019-04 当年删 waivers 从句的理由是「全库无带 waivers 的门」——
     # 该前提已消失：B3 建的 diy-test-gate 有完整 waivers（8 键 + WAIVER_INCOMPLETE 校验），
     # 且其 SKILL.md 明写「diy-augment 产出的等价变异体也须经用户裁定才进 waivers」。
     # 故断言反转：从句必须回来，否则两侧接线断裂（等价体裁定无落点）。

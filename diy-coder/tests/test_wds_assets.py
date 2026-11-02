@@ -432,7 +432,7 @@ class WdsAssetsTest(unittest.TestCase):
         self.init_ok()
         doc = fill_valid(self.out)
         doc["activities"][0]["items"][0]["spec"] = "[假设] 也许首页要三块"
-        # 夹具订正（裁定 16 ③ 判据反转）：`{some_token}` 这类**自创**占位符改判后天然放行
+        # 夹具订正（③ 判据反转）：`{some_token}` 这类**自创**占位符改判后天然放行
         # （已知漏检面）；判据现在抓的是**模板位残留**，故夹具改用骨架里的真模板位。
         doc["activities"][2]["items"][0]["spec"] = "文案里 {产品名} 这个模板位没填掉"
         dump(self.out, doc)
@@ -674,7 +674,7 @@ class WdsAssetsTest(unittest.TestCase):
         self.assertEqual(code, 0, payload)
         self.assertEqual(payload["coverage"], {"unassigned": [], "orphan": []})
 
-    # ------------------------------------------ ID 空间一致（N1 / N2 = 裁定 9 / 10）
+    # ------------------------------------------ ID 空间一致（N1 / N2）
 
     def test_show_reaches_presentation_and_prompts_id_space(self):
         """N1：`show --id` 须够到 `presentation[]` / `prompts[]`（改前 presentation 记录 rc=1）。"""
@@ -819,7 +819,7 @@ class WdsAssetsTest(unittest.TestCase):
 
 
 class WdsAssetsDirectOutputTest(unittest.TestCase):
-    """W8 产出模型修复的回归：直出产物 + 双向对表 + 提示词通道未回归（C·3a 段2）。"""
+    """W8 产出模型修复的回归：直出产物 + 双向对表 + 提示词通道未回归。"""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()

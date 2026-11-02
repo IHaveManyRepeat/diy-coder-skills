@@ -293,7 +293,7 @@ class CheckTests(EngineCase):
         self.assertEqual(json.loads(r2.stdout)["violations"], [])
         self.assertEqual(json.loads(r2.stdout)["counts"]["phases"], {"anytime": 2})
 
-    # trace: 用例 13b · check（悬空指向 → UNKNOWN_ID——补源侧「指向真实能力」等价面）
+    # 用例 13b · check（悬空指向 → UNKNOWN_ID——补「指向真实能力」等价面）
     def test_check_dangling_link_is_unknown_id(self):
         self.skill("diy-bmb-builder", followed=["diy-bmb-module", "diy-nowhere"])
         self.write_plan(PLAN_YAML)

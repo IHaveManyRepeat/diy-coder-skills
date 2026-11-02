@@ -134,7 +134,7 @@ class EngineCase(unittest.TestCase):
 class StatsGateTests(EngineCase):
     """用例 1-4：门禁与结构地图。"""
 
-    # trace: B4 diy-editorial-review 用例 1（target 缺席 → MISSING_FILE + 零产出）
+    # 用例 1（target 缺席 → MISSING_FILE + 零产出）
     def test_target_missing_refused(self):
         r = self.stats("--target", "docs/no-such.md")
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
@@ -143,7 +143,7 @@ class StatsGateTests(EngineCase):
         self.assertFalse(json.loads(r.stdout)["ok"])
         self.assert_zero_output()
 
-    # trace: B4 diy-editorial-review 用例 2（< 3 词 → EMPTY_FIELD；空标题文档同拒）
+    # 用例 2（< 3 词 → EMPTY_FIELD；空标题文档同拒）
     def test_target_too_short_refused(self):
         self.write("docs/short.md", SHORT_MD)
         r = self.stats("--target", "docs/short.md")
@@ -163,7 +163,7 @@ class StatsGateTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
         self.assertEqual(self.codes(r), ["DUPLICATE_KEY"])
 
-    # trace: B4 diy-editorial-review 用例 3（--lens / --reader-type 越界 → ENUM_INVALID；单透镜合法）
+    # 用例 3（--lens / --reader-type 越界 → ENUM_INVALID；单透镜合法）
     def test_invalid_lens_refused(self):
         self.write("docs/doc.md", DOC_MD)
         r = self.stats("--target", "docs/doc.md", "--lens", "拼写")
@@ -181,7 +181,7 @@ class StatsGateTests(EngineCase):
         self.assertEqual(data["lenses"], ["结构"], "单透镜自由：只跑一个透镜合法")
         self.assertEqual(data["reader_type"], "人类", "reader_type 缺省 人类")
 
-    # trace: B4 diy-editorial-review 用例 4（分节清单与词数；yaml 按顶层键切节；回执共同键）
+    # 用例 4（分节清单与词数；yaml 按顶层键切节；回执共同键）
     def test_stats_section_map_on_md(self):
         self.write("docs/doc.md", DOC_MD)
         r = self.stats("--target", os.path.join(self.root, "docs", "doc.md"))
@@ -213,7 +213,7 @@ class StatsGateTests(EngineCase):
 class CheckTests(EngineCase):
     """用例 5-8：台账校验。"""
 
-    # trace: B4 diy-editorial-review 用例 5（lenses ↔ 两槽 双向对账 → SET_MISMATCH）
+    # 用例 5（lenses ↔ 两槽 双向对账 → SET_MISMATCH）
     def test_lens_slot_mismatch(self):
         self.write("docs/doc.yaml", DOC_YAML)
         drop_prose = REVIEW_YAML.replace(
@@ -233,7 +233,7 @@ class CheckTests(EngineCase):
                          "槽在场而 lenses 未声明同判：%s" % r2.stdout)
         self.assertIn("文风", json.loads(r2.stdout)["violations"][0]["msg"])
 
-    # trace: B4 diy-editorial-review 用例 6（findings no 跳号 → SET_MISMATCH；重号 → DUPLICATE_ID）
+    # 用例 6（findings no 跳号 → SET_MISMATCH；重号 → DUPLICATE_ID）
     def test_finding_no_gap(self):
         self.write("docs/doc.yaml", DOC_YAML)
         self.write_review(REVIEW_YAML.replace(
@@ -249,7 +249,7 @@ class CheckTests(EngineCase):
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("DUPLICATE_ID", self.codes(r2), r2.stdout)
 
-    # trace: B4 diy-editorial-review 用例 7（reader_type 枚举中文化：人类|LLM）
+    # 用例 7（reader_type 枚举中文化：人类|LLM）
     def test_reader_type_invalid(self):
         self.write("docs/doc.yaml", DOC_YAML)
         self.write_review(REVIEW_YAML.replace("reader_type: 人类", "reader_type: humans"))
@@ -262,7 +262,7 @@ class CheckTests(EngineCase):
         r2 = self.check()
         self.assertEqual(r2.returncode, 0, r2.stdout + r2.stderr)
 
-    # trace: B4 diy-editorial-review 用例 8（--final 对未定稿记录拒绝；同稿非 --final 放行）
+    # 用例 8（--final 对未定稿记录拒绝；同稿非 --final 放行）
     def test_final_requires_final_status(self):
         self.write("docs/doc.yaml", DOC_YAML)
         self.write_review(REVIEW_YAML.replace("status: 已定稿", "status: 草稿"))
@@ -277,7 +277,7 @@ class CheckTests(EngineCase):
 class ContractSmokeTests(EngineCase):
     """用例 9：引擎回执契约 + SKILL.md 契约冒烟。"""
 
-    # trace: B4 diy-editorial-review 用例 9（合规记录 exit 0 + 回执键 + SKILL.md 母本/四段/终门句）
+    # 用例 9（合规记录 exit 0 + 回执键 + SKILL.md 母本/四段/终门句）
     def test_contract_smoke(self):
         self.write("docs/doc.yaml", DOC_YAML)
         self.write_review(REVIEW_YAML)

@@ -103,7 +103,7 @@ class RestoreLoopTests(unittest.TestCase):
         self.assertTrue(json.loads(g.stdout)["ok"])
 
     # trace: S-15 AC-15.3 TC-15.3.1 D-10（2026-09-12 变更：截图对比废弃，改零重写采用）
-    # trace: C·12 回派 W3-R1 读源改——「结构对照」/「线框」随 L4 段下沉
+    # 读源改——「结构对照」/「线框」随 L4 段下沉
     #        steps/l4-design-adoption.md（assertIn 改读该文件）；「截图对比」的 NotIn
     #        面随拆分扩为「主文件 + steps 拼接」（文档面 = 教学面，与 test_diy_review_wds
     #        的 `--to 已批准` 同口径）。断言本体（锚串/失败消息）零改动。

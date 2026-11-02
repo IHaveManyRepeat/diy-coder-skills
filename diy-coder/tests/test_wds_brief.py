@@ -15,7 +15,7 @@
 - ⑦ 回执键完整性（`instance` 键在位恒 null / `warnings` 与 `violations` 同形 / `where` 正斜杠）；
      只读子命令**不含** `updated`，`init` 含
 - ⑧ SKILL.md 契约冒烟（母本 §1/§2/§3/§4/§5/§6 六节逐字 + 终门句指向本引擎 + 产物路径声明句）
-- ⑨ 本技能特有边界：**签核三型的段结构**（裁定 13 / 外部合同 11 节 / 服务协议 12 节 /
+- ⑨ 本技能特有边界：**签核三型的段结构**（外部合同 11 节 / 服务协议 12 节 /
      内部审批 7 节）+ **74 项校验判定**（`steps/07-finish.md` 的 `- [ ]` 恰 74 行）
 
 另含引擎内表核对（回报必答 ③④ 的机械证据）：直接导入引擎模块，比对三型节表与 74 项总数。
@@ -43,7 +43,7 @@ NL = chr(10)
 BRIEF_FILE = "wds-brief.yaml"
 
 # ---------------------------------------------------------------- 独立内表（非实现拷贝）
-# 源侧取数位置：`wds-0-alignment-signoff/workflow.md:98-111`（合同 11 节）、
+# 取数位置：`wds-0-alignment-signoff/workflow.md:98-111`（合同 11 节）、
 # `wds-1-project-brief/templates/service-agreement.template.md`（服务协议 12 节）、
 # `wds-0-alignment-signoff/steps-c/step-06a-build-internal-signoff.md:68-104`（内部 9 节 → 7 节）。
 CONTRACT_SECTIONS = [
@@ -464,7 +464,7 @@ class CheckTests(EngineCase):
         self.assertEqual(bad.returncode, 1, bad.stdout)
         self.assertEqual(self.codes(bad), {"UNPARSABLE_YAML"})
 
-    # trace: 任务书 §0.2 裁定 14（简报档位=简化 → 各段收窄必填集）
+    # 简报档位=简化 → 各段收窄必填集
     def test_simplified_brief_level_narrows_required_set(self):
         core = {"vision": "有", "target_users": "有", "constraints": ["有"]}
         content = {"content_language": {"languages": {"primary": "zh-CN"}}}
@@ -572,7 +572,7 @@ class ReceiptTests(EngineCase):
 
 
 class SignoffSchemaTests(EngineCase):
-    """§2.6 ⑨ 本技能特有边界：签核三型的段结构（裁定 13）。"""
+    """§2.6 ⑨ 本技能特有边界：签核三型的段结构。"""
 
     def contract_signoff(self, sections=None, mode="固定价"):
         payload = {"pricing_model": mode, "finalized": True,
@@ -584,7 +584,7 @@ class SignoffSchemaTests(EngineCase):
     def contract_sections_without(self, *dropped):
         return {key: "%s 的内容" % key for key in CONTRACT_SECTIONS if key not in dropped}
 
-    # trace: V-01（高）——`availability`（源 05f）是**条件节**：源侧语义为「长期聘用才谈可用性」，
+    # V-01（高）——`availability`（源 05f）是**条件节**：其语义为「长期聘用才谈可用性」，
     #        引擎此前把它当无条件必填，与 steps/03-signoff.md 第 3 节的口径对打。
     def test_external_contract_availability_is_conditional(self):
         # 前置：11 节齐全（含 availability）→ 通过
@@ -739,7 +739,7 @@ class ValidationChecklistTests(unittest.TestCase):
         with io.open(FINISH_STEP, encoding="utf-8") as handle:
             return handle.read()
 
-    # trace: 任务书 §2.4 / §0.2 裁定 14 P7（74 项全保但去重）
+    # 74 项全保但去重
     def test_seventy_four_checkbox_items(self):
         raw = self.read_finish()
         items = [ln for ln in raw.replace(chr(13) + NL, NL).split(NL)

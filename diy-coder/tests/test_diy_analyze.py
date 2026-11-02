@@ -5,9 +5,9 @@
   门禁（代码库可读）/ init（唯一写盘）/ ID 铸号（AN-<nn> 顺序与唯一）
   / list / show / check / 跨技能门禁（入口技能：无上游 diy 产物）
   / 回执键完整性 / 契约冒烟（CLI 真跑）
-  共享骨架一致性（裁定 1：与 diy-reverse 逐字共用的写作块）
+  共享骨架一致性（与 diy-reverse 逐字共用的写作块）
 
-口径来源：taskbook-b7b §2.2（引擎契约）· batch3-contract §3/§4 · 裁定 14/15/20。
+口径来源：taskbook-b7b §2.2（引擎契约）。
 """
 import io
 import json
@@ -31,7 +31,7 @@ COMMON_KEYS = {"ok", "command", "project_root", "output_dir", "instance",
                "violations", "warnings", "counts"}
 STEPS = ("01-define.md", "02-scan.md", "03-map.md", "04-document.md")
 
-# 裁定 1 的「分析/提取骨架」写作块——八份步骤文件逐字共用（与 diy-reverse 同款）。
+# 「分析/提取骨架」写作块——八份步骤文件逐字共用（与 diy-reverse 同款）。
 SKELETON_LITERALS = (
     "**Read (input):**",
     "**Write (output):**",
@@ -391,7 +391,7 @@ class StepsShapeTests(unittest.TestCase):
         self.assertNotIn("arch-analyze", text)
 
     def test_shared_skeleton_verbatim_in_all_eight_files(self):
-        """裁定 1：分析/提取骨架逐字共用——两技能八份步骤文件全覆盖。"""
+        """分析/提取骨架逐字共用——两技能八份步骤文件全覆盖。"""
         files = ([os.path.join(ANALYZE_DIR, "steps", n) for n in STEPS] +
                  [os.path.join(REVERSE_DIR, "steps", n)
                   for n in ("01-define.md", "02-explore.md", "03-specs.md",

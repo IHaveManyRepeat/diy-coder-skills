@@ -8,9 +8,9 @@
   / 回执键完整性 / 契约冒烟
   另加：① `one-off-*` 判据（重复值可作 token、单次值禁）
         ② **交叉核对**——本引擎产出的 design.yaml 必须过既有 `design.py validate`
-           与 `design.py check`（裁定 13 的三道检查，实测非纸面）
+           与 `design.py check`（三道检查，实测非纸面）
 
-口径来源：taskbook-b7b §2.2/§2.3 + 裁定 11/13/20 + `diy-design/SKILL.md:52-78`
+口径来源：taskbook-b7b §2.2/§2.3 + `diy-design/SKILL.md:52-78`
 与 `design.py` 的 validate/check 判据（`REQUIRED_STATES` / `CONTRAST_PAIRS`）。
 """
 import io
@@ -122,7 +122,7 @@ class ReverseCase(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
 
-# ---- 1 门禁：外部目标可访问（裁定 11：只留 URL + 截图两轨） ------------------
+# ---- 1 门禁：外部目标可访问（只留 URL + 截图两轨） ------------------
 
 class GateTests(ReverseCase):
     def test_bad_track_is_rejected(self):
@@ -165,7 +165,7 @@ class GateTests(ReverseCase):
         self.assertEqual(rc, 2)
 
 
-# ---- 2 写权边界：只在初始生成时写，已存在不覆盖（裁定 13） ------------------
+# ---- 2 写权边界：只在初始生成时写，已存在不覆盖 ------------------
 
 class WriteBoundaryTests(ReverseCase):
     def test_init_writes_skeleton_in_existing_schema_form(self):
@@ -205,7 +205,7 @@ class WriteBoundaryTests(ReverseCase):
         self.assertEqual(doc["violations"][0]["code"], "OVERWRITE_REFUSED")
 
     def test_init_skeleton_carries_form_factor_and_modes_keys(self):
-        """C·15（清偿 C·12 欠账）：init 骨架含两键（存在性断言——键序非 schema 约束）。"""
+        """init 骨架含两键（存在性断言——键序非 schema 约束）。"""
         rc, doc, _, _ = run_cli("init", "--track", "url", "--target",
                                 "https://example.com", "--project-root",
                                 self.tmp, "--output-dir", self.out, "--json")
@@ -216,7 +216,7 @@ class WriteBoundaryTests(ReverseCase):
         self.assertIn("modes", got)
 
     def test_init_skeleton_flunks_design_validate_on_two_codes(self):
-        """C·15 链路级（裁 2=B）：init 产物 → design.py validate，空串≡缺失同码
+        """链路级：init 产物 → design.py validate，空串≡缺失同码
         （design.py:747/:754）；码集合断言（EMPTY_FIELD 在场，禁首位断言）。"""
         if not os.path.isfile(DESIGN_PY):
             self.skipTest("diy-design 引擎缺席")
@@ -236,7 +236,7 @@ class WriteBoundaryTests(ReverseCase):
                                 {"FORM_FACTOR_MISSING", "MODES_MISSING"})
 
 
-# ---- 3 check：既有 schema 三道（裁定 13） ----------------------------------
+# ---- 3 check：既有 schema 三道 ----------------------------------
 
 class SchemaCheckTests(ReverseCase):
     def test_clean_draft_passes(self):
@@ -298,7 +298,7 @@ class SchemaCheckTests(ReverseCase):
         self.assertIn("ENUM_INVALID", [v["code"] for v in doc["violations"]])
 
 
-# ---- 4 ID 形态 / 顺序 / 原型同源（既有 schema 是 `P-<n>`，裁定 13） ---------
+# ---- 4 ID 形态 / 顺序 / 原型同源（既有 schema 是 `P-<n>`） ---------
 
 class PageIdTests(ReverseCase):
     def test_bad_form_sequence_and_prototype_name(self):
@@ -351,7 +351,7 @@ class FinalGateTests(ReverseCase):
         self.assertEqual(rc, 0, doc)
 
 
-# ---- 6 「不抄像素」判据：重复值可作 token、单次值禁（裁定 13 / census-5 新-2）-
+# ---- 6 「不抄像素」判据：重复值可作 token、单次值禁-
 
 class OneOffJudgementTests(ReverseCase):
     def test_repeat_values_become_tokens_single_values_dropped(self):
@@ -382,7 +382,7 @@ class OneOffJudgementTests(ReverseCase):
         self.assertEqual(rc, 2)
 
 
-# ---- 7 跨技能门禁 + 既有引擎交叉核对（裁定 13 的实测面） --------------------
+# ---- 7 跨技能门禁 + 既有引擎交叉核对 --------------------
 
 class CrossSkillTests(ReverseCase):
     def test_read_commands_report_missing_product(self):
@@ -395,7 +395,7 @@ class CrossSkillTests(ReverseCase):
         self.assertEqual(rc, 1)
 
     def test_product_satisfies_existing_design_engine(self):
-        """本引擎的产物必须过既有 `design.py validate` / `check`（裁定 13 三道）。"""
+        """本引擎的产物必须过既有 `design.py validate` / `check`。"""
         if not os.path.isfile(DESIGN_PY):
             self.skipTest("diy-design 引擎缺席")
         doc_ok = tokens_doc()

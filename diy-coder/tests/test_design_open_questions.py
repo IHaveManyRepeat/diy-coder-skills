@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""W7 跨工位测试（C·3a 任务书 §6 断言面 4 / 5）。
+"""W7 跨工位测试（断言面 4 / 5）。
 
 文件名沿用 §6 的拆分建议；两面都以 `open_questions` / 终门为轴：
 
@@ -215,7 +215,7 @@ class EdgeOwnershipTests(unittest.TestCase):
     文档的 `--to` 目标；本类断言**九条边的归属并集**。
     """
 
-    # trace: C·3a §6 面 4（写者并集 == 引擎 9 条合法边；无主边与多头边都判红）
+    # 写者并集 == 引擎 9 条合法边；无主边与多头边都判红
     def test_owner_union_equals_engine_legal_edges(self):
         edges = set(engine_module().LEGAL_EDGES)
         self.assertEqual(len(edges), 9, "引擎合法边数变了：%s" % sorted(edges))
@@ -236,7 +236,7 @@ class EdgeOwnershipTests(unittest.TestCase):
         self.assertIn("同一边、阶段不同", read(os.path.join(SKILLS, "diy-dev", "SKILL.md")),
                       "设计期/实现期分工的理由句缺失——多头边失去解释")
 
-    # trace: C·3a §6 面 4（每条归属都有文档证据；用户边不得被任何技能代写）
+    # 每条归属都有文档证据；用户边不得被任何技能代写
     def test_each_owner_claim_is_backed_by_verbatim_text(self):
         for owner, (rel, quote) in sorted(OWNER_EVIDENCE.items()):
             with self.subTest(owner=owner):
@@ -244,7 +244,7 @@ class EdgeOwnershipTests(unittest.TestCase):
                 self.assertIn(quote, doc, "%s 的写权声明缺逐字句：%s" % (owner, quote))
         # review 侧：从它自己教的**页级**命令里机械提取边目标（不引命令全文——
         # W4 已钉死那一句）；只取 design.py 调用行，避免混入主线任务态
-        # trace: C·12 W1-R1 读源扩面（lead 裁定 2026-10-01，W3-R1 同款）——diy-review 拆
+        # 读源扩面（lead 于 2026-10-01 裁定，W3-R1 同款）——diy-review 拆
         #        steps 后 design.py 调用行下沉，读源从主文件扩为「主文件 + steps/ 拼接」
         #        （文档面 = 教学面，与 test_diy_review_wds 同口径）；断言本体零改动
         def page_targets(skill):
@@ -292,7 +292,7 @@ class StateChainConvergenceTests(W7Harness):
         self.assertEqual(rc2, 0, "写回 %s 后 validate 不再自洽：%s"
                          % (to, json.dumps(data2, ensure_ascii=False)))
 
-    # trace: C·3a §6 面 4（七条边的链式往返：每步写回后 validate 绿 + ID 集稳定）
+    # 七条边的链式往返：每步写回后 validate 绿 + ID 集稳定
     def test_documented_chain_keeps_validate_green_and_ids_stable(self):
         ids_before = [p["id"] for p in self.doc()["pages"]]
         self.step("结构稿中")                       # diy-review 的回修边
@@ -328,7 +328,7 @@ class FinalGateTests(W7Harness):
         self.write("prototypes/SC-01.P1.html", GOOD_PROTOTYPE)
         self.write("src/impl.js", IMPL_JS)
 
-    # trace: C·3a §6 面 5（定稿三道的文档面 + 引擎面：一道有闸、一道无闸的分工）
+    # 定稿三道的文档面 + 引擎面：一道有闸、一道无闸的分工
     def test_final_gate_conjunction_is_documented_and_engine_backed(self):
         gate = [ln for ln in read(DESIGN_SKILL_MD).splitlines() if "定稿走三道" in ln]
         self.assertEqual(len(gate), 1, "主文件未给出唯一的「定稿走三道」句")
@@ -344,7 +344,7 @@ class FinalGateTests(W7Harness):
                          "「[假设] 清零」在引擎里无闸（会话纪律）——若新增该闸，"
                          "须同步改写主文件的定稿三道句与本断言")
 
-    # trace: C·3a §6 面 5（真值表：状态 × 待办 四格；被拦格须点名是哪条问题）
+    # 真值表：状态 × 待办 四格；被拦格须点名是哪条问题
     def test_final_gate_truth_table(self):
         verdict = {}
         for status, questions, key in (("草稿", "pending", "草稿/待办"),
@@ -370,7 +370,7 @@ class FinalGateTests(W7Harness):
                                    "已定稿/待办": 1, "已定稿/零待办": 0},
                          "终门真值表变了：%s" % verdict)
 
-    # trace: C·3a §6 面 5（「才可写」的前置：三命令全过 → 清零 → 才写 已定稿）
+    # 「才可写」的前置：三命令全过 → 清零 → 才写 已定稿
     def test_three_commands_pass_before_final_status_is_written(self):
         path = self.write("design.yaml", design_text(project_status="草稿",
                                                      open_questions="pending"))

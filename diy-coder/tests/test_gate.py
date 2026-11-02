@@ -267,7 +267,7 @@ def check_gate(with_mutation=False):
     }
 
 
-# C·9（2026-09-22）：等价体裁定夹具——10 个变异体 9 被杀（保守分 90%），
+# 等价体裁定夹具——10 个变异体 9 被杀（保守分 90%），
 # 1 个候选等价体待裁；日期取当天，避开 EVIDENCE_STALE（>7 天）的干扰。
 MUTANT_ID = "core/ReplaceBinaryOperator_Add_Sub"
 
@@ -632,7 +632,7 @@ class CollectTests(EngineCase):
 class CheckTests(EngineCase):
 
     # trace: 任务书 §4 / §2.5（合法记录 --final exit 0 唯一放行）
-    # C·9：定稿形态须含 mutation-report（§十三:459「--final 时必须」），故夹具带变异面
+    # 定稿形态须含 mutation-report（§十三:459「--final 时必须」），故夹具带变异面
     def test_check_final_legal_record_passes(self):
         self.write_check_fixtures(with_mutation=True)
         r = self.check("--final")
@@ -642,7 +642,7 @@ class CheckTests(EngineCase):
         self.assertEqual(data["counts"]["gates"], 1)
         self.assertEqual(data["counts"]["by_decision"], {"PASS": 1})
 
-    # trace: C·9 / 迁移计划 §十三:459（mutation-report 缺席：日常 n/a 合法，--final 时必须）
+    # mutation-report 缺席：日常 n/a 合法，--final 时必须
     def test_final_requires_mutation_report(self):
         self.write_check_fixtures()
         r = self.check()
@@ -992,7 +992,7 @@ class CheckTests(EngineCase):
                 domain["status"] = status
                 data["gates"][0]["nfr"]["overall_risk"] = risk
 
-    # trace: C·9 缺口③（等价变异体裁定 → gate waivers 落点；得分重算）
+    # 缺口③（等价变异体裁定 → gate waivers 落点；得分重算）
     def test_mutant_waiver_recomputes_score(self):
         """裁定分只能在此重算：批准 1 个等价体 → 9/(10−1)×100 = 100%。
 
@@ -1017,7 +1017,7 @@ class CheckTests(EngineCase):
         r = self.check()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
-    # trace: C·9 缺口③（ref 的变异体形态：前缀 + 候选匹配，防假豁免）
+    # 缺口③（ref 的变异体形态：前缀 + 候选匹配，防假豁免）
     def test_mutant_waiver_ref_validation(self):
         base = {"approved_by": "张三", "date": date.today().isoformat(),
                 "reason": "等价", "expires": "2026-12-31", "monitoring": "无",
@@ -1038,7 +1038,7 @@ class CheckTests(EngineCase):
         self.assertIn("WAIVER_INAPPLICABLE", self.codes(json.loads(r.stdout)),
                       "前缀后为空不得被豁免")
 
-    # trace: C·9 缺口⑤（关键路径 100% 硬判据）
+    # 缺口⑤（关键路径 100% 硬判据）
     def test_critical_path_score_must_be_100(self):
         self.write_check_fixtures()
         self.write_doc("mutation-report.yaml",

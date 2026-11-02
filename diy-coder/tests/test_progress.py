@@ -7,7 +7,7 @@
  2  init 无 `--role` 合法（`learner.role` 与 `learner.assessed` 均为 null，SS-001-70）
  3  init 已存在 → 拒绝（零覆盖，指引 resume）
  4  update 幂等：同节二次完成不重复计数（派生三式仍 1/14/2，追加一条重做修订）
- 5  派生字段与真值一致（基准 = 裁定 2 三式）+ 手改派生字段 → check / status 报
+ 5  派生字段与真值一致（基准 = 三式）+ 手改派生字段 → check / status 报
     SET_MISMATCH
  6  check 检出 已完成 无 notes / notes 越界 / notes 文件不在场
  7  check 检出 session 7 无 topics_explored（完成判据 = topics_explored >= min_topics）
@@ -15,7 +15,7 @@
     experience 越界 → ENUM_INVALID
  9  completion 门未满（或 summary.generated=false）拒绝 `--final`
 10  `update --summary` 三道门（7/7、路径口径、文件在场）
-11  status 仪表盘回执（含裁定 3 分流表直出的 entry_step）
+11  status 仪表盘回执（含分流表直出的 entry_step）
 12  契约冒烟（--json 单行 + 共同键齐全 + 写命令含 updated；无 --json 时末行汇总；
     --output-dir 必填 → exit 2）
 13  SKILL.md 契约冒烟（母本 §1/§2 中文定稿逐字 + §3/§4/§5 锚串 + 终门句指向
@@ -279,7 +279,7 @@ class UpdateSessionTests(EngineCase):
         self.assertEqual(doc["revisions"][0]["reason"], "重做")
         self.assertEqual(doc["revisions"][0]["date"], self.today)
 
-    # trace: §7 测试 5（派生字段基准 = 裁定 2 三式；手改 → SET_MISMATCH）
+    # 测试 5（派生字段基准 = 三式；手改 → SET_MISMATCH）
     def test_derived_fields_follow_three_formulas(self):
         for sid in (1, 2, 3):
             self.assertEqual(self.complete(sid).returncode, 0)
@@ -482,7 +482,7 @@ class Session7Tests(EngineCase):
 
 class StatusTests(EngineCase):
 
-    # trace: §7 裁定 3（status 回执 = 分流表判定输入；文件缺席 → MISSING_FILE + 回 init）
+    # status 回执 = 分流表判定输入；文件缺席 → MISSING_FILE + 回 init
     def test_status_entry_routing(self):
         r = self.status()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -755,7 +755,7 @@ class TeachingContentTests(unittest.TestCase):
         self.assertIn("第 3 次仍错", step)
         self.assertIn("score = round(答对数 × 100 / 3)", step, "计分口径不得随之改动")
 
-    # trace: 附带（A1 裁定 2026-09-18 删 [B]）：教学内容不得再教已删除的双模式词汇
+    # 教学内容不得再教已删除的双模式词汇
     def test_no_legacy_mode_vocabulary(self):
         for name in ("curriculum.yaml", "quiz-questions.yaml"):
             with io.open(os.path.join(SKILL_DIR, name), encoding="utf-8") as f:

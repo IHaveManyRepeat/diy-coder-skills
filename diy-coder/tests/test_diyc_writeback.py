@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """diyc_writeback 写回命令测试（批次 3 / W3）。
 
-覆盖（任务书 + batch3-contract.md §4.5-§4.9）：
+覆盖（引擎契约 §4.5-§4.9）：
 - transition：八条合法边全部接受、待审查→已完成 与 待办→已完成 拒绝、已阻塞 必填 reason、
   已阻塞→待办 清 reason、已完成→进行中 清 augment（SS-012-04：重开即清旧 verdict）、
   --rounds 持久化 loop（终态补 outcome）、bump；
@@ -13,7 +13,7 @@
 - defer-add（2026-09-15 副作用纪律修订）：序号铸造（既有 DA-003 → DA-004；无文件 →
   DA-001 骨架）、四类 reason 全收、可选字段缺席不留空键、append 保留既有条目、
   枚举/必填/坏 JSON/互斥参数拒绝；
-- defer-set（2026-09-20 迁移计划 §五 C·8②）：待办→已完成|已拒绝 双向翻转、只动目标条目、
+- defer-set：待办→已完成|已拒绝 双向翻转、只动目标条目、
   bump 与回执字段、未知 ID / 非法 status / 已是终态 / 文件缺席 / actions 形状异常 五类拒绝；
 - reconcile：dry-run 零落盘 / --apply 落盘、add（缺覆盖→已阻塞+reason、story 已完成→已完成、
   已豁免 缺口视为覆盖）、remove 孤儿任务、changed 门重算（进行中→已阻塞、已阻塞→待办 清 reason）、
@@ -725,7 +725,7 @@ class DeferAddTests(WritebackCase):
 
 @NEEDS_W1
 class DeferSetTests(WritebackCase):
-    """defer-set（迁移计划 §五 C·8②）：待确认动作的 status 翻转——队列出口侧。"""
+    """defer-set：待确认动作的 status 翻转——队列出口侧。"""
 
     def _seed(self, statuses=("待办",)):
         actions = [

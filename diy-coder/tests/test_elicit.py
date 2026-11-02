@@ -66,7 +66,7 @@ class EngineCase(unittest.TestCase):
 
 class MethodsRandomTests(EngineCase):
 
-    # trace: B4 diy-elicit 用例 1（--random 5 返 5 条且不重复）
+    # 用例 1（--random 5 返 5 条且不重复）
     def test_random_five_distinct(self):
         r = self.methods("--random", "5", "--json")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -85,7 +85,7 @@ class MethodsRandomTests(EngineCase):
 
 class CategoryTests(EngineCase):
 
-    # trace: B4 diy-elicit 用例 2（--category 非法值 exit 1 + ENUM_INVALID；用法错误 exit 2）
+    # 用例 2（--category 非法值 exit 1 + ENUM_INVALID；用法错误 exit 2）
     def test_category_invalid_rejected(self):
         r = self.methods("--category", "不存在的类", "--json")
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
@@ -103,7 +103,7 @@ class CategoryTests(EngineCase):
         self.assertEqual(self.methods("--random", "x").returncode, 2)
         self.assertEqual(self.methods("--random", "5", "--all").returncode, 2)
 
-    # trace: B4 diy-elicit 用例 3（--category 合法值只返该类）
+    # 用例 3（--category 合法值只返该类）
     def test_category_valid_filters_one_class(self):
         expected = sorted(int(row["num"]) for row in library_rows()
                           if row["category"] == "技术")
@@ -122,7 +122,7 @@ class CategoryTests(EngineCase):
 
 class LibraryTests(EngineCase):
 
-    # trace: B4 diy-elicit 用例 4（--all 条数 == CSV 数据行数 == 69）
+    # 用例 4（--all 条数 == CSV 数据行数 == 69）
     def test_all_lists_every_csv_row(self):
         rows = library_rows()
         self.assertEqual(len(rows), 69, "方法库条数中文化后仍须 69")
@@ -134,7 +134,7 @@ class LibraryTests(EngineCase):
                          [int(row["num"]) for row in rows], "全列须与库内顺序一致")
         self.assertEqual(data["counts"]["returned"], 69)
 
-    # trace: B4 diy-elicit 用例 5（库内每条 description 与 output_pattern 非空；12 类不减）
+    # 用例 5（库内每条 description 与 output_pattern 非空；12 类不减）
     def test_library_rows_are_complete(self):
         rows = library_rows()
         for row in rows:

@@ -9,7 +9,7 @@
 - ④ `list` 只回六字段、`--method` 过滤生效；`show` 单条全文；未知 ID → UNKNOWN_ID
 - ⑤ `check --final` 检出：STATUS_MISMATCH / EMPTY_FIELD（where 含键名）/ ENUM_INVALID（method
      与 current_step 越界）
-- ⑥ 问题求解分支 `current_step: 8` + `已完成` 放行（源侧 step 9 optional 例外）；该例外不推广
+- ⑥ 问题求解分支 `current_step: 8` + `已完成` 放行（step 9 optional 例外）；该例外不推广
 - ⑦ 可达集：创新策略默认 25 < `--all` 30；叙事默认 25 == `--all` 25；设计思维 15 < 30；
      问题求解 30 == 30（夹具 CSV 驱动 + 真实 CSV 在场时的交叉核对）
 - ⑧ `methods --category` 非法类 → ENUM_INVALID；库缺列/列名不符 → UNPARSABLE_YAML；
@@ -47,7 +47,7 @@ REAL_CSV = os.path.join(HERE, "..", "skills", "diy-cis-method", "cis-methods.csv
 NL = chr(10)
 
 # ---------------------------------------------------------------- 独立内表（非实现拷贝）
-# 源侧取数位置：`.claude/skills/bmad-cis-*/SKILL.md` 的 <step n="k"> 内首个非注入
+# 取数位置：`.claude/skills/bmad-cis-*/SKILL.md` 的 <step n="k"> 内首个非注入
 # <template-output> 标签（多键形态按逗号切分后取首键）。此处**独立手录**，与引擎内表
 # 双向核对——本批最易双实现漂移的一处（任务书 §5 回报必答 ②）。
 INJECTION_KEYS = ("date", "user_name", "agent_role", "agent_name")
@@ -64,14 +64,14 @@ SOURCE_FIRST_KEYS = {
              "complete_story", "short_version", "best_channels", "resolution"],
 }
 BRANCH_STEPS = {"创新策略": 9, "问题求解": 9, "设计思维": 7, "叙事": 10}
-# §0 裁定 5(d) 的 23 个冻结中文类名（逐字）
+# 23 个冻结中文类名（逐字）
 FROZEN_CATEGORIES = {
     "创新策略": ["市场分析", "商业模式", "颠覆", "战略", "价值链", "技术"],
     "问题求解": ["诊断", "分析", "综合", "评估", "实施", "创意"],
     "设计思维": ["共情", "定义", "构思", "原型", "测试", "落地"],
     "叙事": ["转变", "战略", "说服", "分析", "情感"],
 }
-# §0 裁定 5(e)：默认可达集 = 源侧工作流实际引用的类（保真照搬；叙事为修后 = 全类）
+# 默认可达集 = 工作流实际引用的类（逐字照搬；叙事为修后 = 全类）
 REACHABLE_CATEGORIES = {
     "创新策略": ["市场分析", "商业模式", "颠覆", "战略", "价值链"],
     "问题求解": ["诊断", "分析", "综合", "评估", "实施", "创意"],
@@ -99,7 +99,7 @@ def run_engine(engine_path, args):
 
 
 def fixture_csv():
-    """夹具方法库：四分支 115 行（30/30/30/25），类名照 §0 裁定 5(d) 冻结表逐字。"""
+    """夹具方法库：四分支 115 行（30/30/30/25），类名照冻结表逐字。"""
     lines = ["method,category,name,slug,description,prompts"]
     for method in ("创新策略", "问题求解", "设计思维", "叙事"):
         for category in FROZEN_CATEGORIES[method]:
@@ -116,7 +116,7 @@ def branch_keys(method):
     return list(TEMPLATE_KEYS[method])
 
 
-# 源 `template.md` 占位符（去注入项 date / user_name；叙事另去 agent_role / agent_name）
+# `template.md` 占位符（去注入项 date / user_name；叙事另去 agent_role / agent_name）
 TEMPLATE_KEYS = {
     "创新策略": [
         "company_name", "strategic_focus", "current_situation", "strategic_challenge",
@@ -290,7 +290,7 @@ class GateTests(EngineCase):
         r = self.raw("init", "--method", "创新策略", "--topic", "议题",
                      "--project-root", self.root, "--json")
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
-        # --instance 一律不做（裁定 9）：签名表内不得出现它
+        # --instance 一律不做：签名表内不得出现它
         r2 = self.engine("list", "--instance", "demo")
         self.assertEqual(r2.returncode, 2, "--instance 不得进签名表：%s" % (r2.stdout + r2.stderr))
 
@@ -318,7 +318,7 @@ class InitTests(EngineCase):
         c = self.check()
         self.assertEqual(c.returncode, 0, c.stdout + c.stderr)
         self.assertEqual(self.results(c)["counts"]["sessions"], 1)
-        # 产物顶层不设 status（定稿态挂记录级，裁定 3）
+        # 产物顶层不设 status（定稿态挂记录级）
         self.assertNotIn(NL + "status:", text)
 
     # trace: 任务书 §2.6 ③（续号递增不重号 + 损坏产物拒绝且零写入）
@@ -448,7 +448,7 @@ class CheckFinalTests(EngineCase):
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("EMPTY_FIELD", self.codes(r))
-        # 多余键：warning 同形、不阻断（源侧模板键表是建议结构，非封闭集）
+        # 多余键：warning 同形、不阻断（模板键表是建议结构，非封闭集）
         self.product(record_yaml("CM-001", "设计思维", "已完成", 7,
                                  first_keys("设计思维", 7), extra_keys=["外来键"]))
         r2 = self.check("--final")
@@ -521,7 +521,7 @@ class ReachabilityTests(EngineCase):
         super().setUp()
         self.stage_engine(fixture_csv())
 
-    # trace: 任务书 §2.6 ⑦ / §0 裁定 5(e)（默认集 vs --all 的四分支数字）
+    # 默认集 vs --all 的四分支数字
     def test_default_reachable_set_versus_all(self):
         for method, expected_default in REACHABLE_COUNTS.items():
             base = self.engine("methods", "--method", method)
@@ -572,7 +572,7 @@ class MethodsContractTests(EngineCase):
         super().setUp()
         self.stage_engine(fixture_csv())
 
-    # trace: 任务书 §2.6 ⑧ / §0 裁定 5(e)（非法类 → ENUM_INVALID；缺席 --method → EMPTY_FIELD）
+    # 非法类 → ENUM_INVALID；缺席 --method → EMPTY_FIELD
     def test_category_and_missing_method(self):
         bad = self.engine("methods", "--method", "创新策略", "--category", "不存在类")
         self.assertEqual(bad.returncode, 1, bad.stdout)
@@ -609,7 +609,7 @@ class MethodsContractTests(EngineCase):
         self.assertEqual(r3.returncode, 1, r3.stdout)
         self.assertEqual(self.codes(r3), {"MISSING_FILE"})
 
-    # trace: 任务书 §0 裁定 5(e)（--random 从默认结果集抽；超界 → 全给 + warning 不报错）
+    # --random 从默认结果集抽；超界 → 全给 + warning 不报错
     def test_random_draws_from_default_set(self):
         r = self.engine("methods", "--method", "创新策略", "--random", "3")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -707,7 +707,7 @@ class SkillContractTests(unittest.TestCase):
 class TokenTests(EngineCase):
     """§2.6 ⑪ 未解析 `{...}` 令牌 → TOKEN_UNRESOLVED（唯一新增码）。"""
 
-    # trace: 任务书 §0 裁定 8 / §10 项 7（白名单外令牌一律拒绝）
+    # 白名单外令牌一律拒绝
     def test_unresolved_token_is_rejected(self):
         self.product(record_yaml("CM-001", "设计思维", "已完成", 7,
                                  first_keys("设计思维", 7)))
@@ -792,7 +792,7 @@ class InternalTableTests(unittest.TestCase):
         self.assertFalse(set(flat) & set(INJECTION_KEYS), "注入项不得入表")
         self.assertEqual(len(table["叙事"]), 9, "叙事第 10 步唯一标签全是注入项 → 该步无实键")
 
-    # trace: 任务书 §0 裁定 5(e)（可达集映射：23 类名逐字 + 25/30/15/25）
+    # 可达集映射：23 类名逐字 + 25/30/15/25
     def test_reachability_map_matches_frozen_names(self):
         mod = self.load_module()
         reach = getattr(mod, "REACHABLE_CATEGORIES", None)
@@ -807,7 +807,7 @@ class InternalTableTests(unittest.TestCase):
         names = {name for group in frozen.values() for name in group}
         self.assertEqual(len(names), 21, "23 个类名去重后 21 个（战略、分析各跨两分支）")
 
-    # trace: 任务书 §0 裁定 8（令牌白名单）
+    # 令牌白名单
     def test_token_whitelist(self):
         mod = self.load_module()
         whitelist = getattr(mod, "TOKEN_WHITELIST", None)

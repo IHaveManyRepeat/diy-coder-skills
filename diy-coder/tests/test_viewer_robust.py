@@ -209,7 +209,7 @@ DEFERRED_DOC = NL.join([
 
 
 class ViewerDeferredActionsTests(_Fixture):
-    # trace: 迁移计划 §五 C·8②——待确认动作队列的展示层标签（英文键名直出回归防线）
+    # 待确认动作队列的展示层标签（英文键名直出回归防线）
     def test_deferred_actions_page_is_chinese(self):
         self.write("deferred-actions.yaml", DEFERRED_DOC)
         p = run_viewer(self.root)

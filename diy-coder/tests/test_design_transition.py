@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diy-design 引擎 transition 命令 + .prev 快照 / ID 稳定对账测试（C·3a 段1·W2）。
+"""diy-design 引擎 transition 命令 + .prev 快照 / ID 稳定对账测试。
 
 覆盖任务书 §4.2（transition 冻结契约：9 条合法边 + 非法边 + 错误码 + 原子写）·
 §4.3（.prev 快照 + --previous ID 对账，失败分支 ID_UNSTABLE / MISSING_FILE / UNPARSABLE_YAML）。夹具为合成 design.yaml
@@ -32,7 +32,7 @@ GOOD_HTML = NL.join([
     "</html>",
 ])
 
-# 九条合法边（冻结表）；破坏性边（裁定 14 展开口径）= 任一条 → 已移除 与 已批准 → 结构稿中
+# 九条合法边（冻结表）；破坏性边（展开口径）= 任一条 → 已移除 与 已批准 → 结构稿中
 LEGAL_EDGES = (
     ("未开始", "结构稿中"),
     ("结构稿中", "待验收"),
@@ -169,7 +169,7 @@ class TransitionCase(unittest.TestCase):
 
 
 class LegalEdgeTests(TransitionCase):
-    # trace: C·3a §2.5（transition 9 条合法边冻结表）
+    # transition 9 条合法边冻结表
     def test_all_nine_legal_edges_accepted(self):
         for src, dst in LEGAL_EDGES:
             with self.subTest(edge="%s→%s" % (src, dst)):
@@ -200,7 +200,7 @@ class LegalEdgeTests(TransitionCase):
                 else:
                     self.assertIn("revisions: []", written)
 
-    # trace: C·3a §5b #3b（待验收 → 已批准 = 用户批准（人裁），不是「进入实现」——
+    # 待验收 → 已批准 = 用户批准（人裁），不是「进入实现」——
     #                    实现发生在 待验收 之前：diy-dev 目标是 结构稿中 页，审查通过后页仍留 待验收）
     def test_approval_edge_hint_is_user_approval_not_implementation(self):
         self.write_prototype()
@@ -213,7 +213,7 @@ class LegalEdgeTests(TransitionCase):
         self.assertIn("无自动后续步", hint, "该边是人裁，无自动后续步")
         self.assertIn("待用户批准", hint, "审查通过后页仍留 待验收，只报待用户批准")
 
-    # trace: C·3a §2.5（--reason 冻结：→ 已移除 必填）
+    # --reason 冻结：→ 已移除 必填
     def test_removed_without_reason_rejected_and_zero_write(self):
         self.write_prototype()
         path = self.write_design(status="结构稿中")
@@ -225,7 +225,7 @@ class LegalEdgeTests(TransitionCase):
         self.assertEqual([x["code"] for x in data["violations"]], ["EMPTY_FIELD"])
         self.assertEqual(self.read(path), before, "拒绝路径必须零写入")
 
-    # trace: C·3a §2.3（project.updated 每次写回刷今天；from 缺省 = 未开始）
+    # project.updated 每次写回刷今天；from 缺省 = 未开始
     def test_missing_status_field_is_treated_as_initial(self):
         self.write_prototype()
         self.write_design(status=None)
@@ -237,7 +237,7 @@ class LegalEdgeTests(TransitionCase):
         self.assertEqual(data["updated"][:10], datetime.date.today().isoformat())
         self.assertRegex(data["updated"], r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
 
-    # trace: C·3a §2.3（removed_reason 仅 已移除 时写——恢复即清）
+    # removed_reason 仅 已移除 时写——恢复即清
     def test_restore_from_removed_clears_reason(self):
         self.write_prototype()
         path = self.write_design(status="已移除", removed_reason="旧原因")
@@ -249,7 +249,7 @@ class LegalEdgeTests(TransitionCase):
 
 
 class IllegalEdgeTests(TransitionCase):
-    # trace: C·3a §2.5（不在表内的边一律 ILLEGAL_TRANSITION，报错须教正确路径）
+    # 不在表内的边一律 ILLEGAL_TRANSITION，报错须教正确路径
     def test_illegal_edges_rejected_with_teaching_message(self):
         cases = (("未开始", "已批准"), ("未开始", "待验收"), ("未开始", "已移除"),
                  ("结构稿中", "已批准"), ("待验收", "未开始"), ("已移除", "已批准"))
@@ -272,7 +272,7 @@ class IllegalEdgeTests(TransitionCase):
 
 
 class ErrorCodeTests(TransitionCase):
-    # trace: C·3a §2.5（错误码复用 diyc 同名：UNKNOWN_ID / DUPLICATE_ID / GATE_FAILED）
+    # 错误码复用 diyc 同名：UNKNOWN_ID / DUPLICATE_ID / GATE_FAILED
     def test_unknown_page_id(self):
         self.write_prototype()
         self.write_design(status="未开始")
@@ -290,8 +290,8 @@ class ErrorCodeTests(TransitionCase):
         data = self.receipt(proc)
         self.assertEqual(data["violations"][0]["code"], "DUPLICATE_ID")
 
-    # trace: C·3a §2.3（pages[].id 契约与 validate 同口径：缺 ID / 非字符串 ID 给结构码，
-    #                    不得退化成 DUPLICATE_ID: None 或 INTERNAL_ERROR(不可哈希)）
+    # pages[].id 契约与 validate 同口径：缺 ID / 非字符串 ID 给结构码，
+    #                    不得退化成 DUPLICATE_ID: None 或 INTERNAL_ERROR(不可哈希)
     def test_page_id_shape_problems_rejected_without_internal_error(self):
         self.write_prototype()
         self.design = self.write("diy-output/design.yaml",
@@ -359,7 +359,7 @@ class ErrorCodeTests(TransitionCase):
 
 
 class ReceiptShapeTests(TransitionCase):
-    # trace: C·3a §2.4（回执形状全家族统一：单行 JSON + 公共键 + 命令专有键）
+    # 回执形状全家族统一：单行 JSON + 公共键 + 命令专有键
     def test_receipt_shape_common_and_specific_keys(self):
         self.write_prototype()
         self.write_design(status="未开始")
@@ -375,7 +375,7 @@ class ReceiptShapeTests(TransitionCase):
         self.assertIsInstance(data["counts"], dict)
         self.assertIn("design.yaml", data["file"])
 
-    # trace: C·3a §2.4（violations[] 为 {code, where, msg} 三键）
+    # violations[] 为 {code, where, msg} 三键
     def test_violation_shape_is_code_where_msg(self):
         self.write_prototype()
         self.write_design(status="未开始")
@@ -385,7 +385,7 @@ class ReceiptShapeTests(TransitionCase):
             self.assertEqual(set(item), {"code", "where", "msg"})
             self.assertNotIn("\\", item["where"], "where 须正斜杠")
 
-    # trace: C·3a §4.7（人读态不等于 JSON 态）
+    # 人读态不等于 JSON 态
     def test_human_mode_prints_no_json(self):
         self.write_prototype()
         self.write_design(status="未开始")
@@ -395,7 +395,7 @@ class ReceiptShapeTests(TransitionCase):
         self.assertNotIn('{"ok"', proc.stdout)
         self.assertIn("P-1 未开始 → 结构稿中", proc.stdout)
 
-    # trace: C·3a §2.5（已移除 的 warnings[] 给 stories.yaml 悬空 AC 清单）
+    # 已移除 的 warnings[] 给 stories.yaml 悬空 AC 清单
     def test_removed_warns_dangling_design_refs(self):
         self.write_prototype()
         self.write("diy-output/stories.yaml", NL.join([
@@ -419,7 +419,7 @@ class ReceiptShapeTests(TransitionCase):
 
 
 class PrevSnapshotTests(TransitionCase):
-    # trace: C·3a §4.3（重写既有 design.yaml 前落 .prev；原子写不留残骸）
+    # 重写既有 design.yaml 前落 .prev；原子写不留残骸
     def test_prev_snapshot_is_pre_write_content(self):
         self.write_prototype()
         path = self.write_design(status="未开始")
@@ -434,7 +434,7 @@ class PrevSnapshotTests(TransitionCase):
         self.assertFalse(os.path.exists(path + ".tmp"), "原子写残留 .tmp")
         self.assertFalse(os.path.exists(path + ".prev.tmp"), "快照写残留 .prev.tmp")
 
-    # trace: C·3a §4.3（--previous 对账四条分支：稳定 / ID_UNSTABLE / MISSING_FILE / UNPARSABLE_YAML）
+    # --previous 对账四条分支：稳定 / ID_UNSTABLE / MISSING_FILE / UNPARSABLE_YAML
     def test_previous_reconciliation_branches(self):
         self.write_prototype()
         path = self.write_design(status="未开始")
@@ -466,7 +466,7 @@ class PrevSnapshotTests(TransitionCase):
         self.assertEqual(self.receipt(proc4)["violations"][0]["code"], "UNPARSABLE_YAML")
         self.assertNotIn("Traceback", proc4.stderr)
 
-    # trace: C·3a §4.3（transition 落快照 → 对账可闭环）
+    # transition 落快照 → 对账可闭环
     def test_transition_snapshot_feeds_reconciliation(self):
         self.write_prototype()
         path = self.write_design(status="未开始")

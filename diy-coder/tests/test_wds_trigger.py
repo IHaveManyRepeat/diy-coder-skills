@@ -17,7 +17,7 @@
 - ⑧ SKILL.md 契约冒烟（母本 §1/§2/§3/§4/§5/§6 六节逐字 + 终门句指向本引擎 + 产物路径声明句
      + frontmatter 六字段取源实值）
 - ⑨ 本技能特有边界：**`metrics` 的四条越界情形**（每人 3–5 正 / 3–5 负 / 2–4 群 /
-     连接数 = 目标数 + 2×人物数）——越界一律 **warning 不阻断**（源侧「展示端自适应」口径）
+     连接数 = 目标数 + 2×人物数）——越界一律 **warning 不阻断**（「展示端自适应」口径）
 
 另含引擎内表核对（回报必答 ③⑧⑩ 的机械证据）：直接导入引擎模块，比对常量与 Effect Map 四类样式。
 
@@ -46,7 +46,7 @@ PRODUCT_FILE = "wds-trigger.yaml"
 UPSTREAM_FILE = "wds-brief.yaml"
 
 # ------------------------------------------------------------------ 独立内表（非实现拷贝）
-# 源侧取数位置（裁定 6 / 08a–08h / templates/trigger-map.template.md）：
+# 取数位置（08a–08h / templates/trigger-map.template.md）：
 DRIVER_RANGE = (3, 5)          # `step-04-driving-forces.md:104,116`（采集端 3–5/类）
 PERSONA_RANGE = (2, 4)         # `step-03-target-groups.md:39`（收窄到 2–4）
 GOAL_RANGE = (3, 5)            # `step-02-business-goals.md`（3-5 SMART objectives）
@@ -56,7 +56,7 @@ CLASS_DEFS = (
     "classDef targetGroup fill:#f9fafb,color:#1f2937,stroke:#d1d5db,stroke-width:2px",
     "classDef drivingForces fill:#f3f4f6,color:#1f2937,stroke:#d1d5db,stroke-width:2px",
 )
-# 源 `08g:63-66`；驱动因素 emoji 规则见 `08e:76-87`（WANTS/FEARS 标题不带 emoji）
+# `08g:63-66`；驱动因素 emoji 规则见 `08e:76-87`（WANTS/FEARS 标题不带 emoji）
 DRIVER_EMOJI = ("✅", "❌")
 
 # 母本六节锚串（suite-texts.md §1/§2/§3/§4/§5/§6，逐字）
@@ -85,12 +85,12 @@ V_SHAPE = ("code", "where", "msg")
 # 红线（与 test_suite_texts.py 的守卫同式）：教模型传引擎会拒的 --previous 类型
 PREVIOUS_CHECK_RE = re.compile(r"check --type ([\w-]+) --previous")
 
-# frontmatter 六字段取源实值（裁定 4；证据 = research/_req_check.txt 第 4 行）
+# frontmatter 六字段取源实值（证据 = research/_req_check.txt 第 4 行）
 FRONTMATTER = (("phase", "1-wds-strategy"), ("precededBy", '[diy-wds-brief]'),
                ("followedBy", "[]"), ("required", "true"), ("line", "wds"),
                ("outputs", "wds-trigger.yaml"))
 
-# 质检承载位（§2.4 / 裁定 15）：13 维去重后的分组 + 源 steps-v 五维
+# 质检承载位（§2.4）：13 维去重后的分组 + 源 steps-v 五维
 FINISH_GROUPS = ("成品与图", "跨段一致与语言", "人物与驱动因素", "业务目标与特征影响", "链式校验")
 VALIDATE_DIMS = ("目标群覆盖", "优先级一致性", "人物一致性", "特征影响对齐", "跨段连贯")
 # 去重后实测的 `- [ ]` 项数（源 104 项经 13 维去重；详见 steps/06-finish.md）
@@ -541,7 +541,7 @@ class CheckTests(EngineCase):
         final = self.check("--final")
         self.assertEqual(final.returncode, 1, final.stdout)
 
-    # trace: 任务书 §2.6 ⑤ + 裁定 16（驱动因素数量越界 → EMPTY_FIELD 点名键）
+    # 驱动因素数量越界 → EMPTY_FIELD 点名键
     def test_check_enforces_driver_and_persona_ranges(self):
         self.complete(personas=[persona(1, priority="主", positives=2), persona(2)])
         r = self.check("--final")
@@ -554,7 +554,7 @@ class CheckTests(EngineCase):
         self.assertTrue(any("personas" in x["where"]
                             for x in self.results(r2)["violations"]), self.results(r2))
 
-    # trace: 任务书 §2.6 ⑤ + 裁定 8/16（ID 唯一性与引用可解析）
+    # ID 唯一性与引用可解析
     def test_check_detects_duplicate_and_unknown_ids(self):
         twins = [persona(1, priority="主"), persona(1)]
         self.complete(personas=twins)
@@ -571,7 +571,7 @@ class CheckTests(EngineCase):
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("UNKNOWN_ID", self.codes(r2))
 
-    # trace: 任务书 §2.6 ⑤ / 裁定 10（评分重算不符 → SET_MISMATCH）
+    # 评分重算不符 → SET_MISMATCH
     def test_check_detects_score_and_decision_mismatch(self):
         data = product_yaml()
         self.product(data.replace("score: 11", "score: 99"))
@@ -739,7 +739,7 @@ class SkillContractTests(unittest.TestCase):
         lines = raw.replace(NL + chr(13), NL).replace(chr(13) + NL, NL).rstrip(NL).split(NL)
         self.assertLessEqual(len(lines), 250, "SKILL.md 超 250 行（薄主文件硬阈值）")
 
-    # trace: 任务书 §8 验收 #8 / 裁定 4（frontmatter 六字段逐字取源实值）
+    # frontmatter 六字段逐字取源实值
     def test_frontmatter_six_fields_take_source_values(self):
         raw = self.read_skill()
         head = raw.split("---")[1]
@@ -758,7 +758,7 @@ class SkillContractTests(unittest.TestCase):
         for name in names:
             self.assertIn(name, raw, "SKILL.md 工作流段缺 %s 的一行指路" % name)
 
-    # trace: 任务书 §2.2 红线 + 裁定 7（Effect Map 收编骨架在场）
+    # 红线（Effect Map 收编骨架在场）
     def test_no_wds_type_previous_check_taught_and_template_present(self):
         steps = os.path.join(SKILL_DIR, "steps")
         for rel in ["SKILL.md"] + ["steps/" + n for n in sorted(os.listdir(steps))
@@ -784,7 +784,7 @@ class FinishChecklistTests(unittest.TestCase):
         with io.open(FINISH_STEP, encoding="utf-8") as handle:
             return handle.read()
 
-    # trace: 任务书 §2.4 / 裁定 15（五维校验并入 06-finish.md 质检查表）
+    # 五维校验并入 06-finish.md 质检查表
     def test_checklist_groups_and_validation_dimensions(self):
         raw = self.read_finish()
         for label in FINISH_GROUPS:
@@ -813,21 +813,21 @@ class InternalTableTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
-    # trace: 任务书 §0.2 裁定 6（三组互斥口径归一的取值）
+    # 三组互斥口径归一的取值
     def test_ranges_match_ruling_six(self):
         mod = self.load_module()
         self.assertEqual(tuple(getattr(mod, "DRIVER_RANGE", ())), DRIVER_RANGE)
         self.assertEqual(tuple(getattr(mod, "PERSONA_RANGE", ())), PERSONA_RANGE)
         self.assertEqual(tuple(getattr(mod, "GOAL_RANGE", ())), GOAL_RANGE)
 
-    # trace: 任务书 §0.2 裁定 7（08g 的四类样式色值逐字收编）
+    # 08g 的四类样式色值逐字收编
     def test_class_defs_are_verbatim(self):
         mod = self.load_module()
         defs = list(getattr(mod, "CLASS_DEFS", ()))
         self.assertEqual(defs, list(CLASS_DEFS), "四类样式须与 08g:63-66 逐字一致")
         self.assertEqual(len(defs), 4)
 
-    # trace: 任务书 §0.2 裁定 16（driving_forces 嵌在 personas[] 内，不设顶层并列段）
+    # driving_forces 嵌在 personas[] 内，不设顶层并列段
     def test_driving_forces_are_nested_not_top_level(self):
         mod = self.load_module()
         self.assertEqual(tuple(getattr(mod, "PERSONA_KEYS", ()))[:1], ("id",))

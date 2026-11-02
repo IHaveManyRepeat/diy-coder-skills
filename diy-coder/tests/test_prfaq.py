@@ -185,7 +185,7 @@ class EngineCase(unittest.TestCase):
 
 class HeadlessGateTests(EngineCase):
 
-    # trace: B1 diy-prfaq 验收 #3（headless 输入门禁：零产出 + 具名缺口 + 指引）
+    # headless 输入门禁：零产出 + 具名缺口 + 指引
     def test_headless_gate_refuses_with_named_gaps_and_zero_output(self):
         r = self.headless("--problem", "手工整理需求耗时")
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
@@ -201,7 +201,7 @@ class HeadlessGateTests(EngineCase):
         self.assertEqual(data["counts"]["essential_fields"], 1)
         self.assertEqual(os.listdir(self.out), [], "门禁拒绝路径不得写任何文件")
 
-    # trace: B1 diy-prfaq §5（headless：四项在场且非空 → 放行）
+    # headless：四项在场且非空 → 放行
     def test_headless_gate_passes_with_four_essentials(self):
         r = self.headless("--customer", "独立开发者", "--problem", "手工整理需求耗时",
                           "--stakes", "交付延期", "--solution", "自动生成 PRFAQ 草稿")
@@ -220,7 +220,7 @@ class HeadlessGateTests(EngineCase):
 
 class CheckValidationTests(EngineCase):
 
-    # trace: B1 diy-prfaq 验收 #2（合法草稿 exit 0 唯一放行；起草期宽松）
+    # 合法草稿 exit 0 唯一放行；起草期宽松
     def test_check_draft_legal_record_passes(self):
         self.write("diy-output/prfaq.yaml", PRFAQ_DRAFT)
         r = self.check()
@@ -233,7 +233,7 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(data["counts"]["faqs"], 1)
         self.assertEqual(data["counts"]["notes"], 1)
 
-    # trace: B1 diy-prfaq 验收 #2（--final 定稿义务：stage=5 + 九键非空 + distillate 非空）
+    # --final 定稿义务：stage=5 + 九键非空 + distillate 非空
     def test_check_final_legal_record_passes(self):
         self.write("diy-output/prfaq.yaml", PRFAQ_FINAL)
         r = self.check("--final")
@@ -244,7 +244,7 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(data["counts"]["open_questions"], 1)
         self.assertEqual(data["counts"]["notes"], 2)
 
-    # trace: B1 diy-prfaq 验收 #2（三类违规各带 code：枚举 / 阶段 / 空字段）
+    # 三类违规各带 code：枚举 / 阶段 / 空字段
 
     # 批 3 追裁②（2026-10-15）：project 时间键非空门＋两格式——留空＝未盖章红；
     # 秒级真值合法（prfaq 不在 CHECK_TYPES，闭环断口在此补齐；DATE_RE 随批扩秒）
@@ -282,7 +282,7 @@ class CheckValidationTests(EngineCase):
             self.assertTrue(all(x.get("where") and x.get("msg")
                                 for x in data["violations"]), r.stdout)
 
-    # trace: B1 diy-prfaq 验收 #2/#4（essentials 四键非空；FAQ ID 唯一与格式）
+    # essentials 四键非空；FAQ ID 唯一与格式
     def test_check_essentials_and_faq_ids(self):
         missing = swap(PRFAQ_DRAFT, "    stakes: 交付延期" + NL, "")
         self.write("diy-output/prfaq.yaml", missing)
@@ -344,7 +344,7 @@ class CheckValidationTests(EngineCase):
         r4 = self.check()
         self.assertEqual(r4.returncode, 0, r4.stdout + r4.stderr)
 
-    # trace: B1 diy-prfaq 验收 #2（--final 零 [假设]）
+    # --final 零 [假设]
     def test_check_final_rejects_assumption_marker(self):
         # YAML 块序列项以 `[` 开头须引号包裹（未引号会破坏解析）——SKILL.md 同款纪律
         text = swap(PRFAQ_FINAL, "  - text: 成本模型缺实测数据",
@@ -412,7 +412,7 @@ class CheckValidationTests(EngineCase):
         self.write("diy-output/prfaq.yaml", PRFAQ_FINAL)
         self.assertEqual(self.check("--final").returncode, 0)
 
-    # trace: B1 diy-prfaq 验收 #2（notes 键：过程叙事承载，逐条校验 stage/content）
+    # notes 键：过程叙事承载，逐条校验 stage/content
     def test_check_notes_entries(self):
         # 出现时校验：stage 越界 → ENUM_INVALID；content 空 → EMPTY_FIELD
         bad_stage = swap(PRFAQ_FINAL, "  content: 客户问题暴露数据归属缺口，裁为 accepted trade-off",
@@ -443,7 +443,7 @@ class CheckValidationTests(EngineCase):
         self.assertEqual(r4.returncode, 0, r4.stdout + r4.stderr)  # 缺席合法
         self.assertEqual(json.loads(r4.stdout)["counts"]["notes"], 0)
 
-    # trace: B1 diy-prfaq 验收 #2（缺文件 / 损坏 YAML → 结构化违规，不 Traceback）
+    # 缺文件 / 损坏 YAML → 结构化违规，不 Traceback
     def test_check_missing_file_and_unparsable_are_structured(self):
         r = self.check()
         self.assertEqual(r.returncode, 1, r.stdout)
@@ -460,7 +460,7 @@ class CheckValidationTests(EngineCase):
 
 class PreviousTests(EngineCase):
 
-    # trace: B1 diy-prfaq 验收 #4（--previous：稳定 PQ ID 集合比对，旧有新无 → ID_UNSTABLE）
+    # --previous：稳定 PQ ID 集合比对，旧有新无 → ID_UNSTABLE
     def test_previous_reports_id_unstable(self):
         dropped = swap(PRFAQ_FINAL, "  - id: PQ-002" + NL + "    q: 数据存在哪里？" + NL
                        + "    a: 全部落本地 YAML，不上传" + NL, "")
@@ -477,7 +477,7 @@ class PreviousTests(EngineCase):
         r2 = self.check("--previous", os.path.join(self.out, "prfaq.yaml.prev"))
         self.assertEqual(r2.returncode, 0, r2.stdout + r2.stderr)
 
-    # trace: B1 diy-prfaq 验收 #4（--previous 路径无效 → 结构化 MISSING_FILE）
+    # --previous 路径无效 → 结构化 MISSING_FILE
     def test_previous_missing_file_is_structured(self):
         self.write("diy-output/prfaq.yaml", PRFAQ_FINAL)
         r = self.check("--previous", os.path.join(self.out, "nope.yaml"))
@@ -488,13 +488,13 @@ class PreviousTests(EngineCase):
 
 class CliContractTests(EngineCase):
 
-    # trace: B1 diy-prfaq 验收 #12（引擎不做实例解析/目录推导：--output-dir 必填）
+    # 引擎不做实例解析/目录推导：--output-dir 必填
     def test_output_dir_is_mandatory(self):
         for cmd in ("check", "headless"):
             r = run_engine([cmd, "--project-root", self.root, "--json"])
             self.assertEqual(r.returncode, 2, "%s: %s" % (cmd, r.stdout + r.stderr))
 
-    # trace: B1 diy-prfaq §2.2（无 --json → 中文人读行：每违规一行 + 汇总）
+    # 无 --json → 中文人读行：每违规一行 + 汇总
     def test_human_readable_refusal(self):
         r = run_engine(["headless", "--project-root", self.root,
                         "--output-dir", self.out])
@@ -525,14 +525,14 @@ class SkillContractTests(unittest.TestCase):
         rules_at = raw.index("## 规则")
         self.assertGreater(raw.index(lines[0]), rules_at, "纪律块未落在规则段内")
 
-    # trace: B1 diy-prfaq §2.1（终门句指向 prfaq.py check --final）
+    # 终门句指向 prfaq.py check --final
     def test_final_gate_points_to_engine(self):
         skill = self.read_skill()
         self.assertIn("prfaq.py", skill, "终门句未指向领域引擎")
         self.assertIn("check --final", skill, "终门句缺 check --final")
         self.assertIn("--json", skill, "终门句缺 --json 回执")
 
-    # trace: B1 diy-prfaq §12.5 收敛（被拒方案回流 distillate.constraints 的权威路由句在 01）
+    # 收敛（被拒方案回流 distillate.constraints 的权威路由句在 01）
     def test_rejection_routing_is_declared_in_step_01(self):
         with io.open(STEP_01_MD, encoding="utf-8") as f:
             step = f.read()

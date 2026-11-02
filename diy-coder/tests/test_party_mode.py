@@ -109,7 +109,7 @@ class SkillContractTests(unittest.TestCase):
         self.assertTrue(raw.rstrip(NL).endswith(DISCIPLINE_ZH),
                         "写作纪律块须置文件收尾行")
 
-    # trace: 任务书 §5 裁定 1–3（本批最大改造：真子代理 / 逐字呈现 / 视角动态派生 / 零写面）
+    # 本批最大改造：真子代理 / 逐字呈现 / 视角动态派生 / 零写面
     def test_key_discipline_sentences(self):
         raw = self.skill()
         for phrase in ("真子代理", "逐字呈现", "不合成", "视角动态派生",
@@ -145,7 +145,7 @@ class SkillContractTests(unittest.TestCase):
         for flag in ("--model <model>", "--solo"):
             self.assertIn(flag, raw, "缺参数面机器锚点：%s" % flag)
 
-    # trace: 任务书 §5 裁定 5（与 diy-review 的边界声明；V 终审计项②的施工面）
+    # 与 diy-review 的边界声明；V 终审计项②的施工面
     def test_boundary_with_diy_review_is_two_way(self):
         raw = self.skill()
         self.assertIn("diy-review", raw, "缺与 diy-review 的边界声明")

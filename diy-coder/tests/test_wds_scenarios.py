@@ -50,7 +50,7 @@ STEP_FILES = ["01-context.md", "02-strategy.md", "03-plan.md",
 
 # 06-finish.md 的质检查表（4 维 25 项 + 五维并入 3+8+16+9，组 C 与维 1 去重不重复计）
 CHECKLIST_TOTAL = 61
-# 32 个源 `<gate>`（workflow.xml）抽取清单的标签（每类至少一行落位）
+# 32 个 `<gate>`（workflow.xml）抽取清单的标签（每类至少一行落位）
 GATE_GROUP_LABELS = ("32 闸", "coverage-check", "quality-gates-pass",
                      "design-intent-saved", "append-only")
 
@@ -469,7 +469,7 @@ class IdChainTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("SET_MISMATCH", self.codes(r))
 
-    # trace: 任务书 §0.2 裁定 8（slug 是展示名，须与 ID 同源）
+    # slug 是展示名，须与 ID 同源
     def test_page_slug_must_track_id(self):
         self.upstream()
         pages = [page(1, "首页", "01.1-home", "点「服务」进服务页"),
@@ -551,7 +551,7 @@ class CoverageTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         self.assertIn("UNKNOWN_ID", self.codes(r))
 
-    # trace: 任务书 §0.2 裁定 8 / 骨律（场景名必须含人物名；上游可解析时机械核）
+    # 骨律（场景名必须含人物名；上游可解析时机械核）
     def test_scenario_name_must_contain_persona_name(self):
         self.upstream()
         self.product(product_yaml(scenarios=[scenario_yaml(name="紧急求助流程")]))
@@ -644,7 +644,7 @@ class CheckTests(EngineCase):
                   if x["code"] == "EMPTY_FIELD"]
         self.assertTrue(any(x.endswith("scenarios[0].design_intent") for x in places), places)
 
-    # trace: 任务书 §0.2 裁定 17（三条交接契约键必携）
+    # 三条交接契约键必携
     def test_handover_contract_keys_required(self):
         self.upstream()
         self.product(product_yaml(scenarios=[scenario_yaml(drop=["trigger_map_context"])]))
@@ -652,7 +652,7 @@ class CheckTests(EngineCase):
         self.assertEqual(r.returncode, 1, r.stdout)
         places = self.places(r)
         self.assertTrue(any("trigger_map_context" in x for x in places), places)
-        # design_status 初值必须是 not-started（本技能只设初值，推进归 C·3 的 diy-design）
+        # design_status 初值必须是 not-started（本技能只设初值，推进归 diy-design）
         self.product(product_yaml(scenarios=[scenario_yaml(design_status="built")]))
         bad = self.check("--final")
         self.assertEqual(bad.returncode, 1, bad.stdout)
@@ -820,7 +820,7 @@ class SkillContractTests(unittest.TestCase):
 
 
 class FinishChecklistTests(unittest.TestCase):
-    """§2.6 ⑨ + 裁定 15：06-finish.md 的质检查表与 32 闸清单在场。"""
+    """§2.6 ⑨：06-finish.md 的质检查表与 32 闸清单在场。"""
 
     def read_finish(self):
         if not os.path.isfile(FINISH_STEP):
@@ -828,7 +828,7 @@ class FinishChecklistTests(unittest.TestCase):
         with io.open(FINISH_STEP, encoding="utf-8") as handle:
             return handle.read()
 
-    # trace: 任务书 §0.2 裁定 15（校验维度并入 finish 质检查表，条数机械可核）
+    # 校验维度并入 finish 质检查表，条数机械可核
     def test_checklist_item_count(self):
         raw = self.read_finish()
         items = [ln for ln in raw.replace(chr(13) + NL, NL).split(NL)
@@ -837,7 +837,7 @@ class FinishChecklistTests(unittest.TestCase):
                          "06-finish.md 的 `- [ ]` 须恰 %d 项，实为 %d"
                          % (CHECKLIST_TOTAL, len(items)))
 
-    # trace: 任务书 §0.2 裁定 15（源 steps-v 五维全部在场）
+    # 源 steps-v 五维全部在场
     def test_five_validation_dimensions_present(self):
         raw = self.read_finish()
         for label in ("场景覆盖", "导航模式", "大纲完整", "跨场景一致", "SEO 关键词对齐"):
@@ -849,7 +849,7 @@ class FinishChecklistTests(unittest.TestCase):
         for label in GATE_GROUP_LABELS:
             self.assertIn(label, raw, "32 闸抽取清单缺 %s" % label)
 
-    # trace: 任务书 §0.2 裁定 6（避坑维度取 checklist 权威版 7 项）
+    # 避坑维度取 checklist 权威版 7 项
     def test_mistake_dimension_is_seven(self):
         raw = self.read_finish()
         self.assertIn("7/7", raw, "避坑维度阈值须取 checklist 权威版 7 项")
@@ -877,7 +877,7 @@ class InternalTableTests(unittest.TestCase):
         self.assertEqual(tuple(getattr(mod, "SCENARIO_FORMAT_ENUM", ())),
                          ("screen-flow", "storyboard", "mixed"))
 
-    # trace: 任务书 §0.2 裁定 17（design_intent 五值 + design_status 初值）
+    # design_intent 五值 + design_status 初值
     def test_handover_contract_enums(self):
         mod = self.load_module()
         self.assertEqual(tuple(getattr(mod, "DESIGN_INTENT_ENUM", ())),

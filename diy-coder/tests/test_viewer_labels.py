@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""diy-viewer 标签与降级渲染契约测试（C·2，2026-09-21）。
+"""diy-viewer 标签与降级渲染契约测试。
 
-夹具：临时项目 + 覆盖 C·2 四类修复点的产物；断言
+夹具：临时项目 + 覆盖四类修复点的产物；断言
   ① 假悬空守卫——REF_KEYS 列表里的非 ID 字符串（技能名）不得标红，真悬空 ID 仍标红
   ② 修订历史——顶层 revisions 渲染为默认折叠的中文「修订历史」块
   ③ 文档类型标签——DOC_LABELS 全表的中文标题（页面 h1 + 索引卡片），键清单从 viewer 导入
@@ -145,7 +145,7 @@ class _Fixture(unittest.TestCase):
 
 
 class ViewerRefGuardTests(_Fixture):
-    # trace: C·2 ① 假悬空守卫——与 collect_dangling 的 is_id_string 守卫对称
+    # ① 假悬空守卫——与 collect_dangling 的 is_id_string 守卫对称
     def test_non_id_ref_values_not_marked_dangling(self):
         # module-plan 的 skills[].depends_on 装技能名（diy-*），不是 ID：不得标红
         self.write("module-plan.yaml", MODULE_PLAN_DOC)
@@ -181,7 +181,7 @@ class ViewerRefGuardTests(_Fixture):
 
 
 class ViewerRevisionsTests(_Fixture):
-    # trace: C·2 ② 迁移计划「修订历史留痕」——默认折叠的修订历史卡片
+    # ② 「修订历史留痕」——默认折叠的修订历史卡片
     def test_revisions_renders_as_folded_block(self):
         self.write("brainstorm.yaml", BRAINSTORM_DOC)
         p = self.render()
@@ -211,7 +211,7 @@ class ViewerRevisionsTests(_Fixture):
 
 
 class ViewerDocLabelTests(_Fixture):
-    # trace: C·2 ③ 文档类型标签全表——键清单从 viewer 导入，新增类型自动纳入
+    # ③ 文档类型标签全表——键清单从 viewer 导入，新增类型自动纳入
     def test_all_doc_types_have_chinese_titles(self):
         names = sorted(viewer.DOC_LABELS)
         self.assertGreaterEqual(len(names), 30, "DOC_LABELS 覆盖数异常偏少")
@@ -238,7 +238,7 @@ class ViewerDocLabelTests(_Fixture):
 
 
 class ViewerKeyLabelTests(_Fixture):
-    # trace: C·2 ④ B1–B5 新产物键中文化——英文键名直出回归防线
+    # ④ B1–B5 新产物键中文化——英文键名直出回归防线
     def test_new_artifact_keys_are_chinese(self):
         self.write("module-plan.yaml", MODULE_PLAN_DOC)
         self.write("brainstorm.yaml", BRAINSTORM_DOC)
@@ -266,7 +266,7 @@ class ViewerKeyLabelTests(_Fixture):
 
 
 # ---------------------------------------------------------------------------
-# C·11 W3（§5.1 标签缺口 / §5.2 链接档 + 诊断档）
+# §5.1 标签缺口 / §5.2 链接档 + 诊断档
 # ---------------------------------------------------------------------------
 
 WDS_ASSETS_DOC = NL.join([
@@ -489,7 +489,7 @@ SAME_KEY_DOCS = {
 
 
 class ViewerB7bLabelTests(_Fixture):
-    # trace: C·11 W3 §5.1——B7b 五产物的文档名 / 键名 / 值名三张标签表补齐
+    # B7b 五产物的文档名 / 键名 / 值名三张标签表补齐
     def test_new_doc_types_have_chinese_titles(self):
         for name, label in (("wds-design-system", "设计系统"), ("wds-assets", "资产工厂"),
                             ("wds-evolution", "Kaizen 迭代"), ("analysis", "单问架构分析")):
@@ -607,7 +607,7 @@ class ViewerB7bLabelTests(_Fixture):
 
 
 class ViewerAssetLinkTests(_Fixture):
-    # trace: C·11 W3 §5.2 链接档（裁定 11）——assets[].path 出相对链接且真能到达目标文件
+    # 链接档——assets[].path 出相对链接且真能到达目标文件
     def write_asset(self, rel, body="<html>ok</html>"):
         path = os.path.join(self.out, *rel.split("/"))
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -651,7 +651,7 @@ class ViewerAssetLinkTests(_Fixture):
 
 
 class ViewerAssetsNoteTests(_Fixture):
-    # trace: C·11 W3 §5.2 诊断档（裁定 12）——assets/ 有内容 → 一行 stderr；无内容 → 静默
+    # 诊断档——assets/ 有内容 → 一行 stderr；无内容 → 静默
     def test_note_when_assets_dir_has_files(self):
         path = os.path.join(self.out, "assets", "wireframes")
         os.makedirs(path)
@@ -662,7 +662,7 @@ class ViewerAssetsNoteTests(_Fixture):
         self.assertEqual(p.returncode, 0, p.stderr)  # 诊断不改 rc
         notes = [ln for ln in p.stderr.splitlines() if "assets" in ln]
         self.assertEqual(len(notes), 1, "诊断不是一行：%r" % p.stderr)
-        # C·12 收口订正（用户裁定 A）：清单页落地后「未渲染」成假事实，锚改「已列入清单页」
+        # 收口订正（用户裁定 A）：清单页落地后「未渲染」成假事实，锚改「已列入清单页」
         self.assertIn("已列入清单页", notes[0])
         self.assertIn("点开查看", notes[0])
 
@@ -678,7 +678,7 @@ class ViewerAssetsNoteTests(_Fixture):
 
 
 # ---------------------------------------------------------------------------
-# C·3a 收口链④（§2.3：新增键 3 个 + 从属字段 1 个 · 页状态 5 值）
+# 收口链④（§2.3：新增键 3 个 + 从属字段 1 个 · 页状态 5 值）
 # ---------------------------------------------------------------------------
 
 # design.yaml 的增量面：token_scope / open_questions（形状同 prd）/ pages[].status 5 值 +
@@ -738,7 +738,7 @@ DESIGN_C3A_DOC = NL.join([
 
 
 class ViewerC3aDesignLabelTests(_Fixture):
-    # trace: C·3a 收口链④——design.yaml 增量面的徽章与键标签（改前：4 行假诊断 + 2 键裸出）
+    # 收口链④——design.yaml 增量面的徽章与键标签（改前：4 行假诊断 + 2 键裸出）
     def test_page_and_question_statuses_are_badged_without_drift(self):
         self.write("design.yaml", DESIGN_C3A_DOC)
         p = self.render()
@@ -767,7 +767,7 @@ class ViewerC3aDesignLabelTests(_Fixture):
 
 
 # ---------------------------------------------------------------------------
-# C·12 W2（裁定 C12-2：渲染通道修复 + 两键标签；Layer 1 增补：决策时间轴页）
+# W2（裁定 C12-2：渲染通道修复 + 两键标签；Layer 1 增补：决策时间轴页）
 # ---------------------------------------------------------------------------
 
 # 双模 design 夹具：form_factor / modes 两键（值照任务书 §0 表）+ tokens.color.dark
@@ -817,7 +817,7 @@ DESIGN_C12_DOC = NL.join([
 
 
 class ViewerC12DesignLabelTests(_Fixture):
-    # trace: C·12 W2（裁定 C12-1/C12-2 ③）——两键标签 + 值标签 + dark 子块零裸键
+    # 两键标签 + 值标签 + dark 子块零裸键
     def test_form_factor_and_modes_labels_and_badges(self):
         self.write("design.yaml", DESIGN_C12_DOC)
         p = self.render()
@@ -856,7 +856,7 @@ class ViewerC12DesignLabelTests(_Fixture):
 
 
 class ViewerC12PathLinkTests(_Fixture):
-    # trace: C·12 W2（裁定 C12-2 ②）——prototype/implementation 链接化 + 跳过 ID linkify
+    # prototype/implementation 链接化 + 跳过 ID linkify
     def write_output_file(self, rel, body="x"):
         path = os.path.join(self.out, *rel.split("/"))
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -969,7 +969,7 @@ class ViewerCmRefsTests(_Fixture):
 
 
 class ViewerC12AssetsPageTests(_Fixture):
-    # trace: C·12 W2（裁定 C12-2 ①）——assets 产物清单页：按活动分组 + 相对路径直链
+    # assets 产物清单页：按活动分组 + 相对路径直链
     NINE_DOCS = ("prd", "architecture", "epics", "stories", "test-plan", "design",
                  "wds-brief", "wds-assets", "wds-design-system")
 
@@ -1043,7 +1043,7 @@ class ViewerC12AssetsPageTests(_Fixture):
 
 
 class ViewerC12TimelineTests(_Fixture):
-    # trace: C·12 W2（Layer 1 裁定归入）——跨产物决策时间轴页
+    # 跨产物决策时间轴页
     def _two_docs_with_revisions(self):
         self.write("brainstorm.yaml", BRAINSTORM_DOC)  # 1 条：2026-09-19
         self.write("prd.yaml", NL.join([

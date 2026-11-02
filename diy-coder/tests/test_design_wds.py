@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""W7 跨工位测试（C·3a 任务书 §6 断言面 1 / 2 / 3 / 6 / 7 / 8）。
+"""W7 跨工位测试（断言面 1 / 2 / 3 / 6 / 7 / 8）。
 
 **定位（§6 原文）**：只测「需要两个以上工位产物合力才能断言」的面——单工位能自测的
 一律不归本文件。面 4（`transition` 后重跑 `validate` 自洽）与面 5（终门联动）在同批
@@ -273,7 +273,7 @@ class UpstreamToDesignHandoverTests(W7Harness):
         })
         self.scenarios_path = self.write("wds-scenarios.yaml", upstream_scenarios_doc())
 
-    # trace: C·3a §6 面 1（上游产物的合法性由上游引擎判定——本夹具是「真产物」）
+    # 上游产物的合法性由上游引擎判定——本夹具是「真产物」
     def test_upstream_fixture_passes_its_own_final_gate(self):
         rc, data = run_json(SCENARIOS_PY, [
             "check", "--final", "--project-root", self.root,
@@ -282,7 +282,7 @@ class UpstreamToDesignHandoverTests(W7Harness):
         self.assertTrue(data["ok"], data.get("violations"))
         self.assertEqual(data["counts"]["coverage"], "1/1", data["counts"])
 
-    # trace: C·3a §6 面 1（字段级对账：下游消费的每个字段 ∈ 上游结构块声明的模式）
+    # 字段级对账：下游消费的每个字段 ∈ 上游结构块声明的模式
     def test_every_consumed_field_is_declared_upstream(self):
         block = read(SCENARIOS_SKILL_MD)
         for field, where in sorted(DESIGN_CONSUMED_FIELDS.items()):
@@ -304,7 +304,7 @@ class UpstreamToDesignHandoverTests(W7Harness):
             for name in sorted(names):
                 self.assertIn(name, block, "上游引擎终门要求 %s，结构块未声明" % name)
 
-    # trace: C·3a §6 面 1（上游五值意图域 → 设计侧活动路由：值域两处必须同源）
+    # 上游五值意图域 → 设计侧活动路由：值域两处必须同源
     def test_design_intent_domain_matches_upstream_enum(self):
         source = read_scenarios_source()
         enum = re.search(r"DESIGN_INTENT_ENUM\s*=\s*\((.*?)\)", source)
@@ -327,7 +327,7 @@ class UpstreamToDesignHandoverTests(W7Harness):
                 self.assertTrue(os.path.isfile(os.path.join(DESIGN_STEPS, step)),
                                 "路由目标步骤文件不在场：%s" % step)
 
-    # trace: C·3a §6 面 1（覆盖矩阵：上游机械核过 → 下游显式声明「不重核」）
+    # 覆盖矩阵：上游机械核过 → 下游显式声明「不重核」
     def test_coverage_matrix_is_upstream_gated_and_not_rechecked(self):
         self.assertIn("def check_coverage", read_scenarios_source(),
                       "上游不再机械核覆盖矩阵——下游的「不重核」失去前提")
@@ -364,7 +364,7 @@ class DesignToDevFieldTests(W7Harness):
             docs["steps/" + name] = read(os.path.join(steps, name))
         return docs
 
-    # trace: C·3a §6 面 2（design 产物字段 → dev 消费点，逐字段对账）
+    # design 产物字段 → dev 消费点，逐字段对账
     def test_dev_consumes_design_page_fields(self):
         docs = self.dev_docs()
         design_block = read(DESIGN_SKILL_MD)
@@ -379,7 +379,7 @@ class DesignToDevFieldTests(W7Harness):
         self.assertIn("audit --design", docs["diy-dev/SKILL.md"])
         self.assertIn("diy-design/scripts/design.py", docs["diy-dev/SKILL.md"])
 
-    # trace: C·3a §6 面 2（反向：dev 读的页级键不得越出设计侧声明的页 schema）
+    # 反向：dev 读的页级键不得越出设计侧声明的页 schema
     def test_dev_invents_no_page_keys(self):
         declared = set(re.findall(r"^  ([a-z_]+):", read(DESIGN_SKILL_MD), re.M))
         # 设计侧「结构」段的页级键（页记录层：`- id:` 与缩进二级的键）
@@ -400,7 +400,7 @@ class DesignToDevFieldTests(W7Harness):
                          "dev 读了设计侧页 schema 之外的键：%s"
                          % sorted(used - page_keys - declared))
 
-    # trace: C·3a §6 面 2（写权窄的字段级证据：写回只动 pages[].status + project.updated）
+    # 写权窄的字段级证据：写回只动 pages[].status + project.updated
     def test_writeback_preserves_every_design_owned_field(self):
         path = self.write("design.yaml", design_text(
             page_status="结构稿中", implementation="src/pages/SC-01.P1.html"))
@@ -439,7 +439,7 @@ class ScenarioBridgeTests(W7Harness):
         return self.write("prd.yaml", {"project": {"name": "mini", "status": "已定稿"},
                                        "features": features})
 
-    # trace: C·3a §3.4 / §6 面 3（桥第 1 步「只取前端面 FR」——按 FR 逐条判定）
+    # 桥第 1 步「只取前端面 FR」——按 FR 逐条判定
     def test_detect_yields_exactly_the_frontend_frs(self):
         self.prd(["页面以列表展示待办事项", "系统按周期导出 CSV 报表并归档",
                   "用户可在详情页查看订单状态"])
@@ -449,7 +449,7 @@ class ScenarioBridgeTests(W7Harness):
         self.assertEqual([hit["fr"] for hit in data["hits"]], ["F-1", "F-3"],
                          "前端面判定未按 FR 逐条收敛（桥的取数源会漂移）")
 
-    # trace: C·3a §6 面 3（桥第 4 步：骨架落盘 → validate 必然 FAIL 且缺的是 states）
+    # 桥第 4 步：骨架落盘 → validate 必然 FAIL 且缺的是 states
     def test_skeleton_fails_validate_for_the_documented_reason(self):
         self.prd(["页面以列表展示待办事项"])
         skeleton = {
@@ -466,7 +466,7 @@ class ScenarioBridgeTests(W7Harness):
         self.assertIn("design.yaml pages[P-1].states", wheres,
                       "骨架自检的预期 FAIL 未落在 states（桥的收尾句失准）：%s" % wheres)
 
-    # trace: C·3a §6 面 3（逐页规格补齐 → 桥的终点是「引擎放行的 design.yaml」；铸号不复用）
+    # 逐页规格补齐 → 桥的终点是「引擎放行的 design.yaml」；铸号不复用
     def test_bridge_completes_to_engine_valid_pages(self):
         self.prd(["页面以列表展示待办事项"])
         self.write("design.yaml", design_text(project_status="草稿", page_id="P-1",
@@ -502,7 +502,7 @@ class DualSourceZeroOutputTests(W7Harness):
                          % (filename, len(found)))
         return found[0].strip()
 
-    # trace: C·3a §6 面 6（四情形：两条门禁句对四种夹具的判别 + 分流句）
+    # 四情形：两条门禁句对四种夹具的判别 + 分流句
     def test_four_source_cases_are_discriminating(self):
         self.assertEqual(self.gate("prd.yaml"), "已定稿", "设计侧主线门禁的取值漂移")
         self.assertEqual(self.gate("wds-scenarios.yaml"), "已定稿", "设计侧 WDS 门禁的取值漂移")
@@ -528,7 +528,7 @@ class DualSourceZeroOutputTests(W7Harness):
         self.assertIn("零产出", src.split("两者都缺", 1)[1][:120],
                       "设计侧的缺源分支未带零产出声明")
 
-    # trace: C·3a §6 面 6（零产出落到文件数：两源皆缺时全链路零文件）
+    # 零产出落到文件数：两源皆缺时全链路零文件
     def test_zero_sources_zero_output(self):
         rc, data = run_json(DESIGN_PY, ["detect", "--project-root", self.root, "--json"])
         self.assertEqual(rc, 1, json.dumps(data, ensure_ascii=False))
@@ -568,7 +568,7 @@ class MotherTextMatrixTests(unittest.TestCase):
     def has_steps(self, skill):
         return os.path.isdir(os.path.join(SKILLS, skill, "steps"))
 
-    # trace: C·3a §2.8 / §6 面 7（四技能 × 四类锚串的适用面矩阵）
+    # 四技能 × 四类锚串的适用面矩阵
     def test_anchor_applicability_matrix(self):
         lg = self.ledger
         anchors = {"§1": lg.INSTANCE_ZH, "§2": lg.DISCIPLINE_ZH,
@@ -627,7 +627,7 @@ class WdsPageChainTests(W7Harness):
         self.assertEqual(rc, 0, json.dumps(data, ensure_ascii=False))
         return data
 
-    # trace: C·3a §9 #14 / §6 面 8（未开始 → 结构稿中 → 待验收；各步后 validate 仍绿）
+    # 未开始 → 结构稿中 → 待验收；各步后 validate 仍绿
     def test_page_walks_from_not_started_to_pending_acceptance(self):
         # 起点：旧稿形态（该页无 status 键 = 未开始），结构稿与实现稿落位
         path = self.design(with_status_key=False, implementation="src/pages/SC-01.P1.html")

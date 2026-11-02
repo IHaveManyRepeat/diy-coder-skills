@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diy-help 登记表守卫（C·1 登记表驱动）。
+"""diy-help 登记表守卫。
 
 表 = `skills/diy-help/registry.yaml`（链序 + 提示文案 + 线级入口/执行技能）
 实物 = 各技能 `SKILL.md` 的 frontmatter 六字段（phase / precededBy / followedBy / required / line / outputs）
@@ -54,7 +54,7 @@ def frontmatter(skill):
 def registry():
     try:
         return load_engine().load_registry()
-    except SystemExit:  # 引擎对非法登记表硬失败（C·1 裁定 3）
+    except SystemExit:  # 引擎对非法登记表硬失败
         raise AssertionError(
             "引擎读取登记表失败（registry.yaml 形状非法或缺失）——见 stderr 的 FATAL 行")
 

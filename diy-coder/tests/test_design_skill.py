@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diy-design 技能文档契约（C·3a 段1 · W1）。
+"""diy-design 技能文档契约。
 
 本文件自 `test_design.py` 迁出 `SkillContractTests` 整段（含其专用常量）。
 迁出理由（任务书 §3 首步必做）：`SKILL.md` 是 W1 的独占文件面，而 `test_design.py`
@@ -59,7 +59,7 @@ def read_scenarios_source():
 
 
 class SkillContractTests(unittest.TestCase):
-    """SKILL.md 契约冒烟：母本逐字 + 中文化政策 + B-6 七条落点 + C·3a 改造面。"""
+    """SKILL.md 契约冒烟：母本逐字 + 中文化政策 + B-6 七条落点 + 改造面。"""
 
     def setUp(self):
         with open(SKILL_MD, encoding="utf-8") as fh:
@@ -76,7 +76,7 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn(DISCIPLINE_ZH, self.raw, "缺母本 §2 写作纪律块")
 
     # trace: 2026-09-19 中文化政策（四段中文标题 + description 中文注释）
-    # trace: C·3a §2.1 行数口径订正——软控制线 = 现状 93 + 20% = ≤112（**不是** ≤90 硬阈值，
+    # 行数口径订正——软控制线 = 现状 93 + 20% = ≤112（**不是** ≤90 硬阈值，
     #        也非旧断言的 93）；超线须在回报说明理由，本断言即该控制线的机械抓手。
     def test_four_chinese_sections_and_budget(self):
         self.assertLessEqual(len(self.raw.splitlines()), 112, "薄主文件超出 112 行控制线")
@@ -127,13 +127,13 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("kind: frontend", self.raw, "缺 B9 取值路径")
         self.assertIn("停下问用户一次", self.raw, "缺找不到时的明确处置")
 
-    # ------------------------------------------------------- C·3a 改造面（W1 新增）
+    # ------------------------------------------------------- 改造面
 
-    # trace: C·3a §2.8（长出 steps/ → 必补母本 §4 读取纪律锚串）
+    # 长出 steps/ → 必补母本 §4 读取纪律锚串
     def test_read_discipline_anchor_landed(self):
         self.assertIn(READ_DISCIPLINE, self.raw, "缺母本 §4 读取纪律锚串（steps/ 已落地）")
 
-    # trace: C·3a §3.1（双源判定 + WDS 线门禁 + 缺源零产出）
+    # 双源判定 + WDS 线门禁 + 缺源零产出
     def test_dual_source_input_declared(self):
         self.assertIn("wds-scenarios.yaml", self.raw, "激活时未声明 WDS 线输入源")
         self.assertIn("prd.yaml", self.raw, "激活时未声明主线输入源")
@@ -158,17 +158,17 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("OS-###", self.raw, "缺 OS-### 摄取声明")
         self.assertIn("out_of_scope", self.raw, "缺 prd out_of_scope 摄取锚")
 
-    # trace: C·3a §3.1 ★ 裁定 7 订正（pages[].id 值域按来源线定）
+    # ★ 订正（pages[].id 值域按来源线定）
     def test_page_id_domain_per_line(self):
         self.assertIn("SC-<nn>.P<n>", self.raw, "WDS 线页 ID 域未落")
         self.assertIn("P-n", self.raw, "主线页 ID 域未落")
 
-    # trace: C·3a §3.1（design_intent → 预选活动；design_status 推进写权）
+    # design_intent → 预选活动；design_status 推进写权
     def test_wds_handover_contract(self):
         self.assertIn("design_intent", self.raw, "未接上游 design_intent 交接契约")
         self.assertIn("design_status", self.raw, "未声明 design_status 推进写权")
 
-    # trace: C·3a 收尾补漏（W7 发现）——值域 5 值里 `L` 在设计侧无落点：上游
+    # 收尾补漏（W7 发现）——值域 5 值里 `L` 在设计侧无落点：上游
     #        `DESIGN_INTENT_ENUM` 的 `K`/`C`/`S`/`D` 各有活动文件（k-sketch / c-discuss /
     #        s-suggest / d-dream），`L`（上游 `steps/06-finish.md`：Later——到设计阶段再定）
     #        谁都不认。失效模式 = 主文件列了值域（`K|C|S|D|L`）却没给 `L` 的处置。
@@ -192,7 +192,7 @@ class SkillContractTests(unittest.TestCase):
                       "预选句列了值域却没给 `L` 的处置（K/C/S/D 有活动文件，L 无落点）")
         self.assertIn("问用户一次", preselect[0], "`L` 的处置未写「问用户一次」")
 
-    # trace: C·3a §3.1（design_status 值域落地——上游 9 值机械枚举；写表外值即上游 ENUM_INVALID）
+    # design_status 值域落地——上游 9 值机械枚举；写表外值即上游 ENUM_INVALID
     # trace: V4-L-1 双向化——原守卫只断言「枚举 9 值在场」，查不出「主文件写了枚举外值」
     #        （缺口原失效模式 = 映射里自造「进行中值」类枚举外值）；补反向 ⊆ 断言。
     def test_design_status_value_domain_matches_upstream_enum(self):
@@ -252,43 +252,43 @@ class SkillContractTests(unittest.TestCase):
             self.assertTrue(
                 hits, "推进档位 `%s` 在 steps/ 层无落点（权威表声明有、步骤层写不出）" % value)
 
-    # trace: C·3a §3.2（九活动路由下沉 steps/，主文件只给路由）
+    # 九活动路由下沉 steps/，主文件只给路由
     def test_nine_activities_routed_to_steps(self):
         self.assertIn("steps/", self.raw, "主文件未给 steps/ 路由")
         for activity in ("[C]", "[K]", "[S]", "[D]", "[P]", "[V]", "[W]", "[M]", "[H]"):
             self.assertIn(activity, self.raw, "九活动路由缺 %s" % activity)
 
-    # trace: C·3a §3.3（原型循环：循环单元称「段」，不叫「页规格」）
+    # 原型循环：循环单元称「段」，不叫「页规格」
     def test_prototype_loop_naming(self):
         self.assertIn("原型循环", self.raw, "缺原型循环路由")
         self.assertIn("段（section）", self.raw, "未钉死循环单元名（段）")
 
-    # trace: C·3a §3.5 / §2.3（状态扩展零 schema 改动，只需授权表述）
+    # 状态扩展零 schema 改动，只需授权表述
     def test_extra_states_authorized(self):
         for state in ("离线", "权限拒绝", "冷启动"):
             self.assertIn(state, self.raw, "未授权四态之外的额外状态：%s" % state)
 
-    # trace: C·3a §2.5（transition 命令的调用句；主文件只给命令不给实现）
+    # transition 命令的调用句；主文件只给命令不给实现
     def test_transition_command_referenced(self):
         self.assertIn("transition --design", self.raw, "缺 transition 调用句")
 
-    # trace: C·3a §2.3 / §3.2（open_questions 键 + 场景桥 + 复杂度启发式）
+    # open_questions 键 + 场景桥 + 复杂度启发式
     def test_schema_extensions_declared(self):
         self.assertIn("open_questions", self.raw, "结构段未声明 open_questions 键")
         self.assertIn("token_scope", self.raw, "结构段未声明 token_scope 键")
         self.assertIn("场景桥", self.raw, "缺场景桥路由")
 
-    # trace: C·3a 裁定 17（术语陷阱：wds-5[P] 不叫「页规格」）
+    # 术语陷阱：wds-5[P] 不叫「页规格」
     def test_no_prototyping_page_spec_confusion(self):
         self.assertNotIn("建页规格", self.raw, "残留裁定 17 的术语陷阱措辞")
 
-    # trace: C·3a §3.7 ③（双源判定的机械面）——两个路由目标技能在场
+    # 双源判定的机械面——两个路由目标技能在场
     def test_routing_targets_installed(self):
         for skill in ("diy-prd", "diy-wds-brief"):
             path = os.path.join(SKILLS, skill, "SKILL.md")
             self.assertTrue(os.path.isfile(path), "缺源时的路由目标技能不在场：%s" % skill)
 
-    # trace: C·3a §3.1（WDS 输入字段契约须与上游 `diy-wds-scenarios` 的声明逐字一致）
+    # WDS 输入字段契约须与上游 `diy-wds-scenarios` 的声明逐字一致
     def test_wds_upstream_contract_matches(self):
         upstream_path = os.path.join(SKILLS, "diy-wds-scenarios", "SKILL.md")
         with open(upstream_path, encoding="utf-8") as fh:
@@ -300,7 +300,7 @@ class SkillContractTests(unittest.TestCase):
         for token in ("design_intent", "design_status", "SC-<nn>.P<n>"):
             self.assertIn(token, self.raw, "本技能未接上游契约键 %r" % token)
 
-    # trace: C·3a 母本 §4 锚串（「以每个步骤开头的 `Read (input)` 行为唯一权威」）——
+    # 母本 锚串（「以每个步骤开头的 `Read (input)` 行为唯一权威」）——
     #        锚串承诺了 steps/ 的形态，此处把它机械化：每个步骤文件都须有 `Read (input)` 行。
     def test_every_step_file_declares_read_input(self):
         names = sorted(n for n in os.listdir(STEPS_DIR) if n.endswith(".md"))
@@ -311,7 +311,7 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn("**Read (input):**", body, "%s 缺 `Read (input)` 行" % name)
             self.assertIn("**Write (output):**", body, "%s 缺 `Write (output)` 行" % name)
 
-    # trace: C·3a §3.6（主文件只给路由）——主文件点名的每个 steps 文件都必须在场
+    # 主文件只给路由——主文件点名的每个 steps 文件都必须在场
     def test_routed_step_files_exist(self):
         import re
         routed = set(re.findall(r"steps/([a-z0-9-]+\.md)", self.raw))
@@ -321,9 +321,9 @@ class SkillContractTests(unittest.TestCase):
                          "主文件路由与 steps/ 实况不符——缺文件 %s；未路由 %s"
                          % (sorted(routed - on_disk), sorted(on_disk - routed)))
 
-    # ------------------------------------------------------- C·12 裁定 C12-1（W1 新增）
+    # -------------------------------------------------------
 
-    # trace: C·12 §2.1 交付 5（值域双向守卫，C·3a H1 教训：SKILL.md 文档枚举 ==
+    # 交付 5（值域双向守卫，H1 教训：SKILL.md 文档枚举 ==
     #        design.py 实现枚举，双向逐字一致——单侧断言查不出另一侧自造枚举外值）
     def test_form_factor_and_modes_enums_match_engine(self):
         import re
@@ -347,7 +347,7 @@ class SkillContractTests(unittest.TestCase):
                 self.assertIn(val, py_values,
                               "SKILL.md 枚举 %s=%s 不在 design.py 实现内（自造表外值）" % (key, val))
 
-    # trace: C·7 任务书 §2 W4 交付 4（meta 子键集双向守卫——照 C·12 W1 交付 5 形态，键名集比对）
+    # 交付 4（meta 子键集双向守卫——键名集比对）
     def test_meta_subkeys_match_engine(self):
         import re
         source = read_design_sources()
@@ -361,9 +361,9 @@ class SkillContractTests(unittest.TestCase):
         self.assertEqual(doc_keys, py_keys,
                          "meta 子键集文档与实现不一致：SKILL=%s py=%s" % (doc_keys, py_keys))
 
-    # trace: C·13 任务书 §2 W2 交付 3（a11y 码集一致锁——SKILL.md 判定句点名的码集 ==
-    #        design.py check 实际产出的码集，双向集合相等；照 C·12 W1 交付 5 /
-    #        C·7 W4 交付 4 双向守卫形态，把码点名一致性从 V 人工面变机械锁。
+    # 交付 3（a11y 码集一致锁——SKILL.md 判定句点名的码集 ==
+    #        design.py check 实际产出的码集，双向集合相等；照
+    #        双向守卫形态，把码点名一致性从 V 人工面变机械锁。
     #        提取锚 = SKILL.md 含「来自 `check` 回执」的恰一行（= a11y 判定句，
     #        行定位口径同 test_design_intent_l_has_disposition，不扫全文反引号串））
     def test_a11y_code_set_matches_engine(self):
@@ -383,7 +383,7 @@ class SkillContractTests(unittest.TestCase):
             "a11y 码集文档与实现不一致：SKILL=%s py=%s"
             % (sorted(doc_codes), sorted(py_codes)))
 
-    # trace: C·12 §7-5①（dark 六角色 = 亮色六角色同款——守卫两角色集不脱钩）
+    # dark 六角色 = 亮色六角色同款——守卫两角色集不脱钩
     def test_dark_roles_match_color_roles(self):
         import re
         source = read_design_sources()
@@ -397,7 +397,7 @@ class SkillContractTests(unittest.TestCase):
                          "dark 六角色与亮色角色集脱钩：dark=%s color=%s"
                          % (dark_roles, color_roles))
 
-    # trace: C·12 §2.1 交付 1/4/9（结构段两键 + 规则区两键句与移动端按压态句在场）
+    # 交付 1/4/9（结构段两键 + 规则区两键句与移动端按压态句在场）
     def test_two_keys_and_mobile_press_documented(self):
         self.assertIn("form_factor: 响应式 Web|移动端|桌面|多端", self.raw,
                       "结构段缺 form_factor 键行（值域逐字按裁定 C12-1 表）")

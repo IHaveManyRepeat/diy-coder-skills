@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""install.py 分发完整性验收（C·5 欠账）。
+"""install.py 分发完整性验收。
 
-夹具策略（裁定 14）：把源技能树**冻结**成临时副本，`python <冻结源>/install.py <临时目标根>`
+夹具策略：把源技能树**冻结**成临时副本，`python <冻结源>/install.py <临时目标根>`
 装到 tempfile 后断言安装侧产物——零副作用、可重复。**绝不读工作区 `.claude/skills/`**：那会把
 sync 纪律混进测试面（改了源还没 sync 时误红），分发面与同步纪律必须分开。
 
@@ -15,7 +15,7 @@ sync 纪律混进测试面（改了源还没 sync 时误红），分发面与同
 rmtree 分支）· diy-coder.yaml 仅首次创建。
 
 运行：cd diy-coder && python -m unittest discover -s tests -p "test_install_dist.py" -v
-trace: 任务书 §7.2（裁定 14）；被测面 install.py:26-53。
+trace: 任务书 §7.2；被测面 install.py:26-53。
 """
 import atexit
 import hashlib
@@ -33,7 +33,7 @@ INSTALLED_REL = os.path.join(".claude", "skills")
 TOOLS = ("runner.py", "exp-sync.py")               # 仓库根 → 安装侧 diy-tools/scripts/（:37-41）
 # 现役技能数（B7b 收口后 49）：新增/删除技能时同步更新——install.py 漏拷即红
 EXPECTED_SKILL_COUNT = 50
-# 植进冻结副本的探针：源侧不该被分发的三类路径（install.py:28-29 / :34）
+# 植进冻结副本的探针：不该被分发的三类路径（install.py:28-29 / :34）
 PROBES = {
     "skills/diy-viewer/scripts/__pycache__/probe.pyc": "",        # :34 ignore_patterns("__pycache__")
     "skills/__pycache__/probe.pyc": "",
@@ -268,7 +268,7 @@ class RepeatInstallTests(unittest.TestCase):
 class DefaultTargetTests(unittest.TestCase):
     """无参形态：目标 = 源根的父目录（install.py:21）。
 
-    C·11 收口后裁定补测（V-C 偏离 ① / L3）——原 8 用例只测显式目标根；无参分支的语义是
+    收口后裁定补测（V-C 偏离 ① / L3）——原 8 用例只测显式目标根；无参分支的语义是
     「装到源树所在仓库」，直跑冻结源（其根在系统临时目录下）会往共享 /tmp 拉屎，故本用例
     自建 `<tmp>/diy-coder/` 一层：无参目标 = 该临时根，随 TemporaryDirectory 自动清理。
     """
@@ -298,7 +298,7 @@ class DefaultTargetTests(unittest.TestCase):
 
 
 class SmokeTargetTests(unittest.TestCase):
-    """C·5 余项①（收口后裁定）：冒烟对象 = **安装侧**。
+    """余项①（收口后裁定）：冒烟对象 = **安装侧**。
 
     原实现 `smoke(src)` 验源树——源好而安装侧坏（分发级失败）时仍拿 rc=0 绿回执，
     检验对象错位。本用例的鉴别力：改前把安装侧 skills 目录传给 smoke，内部按

@@ -137,7 +137,7 @@ class EngineCase(unittest.TestCase):
 
 class NewTests(EngineCase):
 
-    # trace: B4 diy-spec 用例 1（new 建记录且 SK 序号连续；有空洞取最大值 + 1）
+    # 用例 1（new 建记录且 SK 序号连续；有空洞取最大值 + 1）
     def test_new_mints_records_with_continuous_ids(self):
         r1 = self.new("alpha")
         self.assertEqual(r1.returncode, 0, r1.stdout + r1.stderr)
@@ -171,7 +171,7 @@ class NewTests(EngineCase):
         with io.open(os.path.join(self.out, SPEC_FILE), encoding="utf-8") as f:
             return yaml.safe_load(f)["specs"]
 
-    # trace: B4 diy-spec 用例 2 + 验收 #3（同 slug 拒绝：零写入、指出既有记录）
+    # 用例 2（同 slug 拒绝：零写入、指出既有记录）
     def test_new_rejects_duplicate_slug_with_zero_write(self):
         self.assertEqual(self.new("alpha").returncode, 0)
         before = self.read(GOOD_FILE)
@@ -186,7 +186,7 @@ class NewTests(EngineCase):
 
 class CheckTests(EngineCase):
 
-    # trace: B4 diy-spec 用例 3（CAP intent 双非空 —— Spec Law 1 的机械面）
+    # 用例 3（CAP intent 双非空 —— Spec Law 1 的机械面）
     def test_check_flags_empty_capability_intent(self):
         self.write_spec(GOOD.replace("intent: 用户能按季度筛选商品。", "intent: ''"))
         r = self.check()
@@ -196,7 +196,7 @@ class CheckTests(EngineCase):
         self.assertIn("capabilities[0].intent", data["violations"][0]["where"])
         self.assertEqual(data["counts"]["capabilities"], 1)
 
-    # trace: B4 diy-spec 用例 4（CAP ID 记录内唯一 —— Spec Law 6）
+    # 用例 4（CAP ID 记录内唯一 —— Spec Law 6）
     def test_check_flags_duplicate_capability_id(self):
         dup = GOOD.replace(
             "  constraints:",
@@ -208,7 +208,7 @@ class CheckTests(EngineCase):
         self.assertIn("DUPLICATE_ID", self.codes(r))
         self.assertIn("capabilities[1].id", self.payload(r)["violations"][0]["where"])
 
-    # trace: B4 diy-spec 用例 5（companions 路径在场性，相对 project-root 解析）
+    # 用例 5（companions 路径在场性，相对 project-root 解析）
     def test_check_flags_missing_companion_path(self):
         self.write_spec(GOOD)
         r = self.check()
@@ -222,7 +222,7 @@ class CheckTests(EngineCase):
         self.assertIn("companions[0]", data["violations"][0]["where"])
         self.assertIn("docs/nope.md", data["violations"][0]["msg"])
 
-    # trace: B4 diy-spec 用例 6（non_goals 至少一条 —— Spec Law 4）
+    # 用例 6（non_goals 至少一条 —— Spec Law 4）
     def test_check_flags_empty_non_goals(self):
         self.write_spec(GOOD.replace("  - 不做跨季度比价" + NL, ""))
         r = self.check()
@@ -232,7 +232,7 @@ class CheckTests(EngineCase):
         self.assertIn("non_goals", data["violations"][0]["where"])
         self.assertIn("Spec Law 4", data["violations"][0]["msg"])
 
-    # trace: B4 diy-spec 用例 9（--final 要求 verdict 两段非空；同稿非 --final 放行）
+    # 用例 9（--final 要求 verdict 两段非空；同稿非 --final 放行）
     def test_final_rejects_record_without_verdict(self):
         self.write_spec(GOOD.replace(VERDICT_BLOCK, ""))
         r = self.check()
@@ -247,7 +247,7 @@ class CheckTests(EngineCase):
 
 class PreviousTests(EngineCase):
 
-    # trace: B4 diy-spec 用例 7 + 验收 #4（--previous：CAP 旧有新无且未标 retired → ID_UNSTABLE）
+    # 用例 7（--previous：CAP 旧有新无且未标 retired → ID_UNSTABLE）
     def test_previous_flags_lost_capability(self):
         prev = GOOD.replace(
             "  constraints:",
@@ -266,7 +266,7 @@ class PreviousTests(EngineCase):
         self.assertEqual(r2.returncode, 1, r2.stdout + r2.stderr)
         self.assertIn("MISSING_FILE", self.codes(r2))
 
-    # trace: B4 diy-spec 用例 8（retired 豁免两态：旧稿标退役 / 新稿留痕标退役）
+    # 用例 8（retired 豁免两态：旧稿标退役 / 新稿留痕标退役）
     def test_previous_exempts_retired_capability(self):
         prev_retired = GOOD.replace(
             "  constraints:",
@@ -289,7 +289,7 @@ class PreviousTests(EngineCase):
 
 class ContractTests(EngineCase):
 
-    # trace: B4 diy-spec 用例 11（回执共同键 + 用法错误 exit 2 + 人读态）
+    # 用例 11（回执共同键 + 用法错误 exit 2 + 人读态）
     def test_receipt_keys_and_usage_errors(self):
         self.write_spec(GOOD)
         data = self.payload(self.check())
@@ -317,7 +317,7 @@ class ContractTests(EngineCase):
         with io.open(path, encoding="utf-8") as f:
             return f.read()
 
-    # trace: B4 diy-spec 用例 10 + 母本 §1/§2/§3/§4/§5/§6（逐字）+ 终门句 + 边界声明
+    # 用例 10 + 母本 §1–§6（逐字）+ 终门句 + 边界声明
     def test_skill_contract_smoke(self):
         self.assertTrue(os.path.isfile(SKILL_MD_PATH), "缺 SKILL.md")
         raw = self.read_text(SKILL_MD_PATH)
@@ -360,7 +360,7 @@ class ContractTests(EngineCase):
                       "不复述上游已写的信息（引用 ID）；不写没有信息量的套话。", raw)
         # 终门句指向本技能引擎（验收 #12b）
         self.assertIn("scripts/spec_kernel.py", raw, "终门须指向自带引擎")
-        # 边界声明两句（§0 裁定 4 双方 SKILL.md）+ diy-prd 区别句（§6 裁定 6）
+        # 边界声明两句（双方 SKILL.md）+ diy-prd 区别句
         self.assertIn("spec.yaml", raw, "缺与 diy-quick-dev 的边界声明")
         self.assertIn("diy-quick-dev", raw)
         self.assertIn("diy-prd", raw, "缺与 diy-prd 的区别句")

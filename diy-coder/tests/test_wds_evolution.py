@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """diy-wds-evolution 冒烟测试（B7b 工位 W3）。
 
-覆盖 B7b 任务书 §0.2 裁定 20 的八类必备用例 + 本技能特有边界：
+覆盖八类必备用例 + 本技能特有边界：
   ① 门禁（无参 exit 2 / 非法值 ENUM_INVALID / 空值 EMPTY_FIELD / 入口门禁零产出）
   ② init 合法 + 骨架断言
   ③ ID 铸号（EV-<nn> 递增、不重复、不跳号）
@@ -34,7 +34,7 @@ DATA_DIR = os.path.join(SKILL_DIR, "data")
 
 PRODUCT = "wds-evolution.yaml"
 
-# —— 母本（diy-coder/.analysis/2026-09-16-skill-remediation/suite-texts.md）逐字片段 ——
+# —— 母本逐字片段 ——
 MOTHER_1 = (
     '实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/'
     'diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` '
@@ -238,7 +238,7 @@ class GateTests(Base):
         self.assertEqual(rec["violations"][0]["code"], "MISSING_FILE")
 
     def test_own_product_yml_spelling_also_does_not_satisfy_gate(self):
-        """VA-09 连带（C·11 E3）：`.yml` 拼写的自产物同样不算门禁上游。"""
+        """VA-09 连带：`.yml` 拼写的自产物同样不算门禁上游。"""
         self.write_artifact("wds-evolution.yml", {"project": {"name": "x"}})
         rc, rec, _, _ = self.init_ok()
         self.assertEqual(rc, 1)
@@ -431,7 +431,7 @@ class CheckTests(Base):
         self.assertIn("EMPTY_FIELD", self.codes(rec))
 
     def test_check_final_requires_increment_scope(self):
-        """裁定 10：[T] 只验本轮增量。"""
+        """[T] 只验本轮增量。"""
         data = self.full_product()
         data["rounds"][0]["test"]["scope"] = "全量验收"
         self.dump_product(data)

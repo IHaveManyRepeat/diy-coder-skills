@@ -417,7 +417,7 @@ class ScoreTests(EngineCase):
     def findings_doc(self, findings, bonus=None):
         return {"findings": findings, "bonus": bonus or []}
 
-    # trace: §6 裁定 1（账本纯函数：已知 findings → 已知分；去重 + convention 降档）
+    # 账本纯函数：已知 findings → 已知分；去重 + convention 降档
     def test_score_ledger_dedupes(self):
         self.write_findings(self.findings_doc([
             {"file": "tests/a.spec.ts", "line": 10, "row": "H1", "note": "硬等待"},
@@ -438,7 +438,7 @@ class ScoreTests(EngineCase):
         self.assertEqual(data["dimensions"]["determinism"], 90)
         self.assertEqual(data["dimensions"]["maintainability"], 100)
 
-    # trace: §6 裁定 3（emerging 降一档 floor LOW；降档由 score 应用）
+    # emerging 降一档 floor LOW；降档由 score 应用
     def test_convention_downgrade_step(self):
         engine = load_engine()
         self.assertEqual(engine.downgrade_severity("MEDIUM", "新现"), "LOW")
@@ -460,7 +460,7 @@ class ScoreTests(EngineCase):
         self.assertEqual(r2.returncode, 1, r2.stdout)
         self.assertIn("ENUM_INVALID", {x["code"] for x in json.loads(r2.stdout)["violations"]})
 
-    # trace: §6 裁定 1/评分账本（分档与 recommendation 数值口径照源）
+    # 评分账本（分档与 recommendation 数值口径照源）
     def test_grade_and_recommendation_parametric(self):
         cases = [
             ([{"file": "t.spec.ts", "line": 1, "row": "C1", "note": "跳过"}],
@@ -481,7 +481,7 @@ class ScoreTests(EngineCase):
             self.assertEqual(data["grade"], grade, data)
             self.assertEqual(data["recommendation"], recommendation, data)
 
-    # trace: §6 裁定 7（bonus 六类数值域 + 矛盾复核）
+    # bonus 六类数值域 + 矛盾复核
     def test_bonus_domain_and_guard(self):
         # 数值域：points 只许 0 或 5
         self.write_findings(self.findings_doc(
@@ -525,7 +525,7 @@ class ScoreTests(EngineCase):
 
 class WalkthroughTests(EngineCase):
 
-    # trace: §6 裁定 5（四类缺口 + 建议路由）
+    # 四类缺口 + 建议路由
     def test_walkthrough_detects_four_gap_kinds(self):
         self.write("diy-output/stories.yaml", STORIES_YAML)
         self.write("diy-output/test-plan.yaml", TEST_PLAN_YAML)
@@ -547,7 +547,7 @@ class WalkthroughTests(EngineCase):
         self.assertEqual(data["counts"]["无实现"], 2)
         self.assertEqual(data["counts"]["孤儿用例"], 1)
 
-    # trace: §6 裁定 5（no_impl 护栏：项目全量零 trace 标记 → 该类整体跳过 + warning）
+    # no_impl 护栏：项目全量零 trace 标记 → 该类整体跳过 + warning
     def test_walkthrough_skips_no_impl_without_trace_marks(self):
         self.write("diy-output/stories.yaml", STORIES_YAML)
         self.write("diy-output/test-plan.yaml", TEST_PLAN_YAML)
@@ -559,7 +559,7 @@ class WalkthroughTests(EngineCase):
         self.assertEqual(data["status"], "部分覆盖", data)
         self.assertIn("无实现", "".join(w["msg"] for w in data["warnings"]), data)
 
-    # trace: §6 裁定 5（缺源降级：stories 缺 → ①②③跳过；全缺 → skipped + note）
+    # 缺源降级：stories 缺 → ①②③跳过；全缺 → skipped + note
     def test_walkthrough_degrades_when_sources_missing(self):
         r = self.walkthrough()
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -764,7 +764,7 @@ class CriteriaRegistryTests(unittest.TestCase):
             self.doc = yaml.safe_load(f)
         self.rows = {r["row"]: r for r in self.doc["rules"]}
 
-    # trace: §6 裁定 3/6/7（35 规则迁移对账的机械面）
+    # 35 规则迁移对账的机械面
     def test_registry_has_35_rows_32_enabled(self):
         self.assertEqual(len(self.rows), 35)
         disabled = {r["row"] for r in self.doc["rules"] if r.get("disabled")}
@@ -773,7 +773,7 @@ class CriteriaRegistryTests(unittest.TestCase):
             got = [r for r in self.rows if r.startswith(prefix)]
             self.assertEqual(len(got), count, prefix)
 
-    # trace: §6 裁定 6（机械集初始 = C1/C2/C3/H1/H5/H6/H7/H8/H9/L4）
+    # 机械集初始 = C1/C2/C3/H1/H5/H6/H7/H8/H9/L4
     def test_mechanical_set_matches_spec(self):
         mechanical = {r["row"] for r in self.doc["rules"] if r["detect"] == "mechanical"}
         self.assertEqual(mechanical,
@@ -781,7 +781,7 @@ class CriteriaRegistryTests(unittest.TestCase):
         for row in self.doc["rules"]:
             self.assertIn(row["detect"], ("mechanical", "semantic"), row["row"])
 
-    # trace: §6 裁定 4（维度映射照源四 worker 表；H9/M8/L2/L8 空映射）
+    # 维度映射照源四 worker 表；H9/M8/L2/L8 空映射
     def test_dimension_mapping_matches_source(self):
         expected = {
             "determinism": {"C1", "C2", "C3", "C4", "C6", "C7", "H1", "H2", "H3",
@@ -806,14 +806,14 @@ class CriteriaRegistryTests(unittest.TestCase):
         for row in convention:
             self.assertTrue(row.get("convention_key"), row["row"])
         # 有效 convention 行必须落在产物 7 键内，否则 R-2 复核会静默失能；
-        # disabled 行（M9 / L9）留档的 playwright_utils 随私有库裁剪出 7 键（裁定 3）
+        # disabled 行（M9 / L9）留档的 playwright_utils 随私有库裁剪出 7 键
         enabled = {r["row"]: r["convention_key"] for r in convention if not r.get("disabled")}
         self.assertEqual(enabled, {"L2": "priority_markers", "L3": "test_ids",
                                    "L5": "bdd_naming", "L7": "assertion_style"})
         for key in enabled.values():
             self.assertIn(key, keys)
 
-    # trace: §6 裁定 7（bonus_guard 映射六类）
+    # bonus_guard 映射六类
     def test_bonus_guard_mapping(self):
         guards = {}
         for row in self.doc["rules"]:
@@ -854,7 +854,7 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("check --final", skill)
         self.assertIn("--json", skill)
 
-    # trace: §6 硬约束 4（评分口径不得漂移）+ 裁定 2（与 diy-review 的边界）
+    # 硬约束 4（评分口径不得漂移）+ 与 diy-review 的边界
     def test_scoring_formula_and_boundary_declared(self):
         skill = self.read_skill()
         self.assertIn("CRITICAL*10 + HIGH*5 + MEDIUM*2 + LOW*1", skill)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """diy-selfcheck 契约冒烟（自带 selfcheck.py 终门引擎、主产物 selfcheck.yaml 编排者写、编排型技能）。
 
-技能定位：任务书/规格自检的**编排者**（B3 taskbook §13 底子 + B4/B6/B7/C·7/C·15 机制融合）——
+技能定位：任务书/规格自检的**编排者**（B3 taskbook §13 底子 + 各批机制融合）——
 冻结锚点 → 三机制派发（预演片调 diy-spec-scan / 引用核对 / 对抗三层）→ 合并去重 →
 D 表处置 → 旧值复扫两轮 → B 部分机制评价。机械面分工（md5/grep 走 shell，
 SS-### 台账与预演片归 diy-spec-scan；终门走自带 selfcheck.py check --final 六义务引擎）。
@@ -100,14 +100,14 @@ class SkillContractTests(unittest.TestCase):
         for step in STEP_FILES:
             self.assertIn("`steps/%s`" % step, raw, "工作流未点名 %s" % step)
 
-    # trace: B3 §13 三机制 + 读取边界各异（不按最严纪律自我设限）
+    # 三机制 + 读取边界各异（不按最严纪律自我设限）
     def test_three_mechanisms_and_read_boundaries(self):
         raw = self.skill()
         for phrase in ("三机制", "预演", "引用核对", "对抗",
                        "不按最严纪律自我设限", "禁读实现", "必读实现"):
             self.assertIn(phrase, raw, "缺三机制/读取边界要素：%s" % phrase)
 
-    # trace: B3 §13 四保障（版本冻结 / 分片禁共写 / 报总数 / B 部分双输出）
+    # 四保障（版本冻结 / 分片禁共写 / 报总数 / B 部分双输出）
     def test_guarantees(self):
         raw = self.skill()
         for phrase in ("冻结", "禁多 agent 写同一产物", "必报总数",
@@ -120,7 +120,7 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("子代理不写长结构化", step2, "缺 B7b 新句（子代理不写长结构化）")
         self.assertIn("主产物由编排者写", step2, "缺 B7b 新句（主产物由编排者写）")
 
-    # trace: B6/B7 闭环道（D 表无空行 / 增量补扫 / 旧值复扫两轮）
+    # 闭环道（D 表无空行 / 增量补扫 / 旧值复扫两轮）
     def test_dispose_loop(self):
         step4 = read(os.path.join(STEPS_DIR, "04-dispose.md"))
         self.assertIn("无处置记录 = 扫描未闭环", step4, "缺 D 表闭环判据")
@@ -130,7 +130,7 @@ class SkillContractTests(unittest.TestCase):
         raw = self.skill()
         self.assertIn("复扫两轮", raw, "SKILL.md 规则区缺复扫两轮锚")
 
-    # trace: B7a 交叉命中置信度 + B7b 拍板贯通三问
+    # 交叉命中置信度 + 拍板贯通三问
     def test_cross_hit_confidence_and_ruling_questions(self):
         step3 = read(os.path.join(STEPS_DIR, "03-merge.md"))
         self.assertIn("置信度最高", step3, "缺交叉命中置信度判据")

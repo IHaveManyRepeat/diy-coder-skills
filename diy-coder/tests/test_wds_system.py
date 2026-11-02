@@ -1,6 +1,6 @@
 """diy-wds-system 契约冒烟测试（B7b · W1）。
 
-八类必备（任务书 §2.2 裁定 20）：门禁 / init / ID 铸号 / list / check / 跨技能门禁 /
+八类必备：门禁 / init / ID 铸号 / list / check / 跨技能门禁 /
 回执键完整性 / 契约冒烟 + 本技能特有边界（token 派生自 design.yaml 的引用一致性、
 组件 ID 的 26 前缀 / 6 分类 / 编号递增）。
 
@@ -194,7 +194,7 @@ class TestInit(Base):
         self.assertIn("updated", r)
 
     def test_default_mode_is_on(self):
-        """裁定 17：设计系统默认开启。"""
+        """设计系统默认开启。"""
         self.seed_scenarios()
         self.init_ok()
         self.assertEqual(self.load()["design_system_mode"], "on")
@@ -504,7 +504,7 @@ class TestCrossSkill(Base):
         self.assertEqual(receipt(out)["violations"][0]["code"], "MISSING_FILE")
 
 
-# ────────────── 8. 特有边界：token 派生自 design.yaml（裁定 5） ──────────────
+# ────────────── 8. 特有边界：token 派生自 design.yaml ──────────────
 
 class TestTokenDerivation(Base):
     def test_derived_mode_when_design_present(self):
@@ -526,7 +526,7 @@ class TestTokenDerivation(Base):
         self.assertTrue([w for w in r["warnings"] if w["code"] == "MISSING_FILE"])
 
     def test_derived_tokens_are_names_only_never_values(self):
-        """裁定 5：引用不复述——产物里不出现 design.yaml 的 token 值。"""
+        """引用不复述——产物里不出现 design.yaml 的 token 值。"""
         self.seed_scenarios()
         self.seed_design(color={"bg": "#abcdef"})
         self.init_ok()
@@ -622,7 +622,7 @@ class TestSimilarity(Base):
         self.assertEqual(s["level_number"], 2)
 
     def test_level_6_band_has_no_clean_sample_and_is_documented(self):
-        """L6（<20）在 1.0/0.6/0.2 三值映射下取不到——源侧的非单调缺陷，登记不改。"""
+        """L6（<20）在 1.0/0.6/0.2 三值映射下取不到——非单调缺陷，登记不改。"""
         pcts = set()
         for a in ("high", "medium", "low"):
             for b in ("high", "medium", "low"):

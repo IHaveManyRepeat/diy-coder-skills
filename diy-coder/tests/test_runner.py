@@ -11,9 +11,9 @@
 - TC-Augment 编码后补测接线：已完成 触发一次 diy-augment spawn，已阻塞 不触发；
   补测会话只写 augment 字段（窄写权，status 零写回）；--skip-augment / --augment-only /
   --reopen-failed 三开关；补测汇总行
-- TC-AllowDeny（迁移计划 §五 C·8①）：默认白名单跨语言覆盖（两套工具名 × 构建/测试链条）、
+- TC-AllowDeny：默认白名单跨语言覆盖（两套工具名 × 构建/测试链条）、
   默认拒止表兜破坏性 git、--allow / --deny 各自替换默认
-- TC-Deferred（迁移计划 §五 C·8②）：结束时待确认动作汇总——有 待办 则一行、全终态/无文件
+- TC-Deferred：结束时待确认动作汇总——有 待办 则一行、全终态/无文件
   零行、坏 YAML 降级一行不崩
 """
 import os
@@ -773,7 +773,7 @@ def make_deferred(out_dir, statuses):
 
 
 class TC_AllowDeny(unittest.TestCase):
-    # trace: 迁移计划 §五 C·8①——无头会话命令白名单扩容（跨语言构建/测试链条）
+    # 无头会话命令白名单扩容（跨语言构建/测试链条）
     # + --disallowedTools 拒止表兜破坏性 git（§十三 保留确认档）
     def setUp(self):
         self.root, self.sprint = make_fixture({"S-1": "待办"})
@@ -836,7 +836,7 @@ class TC_AllowDeny(unittest.TestCase):
 
 
 class TC_Deferred_Summary(unittest.TestCase):
-    # trace: 迁移计划 §五 C·8②——runner 结束时的待确认动作汇总（有则一行，无则零行）
+    # runner 结束时的待确认动作汇总（有则一行，无则零行）
     def setUp(self):
         self.root, self.sprint = make_fixture({"S-1": "已完成"})  # 全终态：零 spawn
 
@@ -869,7 +869,7 @@ class TC_Deferred_Summary(unittest.TestCase):
         self.assertIn("读取失败", result.stdout)
 
 
-# ================================================================ C·3a W6：分线编排（--line wds，§5b）
+# ================================================================ 分线编排（--line wds，§5b）
 #
 # 新增面（既有 27 条主线用例逐字未动）：
 # - TC-WDS-Gate     §5b #2 WDS 硬门：design.yaml 的 project.status: 已定稿；缺失/未定稿 → 拒绝 + 路由
@@ -1473,7 +1473,7 @@ class TC_WDS_PromptShape(WdsCase):
         for prompt in prompts:
             self.assertIn("SC-01.P1", prompt, "提示词未点名页 ID")
             self.assertIn("states[].signals", prompt, "提示词未点名判据真源")
-        # 实现环：回填经 transition + 浏览器门（含裁定 21 的环境不可用处置）+ 终态 待验收
+        # 实现环：回填经 transition + 浏览器门（含环境不可用处置）+ 终态 待验收
         self.assertIn("经 design.py transition 迁移到 待验收", dev_prompt)
         self.assertIn("浏览器强制门", dev_prompt)
         self.assertIn("裁定 21", dev_prompt)
@@ -1676,7 +1676,7 @@ class TC_Line_Contrast(WdsCase):
 
 
 class TC_WDS_StatusLexicon(unittest.TestCase):
-    # trace: 裁定 5 / §5b #3——页状态词表归 diy-design 引擎（design.py PAGE_STATUSES），
+    # 页状态词表归 diy-design 引擎（design.py PAGE_STATUSES），
     # runner 的 PAGE_STATUSES_ALL 只是汇总计数用的只读副本。本类把「只读、不另铸」机械钉死：
     # 引擎词表增删/改序（或 runner 侧副本漂移）即红，不靠人读注释对账（F-5 登记项落地）
     def test_page_statuses_all_matches_engine(self):

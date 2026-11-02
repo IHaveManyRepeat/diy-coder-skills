@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diyc mutate 沙箱机制测试（C·9；迁移计划 §五 阶段 C 第 9 项）。
+"""diyc mutate 沙箱机制测试。
 
 覆盖：--tool 缺失拒绝 / 沙箱建成即销毁（零残留）/ --keep 保留 / --sandbox 显式给址 /
 已存在路径拒绝 / {scope} 占位符替换 / 无占位符却在场的警告 / --full 全量 /
@@ -196,7 +196,7 @@ class RealToolTests(unittest.TestCase):
     """真工具端到端：沙箱里跑 cosmic-ray，验证副本能承载真变异链路。
 
     夹具是微型项目（calc.py 的 `+` 是唯一靶点），秒级完成——完整项目上的变异
-    耗时以小时计，不适合进回归套件（那是发版前的全量跑，见迁移计划 §五 C·9）。
+    耗时以小时计，不适合进回归套件（那是发版前的全量跑）。
     """
 
     def test_cosmic_ray_runs_in_sandbox(self):

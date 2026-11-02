@@ -125,8 +125,8 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual(c.returncode, 0, c.stderr + c.stdout)
         self.assertTrue(json.loads(c.stdout)["ok"])
 
-    # trace: C·3a §2.4（回执归一：单行 {ok,command,violations[],warnings,counts,file}；
-    #                    命令专有键一个不少）
+    # 回执归一：单行 {ok,command,violations[],warnings,counts,file}；
+    #                    命令专有键一个不少
     def test_receipt_family_shape_across_all_four_commands(self):
         dpath = self.write("diy-output/design.yaml", GOOD_DESIGN)
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -165,7 +165,7 @@ class DesignEngineTests(unittest.TestCase):
         audit = json.loads(run_engine(runs["audit"] + ["--json"]).stdout)
         self.assertEqual(audit["audited"], 1)
 
-    # trace: C·3a §2.4（退出码 0 成功 / 1 拒绝 / 2 用法错误）
+    # 退出码 0 成功 / 1 拒绝 / 2 用法错误
     def test_exit_codes_and_rejection_receipts(self):
         dpath = self.write("diy-output/design.yaml", GOOD_DESIGN)
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -230,8 +230,8 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual(c2.returncode, 0, c2.stdout)
         self.assertTrue(json.loads(c2.stdout)["ok"])
 
-    # trace: C·3a §4.6（check 维度集扩充：无障碍 a11y-* + 设计系统 ds-token-*，
-    #                    既有 contrast / color-only-signal / semantic-html 不删改）
+    # check 维度集扩充：无障碍 a11y-* + 设计系统 ds-token-*，
+    #                    既有 contrast / color-only-signal / semantic-html 不删改
     def test_check_extra_dimensions_hit_and_keep_legacy_codes(self):
         bad_html = GOOD_HTML.replace(
             "button { background: var(--color-accent); }",
@@ -263,8 +263,8 @@ class DesignEngineTests(unittest.TestCase):
                                             ("text_muted", "bg"), ("text_muted", "surface"),
                                             ("accent_text", "accent"))])
 
-    # trace: C·13 §2 W1（form_factor↔触控下限联动分档：桌面 24；移动端/响应式 Web/多端/
-    #                    缺键/表外值 44；边界口径 = 现行 < 判据下恰值通过）
+    # form_factor↔触控下限联动分档：桌面 24；移动端/响应式 Web/多端/
+    #                    缺键/表外值 44；边界口径 = 现行 < 判据下恰值通过
     def test_touch_target_min_by_form_factor(self):
         def touch_violations(design_text, html):
             dpath = self.write("diy-output/design.yaml", design_text)
@@ -328,8 +328,8 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual(touches, [])
         self.assertTrue(data["ok"], data["violations"])
 
-    # trace: C·13 §2 W1（floor 余项两新码 a11y-reduced-motion / a11y-focus-order；
-    #                    承上例先例形态——新码必判 + 修正路径转绿）
+    # floor 余项两新码 a11y-reduced-motion / a11y-focus-order；
+    #                    承上例先例形态——新码必判 + 修正路径转绿
     def test_check_reduced_motion_and_focus_order_codes(self):
         bad_html = GOOD_HTML.replace(
             "button { background: var(--color-accent); }",
@@ -432,8 +432,8 @@ class DesignEngineTests(unittest.TestCase):
         self.assertTrue(any(v["code"] == "one-off-color"
                             for v in json.loads(a3.stdout)["violations"]), a3.stdout)
 
-    # trace: C·3a §4.4（token_scope：audit 的 os.walk 跳过这些路径，--src 语义不变；
-    #                    相对项按 --src 解析）
+    # token_scope：audit 的 os.walk 跳过这些路径，--src 语义不变；
+    #                    相对项按 --src 解析
     def test_audit_skips_token_scope_paths(self):
         design = GOOD_DESIGN + NL + NL.join([
             "token_scope:",
@@ -456,7 +456,7 @@ class DesignEngineTests(unittest.TestCase):
                          os.path.join(self.root, "diy-output", "src"), "--json"])
         self.assertEqual(len(json.loads(a2.stdout)["violations"]), 2, a2.stdout)
 
-    # trace: C·3a §4.5（open_questions 结构校验 + 终门零 待办）
+    # open_questions 结构校验 + 终门零 待办
     def test_validate_open_questions_and_final_gate(self):
         base = GOOD_DESIGN + NL + NL.join([
             "open_questions:",
@@ -492,7 +492,7 @@ class DesignEngineTests(unittest.TestCase):
         self.assertIn("EMPTY_FIELD", codes3)
         self.assertIn("ENUM_INVALID", codes3)
 
-    # trace: C·3a §2.3（pages[].status 枚举与 removed_reason 从属字段）
+    # pages[].status 枚举与 removed_reason 从属字段
     def test_validate_page_status_enum_and_removed_reason(self):
         dpath = self.write("diy-output/design.yaml",
                            GOOD_DESIGN.replace("  route: /todos",
@@ -509,7 +509,7 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual([x["code"] for x in json.loads(v2.stdout)["violations"]],
                          ["ENUM_INVALID"], v2.stdout)
 
-    # trace: C·3a §2.3（states[].name 契约：有交互状态缺 name → EMPTY_FIELD，where 须定位到 states 序号）
+    # states[].name 契约：有交互状态缺 name → EMPTY_FIELD，where 须定位到 states 序号
     def test_validate_flags_state_missing_name_with_index(self):
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
         design = GOOD_DESIGN.replace("  - name: 加载中",
@@ -523,7 +523,7 @@ class DesignEngineTests(unittest.TestCase):
                          "缺 name 的定位未带 states 序号")
         self.assertIn("缺 name", data["violations"][0]["msg"])
 
-    # trace: C·3a §2.2（保真面：四态缺一的既有报错文本逐字不变——不得再挂后缀或改写）
+    # 保真面：四态缺一的既有报错文本逐字不变——不得再挂后缀或改写
     def test_missing_state_message_kept_verbatim(self):
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
         design = GOOD_DESIGN.replace("  - name: 加载中" + NL + "    signals: [图标, 动效]" + NL, "")
@@ -534,7 +534,7 @@ class DesignEngineTests(unittest.TestCase):
                       [x["msg"] for x in json.loads(v.stdout)["violations"]],
                       "四态缺一的既有报错文本被改写（须与改前引擎逐字一致）")
 
-    # trace: C·3a §2.4（UNPARSABLE_YAML 单码两语义：YAML 语法坏 vs 半写形状，msg 须可区分）
+    # UNPARSABLE_YAML 单码两语义：YAML 语法坏 vs 半写形状，msg 须可区分
     def test_unparsable_yaml_msg_distinguishes_syntax_from_shape(self):
         dpath = self.write("diy-output/design.yaml", "pages: [1," + NL)
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -551,7 +551,7 @@ class DesignEngineTests(unittest.TestCase):
         self.assertNotEqual(syn["violations"][0]["msg"], sh["violations"][0]["msg"],
                             "同码两语义必须在 msg 上可辨（语法错 vs 形状问题）")
 
-    # trace: C·3a §2.3（pages[].id 契约：非空字符串；缺失 → EMPTY_FIELD，非字符串 → UNPARSABLE_YAML）
+    # pages[].id 契约：非空字符串；缺失 → EMPTY_FIELD，非字符串 → UNPARSABLE_YAML
     def test_validate_pages_id_must_be_nonempty_string(self):
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
         no_id = GOOD_DESIGN.replace("- id: P-1" + NL + "  name: 待办列表", "- name: 待办列表")
@@ -569,7 +569,7 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual([x["code"] for x in json.loads(v2.stdout)["violations"]],
                          ["UNPARSABLE_YAML"], v2.stdout)
 
-    # trace: C·3a §4.4（token_scope 单文件 --src：解析基 = src 所在目录，命中仍按前缀包含）
+    # token_scope 单文件 --src：解析基 = src 所在目录，命中仍按前缀包含
     def test_audit_token_scope_with_single_file_src(self):
         app = self.write("diy-output/src/app.css", "body { color: #123456; }" + NL)
         vend = self.write("diy-output/src/vendor/lib.css", "body { color: #123456; }" + NL)
@@ -622,9 +622,9 @@ class DesignEngineTests(unittest.TestCase):
                       "形状问题须以 UNPARSABLE_YAML 上报")
 
 
-    # ------------------------------------------------------- C·12 裁定 C12-1（W1 新增）
+    # -------------------------------------------------------
 
-    # trace: C·12 §0 裁定 C12-1 / §7 裁定 2（五专项码首例：顶层键错误与条目字段错误不同层级）
+    # 五专项码首例：顶层键错误与条目字段错误不同层级
     def test_top_level_two_keys_missing_invalid_and_legacy_ok(self):
         import re
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -653,9 +653,9 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual(v3.returncode, 0, v3.stdout)
         self.assertTrue(json.loads(v3.stdout)["ok"])
 
-    # ------------------------------------------------------- C·7 W4（meta 可选键）
+    # ------------------------------------------------------- meta 可选键
 
-    # trace: C·7 任务书 §2 W4 交付 1/4（meta 三态：缺失/合法 rc=0；空串与非字符串 →
+    # 交付 1/4（meta 三态：缺失/合法 rc=0；空串与非字符串 →
     #        EMPTY_FIELD 且 msg 区分两态；SS-030-06：不用 UNPARSABLE_YAML——那是解析层）
     def test_pages_meta_optional_three_states(self):
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -701,7 +701,7 @@ class DesignEngineTests(unittest.TestCase):
         c1 = run_engine(["check", "--design", dpath, "--json"])
         self.assertEqual(c1.returncode, 0, c1.stdout)
 
-    # trace: C·12 §7-5① / §4 验收 #12（dark 子块形状：仅双模合法且必填，六角色全合法 hex）
+    # dark 子块形状：仅双模合法且必填，六角色全合法 hex
     def test_dual_mode_dark_pair_shape(self):
         import re
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -752,7 +752,7 @@ class DesignEngineTests(unittest.TestCase):
                          "--src", os.path.join(self.root, "diy-output", "prototypes")])
         self.assertEqual(a2.returncode, 0, a2.stdout)
 
-    # trace: C·12 §7-5①（亮/暗 单模携 dark → MODES_INVALID，msg 注明「dark 仅 双模 可有」）
+    # 亮/暗 单模携 dark → MODES_INVALID，msg 注明「dark 仅 双模 可有」
     def test_single_mode_with_dark_rejected(self):
         import re
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -780,7 +780,7 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual([x["code"] for x in json.loads(v2.stdout)["violations"]],
                          ["MODES_INVALID"], v2.stdout)
 
-    # trace: C·12 §7-5② / §4 验收 #13（双模暗色同款 5 组配对；单模零暗色对）
+    # 双模暗色同款 5 组配对；单模零暗色对
     def test_check_dual_mode_dark_contrast_pairs(self):
         import re
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -825,7 +825,7 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual(len(data3["checked"]["contrast_pairs"]), 5, c3.stdout)
         self.assertEqual(data3["counts"]["contrast_pairs"], 5)
 
-    # trace: C·12 §7-5①（collect_token_hexes 展开 dark——「audit 打自己」盲点回归）
+    # collect_token_hexes 展开 dark——「audit 打自己」盲点回归
     def test_audit_dark_hexes_whitelisted(self):
         import re
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -852,7 +852,7 @@ class DesignEngineTests(unittest.TestCase):
         self.assertEqual([x["code"] for x in json.loads(a2.stdout)["violations"]],
                          ["one-off-color"], a2.stdout)
 
-    # trace: C·12 §7-5③ / §4 验收 #14（移动端按压态；非移动端四态逐字不动）
+    # 移动端按压态；非移动端四态逐字不动
     def test_mobile_press_state_required(self):
         import re
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)
@@ -888,7 +888,7 @@ class DesignEngineTests(unittest.TestCase):
                               "非移动端四态判据漂移（form_factor=%r）" % ff)
                 self.assertNotIn("P-1 缺交互状态 按压", msgs)
 
-    # trace: C·12 §7-5③（transition 页级门同口径：移动端按按压判，非移动端按悬停判）
+    # transition 页级门同口径：移动端按按压判，非移动端按悬停判
     def test_transition_gate_uses_press_state_on_mobile(self):
         import re
         self.write("diy-output/prototypes/P-1.html", GOOD_HTML)

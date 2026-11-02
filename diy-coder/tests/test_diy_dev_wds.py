@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""diy-dev 双模式（主线 + WDS 线）文档契约与引擎实跑（C·3a 段2 · W3）。
+"""diy-dev 双模式（主线 + WDS 线）文档契约与引擎实跑。
 
 两半：
   1. **文档契约**（`SkillContractTests`）——§5.1 双模式分支 / §5.2 浏览器强制门 /
@@ -177,27 +177,27 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn(PRECISE_ZH, self.raw, "缺母本 §6 精准简练条款")
         self.assertIn(DISCIPLINE_ZH, self.raw, "缺母本 §2 写作纪律块")
 
-    # trace: C·3a §2.8（本技能本批长出 `steps/` → 母本 §4 锚串必补）
+    # 本技能本批长出 `steps/` → 母本 §4 锚串必补
     def test_read_discipline_anchor_landed(self):
         self.assertIn(READ_DISCIPLINE, self.raw, "缺母本 §4 读取纪律锚串（steps/ 已落地）")
 
-    # trace: C·3a §2.1（四段结构不变 + 软控制线 = 现状 73 + 20% = ≤88；超线须回报理由）
-    # trace: C·7 任务书 §0 裁定 4（承 C·12 裁定 4-②）：旧 88 线随 C·3a 收口失效——
+    # 四段结构不变 + 软控制线 = 现状 73 + 20% = ≤88；超线须回报理由
+    # 旧 88 线已失效——
     #   本批补 WDS form_factor/modes 消费句后按「加句后实测 ×1.2」一次裁到位（SS-030-03 时序）。
-    #   加句后实测 = 88 行（消费句行内追加、未增行），88 × 1.2 = 105.6 → 106（向上取整，照 C·3a 73×1.2=87.6→88 先例）
+    #   加句后实测 = 88 行（消费句行内追加、未增行），88 × 1.2 = 105.6 → 106（向上取整）
     def test_four_sections_and_line_budget(self):
         self.assertLessEqual(len(self.raw.splitlines()), 106, "薄主文件超出 106 行控制线（C·7 裁定 4：实测 88 × 1.2）")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, self.raw, "缺四段结构：%s" % section)
         self.assertIn("# ↑ 中文：", self.raw, "description 缺中文注释")
 
-    # trace: C·3a §2.2（diy-dev 保真面：主线模式一条不丢）
+    # diy-dev 保真面：主线模式一条不丢
     def test_mainline_contract_preserved(self):
         for term in MAINLINE_TERMS:
             self.assertIn(term, self.raw, "主线保真面缺条款：%s" % term)
         self.assertEqual(self.raw.count("终态写抵达真源"), 1, "终态写条款重复插入")
 
-    # trace: C·3a §5.1（双模式分支：门禁单一判据 + 零产出 + 路由）
+    # 双模式分支：门禁单一判据 + 零产出 + 路由
     def test_dual_mode_branch_declared(self):
         self.assertIn("`{output_dir}/design.yaml` 的 `project.status: 已定稿`", self.raw,
                       "未声明 WDS 模式门禁（design.yaml 的 project.status）")
@@ -208,7 +208,7 @@ class SkillContractTests(unittest.TestCase):
         for route in ("`diy-sprint`", "`diy-design`", "`diy-wds-brief`"):
             self.assertIn(route, self.raw, "缺源时的路由目标：%s" % route)
 
-    # trace: C·3a §5.1（WDS 侧三件：目标 = 结构稿中页 / 测试源 = states[].signals / 回填经 transition）
+    # WDS 侧三件：目标 = 结构稿中页 / 测试源 = states[].signals / 回填经 transition
     def test_wds_target_test_source_and_writeback(self):
         self.assertIn("`pages[].status: 结构稿中` 的页", self.raw, "未声明 WDS 目标页判据")
         self.assertIn("键缺失 = `未开始`", self.raw, "未声明旧稿缺 status 键的读法")
@@ -216,7 +216,7 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("`design.py transition`", self.raw, "未声明 WDS 回填经引擎")
         self.assertIn("不手改", self.raw, "未禁止手改 pages[].status")
 
-    # trace: C·3a §5.2 / §2.6（浏览器强制门三要素 + 裁定 21 三情形 + 责任分割）
+    # 浏览器强制门三要素 + 三情形 + 责任分割
     def test_browser_gate_frozen_terms(self):
         self.assertIn("浏览器强制门", self.raw, "缺浏览器强制门条款")
         self.assertIn("Playwright", self.raw, "验手段未点名 Playwright")
@@ -226,20 +226,20 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn(term, self.raw, "裁定 21 缺边界句：%s" % term)
         self.assertIn("先捕基线", self.raw, "改既有功能未要求捕基线")
 
-    # trace: C·3a §9 #13（副作用分层：浏览器自验证属①档，②档只给 viewer 这类 GUI 展示）
+    # 副作用分层：浏览器自验证属①档，②档只给 viewer 这类 GUI 展示
     def test_side_effect_tier_layering(self):
         self.assertIn("①档", self.raw, "缺①档归属")
         self.assertIn("②档", self.raw, "缺②档边界")
         self.assertIn("打开浏览器", self.raw, "未点名②档的 GUI 展示动作")
 
-    # trace: C·3a §5.3 / 裁定 20（与 diy-wds-evolution 的边界：两端互引，本技能写自己这端）
+    # 与 diy-wds-evolution 的边界：两端互引，本技能写自己这端
     def test_boundary_with_wds_evolution(self):
         self.assertIn("`diy-wds-evolution`", self.raw, "未声明演进轮归 diy-wds-evolution")
         self.assertIn("演进轮", self.raw, "缺演进轮边界句")
         self.assertIn("全量验收归本技能", self.raw, "未声明全量验收归属（B7b 裁定 10）")
         self.assertIn("`design_status` 一律只读", self.raw, "未声明 design_status 只读边界")
 
-    # trace: C·3a §5.1（主文件只给路由：WDS 四步全下沉 steps/）
+    # 主文件只给路由：WDS 四步全下沉 steps/
     def test_wds_steps_routed_and_files_exist(self):
         routed = set(re.findall(r"steps/([a-z0-9-]+\.md)", self.raw))
         on_disk = set(n for n in os.listdir(STEPS_DIR) if n.endswith(".md"))
@@ -253,7 +253,7 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn("**Read (input):**", body, "%s 缺 `Read (input)` 行" % name)
             self.assertIn("**Write (output):**", body, "%s 缺 `Write (output)` 行" % name)
 
-    # trace: C·3a §5.1（WDS 侧写面只有一个通道：design.py transition；不碰主线命令）
+    # WDS 侧写面只有一个通道：design.py transition；不碰主线命令
     def test_wds_steps_have_single_write_channel(self):
         for rel, body in dev_docs():
             if not rel.startswith("steps/"):
@@ -266,7 +266,7 @@ class SkillContractTests(unittest.TestCase):
         for code in ("GATE_FAILED", "ILLEGAL_TRANSITION", "UNKNOWN_ID"):
             self.assertIn(code, finalize, "wds-finalize 未给回执码读法：%s" % code)
 
-    # trace: C·3a §5.6 引用句核对（同一条门两端互引）——diy-design 侧的执行面在场
+    # 引用句核对（同一条门两端互引）——diy-design 侧的执行面在场
     def test_gate_matches_design_side(self):
         with io.open(PROTOTYPE_LOOP_MD, encoding="utf-8") as fh:
             design_side = fh.read()
@@ -279,14 +279,14 @@ class SkillContractTests(unittest.TestCase):
                      "Flow 感觉 / 视觉层级 / 清晰度 / 一致性"):
             self.assertIn(term, dev_side, "实现侧自验证缺同一判据：%s" % term)
 
-    # trace: C·3a 裁定 22 §圈定面（WDS 页 ID 域以段1 W1 定义为准：SC-<nn>.P<n>）
+    # 圈定面（WDS 页 ID 域以段1 W1 定义为准：SC-<nn>.P<n>）
     def test_wds_page_id_domain_from_upstream(self):
         self.assertIn("SC-<nn>.P<n>", self.raw, "未接 WDS 线页 ID 域")
         with io.open(DESIGN_SKILL_MD, encoding="utf-8") as fh:
             design_skill = fh.read()
         self.assertIn("SC-<nn>.P<n>", design_skill, "设计侧页 ID 域声明漂移")
 
-    # trace: C·3a §5.5 ①（双模式的路由目标技能在场，否则零产出路由落空）
+    # 双模式的路由目标技能在场，否则零产出路由落空
     def test_routing_targets_installed(self):
         for skill in ("diy-sprint", "diy-design", "diy-review", "diy-wds-evolution",
                       "diy-epics-stories"):
@@ -313,7 +313,7 @@ class WdsModeRunTests(unittest.TestCase):
             fh.write(content)
         return path
 
-    # trace: C·3a §5.1（WDS 回填目标）——结构稿中 → 待验收 走通，回执键与教学句对齐
+    # WDS 回填目标——结构稿中 → 待验收 走通，回执键与教学句对齐
     def test_transition_walks_page_to_pending_acceptance(self):
         dpath = self.write("design.yaml", design_text(page_status="结构稿中"))
         self.write("prototypes/SC-01.P1.html", GOOD_HTML)
@@ -332,7 +332,7 @@ class WdsModeRunTests(unittest.TestCase):
             after = fh.read()
         self.assertIn("status: 待验收", after, "页状态未写回")
 
-    # trace: C·3a §5.2 门不过不许写——结构稿缺失时引擎判 GATE_FAILED 且零写入
+    # 门不过不许写——结构稿缺失时引擎判 GATE_FAILED 且零写入
     def test_page_gate_blocks_writeback(self):
         dpath = self.write("design.yaml", design_text(page_status="结构稿中",
                                                      with_prototype=False))
@@ -345,7 +345,7 @@ class WdsModeRunTests(unittest.TestCase):
         self.assertEqual({x["code"] for x in data["violations"]}, {"GATE_FAILED"})
         self.assertEqual(io.open(dpath, encoding="utf-8").read(), before, "拒绝路径仍写了盘")
 
-    # trace: C·3a §5.1（键缺失 = 未开始：旧稿兼容，W2 转交口径）
+    # 键缺失 = 未开始：旧稿兼容，W2 转交口径
     def test_missing_status_key_reads_as_not_started(self):
         dpath = self.write("design.yaml", design_text(page_status=None, with_prototype=False))
         r = run_engine(["transition", "--design", dpath, "--page", "SC-01.P1",
@@ -353,7 +353,7 @@ class WdsModeRunTests(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertEqual(json.loads(r.stdout)["from"], "未开始")
 
-    # trace: C·3a §5.1 红线（token 单一源闸：称绿前 audit 零 one-off-*）
+    # 红线（token 单一源闸：称绿前 audit 零 one-off-*）
     def test_token_audit_is_clean_on_baseline(self):
         dpath = self.write("design.yaml", design_text())
         impl = self.write("src/index.html", GOOD_HTML)
@@ -363,7 +363,7 @@ class WdsModeRunTests(unittest.TestCase):
         with io.open(os.path.join(STEPS_DIR, "wds-implement.md"), encoding="utf-8") as fh:
             self.assertIn("one-off-color", fh.read(), "实现步未教 token 闸")
 
-    # trace: C·3a §9 #4（ID 是唯一引用键：表外页 ID 走 UNKNOWN_ID 而非静默新建）
+    # ID 是唯一引用键：表外页 ID 走 UNKNOWN_ID 而非静默新建
     def test_unknown_page_id_is_rejected(self):
         dpath = self.write("design.yaml", design_text())
         r = run_engine(["transition", "--design", dpath, "--page", "SC-09.P9",
@@ -372,7 +372,7 @@ class WdsModeRunTests(unittest.TestCase):
         self.assertEqual({x["code"] for x in json.loads(r.stdout)["violations"]},
                          {"UNKNOWN_ID"})
 
-    # trace: C·3a §9 #3（WDS 门禁：上游未定稿 → 停下零产出）——门的判据从主文件句子里取，
+    # WDS 门禁：上游未定稿 → 停下零产出——门的判据从主文件句子里取，
     #        「句可机械解析 + 对两种 fixture 有分辨力」两项一起查（防文档漂移成不可核的散文）
     def test_wds_gate_expression_is_parseable_and_discriminating(self):
         with io.open(SKILL_MD, encoding="utf-8") as fh:
@@ -389,7 +389,7 @@ class WdsModeRunTests(unittest.TestCase):
         self.assertEqual(verdict, {"草稿": False, "已定稿": True},
                          "门禁判据不可判别：%s" % verdict)
 
-    # trace: C·3a §5.5 ①（两模式各一次实跑：主线侧走 diyc.py，WDS 侧走 design.py）
+    # 两模式各一次实跑：主线侧走 diyc.py，WDS 侧走 design.py
     def test_mainline_command_still_runs(self):
         sprint = NL.join([
             "project:",
@@ -412,7 +412,7 @@ class WdsModeRunTests(unittest.TestCase):
         with io.open(os.path.join(self.out, "sprint.yaml"), encoding="utf-8") as fh:
             self.assertIn("status: 进行中", fh.read())
 
-    # trace: C·3a §5.1（状态词表与合法边以段1 引擎为准——文档引用漂移即红）
+    # 状态词表与合法边以段1 引擎为准——文档引用漂移即红
     def test_statuses_and_edges_are_engine_legal(self):
         statuses, edges = engine_statuses()
         self.assertEqual(len(statuses), 5, "引擎页状态词表变了：%s" % statuses)

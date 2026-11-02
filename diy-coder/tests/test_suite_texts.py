@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """套件级句式母本一致性测试。
 
-母本：`diy-coder/.analysis/2026-09-16-skill-remediation/suite-texts.md`
+母本：suite-texts.md（归档件，非运行时读取）
 用途：母本一处改 -> 机械复制 -> 本测试抓漂移（NFR-4 要求技能目录自带全部内容，不能运行时读共享文件）。
 
 三组：
@@ -187,7 +187,7 @@ LANDED_READ_DISCIPLINE = frozenset(["product-brief", "prfaq",
                                     "e2e-tests", "correct-course", "spec-scan",
                                     "project-context", "investigate", "research",
                                     "retrospective",
-                                    # C·3a 段1/段2 前置登记（2026-09-27，主 agent）：
+                                    # 段1/段2 前置登记（2026-09-27，主 agent）：
                                     # 三名本批拆出 `steps/` 并补 §4 锚串——先登记以免施工中途判红；
                                     # 未成 stepper 前不进退化面（`_check` 只比对 `_steppers()`）。
                                     "design", "dev", "review"])
@@ -224,9 +224,9 @@ def _steppers():
     当前那一个文件」「以各 step 的 `Read (input)` 为准」）都预设 steps 存在，硬落即写入
     假事实。将来某技能若拆出 `steps/`，自动进入本适用面（缺锚串且未登记即判红）。
 
-    ★ 2026-09-28 C·3a 留痕：**该裁定对 `design` / `dev` 已作废**——本批为吸收 WDS 九活动
+    ★ 2026-09-28 留痕：**该裁定对 `design` / `dev` 已作废**——本批为吸收 WDS 九活动
     与原型循环，二者拆出 `steps/` 并补 §4 锚串，已登记进 `LANDED_READ_DISCIPLINE`。
-    ★ 2026-10-01 C·12 留痕（裁定 C12-3）：**该裁定对 `review` 亦作废**——review 拆出
+    ★ 2026-10-01 留痕：**该裁定对 `review` 亦作废**——review 拆出
     `steps/` 七件并补 §4 锚串；`test_review_contract.py` 的「不得含 `Read (input)`」
     硬锁同步改为「必须在场」。改裁定已在收口报告与 `迁移计划.md` §二十九 登记。
     """
@@ -476,7 +476,7 @@ class EngineContractGuardTests(unittest.TestCase):
         self.assertTrue(seen, "守卫空转：全库未扫到任何 `check --type X --previous`")
 
 
-# ------------------------------------------- C·7 W3（读取成本纪律三锚，2026-10-02）
+# ------------------------------------------- 读取成本纪律三锚（2026-10-02）
 # 三枚固定短锚（SS-030-04 阻断级定案：检查器 = 固定短锚逐字匹配；每技能「点名产物 +
 # 触发条件」的完整句属引导层、不进守卫——防「每技能文本不同导致母串机制不成立」）：
 #   ① 时才打开       —— 激活读清单：大产物只在触发条件下打开。与 §4 锚（ANCHOR_READ_
@@ -486,9 +486,9 @@ class EngineContractGuardTests(unittest.TestCase):
 W3_ANCHORS = ("时才打开", "按 `id:` 定位", "绝不重读")
 
 # W3 核定名单（2026-10-02 机械核定，report-w3-census.md §2；用户裁定方案甲 = 全量 33+1）：
-# 「有 YAML 大产物消费面 或 有 diyc.py 回执调用」− design/dev/review（C·3a §4 面已覆盖）
+# 「有 YAML 大产物消费面 或 有 diyc.py 回执调用」− design/dev/review
 # − 薄技能 13（核定报告 §3 逐条理由）；wds-trigger 句归 W1 交付 6 落地、在本守卫面内锁定。
-# 名单核定依据与偏差登记见 .analysis/2026-10-01-c7/report-w3-census.md（+24 后批盲区 / −2 功能型）
+# 名单核定依据与偏差登记见 w3 收口报告（+24 后批盲区 / −2 功能型）
 W3_ROSTER = frozenset("""
 analyze architecture augment bmb-builder bmb-module build-loop
 checkpoint-preview cis-method correct-course create-story e2e-tests
@@ -500,7 +500,7 @@ wds-assets wds-brief wds-evolution wds-scenarios wds-system wds-trigger
 
 
 class W3ReadDisciplineTests(unittest.TestCase):
-    """C·7 三短锚守卫：核定名单全量逐字匹配三锚（PENDING 已清零的终态形态，照 B 组
+    """三短锚守卫：核定名单全量逐字匹配三锚（PENDING 已清零的终态形态，照 B 组
     『台账清空后转为全部适用技能必须含锚串』先例；落守卫时 33 缺口红相 = 判据自证，
     补句后清零——report-w3.md 留痕）。"""
 
