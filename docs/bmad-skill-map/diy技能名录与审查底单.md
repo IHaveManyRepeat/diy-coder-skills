@@ -166,7 +166,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | cis-method→design 喂入认 ID（判据同 prd 前置） | 04-design.md:210＋diy-design 输入面 |
 | 单独技能 | architecture stack 铸 ST-###（判据同：下游认源 ID；三消费点 design/readiness-check/test-design） | diyc.py＋diy-architecture 结构段＋三消费方输入面 |
 | 单独技能 | 新增 bug 分析技能（cis-method 问题求解编排·五段产物·review 自动调用衔接） | 新技能全套＋衔接 investigate/retrospective/bug-log＋diy-review 调用面 |
-| 单独技能 | 新增 prd→开发前编排工作流 | bmb-module＋bmb-builder 造＋链上各技能交互面 |
+| 单独技能 | prd→开发前编排（2026-11-02 并入 help 推荐路径落点·形态待裁） | help 导航（或 bmb-module＋bmb-builder 造）＋链上各技能交互面 |
 | 单独技能 | diy-help 聚合导航·版本演进 | help.py＋SKILL.md＋tests |
 | 单独技能 | diy-help 游离「精准简练」句＋§3 零产物变体 | SKILL.md:79/:20，随母本注入批 |
 | 单独技能 | diy-lab 实测缺陷修复批（①~⑥ 全定档：①走母本·②重·③root归一·④入本批·⑤检测·⑥轻） | cis-method/brief/research/prfaq/viewer/prd＋各引擎脚本 |
@@ -225,13 +225,21 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - **「是否吃 `IV-###`」＝吃**：runner 路径在场必接——归因案卷（证据/复现/因果链）供根因深挖复用、不重查；review 路径缺席不阻塞。原「代码取证 vs 方法流分析」接力式分工表述作废（该分工框定系 10-04 记录时 AI 注解非用户裁定——「有异于 investigate 零写面先例」括注同批同性质，不作依据）；改判＝investigate 退守失败定性/探索/悬案，bug 技能为已确认 bug 的分析执行者。
 - **连带两点**：① 吃案卷形态（随任务书定形）——bug 技能输入面加 `investigation.yaml` 可选输入源，按 ID 引用、缺席不阻塞；② 与 10-17 修复路由③衔接顺序＝**位置 A＋分析完才重开〔2026-10-18 用户裁定〕**——归因③ → bug 技能分析（五段落 bug-log·吃 IV-### 案卷）→ **分析产物（investigation 案卷＋五段）作为重开前置产物** → sprint 重开回 dev 按消灭方案修 → 全量三连重跑；重开时机与五段写入节奏（一次性入 vs 分段追加）等 schema 细节随任务书。
 
-## 待办：新增 prd→开发前编排工作流技能
+## 待办：prd→开发前编排（原拟新增编排技能·2026-11-02 并入 help 推荐路径落点，现在不动）
 
 登记（2026-10-04 用户裁定立项；查证底单 50 技能无编排类——test-framework 是 CI 模板、selfcheck 是任务书自检）：编排 prd 之后至 dev 之前的链段（architecture → [openapi] → design → epics-stories → test-design → sprint → create-story → test-author），推进到开发就绪。
 
 - 硬约束（用户 2026-10-04）：**用 diy 已有技能创建机制造**——`diy-bmb-module`（批次规划）＋ `diy-bmb-builder`（技能工厂）——不手搓。
 - 判据（下游认 ID）：编排器对各环节的交接按稳定 ID（prd 需求 ID / epics / stories / sprint 任务等）。
 - 待裁：可选环节（openapi / design）的处理；推进模式（HALT 检查点 vs 无头续推）；零产物 vs 编排状态文件；与 `diy-build-loop` 交接锚（它管 dev 侧单任务循环，本技能管 dev 前链段）。
+
+**〔2026-11-02 用户·与 help 推荐路径待办合并〕**：思路转变——以前想在 dev 之前新造类似 `diy-build-loop` 的编排件，现认识到**不如直接在 diy-help 里做好推荐路径更好**。本段改记 help 落点，原立项内容保留、随形态一并裁：
+
+- 动作＝help 导航顺序调整：prd 前置件／质量件／执行件／检查件**串联进推荐路径**（现游离在链/线之外），按推荐顺序给出。
+- 族归组（未裁）：prd 前置＝prereq 六件／质量＝review·test-gate·selfcheck 族／执行＝dev·build-loop／检查＝readiness-check·spec-scan 族；串联顺序未裁。
+- 影响面（待裁）：diy-help SKILL.md／help.py／help_lib 推荐逻辑＋registry 陈列口径。
+- 形态待裁：help 内做 vs 仍新造技能（若新造，上列 bmb 硬约束与原四项待裁照旧适用）。
+- 约束：help 受 test_help／registry 双向守卫＋standalone/线并存面过滤，先裁后动；任务书三件门。
 
 ## 待办：安装器向导化 + 去 `.claude` 路径硬编码·多工具化（攒批，机制定案后一并改，现在不动）
 
