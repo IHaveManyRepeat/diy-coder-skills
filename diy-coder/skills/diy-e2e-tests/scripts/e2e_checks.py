@@ -11,6 +11,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
 from diyc_lib import display_path, load_yaml_safe, nonempty, v  # noqa: E402
+from diyc_check_docs_lib import RADII  # noqa: E402
 
 PLAN_FILE = "test-plan.yaml"
 STORIES_FILE = "stories.yaml"
@@ -142,6 +143,8 @@ def check_case(case, index, show, known_ids, seen_new, known_acs, stories_availa
                 violations.append(v("ENUM_INVALID", fhw + ".ac",
                                     "fault_hypothesis.ac 须与用例 ac 一致：%s vs %s"
                                     % (fh_ac, tc_ac)))
+    if case.get("radius") is not None:
+        enum(violations, "%s.radius" % where, case.get("radius"), RADII, "radius（爆炸半径）")
     api_refs = case.get("api_refs")
     if api_refs is not None:
         if not (isinstance(api_refs, list) and api_refs):

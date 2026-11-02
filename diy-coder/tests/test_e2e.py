@@ -290,6 +290,27 @@ class RecordTests(EngineCase):
         self.assertIn("EMPTY_FIELD", {x["code"] for x in data["violations"]})
         self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
 
+    # trace: Q-136（爆炸半径残面收口：radius 可选枚举——越界红 / 合法绿）
+    def test_record_rejects_illegal_radius_with_zero_write(self):
+        case = json.loads(tc_json())[0]
+        case["radius"] = "超大"
+        r = self.record(self.write("new-tc.json", json.dumps([case])))
+        self.assertEqual(r.returncode, 1, r.stdout)
+        data = json.loads(r.stdout)
+        self.assertFalse(data["ok"])
+        self.assertIn("ENUM_INVALID", {x["code"] for x in data["violations"]})
+        self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
+
+    def test_record_accepts_legal_radius(self):
+        case = json.loads(tc_json())[0]
+        case["radius"] = "系统"
+        r = self.record(self.write("new-tc.json", json.dumps([case])))
+        self.assertEqual(r.returncode, 0, r.stderr + r.stdout)
+        data = json.loads(r.stdout)
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["diyc"]["check"]["violations"], [], data["diyc"])
+        self.assertIn("radius: 系统", self.read("diy-output/test-plan.yaml"))
+
     def test_record_rejects_orphan_fh_reference_with_zero_write(self):
         case = json.loads(tc_json())[0]
         del case["fault_hypothesis"]  # kill_target 引 FH-1.1.2 但不带联动条目

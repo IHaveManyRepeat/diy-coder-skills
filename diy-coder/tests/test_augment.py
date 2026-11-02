@@ -300,6 +300,14 @@ class AugmentSkillContractTests(unittest.TestCase):
         self.assertIn("缺失 EMPTY_FIELD、非法值 ENUM_INVALID", raw,
                       "producer 门校验口径未点名违规码")
 
+    # trace: Q-136（2026-11-02 爆炸半径残面收口：TC 可选字段·同族枚举·先为炸得最广设计攻击用例）
+    def test_radius_annotation_widest_first(self):
+        raw = self.read_skill()
+        self.assertIn("`radius`（可选·爆炸半径标注）", raw, "追加用例写面缺 radius 可选字段")
+        self.assertIn("追加用例按爆炸半径标注 `radius`", raw, "缺爆炸半径标注句")
+        self.assertIn("局部|模块|跨模块|系统|外部", raw, "缺同族枚举值")
+        self.assertIn("先为炸得最广的假设设计攻击用例", raw, "缺攻击用例设计口径")
+
 
 if __name__ == "__main__":
     unittest.main()
