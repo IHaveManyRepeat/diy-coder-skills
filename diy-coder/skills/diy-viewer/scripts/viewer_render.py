@@ -6,8 +6,9 @@ from pathlib import Path
 import viewer_refs as _refs
 from viewer_anchor import mint_heading_id, reset_heading_ids
 from viewer_anchor import slugify  # noqa: F401  再导出供 viewer_pages（assets 组锚）
-from viewer_glossary import BADGE_VALUES, VALUE_LABELS, _VALUE_LABELS_CI
+from viewer_glossary import BADGE_VALUES
 from viewer_labels import BADGE_CLASSES
+from viewer_value_labels import VALUE_LABELS, _VALUE_LABELS_CI
 from viewer_refs import (FOLDED_KEYS, FOLDED_NOTE_LEN, ORPHAN_IDS, REF_KEYS,
                          _diag_unmapped, asset_link, cell, doc_path_value,
                          esc, gloss, is_asset_path, is_doc_path, is_enum_key,

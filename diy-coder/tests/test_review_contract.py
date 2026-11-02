@@ -34,6 +34,9 @@ SKILL_LOOP = os.path.join(HERE, "..", "skills", "diy-build-loop", "SKILL.md")
 VIEWER = os.path.join(HERE, "..", "skills", "diy-viewer", "scripts", "viewer.py")
 # 戊-1 拆分（2026-10-18）：VALUE_LABELS 随标签表迁 viewer_glossary.py——「设计采用」文本探针读源拼接
 VIEWER_GLOSSARY = os.path.join(HERE, "..", "skills", "diy-viewer", "scripts", "viewer_glossary.py")
+# Q-134 扩拆（2026-11-02）：值标签/键覆盖表再迁 viewer_value_labels.py——探针拼接面随之扩，
+# 断言语义不变（viewer 渲染面 + 标签表源须含「设计采用」映射，且不含旧三层措辞）
+VIEWER_VALUE_LABELS = os.path.join(HERE, "..", "skills", "diy-viewer", "scripts", "viewer_value_labels.py")
 HELP = os.path.join(HERE, "..", "skills", "diy-help", "scripts", "help.py")
 
 
@@ -76,7 +79,7 @@ class StaleNamingTests(unittest.TestCase):
 
     # trace: F-enhancement-1（viewer 术语仍称三层审查 / 缺 design 层映射）
     def test_viewer_terms_updated(self):
-        viewer = read(VIEWER) + read(VIEWER_GLOSSARY)
+        viewer = read(VIEWER) + read(VIEWER_GLOSSARY) + read(VIEWER_VALUE_LABELS)
         self.assertNotIn("三层审查（正确性/边界/覆盖审计）", viewer, "审查记录术语未更新")
         self.assertNotIn("等待三层审查", viewer, "待审查术语未更新")
         self.assertIn('"设计采用": "设计采用"', viewer, "viewer 缺 设计采用 层展示映射（英文值直出）")

@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "diy-tools" / "scri
 from diyc_lib_base import load_yaml_text  # noqa: E402
 
 import viewer_refs as _refs
-from viewer_glossary import DOC_KEY_LABELS, DOC_LABELS, VALUE_LABELS
+from viewer_value_labels import DOC_KEY_LABELS, DOC_LABELS, VALUE_LABELS
 from viewer_labels import BADGE_CLASSES, ENUM_KEYS, KEY_LABELS
 from viewer_pages import (build_assets_page, build_index, build_timeline_page,
                           collect_asset_files, collect_timeline, page,

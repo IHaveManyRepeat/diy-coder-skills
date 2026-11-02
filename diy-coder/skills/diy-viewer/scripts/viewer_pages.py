@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 import viewer_refs as _refs
-from viewer_glossary import (CHAIN_RANK, DOC_LABELS, _DT_MAX, _NO_CHAIN)
+from viewer_value_labels import (CHAIN_RANK, DOC_LABELS, _DT_MAX, _NO_CHAIN)
 from viewer_labels import META_KEYS
 from viewer_openapi import render_openapi_section
 from viewer_refs import gloss, render_ref_item

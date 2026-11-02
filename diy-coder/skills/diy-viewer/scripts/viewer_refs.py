@@ -6,8 +6,9 @@ import re
 import sys
 from pathlib import Path
 
-from viewer_glossary import DOC_KEY_LABELS, GLOSSARY
+from viewer_glossary import GLOSSARY
 from viewer_labels import ENUM_KEYS, FREE_TEXT_FIELDS, KEY_LABELS
+from viewer_value_labels import DOC_KEY_LABELS
 
 ID_RE = re.compile(r"\b[A-Z]{1,4}-\d+(?:\.\d+)*\b")
 ID_FULL_RE = re.compile(r"[A-Z]{1,4}-\d+(?:\.\d+)*")
