@@ -32,14 +32,16 @@ outputs: design.yaml
 
 ## 工作流
 
-三段依次走：token → 结构稿 → 框架实现；一步的产出整块给出，不在步骤中间提问。**九活动按 `design_intent` 预选**（主线缺该键 → 默认 `[C]`；`L`（上游：Later——到设计阶段再定，上游未指定活动）→ 进设计时**问用户一次**「这条场景走哪个活动」，未指定或不答 → 同主线缺省 `[C]`），一次只加载一个 `steps/` 文件：
+三段依次走：token → 结构稿 → 框架实现；一步的产出整块给出，不在步骤中间提问。
+**九活动按 `design_intent` 预选**（主线缺该键 → 默认 `[C]`；`L`（上游：Later——到设计阶段再定，上游未指定活动）→ 进设计时**问用户一次**「这条场景走哪个活动」，未指定或不答 → 同主线缺省 `[C]`），一次只加载一个 `steps/` 文件：
 
 `[C] 创意对话 → steps/c-discuss.md` · `[K] 草图解读 → steps/k-sketch.md` · `[S] 逐步提议 → steps/s-suggest.md` ·
 `[D] 自主成稿 → steps/d-dream.md`（**mode 声明复用 S 的步骤**，不复制第二套文件）· `[P] 写规格 → steps/p-specify.md` ·
 `[V] 审计 → 下方第 4 步的三命令`（**不另建 steps 文件**）· `[W] 出视觉 → steps/w-visual.md` ·
 `[M] 管理设计系统 → steps/m-design-system.md` · `[H] 交付 → steps/h-delivery.md`。
 
-**结构先行通则**：任何输入（草图 / 主线功能清单 / 既有产物）**一律先出结构、经用户确认，再进详细规格**——`[K]` 有结构确认硬门，主线走 `steps/scenario-bridge.md` 的场景桥。**原型循环**（`steps/prototype-loop.md`）：逐页三阶段「规划 → 逐段循环 → 收尾」，循环单元称**段（section）**、**不叫「页规格」**；页级进度走 `pages[].status`，段级进度只住 `prototypes/*.html` 的占位 div。
+**结构先行通则**：任何输入（草图 / 主线功能清单 / 既有产物）**一律先出结构、经用户确认，再进详细规格**——`[K]` 有结构确认硬门，主线走 `steps/scenario-bridge.md` 的场景桥。
+**原型循环**（`steps/prototype-loop.md`）：逐页三阶段「规划 → 逐段循环 → 收尾」，循环单元称**段（section）**、**不叫「页规格」**；页级进度走 `pages[].status`，段级进度只住 `prototypes/*.html` 的占位 div。
 
 1. 起草 `{output_dir}/design.yaml`（`status: 草稿`），形状见「结构」；`frontend_framework` 按「规则」的取值路径落定。
 2. 结构段：每页一份 `{output_dir}/prototypes/<页 id>.html`——布局、区块、landmark、四条交互状态；在这一段便宜地迭代。

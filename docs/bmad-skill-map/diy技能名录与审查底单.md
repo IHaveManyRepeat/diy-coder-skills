@@ -317,6 +317,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **〔2026-11-01 部分销项·二〕v4·批7·内批1（7b）样板块已销**（任务书 `taskbook-batch7b.md`·§7 八裁 2026-10-29 全落）：prd/help SKILL.md 逐项化完工（133／80 行·冻结块单锚零动·表格段按「表格档」原样保留）＋help 样例边界三类清单定稿（**编号段**＝激活时/工作流/规则；**bullet 段**＝结构段四条注/回执键分支枚举/工作模式二选一；**表格段**＝prd 输入清单与字段映射——7c 起带表技能沿用）＋scaffold 模板呈核零改（SKILL_TEMPLATE 对照 7a 范式五要点合规·§7-5 甲）。**分批行勘正**：「须含 steps/ 文件实改」按 §7-4 甲照实测确认落空——prd/help 均无 steps/，不为凑裁定造 steps；steps 实改先例已由 7a bmb-builder 五件满足，铺开批各技能 steps 面 7c 起再验。余 7c/7d/7e 铺开未做。
 
+**〔2026-11-03 部分销项·三〕v4·批7·内批2（7c）A 主线六技能已完工**（任务书 `taskbook-batch7c.md`·§7 四裁 2026-11-02 全落：**1 甲**＝六技能一册、build-loop 不入不拆册；**2 甲**＝design steps 随册；**3 甲**＝architecture ≤104 断言不动、超线即停呈——实测 100 行未撞；**4**＝测试面确认零改）：六 SKILL.md 逐项化完工（architecture 97→100／openapi 103→107／design 108→110／epics-stories 101→105／test-design 120→128／sprint 97→98，均 ≤立书实测×1.5，design 110≤112 未撞）＋design steps 10 件随册逐项化（556→526·表格段与 Read/Write/Progress 行原样；k-sketch 圈号枚举 ①②③ 换列表号＝唯一标记级差异）。**验收**：冻结块对拍（INSTANCE／PRECISE／DISCIPLINE／READ_DISCIPLINE＋frontmatter 六字段＋四段）对开工前 HEAD 零动；去列表标记与空白后与 HEAD 逐字同（纯重排核证）；`check_body_rules` 六门零违规；定向 pytest 绿；`sync.sh` 50 技能冒烟过·涉改 16 件源装 md5 全同；全量 **1904+280 零红**（与开工基线同数）。**余 7d（WDS 线）／7e（横向）未做，批 7 整批未收口**；status.md 完工行不归本窗（主会话审后补）。**只注记不销段**。
+
 ## 待办：diy-help 游离「精准简练」句移除（单独技能级，随母本注入批）
 
 **已处置（2026-10-05）**：随 §6 适用面收窄批删句，test_help 断言同步退役——见「§6 适用面收窄」已执行段。

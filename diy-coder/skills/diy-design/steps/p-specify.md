@@ -9,14 +9,13 @@ Progress: `[1 页面基础] → [2 区块与排序] → [3 对象与类型] → 
 
 ## 第 3 步的专述 —— 对象与类型（对象级规格清单的接入）
 
-逐对象定类型（button / heading-text / text-input / image / link…），**每定一类就读一次** `data/object-types/<类型>.md`，按它的**规格项清单**逐项写该对象的规格。
-
-**五件清单**（**保留为参考层**）：`button.md` · `heading-text.md` · `text-input.md` · `image.md` · `link.md`。
+1. 逐对象定类型（button / heading-text / text-input / image / link…），**每定一类就读一次** `data/object-types/<类型>.md`，按它的**规格项清单**逐项写该对象的规格。
+2. **五件清单**（**保留为参考层**）：`button.md` · `heading-text.md` · `text-input.md` · `image.md` · `link.md`。
 
 **ID 处置**：
 
-- **对象级三级 ID 不进 diy**——对象级格式（如 `{page}-{section}-{element}-button`）**不铸**：diy 里对象级的载体是 `src` 的框架代码本身 + `states[].signals`，再铸一层 ID 是 YAGNI；
-- **页级 ID 按来源线定**：主线 `P-n`、WDS 线 `SC-<nn>.P<n>`（**上游废止 `P-*` 前缀，不得另铸**）；稳定 ID 纪律（永不重编号、永不复用）两线同守；
+1. **对象级三级 ID 不进 diy**——对象级格式（如 `{page}-{section}-{element}-button`）**不铸**：diy 里对象级的载体是 `src` 的框架代码本身 + `states[].signals`，再铸一层 ID 是 YAGNI；
+2. **页级 ID 按来源线定**：主线 `P-n`、WDS 线 `SC-<nn>.P<n>`（**上游废止 `P-*` 前缀，不得另铸**）；稳定 ID 纪律（永不重编号、永不复用）两线同守；
 
 **对象级不产独立产物**：五件清单是**参考层**（怎么问、问什么），产物仍是 `design.yaml` + `prototypes/` + `src`。
 
@@ -29,8 +28,8 @@ Progress: `[1 页面基础] → [2 区块与排序] → [3 对象与类型] → 
 
 ## ID 与 token 的两条硬约束
 
-- **token 是唯一风格源**：本步新增的任何色值/字号都要先登记进 `tokens.*`，再在结构稿里引用（`var(--color-*)`）；不然 `audit` 的 `one-off-*` 会在收尾拦住你——**在这里改便宜，在收尾改贵**。
-- **继承外部 UI 系统**时：把第三方库的默认色值**显式登记**进 `tokens.color`，或把库目录写进 `token_scope` 让 `audit` 跳过（两条出口二选一，写清选了哪条）。
+1. **token 是唯一风格源**：本步新增的任何色值/字号都要先登记进 `tokens.*`，再在结构稿里引用（`var(--color-*)`）；不然 `audit` 的 `one-off-*` 会在收尾拦住你——**在这里改便宜，在收尾改贵**。
+2. **继承外部 UI 系统**时：把第三方库的默认色值**显式登记**进 `tokens.color`，或把库目录写进 `token_scope` 让 `audit` 跳过（两条出口二选一，写清选了哪条）。
 
 ## meta 内容键（两层判据）
 
@@ -48,10 +47,7 @@ Progress: `[1 页面基础] → [2 区块与排序] → [3 对象与类型] → 
 
 ## 收尾与路由
 
-规格落盘 → 读 `./prototype-loop.md`（结构稿按段建）或 `./h-delivery.md`（规格已够、直接进框架实现）。
-
-WDS 线附带：该 `SC-<nn>` 的**全部页**规格落定后，把 `scenarios[].design_status` 推到 `specified`（**只写这一个键**，其余字段只读；该键是场景级，页级进度写 `pages[].status`）。
-
-**检查点**：① 生成 ② 落盘本页规格键（+ 该场景全部页规格落定后的 `design_status: specified`）③ 分隔 ④ 呈出规格摘要（页 ID / 状态数 / 承接 ID / token 缺口）⑤ 给选项 ⑥ 等响应。
-
-本文件到此结束，不再回头。
+1. 规格落盘 → 读 `./prototype-loop.md`（结构稿按段建）或 `./h-delivery.md`（规格已够、直接进框架实现）。
+2. WDS 线附带：该 `SC-<nn>` 的**全部页**规格落定后，把 `scenarios[].design_status` 推到 `specified`（**只写这一个键**，其余字段只读；该键是场景级，页级进度写 `pages[].status`）。
+3. **检查点**：① 生成 ② 落盘本页规格键（+ 该场景全部页规格落定后的 `design_status: specified`）③ 分隔 ④ 呈出规格摘要（页 ID / 状态数 / 承接 ID / token 缺口）⑤ 给选项 ⑥ 等响应。
+4. 本文件到此结束，不再回头。

@@ -24,7 +24,8 @@ outputs: epics.yaml + stories.yaml
 2. 硬门：加载 `{output_dir}/prd.yaml`；`project.status` 必须是 `已定稿`。不满足 → 一行拒绝（点名缺什么）+ 零产出 + 路由 `diy-prd`。
 3. 目标文件：`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml`。判意图：
    - **Create** —— 两份都不在场 → 全量派生。
-   - **Update** —— 任一份在场 → 只对**在场的那份**做快照与校验（两个 `cp` 各只在该份在场时执行；不在场的那份直接全量派生、不产也不查 `.prev`）：`cp {output_dir}/epics.yaml {output_dir}/epics.yaml.prev` 与 `cp {output_dir}/stories.yaml {output_dir}/stories.yaml.prev`，载入既有稿、对账变更信号，**所有 ID 保持稳定**；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --previous {output_dir}/epics.yaml.prev --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --previous {output_dir}/stories.yaml.prev --json`（exit 0 = 无记录丢失；两份产物各查各的）。**任一非 0 一律不删对应的 `.prev`**：`ID_UNSTABLE` → 从该份快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 该份快照不可用、安全网失效，停手告知用户，确认前不得再写。查过的几份都 exit 0 才删掉它们的 `.prev` 文件。
+   - **Update** —— 任一份在场 → 只对**在场的那份**做快照与校验（两个 `cp` 各只在该份在场时执行；不在场的那份直接全量派生、不产也不查 `.prev`）：`cp {output_dir}/epics.yaml {output_dir}/epics.yaml.prev` 与 `cp {output_dir}/stories.yaml {output_dir}/stories.yaml.prev`，载入既有稿、对账变更信号，**所有 ID 保持稳定**；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type epics --previous {output_dir}/epics.yaml.prev --json` 与 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type stories --previous {output_dir}/stories.yaml.prev --json`（exit 0 = 无记录丢失；两份产物各查各的）。
+   - **任一非 0 一律不删对应的 `.prev`**：`ID_UNSTABLE` → 从该份快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 该份快照不可用、安全网失效，停手告知用户，确认前不得再写。查过的几份都 exit 0 才删掉它们的 `.prev` 文件。
 `{output_dir}/epics.yaml / stories.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
@@ -33,14 +34,17 @@ outputs: epics.yaml + stories.yaml
 
 ### 派生纪律
 
-- **Epic 跟随 feature 分组。** 缺省 `prd.yaml` 的每个 `F-*` 对应一个 `E-*`，`feature_refs` 引用来源；合并或拆分必须写明理由。本段派生呈出后停一次：给菜单 `[A]` 深挖（`diy-elicit`）/ `[P]` 多视角（`diy-party-mode`）/ `[C]` 继续——`[A]`/`[P]` 零写面，返回后采纳的改动由本技能落进 `epics.yaml`，再重显菜单；无头 / 非交互不摆菜单。
-- **Story 是独立可交付单元**，颗粒度按「一个无人值守的 build-loop 任务」定——需要人在中途拍板的 story 是切大了或切错了。本段派生呈出后停一次：给菜单 `[A]` 深挖（`diy-elicit`）/ `[P]` 多视角（`diy-party-mode`）/ `[C]` 继续——`[A]`/`[P]` 零写面，返回后采纳的改动由本技能落进 `stories.yaml`，再重显菜单；无头 / 非交互不摆菜单。
-- **AC 一律 given/when/then**，在**最外层可观测面**断言（行为，不是内部实现）。每条 AC 的 `refs` 引用 `prd.yaml` 里既有的 FR/NFR ID，**绝不复制需求原文**。
-- **覆盖率必须完整**：每条必须级 FR 至少被一条 AC 引用；应该级 FR 要么被覆盖，要么在 `stories.yaml` 顶层 `notes:` 里逐行写 skip line（`<FR-x.y>: <为什么故意不覆盖>`）——**绝不只在对话里带过**。
-- **设计绑定**：AC 实现前端面 FR 的 story，其每条这类 AC 带 `design_ref: P-x`，引用 `design.yaml` 的 `pages` 里的页 ID——该页是实现基线，不是装饰。仅在 `{output_dir}/design.yaml` 在场且其 `project.status: 已定稿` 时才绑（diy-design 被跳过的项目没有绑定）；每条 `design_ref` 都必须可解析（viewer 把悬空的标红，stories 终门机械复核解析）。design 若**晚于本技能**产出，重跑本技能 Update 路径回填 `design_ref`——写范围仍只在 `stories.yaml` 的 AC 绑定上；主线顺序 design 在本技能之前，按主线走不会落空。
-- **接口绑定（api_refs）**：`{output_dir}/openapi.yaml` 在场（`project.status: 已定稿`）时，铸 AC 走查接口归属——实现面落在接口端点上的 AC 挂 `api_refs: [{operationId, path, method}]` 复合锚（operationId 即接口唯一身份）；多对多归属在**铸造期**走查落盘（一对多＝AC 挂多锚；多对一＝多 AC 共锚），非推导期解链。与 `design_ref` 同构：同级产物锚、可选、须可解析（stories 终门机械复核：悬空锚照 `UNKNOWN_ID` 报）。反向悬空 operation（契约有端点、无任何 AC 引）→ `stories.yaml` 顶层 `notes:` 逐行写 skip line（`<operationId>: <为什么>`，照应该级 FR skip line 先例），不静默。`openapi.updated` 晚于 `stories.updated` → 提示可能有漂移（重跑 Update 走查锚归属）；openapi 缺席零提及。
-- **Story 状态照实写。** 已经交付的工作可以回填 `已完成`——回填先在顶层 `notes:` 里带 `[假设]` 前缀，等用户确认后再去掉。
-- 任何推断的颗粒度、次序或拆分，都在 YAML **值**上带 `[假设]` 前缀；未决项一律落在文件里，绝不只在对话里。
+1. **Epic 跟随 feature 分组。** 缺省 `prd.yaml` 的每个 `F-*` 对应一个 `E-*`，`feature_refs` 引用来源；合并或拆分必须写明理由。本段派生呈出后停一次：给菜单 `[A]` 深挖（`diy-elicit`）/ `[P]` 多视角（`diy-party-mode`）/ `[C]` 继续——`[A]`/`[P]` 零写面，返回后采纳的改动由本技能落进 `epics.yaml`，再重显菜单；无头 / 非交互不摆菜单。
+2. **Story 是独立可交付单元**，颗粒度按「一个无人值守的 build-loop 任务」定——需要人在中途拍板的 story 是切大了或切错了。本段派生呈出后停一次：给菜单 `[A]` 深挖（`diy-elicit`）/ `[P]` 多视角（`diy-party-mode`）/ `[C]` 继续——`[A]`/`[P]` 零写面，返回后采纳的改动由本技能落进 `stories.yaml`，再重显菜单；无头 / 非交互不摆菜单。
+3. **AC 一律 given/when/then**，在**最外层可观测面**断言（行为，不是内部实现）。每条 AC 的 `refs` 引用 `prd.yaml` 里既有的 FR/NFR ID，**绝不复制需求原文**。
+4. **覆盖率必须完整**：每条必须级 FR 至少被一条 AC 引用；应该级 FR 要么被覆盖，要么在 `stories.yaml` 顶层 `notes:` 里逐行写 skip line（`<FR-x.y>: <为什么故意不覆盖>`）——**绝不只在对话里带过**。
+5. **设计绑定**：AC 实现前端面 FR 的 story，其每条这类 AC 带 `design_ref: P-x`，引用 `design.yaml` 的 `pages` 里的页 ID——该页是实现基线，不是装饰。仅在 `{output_dir}/design.yaml` 在场且其 `project.status: 已定稿` 时才绑（diy-design 被跳过的项目没有绑定）；每条 `design_ref` 都必须可解析（viewer 把悬空的标红，stories 终门机械复核解析）。
+6. design 若**晚于本技能**产出，重跑本技能 Update 路径回填 `design_ref`——写范围仍只在 `stories.yaml` 的 AC 绑定上；主线顺序 design 在本技能之前，按主线走不会落空。
+7. **接口绑定（api_refs）**：`{output_dir}/openapi.yaml` 在场（`project.status: 已定稿`）时，铸 AC 走查接口归属——实现面落在接口端点上的 AC 挂 `api_refs: [{operationId, path, method}]` 复合锚（operationId 即接口唯一身份）；多对多归属在**铸造期**走查落盘（一对多＝AC 挂多锚；多对一＝多 AC 共锚），非推导期解链。与 `design_ref` 同构：同级产物锚、可选、须可解析（stories 终门机械复核：悬空锚照 `UNKNOWN_ID` 报）。
+8. 反向悬空 operation（契约有端点、无任何 AC 引）→ `stories.yaml` 顶层 `notes:` 逐行写 skip line（`<operationId>: <为什么>`，照应该级 FR skip line 先例），不静默。
+9. `openapi.updated` 晚于 `stories.updated` → 提示可能有漂移（重跑 Update 走查锚归属）；openapi 缺席零提及。
+10. **Story 状态照实写。** 已经交付的工作可以回填 `已完成`——回填先在顶层 `notes:` 里带 `[假设]` 前缀，等用户确认后再去掉。
+11. 任何推断的颗粒度、次序或拆分，都在 YAML **值**上带 `[假设]` 前缀；未决项一律落在文件里，绝不只在对话里。
 
 ### 落盘与收尾
 

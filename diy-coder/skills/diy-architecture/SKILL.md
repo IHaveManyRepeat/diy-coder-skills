@@ -29,19 +29,22 @@ outputs: architecture.yaml
    - 主线**在场**但非 `已定稿` → 预警并问是否照样继续（棕地例外；WDS 同时可用则并入上一次问询，由用户定走哪条）；继续即留痕、**不留悬空豁免**——在 `risks[]` 落一条 `R-###`：`risk` 写「以 `prd.yaml`（记明其 `status` / `updated` 快照）为基线继续，用户已裁定」，`mitigation` 写「`prd.yaml` 定稿后重跑本技能 Update，复核每条 `decisions[].affects`」。
 3. 目标文件：`{output_dir}/architecture.yaml`。判意图：
    - **Create** —— 文件缺席 → 从零走决策批次。
-   - **Update** —— 文件在场 → 先 `cp {output_dir}/architecture.yaml {output_dir}/architecture.yaml.prev`，载入既有稿同用户的变更信号对账：`D-*` / `C-*` / `R-*` ID 保持稳定、永不重编号，`updated` 刷今天；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type architecture --previous {output_dir}/architecture.yaml.prev --json`（exit 0 = 无记录丢失）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev` 文件。
+   - **Update** —— 文件在场 → 先 `cp {output_dir}/architecture.yaml {output_dir}/architecture.yaml.prev`，载入既有稿同用户的变更信号对账：`D-*` / `C-*` / `R-*` ID 保持稳定、永不重编号，`updated` 刷今天；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type architecture --previous {output_dir}/architecture.yaml.prev --json`（exit 0 = 无记录丢失）。
+   - **非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev` 文件。
    - 二者都说不通 → 问用户一次，别猜。
 `{output_dir}/architecture.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 
-一次一批地带用户走决策：从上游产物派生 2–4 条候选（技术栈、结构、机制、风险），各带理由与否决备选；用户接受、修改或否决——接受翻 `已采纳`，悬着的留 `待定`。每批整块给出，不在批次中间零散追问。每批同时过**评审两维**（可测性 / 运维面，判据与缺席处置见「规则」7）——整维沉默 = finding。
+一次一批地带用户走决策：从上游产物派生 2–4 条候选（技术栈、结构、机制、风险），各带理由与否决备选；用户接受、修改或否决——接受翻 `已采纳`，悬着的留 `待定`。每批整块给出，不在批次中间零散追问。
+每批同时过**评审两维**（可测性 / 运维面，判据与缺席处置见「规则」7）——整维沉默 = finding。
 
 1. 写 `{output_dir}/architecture.yaml`（`status: 草稿`，决策一律 `待定`）；告知用户路径。
 2. 立即渲染供审阅。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
-3. 迭代：用户接受 / 修改 / 否决决策；`[假设]` 项要么解决、要么经用户确认后去掉前缀。每批呈出后给菜单 `[A]` 深挖（调用 `diy-elicit`）/ `[P]` 多视角（调用 `diy-party-mode`）/ `[C]` 继续——菜单后停下等用户；`[A]`/`[P]` 零写面，返回后采纳的改动由本技能落盘，再重显菜单。无头 / 非交互 = 不摆菜单，直落下一批。
-4. 终门（机械）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type architecture --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `status` 回退 `草稿`**，修完重走本步。白话门槛：零未确认假设、零 `待定` 决策、每个 `affects` ID 都能在**本条线**的上游产物里解析（主线 `prd.yaml` 的 FR/NFR；WDS 线 `wds-scenarios.yaml` 的 `SC-<nn>` / `SC-<nn>.P<n>`）。
-5. 过门之后才收口：重渲染一次，用 JSON 回执里的计数做收尾一行摘要（路径 + 计数）。
+3. 迭代：用户接受 / 修改 / 否决决策；`[假设]` 项要么解决、要么经用户确认后去掉前缀。
+4. 每批呈出后给菜单 `[A]` 深挖（调用 `diy-elicit`）/ `[P]` 多视角（调用 `diy-party-mode`）/ `[C]` 继续——菜单后停下等用户；`[A]`/`[P]` 零写面，返回后采纳的改动由本技能落盘，再重显菜单。无头 / 非交互 = 不摆菜单，直落下一批。
+5. 终门（机械）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type architecture --final --json`；exit 0 是唯一放行，逐条修完上报的违规再重跑（`known[]` 里的条目是用户已认可的基线，不是待修违规）；JSON 回执（含计数）即收口证据。**门失败 → `status` 回退 `草稿`**，修完重走本步。白话门槛：零未确认假设、零 `待定` 决策、每个 `affects` ID 都能在**本条线**的上游产物里解析（主线 `prd.yaml` 的 FR/NFR；WDS 线 `wds-scenarios.yaml` 的 `SC-<nn>` / `SC-<nn>.P<n>`）。
+6. 过门之后才收口：重渲染一次，用 JSON 回执里的计数做收尾一行摘要（路径 + 计数）。
 
 ## 结构
 
