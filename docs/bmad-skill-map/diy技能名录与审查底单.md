@@ -171,7 +171,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | diy-help 游离「精准简练」句＋§3 零产物变体 | SKILL.md:79/:20，随母本注入批 |
 | 单独技能 | diy-lab 实测缺陷修复批（①~⑥ 全定档：①走母本·②重·③root归一·④入本批·⑤检测·⑥轻） | cis-method/brief/research/prfaq/viewer/prd＋各引擎脚本 |
 | 单独技能 | 接口契约通用设计与架构鉴权面（重档·RFC 9457·前后端分离三层联动触发·无鉴权显式留痕·功能tags分组重档） | architecture/openapi SKILL＋diyc 校验面＋viewer＋tests |
-| 单独技能 | test-author「未建」滞后表述清理（2 处条件分支；wds-system 三处真未建归去源锚批） | diy-test-framework SKILL＋steps |
+| 单独技能 | test-author「未建」滞后表述清理（2 处条件分支；wds-system 三处真未建归去源锚批）〔v4·批6 已销 2026-10-29·2 处随 C 清单改毕·Q-131 对账销号（:728）〕 | diy-test-framework SKILL＋steps |
 | 单独技能 | diy-test-gate viewer 滞后句清理（06-finish:33「走通用降级渲染·标签缺口由主 agent 登记」——C·2 2026-09-21 已补齐 test-gate 标签，句面失实）〔v4·批6 已销 2026-10-29〕 | diy-test-gate steps/06-finish.md |
 | 单独技能 | diy-test-gate dev 仓引用漏网 6 处清理（迁移计划 §十三:459×4·§二验收×1·SKILL.md:67 裸节号；普查标记词未命中 §形态——与既有 4 处同族合计 10 处/8 文件，**随去源锚专批一起改**，待用户点头开工）〔v4·批6 已销 2026-10-29〕 | diy-test-gate SKILL＋steps/05＋scripts/gate.py＋gate_check.py |
 | 单独技能 | 变异配置显式化（test-plan `mutation:{enabled,tool?}` 段·默认开日常任务级·任务级/发版级 override·借位条款退役） | test-design/augment SKILL＋diyc 校验＋tests〔v4·批1 已销 ec13e67＝借位退役＋mutation 段；schema/override 见 test-design SKILL:74/:109；引擎形状校验 test_diyc_check:776——2026-10-28 核实补注·行滞后〕 |
@@ -179,7 +179,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | diy-spec-scan 加方法驱动分支穷举（ECH 化·2026-10-05 用户裁定「卡点法还不够」＋**方案全定 1A+3B·无待裁项**：①穷举独立成 step（如 02b-exhaustive）不并入 03——与 diy-review 双透镜并列同构·两法 findings 去重复用 02「同一处只报一次」·判据参考 diy-review lenses.md「边界类从内容自身推·不套固定清单」；②**穷举默认跑（opt-out·2026-10-05 裁）**——除非用户明示不用穷举·对齐 editorial-review 两透镜默认全跑 `--lens` 收窄先例；③**载体已裁＝`source: 卡点\|穷举` 字段**——type 保持八类·引擎 FINDING_TYPES 零改·summary 分法计数（selfcheck B 部分机制评价原料）。**未开工·待用户点头**）〔v4·批2a 已销 2026-10-11〕 | diy-spec-scan SKILL＋steps＋引擎＋tests |
 | 单独技能 | diy-selfcheck 硬门放开「要照做的事」→ 任意文档可审（2026-10-05 用户点名 prd/架构/epic/story/任意文档；BMAD AR/ECH 文档面能力补缺·Story 2.1 实用过 AR 定稿兜底；**方案已裁 2A+4a**：spec-scan 硬门同步放开为「可读非空」·两技能形态统一·selfcheck 预演片对纯文档不降级；纯文档时 spec-scan 跳过 02 预演只跑穷举+03+04（依赖 1A）；kind 扩「任务书\|技能\|规格\|文档」——引擎不校验语义 kind·仅改 SKILL.md 文案零引擎改动。**未开工·待用户点头**）〔v4·批2b 已销 2026-10-11·引擎零改＝4a 收窄——改动面列之『引擎』在册未触〕 | diy-selfcheck SKILL＋steps＋diy-spec-scan SKILL＋steps＋引擎＋tests |
 | 单独技能 | 爆炸半径分析注入 diy-review＋测试设计族（四项全闭合：1b 独立面/2b FH 排序/三技能范围/定制标签＋漂移防治已核·〔v4·批1 已销 2026-10-10 主体四件·残面 Q-136 合入 `75969cc`·2026-11-06 核销〕） | diy-review＋test-design/e2e/augment＋引擎＋viewer＋tests |
-| 单独技能 | diy-analyze 吸收 arch-analyze 职能（方向已裁：arch-analyze 退役不装·套件内 4 处路由句改写·取代形态/产物面待裁·**未开工·待用户点头**） | diy-analyze SKILL＋steps＋引擎＋viewer＋tests＋底单 C 表 |
+| 单独技能 | diy-analyze 吸收 arch-analyze 职能〔2026-10-17 方向翻案：arch **不迁移**·原「吸收职能」方向作废·改「套件内自理」口径；4 句死路由改写随 v4·批5e 已销 2026-10-25（见「diy-analyze 定位收口＋三档总则」段销项行）——本行原「未开工·待用户点头」作废，2026-11-06 核销〕 | diy-analyze SKILL＋steps＋引擎＋viewer＋tests＋底单 C 表 |
 | 单独技能 | diy-reverse 补「参考用法」引导（2026-10-05 会话实测：用户想先逆向别站做参考再做自己的 design.yaml——instance 隔离机制在场可解（`--instance` 落 `<output_dir>/<instance>/` 不占主线位）但 SKILL.md 只有「初始设计单源」一种叙事，参考用法入口不显性；拟补引导：参考目的→带 `--instance` 跑＋主线生成权不受扰＋design `[C]`/`[K]` 只读消费参考；挂法/文案/是否动 diy-design 输入面待裁，预期零引擎改动·**未开工·待用户点头**） | diy-reverse SKILL.md（或＋diy-design 输入面） |
 | 单独技能 | diy-wds-trigger Layer 1 方法本体迁入（2026-10-05 用户裁定「要迁移就都迁移完」：2 份实存 saga 文档 1,687 行（trigger-mapping 653＋dream-up-approach 1,034）迁入 diy——**安装 diy 不装 bmad·技能不得依赖 `_bmad` 路径**·裁定 9「不可用」随之解封；迁入形态/落点待裁·**开工先普查全库同类**（运行时输入依赖安装布局外路径·功能依赖型）·**未开工·待用户点头**） | diy-wds-trigger SKILL＋steps＋新迁文件 |
 
@@ -188,6 +188,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 登记（2026-10-04 用户裁定，一审 diy-architecture 牵出）：`stack[].choice` 被 diy-design（取前端框架）/ diy-readiness-check（取脚手架）**按值消费**（diy-architecture SKILL.md:56 自证），值为自由字符串、无锚——技术名写法漂移即断链。机制化（**已裁铸 ID**）：`stack[]` 条目铸稳定 ID **`ST-###`**（文件内全局唯一，前缀已查全库零冲突；`choice`/`why` 保持字段形态）；消费方 diy-design / diy-readiness-check 输入面改按 `ST-###` 引用取值，不再按值匹配。与 prd 前置批 / cis-method→design 同判据（下游认 ID）；是否同批实施随批核。改动面：diyc.py check（architecture 类型加 ST 域校验）＋ diy-architecture SKILL.md 结构段＋ diy-design / diy-readiness-check 输入面＋ viewer 展示。
 
 补登（2026-10-04，一审 diy-test-design 发现）：**第三个按值消费点**——diy-test-design 静态检查链取技术栈（SKILL.md:92「从 `stack[].choice` 里找语言与检查工具链……逐字取技术名」，B9 同款）——消费方清单扩入；改动面同步补 diy-test-design 输入面。
+
+**〔2026-11-06 已销·Q-107〕**：本件已由夜队列 Q-107 全量落地合入 dev（feat `3476d19`·merge `bcb72f4`）——engine ST 域校验（形态/唯一性/kind 封闭七类·存量缺 id/kind → warning 不阻塞）＋diy-architecture SKILL 结构段＋消费方（design/readiness/test-design＋10-21 裁定扩入 dev/augment）＋viewer＋tests。**实施口径经 2026-10-21 用户裁定修正**：下游按 kind 取 choice、**不另记 st_ref**（取代本段原「按 ST-### 引用取值」表述）；kind 扩展另立待办（「kind 枚举扩展」段）。本段零注记系滞后文本——2026-11-06 荐夜跑件时据此误判为在场待办，补注关闭。
 
 ## 待办：architecture stack 全 kind 表态＋下游取值＋help 按值推荐（2026-10-22 用户裁定，待任务书）
 
@@ -554,6 +556,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **〔2026-10-27 用户裁定·viewer 接线入①〕**：①改动面定＝`diyc_check_docs` 族（面清单＋extract＋断言）＋`test_diyc_check.py`＋**viewer 标签接线入**（value 标签表运行时读枚举常量·`viewer_labels.py`＋`test_viewer_labels.py` 入 scope）。施工口径＝viewer 直接 import `diyc_check_docs_lib` 枚举常量段（`diyc*` 共享底座前缀豁免在案·己批守卫零违例·常量零搬移）。已入夜队列 Q-126（2026-10-27）。
 
+**〔2026-11-06 部分销账〕**：①已由 Q-126 收口——第七批挂起后 10-31 用户裁 A 收窄（scope 加 viewer_glossary·接线＋_EXEMPT 清偿）重跑合入 dev（`39a75d9`·见第七批对账段 :728）；上句「已入队」系过程态滞后。②（方案 A YAML 单点派发）仍归批 8 未做——本段保留，只销①。
+
 ### 待办：窗口输出通用内容统一——通用行同源跟改＋输出 UX 原则（2026-10-16 组7 裁定②登记·2026-10-21 通用行已销：夜队列 Q-110 `7cbb83c`；UX 原则文案随母本批）
 
 登记来源：组7 emit 族呈核后用户两裁（提交 `a40a8b4`）——①emit_via＋violation_line/warn_line 入库、14 家接库＝**已随组7 落地**；②**原则单源方向照准，先记录、另立批**；追加提出：窗口输出统一**先说结论**、再用表格等展示友好型内容输出（含中文全角宽度设计）；并点名**穴居人（caveman）技能**部分内容适合写入统一输出通用内容。
@@ -646,6 +650,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 **改动面（做时）**：diy-analyze SKILL/steps＋`diy-wds-evolution` 两 step＋`diyc_check_docs.py`（check_openapi）＋`story_context.py`＋`readiness.py`＋批 4a 任务书一行＋各测试面（先裁后动）。协调：evolution 两 step 与逐项化批同文件；批 4a F-x 行随 4a 开工重锚回填。
 
 **〔v4·批5e 已销 2026-10-25〕**：本批只销 analyze 收口（4 句死路由按 §7-4 逐句异构：:27 改拒绝口径、:73 与 01-define:55 整句去掉、test 改 `assertNotIn` 防回归）＋evolution A/S 接线（轮级 `analysis_refs` 可选键＋引擎 `validate_analysis_refs` 三报，§7-2 甲；S 相引用＋推定分离，§7-6 甲）＋create-story/readiness 判档（architecture 一档甲式 gate 拒跑 route `diy-architecture`；sprint/test-plan 二档维持）＋总则立法（`docs/code-quality.md`「上游产物依赖三档」节，§7-3 甲；bmb-builder 收编已另登「升级事项」）。**`check_openapi` 子项已随批 4a 落地，非本批返工**。§7-7 备选附全库普查清单（50 技能 92 边只登记不施工）：`.analysis/2026-10-07-execution-plan/upstream-deps-census-5e.md`，余留待后续批＝openapi 激活门两条（引擎一档已落、激活面仍软拒问用户）。〔2026-10-28 用户裁改硬·入第七批夜队列 Q-127〕§7-8：C 表不自动改——analyze 定位已收口为「单问、套件内自理、不路由套件外技能」，用途/边界描述是否更新由用户定。
+
+**〔2026-11-06 补销〕**：Q-127 已由第九批夜队列合入 dev（`b6bdbfb`·openapi 激活面改硬·第七批挂起后 10-30 解挂重跑，完工见第七批对账段 :728）——上句「入第七批」后经整批挂起，本子项完工注记补记关闭。
 
 ## 待办：analysis_refs 裸字符串收紧（2026-10-27 用户裁定，小件，现在不动）
 
