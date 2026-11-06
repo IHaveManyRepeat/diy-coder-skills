@@ -178,7 +178,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | wds-assets 风格库汉化（2026-10-05 用户点名 content-styles＋design-styles 两目录；实测：content-styles 10 件全英文、design-styles 6 件全英文、presentation-formats 7 件标题已中文正文疑英文待核、styles/index.md 已中文。**卡名与文件名是引用键**（SKILL:59 `style:{design,content,format 卡名}`＋steps 02/05 消费）——只汉化叙述、键逐字保留，steps 零改动。待用户点头开工）〔v4·汉化插队已销 2026-10-13〕 | diy-wds-assets data/styles＋presentation-formats |
 | 单独技能 | diy-spec-scan 加方法驱动分支穷举（ECH 化·2026-10-05 用户裁定「卡点法还不够」＋**方案全定 1A+3B·无待裁项**：①穷举独立成 step（如 02b-exhaustive）不并入 03——与 diy-review 双透镜并列同构·两法 findings 去重复用 02「同一处只报一次」·判据参考 diy-review lenses.md「边界类从内容自身推·不套固定清单」；②**穷举默认跑（opt-out·2026-10-05 裁）**——除非用户明示不用穷举·对齐 editorial-review 两透镜默认全跑 `--lens` 收窄先例；③**载体已裁＝`source: 卡点\|穷举` 字段**——type 保持八类·引擎 FINDING_TYPES 零改·summary 分法计数（selfcheck B 部分机制评价原料）。**未开工·待用户点头**）〔v4·批2a 已销 2026-10-11〕 | diy-spec-scan SKILL＋steps＋引擎＋tests |
 | 单独技能 | diy-selfcheck 硬门放开「要照做的事」→ 任意文档可审（2026-10-05 用户点名 prd/架构/epic/story/任意文档；BMAD AR/ECH 文档面能力补缺·Story 2.1 实用过 AR 定稿兜底；**方案已裁 2A+4a**：spec-scan 硬门同步放开为「可读非空」·两技能形态统一·selfcheck 预演片对纯文档不降级；纯文档时 spec-scan 跳过 02 预演只跑穷举+03+04（依赖 1A）；kind 扩「任务书\|技能\|规格\|文档」——引擎不校验语义 kind·仅改 SKILL.md 文案零引擎改动。**未开工·待用户点头**）〔v4·批2b 已销 2026-10-11·引擎零改＝4a 收窄——改动面列之『引擎』在册未触〕 | diy-selfcheck SKILL＋steps＋diy-spec-scan SKILL＋steps＋引擎＋tests |
-| 单独技能 | 爆炸半径分析注入 diy-review＋测试设计族（四项全闭合：1b 独立面/2b FH 排序/三技能范围/定制标签＋漂移防治已核·**未开工·待用户点头**） | diy-review＋test-design/e2e/augment＋引擎＋viewer＋tests |
+| 单独技能 | 爆炸半径分析注入 diy-review＋测试设计族（四项全闭合：1b 独立面/2b FH 排序/三技能范围/定制标签＋漂移防治已核·〔v4·批1 已销 2026-10-10 主体四件·残面 Q-136 合入 `75969cc`·2026-11-06 核销〕） | diy-review＋test-design/e2e/augment＋引擎＋viewer＋tests |
 | 单独技能 | diy-analyze 吸收 arch-analyze 职能（方向已裁：arch-analyze 退役不装·套件内 4 处路由句改写·取代形态/产物面待裁·**未开工·待用户点头**） | diy-analyze SKILL＋steps＋引擎＋viewer＋tests＋底单 C 表 |
 | 单独技能 | diy-reverse 补「参考用法」引导（2026-10-05 会话实测：用户想先逆向别站做参考再做自己的 design.yaml——instance 隔离机制在场可解（`--instance` 落 `<output_dir>/<instance>/` 不占主线位）但 SKILL.md 只有「初始设计单源」一种叙事，参考用法入口不显性；拟补引导：参考目的→带 `--instance` 跑＋主线生成权不受扰＋design `[C]`/`[K]` 只读消费参考；挂法/文案/是否动 diy-design 输入面待裁，预期零引擎改动·**未开工·待用户点头**） | diy-reverse SKILL.md（或＋diy-design 输入面） |
 | 单独技能 | diy-wds-trigger Layer 1 方法本体迁入（2026-10-05 用户裁定「要迁移就都迁移完」：2 份实存 saga 文档 1,687 行（trigger-mapping 653＋dream-up-approach 1,034）迁入 diy——**安装 diy 不装 bmad·技能不得依赖 `_bmad` 路径**·裁定 9「不可用」随之解封；迁入形态/落点待裁·**开工先普查全库同类**（运行时输入依赖安装布局外路径·功能依赖型）·**未开工·待用户点头**） | diy-wds-trigger SKILL＋steps＋新迁文件 |
@@ -381,6 +381,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **〔2026-10-28 用户裁·入队〕**：TOC 批入第八夜队列 **Q-133**（`.analysis/overnight/queue-2026-10-28-2112.yaml`·预估 60min）；标阻塞——前置 Q-129/Q-130 挂起（第七批）＋本件文件亦在批6 C 清单，批6 完工重审后随令开工。
 
+**〔2026-11-06 已销〕**：Q-133 已于 10-30 第九批夜队列解挂重跑完成（`queue-2026-10-30-231339.yaml` status=完成·commit `627d5bf`·分支 `overnight/2026-10-30/Q-133`·合入 dev）；上方「标阻塞」注记失效。
+
 ## 待办：WDS/openapi 键标签缺位＋卡内标题 id 重复（2026-10-27 TOC 层数表评估副产，登记待办，现在不动）
 
 登记来源：`.analysis/2026-10-27-toc/层数表-逐产物过目.md` 观察项——viewer `key_label()` 实测（非猜测）。
@@ -391,6 +393,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 **排次待裁**：先修两件再做 TOC ／ 与 TOC 同批施工 ／ TOC 先行（标签缺位时 WDS 页目录条目呈英文）——随层数表定稿一并裁。〔2026-10-28 用户裁·甲＝先修（键标签 Q-129＋卡内 id Q-130）再做 TOC；TOC 仍压层数表定稿＋入队裁定〕〔同日 Q-129/Q-130 整批挂起（保留队列）：viewer_labels.py 在批6 C 清单 26 行·批6 完工后重审（见「第七批整批挂起」待办段）；排次甲与全名制裁向仍有效〕
 
 改动面：viewer.py（`page()` 骨架＋CSS＋section 渲染加锚）＋viewer tests。与「index 产物排序」「openapi 行锚」批同文件（viewer.py），可同批施工。
+
+**〔2026-11-06 已销〕**：本段两问题均已随第九批夜队列合入 dev——①键标签缺位＝Q-129（`bfc3578`·`viewer_labels.py` +77·WDS 三产物＋openapi 顶层键，所列 12 键全数补齐）；②卡内 id 重复＝Q-130（`ef678c5`·全名制祖先前缀）。两件 10-28 挂起、10-31 对账结清（:718），上方「挂起」「排次待裁」注记随之失效；Q-138 头注撞车提醒同日核实删除。
 
 ## 待办：BMAD 记忆文件实存细看（2026-10-13 用户提出，登记待查，现在不动）
 
@@ -506,6 +510,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面：tests/ 175 处注释＋guard 作用域一行＋tests 面钉住面实测核（改注释若触测试名/断言须先裁）。
 
+**〔2026-11-06 已销〕**：Q-135 已合入 dev（`46f28c7`·tests 面 175 处清理＋guard 作用域 skills→tests 扩面·11-02 夜队列）。
+
 ## 待办：技能正文历史原因叙事清理（「为什么：证伪轮曾发现…」类·2026-10-29 用户点名，登记待办，现在不动）
 
 登记来源：用户批 6 收口审核点名——diy-build-loop SKILL.md:87 尾句「**为什么：** 证伪轮曾发现无头链已到 sprint 终态、真源却停在 `待办`」这类**写历史原因的**不适合放入技能（安装面正文是给执行 AI 的行为指令，不是变更史叙事——与拍板注记「规则本体不靠拍板句支撑」同理：删叙事、规则自含）。
@@ -526,6 +532,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 事实：单文件 ≤400 红线；本文件 Q-133 前已 406 超线，Q-126 接线 +9 → **415**（`39a75d9` 后实测）。
 - 拆向参考：值标签/键覆盖表与术语表切两刀（切法随任务书定）；同目录消费面（viewer_render/viewer_pages 对 VALUE_LABELS、GLOSSARY、CHAIN_ORDER 等的引用）随任务书核。
 - 触发：viewer 下次接触窗口顺带落，或攒批。
+
+**〔2026-11-06 已销〕**：Q-134 已合入 dev（`3bdd064`·值标签表与术语表切分回卡线·11-02 夜队列）。
 
 ## 第二批待办（2026-10-10 起·v4 批 1 审核中发现，与上方第一批待办〔2026-10-03~05 登记〕区分）
 
@@ -646,6 +654,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 裁定（2026-10-27 用户）：**收紧**——裸字符串报 `ENUM_INVALID`（消息注明「应为列表形态」）。波及面已核：测试用例全列表形态（零冲突）、viewer 仅键标签（零波及）、5e 新键无存量产物。
 
 改动面（做时）：`wds_evolution_checks.py` `validate_analysis_refs` 1 行＋`test_wds_evolution.py` 补 1 用例。形态＝夜队列小件（照 Q-124 先例不立书）。**未开工·待用户点头**。
+
+**〔2026-11-06 已销〕**：实态已由夜队列 Q-125 落地——10-27 入第七批（挂起）→ 10-30 第九批解挂重跑合入 dev（feat `423698a`·merge `3eeed65`·`wds_evolution_checks.py` +13／`test_wds_evolution.py` +8，与本段改动面一致）。上方「未开工」句系滞后文本，结清行原记于第七批对账段（:718），本段补注关闭。
 
 ## 待办：diy-overnight 开工权收紧——不明示不开工＋最后一步交提示词（2026-10-19 用户提出，登记待办，现在不动）
 
