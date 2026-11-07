@@ -9,12 +9,15 @@ DIY_STUB_LOG      每次调用追加一行 "<story> <action>"（调用计数；p
 DIY_STUB_SPRINT   桩要写回的 sprint.yaml 路径
 DIY_STUB_SENTINEL 若 stdin 读到非空内容则写入该文件（无头断言）
 DIY_STUB_SLEEP    已完成 两段写回之间的停留秒数（并发扫描窗口）
-含 "diy-e2e-tests" / "diy-test-review" / "diy-test-gate" 的调用视为冲刺末三连会话
-（2026-10-05）：不进任务状态机——log 记 "post <技能名>"，review/gate 往
+含 "diy-e2e-tests" / "diy-test-review" / "diy-test-gate" / "diy-investigate" 的调用
+视为冲刺末三连会话（2026-10-05；investigate 随 2026-11-07 三连失败处置加入）：
+不进任务状态机——log 记 "post <技能名>"，review/gate 往
 DIY_STUB_OUTDIR 写一条草稿记录（模拟技能窄写权产物），stdout 输出一行 JSON
 result（模拟 --output-format json，供 runner 的 e2e note 抽摘要）
 DIY_STUB_OUTDIR   post 会话产物写入根（test-review.yaml / test-gate.yaml 落此）
 DIY_STUB_E2E_RESULT e2e 会话的 result 摘要行（默认给一条通过计数）
+DIY_STUB_E2E_FAIL_IDS e2e 会话写入 test-plan.yaml 的端到端失败 TC ID（逗号分隔，
+模拟本轮新失败；缺省不写 = 零新失败）
 """
 import json
 import os
@@ -62,9 +65,31 @@ def handle_post(skill: str) -> int:
             fh.write(f"post {skill}\n")
     outdir = os.environ.get("DIY_STUB_OUTDIR")
     if skill == "diy-e2e-tests":
+        # 轮次语义夹具：DIY_STUB_E2E_FAIL_IDS 在场 = 本轮 e2e 落失败条目
+        # （runner 用 spawn 前快照 + 跑后 diff 取「本轮新失败」）
+        fail_ids = os.environ.get("DIY_STUB_E2E_FAIL_IDS", "")
+        if fail_ids and outdir:
+            path = Path(outdir) / "test-plan.yaml"
+            try:
+                doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+            except (OSError, yaml.YAMLError):
+                doc = None
+            if not isinstance(doc, dict):
+                doc = {}
+            cases = doc.get("test_cases")
+            if not isinstance(cases, list):
+                cases = []
+                doc["test_cases"] = cases
+            for tc_id in (s.strip() for s in fail_ids.split(",")):
+                if tc_id:
+                    cases.append({"id": tc_id, "type": "端到端", "status": "失败"})
+            atomic_write(path, yaml.safe_dump(doc, allow_unicode=True, sort_keys=False))
         summary = os.environ.get("DIY_STUB_E2E_RESULT",
                                  "2 通过 / 0 失败（夹具默认）")
         print(json.dumps({"result": summary}, ensure_ascii=False))
+        return 0
+    if skill == "diy-investigate":
+        print(json.dumps({"result": "investigate 归因完成（桩）"}, ensure_ascii=False))
         return 0
     if skill == "diy-test-review":
         path = Path(outdir) / "test-review.yaml"
@@ -93,7 +118,7 @@ def main() -> int:
     # 其他技能名（如 review prompt 里的 diy-e2e-tests）不误路由
     post_match = re.search(r"运行 (diy-[a-z0-9-]+) skill", joined)
     if post_match and post_match.group(1) in ("diy-e2e-tests", "diy-test-review",
-                                              "diy-test-gate"):
+                                              "diy-test-gate", "diy-investigate"):
         return handle_post(post_match.group(1))
 
     match = re.search(r"S-\d+", joined)

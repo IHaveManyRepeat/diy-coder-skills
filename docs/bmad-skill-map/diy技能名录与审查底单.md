@@ -410,7 +410,9 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - BMAD 记忆机制在册：agent 记忆实位＝`_bmad/_memory/<agent>-sidecar/`（`_bmad/bmm/module-help.csv:8` 注册 tech-writer `update-standards` 动作写 documentation-standards.md）；**本仓 `_bmad/` 下无 `_memory/` 目录**——用户实际使用时的记忆实存待寻（本仓外项目/全局位置）。
 - diy 侧对位物＝experience_repo 经验库（`diy-coder.yaml:10`，全局 `~/.diy-coder/experience`）——与 BMAD agent-sidecar 记忆（用户偏好/标准类）非同物；迁移未覆盖此面。
 
-待办动作：细看 BMAD 记忆体系（存储内容/写入触发/读取时机），产出「存了什么、强调为何能记住」事实清单；再裁 diy 是否补记忆面及形态。**〔2026-10-13 调研已完成〕**报告＝`docs/bmad-skill-map/调研结论-BMAD记忆机制-2026-10-13.md`。核心结论：BMAD 记住强调＝「偏好固化进 `_bmad/custom/` 的 `persistent_facts`＋技能激活时自动读入」（非模型记忆）；四层机制（custom 偏好／agent MEMORY／bmm sidecar／wds 会话状态）中本机仅 custom 层有实存（本仓 20 toml＋doc-style.md＋eng-defaults.md）；diy 零对位面，现状靠宿主 CLAUDE.md 兜底。待裁三项（是否补 persistent_facts 同构面／补则形态／层②③要不要）见报告末节，**未裁不动**。**〔2026-10-17 方向已裁＋设计呈审〕**方向＝「机制要加·按产物/技能挂」；设计方案＝`docs/bmad-skill-map/设计方案-偏好记忆机制-2026-10-17.md`（载体＝`preferences.yaml`、读入＝`resolve` 扩键、写入＝AI 直写 append、保证＝写面 check＋读面概率区、排期＝句搭批 8 随窗）——**五裁点待裁未开工**，原三项随方向裁定收敛于设计五裁点。
+待办动作：细看 BMAD 记忆体系（存储内容/写入触发/读取时机），产出「存了什么、强调为何能记住」事实清单；再裁 diy 是否补记忆面及形态。**〔2026-10-13 调研已完成〕**报告＝`docs/bmad-skill-map/调研结论-BMAD记忆机制-2026-10-13.md`。核心结论：BMAD 记住强调＝「偏好固化进 `_bmad/custom/` 的 `persistent_facts`＋技能激活时自动读入」（非模型记忆）；四层机制（custom 偏好／agent MEMORY／bmm sidecar／wds 会话状态）中本机仅 custom 层有实存（本仓 20 toml＋doc-style.md＋eng-defaults.md）；diy 零对位面，现状靠宿主 CLAUDE.md 兜底。待裁三项（是否补 persistent_facts 同构面／补则形态／层②③要不要）见报告末节，**未裁不动**。**〔2026-10-17 方向已裁＋设计呈审〕**方向＝「机制要加·按产物/技能挂」；设计方案＝`docs/bmad-skill-map/设计方案-偏好记忆机制-2026-10-17.md`（载体＝`preferences.yaml`、读入＝`resolve` 扩键、写入＝AI 直写 append、保证＝写面 check＋读面概率区、排期＝句搭批 8 随窗）——原三项随方向裁定收敛于设计五裁点。
+
+**〔2026-11-07 五裁全落·整件攒批 8〕**：**1＝乙**（载体 `{output_dir}/preferences.yaml` **根目录单一文件**——instance 子目录不另建·跨实例共享同一份口味·与 Q-148 多实例感知对表：偏好文件不在其扫面）／**2＝甲**（resolve 回执扩 `preferences` 键＋`--skill <短名>` 旗标）／**3＝乙**（写入通道＝`diyc pref-add` 子命令·写入当场引擎校验——**覆盖设计稿原「AI 直写 append」案**）／**4＝乙**（键域**封闭世界**＝键必须是技能短名、拼错/漏归＝红，同 EXPECTED_SKILL_COUNT 先例；写面 check 扩校验＋读面概率区照设计稿）／**5＝甲**（**全部搭批 8 窗**——引擎面与 50 技能激活句都随批 8，不独立小批）／落法＝**丙：不入队、攒着**——批 8 立书时消费本段裁定为输入。改动面照设计稿 §9＋两处覆盖更新（diyc `pref-add`＋check 封闭键域），批 8 未立书前零动工。
 
 ## 待办：全库去源路径锚（2026-10-04 用户裁定，专批，现在不动）
 
@@ -658,6 +660,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 改动面（做时）：test-plan schema（废弃字段）＋`diyc_check_docs.py` check_test_plan（覆盖门＋FH 门联动）＋e2e/augment/test-design 三生产方写入面＋viewer 折叠渲染＋diy-investigate SKILL（失败归因入口段）＋runner（若触发裁自动）＋tests（先裁后动）。
 
 **〔2026-11-07 任务书 §7 全裁·回填毕·待请令开工〕**：剩余面任务书（`.analysis/2026-10-31-runner-fail-disposition/taskbook.md`）五项＋三附带全裁回填——1 甲（case 零扩）／2 甲＋轮次 diff（SS-044-01 阻断落定·仅本轮新失败触发 spawn）／3 甲（完整 investigate＋收窄任务单）／4 甲（先落 bug-add＋重开·位置 A 注记）／5 甲（`--post-only` 同触发）；附带＝先补替代再落标／②路文案「e2e 归 e2e·单元集成归 dev 走重开」／单案卷逐 TC 一判。连带新立＝「e2e 失败条目状态闭环」段（另裁）。机械面（Q-111/114/120/121）零触改。
+
+**〔2026-11-07 完工〕**：Q-143 完工（五项全裁落点＝1甲 case 零扩／2甲 轮次 diff spawn 判据＋负样例回归钉／3甲 investigate 归因入口＋收窄 instruction／4甲 bug-add＋sprint 重开衔接／5甲 --post-only 共用 run_post_face；附带三裁落位；verify＝test_runner+test_investigation 88 passed＋sync md5 全同）。
 
 ## 待办：diy-analyze 定位收口＋产物依赖缺席三档总则（2026-10-17 用户裁定，登记待办，现在不动）
 
