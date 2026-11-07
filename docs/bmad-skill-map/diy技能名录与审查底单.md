@@ -210,6 +210,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面（草案）：`diyc_check_docs_upstream.py`＋`diyc_check_docs_lib.py`（全 kind 表态断言）／`diy-architecture/SKILL.md`（结构＋规则）／design、readiness-check、test-design、dev、augment 输入面／`diy-help`（registry.yaml＋help.py／help_lib.py＋SKILL）／`diy-openapi`（若接口面判据改）／viewer（null 渲染）／相关 tests。
 
+**〔2026-11-07 立书·六项全裁＋三口连带回填毕〕**：任务书 `.analysis/2026-11-07-stack-kind-posture/taskbook.md`（SS-056 自扫 9 findings·1 阻断·终门 exit 0）→ §7 六裁全落——**1甲**（多值一条条列可写细·同 kind 值与 null 并存违规）／**2甲**（`null`）／**3＝推导案**（判据用户亲给：frontend 在场 ∧ language 存在「后端用」条目 → 有接口面·「只有前端或只有后端不需要接口」·不扩 kind 不开块·连带 language 逐条标前后端角色）／**4乙**（help 直读 architecture.yaml）＋**口3b**（缺席/损坏硬拒）／**5甲**（一件全做·排 Q-140/Q-144 后入队）／**6甲**（存量 warning 沿 Q-107）；口2 三处 null 目标行为已裁（design 拒跑／test-design 4 类在场组链全空拒跑／augment language null 变异不跑）。规格九处按裁回改毕（§3 改动面表·§4 grep 收窄·§5 样例·§7 回填·§8 判据）。**下一步＝呈审→入队（待 Q-140/Q-144 完工后）**。
+
 ## 待办：新增 bug 分析技能（编排 cis-method 问题求解）
 
 登记（2026-10-04 用户裁定立项；查证无对口技能）：现有面 = diy-investigate（取证调查，止于诊断报告，无机制消灭与经验沉淀）/ cis-method 问题求解（通用 9 步含根因·方案·经验教训，不面向 bug、无代码取证）/ retrospective（epic 级复盘）；BMAD 源 `bmad-analyze-bug` 未迁。
