@@ -5,7 +5,10 @@ Progress: `[1 备料与起环境] → [2 四类判据逐条跑] → [3 记录问
 **Read (input):** `{output_dir}/design.yaml` **该场景全部页**（各页 `states[].signals` / `prototype` / `implementation`）；本轮增量清单（哪些页、哪些单元是本轮新增）；项目可跑的命令（构建 / 开发服务器 / 测试）；用户在本文件各步的回答。
 **Write (output):** 会话内的验收报告（逐页逐条 actual vs expected + `verdict`）与问题清单 + 分流结论。**不写 `design.yaml`**——状态迁移一律经 `transition`（`./wds-finalize.md`）。
 
-**范围**：**全量验收归本技能**——`diy-wds-evolution` 的 `[T]` 只验本轮增量（一轮一条改进）；本节验**该场景全部页 × 全部态**。判据四类同族（与 `diy-wds-evolution` 的 `test.criteria` 的 `kind` 词表一致），**不另铸词表**。
+**范围**：
+1. **全量验收归本技能**——`diy-wds-evolution` 的 `[T]` 只验本轮增量（一轮一条改进）。
+2. 本节验**该场景全部页 × 全部态**。
+3. 判据四类同族（与 `diy-wds-evolution` 的 `test.criteria` 的 `kind` 词表一致），**不另铸词表**。
 
 ## 第 1 步 —— 备料与起环境
 
@@ -22,7 +25,9 @@ Progress: `[1 备料与起环境] → [2 四类判据逐条跑] → [3 记录问
 | `EC` | 边界与异常（空态 / 错误 / 追加态） | `states[]` 的异常态 + `open_questions` 的已解决项 |
 | `A11Y` | 键盘可达、触控目标 ≥44px、语义 HTML、对比度 | `design.py check` 回执的 `violations[].code`（`contrast` / `color-only-signal` / `semantic-html` / `a11y-touch-target` / `a11y-keyboard`） |
 
-每条一行 `{criterion, how, expected, actual, verdict}`——`verdict` 只有 `通过` / `未通过`：**不写「大致符合预期」**（那样下一轮无从分辨是哪条起了作用）。
+记录纪律：
+1. 每条一行 `{criterion, how, expected, actual, verdict}`——`verdict` 只有 `通过` / `未通过`。
+2. **不写「大致符合预期」**（那样下一轮无从分辨是哪条起了作用）。
 
 ## 第 3 步 —— 记录问题与分流
 
@@ -37,7 +42,8 @@ Progress: `[1 备料与起环境] → [2 四类判据逐条跑] → [3 记录问
 
 ## 第 4 步 —— 报告与结论
 
-报告六行内：页数 / 判据条数 / 通过数 / 未通过数 / 分流去向 / 下一步。未通过 → 迭代回第 2 步；全过 → 出**「可呈用户批准」**的结论并呈报用户。
+1. 报告六行内：页数 / 判据条数 / 通过数 / 未通过数 / 分流去向 / 下一步。
+2. 未通过 → 迭代回第 2 步；全过 → 出**「可呈用户批准」**的结论并呈报用户。
 
 **不代用户批准**：`待验收 → 已批准` 是用户动作（经 `transition`），本步骤与 `diy-review` 都只出结论。
 

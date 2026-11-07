@@ -21,19 +21,23 @@ Progress: `[1 载规格与基线] → [2 列工作项与定序] → [3 逐项实
 
 ## 第 2 步 —— 列工作项与定序
 
-把该页拆成**可独立验证的单元**（页块 / 交互 / 单个态），每单元一行：「建什么 + 判据是 `states[].signals` 的哪几条」。按依赖定序（结构 → 交互 → 态）。按「读规格 → 识别工作项 → 排实现顺序」三步走；工作项清单**落会话**，不另建 story 文件（单一源 = `design.yaml`）。
+1. 把该页拆成**可独立验证的单元**（页块 / 交互 / 单个态），每单元一行：「建什么 + 判据是 `states[].signals` 的哪几条」。
+2. 按依赖定序（结构 → 交互 → 态）；按「读规格 → 识别工作项 → 排实现顺序」三步走。
+3. 工作项清单**落会话**，不另建 story 文件（单一源 = `design.yaml`）。
 
 ## 第 3 步 —— 逐项实现
 
 1. **最小实现**：只写把判据转真的最少代码（与主线规则 3 同源）；多出来的落回报记跟进，**绝不当静默的额外代码**。
 2. **零重写采用**：不重写、不重新生成页面结构与样式；样式只取 `design.yaml` 的 token（CSS 变量注入）——无一次性 hex 色、无越档字号。
 3. **跟随既有模式**（源核心原则 4）：文件结构 / 命名 / 状态管理 / 错误处理对齐基线代码的惯例；偏离规格（技术约束、发现的问题）先记明原因再往下走。
-4. **每方法一行 trace**：`# trace: SC-01.P1 加载中`（C 族写 `// trace:`）——ID = 本页 + 本单元实现的 `states[].name`（可并列多个）；架构决策驱动形状时加 `D-x`（惯例放末尾）。解析宽容与主线同（顺序无关、可重复、自动去重）；主线模式写 `S-x AC-x.y TC-x.y.z`，WDS 模式写页 ID + 态名。
+4. **每方法一行 trace**：`# trace: SC-01.P1 加载中`（C 族写 `// trace:`）——ID = 本页 + 本单元实现的 `states[].name`（可并列多个）；架构决策驱动形状时加 `D-x`（惯例放末尾）。
+   - 解析宽容与主线同（顺序无关、可重复、自动去重）；主线模式写 `S-x AC-x.y TC-x.y.z`，WDS 模式写页 ID + 态名。
 
 ## 第 4 步 —— 边做边跑（源核心原则 3）
 
 1. 每个单元做完就跑一遍（项目怎么跑就怎么来：构建 / 开发服务器 / 项目自带测试）；**不把测试攒到最后**。
-2. token 单一源闸：`python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src <impl>`——零 `one-off-color` / `one-off-font-size` 才算这一项过；`token_scope` 里的路径跳过、`--src` 取实际实现目录。
+2. token 单一源闸：`python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src <impl>`——零 `one-off-color` / `one-off-font-size` 才算这一项过。
+   - `token_scope` 里的路径跳过、`--src` 取实际实现目录。
 3. 红转不了绿 → **停下如实上报**（缺什么 / 试过什么 / 卡在哪），**绝不削弱判据来充绿**。
 
 ## 收尾与路由

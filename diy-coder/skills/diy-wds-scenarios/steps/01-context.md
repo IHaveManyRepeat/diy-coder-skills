@@ -23,24 +23,19 @@ Progress: `[1 载上下文与续接检测] → 2 规模分析与页清单（用�
 | `{output_dir}/wds-brief.yaml`（**可选**，只读） | 站点类型 / 业务背景 / 平台约束 / 页数 / 导航结构（`brief.core` · `brief.platform.platform_requirements`） |
 | 同文件的 `brief.content.content_language.seo_keywords` | SEO 关键词图（缺则记 gap） |
 
-
 **续接检测**（源 step-01 第 4 指令）：先跑
 
 ```
 python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-- 回空列表 → 这是新项目，进第 2 步。
-- 回已有记录 → 播报六字段（ID / 名称 / 人物 / 页数 / 优先级 / 状态），问三选一：**① 接着上次做 / ② 复审并调整已有场景 / ③ 推倒重来**——**HALT 等选择**，不替用户选。
-
-**呈出上下文摘要**（源 step-01 第 5 指令的模板；四条：项目 / 站点类型 / 业务目标数与人物清单 / 首要人物 + 其头号驱动因素），最后一问「可以开始做规模分析了吗」。
-
-**落盘**：本步只往会话里带上下文，**不写盘**（骨架在第 2 步的 `init` 一次铸成）。
-
-**检查点（六拍）**：① 生成 → ② 落盘（本步无写盘，仅记本步结论）→ ③ 分隔 → ④ 呈出上下文摘要 → ⑤ 出四选项 → ⑥ 等响应。
-`[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
-
-读全并照做本文件 `## 第 2 步 —— 规模分析与页清单（用户关卡 1 + 铸骨架）`。
+1. 回空列表 → 这是新项目，进第 2 步。
+2. 回已有记录 → 播报六字段（ID / 名称 / 人物 / 页数 / 优先级 / 状态），问三选一：**① 接着上次做 / ② 复审并调整已有场景 / ③ 推倒重来**——**HALT 等选择**，不替用户选。
+3. **呈出上下文摘要**（源 step-01 第 5 指令的模板；四条：项目 / 站点类型 / 业务目标数与人物清单 / 首要人物 + 其头号驱动因素），最后一问「可以开始做规模分析了吗」。
+4. **落盘**：本步只往会话里带上下文，**不写盘**（骨架在第 2 步的 `init` 一次铸成）。
+5. **检查点（六拍）**：① 生成 → ② 落盘（本步无写盘，仅记本步结论）→ ③ 分隔 → ④ 呈出上下文摘要 → ⑤ 出四选项 → ⑥ 等响应。
+   `[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
+6. 读全并照做本文件 `## 第 2 步 —— 规模分析与页清单（用户关卡 1 + 铸骨架）`。
 
 ## 第 2 步 —— 规模分析与页清单（用户关卡 1 + 铸骨架）
 
@@ -60,23 +55,21 @@ python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py
 
 逐条列**页清单**（`page_inventory[]`，每条 `name` + `purpose` 一个短句）：
 
-- 简报里**提到**的每一页都要在；
-- 导航结构**隐含**的页（源例子：导航里有「服务」→ 服务总览页要在）都要在；
-- 业务目标**隐含**的页（源例子：目标里提到预约 → 预约页要在）都要在；
-- **共用元素不进清单**（页头 / 页脚 / 导航是全局件）；
-- 呈现：「共 N 页 / 视图」+ 编号清单。
-
+1. 简报里**提到**的每一页都要在。
+2. 导航结构**隐含**的页（源例子：导航里有「服务」→ 服务总览页要在）都要在。
+3. 业务目标**隐含**的页（源例子：目标里提到预约 → 预约页要在）都要在。
+4. **共用元素不进清单**（页头 / 页脚 / 导航是全局件）。
+5. 呈现：「共 N 页 / 视图」+ 编号清单。
 
 ### 2.3 规模与页文档化策略（源 step-02 第 3–4 指令）
 
-- **规模带** → `scope.scale`：
-  - `small`（<20 页）：**全面覆盖**——每一页都要在某条场景里露面；
-  - `medium`（20–50 页）：**全面覆盖 + 自然分组**——按导航形态 / 服务类型 / 内容类目分组；
-  - `large`（>50 页）：**有选择的忽略**——先深做最有价值的那条工作流（理由：学到的模式能复用到其余页）。
-- **逐页 vs 模板化** → `scope.page_strategy`：页少而差异大 → **逐页**逐条写（`individual[]`）；页多而同构 → **模板化**（`templated[]` 写清是哪些同构组）。
-- **场景格式** → `scope.scenario_format`（见 2.1 表）。
-- **大纲模式**（选填 `scope.approach`）：`对话`（默认，你问用户答）或 `建议`（你按触发图与简报先给整套 8 问答案，用户改）——源 step-05 实际实现的就这两态，故在此推荐。
-
+1. **规模带** → `scope.scale`：
+   - `small`（<20 页）：**全面覆盖**——每一页都要在某条场景里露面。
+   - `medium`（20–50 页）：**全面覆盖 + 自然分组**——按导航形态 / 服务类型 / 内容类目分组。
+   - `large`（>50 页）：**有选择的忽略**——先深做最有价值的那条工作流（理由：学到的模式能复用到其余页）。
+2. **逐页 vs 模板化** → `scope.page_strategy`：页少而差异大 → **逐页**逐条写（`individual[]`）；页多而同构 → **模板化**（`templated[]` 写清是哪些同构组）。
+3. **场景格式** → `scope.scenario_format`（见 2.1 表）。
+4. **大纲模式**（选填 `scope.approach`）：`对话`（默认，你问用户答）或 `建议`（你按触发图与简报先给整套 8 问答案，用户改）——源 step-05 实际实现的就这两态，故在此推荐。
 
 ### 2.4 呈批（**用户关卡 1**，源 step-02 第 5 指令）
 
@@ -112,14 +105,11 @@ python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py
 python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py" init --site-type "<presentation|dynamic|mixed>" [--scale <small|medium|large>] [--scenario-format <screen-flow|storyboard|mixed>] --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-- `--site-type` **必填**：空值 → `EMPTY_FIELD`、非法值 → `ENUM_INVALID`（两者都零产出）。
-- **上游门禁**：`{output_dir}/wds-trigger.yaml` 缺失 → `MISSING_FILE` 零产出（路由 `diy-wds-trigger`）；其 `project.status ≠ 已定稿` → `STATUS_MISMATCH` 零产出。
-- 骨架含**首条记录的铸号**（`SC-01`）——场景名与人物引用要到 03-plan 用户关卡 2 之后才存在，此处先铸号，保证 **ID 顺序递增且不重编不复用**。
-- 已有产物 → **不覆盖**（只刷 `project.updated` + warning）；产物损坏 → `UNPARSABLE_YAML` 拒绝且零写入。
-- 页清单与 `scope.page_strategy` 由你**直接编辑产物**写入（内容型字段，写权归会话）；`project.name` / `created` 由 `init` 铸造后**不再由你改**。
-
-**检查点（六拍）**：① 生成 → ② 落盘（`init` 铸骨架 + 页清单进 `page_inventory[]`）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-**收尾与路由**：页清单与规模已落盘，读 `./02-strategy.md` 起战略链。
-
-本文件到此结束，不再回头。
+1. `--site-type` **必填**：空值 → `EMPTY_FIELD`、非法值 → `ENUM_INVALID`（两者都零产出）。
+2. **上游门禁**：`{output_dir}/wds-trigger.yaml` 缺失 → `MISSING_FILE` 零产出（路由 `diy-wds-trigger`）；其 `project.status ≠ 已定稿` → `STATUS_MISMATCH` 零产出。
+3. 骨架含**首条记录的铸号**（`SC-01`）——场景名与人物引用要到 03-plan 用户关卡 2 之后才存在，此处先铸号，保证 **ID 顺序递增且不重编不复用**。
+4. 已有产物 → **不覆盖**（只刷 `project.updated` + warning）；产物损坏 → `UNPARSABLE_YAML` 拒绝且零写入。
+5. 页清单与 `scope.page_strategy` 由你**直接编辑产物**写入（内容型字段，写权归会话）；`project.name` / `created` 由 `init` 铸造后**不再由你改**。
+6. **检查点（六拍）**：① 生成 → ② 落盘（`init` 铸骨架 + 页清单进 `page_inventory[]`）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+7. **收尾与路由**：页清单与规模已落盘，读 `./02-strategy.md` 起战略链。
+8. 本文件到此结束，不再回头。

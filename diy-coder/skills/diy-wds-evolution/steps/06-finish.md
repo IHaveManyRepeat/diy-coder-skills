@@ -11,7 +11,6 @@ Progress: `[1 预交付清单与交付摘要 → 2 可选 PR 与下轮计划 →
 
 **先说清为什么**：为什么交付物是一份**摘要**而不是一堆链接——下一轮分析要读的是「上一轮改了什么、预期什么、现在该盯什么」，这三件事必须在同一处能被一次读全。用你自己的话讲。
 
-
 **预交付清单（源 [P] step-01 的五项勾选，逐条核）**：
 
 - [ ] 全部 `acceptance_criteria[]` 通过（溯 `test.criteria[].verdict`）
@@ -43,43 +42,30 @@ delivery:
 
 **引用不复述**：`artifacts` 只写 `rounds[EV-<nn>].<相>` 的**指针**，不复制内容（源 DD 骨架把 14 段抄了三遍，是它的冗余源）。
 
-
-**产出键**：`rounds[EV-<nn>].delivery` 的 `summary` / `artifacts` / `impact` / `monitoring` / `effort`。
-
-**落盘**：`rounds[EV-<nn>].delivery` 整段 + `rounds[EV-<nn>].status: 已交付` + `project.updated`。
-
-**检查点（六拍）**：① 生成 → ② 落盘（`delivery` 段 + 状态推进）→ ③ 分隔 → ④ 呈出预交付清单与交付摘要 → ⑤ 出四选项 → ⑥ 等响应。
-`[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
-
-读全并照做本文件 `## 第 2 步 —— 可选 PR 与下轮计划`。
+1. **产出键**：`rounds[EV-<nn>].delivery` 的 `summary` / `artifacts` / `impact` / `monitoring` / `effort`。
+2. **落盘**：`rounds[EV-<nn>].delivery` 整段 + `rounds[EV-<nn>].status: 已交付` + `project.updated`。
+3. **检查点（六拍）**：① 生成 → ② 落盘（`delivery` 段 + 状态推进）→ ③ 分隔 → ④ 呈出预交付清单与交付摘要 → ⑤ 出四选项 → ⑥ 等响应。
+   `[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
+4. 读全并照做本文件 `## 第 2 步 —— 可选 PR 与下轮计划`。
 
 ## 第 2 步 —— 可选 PR 与下轮计划（源 P2 + P5）
 
 **先说清为什么**：为什么 PR 在这一步是「可选」——单人项目里 `gh pr create` 是一封发给自己、没人合并的信；它只有在**真有人接**的时候才有价值。用你自己的话讲。
 
-**PR 是选项，不是步骤**（源 [P] step-02 的命令保留、触发条件改由用户定）：
-
-- **问一句**：「这轮改动要开 PR 吗？（有人接这个仓库 / 想留一段可评审的记录 → 开；自己一个人的项目 → 跳过）」
-- **要开**：`gh pr create --title "[改进]: <一句话>" --body "<按交付摘要的七键展开>"`——PR 体**引用**摘要键，不另写一份。
-- **不开**：`delivery.pr: none`，在会话里一行说明「本轮无 PR」，**不再追问**。
-- **本项目不是 git 仓库** → 本步整段跳过。
-
-
-**下轮计划（源 [P] step-05 的三件）**：
-
-1. **归档本轮**——一句「EV-<nn> 已交付」进 `delivery.summary` 落定（不另建归档目录）
-2. **回看剩余目标**——读 `rounds[EV-<nn>].analysis.targets_considered[]` 与 `kaizen_priority.candidates[]`（本轮测试期新记的也在此），**逐条念 score**
-3. **建议下一目标或新一轮分析**——二选一，由用户点头（**不代选**）
-
-**Kaizen 不停**（「何时暂停」三问见 `kaizen-principles.md`）：下轮照常；**暂停的三种情形**从 `data/kaizen-principles.md` 取照（重大战略转向 / 团队容量 / 测量期）——**但暂停不是结束，是等一个数**。
-
-**产出键**：`delivery.pr` / `delivery.notes` / `delivery.next`（下一目标或「待新一轮分析」）。
-
-**落盘**：`delivery.pr` / `delivery.notes` / `delivery.next`（下一目标或「待新一轮分析」）+ `project.updated`。
-
-**检查点（六拍）**：① 生成 → ② 落盘（`delivery.pr` / `.next`）→ ③ 分隔 → ④ 呈出下轮建议（含剩余目标的 score）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-读全并照做本文件 `## 第 3 步 —— 质检、定稿与收尾`。
+1. **PR 是选项，不是步骤**（源 [P] step-02 的命令保留、触发条件改由用户定）：
+   - **问一句**：「这轮改动要开 PR 吗？（有人接这个仓库 / 想留一段可评审的记录 → 开；自己一个人的项目 → 跳过）」
+   - **要开**：`gh pr create --title "[改进]: <一句话>" --body "<按交付摘要的七键展开>"`——PR 体**引用**摘要键，不另写一份。
+   - **不开**：`delivery.pr: none`，在会话里一行说明「本轮无 PR」，**不再追问**。
+   - **本项目不是 git 仓库** → 本步整段跳过。
+2. **下轮计划（源 [P] step-05 的三件）**：
+   - **归档本轮**——一句「EV-<nn> 已交付」进 `delivery.summary` 落定（不另建归档目录）
+   - **回看剩余目标**——读 `rounds[EV-<nn>].analysis.targets_considered[]` 与 `kaizen_priority.candidates[]`（本轮测试期新记的也在此），**逐条念 score**
+   - **建议下一目标或新一轮分析**——二选一，由用户点头（**不代选**）
+3. **Kaizen 不停**（「何时暂停」三问见 `kaizen-principles.md`）：下轮照常；**暂停的三种情形**从 `data/kaizen-principles.md` 取照（重大战略转向 / 团队容量 / 测量期）——**但暂停不是结束，是等一个数**。
+4. **产出键**：`delivery.pr` / `delivery.notes` / `delivery.next`（下一目标或「待新一轮分析」）。
+5. **落盘**：`delivery.pr` / `delivery.notes` / `delivery.next`（下一目标或「待新一轮分析」）+ `project.updated`。
+6. **检查点（六拍）**：① 生成 → ② 落盘（`delivery.pr` / `.next`）→ ③ 分隔 → ④ 呈出下轮建议（含剩余目标的 score）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+7. 读全并照做本文件 `## 第 3 步 —— 质检、定稿与收尾`。
 
 ## 第 3 步 —— 质检、定稿与收尾
 
@@ -96,11 +82,7 @@ delivery:
 3. **渲染（静默旁路）**：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。**不新开交互点、不等查看**。
 4. **交接摘要（会话内呈出、不落盘）**：① 本轮目标与根因各一句；② 改动清单（文件数 + 分支）；③ 判据 X/Y 通过；④ 交付摘要的 `monitoring` 三键（盯什么、盯多久、什么算没成）；⑤ 下一目标与它的 score。
 5. **路由与收尾**：一句话给下轮入口——「下一轮从 `steps/01-analyze.md` 起（本产物已在，续接检测会认出 `EV-<nn>`）」；未决项写进 `revisions`（`change` 点名键名、`reason` 写为什么还没定），**不用 `[假设]` 标记**。
-
-**产出键**：`project.status: 已定稿` + 本轮 `status: 已交付` + `revisions` 收尾条目（终门 exit 0 是放行凭据）。
-
-**落盘**：`project.status: 已定稿` / 本轮 `status: 已交付` / `project.updated` / `revisions` 收尾条目。
-
-**检查点（六拍）**：① 生成 → ② 落盘（定稿 + 终门 exit 0）→ ③ 分隔 → ④ 呈出交接摘要 → ⑤ 出四选项 → ⑥ 等响应。
-
-本文件到此结束——终门 exit 0 后本轮收尾，**不再读任何 `steps/` 文件**。下一轮从 `01-analyze.md` 重新开始。
+6. **产出键**：`project.status: 已定稿` + 本轮 `status: 已交付` + `revisions` 收尾条目（终门 exit 0 是放行凭据）。
+7. **落盘**：`project.status: 已定稿` / 本轮 `status: 已交付` / `project.updated` / `revisions` 收尾条目。
+8. **检查点（六拍）**：① 生成 → ② 落盘（定稿 + 终门 exit 0）→ ③ 分隔 → ④ 呈出交接摘要 → ⑤ 出四选项 → ⑥ 等响应。
+9. 本文件到此结束——终门 exit 0 后本轮收尾，**不再读任何 `steps/` 文件**。下一轮从 `01-analyze.md` 重新开始。

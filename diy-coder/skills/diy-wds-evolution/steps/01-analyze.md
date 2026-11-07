@@ -32,19 +32,14 @@ Progress: `[1 载上下文与入口门禁] → 2 双轨上下文与改进目标�
 python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-- 回空 → 新的一轮，进第 2 步。
-- 回已有轮次 → 播报四字段（ID / 目标 / 状态 / 入口），问三选一：**① 接着上一轮做 / ② 开新的一轮（追加 `EV-<nn>`） / ③ 复审并调整既往轮次**——**HALT 等选择**，不替用户选。
-
-**门禁（零产出退出）**：`{output_dir}` 下**无任何**既有产物 → 一行说明并**零产出停止**（本技能不产零起点项目；新建项目走 `diy-wds-brief` / `diy-prd`）。`init` 会把它机械兜住（`MISSING_FILE`）。
-
-**产出键**：Product Snapshot（现状三观察：页 / 导航 / 关键流 + 技术栈与设计令牌的观察所得）——只呈出，第 4 步的 `analysis.snapshot` 溯它。
-
-**落盘**：本步只往会话里带上下文，**不写盘**（骨架在第 3 步的 `init` 一次铸成）。
-
-**检查点（六拍）**：① 生成 → ② 落盘（本步无写盘，仅记本步结论）→ ③ 分隔 → ④ 呈出 Product Snapshot → ⑤ 出四选项 → ⑥ 等响应。
-`[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
-
-读全并照做本文件 `## 第 2 步 —— 双轨上下文与改进目标清单`。
+1. 回空 → 新的一轮，进第 2 步。
+2. 回已有轮次 → 播报四字段（ID / 目标 / 状态 / 入口），问三选一：**① 接着上一轮做 / ② 开新的一轮（追加 `EV-<nn>`） / ③ 复审并调整既往轮次**——**HALT 等选择**，不替用户选。
+3. **门禁（零产出退出）**：`{output_dir}` 下**无任何**既有产物 → 一行说明并**零产出停止**（本技能不产零起点项目；新建项目走 `diy-wds-brief` / `diy-prd`）。`init` 会把它机械兜住（`MISSING_FILE`）。
+4. **产出键**：Product Snapshot（现状三观察：页 / 导航 / 关键流 + 技术栈与设计令牌的观察所得）——只呈出，第 4 步的 `analysis.snapshot` 溯它。
+5. **落盘**：本步只往会话里带上下文，**不写盘**（骨架在第 3 步的 `init` 一次铸成）。
+6. **检查点（六拍）**：① 生成 → ② 落盘（本步无写盘，仅记本步结论）→ ③ 分隔 → ④ 呈出 Product Snapshot → ⑤ 出四选项 → ⑥ 等响应。
+   `[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
+7. 读全并照做本文件 `## 第 2 步 —— 双轨上下文与改进目标清单`。
 
 ## 第 2 步 —— 双轨上下文与改进目标清单（源 [A] step-02 + 源死分支 `steps-a/`）
 
@@ -59,7 +54,6 @@ python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py
 
 **本步的两条纪律**：① **存量接入轨必须亲身体验产品**——只读文档不算；② 反馈归类**保留原话**，不要在这一步就改写成结论。
 
-
 **改进目标清单（五源，源 [A] step-02 第 1 指令）**：逐源过一遍，**每条目标写「现象 + 数字或原话 + 影响的页/流」**：
 
 | 源 | 问句 |
@@ -70,13 +64,10 @@ python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py
 | 视觉缺口 | 哪里不一致、哪里过时？（带页名） |
 | 竞品差距 | 竞品哪里做得更好？（带对照点） |
 
-**产出键**：候选逐条进会话清单（此时**尚未落盘**）；每条附三因子的初判（第 3 步定稿）。
-
-**落盘**：本步不写盘。
-
-**检查点（六拍）**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出候选清单（逐条：现象 / 证据 / 影响的页）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-读全并照做本文件 `## 第 3 步 —— 优先级排序与选定目标（用户关卡 1 + 铸骨架）`。
+1. **产出键**：候选逐条进会话清单（此时**尚未落盘**）；每条附三因子的初判（第 3 步定稿）。
+2. **落盘**：本步不写盘。
+3. **检查点（六拍）**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出候选清单（逐条：现象 / 证据 / 影响的页）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+4. 读全并照做本文件 `## 第 3 步 —— 优先级排序与选定目标（用户关卡 1 + 铸骨架）`。
 
 ## 第 3 步 —— 优先级排序与选定目标（用户关卡 1 + 铸骨架，源 [A] step-03）
 
@@ -89,7 +80,6 @@ Priority = Impact × Effort × Learning
 ```
 
 三因子各取 `high|medium|low`（权重 5 / 3 / 1），`score` = 三档权重之积。**三因子一律「越大越好」**——`Effort` 的 `high` 指**省力度高**（源表逐字：「High = 1-2 days」），**不是**「活儿大」。故 `score` 高 = 该先做。
-
 
 **逐条排序与呈批（用户关卡 1）**：排出候选清单，呈出后**等点头**：
 
@@ -118,13 +108,10 @@ python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py
 - 已有产物 → **不覆盖**（只刷 `project.updated` + warning）；产物损坏 → `UNPARSABLE_YAML` 拒绝且零写入。
 - 追加新一轮：会话直接追加 `EV-<nn>`（序号 = 最大序号 + 1、两位补零、`status: 草稿`）；`check` 机械核对连续性与唯一性。
 
-**产出键**：`kaizen_priority.candidates[]`（逐条 `target` + 三因子 + `score` + `rationale`）+ `rounds[0]` 的 `id` / `target` / `entry`。
-
-**落盘**：`project` + `kaizen_priority` + `rounds[0]`（`EV-01` / 选定目标 / `entry` / `status: 草稿`）+ `revisions: []`。
-
-**检查点（六拍）**：① 生成 → ② 落盘（候选清单进 `kaizen_priority.candidates[]` + `init` 铸骨架）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-读全并照做本文件 `## 第 4 步 —— 分析落盘与根因合成`。
+1. **产出键**：`kaizen_priority.candidates[]`（逐条 `target` + 三因子 + `score` + `rationale`）+ `rounds[0]` 的 `id` / `target` / `entry`。
+2. **落盘**：`project` + `kaizen_priority` + `rounds[0]`（`EV-01` / 选定目标 / `entry` / `status: 草稿`）+ `revisions: []`。
+3. **检查点（六拍）**：① 生成 → ② 落盘（候选清单进 `kaizen_priority.candidates[]` + `init` 铸骨架）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+4. 读全并照做本文件 `## 第 4 步 —— 分析落盘与根因合成`。
 
 ## 第 4 步 —— 分析落盘与根因合成
 
@@ -147,16 +134,10 @@ analysis:
 - **根因必须先立住再往下走**。
 - `targets_considered` **全留**：未选中的目标是下一轮的原料（源 [P] step-5 的「回看剩余目标」靠它）。
 
-**接线句（A 相·依赖代码库证据时）**：根因要代码库证据 → 先跑 `diy-analyze`（产物 `{output_dir}/analysis.yaml`）→ 引其 `components[]` 的 `AN-<nn>` 组件锚 → 把锚写入**轮级** `rounds[].analysis_refs` 依赖声明（键在轮级、不进 `analysis`/`scope` 段内——A/S 两相共享同一组锚，语义见 SKILL.md 结构段）。**依赖已声明而 `analysis.yaml` 缺席 / 损坏 / 锚悬空 → 停手显式报错（一档）**——`check` 机械核 `MISSING_FILE` / `UNPARSABLE_YAML` / `UNKNOWN_ID`，不降级继续；不依赖的轮次（改文案类）不写声明、不受阻。
-
-**步骤纪律（引用 `analysis.yaml` 五条，02-scope 同款）**：① 只有本轮问题与 `analysis.yaml.question` 相关才可引其 AN 锚——**引擎不判语义**，会话须显式核对；② 只引 `project.status: 已定稿` 的 analysis；若引草稿，须在 `analysis.sources[]` / `open_questions` 明示「证据未定稿」；③ `analysis.yaml` 是**单问产物**——不同问题新跑 `diy-analyze`，不得拿旧分析充数；④ 不依赖轮次不写 `analysis_refs`、不读 `analysis.yaml`；⑤ `AN-<nn>` 唯一 / 顺序有效性归 `diy-analyze` 终门，本技能只核引用锚在场，不重复实现该校验。
-
-**产出键**：`rounds[EV-<nn>].analysis` 的四键（`root_cause` / `hypothesis` / `validation_plan` / `selected_rationale`）+ `snapshot` / `sources[]` / `current_state` / `targets_considered[]`；依赖代码库证据时 + 轮级 `analysis_refs: [AN-<nn>]`。
-
-**落盘**：`rounds[0].analysis` + `rounds[0].status: 分析` + `project.updated`（依赖轮次同批写入 `rounds[0].analysis_refs`）。
-
-**检查点（六拍）**：① 生成 → ② 落盘（`analysis` 段 + 状态推进）→ ③ 分隔 → ④ 呈出四键摘要（Snapshot 一带而过，重点念 root_cause 与 hypothesis）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-**收尾与路由**：分析已落盘，读 `./02-scope.md` 把选定目标变成有边界的一次变更。
-
-本文件到此结束，不再回头。
+1. **接线句（A 相·依赖代码库证据时）**：根因要代码库证据 → 先跑 `diy-analyze`（产物 `{output_dir}/analysis.yaml`）→ 引其 `components[]` 的 `AN-<nn>` 组件锚 → 把锚写入**轮级** `rounds[].analysis_refs` 依赖声明（键在轮级、不进 `analysis`/`scope` 段内——A/S 两相共享同一组锚，语义见 SKILL.md 结构段）。**依赖已声明而 `analysis.yaml` 缺席 / 损坏 / 锚悬空 → 停手显式报错（一档）**——`check` 机械核 `MISSING_FILE` / `UNPARSABLE_YAML` / `UNKNOWN_ID`，不降级继续；不依赖的轮次（改文案类）不写声明、不受阻。
+2. **步骤纪律（引用 `analysis.yaml` 五条，02-scope 同款）**：① 只有本轮问题与 `analysis.yaml.question` 相关才可引其 AN 锚——**引擎不判语义**，会话须显式核对；② 只引 `project.status: 已定稿` 的 analysis；若引草稿，须在 `analysis.sources[]` / `open_questions` 明示「证据未定稿」；③ `analysis.yaml` 是**单问产物**——不同问题新跑 `diy-analyze`，不得拿旧分析充数；④ 不依赖轮次不写 `analysis_refs`、不读 `analysis.yaml`；⑤ `AN-<nn>` 唯一 / 顺序有效性归 `diy-analyze` 终门，本技能只核引用锚在场，不重复实现该校验。
+3. **产出键**：`rounds[EV-<nn>].analysis` 的四键（`root_cause` / `hypothesis` / `validation_plan` / `selected_rationale`）+ `snapshot` / `sources[]` / `current_state` / `targets_considered[]`；依赖代码库证据时 + 轮级 `analysis_refs: [AN-<nn>]`。
+4. **落盘**：`rounds[0].analysis` + `rounds[0].status: 分析` + `project.updated`（依赖轮次同批写入 `rounds[0].analysis_refs`）。
+5. **检查点（六拍）**：① 生成 → ② 落盘（`analysis` 段 + 状态推进）→ ③ 分隔 → ④ 呈出四键摘要（Snapshot 一带而过，重点念 root_cause 与 hypothesis）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+6. **收尾与路由**：分析已落盘，读 `./02-scope.md` 把选定目标变成有边界的一次变更。
+7. 本文件到此结束，不再回头。
