@@ -71,7 +71,7 @@ V 能力补项（2026-09-18，源 test-review 对账 `v-capability-inventory.md`
 `diyc.py resolve`）。`--previous` **不实现**：reviews[] 是追加式台账（RV-### 稳定不重用），
 无 ID 集合收缩面，与 P1/B1/B2 的"追加式产物判 no"先例一致。
 
-违规码：复用冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
+违规码：登记＝集中表（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
 ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT / STATUS_MISMATCH / SET_MISMATCH /
 PENDING_DECISION）；**新增码仅两个**——`TOOL_MISSING` / `TOOL_ERROR`（diyc 委派降级专用），无其他新码。
 """

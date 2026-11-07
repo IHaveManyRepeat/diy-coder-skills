@@ -40,7 +40,7 @@ reviews[]）。两透镜（结构 + 文风）把两件机械活留给了人：
           `--id ER-xxx` 只校该条记录；给的 ID 不在场 → UNKNOWN_ID。
           **`--previous` 判 no**（追加式台账：reviews[] 只追加、无 ID 集合收缩面），不实现。
 
-规则来源：违规码全部复用冻结集——本引擎用到 MISSING_FILE /
+规则来源：违规码全部登记＝集中表——本引擎用到 MISSING_FILE /
 UNPARSABLE_YAML / DUPLICATE_ID / UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD /
 ASSUMPTION_PRESENT / SET_MISMATCH / STATUS_MISMATCH 共 9 个，**无新增码**。回执契约对齐
 既有先例：exit 0 唯一放行 / --json 单行 JSON（ensure_ascii=False）/ 共同键

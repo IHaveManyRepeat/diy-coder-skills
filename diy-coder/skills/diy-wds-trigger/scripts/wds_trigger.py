@@ -73,7 +73,7 @@
 `business_goals[]` / `personas[]`（`TG-<n>` + 其驱动因素） / `priority`，门禁 = 本产物的
 `project.status: 已定稿`。**驱动因素数组按优先级降序排列，前 3 条即下游读取的 Top 3**。
 
-违规码（复用冻结集 + 已批码，**零新增码**；两处语义复用在此登记）：
+违规码（登记＝集中表 + 已批码，**零新增码**；两处语义复用在此登记）：
 ① `SET_MISMATCH` 承载「`init` 的 `--mode` 与既有产物不符」「`feature_impact[].score` 与评分表
 重算不符」「`scores.others` 条数与人物数不匹配」「驱动因素 ID 的序号与所属人物不符」——
 最近义项是「取值/形状与来源不匹配」；② `STATUS_MISMATCH` 承载「`project.status` 与 `stage`

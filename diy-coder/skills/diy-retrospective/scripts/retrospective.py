@@ -25,7 +25,7 @@
 本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}] + counts；
 where 正斜杠、相对 project-root；--output-dir 必填，实例解析由 SKILL.md 委托 diyc.py resolve）；
 --previous 不实现——记录按 epic 追加、同 epic 重跑原位更新，无 ID 集合收缩风险（报告记账）。
-违规码复用套件冻结集，不新增。diy 改造要点：输入面是结构化产物
+违规码登记＝集中表，不新增。diy 改造要点：输入面是结构化产物
 （sprint.yaml 的 note/evidence/loop/review.findings + bug-log.yaml + test-plan.yaml + stories.yaml），
 不是 story md 人工通读；指标由本引擎机械采集，会话不人工数数。
 """

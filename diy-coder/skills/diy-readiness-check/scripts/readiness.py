@@ -28,7 +28,7 @@
 分工裁定：readiness 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}] + counts；
 where 正斜杠、相对 project-root）；--previous 不实现（报告追加式）。
-违规码复用套件冻结集，新增 TOOL_MISSING / TOOL_ERROR（diyc 委派降级专用）。
+违规码登记＝集中表，新增 TOOL_MISSING / TOOL_ERROR（diyc 委派降级专用）。
 diyc 路径由引擎自身位置推算（skills/ 根，源码与安装两种布局同构）；产物与 IR-### ID 由
 diy-readiness-check 会话（LLM）创作，本引擎只校验格式与唯一性。
 """

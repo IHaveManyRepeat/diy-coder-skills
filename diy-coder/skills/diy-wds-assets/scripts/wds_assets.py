@@ -18,7 +18,7 @@
   先例：`diy-wds-trigger` 亦在四子命令之外加了 `metrics`；`diy-wds-system`
   同款加 `similarity`。**不写盘**。
 - 退出码：0 放行 / 1 违规 / 2 用法错误。
-- 违规码：**复用冻结集**（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID / UNKNOWN_ID /
+- 违规码：**登记＝集中表**（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID / UNKNOWN_ID /
   EMPTY_FIELD / ENUM_INVALID / STATUS_MISMATCH / SET_MISMATCH / ASSUMPTION_PRESENT）
   + 已批码 TOKEN_UNRESOLVED。**不新增码**。
 - 写范围：`{output_dir}/wds-assets.yaml`（唯一写盘面）；

@@ -6,7 +6,7 @@
          （documentation-requirements.csv 的 key_file_patterns 判据）、清单解析
          （package.json / pyproject.toml / Cargo.toml / go.mod / pom.xml / requirements.txt /
          pubspec.yaml / composer.json / *.csproj 按存在性探测）。语言无关：先探测再解析，
-         未知清单降级「存在但未解析」+ MANIFEST_UNPARSED warning，不崩、不假设特定工具链。
+         未知清单降级「存在但未解析」+ MANIFEST_UNPARSABLE warning，不崩、不假设特定工具链。
          另有既有文档发现（README/ARCHITECTURE/API/DEPLOYMENT/docs 模式）与源码树渲染
          （深度/条目上限为内置常量）。关键目录回执 `critical_dirs` 取
          documentation-requirements.csv 的 critical_directories 列（按部件类型照录），
@@ -19,8 +19,8 @@
          旧有新无 → ID_UNSTABLE）；--final 附加定稿义务（zero [假设]、rules 非空且每条
          rule/why/where 非空、stack 非空）。exit 0 唯一放行。
 
-新码登记（套件冻结集之外）：
-  - 违规码：无——全部复用冻结集（MISSING_FILE / UNPARSABLE_YAML / ENUM_INVALID / EMPTY_FIELD /
+新码登记（集中表之外）：
+  - 违规码：无——全部登记＝集中表（MISSING_FILE / UNPARSABLE_YAML / ENUM_INVALID / EMPTY_FIELD /
     DUPLICATE_ID / UNKNOWN_ID / ID_UNSTABLE / ASSUMPTION_PRESENT）。
   - warning 码：MANIFEST_UNPARSED（探测到清单但无内置解析器或解析失败：降级 + 结构化 warning，
     由 LLM 在步骤 01/02 向用户补齐，绝不静默）。

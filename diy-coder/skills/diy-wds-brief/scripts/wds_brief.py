@@ -58,7 +58,7 @@ content_language` · `brief.visual.visual_direction`（6 维）· `brief.platfor
 platform_requirements`，门禁 = 本产物的 `project.status: 已定稿`。**这四组键名是三方唯一
 契约**，本引擎的必填键表与之一一对应——改键名必须同步 W2/W3。
 
-违规码：复用冻结集——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：登记＝集中表——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
 `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT` / `SET_MISMATCH`
 共 7 个；**`TOKEN_UNRESOLVED` 沿用已批新增码与判定流程**（**不新增任何码**）。
 两处语义复用在此登记：① `SET_MISMATCH` 承载「`init` 的 `--project-type` 与既有产物不符」

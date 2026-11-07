@@ -11,7 +11,7 @@
   tokens 「不抄像素」判据的机械面：按出现次数分流——**重复值（≥2）可作 token，
          单次值一律不得作 token**（对齐 `design.py audit` 的 `one-off-*` 口径）
 
-违规码：复用套件冻结集——`MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：登记＝集中表——`MISSING_FILE` / `UNPARSABLE_YAML` /
 `EMPTY_FIELD` / `ENUM_INVALID` / `DUPLICATE_ID` / `UNKNOWN_ID` / `SET_MISMATCH` /
 `STATUS_MISMATCH` / `ASSUMPTION_PRESENT` + **本技能新增 2 个**（写权边界，
 需新码故在 docstring 标注并单独列出）：

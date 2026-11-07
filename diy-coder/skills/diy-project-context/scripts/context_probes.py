@@ -155,7 +155,7 @@ def detect_parts(root, excludes=EXCLUDE_DIRS):
     if not candidates:
         candidates = [(os.path.basename(os.path.abspath(root)) or "project", root)]
         if not has_manifest(root):
-            warnings.append(v("MANIFEST_UNPARSED", ".",
+            warnings.append(v("MANIFEST_UNPARSABLE", ".",
                               "未探测到任何清单：语言与类型待人工确认（不猜测）"))
     return candidates, repository_type, warnings
 

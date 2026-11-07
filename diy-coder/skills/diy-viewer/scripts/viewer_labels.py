@@ -40,7 +40,7 @@ FREE_TEXT_FIELDS = {("architecture", "decision"), ("bug-log", "type"), ("design"
                     ("wds-evolution", "scope"), ("readiness", "scope"), ("research", "scope"),
                     # stage：prfaq 的 1..5 数字锚点、wds-brief / wds-trigger 各自一套中文锚点
                     ("prfaq", "stage"), ("wds-brief", "stage"), ("wds-trigger", "stage"),
-                    # code：diyc-baseline 的违规码是冻结集文本，与 wds-assets 的活动码不同义
+                    # code：diyc-baseline 的违规码是集中表文本，与 wds-assets 的活动码不同义
                     ("diyc-baseline", "code"),
                     # entry：wds-scenarios 的 entry 是 Q6 的自由文本答案（wds-trigger 的两值
                     # 与 wds-evolution 的存量接入|上线后持续走值表）

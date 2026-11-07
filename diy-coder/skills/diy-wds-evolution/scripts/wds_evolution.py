@@ -3,7 +3,7 @@
 
 机制与规则来源
 --------------
-- 契约：子命令面、回执 schema、违规码冻结集、原子写纪律、代码惯例（冻结不改）。本引擎是本技能终门的**唯一**执行者——WDS 型产物一律走本引擎的
+- 契约：子命令面、回执 schema、违规码集中表、原子写纪律、代码惯例（冻结不改）。本引擎是本技能终门的**唯一**执行者——WDS 型产物一律走本引擎的
   `check`，**不得**改用 `diyc.py check --type`（`CHECK_TYPES` 是主线 8 型封闭集）。
 - 产物：`{output_dir}/wds-evolution.yaml`（主体段 `rounds[]` + `kaizen_priority`，
   记录 ID `EV-<nn>`）。
@@ -15,7 +15,7 @@
   三因子各取 `high|medium|low`（权重 5/3/1），`score` 必须等于三因子权重之积——
   **三因子一律越大越好**：`score` 高 = 优先；**不是**「工作量越大越优先」。
 
-违规码：**零新增**，全部复用冻结集
+违规码：**零新增**，全部登记＝集中表
 （`MISSING_FILE` / `UNPARSABLE_YAML` / `DUPLICATE_ID` / `UNKNOWN_ID` / `ENUM_INVALID` /
 `EMPTY_FIELD` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）。
 模态语义复用三处（在此声明）：

@@ -41,7 +41,7 @@ GWT / 随机与时钟源 / try-catch）判在 test 体内——工厂文件里�
 其余语言降级为文件级规则（硬编码数据随行级规则判定，断言面、skip 形态、锚、
 优先级标签、用例名、GWT 与用例体内确定性项均不判）——该降级登记在回报中。
 
-违规码：复用冻结集（MISSING_FILE UNPARSABLE_YAML UNKNOWN_ID
+违规码：登记＝集中表（MISSING_FILE UNPARSABLE_YAML UNKNOWN_ID
 ENUM_INVALID EMPTY_FIELD STATUS_MISMATCH）；本引擎新增（本行即登记）：
   PLACEHOLDER_ASSERTION  占位断言（expect(true) / assert True 一类）
   BRITTLE_SELECTOR       CSS / XPath 定位（应用 getByRole/getByLabel/getByText 语义定位）

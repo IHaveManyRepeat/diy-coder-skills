@@ -17,7 +17,7 @@
 
 分工裁定：prfaq 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态，契约同构：exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}]
-+ counts。违规码全部复用套件冻结集——本引擎无新增码。
++ counts。违规码全部登记＝集中表——本引擎无新增码。
 禁手写实例解析：引擎不做 --instance / 白名单 / 目录推导；--output-dir 必填，由调用方传入
 （SKILL.md 从 diyc.py resolve 取）。产物文档与 PQ ID 由 diy-prfaq 会话（LLM）创作，
 本引擎只校验格式与唯一性，不铸造 ID、不写回。

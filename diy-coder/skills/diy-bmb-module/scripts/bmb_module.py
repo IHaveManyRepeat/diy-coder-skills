@@ -48,7 +48,7 @@
   路径令牌（承纪律 2）：路径参数里的 `{project-root}` **由引擎按 `--project-root` 自解析**
   （唯一例外）；其余任何 `{...}` 令牌一律拒绝并报 `TOKEN_UNRESOLVED`、零写入。
 
-规则来源：违规码复用冻结集（MISSING_FILE / UNPARSABLE_YAML /
+规则来源：违规码登记＝集中表（MISSING_FILE / UNPARSABLE_YAML /
 DUPLICATE_ID / UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT / STATUS_MISMATCH /
 SET_MISMATCH 共 9 个）+ 新增码 3 个：**`NAME_ILLEGAL`（技能名非法）/
 `ID_UNSTABLE`（技能清单收缩）/ `TOKEN_UNRESOLVED`（未解析路径令牌）**。回执契约对齐既有先例：

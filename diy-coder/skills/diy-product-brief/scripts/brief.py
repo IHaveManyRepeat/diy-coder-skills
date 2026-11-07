@@ -34,7 +34,7 @@
 分工裁定：brief 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态（同 checkpoint.py / design.py），契约同构：exit 0 唯一放行 /
 --json 单行回执 / violations[{code, where, msg}] + warnings + counts。违规码全部复用
-套件冻结集（MISSING_FILE UNPARSABLE_YAML EMPTY_FIELD ENUM_INVALID
+集中表（MISSING_FILE UNPARSABLE_YAML EMPTY_FIELD ENUM_INVALID
 DUPLICATE_ID ID_UNSTABLE ASSUMPTION_PRESENT STATUS_MISMATCH EVIDENCE_MISSING
 UNKNOWN_ID），无新增码；降级 warning 码 TOOL_MISSING（兄弟引擎缺席专用，同 readiness 先例）。
 

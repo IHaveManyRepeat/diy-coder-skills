@@ -9,7 +9,7 @@ check 记一次自检（SC-### 号段同文件内唯一）。引擎只做机械�
              兼容 05-close 终门命令的 --output-dir 形态）。
              基础校验（每次跑）——
                顶层 project/schema/checks 在场（project 须为映射、checks 须为列表）；
-               checks[].id 形态 SC-###（ID_FMT）且同文件内唯一（ID_DUP）；
+               checks[].id 形态 SC-###（ID_FMT）且同文件内唯一（DUPLICATE_ID）；
                date/status 必填；status ∈ 草稿|已定稿（ENUM_INVALID）；
                anchor{md5,exec_form,shards} 必填——**commit 可缺**（01 单锚降级不红）；
                target{kind,path} 必填，kind ∈ 任务书|技能|规格|文档（ENUM_INVALID）；
@@ -32,8 +32,8 @@ check 记一次自检（SC-### 号段同文件内唯一）。引擎只做机械�
                   → SS_REF_UNRESOLVED
            exit 0 唯一放行。
 
-违规码冻结集 VIOLATION_CODES（12 个，由 tests/test_selfcheck_engine.py 冻结）：
-EMPTY_FIELD / ENUM_INVALID / ID_FMT / ID_DUP / MISSING_FILE / UNPARSABLE_YAML /
+违规码登记＝集中表；自持速读 VIOLATION_CODES（12 个，tests/test_selfcheck_engine.py 钉住）：
+EMPTY_FIELD / ENUM_INVALID / ID_FMT / DUPLICATE_ID / MISSING_FILE / UNPARSABLE_YAML /
 DUTY_B_REVIEW_MISSING / DUTY_SUMMARY_REF_MISSING / DUTY_DISPOSAL_GAP /
 DUTY_RESCAN_MISSING / HYPOTHESIS_FOUND / SS_REF_UNRESOLVED。
 
@@ -54,8 +54,8 @@ from diyc_lib import display_path, emit_via, load_yaml_safe, v, violation_line  
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from selfcheck_checks import ASSUMPTION, check_final_duties, check_one, check_top_level, doc_counts, load_spec_ids, walk_strings  # noqa: E402
 
-# 违规码冻结集（自建 12 码；测试冻结，增删须同步改测试）
-VIOLATION_CODES = ("EMPTY_FIELD", "ENUM_INVALID", "ID_FMT", "ID_DUP",
+# 违规码集中表登记＋自持速读（自建 12 码；测试冻结，增删须同步改测试）
+VIOLATION_CODES = ("EMPTY_FIELD", "ENUM_INVALID", "ID_FMT", "DUPLICATE_ID",
                    "MISSING_FILE", "UNPARSABLE_YAML",
                    "DUTY_B_REVIEW_MISSING", "DUTY_SUMMARY_REF_MISSING",
                    "DUTY_DISPOSAL_GAP", "DUTY_RESCAN_MISSING",

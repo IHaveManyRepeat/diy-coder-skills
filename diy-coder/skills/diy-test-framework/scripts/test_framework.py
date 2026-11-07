@@ -45,7 +45,7 @@ check [--final]  台账 schema / 枚举 / files[].path 形态 / 生成文件存�
 
 违规码
 ------
-复用冻结集：`MISSING_FILE` `UNPARSABLE_YAML` `DUPLICATE_ID` `UNKNOWN_ID`
+登记＝集中表：`MISSING_FILE` `UNPARSABLE_YAML` `DUPLICATE_ID` `UNKNOWN_ID`
 `ENUM_INVALID` `EMPTY_FIELD` `ENTRY_INVALID` `ASSUMPTION_PRESENT`。
 新增（本引擎专用，已在回报中登记）：
   - `FILE_CONFLICT`   scaffold 目标已存在且内容不同（不覆盖既有文件）→ 回滚 + 整条拒绝。

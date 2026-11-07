@@ -233,7 +233,7 @@ class EngineCase(unittest.TestCase):
         lib = os.path.join(self.root, "_skill", "diy-tools", "scripts")
         os.makedirs(lib, exist_ok=True)
         for name in ("diyc_lib.py", "diyc_lib_base.py",
-                     "diyc_lib_report.py", "diyc_lib_docs.py"):
+                     "diyc_lib_report.py", "diyc_lib_docs.py", "violation_codes.py"):
             shutil.copy2(os.path.join(HERE, "..", "skills", "diy-tools", "scripts", name),
                          os.path.join(lib, name))
         with io.open(os.path.join(self.root, "_skill", "diy-cis-method", "cis-methods.csv"),

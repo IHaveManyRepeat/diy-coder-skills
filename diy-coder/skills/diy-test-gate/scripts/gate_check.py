@@ -15,7 +15,7 @@ by_level 重算 / 门决策自洽（硬判据 actual 重算 + 两组判据与 de
 非功能致命、P0 未覆盖、变异得分、合规聚合）——不重跑 collect 的覆盖判定表
 （那是 `gate.py collect` 与 steps/03 LLM 复核的职责），避免二份实现。本模块不写盘。
 
-违约码：复用冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
+违约码：登记＝集中表（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
 UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT / SET_MISMATCH /
 STATUS_MISMATCH / EVIDENCE_MISSING / PENDING_DECISION）+ diyc 委派降级码 TOOL_MISSING /
 TOOL_ERROR。本技能新增码：

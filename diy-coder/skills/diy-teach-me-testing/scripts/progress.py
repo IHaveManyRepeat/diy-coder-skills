@@ -51,9 +51,9 @@ session id（1-7）对齐，禁混为一文件。引擎负责全部机械判定�
 LLM 手写与真值不符 → SET_MISMATCH。命令面互斥组由 argparse 强制；旗标组合错误（如 --score 配
 --learner）走用法错误 exit 2。
 
-违规码：复用冻结集——本引擎用到 MISSING_FILE / UNPARSABLE_YAML /
+违规码：登记＝集中表——本引擎用到 MISSING_FILE / UNPARSABLE_YAML /
 UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD / STATUS_MISMATCH / SET_MISMATCH / TOOL_ERROR 共 8 个。
-**新增 1 码：`ALREADY_EXISTS`**（init 面：进度文件已存在 → 拒绝并指引 resume；冻结集里没有
+**新增 1 码：`ALREADY_EXISTS`**（init 面：进度文件已存在 → 拒绝并指引 resume；集中表里没有
 「目标已存在」语义的码，DUPLICATE_ID 只指 ID 重复，复用会误导读回执的人）。
 --previous 不适用：进度按 curriculum 固定 session 键幂等 upsert，无 ID 集合收缩面。
 

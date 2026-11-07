@@ -11,7 +11,7 @@
 - 用例 3：ss_ref 正反例——spec-scan.yaml 可解析绿／无 spec-scan.yaml 红／id 解析不到红／
         不带 ss_ref 且无 spec-scan.yaml 绿
 - 用例 4：schema 基础违规——缺键（顶层 checks／date／anchor.md5／target.path）／枚举越界
-        （status／source 元素／kind／layer）／SC 号段重复 ID_DUP／SC 形态 ID_FMT／
+        （status／source 元素／kind／layer）／SC 号段重复 DUPLICATE_ID／SC 形态 ID_FMT／
         缺文件 MISSING_FILE／YAML 损坏 UNPARSABLE_YAML
 - 用例 5：anchor.commit 缺省不红（单锚降级）；status 草稿不挡 --final（裁④：status 门不加）
 - 用例 6：CLI 面——违规码冻结集 VIOLATION_CODES 12 码／违规 where 带检查 ID／人读态非 JSON／
@@ -37,7 +37,7 @@ COMMON_KEYS = {"ok", "command", "project_root", "output_dir", "final",
                "violations", "warnings", "counts"}
 SS_IDS = ("SS-001-01", "SS-001-02")
 
-FROZEN_CODES = {"EMPTY_FIELD", "ENUM_INVALID", "ID_FMT", "ID_DUP", "MISSING_FILE",
+FROZEN_CODES = {"EMPTY_FIELD", "ENUM_INVALID", "ID_FMT", "DUPLICATE_ID", "MISSING_FILE",
                 "UNPARSABLE_YAML", "DUTY_B_REVIEW_MISSING", "DUTY_SUMMARY_REF_MISSING",
                 "DUTY_DISPOSAL_GAP", "DUTY_RESCAN_MISSING", "HYPOTHESIS_FOUND",
                 "SS_REF_UNRESOLVED"}
@@ -327,7 +327,7 @@ class SchemaBasicTests(EngineCase):
     def test_duplicate_sc_id(self):
         doc = full_doc()
         doc["checks"].append(full_check())
-        self.assert_single(doc, "ID_DUP")
+        self.assert_single(doc, "DUPLICATE_ID")
 
     def test_bad_sc_format(self):
         self.assert_single(full_doc(id="SC-01"), "ID_FMT")

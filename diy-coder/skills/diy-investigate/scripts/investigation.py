@@ -26,7 +26,7 @@ handoff_brief 非空、timeline 非空、零 [假设]。exit 0 唯一放行。
 正斜杠、相对 project-root；--output-dir 必填、不做实例解析）。--previous 不实现（案件追加式，
 resume 同 slug 原位更新，ID 集合只增不减）。无跨文档机械核对面（anytime 入口，不引用上游产物
 ID），不委派 diyc；实例解析仍委托 `diyc.py resolve`（SKILL.md 激活句）。违规码复用
-套件冻结集，不新增；新增 warning 码 NO_VCS / SCAN_TRUNCATED。产物与 IV-/EV-/H-
+集中表，不新增；新增 warning 码 NO_VCS / SCAN_TRUNCATED。产物与 IV-/EV-/H-
 ID 由会话（LLM）创作，本引擎只校验格式与唯一性。
 """
 import argparse

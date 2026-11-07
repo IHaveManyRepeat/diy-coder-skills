@@ -10,7 +10,7 @@
   本模块        共用：常量、只读索引（stories / test-plan / sprint / prd 的 join 源）、
                  回执输出。**本层不做实例解析、不推导目录、不写盘。**
 
-违规码：复用冻结集（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
+违规码：登记＝集中表（MISSING_FILE / UNPARSABLE_YAML / DUPLICATE_ID /
 UNKNOWN_ID / ENUM_INVALID / EMPTY_FIELD / ASSUMPTION_PRESENT / SET_MISMATCH /
 STATUS_MISMATCH / EVIDENCE_MISSING / PENDING_DECISION）+ diyc 委派降级码 TOOL_MISSING /
 TOOL_ERROR。本技能新增码：

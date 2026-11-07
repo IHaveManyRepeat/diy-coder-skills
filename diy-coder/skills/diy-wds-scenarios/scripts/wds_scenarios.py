@@ -68,7 +68,7 @@ diy 侧**只产本 YAML**：逐场景写 `scenarios[]` 记录、其下写 `pages
 `personas[]`（`TG-<n>` + 其驱动因素）/ `priority`，门禁 = 其 `project.status: 已定稿`；
 **只读不写**（上游写权 100% 归 `diy-wds-trigger`）。
 
-违规码：复用冻结集——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：登记＝集中表——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
 `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` /
 `SET_MISMATCH` / `ASSUMPTION_PRESENT` 共 9 个；`TOKEN_UNRESOLVED` 沿用 B6 的已批新增码与判定
 流程（**零新增码**）。三处语义复用在此登记：① `SET_MISMATCH` 承载「ID 跳号 / 页号

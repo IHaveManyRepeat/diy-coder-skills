@@ -18,7 +18,7 @@
 
 分工裁定：checkpoint 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态（同 design.py 分工），契约同构：exit 0 唯一放行 / --json 单行回执 /
-violations[{code, where, msg}] + counts。违规码复用冻结集，
+violations[{code, where, msg}] + counts。违规码登记＝集中表，
 新增 NO_TARGET（门禁拒绝专用）。
 
 禁手写实例解析：引擎不做 --instance / 白名单 / 目录推导；--output-dir 必填，

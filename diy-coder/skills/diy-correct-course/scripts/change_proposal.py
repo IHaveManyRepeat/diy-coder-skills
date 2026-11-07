@@ -34,7 +34,7 @@
 分工裁定：change-proposal 属新产物类型，不进 diyc.py check 的硬编码
 类型集；本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}]
 + counts；where 正斜杠、相对 project-root）；--previous 不实现（提案记录追加式，同 key 原位
-更新，无 ID 集合收缩风险）。违规码全部复用冻结集；新增 TOOL_MISSING / TOOL_ERROR（diyc 委派降级专用，同 readiness 先例）。
+更新，无 ID 集合收缩风险）。违规码全部登记＝集中表；新增 TOOL_MISSING / TOOL_ERROR（diyc 委派降级专用，同 readiness 先例）。
 只出提案、不改真源：本引擎与技能都不写 prd / epics / stories / architecture / openapi /
 design / sprint —— 真源修改由各产物所属技能的 update 模式执行。
 """

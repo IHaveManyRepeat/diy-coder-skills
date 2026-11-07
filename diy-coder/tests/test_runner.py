@@ -994,7 +994,7 @@ def make_wds_fixture(page_statuses, project_status="已定稿", instance=None,
     lib_dir.mkdir(parents=True, exist_ok=True)
     src_dir = HERE.parent / "skills" / "diy-tools" / "scripts"
     for name in ("diyc_lib.py", "diyc_lib_base.py",
-                 "diyc_lib_report.py", "diyc_lib_docs.py"):
+                 "diyc_lib_report.py", "diyc_lib_docs.py", "violation_codes.py"):
         shutil.copyfile(src_dir / name, lib_dir / name)
     return root
 

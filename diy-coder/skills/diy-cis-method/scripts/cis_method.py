@@ -52,13 +52,13 @@
 ——创新策略 25 / 问题求解 30 / 设计思维 15；**叙事分支按类呈现全部条目**，默认集 = `--all` = **25**。类名逐字取 23 个冻结中文名（`CATEGORY_ENUM`），与 `cis-methods.csv` 的 `category` 值同词
 （库行校验会逐行核对，跨工位漂移在此暴露）。
 
-违规码：复用冻结集——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：登记＝集中表——本引擎用到 `MISSING_FILE` / `UNPARSABLE_YAML` /
 `EMPTY_FIELD` / `ENUM_INVALID` / `UNKNOWN_ID` / `DUPLICATE_ID` / `STATUS_MISMATCH` /
-`ASSUMPTION_PRESENT` 共 8 个；**唯一新增码 = `TOKEN_UNRESOLVED`**（**不在**冻结集内，
+`ASSUMPTION_PRESENT` 共 8 个；**唯一新增码 = `TOKEN_UNRESOLVED`**（**不在**集中表内，
 也不在「已批扩展」两项内）——承载「白名单外的任何 `{...}` 令牌一律拒绝」
 （白名单仅 `{project-root}`（唯一例外）与 `{output_dir}`）。
 两处语义复用在此登记：
-① `UNPARSABLE_YAML` 兼作方法库（CSV）解析失败码——冻结集里没有「非 YAML 文本不可解析」码，
+① `UNPARSABLE_YAML` 兼作方法库（CSV）解析失败码——集中表里没有「非 YAML 文本不可解析」码，
    造新码不如复用最近义项（msg 内点名是 CSV；承 `diy-brainstorm/scripts/brainstorm.py` 先例）；
 ② `ENUM_INVALID` 兼作 `--random` 超界与非可达类名的 warning 码（同族先例同款用法）。
 

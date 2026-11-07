@@ -16,7 +16,7 @@
 分工裁定：research 属新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态（同 diy-checkpoint-preview/scripts/checkpoint.py 分工），契约同构：
 exit 0 唯一放行 / 1 = 违规或被拒 / 2 = 用法错误（argparse）/ --json 单行回执（ensure_ascii=False）
-/ violations[{code, where, msg}] + counts。违规码全部复用套件冻结集
+/ violations[{code, where, msg}] + counts。违规码全部登记＝集中表
 （MISSING_FILE UNPARSABLE_YAML DUPLICATE_ID UNKNOWN_ID ENUM_INVALID EMPTY_FIELD
 ASSUMPTION_PRESENT ID_UNSTABLE STATUS_MISMATCH），无新增码。
 

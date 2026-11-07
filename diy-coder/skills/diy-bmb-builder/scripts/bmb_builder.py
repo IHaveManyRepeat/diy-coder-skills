@@ -59,7 +59,7 @@
             报告集里的最后两件）。**绝不手写 HTML**；findings.json 形状不对或主体仍是占位
             则拒绝渲染（零产出）。
 
-违规码：复用冻结集（MISSING_FILE / UNPARSABLE_YAML / EMPTY_FIELD /
+违规码：登记＝集中表（MISSING_FILE / UNPARSABLE_YAML / EMPTY_FIELD /
 ENUM_INVALID / SET_MISMATCH）；新增码中本引擎用到 NAME_ILLEGAL（名字/文件名形态非法；
 `mlog --file` 只收纯文件名——含路径分隔符、`.`/`..`、空白名一律拒绝，否则 `--dir` 的边界形同虚设）、
 FILE_CONFLICT（目标已存在 / 破坏性护栏 / 内容依赖越界）、TOKEN_UNRESOLVED（未解析 `{...}` 令牌

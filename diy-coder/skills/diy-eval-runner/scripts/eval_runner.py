@@ -31,7 +31,7 @@
     invocation 命令不在 PATH（无头下即 `runner.py` 白名单未覆盖该命令族）→ warning +
     跳过该 mode 并明示（**不入队**——确认是当场决策，队列语义是「用户稍后自行执行」）。
 
-违规码：复用套件冻结集（MISSING_FILE EMPTY_FIELD ENUM_INVALID UNKNOWN_ID
+违规码：登记＝集中表（MISSING_FILE EMPTY_FIELD ENUM_INVALID UNKNOWN_ID
 SET_MISMATCH）；本引擎新增（本行即登记）：
   TOKEN_UNRESOLVED   路径参数含未解析的 `{...}` 令牌（`{project-root}` 除外）
   UNPARSABLE_JSON    run 目录里的 JSON 回执/产物不可解析（run.json / execution-summary.json

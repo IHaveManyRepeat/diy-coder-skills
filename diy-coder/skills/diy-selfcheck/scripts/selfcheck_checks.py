@@ -75,7 +75,7 @@ def check_id(cid, where, seen):
     if not SC_ID_RE.fullmatch(text):
         return [v("ID_FMT", where, "id 须为 SC-###（三位数字），实为 %s" % text)]
     if text in seen:
-        return [v("ID_DUP", where, "检查 ID %s 重复（同文件内号段唯一）" % text)]
+        return [v("DUPLICATE_ID", where, "检查 ID %s 重复（同文件内号段唯一）" % text)]
     seen.add(text)
     return []
 

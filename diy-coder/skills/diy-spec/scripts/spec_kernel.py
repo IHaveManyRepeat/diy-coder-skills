@@ -16,7 +16,7 @@
 分工裁定：spec-kernel 是新产物类型，不进 diyc.py check 的硬编码类型集；
 本引擎沿用领域引擎形态，契约同构：exit 0 唯一放行 / `--json` 单行回执 /
 `violations[{code, where, msg}]` + `counts`；写回命令回执另含 `updated`。违规码全部复用
-套件冻结集（**未新增码**）：`MISSING_FILE` / `UNPARSABLE_YAML` /
+集中表（**未新增码**）：`MISSING_FILE` / `UNPARSABLE_YAML` /
 `DUPLICATE_ID` / `UNKNOWN_ID` / `ENUM_INVALID` / `EMPTY_FIELD` / `ASSUMPTION_PRESENT` /
 `STATUS_MISMATCH` / `ID_UNSTABLE`。
 

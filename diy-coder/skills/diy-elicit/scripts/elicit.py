@@ -30,7 +30,7 @@ exit 码：0 唯一放行；筛选类非法值 → 1；argparse 级用法错误 
 只读保证：本模块只用标准库（argparse / csv / json / os / random / sys），**无任何写盘
 设施**——不开只写句柄、不做原子替换、不建临时文件，命令面只有 `methods` 一条。
 
-规则来源：诊断码取冻结集（`MISSING_FILE` / `EMPTY_FIELD` /
+规则来源：诊断码登记＝集中表（`MISSING_FILE` / `EMPTY_FIELD` /
 `ENUM_INVALID`），**无新增码**。
 """
 import argparse

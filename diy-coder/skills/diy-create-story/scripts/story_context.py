@@ -33,7 +33,7 @@
 类型集；本引擎契约同构（exit 0 唯一放行 / --json 单行回执 / violations[{code, where, msg}]
 + counts；where 正斜杠、相对 project-root）；--output-dir 必填，实例解析由 SKILL.md 委托
 diyc.py resolve（引擎内不做）。--previous 不实现：记录按 story 键原位重写，SC ID 集合不会
-收缩。违规码复用冻结集；新增 NO_VCS（VCS 情报
+收缩。违规码登记＝集中表；新增 NO_VCS（VCS 情报
 不可用 / 无提交的降级专用，同 W5 diy-investigate 同名语义）。产物与 SC-### ID 由
 diy-create-story 会话（LLM）创作，本引擎只校验格式与唯一性；两个子命令都不写盘。
 """

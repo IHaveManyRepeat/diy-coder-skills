@@ -7,14 +7,14 @@
   show   单条组件（`--id AN-nn`）/ 整份摘要
   check  骨架完备 + 枚举合法 + ID 纪律；`--final` 另核「已定稿 + 零 `[假设]` + 四段非空」
 
-违规码：**复用冻结集**——`MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：**登记＝集中表**——`MISSING_FILE` / `UNPARSABLE_YAML` /
 `EMPTY_FIELD` / `ENUM_INVALID` / `DUPLICATE_ID` / `UNKNOWN_ID` / `SET_MISMATCH` /
 `STATUS_MISMATCH` / `ASSUMPTION_PRESENT`；**本技能零新增违规码**。
   - `MISSING_FILE` 承载门禁（代码库路径不存在 / 不是目录 / 不可读——统一按「前置物不可用」判）
   - `ENUM_INVALID` 兼作 mermaid 图纸类型非法、layer / severity / priority 越界
   - `SET_MISMATCH` 兼作 `AN-<nn>` 跳号与建议优先级逆序
 
-`warnings` 用**描述性码**（非违规码，不进冻结集）：`ALREADY_EXISTS`。
+`warnings` 用**描述性码**（非违规码，不进集中表）：`ALREADY_EXISTS`。
 
 实例解析由 SKILL.md 层完成（`diyc.py resolve`）；本引擎只吃 `--output-dir`，
 不解析实例。

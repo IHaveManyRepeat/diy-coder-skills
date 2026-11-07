@@ -244,7 +244,7 @@ class ScanTests(EngineCase):
         self.assertEqual([p["name"] for p in data["parts"]], ["weird"])
         self.assertEqual(data["parts"][0]["type"], "未知")
         codes = {w["code"] for w in data["warnings"]}
-        self.assertIn("MANIFEST_UNPARSED", codes)
+        self.assertIn("MANIFEST_UNPARSABLE", codes)
         self.assertTrue(all(w["where"] and w["msg"] for w in data["warnings"]))
         self.assertEqual(data["level"], "快速")
 

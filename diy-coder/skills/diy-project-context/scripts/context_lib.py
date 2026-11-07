@@ -135,7 +135,7 @@ def degraded(path, language, reason, project_root):
         "notes": "清单存在但未解析：%s" % reason,
         "unparsed": True,
         "deps": (),
-        "warning": v("MANIFEST_UNPARSED", display_path(path, project_root),
+        "warning": v("MANIFEST_UNPARSABLE", display_path(path, project_root),
                      "清单存在但未解析（%s）：语言与依赖待人工确认，不猜测" % reason),
     }
 

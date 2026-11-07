@@ -10,6 +10,8 @@ from datetime import date, datetime
 
 import yaml
 
+from violation_codes import UnknownViolationCode, is_registered  # noqa: E402  同目录集中码表
+
 # 实例名白名单（与 help/viewer/runner/design 同源同值）：字母数字开头和结尾，中间可含 . _ -。
 # 末字符禁点：Windows 目录名尾点被静默折叠（b. ≡ b），会破坏实例隔离；fullmatch 避免 $ 放行尾换行
 INSTANCE_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9_-])?")
@@ -375,7 +377,14 @@ def args_output_dir(args):
 # ---------------------------------------------------------------- 违规构造
 
 def v(code, where, msg) -> dict:
-    """违规构造；where 统一正斜杠（契约 §3）。"""
+    """违规构造；where 统一正斜杠（契约 §3）。
+
+    未登记码抛 UnknownViolationCode（忘登记即红·运行时关卡）——
+    登记唯一落点＝violation_codes.py 两区（核心冻结＋技能级）。
+    """
+    if not is_registered(code):
+        raise UnknownViolationCode(
+            "违规码未登记：%r（登记唯一落点＝violation_codes.py；新增码先入表再调用）" % code)
     return {"code": code, "where": str(where).replace("\\", "/"), "msg": msg}
 
 

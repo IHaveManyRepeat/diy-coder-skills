@@ -27,7 +27,7 @@
 2 = 用法错误；--json 单行回执（ensure_ascii=False）；violations[{code, where, msg}] + counts；
 where 正斜杠、相对 project-root。
 
-违规码：复用冻结集（MISSING_FILE UNPARSABLE_YAML DUPLICATE_ID
+违规码：登记＝集中表（MISSING_FILE UNPARSABLE_YAML DUPLICATE_ID
 UNKNOWN_ID ENUM_INVALID EMPTY_FIELD ENTRY_INVALID TOOL_MISSING TOOL_ERROR SET_MISMATCH）；
 新增 MANIFEST_UNPARSABLE（detect 专用：清单文件存在但不可解析，探测降级不崩，回报登记）。
 """

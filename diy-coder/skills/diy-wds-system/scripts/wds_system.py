@@ -19,7 +19,7 @@
   · `tokens` 派生自 `design.yaml.tokens`（引用不复述）
   · `design_system_mode` 默认 `on`
 
-违规码：**复用冻结集**（`MISSING_FILE` / `UNPARSABLE_YAML` /
+违规码：**登记＝集中表**（`MISSING_FILE` / `UNPARSABLE_YAML` /
 `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` /
 `SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ 已批码 `TOKEN_UNRESOLVED`。**零新增码。**
   ★ 两处**语义复用**（登记）：
