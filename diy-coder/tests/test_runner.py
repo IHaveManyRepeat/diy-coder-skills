@@ -694,6 +694,108 @@ class TC_Post_Face(unittest.TestCase):
                 self.assertFalse(self.log.exists(), "WDS 拒绝后不应 spawn")
 
 
+class TC_Post_Face_Investigate(unittest.TestCase):
+    # trace: 2026-11-07 三连失败处置——三连检出本轮新失败 → 自动 spawn investigate 归因。
+    # 判据＝test-plan 端到端条目 status: 失败 的轮次 diff（e2e spawn 前快照、跑后取差），
+    # 仅本轮新出现的失败触发；历史失败常驻零新失败零 spawn（SS-044-01 回归钉）；
+    # --post-only 与主循环尾两触发点共用 run_post_face 零分叉
+    def setUp(self):
+        self.root, self.sprint = make_fixture({"S-1": "已完成"})
+        self.log = self.root / "calls.log"
+        self.outdir = self.root / "diy-output"
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def env(self, **extra):
+        return {
+            "DIY_STUB_ROUTING": "S-1:已完成",
+            "DIY_STUB_LOG": str(self.log),
+            "DIY_STUB_SPRINT": str(self.sprint),
+            "DIY_STUB_OUTDIR": str(self.outdir),
+            **extra,
+        }
+
+    def seed_e2e(self, status, tc_id="TC-1.1.1"):
+        # 夹具预置 test-plan 端到端条目（历史状态：失败常驻 / 全通过）
+        path = self.outdir / "test-plan.yaml"
+        path.write_text(
+            yaml.safe_dump(
+                {"project": {"name": "fixture", "status": "已定稿"},
+                 "test_cases": [{"id": tc_id, "type": "端到端", "status": status}]},
+                allow_unicode=True, sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+
+    def test_new_failure_spawns_investigate(self):
+        # 本轮新失败（spawn 前无该条目、e2e 落下失败）→ 三连后 spawn 归因会话
+        result = run_runner(
+            self.root, self.env(DIY_STUB_E2E_FAIL_IDS="TC-9.1.1"),
+            post=True, runner_args=("--skip-augment",),
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        lines = read_log(self.log)
+        self.assertEqual(lines, [
+            "post diy-e2e-tests",
+            "post diy-test-review",
+            "post diy-test-gate",
+            "post diy-investigate",
+        ], "新失败应在三连完成后 spawn investigate（归因会话可见三份报告）")
+        self.assertIn("本轮新失败 1 条：TC-9.1.1", result.stdout)
+        self.assertIn("spawn diy-investigate 归因", result.stdout)
+        self.assertIn("investigate 归因完成", result.stdout)
+
+    def test_historical_failure_without_new_failure_no_spawn(self):
+        # 轮次负样例（SS-044-01 回归钉）：历史失败条目常驻、本轮零新失败 → 零 spawn
+        self.seed_e2e("失败")
+        result = run_runner(self.root, self.env(), post=True,
+                            runner_args=("--skip-augment",))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        lines = read_log(self.log)
+        self.assertNotIn("post diy-investigate", lines,
+                         "历史失败常驻但本轮零新失败，不得重触发归因会话")
+        self.assertEqual(lines[-1], "post diy-test-gate")
+        self.assertNotIn("spawn diy-investigate", result.stdout)
+
+    def test_all_pass_no_spawn(self):
+        # 判据边界负样例：端到端条目全通过 → 零 spawn
+        self.seed_e2e("通过")
+        result = run_runner(self.root, self.env(), post=True,
+                            runner_args=("--skip-augment",))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        lines = read_log(self.log)
+        self.assertNotIn("post diy-investigate", lines)
+        self.assertEqual(len(lines), 3, "全通过时只跑三连、零归因 spawn")
+
+    def test_post_only_new_failure_spawns_investigate(self):
+        # --post-only 同样触发（修复后补跑正是失败现场；两触发点共用 run_post_face）
+        result = run_runner(
+            self.root, self.env(DIY_STUB_E2E_FAIL_IDS="TC-9.1.1"),
+            post=True, runner_args=("--post-only",),
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("post diy-investigate", read_log(self.log))
+        self.assertIn("冲刺末三连完成（--post-only）", result.stdout)
+
+    def test_spawn_instruction_carries_attribution_directive(self):
+        # spawn instruction 断言：归因四分法 + 收窄点名失败 TC 面 + 结论落点
+        spy = make_spy(self.root)
+        argv_log = self.root / "argv.log"
+        result = run_runner(
+            self.root,
+            self.env(DIY_STUB_E2E_FAIL_IDS="TC-9.1.1",
+                     DIY_STUB_ARGV=str(argv_log), DIY_STUB_PATH=str(STUB)),
+            post=True, runner_args=("--skip-augment",), stub=spy,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        argv_text = Path(argv_log).read_text(encoding="utf-8")
+        self.assertIn("运行 diy-investigate skill", argv_text)
+        self.assertIn("归因四分法", argv_text)
+        self.assertIn("本轮新失败 TC：TC-9.1.1", argv_text)
+        self.assertIn("conclusion.text 首句判①②③④", argv_text)
+
+
 class TC_10_1_2_MissingClaudeCmd(unittest.TestCase):
     # trace: S-10 AC-10.1 TC-10.1.2
     def setUp(self):

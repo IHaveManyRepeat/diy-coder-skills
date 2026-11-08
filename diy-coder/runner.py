@@ -241,6 +241,19 @@ TEST_GATE_INSTRUCTION = (
     "（本次记录落 status: 草稿，待人核定稿）；上游产物零写入。"
 )
 
+# 三连失败处置（2026-11-07）：归因会话任务单——完整 diy-investigate 技能 + scope 收窄
+# （只归因本次三连失败·点名失败 TC 面·单案卷逐 TC 一判）；无人值守尾巴由 spawn_post
+# 统一拼 _POST_TAIL（与三连同源，零分叉）
+INVESTIGATE_INSTRUCTION = (
+    "运行 diy-investigate skill 对本次冲刺末三连检出的本轮新失败端到端用例做归因调查："
+    "读取本项目 diy-coder.yaml 解析 output_dir，按归因四分法"
+    "（①用例设计错 ②测试代码错 ③产品代码错 ④上游 AC 错）逐失败 TC 一判——"
+    "e2e 失败事实／test-review findings／test-gate 矩阵三份报告只给线索不给结论，"
+    "归因须现场复现 debug；结论落 investigation.yaml（problem_statement 记失败 TC ID，"
+    "conclusion.text 首句判①②③④＋证据链引用），只写 investigation.yaml；"
+    "AI 只建议废弃、不写 retired 键（人裁落标），修复按交接菜单判定路由。"
+)
+
 
 def spawn_post(claude_cmd: list, project_root: Path, instruction: str,
                allow: list, deny: list, instance: str = None) -> tuple:
@@ -257,6 +270,22 @@ def e2e_note(rc: int, result: str) -> str:
     first = next((ln for ln in (result or "").splitlines() if ln.strip()), "")
     brief = first[:80] + ("…" if len(first) > 80 else "")
     return f"e2e {brief or '完成（会话未给摘要行）'}——详见 test-plan.yaml 端到端条目"
+
+
+def e2e_failed_ids(output_dir: Path) -> set:
+    # 三连失败处置判据（与 e2e_note 权威同源）：test-plan.yaml 端到端条目
+    # status: 失败 的 id 集。文件缺席/形状异常 → 空集降级（快照是 diff 输入、非门禁，
+    # 绝不阻断三连）；供 e2e spawn 前快照、跑后取差（仅本轮新失败触发 spawn）
+    try:
+        doc = yaml.safe_load((output_dir / "test-plan.yaml").read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return set()
+    cases = doc.get("test_cases") if isinstance(doc, dict) else None
+    if not isinstance(cases, list):
+        return set()
+    return {str(tc.get("id")) for tc in cases
+            if isinstance(tc, dict) and tc.get("type") == "端到端"
+            and tc.get("status") == "失败" and tc.get("id")}
 
 
 def _post_record_note(prefix: str, path: Path, list_key: str, rc: int, render) -> str:
@@ -292,15 +321,35 @@ def run_post_face(claude_cmd: list, root: Path, output_dir: Path,
                   allow: list, deny: list, instance: str = None) -> None:
     # 冲刺末三连（顺序裁定 2026-10-05）：e2e → test-review → test-gate；
     # 任一环异常只降级为一行提示，绝不阻塞、绝不重开任务
+    # 三连失败处置（2026-11-07）：e2e spawn 前快照端到端失败条目集、跑后 diff——
+    # 仅本轮新出现的失败触发 spawn investigate 归因（历史失败常驻、本轮零新失败零 spawn，
+    # 防 SS-044-01 无限复发）；spawn 放三连后 = 归因会话能看到三份报告；
+    # 主循环尾与 --post-only 两触发点共用本函数零分叉
+    before = e2e_failed_ids(output_dir)
     rc, result = spawn_post(claude_cmd, root, E2E_TESTS_INSTRUCTION,
                             allow, deny, instance)
     print(f"[runner] {e2e_note(rc, result)}", flush=True)
+    new_failures = sorted(e2e_failed_ids(output_dir) - before)
     rc, result = spawn_post(claude_cmd, root, TEST_REVIEW_INSTRUCTION,
                             allow, deny, instance)
     print(f"[runner] {test_review_note(output_dir, rc)}", flush=True)
     rc, result = spawn_post(claude_cmd, root, TEST_GATE_INSTRUCTION,
                             allow, deny, instance)
     print(f"[runner] {test_gate_note(output_dir, rc)}", flush=True)
+    if not new_failures:
+        return
+    print(f"[runner] 本轮新失败 {len(new_failures)} 条：{'、'.join(new_failures)}"
+          f"——spawn diy-investigate 归因", flush=True)
+    inv_rc, _ = spawn_post(
+        claude_cmd, root,
+        f"{INVESTIGATE_INSTRUCTION}本轮新失败 TC：{'、'.join(new_failures)}。",
+        allow, deny, instance)
+    if inv_rc == 0:
+        print("[runner] investigate 归因完成——逐失败 TC 判定见 investigation.yaml",
+              flush=True)
+    else:
+        print(f"[runner] investigate 归因会话异常（退出码 {inv_rc}）——"
+              f"人核 investigation.yaml", flush=True)
 
 
 def augment_summary(doc: dict) -> list:

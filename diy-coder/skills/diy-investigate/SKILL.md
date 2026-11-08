@@ -9,19 +9,18 @@ required: false
 line: any
 outputs: investigation.yaml
 ---
-
 # diy-investigate — 取证调查（证据分级 + 假设生命周期）
-
 你是取证调查员。输入：一张工单、一份诊断归档、一段日志或栈、一段自由描述、一个代码区、或一个近期提交区间。产出：`{output_dir}/investigation.yaml` 里的一条案件记录——证据分级、假设永不删除、缺失证据也记账，另一个工程师能冷接手。
 
-**边界。** 调查止于诊断：不修、不成故事、不写冲刺。交接菜单路由到 `diy-quick-dev` / `diy-create-story` / `diy-correct-course` / `diy-review`——本技能只报告，行动归别人。
+**边界。** 调查止于诊断：不修、不成故事、不写冲刺。交接菜单路由到 `diy-quick-dev` / `diy-create-story` / `diy-correct-course` / `diy-review`（runner 归因路径按判定四路，见规则 8）——本技能只报告，行动归别人。
 
 ## 激活时
 
+runner 路径（三连失败归因入口）：runner 在冲刺末三连中检出**本轮新出现**的端到端失败条目时自动 spawn 本技能，任务单收窄到本次归因——点名失败 TC 面、单案卷承载、逐失败 TC 一判：`problem_statement` 记失败 TC ID，`conclusion.text` 首句判①用例设计错／②测试代码错／③产品代码错／④上游 AC 错＋证据链引用（不扩 schema，写作纪律约束）；三份报告（e2e 失败事实／test-review findings／gate 矩阵）只给线索不给结论，归因须现场复现 debug。只写自己产物（规则 1 零破例）；AI 只建议废弃、不写 `retired` 键（键写入即人闸凭证，人裁落标）。结论按规则 8 四路交接。
+
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
    全程用 `communication_language` 对话；产物里的叙述文字（交接简报、备注、结论）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 先按引用形态确认输入（登记位置、范围、时间窗——大批量读取等第 3 步），再跑确定性采集器：
    `python "{project-root}/.claude/skills/diy-investigate/scripts/investigation.py" collect [--area <path>|--since <commit>] --project-root "{project-root}" --output-dir "{output_dir}" --json`
@@ -40,9 +39,7 @@ outputs: investigation.yaml
 5. `steps/05-source-trace.md` — 源码追踪：并行首扫、调用链、语言/进程边界穿越；trivial-fix 评估（一行建议，否则停在根因面）。
 6. `steps/06-report.md` — 定稿：交接简报、结论 + 置信、修复方向、复现；过终门；给出路由菜单。
 
-记录写入：第 2 步以 `草稿` 起草（机器锚点照抄回执，绝不凭记忆重打；文件已在场时，追加新 case 前先把 `project.status` 退回 `草稿`），各节随步填充，第 6 步定稿。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+记录写入：第 2 步以 `草稿` 起草（机器锚点照抄回执，绝不凭记忆重打；文件已在场时，追加新 case 前先把 `project.status` 退回 `草稿`），各节随步填充，第 6 步定稿。渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -83,11 +80,14 @@ revisions: []                      # {date, change, reason}——改既有记录
 5. 缺失证据也是发现：落 `missing_evidence`（what / would_resolve / how）——它是缺口的载体；`availability: 缺失` 只标记已有条目跑丢。`evidence_light` 案件合法，绝不静默。
 6. 所有代码引用用 project-root 相对 `path:line`（基准 = `{project-root}`，不随会话 CWD 变化；不带前导 `/`）——终端 CWD 就在项目根时，IDE 终端里可点击。
 7. 委派闸值（本规则是单一定义源，分层写死）：单文件 >10K tokens → 该文件派；一次要读 ≥5 个文件 → 整批派；一个类别合计 >10K tokens → 该类别派。任一命中即派，子代理只返结构化 JSON，从结果里引 `path:line`，父上下文不重读。
-8. 路由（交接菜单，点名最高价值的那一个）：查实的缺陷 → 入库 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" bug-add --entry '<json>' --json`（`source: 用户`；`story` 取波及的 `S-x`，确无归属写 `n/a`）——由用户确认后就地执行；一行小修 → `diy-quick-dev`；范围/计划要变 → `diy-correct-course`；值得立故事 → `diy-create-story`；修复要重审 → `diy-review`。
+8. 路由（交接菜单，点名最高价值的那一个）——常规：查实的缺陷 → 入库 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" bug-add --entry '<json>' --json`（`source: 用户`；`story` 取波及的 `S-x`，确无归属写 `n/a`）——由用户确认后就地执行；一行小修 → `diy-quick-dev`；范围/计划要变 → `diy-correct-course`；值得立故事 → `diy-create-story`；修复要重审 → `diy-review`。runner 归因路径按判定四路：
+   - ①用例设计错 → 先按 `producer` 字段回原生产技能**补替代用例**（test-design→`diy-test-design`／augment→`diy-augment`／e2e→`diy-e2e-tests`，正常追加），**再由人裁落标 `retired`**（`replaced_by` 指向已存在的新 TC——先补后废，防落标瞬间 UNKNOWN_ID 红）；AI 只建议废弃、不写键。
+   - ②测试代码错 → e2e 写的归 e2e 修（独立通道）；单元/集成层归 dev 修，走 sprint 重开（同③通道）→ 全量三连重跑（复用 `--post-only`，不做局部补跑）。
+   - ③产品代码错 → `bug-add` 入 bug-log ＋ sprint 重开回 dev 修 → 全量三连重跑；衔接注记：bug 分析技能立项后，本路先经其根因深挖再重开。
+   - ④上游 AC 错 → 路由 `diy-epics-stories`（gate oracle HALT 现成路）。
 9. 记录只追加，永不重编号、永不复用；改既有记录就向 `revisions` 追加（date / change / reason）。不需要 `--previous` 轮——案件天然追加式。
 10. 渲染按工作流里的静默旁路句执行——只写命令；不新增浏览器交互点、不报阻塞路径、不等待。
 11. 终门（机械）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-investigate/scripts/investigation.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两实参同激活（`--output-dir` 必填、绝不缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾都等 exit 0。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
-
 - **写作纪律。** 主字段 = 大白话主句；数字/枚举内联；机器语法（命令/旗标/路径）进括号；机器锚点逐字保留（文件名、token 名、CLI 旗标）——把锚点改写成中文会打断 `diy-design` 的 detect 启发式。schema 若定义 `plain`：一行写清该条目为什么存在，绝不写是什么（转述会漂移）；只写难懂的条目。若定义 `detail`：过程叙述——结论留在主字段。
