@@ -1508,6 +1508,17 @@ class EnumFacesTest(CheckBase):
         check_enum_faces(r)
         self.assertEqual([v["where"] for v in r.violations], [], msgs({"violations": r.violations, "warnings": []}))
 
+    def test_radii_phrase_single_source(self):
+        """Q-146 RADII 散文面单源：RADII_PHRASE 从 lib 派生，e2e/augment text 面登记在案。"""
+        from diyc_check_docs import _registry
+        from diyc_check_docs_lib import RADII, RADII_PHRASE
+        self.assertEqual(RADII_PHRASE, "|".join(RADII))
+        rad_faces = [(rel, spec) for name, _v, faces in _registry()
+                     if name == "RADII" for rel, spec in faces]
+        self.assertIn(("diy-e2e-tests/SKILL.md", ("text", RADII_PHRASE)), rad_faces)
+        self.assertIn(("diy-augment/SKILL.md", ("text", RADII_PHRASE)), rad_faces)
+        self.assertIn(("diy-review/SKILL.md", ("text", RADII_PHRASE)), rad_faces)
+
     def test_check_run_carries_faces_gate(self):
         """通用门挂载：正常 check 运行不引入 skills/ 面违规。"""
         fx.write_doc(self.root, "prd", prd_doc())

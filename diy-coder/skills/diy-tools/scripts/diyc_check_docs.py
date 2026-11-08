@@ -25,9 +25,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from diyc_check_docs_lib import (CASE_TYPES, DEC_STATUSES, DIMENSIONS, EPIC_STATUSES,
                                  FR_PRIORITIES, GAP_DECISIONS, HTTP_METHODS, PRIORITIES,
-                                 RADII, STACK_KINDS, STORY_STATUSES, TC_STATUSES,
-                                 TECHNIQUES, Report, dup, enum, is_str, nonempty,
-                                 req, scan_assumptions, tc_declarations)  # noqa: E402
+                                 RADII, RADII_PHRASE, STACK_KINDS, STORY_STATUSES,
+                                 TC_STATUSES, TECHNIQUES, Report, dup, enum, is_str,
+                                 nonempty, req, scan_assumptions,
+                                 tc_declarations)  # noqa: E402
 from diyc_check_docs_lib import check_project_times as _check_project_times  # noqa: E402
 from diyc_check_docs_stories import check_stories  # noqa: E402
 from diyc_check_docs_testplan import check_test_plan  # noqa: E402
@@ -79,7 +80,9 @@ def _registry():
         ("RADII", RADII, (
             ("diy-test-design/SKILL.md", ("pipe", "radius")),
             ("diy-review/SKILL.md", ("pipe", "radius")),
-            ("diy-review/SKILL.md", ("text", "局部 / 模块 / 跨模块 / 系统 / 外部")),
+            ("diy-review/SKILL.md", ("text", RADII_PHRASE)),
+            ("diy-e2e-tests/SKILL.md", ("text", RADII_PHRASE)),
+            ("diy-augment/SKILL.md", ("text", RADII_PHRASE)),
         )),
         ("FR_PRIORITIES", FR_PRIORITIES, (
             ("diy-prd/SKILL.md", ("pipe", "priority")),

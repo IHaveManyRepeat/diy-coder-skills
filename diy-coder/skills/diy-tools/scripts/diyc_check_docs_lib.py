@@ -40,6 +40,7 @@ TC_STATUSES = ("待办", "通过", "失败")               # rule: diy-test-desi
 GAP_DECISIONS = ("待办", "已豁免", "接受缺口")       # rule: diy-test-design/SKILL.md:Schema coverage_gaps.decision
 DIMENSIONS = ("正向", "边界", "异常", "安全", "性能")  # rule: diy-test-design/SKILL.md:Schema dimension（五轴·一条用例一个轴）
 RADII = ("局部", "模块", "跨模块", "系统", "外部")    # rule: diy-test-design/SKILL.md:Schema radius（爆炸半径标注·FH/TC 同族）
+RADII_PHRASE = "|".join(RADII)   # 散文面单源：review/e2e/augment SKILL 的 radius 序列串均由 RADII 派生
 FR_PRIORITIES = ("必须", "应该", "可选")             # rule: diy-prd/SKILL.md:Schema requirements.priority
 DEC_STATUSES = ("待定", "已采纳")                    # rule: diy-architecture/SKILL.md:Schema decisions.status
 STACK_KINDS = ("frontend", "scaffold", "language", "test", "lint", "typecheck",
