@@ -19,18 +19,20 @@ outputs: change-proposal.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字（trigger、why、rationale、note）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字（trigger、why、rationale、note）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 输入面两路：
    - **用户报出的单个问题**——实施中发现的技术限制、干系人新要求、对原要求的误解、方向调整、失败的方案。
    - **diy-retrospective 的交接**——`{output_dir}/retrospective.yaml` 的 `significant_changes[]`，每条 `{change, impact, recommended_action}`。整批**只开一条 proposal**：N 条变化进同一条记录的 `impacts`（必要时加 `edits`），绝不拆成 N 条记录；`trigger` 写明来源（diy-retrospective 记录级 `id` 与那批条目的 `change` 摘句）。
    - **上游调查（可选）**：读 `{output_dir}/investigation.yaml` 的 `cases[]`——用户点名或按 `slug` / `id` 命中的那一条，取值键 `handoff_brief` / `conclusion`（`text` / `confidence` / `fix_direction`）/ `evidence[]`（`grade` / `ref`）；引用它、绝不转抄，证据分级口径归 diy-investigate。
 3. 跑确定性开场（门 + 六文档影响面摘要 + 委派 diyc 跨文档核对 + 引用链）：
    `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" collect --project-root "{project-root}" --output-dir "{output_dir}" [--target <ID>] --json`
-   硬门 = `{output_dir}/prd.yaml`、`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml` 三件套在场且各自的 `project.status: 已定稿`。exit 1 是零产出的拒绝：转述它的一行理由与 `gate.route`，然后停下——拒绝永不变成记录。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/change-proposal.yaml` 只在铸造下一个 `CP-###`、或按 `id:` 定位改某条记录时才打开；文档摘要、`diyc.check.violations` 与 `chain` 取回执，绝不重读产物。本 schema 不定义 `detail` 字段——没有可跳过的内容。
+   - 硬门 = `{output_dir}/prd.yaml`、`{output_dir}/epics.yaml`、`{output_dir}/stories.yaml` 三件套在场且各自的 `project.status: 已定稿`。
+   - exit 1 是零产出的拒绝：转述它的一行理由与 `gate.route`，然后停下——拒绝永不变成记录。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+   - `{output_dir}/change-proposal.yaml` 只在铸造下一个 `CP-###`、或按 `id:` 定位改某条记录时才打开；文档摘要、`diyc.check.violations` 与 `chain` 取回执，绝不重读产物。本 schema 不定义 `detail` 字段——没有可跳过的内容。
 5. 读 `steps/01-init.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流
@@ -43,10 +45,8 @@ outputs: change-proposal.yaml
 4. `steps/04-proposal.md` — 定推荐路径（`approach`）、`ripple`、`effort`；写记录并呈现待审。
 5. `steps/05-route.md` — 取显式批准、判 `scope`、定 `handoff`。
 6. `steps/06-finish.md` — 收尾摘要、过终门、交接。
-
-记录写入：第 1 步末尾按 `草稿` 建记录（事实照抄回执、绝不凭记忆重打），各节随对应步骤填，第 6 步定稿。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+7. 记录写入：第 1 步末尾按 `草稿` 建记录（事实照抄回执、绝不凭记忆重打），各节随对应步骤填，第 6 步定稿。
+8. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -76,14 +76,27 @@ revisions: []                 # {date, change, reason}——改既有记录时�
 
 ## 规则
 
-1. 写范围：只写 `{output_dir}/change-proposal.yaml`——记录与其 `revisions`。绝不改真源产物（`prd.yaml` / `epics.yaml` / `stories.yaml` / `architecture.yaml` / `openapi.yaml` / `design.yaml` / `test-plan.yaml` / `sprint.yaml`）；`handoff.route` 点名谁执行，改动是它的活。
-2. 只引用、不复制：`impacts.target` 与 `edits.target` 带稳定 ID（产物类）或 `path:<relative>`（`artifact: infra`——部署 / CI / IaC 文件，绝不写产品 ID）；`old` / `new` 引最小决定性取值（一个 ID 加一行要点），绝不粘贴整段。整篇改写是产物所有者技能的活。
-3. 影响事实取自 `collect` 回执：文档摘要、`diyc.check.violations` 与 `chain` 一律照抄，绝不手工重推。跨文档机械核对（ID 链、引用解析）归 diyc——绝不拿眼睛复核。
-4. 触发不清就停：模糊的问题不写提案。每条影响都要点出显示它的证据——绝不虚构影响。起草期未确认的推断可带 `[假设]` 前缀；终门要求清零——要么与人确认落定，要么显式落成 `open_questions` 条目。
-5. 记录只追加，永不重编号、永不复用；改既有记录就往 `revisions` 追加（date / change / reason）。不需要 `--previous` 轮——提案记录只追加，从不整篇重写。
+1. 写范围：只写 `{output_dir}/change-proposal.yaml`——记录与其 `revisions`。绝不改真源产物（`prd.yaml` / `epics.yaml` / `stories.yaml` / `architecture.yaml` / `openapi.yaml` / `design.yaml` / `test-plan.yaml` / `sprint.yaml`）。
+   - `handoff.route` 点名谁执行，改动是它的活。
+2. 只引用、不复制：`impacts.target` 与 `edits.target` 带稳定 ID（产物类）或 `path:<relative>`（`artifact: infra`——部署 / CI / IaC 文件，绝不写产品 ID）。
+   - `old` / `new` 引最小决定性取值（一个 ID 加一行要点），绝不粘贴整段。
+   - 整篇改写是产物所有者技能的活。
+3. 影响事实取自 `collect` 回执：文档摘要、`diyc.check.violations` 与 `chain` 一律照抄，绝不手工重推。
+   - 跨文档机械核对（ID 链、引用解析）归 diyc——绝不拿眼睛复核。
+4. 触发不清就停：模糊的问题不写提案。
+   - 每条影响都要点出显示它的证据——绝不虚构影响。
+   - 起草期未确认的推断可带 `[假设]` 前缀；终门要求清零——要么与人确认落定，要么显式落成 `open_questions` 条目。
+5. 记录只追加，永不重编号、永不复用；改既有记录就往 `revisions` 追加（date / change / reason）。
+   - 不需要 `--previous` 轮——提案记录只追加，从不整篇重写。
 6. 渲染守工作流里的静默旁路一句——只写命令；不新增浏览器交互点、不报路径阻塞等待、不等待。
-7. 终门（机械）：先写 `status: 已定稿`（或 `已批准`）——它是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两个实参同激活（`--output-dir` 必填、绝不缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾都等 exit 0。**`已驳回` 是唯一例外**：终门对本条永不放行（`--final` 要求 `status ∈ {已定稿, 已批准}`），改跑**不带 `--final`** 的同一条 `check` 收口（见 `steps/06-finish.md`）。
-8. 按 scope 路由（门强制配对；`steps/05-route.md` 的 allow-list 只是粗筛，真判据 = 被改产物的唯一所有者）：`轻微` → 产物所有者技能直接落实；`中等` → diy-sprint / diy-epics-stories / diy-prd 重组 backlog；`重大` → 规划层（diy-prd / diy-architecture / diy-epics-stories）重规划。批准先于路由——未批准的提案绝不交接。
+7. 终门（机械）：先写 `status: 已定稿`（或 `已批准`）——它是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-correct-course/scripts/change_proposal.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两个实参同激活（`--output-dir` 必填、绝不缺省）。
+   - exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾都等 exit 0。
+   - **`已驳回` 是唯一例外**：终门对本条永不放行（`--final` 要求 `status ∈ {已定稿, 已批准}`），改跑**不带 `--final`** 的同一条 `check` 收口（见 `steps/06-finish.md`）。
+8. 按 scope 路由（门强制配对；`steps/05-route.md` 的 allow-list 只是粗筛，真判据 = 被改产物的唯一所有者）：
+   - `轻微` → 产物所有者技能直接落实。
+   - `中等` → diy-sprint / diy-epics-stories / diy-prd 重组 backlog。
+   - `重大` → 规划层（diy-prd / diy-architecture / diy-epics-stories）重规划。
+   - 批准先于路由——未批准的提案绝不交接。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

@@ -33,9 +33,13 @@ Progress: `立案 → 分析 → 改动 → 提案 → [路由] → 收尾`
 | `中等` | `diy-sprint` / `diy-epics-stories` / `diy-prd` | 重组 backlog（`reconcile` 重算门），重推覆盖 |
 | `重大` | `diy-prd` / `diy-architecture` / `diy-epics-stories` | 重规划：先改需求 / 决策 / 拆解 |
 
-**真判据 = 被改产物的唯一所有者。** allow-list 只是粗筛：`handoff.route` 必须是 `edits[].artifact` 的产物所有者技能——`prd` → `diy-prd`；`epics` / `stories` → `diy-epics-stories`；`architecture` → `diy-architecture`；`openapi` → `diy-openapi`；`design` → `diy-design`；`test-plan` → `diy-test-design`；`infra` → `diy-dev`。改动落在谁的写面内就交给谁；名单里有、写面却接不住这批 edits 的技能不是合法路由——改路由或改提案，绝不硬塞。`edits` 跨多个产物时按主产物路由，并在 `note` 里点名其余产物由谁接手。
+**真判据 = 被改产物的唯一所有者。** allow-list 只是粗筛：`handoff.route` 必须是 `edits[].artifact` 的产物所有者技能——`prd` → `diy-prd`；`epics` / `stories` → `diy-epics-stories`；`architecture` → `diy-architecture`；`openapi` → `diy-openapi`；`design` → `diy-design`；`test-plan` → `diy-test-design`；`infra` → `diy-dev`。
 
-本技能自己什么都不执行：真源产物的改写发生在被点名技能的 update 模式里、过它自己的门。两个候选都说得通时与人确认谁接手，并把这次交流记进 `note`。
+- 改动落在谁的写面内就交给谁；名单里有、写面却接不住这批 edits 的技能不是合法路由——改路由或改提案，绝不硬塞。
+- `edits` 跨多个产物时按主产物路由，并在 `note` 里点名其余产物由谁接手。
+
+- 本技能自己什么都不执行：真源产物的改写发生在被点名技能的 update 模式里、过它自己的门。
+- 两个候选都说得通时与人确认谁接手，并把这次交流记进 `note`。
 
 ## 收束路由消息
 

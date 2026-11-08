@@ -20,10 +20,10 @@ outputs: spec-scan.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 定位目标。用户显式给的路径优先；对话里已出现目标（"扫一下这份任务书"）直接取用。
    - 有目标 → 进第 3 步。
    - 没有 → HALT：问一次，给「贴路径 / 贴内容 / 取消」三个选项，等用户回话。
@@ -41,16 +41,13 @@ outputs: spec-scan.yaml
 
 1. `steps/01-collect.md` — 目标定位与切分：跑 `collect` 建立**扫描单元清单**，落草稿记录，给用户一句进度播报。
 2. `steps/02-dry-run.md` — **预演执行**（核心）：逐单元扮演实现者，产出执行计划；每个"必须猜"的决策点记一条 finding。
-   可跳注：纯文档路由（kind=文档，step 1 判定）下本步整体跳过，`scanned` 由 step 3 接管。
+   - 可跳注：纯文档路由（kind=文档，step 1 判定）下本步整体跳过，`scanned` 由 step 3 接管。
 3. `steps/03-exhaustive.md` — **穷举执行**：方法驱动枚举路径与边界，零命中合法；finding 标 `source: [穷举]`。
 4. `steps/04-cross-check.md` — 交叉验证：换视角复扫高风险单元，补漏 + 去误报。
 5. `steps/05-report.md` — 落盘 + `check --final` 终门 + 渲染 + 摘要（计数 / 阻断清单 / 路由）。
-
-穷举默认跑（opt-out）：关闭走旗标 `--no-exhaustive`（规范形式）或自然语言明示「不用穷举 / 跳过穷举」（等效兜底），两通道同规则。
-
-写回纪律：记录在 step 1 建为 `草稿`，各步填充，step 5 定稿。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+6. 穷举默认跑（opt-out）：关闭走旗标 `--no-exhaustive`（规范形式）或自然语言明示「不用穷举 / 跳过穷举」（等效兜底），两通道同规则。
+7. 写回纪律：记录在 step 1 建为 `草稿`，各步填充，step 5 定稿。
+8. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -85,11 +82,14 @@ revisions: []                      # {date, change, reason} —— 改既有条�
 
 ## 规则
 
-- **只读规格，禁读实现。** 你的读取边界 = "实现者动手前能读到的东西"。规格点名要读的参考（任务书、契约文档、对接口技能的 `SKILL.md` / `steps/`）可以读；**实现代码（`scripts/*.py`、`tests/*.py`）与产物实例（`diy-output/*.yaml` 里的真实数据）不读** —— 读了就能从实现反推意图，歧义会被你自己的理解掩盖。这是本技能失效的头号原因。
-- **执行计划留对话，落盘的是卡点清单。** 禁止"我读完觉得……"这类句式。写成"我第 1 步做 X，第 2 步做 Y，到第 3 步这里我不知道该走哪条路"。执行计划是过程叙事（在对话里给出，预演在场时 step 2 强制——纯文档路由（kind=文档）下 02 整体跳过、scanned 由 03 接管），进 `spec-scan.yaml` 的只有 findings。
-- **`would_guess` 是命根子。** 每条 finding 必须写清"如果没人管，我会猜成什么"。没有它，隐含假设就没被显性化，这条不算 finding（引擎会把空值判为违规）。
-- **零改写。** 本技能不改任何被扫文件——只出清单。裁定归用户。
-- **不评论质量。** 不挑风格、不评好坏、不提"建议改为"。只报"照这份规格执行，会卡在哪"。
-- **不确定就标 `建议`，别升 `阻断`。** `阻断` 只留给"两种理解会导致完全不同的实现"这一档。
+1. **只读规格，禁读实现。** 你的读取边界 = "实现者动手前能读到的东西"。规格点名要读的参考（任务书、契约文档、对接口技能的 `SKILL.md` / `steps/`）可以读。
+   - **实现代码（`scripts/*.py`、`tests/*.py`）与产物实例（`diy-output/*.yaml` 里的真实数据）不读** —— 读了就能从实现反推意图，歧义会被你自己的理解掩盖。这是本技能失效的头号原因。
+2. **执行计划留对话，落盘的是卡点清单。** 禁止"我读完觉得……"这类句式。写成"我第 1 步做 X，第 2 步做 Y，到第 3 步这里我不知道该走哪条路"。
+   - 执行计划是过程叙事（在对话里给出，预演在场时 step 2 强制——纯文档路由（kind=文档）下 02 整体跳过、scanned 由 03 接管），进 `spec-scan.yaml` 的只有 findings。
+3. **`would_guess` 是命根子。** 每条 finding 必须写清"如果没人管，我会猜成什么"。没有它，隐含假设就没被显性化，这条不算 finding（引擎会把空值判为违规）。
+4. **零改写。** 本技能不改任何被扫文件——只出清单。裁定归用户。
+5. **不评论质量。** 不挑风格、不评好坏、不提"建议改为"。只报"照这份规格执行，会卡在哪"。
+6. **不确定就标 `建议`，别升 `阻断`。** `阻断` 只留给"两种理解会导致完全不同的实现"这一档。
+
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 - **写作纪律。** findings 散文用 `document_output_language`；`quote` 里机器锚点（ID / 枚举值 / 命令 / 路径）逐字保留原文，不翻译。引文里可能出现 `[假设]` 等被禁字面量——照抄，终门对 `quote` 豁免。

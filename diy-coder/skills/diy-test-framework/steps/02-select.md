@@ -11,17 +11,22 @@
 - `existing.framework` 与建议不同 → 先问用户（替换属内容决策；无头不替用户默认）。
 
 ## 2. 平台选型
-`existing.ci` 命中 → 建议沿用；否则在五平台（`github-actions` / `gitlab-ci` / `jenkins` / `azure-devops` / `harness`）里问用户选一个；用户明确不建 CI → `platform: none`（台账照记，check 给 warning）。
+
+1. `existing.ci` 命中 → 建议沿用；否则在五平台（`github-actions` / `gitlab-ci` / `jenkins` / `azure-devops` / `harness`）里问用户选一个。
+2. 用户明确不建 CI → `platform: none`（台账照记，check 给 warning）。
 
 ## 3. substitutions 取值表（模板头 `# placeholders:` 是唯一权威）
 
 - `RUNTIME_SETUP_CMD`：运行时准备**单行**命令（如 `nvm install 22 && nvm use 22`、`python -m pip install --upgrade pip`）。
 - `INSTALL_CMD` / `LINT_CMD` / `TEST_CMD` / `BROWSER_INSTALL`：与项目包管理器一致的命令。
-- **阻断 层命令是硬约束**：`static_checks[]` 中 `gate: 阻断` 的 `tool` 整串 → 逐字进 `LINT_CMD`（check 按「空白归一化 + 独立命令形态」在 CI 文件里找它；写成 `lint:fix` 一类会判 `CI_MISALIGNED`）。多条 阻断 条目按 `order` 升序用 `&&` 串成一条命令（`&` 属匹配边界，故逐条仍可独立命中）。**按 `order` 引用，禁把命令内容抄进台账**。
+- **阻断 层命令是硬约束**：`static_checks[]` 中 `gate: 阻断` 的 `tool` 整串 → 逐字进 `LINT_CMD`（check 按「空白归一化 + 独立命令形态」在 CI 文件里找它；写成 `lint:fix` 一类会判 `CI_MISALIGNED`）。
+  - 多条 阻断 条目按 `order` 升序用 `&&` 串成一条命令（`&` 属匹配边界，故逐条仍可独立命中）。
+  - **按 `order` 引用，禁把命令内容抄进台账**。
 - `P0_GATE` / `P1_GATE`：固定 `100%`（质量门口径拉满；源 P1≥95% 已作废）。
 - 版本与文档类：`NODE_VERSION` / `PYTHON_VERSION` / `JAVA_VERSION` / `RUBY_VERSION` / `DOTNET_SDK_VERSION` / `FRAMEWORK_NAME` / `TEST_DIR` / `BASE_URL` / `API_URL`。
 - 语言特定：`TEST_PACKAGE`（java）/ `PACKAGE_NAME`（go）/ `CRATE_NAME`（rust）/ `TEST_PROJECT_NAME`（dotnet）。
-- 取值给不出（lint 工具未定、地址未定）→ 停下问用户，**别编**；一个值填空会让 `scaffold` 整条拒绝（`EMPTY_FIELD`）。
+- 取值给不出（lint 工具未定、地址未定）→ 停下问用户，**别编**。
+  - 一个值填空会让 `scaffold` 整条拒绝（`EMPTY_FIELD`）。
 - `static_checks` 缺席或为空 → 无对齐对象：`LINT_CMD` 按项目既有 lint 取，并在摘要记明「无 static_checks，CI 对齐未生效」。
 
 ### 3.1 缓存 / 产物 / 通知（`ci` 面必填；模板头为准）
@@ -41,6 +46,7 @@
 - **Jenkins 无声明式缓存原语**：`CACHE_PATH` / `CACHE_KEY` 落在模板注释里（约定口径），不写进 `sh` 步骤。
 
 ## 4. 报给用户
+
 一行选型：框架 + 平台 + profile + 理由；用户确认后才进 step 3。
 
 ## 播报与下一步

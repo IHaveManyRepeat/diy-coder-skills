@@ -16,12 +16,16 @@ Progress: `[Preflight] → Oracle → Matrix & Gaps → NFR → Gate → Finish`
 | `prd.yaml` 缺席 / 不可解析 | `diy-prd` | priority 推导（必须→P0 / 应该→P1 / 可选→P2）是全门分数线的前提，**不得降级** |
 | `--story S-x` 不存在 | `diy-epics-stories` | 先确认 story ID |
 
-`diyc` 子进程报的 test-plan 违规（`diyc.violations`）**不是拒绝**——它们是上游实况，逐条落 `gate.blockers`（`kind: 覆盖`），并在摘要里点名。被吞掉的违规等于伪造绿灯。
+`diyc` 子进程报的 test-plan 违规（`diyc.violations`）**不是拒绝**——它们是上游实况，逐条落 `gate.blockers`（`kind: 覆盖`），并在摘要里点名。
+
+- 被吞掉的违规等于伪造绿灯。
 
 ## 定位本次门
 
-- 一次门 = 一个 story（`scope: story`，唯一合法值；epic / release 为 v2 推迟项）。范围由用户给出或从对话上下文取；给了 `--story` 时按它，未给时 `collect` 回执的 `stories[]` 是候选清单，逐条问一次，不要替用户挑。
-- 目标记录：`{output_dir}/test-gate.yaml` 里 **已存在** 的 `TG-###` 中，若同一 `story` 已有未定稿记录 → 继续填充它（不新开）；否则铸造下一条：序号 = 现有最大值 + 1，三位零填充，**不重用不重编号**。
+- 一次门 = 一个 story（`scope: story`，唯一合法值；epic / release 为 v2 推迟项）。
+  - 范围由用户给出或从对话上下文取；给了 `--story` 时按它，未给时 `collect` 回执的 `stories[]` 是候选清单，逐条问一次，不要替用户挑。
+- 目标记录：`{output_dir}/test-gate.yaml` 里 **已存在** 的 `TG-###` 中，若同一 `story` 已有未定稿记录 → 继续填充它（不新开）。
+  - 否则铸造下一条：序号 = 现有最大值 + 1，三位零填充，**不重用不重编号**。
 
 ## 落草稿记录
 
@@ -44,7 +48,9 @@ Progress: `[Preflight] → Oracle → Matrix & Gaps → NFR → Gate → Finish`
     open_questions: []
 ```
 
-`oracle` 与 `coverage` 的填值口径在 step 2 / step 3；这里只保证记录壳子在，后续各步就地补字段。
+`oracle` 与 `coverage` 的填值口径在 step 2 / step 3。
+
+- 这里只保证记录壳子在，后续各步就地补字段。
 
 ## 播报与下一步
 

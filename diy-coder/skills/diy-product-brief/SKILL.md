@@ -17,10 +17,10 @@ outputs: brief.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字（title、problem、solution、pitch、decisions、addendum）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字（title、problem、solution、pitch、decisions、addendum）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 目标文件 `{output_dir}/brief.yaml`。判意图——**新建** / **更新** / **校验**：交互态含糊就直接问，headless 从请求与文件是否存在推断；前置与路由取引擎回执：
    `python "{project-root}/.claude/skills/diy-product-brief/scripts/brief.py" intent --intent <新建|更新|校验> --project-root "{project-root}" --output-dir "{output_dir}" --json`
    Exit 1 → 转述一行理由与路由，零写入停下。Exit 0 → 回执的 `route` 点名要读的那一个 `steps/` 文件；`counts` 给出既有产物的规模，不必通读全文；`check` 的校验结论也以引擎回执为准，不靠重读规则。
@@ -41,8 +41,7 @@ outputs: brief.yaml
 3. `steps/03-finalize.md` — 决策日志审计（进简报 / 进附录 / 搁置）、先调 `diy-editorial-review` 取 findings 再按三遍顺序施加润色（`ER-###` 落 `review_refs`），交付并点名路由（diy-prd；其余由 diy-help 分派）。
 4. `steps/04-update.md` — 更新：变更信号对账，改动前先摊开与既有决策的冲突；属根本性变更则改提**新建**。
 5. `steps/05-validate.md` — 校验：对照简报自身目的的诚实点评，引具体句子，结论回对话，并始终提供把发现并入更新。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+6. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -80,8 +79,10 @@ review_refs: []                            # [ER-###] —— 定稿润色的证�
 3. 持久化是实时的：`新建` 一经确认，工作区就在盘上，用户也知道路径。这里没有 `.decision-log.md`——brief.yaml 的 `decisions` 就是规范记忆与审计轨迹：每个决策、变更与推翻（含 headless 的推翻）发生即记。
 4. 陪跑姿态：看利害档位下菜——`个人兴趣` 的项目不需要 `投资人` 级的严谨，融资路演才需要；绝不编造护城河。
 5. 抽取，不吞入：源材料——转录稿、脑爆笔记、演示稿、研究报告、代码、旧简报——以按相关性过滤后的摘录进入对话，不整包加载；子代理抽取，母代理保持轻装。
-6. 篇幅与连贯：1-2 页；更长的都进 `addendum` 并写明 `why_separate`。下游（尤其 diy-prd）会读它，形状连贯才算数。外部交接（Confluence、Notion、工单系统）不在 diy 范围内——YAML 加 viewer 投影就是交付。
-7. 更新纪律：重写既有简报前先快照——`cp {output_dir}/brief.yaml {output_dir}/brief.yaml.prev`；起草完跑 `python "{project-root}/.claude/skills/diy-product-brief/scripts/brief.py" check --previous {output_dir}/brief.yaml.prev --project-root "{project-root}" --output-dir "{output_dir}" --json`（exit 0 = 没丢 `BD-###`）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev`。改既有记录时向 `revisions` 追加 `{date, change, reason}`；id 永不重编号、永不重用。
+6. 篇幅与连贯：1-2 页；更长的都进 `addendum` 并写明 `why_separate`。下游（尤其 diy-prd）会读它，形状连贯才算数。
+   - 外部交接（Confluence、Notion、工单系统）不在 diy 范围内——YAML 加 viewer 投影就是交付。
+7. 更新纪律：重写既有简报前先快照——`cp {output_dir}/brief.yaml {output_dir}/brief.yaml.prev`；起草完跑 `python "{project-root}/.claude/skills/diy-product-brief/scripts/brief.py" check --previous {output_dir}/brief.yaml.prev --project-root "{project-root}" --output-dir "{output_dir}" --json`（exit 0 = 没丢 `BD-###`）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev`。
+   - 改既有记录时向 `revisions` 追加 `{date, change, reason}`；id 永不重编号、永不重用。
 8. 终门（机械）：先写 `project.status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-product-brief/scripts/brief.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--output-dir` 必填、无缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾等 exit 0。
 9. 渲染按工作流里的静默旁路句执行——只写命令；不新增浏览器交互点、不报告阻塞路径、不等待。
 

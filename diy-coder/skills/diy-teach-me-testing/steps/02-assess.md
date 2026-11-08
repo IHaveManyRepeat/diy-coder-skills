@@ -7,7 +7,8 @@ Progress: `Init → [Assess] → Hub → Session → Completion`
 
 ## 四问（一次一条，等答）
 
-**这一层是需求确认，不是副作用**：问题没问完不得替用户默认，也不得自己编画像。逐条给选项、逐条校验，答完一条再问下一条。
+1. **这一层是需求确认，不是副作用**：问题没问完不得替用户默认，也不得自己编画像。
+2. 逐条给选项、逐条校验，答完一条再问下一条。
 
 1. **角色**（必填）：`QA`（QA 工程师 / 测试工程师 / SDET）、`开发`（软件开发者）、`组长`（技术负责人 / 工程经理）、`负责人`（研发负责人 / 总监）。答别的 → 重申四值，重复问到达标。用来选 `curriculum.yaml` 的 `roles.<R>.teaching_adaptations`。
 2. **测试经验**（必填）：`入门`（刚接触）、`进阶`（写过测试、想提高）、`资深`（底子扎实、想学进阶）。这三值是 `learning_paths` 的键——它决定推荐顺序。
@@ -20,8 +21,9 @@ Progress: `Init → [Assess] → Hub → Session → Completion`
 python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" update --learner --role <QA|开发|组长|负责人> --experience <入门|进阶|资深> --goals "<目标>" [--pain-points "<痛点>"] ... --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-- `--goals` / `--pain-points` 可重复给（一次一个）。
-- 引擎置 `learner.assessed` = 当日，并在写盘前跑一遍与 `check` 同源的校验：**角色或经验缺一 → `EMPTY_FIELD` 拒绝**（画像没采完不得置 `assessed`），零写入。撞到这个拒回说明第 1、2 问没拿到值——回去问，不要绕过引擎手改 YAML。
+1. `--goals` / `--pain-points` 可重复给（一次一个）。
+2. 引擎置 `learner.assessed` = 当日，并在写盘前跑一遍与 `check` 同源的校验：**角色或经验缺一 → `EMPTY_FIELD` 拒绝**（画像没采完不得置 `assessed`），零写入。
+3. 撞到这个拒回说明第 1、2 问没拿到值——回去问，不要绕过引擎手改 YAML。
 
 ## 播报
 

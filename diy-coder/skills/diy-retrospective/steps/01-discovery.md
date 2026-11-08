@@ -11,7 +11,9 @@ Progress: `[epic 发现] → 深度分析 → 连续性 → 回顾讨论 → 行
 2. **用户说了算。** 用户点名另一个 epic → 就是它，不再争论。
 3. **什么都扫不到。** 列出任何有 `已完成` 故事的 epic，附 `done/total` 计数作为编号选项并问。绝不凭空猜一个 epic。
 
-第 3 级若**列表为空**（全库没有任何 `已完成` 故事）→ 一行说明 + **零写入停止**，按引擎 `gate.route` 的口径点名 diy-epics-stories / 先把故事做完（diy-dev）——不要凭名字造一个 epic 去撞门。
+第 3 级若**列表为空**（全库没有任何 `已完成` 故事）→ 一行说明 + **零写入停止**，按引擎 `gate.route` 的口径点名 diy-epics-stories / 先把故事做完（diy-dev）。
+
+- 不要凭名字造一个 epic 去撞门。
 
 ## 跑确定性开场
 
@@ -34,11 +36,16 @@ python "{project-root}/.claude/skills/diy-retrospective/scripts/retrospective.py
   2. **部分回顾** → 仅在用户明确确认后；草稿写 `partial: true`，pending 的 ID 记进 `challenges`。
   3. **改刷新 sprint 队列** → 跟踪已不符现实时路由 diy-sprint。
 
-`partial: true` 是用户的裁定，绝不是主持人的便利。同 epic **只有一条** `RT-###`：partial 之后补做完整 retro 时，在**原记录**上原地更新（`partial` 改 `false`、`metrics` 用新一次 `collect` 回执重取、`revisions` 追加 `{date, change: partial → full, reason}`），不新铸记录。
+`partial: true` 是用户的裁定，绝不是主持人的便利。同 epic **只有一条** `RT-###`：
+
+- partial 之后补做完整 retro 时，在**原记录**上原地更新（`partial` 改 `false`、`metrics` 用新一次 `collect` 回执重取、`revisions` 追加 `{date, change: partial → full, reason}`），不新铸记录。
 
 ## 起草记录
 
-往 `{output_dir}/retrospective.yaml` 追加一条记录（文件缺席时先建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type retrospective --json` 盖秒级章、每次写回产物后再跑一次——加空的 `retros` 列表与 `revisions: []`）：
+往 `{output_dir}/retrospective.yaml` 追加一条记录（文件缺席时先建）：
+
+1. `project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type retrospective --json` 盖秒级章、每次写回产物后再跑一次。
+2. 加空的 `retros` 列表与 `revisions: []`。
 
 ```yaml
   - id: RT-001                    # 下一条 = 现有最大值 + 1，三位零填充；永不重编号、永不复用

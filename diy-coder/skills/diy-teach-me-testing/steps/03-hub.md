@@ -23,9 +23,8 @@ Progress: `Init → Assess → [Hub] → Session → Completion`
 
 ## 完成检查（先于菜单）
 
-回执 `sessions_completed == 7` 且 `summary.generated == false` → 不显示菜单，直接播报「7 节已修满，来生成结业摘要」，走 `./05-completion.md`。
-
-`summary.generated == true` → 正常显示菜单（完成态展示）：用户可以重进任一节复习或重做，也可以回 session 7 继续探索主题。
+1. 回执 `sessions_completed == 7` 且 `summary.generated == false` → 不显示菜单，直接播报「7 节已修满，来生成结业摘要」，走 `./05-completion.md`。
+2. `summary.generated == true` → 正常显示菜单（完成态展示）：用户可以重进任一节复习或重做，也可以回 session 7 继续探索主题。
 
 ## 播报与下一步
 

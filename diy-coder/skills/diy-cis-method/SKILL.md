@@ -17,15 +17,17 @@ outputs: cis-method.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 续接检测：跑 `list` 拿会话清单——**只列 `id` / `method` / `topic` / `date` / `status` / `current_step` 六字段，不读正文**：
    `python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
-   有记录 → 播报最近一条并问「[1] 继续 / [2] 新建 / [3] 看全部」，**HALT 等选择**；无记录 → 直接进第 3 步。
-3. 门禁（零产出退出）：新会话必须先有议题——由会话询问收集（**不代拟议题**）；拒答，或「无议题也无素材」→ 一行说明并**零产出停止**（可路由 `diy-prfaq` 点火）。指向既有 `CM-###` → 按 `status` 路由：`已完成` 的记录只读回看、不再写入。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/cis-method.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
+   - 有记录 → 播报最近一条并问「[1] 继续 / [2] 新建 / [3] 看全部」，**HALT 等选择**；无记录 → 直接进第 3 步。
+3. 门禁（零产出退出）：新会话必须先有议题——由会话询问收集（**不代拟议题**）；拒答，或「无议题也无素材」→ 一行说明并**零产出停止**（可路由 `diy-prfaq` 点火）。
+   - 指向既有 `CM-###` → 按 `status` 路由：`已完成` 的记录只读回看、不再写入。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+   - `{output_dir}/cis-method.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-route.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流
@@ -37,10 +39,8 @@ outputs: cis-method.yaml
 3. `steps/03-problem.md` — **问题求解** 9 步（定义并精炼问题 → … → 沉淀经验教训〔可选〕），能量检查点在第 5 / 8 步。
 4. `steps/04-design.md` — **设计思维** 7 步（收集背景并定义设计挑战 → EMPATHIZE / DEFINE / IDEATE / PROTOTYPE / TEST → 规划下一轮迭代），能量检查点在第 3 / 5 / 7 步。
 5. `steps/05-story.md` — **叙事** 10 步（故事背景设定 → … → 生成最终产出），无能量检查点。
-
-写回纪律：记录在 `init` 建为 `草稿` / `current_step: 1`；`deliverable` / `open_questions` 随各步填充并同步推进 `current_step` / `status`；`id` / `method` / `date` 由 `init` 铸造后不再由你改；`check` 只校验不写。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+6. 写回纪律：记录在 `init` 建为 `草稿` / `current_step: 1`；`deliverable` / `open_questions` 随各步填充并同步推进 `current_step` / `status`；`id` / `method` / `date` 由 `init` 铸造后不再由你改；`check` 只校验不写。
+7. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -60,21 +60,38 @@ sessions:
 revisions: []                       # {date, change, reason} —— 改既有记录时追加
 ```
 
-`deliverable` 的分支专有键表（各键一句说明）见对应分支步骤文件的「本分支结构」节；注入项 `date` / `user_name`（叙事另含 `agent_role` / `agent_name`）不入键表。
+`deliverable` 的分支专有键表（各键一句说明）见对应分支步骤文件的「本分支结构」节。
+
+- 注入项 `date` / `user_name`（叙事另含 `agent_role` / `agent_name`）不入键表。
 
 `status` 与 `current_step` 必须同档（不一致引擎报 `STATUS_MISMATCH`）：`草稿` = 1；`进行中` = 2..(末步-1)；`已完成` = 末步——问题求解分支末步为 **8 或 9**（第 9 步可选，跳过时第 8 步收尾，唯一的分支内例外）。
 
 ## 规则
 
-1. 写范围：只写 `{output_dir}/cis-method.yaml`（记录与 `revisions`）；不碰 `prd.yaml` / `sprint.yaml` / `stories.yaml` / 源码，也不建任何状态散文件。
+1. 写范围：只写 `{output_dir}/cis-method.yaml`（记录与 `revisions`）。
+   - 不碰 `prd.yaml` / `sprint.yaml` / `stories.yaml` / 源码，也不建任何状态散文件。
 2. **检查点四选项**（每步产出后，六拍不得省）：① 生成本步产出 → ② 落盘（编辑 `deliverable` 对应键 + 推进 `current_step` / `status`）→ ③ 显示检查点分隔 → ④ 呈出本步产出 → ⑤ 出四选项 → ⑥ 等响应。
-3. **选项落点**：`[a] Advanced Elicitation` → 调用 `diy-elicit`；`[p] Party-Mode` → 调用 `diy-party-mode`（两者**零写面**：增强 / 多视角产出的内容并入同一批键，调用返回后回到第 ② 拍重落盘）；`[c] Continue` → 直接进下一步；`[y] YOLO` → 后续步骤跳过 ⑤⑥（不停等），**②③④ 照旧**——落盘与呈出不因 YOLO 而省，首次选中时一行明示。无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
-4. **分支风格**（四分支的沟通风格归位）：创新策略——棋手口吻（大胆断言、留白式停顿、一句塌掉数周斟酌）；问题求解——演绎加顽童科学家（锲而不舍、每个突破配一声 AHA）；设计思维——爵士乐手（围绕主题即兴、感官隐喻、俏皮地挑战每个假设）；叙事——吟游诗人（辞采飞扬、每句都把听者往里拉）。**Carson（brainstorming-coach）不落本技能**——其路由目标是 `bmad-brainstorming`，归 `diy-brainstorm`。
-5. **边界（本技能产 anytime 咨询产物——不进主链、不被任何门禁引用）**：vs `diy-brainstorm`——两者都是 cis 家族的引导式创意会话，brainstorm 是**发散**（技术库驱动、想法逐条落 `ideas[]`、教练纪律「绝不批量生成」，产一堆想法 + 优先级），本技能是**收敛的方法流**（四分支各有固定步骤序列，产成篇人读内容）；要发散走它、要走成篇方法流走本技能。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。vs `diy-prd` / `diy-product-brief`——它们产主链产物（稳定 ID、被下游消费、进 CHAIN），prd 可按 `CM-###` 消费本技能产物；design 通路随 5b。vs `diy-project-context`——它扫本项目代码仓，本技能分析用户的外部业务问题、不扫代码。vs `diy-design`——它产 `design.yaml` 设计契约（主链、被 dev 消费），设计思维分支产人本设计过程记录、不产 UI 契约。vs `diy-editorial-review`——它是对既有文稿的临床润色，叙事分支是从零创作；要润色走它。vs `diy-spec`——它产 `spec-kernel.yaml` 机器契约，本技能产人读文档、零机器契约面。
-6. **方法库**：四源合一 115 条（技能目录根 `cis-methods.csv`），经引擎 `methods` 命令加载，**不凭记忆列方法**；默认只回该分支工作流实际引用的类（**创新策略 25 / 问题求解 30 / 设计思维 15 / 叙事 25**，叙事按类呈现全部 25 条）；**库含未接入工作流的条目，`--all` 可见**（不跨分支；`--category` 取库内中文类名，非法值 `ENUM_INVALID`）。
-7. **终门（机械）**：先落 `status: 已完成` + 末步 `current_step`，再跑 `python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `open_questions`；空集合不得冒充「全部定稿」）。渲染与收尾都等 exit 0。
-8. **违规码**：登记＝集中表（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `UNKNOWN_ID` / `DUPLICATE_ID` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT`）+ 本技能唯一新增码 **`TOKEN_UNRESOLVED`**（未解析的 `{...}` 令牌一律拒绝：`{output_folder}` 换 `{output_dir}`、`{skill-root}` 换「裸 `steps/*.md` 路径从本技能安装目录解析」、`{skill-name}` 裁、`{project-root}` 是唯一保留项）；`UNPARSABLE_YAML` 兼作方法库解析失败码。
-9. **无 `--previous` 轮**：`sessions[]` 只追加、`CM-###` 顺序递增，无 ID 集合收缩面；改既有记录就往 `revisions` 追加（date / change / reason），`change` 引用 `CM-###` 而不复制内容。副作用面：除产物与静默渲染外无任何外部动作（`[a]` / `[p]` 调的是零写面技能）；产物内引用一律 project-root 相对 `path:line`。
+3. **选项落点**：`[a] Advanced Elicitation` → 调用 `diy-elicit`；`[p] Party-Mode` → 调用 `diy-party-mode`（两者**零写面**：增强 / 多视角产出的内容并入同一批键，调用返回后回到第 ② 拍重落盘）；`[c] Continue` → 直接进下一步；`[y] YOLO` → 后续步骤跳过 ⑤⑥（不停等），**②③④ 照旧**——落盘与呈出不因 YOLO 而省，首次选中时一行明示。
+   - 无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
+4. **分支风格**（四分支的沟通风格归位）：创新策略——棋手口吻（大胆断言、留白式停顿、一句塌掉数周斟酌）；问题求解——演绎加顽童科学家（锲而不舍、每个突破配一声 AHA）；设计思维——爵士乐手（围绕主题即兴、感官隐喻、俏皮地挑战每个假设）；叙事——吟游诗人（辞采飞扬、每句都把听者往里拉）。
+   - **Carson（brainstorming-coach）不落本技能**——其路由目标是 `bmad-brainstorming`，归 `diy-brainstorm`。
+5. **边界（本技能产 anytime 咨询产物——不进主链、不被任何门禁引用）**：
+   - vs `diy-brainstorm`——两者都是 cis 家族的引导式创意会话，brainstorm 是**发散**（技术库驱动、想法逐条落 `ideas[]`、教练纪律「绝不批量生成」，产一堆想法 + 优先级），本技能是**收敛的方法流**（四分支各有固定步骤序列，产成篇人读内容）；要发散走它、要走成篇方法流走本技能。
+   - vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
+   - vs `diy-prd` / `diy-product-brief`——它们产主链产物（稳定 ID、被下游消费、进 CHAIN），prd 可按 `CM-###` 消费本技能产物；design 通路随 5b。
+   - vs `diy-project-context`——它扫本项目代码仓，本技能分析用户的外部业务问题、不扫代码。
+   - vs `diy-design`——它产 `design.yaml` 设计契约（主链、被 dev 消费），设计思维分支产人本设计过程记录、不产 UI 契约。
+   - vs `diy-editorial-review`——它是对既有文稿的临床润色，叙事分支是从零创作；要润色走它。
+   - vs `diy-spec`——它产 `spec-kernel.yaml` 机器契约，本技能产人读文档、零机器契约面。
+6. **方法库**：四源合一 115 条（技能目录根 `cis-methods.csv`），经引擎 `methods` 命令加载，**不凭记忆列方法**。
+   - 默认只回该分支工作流实际引用的类（**创新策略 25 / 问题求解 30 / 设计思维 15 / 叙事 25**，叙事按类呈现全部 25 条）。
+   - **库含未接入工作流的条目，`--all` 可见**（不跨分支；`--category` 取库内中文类名，非法值 `ENUM_INVALID`）。
+7. **终门（机械）**：先落 `status: 已完成` + 末步 `current_step`，再跑 `python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `open_questions`；空集合不得冒充「全部定稿」）。
+   - 渲染与收尾都等 exit 0。
+8. **违规码**：登记＝集中表（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `UNKNOWN_ID` / `DUPLICATE_ID` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT`）+ 本技能唯一新增码 **`TOKEN_UNRESOLVED`**（未解析的 `{...}` 令牌一律拒绝：`{output_folder}` 换 `{output_dir}`、`{skill-root}` 换「裸 `steps/*.md` 路径从本技能安装目录解析」、`{skill-name}` 裁、`{project-root}` 是唯一保留项）。
+   - `UNPARSABLE_YAML` 兼作方法库解析失败码。
+9. **无 `--previous` 轮**：`sessions[]` 只追加、`CM-###` 顺序递增，无 ID 集合收缩面；改既有记录就往 `revisions` 追加（date / change / reason），`change` 引用 `CM-###` 而不复制内容。
+   - 副作用面：除产物与静默渲染外无任何外部动作（`[a]` / `[p]` 调的是零写面技能）；产物内引用一律 project-root 相对 `path:line`。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

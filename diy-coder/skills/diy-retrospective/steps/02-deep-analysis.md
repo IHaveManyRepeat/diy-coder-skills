@@ -7,7 +7,9 @@ Progress: `epic 发现 → [深度分析] → 连续性 → 回顾讨论 → 行
 
 ## 先读：diy 化改造
 
-逐个读故事的 markdown，从「Dev Notes」「Review」「Lessons Learned」「Technical Debt」「Testing」等小节里挖料。在 diy 里这些叙述小节并不以散文形式存在——同一批证据已经结构化，且按 ID 取用，不靠读文档：
+逐个读故事的 markdown，从「Dev Notes」「Review」「Lessons Learned」「Technical Debt」「Testing」等小节里挖料。
+
+在 diy 里这些叙述小节并不以散文形式存在——同一批证据已经结构化，且按 ID 取用，不靠读文档：
 
 | 源证据类别 | diy 来源（结构化） |
 |---|---|
@@ -18,7 +20,12 @@ Progress: `epic 发现 → [深度分析] → 连续性 → 回顾讨论 → 行
 | 测试与质量洞察 | `test-plan.yaml` 的 TC `status` + `coverage_gaps` + 任务 `evidence` 账本 |
 | 速度模式 | `loop.rounds` 汇总 = 回执的 `metrics.rounds_total` |
 
-两个后果：绝不重推回执已经带有的计数；绝不复述产物的散文——引 ID。`metrics` 含全部原始数字；`pattern` 是在它之上加的解释。
+两个后果：
+
+1. 绝不重推回执已经带有的计数。
+2. 绝不复述产物的散文——引 ID。
+
+`metrics` 含全部原始数字；`pattern` 是在它之上加的解释。
 
 ## 四副分析镜片
 
@@ -33,14 +40,20 @@ Progress: `epic 发现 → [深度分析] → 连续性 → 回顾讨论 → 行
 
 ## 归并规则
 
-- **pattern 需要 ≥2 个故事**——只有一个故事作证的主题是轶事。每条 `patterns[]`：`theme`（一行）、`evidence`（`S-x` 与 `BUG-0xx`，都要可解析）、`count`（多少个故事显示它，≥2，且与所列证据一致）。
-- **归并键：先按 `route` 分桶**（`意图缺口` / `规格缺陷` / `小修` / `后置`，机械可复现）；同桶内 `note` 明显分属不同主题时，再按 `note` 语义细分，并把归并依据写进 `theme`（一句话 + 括号注明依据）。`count` = 该桶涉及的不同 story 数，`evidence` 取桶内代表性的 `S-x` / `BUG-0xx`。**反复出现的审查反馈按主题算一条 pattern**，不是每个 finding 一条；引代表性 ID。
+- **pattern 需要 ≥2 个故事**——只有一个故事作证的主题是轶事。
+  - 每条 `patterns[]`：`theme`（一行）、`evidence`（`S-x` 与 `BUG-0xx`，都要可解析）、`count`（多少个故事显示它，≥2，且与所列证据一致）。
+- **归并键：先按 `route` 分桶**（`意图缺口` / `规格缺陷` / `小修` / `后置`，机械可复现）。
+  - 同桶内 `note` 明显分属不同主题时，再按 `note` 语义细分，并把归并依据写进 `theme`（一句话 + 括号注明依据）。
+  - `count` = 该桶涉及的不同 story 数，`evidence` 取桶内代表性的 `S-x` / `BUG-0xx`。
+  - **反复出现的审查反馈按主题算一条 pattern**，不是每个 finding 一条；引代表性 ID。
 - **`wins` / `challenges` / `insights` 是本步的分析产出，不是讨论记录。** 这里先作为原材料填好，第 4 步定稿；保持证据锚定、不追责。
 - **全文不出现工期估计**——pattern 里没有，行动里也没有。轮次与计数就是 diy 的速度代理；小时与天禁止，继续禁止。
 
 ## 一个 pattern 都没找到
 
-干净的 epic 可以真的没有。写 `patterns: []`，并在**本步的输出消息里**明说——绝不为了填满小节而编 pattern，绝不把单故事观察注水成主题。
+干净的 epic 可以真的没有。写 `patterns: []`，并在**本步的输出消息里**明说。
+
+- 绝不为了填满小节而编 pattern，绝不把单故事观察注水成主题。
 
 ## 播报与下一步
 

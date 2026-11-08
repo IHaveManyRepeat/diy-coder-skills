@@ -29,7 +29,9 @@ Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 | `有效用例比` | `>=95%` | （`ac` 可解析 + `kill_target` 非空 + `steps` 非空）的 TC 数 ÷ TC 总数 |
 | `ID 链可解析` | `100%` | TC→AC→story 全链可解析的 TC 数 ÷ TC 总数（**不读源码**） |
 
-`actual` 与 `result` 照 `collect` 回执的 `soft_metrics` 写；`estimated: true` 只用于引擎算不出的项，且**必须**填 `algorithm`（缺 → `EMPTY_FIELD` 违例）。`check` 会按记录内数据重算 `p0/overall/p1`、`非功能致命`、`P0 未覆盖`、`变异得分` 并与你写的 `actual` / `result` 对账（`CRITERION_STALE`）——**禁手填估计值**。
+`actual` 与 `result` 照 `collect` 回执的 `soft_metrics` 写；`estimated: true` 只用于引擎算不出的项，且**必须**填 `algorithm`（缺 → `EMPTY_FIELD` 违例）。
+
+- `check` 会按记录内数据重算 `p0/overall/p1`、`非功能致命`、`P0 未覆盖`、`变异得分` 并与你写的 `actual` / `result` 对账（`CRITERION_STALE`）——**禁手填估计值**。
 
 ## 规则树（decision 怎么定）
 
@@ -43,21 +45,26 @@ Progress: `Preflight → Oracle → Matrix & Gaps → NFR → [Gate] → Finish`
 
 - **`FAIL` 优先**：硬指标不过就是不过，软指标再好也不改档。
 - **没有「无法评估」档**：拿不到足够数据（如 oracle 解析不出）→ 走 HALT，**不落门产物**——半份记录会被下游当成已评估。
-- 三线口径：源为 `P0=100% / overall>=80% / P1 目标 90% 且最低 80%`；**diy 拉满为三线全 `100%`**（2026-09-15 用户裁定），故 `P0 覆盖` / `总覆盖` / `P1 覆盖` 的 target 都是 `100%`，覆盖率无中间档；CONCERNS 只出自软判据失败、NFR 域 CONCERNS、overlay 命中三处。
+- 三线口径：源为 `P0=100% / overall>=80% / P1 目标 90% 且最低 80%`；**diy 拉满为三线全 `100%`**（2026-09-15 用户裁定），故 `P0 覆盖` / `总覆盖` / `P1 覆盖` 的 target 都是 `100%`，覆盖率无中间档。
+  - CONCERNS 只出自软判据失败、NFR 域 CONCERNS、overlay 命中三处。
 
 ## Overlay
 
-1. **合成 oracle**（引擎强制）：`oracle.source: 合成` 且 `confidence ≠ 高` → 覆盖全绿也只能到 `CONCERNS`。这是源 oracle-confidence overlay 的 diy 形态，别绕。
+1. **合成 oracle**（引擎强制）：`oracle.source: 合成` 且 `confidence ≠ 高` → 覆盖全绿也只能到 `CONCERNS`。
+   - 这是源 oracle-confidence overlay 的 diy 形态，别绕。
 2. **弱证据 / live-only**（你的判断，live-only overlay 的 diy 对应物）：某 AC 的覆盖**只**由判定表 ③（`status: 通过` 但无红绿台账，即 `diy-e2e-tests` / `diy-augment` 追加用例那种「不可重跑、无台账」的来源）支撑时——把它写进 `gate.blockers`（`kind: 覆盖`）与 `recommendations`，说明「不可重跑、复核成本高」。
-   **不自动抬档**：diy 的 ③ 有合法来源，一刀切会把合法路径全打成 CONCERNS；要抬档就必须有判据落点（该风险体现为某条软指标失败或某域 CONCERNS），否则 `check` 会判 `DECISION_INCONSISTENT`。
+   - **不自动抬档**：diy 的 ③ 有合法来源，一刀切会把合法路径全打成 CONCERNS；要抬档就必须有判据落点（该风险体现为某条软指标失败或某域 CONCERNS），否则 `check` 会判 `DECISION_INCONSISTENT`。
 
 ## 豁免（用户交互点，仅人工授权写入）
 
-- `waivers` 每条的 8 键固定：`ref` / `approved_by` / `date` / `reason` / `expires` / `monitoring` / `fix_owner` / `fix_target`——**缺一键即 `WAIVER_INCOMPLETE`**。`expires` 必须显式给出（源文无默认到期）。
-- `ref` 四形态：域名、`AC-x.y`、`TC-x.y.z`、`mutant:<变异体标识>`；`ref: 安全` **被拒**（`安全` 域 FAIL 不可豁免）。第四形态承载**等价变异体裁定**——标识须命中 `mutation-report.yaml` 里某个 `equivalents[].mutant`（不在候选集里 → `WAIVER_INAPPLICABLE`，挡掉手写错标识造成的假豁免）。
+- `waivers` 每条的 8 键固定：`ref` / `approved_by` / `date` / `reason` / `expires` / `monitoring` / `fix_owner` / `fix_target`——**缺一键即 `WAIVER_INCOMPLETE`**。
+  - `expires` 必须显式给出（源文无默认到期）。
+- `ref` 四形态：域名、`AC-x.y`、`TC-x.y.z`、`mutant:<变异体标识>`；`ref: 安全` **被拒**（`安全` 域 FAIL 不可豁免）。
+  - 第四形态承载**等价变异体裁定**——标识须命中 `mutation-report.yaml` 里某个 `equivalents[].mutant`（不在候选集里 → `WAIVER_INAPPLICABLE`，挡掉手写错标识造成的假豁免）。
 - **流程**：先列出「未获裁定的缺口 + 建议豁免项 + 后果」，交用户裁决；用户明确同意后才写入，`reason` 引用户的话（原话或贴近转述），`approved_by` 写用户。
 - **无头 / 循环调用**：不停下等——缺口照计 blocker、门照判（通常是 `FAIL`），裁决请求落 `recommendations` 与 `open_questions`，供用户事后处理。
-- 引擎**永不自动生成 waiver**；`diy-augment` 报的等价变异体同样要经用户裁定才落这里——它只报候选（其 `score` 是保守值），**裁定分由本步重算**：批准一条 `mutant:<标识>` 就从分母里去掉一个。这是「裁定后不拉低得分」的唯一实现路径：没被裁定过的候选仍留在分母。
+- 引擎**永不自动生成 waiver**；`diy-augment` 报的等价变异体同样要经用户裁定才落这里——它只报候选（其 `score` 是保守值），**裁定分由本步重算**：批准一条 `mutant:<标识>` 就从分母里去掉一个。
+  - 这是「裁定后不拉低得分」的唯一实现路径：没被裁定过的候选仍留在分母。
 
 ## 回填与下一步
 

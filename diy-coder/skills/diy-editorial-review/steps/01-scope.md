@@ -11,9 +11,16 @@ Progress: `[定位与定档] → 两透镜分析 → 落盘与交付`
 python "{project-root}/.claude/skills/diy-editorial-review/scripts/editorial_review.py" stats --target "<路径>" [--lens 结构|文风] [--reader-type 人类|LLM] --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-回执给出：结构地图（md 按 `#` / `##` / `###` 切节、yaml 按顶层键切节；每节词数 + 总词数）、本次 `lenses`、`reader_type`——三者照抄进记录，不凭记忆重打。
+回执给出：
 
-`ok: false` → 把违规码与消息转述给用户，零产出停止（这是拒绝路径，不是记录）。target 缺席 / 内容少于 3 词 / `--lens` 或 `--reader-type` 越界，都在这一步挡住。
+1. 结构地图（md 按 `#` / `##` / `###` 切节、yaml 按顶层键切节；每节词数 + 总词数）。
+2. 本次 `lenses`、`reader_type`——三者照抄进记录，不凭记忆重打。
+
+`ok: false` → 把违规码与消息转述给用户，零产出停止（这是拒绝路径，不是记录）：
+
+1. target 缺席。
+2. 内容少于 3 词。
+3. `--lens` 或 `--reader-type` 越界——都在这一步挡住。
 
 ## 定档
 
@@ -24,7 +31,12 @@ python "{project-root}/.claude/skills/diy-editorial-review/scripts/editorial_rev
 
 ## 落草稿记录
 
-文件不存在时建：`project: {name, created, updated}`（`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type editorial-review --json` 盖秒级章、每次写回产物后再跑一次；`name` 取自 `diy-coder.yaml` 的 `project.name`）+ 空 `reviews: []` + `revisions: []`。追加一条：
+文件不存在时建，先落两件事：
+
+1. `project: {name, created, updated}`——`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type editorial-review --json` 盖秒级章、每次写回产物后再跑一次；`name` 取自 `diy-coder.yaml` 的 `project.name`。
+2. 空 `reviews: []` + `revisions: []`。
+
+然后追加一条：
 
 ```yaml
   - id: ER-001            # 下一个 = 已有序号最大值 + 1，三位零填充；不重编不重用
@@ -36,7 +48,8 @@ python "{project-root}/.claude/skills/diy-editorial-review/scripts/editorial_rev
     open_questions: []
 ```
 
-结构槽 / 文风槽随 step 2 落盘——槽在场本身就是「这个透镜跑过了」的凭证（终门核对 lenses 与槽一致）。
+1. 结构槽 / 文风槽随 step 2 落盘——槽在场本身就是「这个透镜跑过了」的凭证。
+2. 终门核对 lenses 与槽一致。
 
 ## 播报与下一步
 

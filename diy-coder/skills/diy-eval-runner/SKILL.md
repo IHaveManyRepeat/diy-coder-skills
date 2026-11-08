@@ -25,7 +25,11 @@ outputs: run 目录（`{output_dir}/eval-runs/`）——零 YAML 产物
    缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
-2. 硬门（缺一即拒、**零产出**）：target 目录存在且含 `SKILL.md`（否则 `MISSING_FILE`）；用例文件在场（`--evals` > `<技能>/evals/cases.json` > `<project-root>/evals/<技能名>/cases.json`；找不到就停——**运行器不发明用例**）；`--mode` 是四值之一（否则 `ENUM_INVALID`）；trigger 的 `load_signal` 不是子串式（否则拒跑）。
+2. 硬门（缺一即拒、**零产出**）：
+   - target 目录存在且含 `SKILL.md`（否则 `MISSING_FILE`）。
+   - 用例文件在场（`--evals` > `<技能>/evals/cases.json` > `<project-root>/evals/<技能名>/cases.json`；找不到就停——**运行器不发明用例**）。
+   - `--mode` 是四值之一（否则 `ENUM_INVALID`）。
+   - trigger 的 `load_signal` 不是子串式（否则拒跑）。
 3. 路径参数纪律：`{project-root}` 由引擎按 `--project-root` 自解析（唯一例外），其余任何 `{...}` 令牌一律拒绝（`TOKEN_UNRESOLVED`）。
 4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
 5. 读 `steps/01-scope.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
@@ -50,13 +54,27 @@ outputs: run 目录（`{output_dir}/eval-runs/`）——零 YAML 产物
 
 ## 规则
 
-1. 四模式语义照引擎：baseline = 同一输入跑 `skill`（已 stage 技能）与 `bare`（什么都不 stage，裸模型即长期地板）两 config；variant = 全量 vs `--variant-path` 精简最小版；quality = 单 config + 只读 grader 逐条判 rubric；trigger = 合成技能（唯一名后缀）+ 逐问句真跑，算触发率对阈值判 pass。
+1. 四模式语义照引擎：
+   - baseline = 同一输入跑 `skill`（已 stage 技能）与 `bare`（什么都不 stage，裸模型即长期地板）两 config。
+   - variant = 全量 vs `--variant-path` 精简最小版。
+   - quality = 单 config + 只读 grader 逐条判 rubric。
+   - trigger = 合成技能（唯一名后缀）+ 逐问句真跑，算触发率对阈值判 pass。
 2. **反自欺硬规则①：trigger 只认 `tool_use`。** 禁止整篇 transcript 子串匹配——运行时的 init 事件会列出每个被发现的技能名，子串匹配会让触发率恒为 100%。`load_signal` 为子串式时直接拒跑。
-3. **反自欺硬规则②：grader 三纪律。** **不给部分分**（每条 expectation 只有过/不过）；**举证责任在通过方**（无证据不得判过，证据不确定即判不过）；**反向批评 rubric**（标出「错输出也会通过」的弱断言与被漏掉的重要结果）。grader 只读 run 目录、只写 `grading.json`；出错记 `grading_error`，绝不代入默认判决。
-4. adapter 纪律：`--invocation` / `--adapter` 是唯一注入位（真跑与夹具同一注入位）。`invocation` 解析为空 → **只 stage、结果记 `skipped`**（既不崩也不静默）；命令不在 PATH（无头下即 `runner.py` 白名单未覆盖该命令族）→ warning + 跳过该 mode 并明示，**不入队**——确认是当场决策；需额外命令族时经 `runner.py --allow` 传入。
+3. **反自欺硬规则②：grader 三纪律。**
+   - **不给部分分**（每条 expectation 只有过/不过）。
+   - **举证责任在通过方**（无证据不得判过，证据不确定即判不过）。
+   - **反向批评 rubric**（标出「错输出也会通过」的弱断言与被漏掉的重要结果）。
+   - grader 只读 run 目录、只写 `grading.json`；出错记 `grading_error`，绝不代入默认判决。
+4. adapter 纪律：`--invocation` / `--adapter` 是唯一注入位（真跑与夹具同一注入位）。
+   - `invocation` 解析为空 → **只 stage、结果记 `skipped`**（既不崩也不静默）。
+   - 命令不在 PATH（无头下即 `runner.py` 白名单未覆盖该命令族）→ warning + 跳过该 mode 并明示，**不入队**——确认是当场决策；需额外命令族时经 `runner.py --allow` 传入。
 5. **run 目录永不删除、覆盖、轮转**（同名已存在则另铸后缀目录）；run 目录不进 git、清理归用户决定，`check` 报累计目录数（自动化不清理）。同名未完成 run 只提示、不自动续跑、不自动合并。
 6. 写面恰好两处：`{output_dir}/eval-runs/` 内的 run 目录、收尾会话摘要。零任务状态写面（不改 `sprint.yaml`）、零缺陷入库（不写 `bug-log.yaml`）、不碰被测技能的任何文件、不写用例（用例归 `diy-bmb-builder` 的 eval beat 或用户）。
-7. 边界四对：**vs `diy-test-review`**——被评对象不同，本技能评技能提示词（产物 = run 目录），它评测试代码（`test-review.yaml` 的 RV-###）；**vs `diy-test-gate`**——本技能不触项目实现、不算覆盖率、零门禁决策，它以 story 的 AC 为覆盖基准；**vs `diy-review`**——它审实现代码（L1–L4）并改任务状态，本技能零任务状态写面；**vs `runner.py`**（工具非技能）——`runner.py` 是 headless 循环编排，本技能是技能评测，引用编排器一律写 `runner.py` 全名。
+7. 边界四对：
+   - **vs `diy-test-review`**——被评对象不同，本技能评技能提示词（产物 = run 目录），它评测试代码（`test-review.yaml` 的 RV-###）。
+   - **vs `diy-test-gate`**——本技能不触项目实现、不算覆盖率、零门禁决策，它以 story 的 AC 为覆盖基准。
+   - **vs `diy-review`**——它审实现代码（L1–L4）并改任务状态，本技能零任务状态写面。
+   - **vs `runner.py`**（工具非技能）——`runner.py` 是 headless 循环编排，本技能是技能评测，引用编排器一律写 `runner.py` 全名。
 
 - **零渲染。** 本技能**零 YAML 主产物**（run 目录全是 JSON / 文本）→ 无渲染步骤：不调用 viewer、不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点。
 

@@ -7,19 +7,26 @@ Progress: `文档发现 → 需求清点 → 覆盖校验 → [UX 对齐] → �
 
 ## 文档状态
 
-diy 里设计/UX 的单一源是 `design.yaml`（页面 `P-x`、design tokens）。回执说明它在不在场——别去找 markdown 版 UX 文件。
+1. diy 里设计/UX 的单一源是 `design.yaml`（页面 `P-x`、design tokens）。
+2. 回执说明它在不在场——别去找 markdown 版 UX 文件。
 
 ## design.yaml 在场 —— 校验对齐
 
-**UX ↔ PRD。** 设计展示的每条用户旅程都必须追溯到 PRD 需求（`FR-x.y`），否则记一条：页面承载了没有需求背书的功能 = PRD 从未批准的范围（`route: diy-prd`）；某条前端面需求设计从未覆盖 = 缺口（`route: diy-design`）。
+**UX ↔ PRD。** 设计展示的每条用户旅程都必须追溯到 PRD 需求（`FR-x.y`），否则记一条：
 
-**UX ↔ 架构。** 检查架构决策（`architecture.yaml` 的 `D-x`）支撑得住设计所需——设计隐含的响应式与加载时长目标、客户端状态、任何其后台服务无决策覆盖的 UI 组件。点名该决策、或点明它的缺席，都要带证据锚点。
+- 页面承载了没有需求背书的功能 = PRD 从未批准的范围（`route: diy-prd`）。
+- 某条前端面需求设计从未覆盖 = 缺口（`route: diy-design`）。
+
+**UX ↔ 架构。** 检查架构决策（`architecture.yaml` 的 `D-x`）支撑得住设计所需——设计隐含的响应式与加载时长目标、客户端状态、任何其后台服务无决策覆盖的 UI 组件。
+
+- 点名该决策、或点明它的缺席，都要带证据锚点。
 
 这里的 finding 是 `area: ux`；severity 按后果定——需求无法照设计实现是 `高`，对齐欠债是 `中`，打磨项是 `低`。
 
 ## design.yaml 缺席 —— UX 是否被隐含？
 
-缺席是合法的（CLI、库、后端服务）——但绝不假设它不需要 UX。判据与本套件同一口径：取 `diy-design` 探测器（`design.py detect`）的 `has_frontend`，不要自拟一套「用户可见」的读法：
+1. 缺席是合法的（CLI、库、后端服务）——但绝不假设它不需要 UX。
+2. 判据与本套件同一口径：取 `diy-design` 探测器（`design.py detect`）的 `has_frontend`，不要自拟一套「用户可见」的读法：
 
 ```bash
 python "{project-root}/.claude/skills/diy-design/scripts/design.py" detect --project-root "{project-root}"

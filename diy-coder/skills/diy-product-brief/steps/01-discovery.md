@@ -52,7 +52,11 @@ addendum: []
 revisions: []
 ```
 
-从这一刻起持久化是实时的：决策做出即带 `rationale` 进 `decisions`；用户主动多说的纵深带 `why_separate` 进 `addendum`；等确认的推断就地标 `[假设]`，并回声到 `brief.assumptions`。顶层 `distillate`（交出面）同理——骨架已建，倾倒与确认里下游相关的结论随手归拢进去，不留给定稿赶工。
+从这一刻起持久化是实时的：
+
+- 决策做出即带 `rationale` 进 `decisions`；用户主动多说的纵深带 `why_separate` 进 `addendum`。
+- 等确认的推断就地标 `[假设]`，并回声到 `brief.assumptions`。
+- 顶层 `distillate`（交出面）同理——骨架已建，倾倒与确认里下游相关的结论随手归拢进去，不留给定稿赶工。
 
 若 `brief.yaml` 本来就在——`intent` 回执会说明，且对 `新建` 给过 warning——绝不静默覆盖：给两个去处，续上在写的草稿，或走一次刻意更新；任何重写都过第 4 步的快照纪律。
 

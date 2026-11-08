@@ -16,18 +16,23 @@ outputs: test-gate.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 跑确定性采集（门禁 + 矩阵 join + 软指标 + NFR / mutation 证据面，全只读）：
    `python "{project-root}/.claude/skills/diy-test-gate/scripts/gate.py" collect --project-root "{project-root}" --output-dir "{output_dir}" [--story S-x] --json`
-   exit 1 是拒绝且零产出：转述一行理由与 `gate.route`（`diy-epics-stories` / `diy-test-design` / `diy-prd`），然后停止——拒绝永不成为一条门记录。`diyc` 子进程的 violations 是上游实况，进 `gate.blockers`，不是失败。
-3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/test-gate.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
-   读 `steps/01-preflight.md` 并照做（`steps/*.md` 裸路径从本技能安装目录解析），每步结尾点名下一份要读的文件。
+   - exit 1 是拒绝且零产出：转述一行理由与 `gate.route`（`diy-epics-stories` / `diy-test-design` / `diy-prd`），然后停止——拒绝永不成为一条门记录。
+   - `diyc` 子进程的 violations 是上游实况，进 `gate.blockers`，不是失败。
+3. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+   - `{output_dir}/test-gate.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
+4. 读 `steps/01-preflight.md` 并照做（`steps/*.md` 裸路径从本技能安装目录解析），每步结尾点名下一份要读的文件。
 ## 工作流
 
-全局步骤纪律：一次只加载一个 `steps/` 文件——绝不预载或批量加载六份；整块给出该步输出，不在步骤中间提问；产物散文用 `document_output_language` 写，对话用 `communication_language`。记录在 step 1 建为 `草稿`，各步填充同一条记录，step 6 定稿；ID 由你铸造（`TG-###` 三位零填充、稳定不重用不重编号）。
+全局步骤纪律：一次只加载一个 `steps/` 文件——绝不预载或批量加载六份；整块给出该步输出，不在步骤中间提问；产物散文用 `document_output_language` 写，对话用 `communication_language`。
+
+- 记录在 step 1 建为 `草稿`，各步填充同一条记录，step 6 定稿。
+- ID 由你铸造（`TG-###` 三位零填充、稳定不重用不重编号）。
 
 1. `steps/01-preflight.md` — 门禁复核 + story 定位 + 落草稿记录（矩阵 / 统计取自 `collect` 回执，禁手抄）。
 2. `steps/02-oracle.md` — oracle 解析：AC 主源（`stories.yaml`）+ 降级链；解析不出 → HALT + 路由 `diy-epics-stories`，不落产物。
@@ -35,10 +40,8 @@ outputs: test-gate.yaml
 4. `steps/04-nfr.md` — NFR 四域证据审计：阈值**禁猜**（唯一合法来源 = 用户会话，其余 UNKNOWN + gap）；ADR 清单（技能内 `adr-checklist.yaml`，29 行）走查；第五个走查维度 = 合规五标准（SOC2 / GDPR / HIPAA / PCI-DSS / ISO27001，聚合 FAIL > PARTIAL > PASS）；跨域风险合成（`可靠性×可维护性` / `安全×可靠性`）。
 5. `steps/05-gate.md` — 单一门决策：规则树 + overlay + 豁免（用户交互点，仅人工授权写入）。
 6. `steps/06-finish.md` — 定稿 + `check --final` 终门 + 渲染 + 摘要（决策 / 覆盖 / blocker / 路由：FAIL → `diy-correct-course` 或回 `diy-dev`）。
-
-终门（机械判定）：先写 `status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-test-gate/scripts/gate.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 是唯一放行；修掉每一条报告的违规并重跑；JSON 回执（含计数）就是收尾证据。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+7. 终门（机械判定）：先写 `status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-test-gate/scripts/gate.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 是唯一放行；修掉每一条报告的违规并重跑；JSON 回执（含计数）就是收尾证据。
+8. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 ## 结构
 
 `{output_dir}/test-gate.yaml` — 单一源，集合形态（顶层形状对齐 `bug-log.yaml`）：
@@ -79,13 +82,23 @@ revisions: []                          # {date, change, reason} — 改既有记
 ```
 ## 规则
 
-1. **写权边界与副作用：** 只写 `{output_dir}/test-gate.yaml`（记录 + `revisions`）。`stories.yaml` / `test-plan.yaml` / `sprint.yaml` / `prd.yaml` / `mutation-report.yaml` / 源码零写入——它们分别归 `diy-epics-stories` / `diy-test-design` / `diy-sprint` / `diy-prd` / `diy-augment`；缺口写 `gate.blockers` + `recommendations` 并给路由（`diy-dev` / `diy-correct-course`）。本技能不安装依赖、不改用户级配置、不跑 git、不开 GUI，故无待确认队列条目。
-2. **引用式纪律：** 跨文档一律引用 ID（`S-x` / `AC-x.y` / `TC-x.y.z` / `FR-x.y` / `DA-0xx`），**禁复制内容**；矩阵行只带 ID 与判定，AC 正文不进产物。
-3. **门决策自洽：** 任一 `hard_criteria` 失败 → 必须 `FAIL`；有 `soft_criteria` 失败 或任一 NFR 域 `CONCERNS` 或 overlay 命中（`oracle.source: 合成` 且 `confidence ≠ 高`）→ 至少 `CONCERNS`；全部 `通过` 且无域 CONCERNS 且无 overlay → 才可 `PASS`。`check` 会重算并与 `decision` 对账，自造档位必被拒。
-4. **阈值不得猜测：** 未知阈值标 `UNKNOWN`（→ 该域 `CONCERNS`，该域不得 PASS）；`thresholds[].source` 只认「用户会话 `<date>`」，其余来源 `check` 拒收。证据不足写 `nfr.gaps`，不写猜测值。
-5. **豁免只由人开：** `waivers` 8 键齐备且由用户裁定后才写入；未获裁定的缺口一律计 blocker。`安全` 域 FAIL 不可豁免。
-6. **升级纪律：** 记录只追加，不重编号不重用；改既有记录往 `revisions` 追加 `{date, change, reason}`。**无 `--previous` 轮**——本技能从不整份重写既有文档（`gates[]` 按 `TG-###` 追加，无 ID 集合收缩面）。
-7. **收尾路由：** `PASS` → 主线继续（`diy-review` / 发布准备）；`CONCERNS` → 列出 `recommendations` 与到期豁免；`FAIL` → 建议 `diy-correct-course`，或把缺口回 `diy-dev` 修复后重跑本门。
+1. **写权边界与副作用：** 只写 `{output_dir}/test-gate.yaml`（记录 + `revisions`）。
+   - `stories.yaml` / `test-plan.yaml` / `sprint.yaml` / `prd.yaml` / `mutation-report.yaml` / 源码零写入——它们分别归 `diy-epics-stories` / `diy-test-design` / `diy-sprint` / `diy-prd` / `diy-augment`；缺口写 `gate.blockers` + `recommendations` 并给路由（`diy-dev` / `diy-correct-course`）。
+   - 本技能不安装依赖、不改用户级配置、不跑 git、不开 GUI，故无待确认队列条目。
+2. **引用式纪律：** 跨文档一律引用 ID（`S-x` / `AC-x.y` / `TC-x.y.z` / `FR-x.y` / `DA-0xx`），**禁复制内容**。
+   - 矩阵行只带 ID 与判定，AC 正文不进产物。
+3. **门决策自洽：** 任一 `hard_criteria` 失败 → 必须 `FAIL`。
+   - 有 `soft_criteria` 失败 或任一 NFR 域 `CONCERNS` 或 overlay 命中（`oracle.source: 合成` 且 `confidence ≠ 高`）→ 至少 `CONCERNS`。
+   - 全部 `通过` 且无域 CONCERNS 且无 overlay → 才可 `PASS`。
+   - `check` 会重算并与 `decision` 对账，自造档位必被拒。
+4. **阈值不得猜测：** 未知阈值标 `UNKNOWN`（→ 该域 `CONCERNS`，该域不得 PASS）；`thresholds[].source` 只认「用户会话 `<date>`」，其余来源 `check` 拒收。
+   - 证据不足写 `nfr.gaps`，不写猜测值。
+5. **豁免只由人开：** `waivers` 8 键齐备且由用户裁定后才写入；未获裁定的缺口一律计 blocker。
+   - `安全` 域 FAIL 不可豁免。
+6. **升级纪律：** 记录只追加，不重编号不重用；改既有记录往 `revisions` 追加 `{date, change, reason}`。
+   - **无 `--previous` 轮**——本技能从不整份重写既有文档（`gates[]` 按 `TG-###` 追加，无 ID 集合收缩面）。
+7. **收尾路由：** `PASS` → 主线继续（`diy-review` / 发布准备）；`CONCERNS` → 列出 `recommendations` 与到期豁免。
+   - `FAIL` → 建议 `diy-correct-course`，或把缺口回 `diy-dev` 修复后重跑本门。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

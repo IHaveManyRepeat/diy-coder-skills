@@ -5,19 +5,28 @@ Progress: `[Clarify & Route] → One-Shot`（由 step 1 的早期出口抵达；
 **Read (input):** `route: 一次成型` 的草稿记录；它承载的意图。
 **Write (output):** 代码；记录的 `baseline`、`status`、`tasks[].done`、`verification[].result`、`review`、`deferred`、`review_order`。
 
-只有零爆炸半径才走这里：没有任何可信路径会让这次改动在别处造成非预期后果，意图清楚，无架构决策。这一条一旦不再成立——改动原来会触及共享状态、某个接口或某个决策——停下并改走 `./02-plan.md`；一次错路由的快通道，正是「小改动」搞坏东西的方式。
+只有零爆炸半径才走这里：没有任何可信路径会让这次改动在别处造成非预期后果，意图清楚，无架构决策。
+
+1. 这一条一旦不再成立——改动原来会触及共享状态、某个接口或某个决策——停下并改走 `./02-plan.md`。
+2. 一次错路由的快通道，正是「小改动」搞坏东西的方式。
 
 ## 实现
 
-先记 `baseline`（HEAD 或 `NO_VCS`）并把记录置 `status: 进行中`，然后直接实现澄清后的意图——最少代码、项目约定、留在 `code_map` 内、守 `boundaries`（`先问` 仍然 HALT 交人）。
+1. 先记 `baseline`（HEAD 或 `NO_VCS`）并把记录置 `status: 进行中`。
+2. 然后直接实现澄清后的意图——最少代码、项目约定、留在 `code_map` 内、守 `boundaries`（`先问` 仍然 HALT 交人）。
 
 ## 验证
 
-跑每一条 `verification` 命令并写下真实 `result`。`status` 前进到 `审查中` / `已完成` 而命令为空，引擎一律拒绝（`EMPTY_FIELD`）——本通道没有红/绿台账，但也没有未经验证的主张。
+1. 跑每一条 `verification` 命令并写下真实 `result`。
+2. `status` 前进到 `审查中` / `已完成` 而命令为空，引擎一律拒绝（`EMPTY_FIELD`）——本通道没有红/绿台账，但也没有未经验证的主张。
 
 ## 审查（一遍对抗）
 
-跑一遍假定改动**就是**坏的审查：用 diy-review 的镜头攻它——L1 正确性对验收判据，L2 判据隐含的边界情况。**L1 / L2 由本节显式跑；L3 由上面的「验证」段承担**——每条 acceptance 的命令级 `verification` 加实测 `result`，本就是引擎硬底；出现覆盖类问题时用 `layer: 覆盖审计` 落进 `review.findings`，使同一 `review` 块在两条路线上语义等价。子代理可用时用它，且不许带对话上下文。只三种处置：
+跑一遍假定改动**就是**坏的审查：用 diy-review 的镜头攻它——L1 正确性对验收判据，L2 判据隐含的边界情况。**L1 / L2 由本节显式跑；L3 由上面的「验证」段承担**——每条 acceptance 的命令级 `verification` 加实测 `result`，本就是引擎硬底；出现覆盖类问题时用 `layer: 覆盖审计` 落进 `review.findings`，使同一 `review` 块在两条路线上语义等价。
+
+1. 子代理可用时用它，且不许带对话上下文。
+
+只三种处置：
 
 - **小修** —— 顺手能修。现在就修。
 - **后置** —— 真但既有。把 `{finding, why, date}` 追加进 `deferred`。
@@ -28,7 +37,11 @@ Progress: `[Clarify & Route] → One-Shot`（由 step 1 的早期出口抵达；
 
 ## 建轨迹
 
-把记录填到能独立充当这次改动的轻量轨迹：`title` 取自澄清后的意图，`type`、`route: 一次成型`、`date`，以及完全照 `./05-present.md` 所述构建的 `review_order`（按关注点不按文件；入口点领读；外围收尾；每看点 `{path, line, why}`）。其中 `code_map` ＝ 改动文件一行一条（`path` / `role`）；`tasks` ≥1 条——能过终门的最小集：`--final` 要求 tasks 非空且全 `done: true`，改动即任务、写完置 done。这比最小的一次成型轨迹更厚：diy 的记录要过与全路线同一道机械门，故 acceptance、verification 与 review 也住在这里。
+把记录填到能独立充当这次改动的轻量轨迹：
+
+1. `title` 取自澄清后的意图，`type`、`route: 一次成型`、`date`，以及完全照 `./05-present.md` 所述构建的 `review_order`（按关注点不按文件；入口点领读；外围收尾；每看点 `{path, line, why}`）。
+2. 其中 `code_map` ＝ 改动文件一行一条（`path` / `role`）；`tasks` ≥1 条——能过终门的最小集：`--final` 要求 tasks 非空且全 `done: true`，改动即任务、写完置 done。
+3. 这比最小的一次成型轨迹更厚：diy 的记录要过与全路线同一道机械门，故 acceptance、verification 与 review 也住在这里。
 
 ## 落定与收尾
 

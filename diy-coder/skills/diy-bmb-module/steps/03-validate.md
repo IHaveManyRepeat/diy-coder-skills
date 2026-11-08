@@ -11,7 +11,7 @@ Progress: `构思会话 → 落计划 → [校验] → 终门与交付`
 python "{project-root}/.claude/skills/diy-bmb-module/scripts/bmb_module.py" check --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`check` **全程只读**：它不写任何被校验技能的文件（frontmatter 亦然），也不动计划文件。回执给出 `violations[]` / `warnings[]` / `counts`。
+`check` **全程只读**：不写任何被校验技能的文件（frontmatter 亦然），也不动计划文件；回执给出 `violations[]` / `warnings[]` / `counts`。
 
 改既有计划时先留痕再校验（顺序不能反）：
 

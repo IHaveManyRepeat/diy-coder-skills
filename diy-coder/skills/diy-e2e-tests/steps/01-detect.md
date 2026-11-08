@@ -13,7 +13,10 @@ Progress: `[探测] → 目标 → 生成 API → 生成 E2E → 记录`
 - `stories.yaml` —— 每条追加用例的 `ac` 都要解析回它。
 - `openapi.yaml` —— **可选第三件**：在场才算上游产物（接口契约 oracle，第 3 步消费），随本门禁识别并交接后续步；缺席不阻塞、不加硬门（硬门仍只上两件），照旧零提及。
 
-缺任一件 → 一行说明后停下：点名缺失的文件、说明追加目标未就绪、把用户路由到 **diy-test-design**（用例设计）——零写入，此检之外零探测。绝不新建空的 `test-plan.yaml`：本技能只追加，从不初始化。
+缺任一件 → 一行说明后停下：
+
+- 点名缺失的文件、说明追加目标未就绪、把用户路由到 **diy-test-design**（用例设计）——零写入，此检之外零探测。
+- 绝不新建空的 `test-plan.yaml`：本技能只追加，从不初始化。
 
 ## 探测框架
 
@@ -33,7 +36,9 @@ python "{project-root}/.claude/skills/diy-e2e-tests/scripts/e2e.py" detect --pro
 
 ## 无框架 → 用户定夺
 
-`framework: null` 是决策点，不是死路。把 `suggested` 摆出来（以 `project_type` 为理由），请用户确认或另点一个框架。**绝不安装任何东西**——不发包管理器命令、不改清单；安装是用户的决定，在本技能之外做。
+`framework: null` 是决策点，不是死路。把 `suggested` 摆出来（以 `project_type` 为理由），请用户确认或另点一个框架。
+
+- **绝不安装任何东西**——不发包管理器命令、不改清单；安装是用户的决定，在本技能之外做。
 
 用户的答复记进收尾摘要；只有确认之后才继续。拒绝即干净收场——目标特性清单与用例文件就此不产出。
 
@@ -41,7 +46,11 @@ python "{project-root}/.claude/skills/diy-e2e-tests/scripts/e2e.py" detect --pro
 
 交接四项，各一行：确认后的框架、runner 命令、测试目录、文件命名模式——它们驱动第 3、4 步。
 
-runner 命令取值顺序：① 项目自己的脚本（`package.json` 的 `scripts.test` / `Makefile` 的 `test` 目标 / 对应语言清单里的同名脚本）> ② framework 惯例命令（`pytest` / `npx playwright test` / `go test ./...`）> ③ 都取不到 → 交接行明写「按惯例推导」并记下命令原文（第 4 步的 runner 不可用分支据此上报）。
+runner 命令取值顺序：
+
+1. 项目自己的脚本（`package.json` 的 `scripts.test` / `Makefile` 的 `test` 目标 / 对应语言清单里的同名脚本）
+2. framework 惯例命令（`pytest` / `npx playwright test` / `go test ./...`）
+3. 都取不到 → 交接行明写「按惯例推导」并记下命令原文（第 4 步的 runner 不可用分支据此上报）。
 
 ## 播报与下一步
 

@@ -19,15 +19,16 @@ outputs: test-review.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. scope：用户给的路径/目录优先；未给则问一次（本技能不自行发明评审集）。
 3. `scan` 发现文件并跑机械面（评审集之外取样惯例语料）：
    `python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" scan --paths <P> --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--paths` 可重复）
-   exit 1 = 拒绝（scope 内无测试文件），零产出，**一行拒绝 + 路由**（给路径，或先跑 diy-test-author），然后停。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/test-review.yaml / criteria.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
+   - exit 1 = 拒绝（scope 内无测试文件），零产出，**一行拒绝 + 路由**（给路径，或先跑 diy-test-author），然后停。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+   - `{output_dir}/test-review.yaml / criteria.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-preflight.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流
@@ -39,10 +40,8 @@ outputs: test-review.yaml
 3. `steps/03-evaluate.md` — 逐文件评估：复核 `scan` 机械项 + 判语义行（severity 不填；convention 行带 `class`）；findings 落 `{output_dir}/test-review-findings.json`（含 bonus 判定）；**另跑 `walkthrough` 三向走查（必跑）**。
 4. `steps/04-score.md` — `score` 一次算出账本与维度分并展示（LLM 不自算）。
 5. `steps/05-report.md` — 落盘 + `check --final` 终门 + 渲染 + 摘要（score / grade / recommendation / 路由）。
-
-记录写纪律：step 1 建为 `草稿`，各步填充，step 5 定稿。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+6. 记录写纪律：step 1 建为 `草稿`，各步填充，step 5 定稿。
+7. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -75,13 +74,23 @@ revisions: []
 
 ## 规则
 
-1. **与 diy-review 的边界。** diy-review 审**实现代码**（L1-L4 层 + 四类路由：正确性 / 边界 / 验收 / 设计）；diy-test-review 审**测试代码**（32 条有效规则 → 评分账本）。两者不重叠、互不调用：diy-review 的 L1 会读到测试，但那是"实现正确性"视角，本技能是"测试质量"视角。覆盖率与门禁决策归 diy-test-gate（本技能不算覆盖率）。
-2. **账本口径不得漂移（引擎唯一权威）。** `deductions = CRITICAL*10 + HIGH*5 + MEDIUM*2 + LOW*1`；bonus 六类各 0 或 5、上限 30；`score = clamp(100 - deductions + bonus, 0, 100)`；分档 A≥90 / B≥80 / C≥70 / D≥60 / F<60；recommendation 由计算得出（CRITICAL>0 → 打回；HIGH>0 → 要求修改；score<70 → 要求修改；MEDIUM+LOW>0 → 有保留批准；否则 批准）。**severity 与维度分由引擎复算，LLM 不填**；LLM 唯一的判据是"哪条规则命中"。
-3. **上下文与惯例只能加发现，不能豁免或改分。** 仓库惯例走 convention 三类门（`已确立` 原档 / `新现` 降一档 floor `LOW` / `缺失` 与 `未知` 该行不成立）；匹配不到任何规则的文件列入 `excluded` **不评分**——"匹配不到任何规则得到的 100 不是 100"。
-4. **跨文档核对一律委派，禁重写规则。** `walkthrough` 的源码面委派 `diyc.py trace`、`孤儿用例` 面委派 `diyc.py check --type test-plan`；子进程 rc∈{0,1} 均为正常回执，rc=2 / 不可解析 / 缺席 → warning 降级（`TOOL_MISSING` / `TOOL_ERROR`），不崩溃、不阻塞评审主体。
-5. **写权边界。** 本技能只写 `{output_dir}/test-review.yaml`（记录 + `revisions`）与会话工作文件 `{output_dir}/test-review-findings.json`。不碰测试代码、不碰 `stories.yaml` / `test-plan.yaml` / `sprint.yaml` / `bug-log.yaml`；缺口的路由是**建议**，执行归对应技能。记录只追加，改既有记录时追加 `revisions`；无 `--previous` 轮次（追加式台账，无 ID 收缩面）。
-6. **终门（机械判定）。** 先落 `status: 已定稿`——`已定稿` 是门要检的东西、不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`，参数与激活时一致（`--output-dir` 必填、永不默认）。exit 0 是唯一放行；修掉每条违规重跑；JSON 回执（含 counts）就是收尾证据。渲染与收尾等 exit 0。
-7. **无副作用面。** 本技能只读文件与跑自己的 `scan` / `score` / `walkthrough` / `check`（均只读）——不装依赖、不跑项目测试、不写目标项目、不 git 操作，故无 §0 纪律 5 的自动化/确认档处置；渲染按 Workflow 的静默旁路。
+1. **与 diy-review 的边界。** diy-review 审**实现代码**（L1-L4 层 + 四类路由：正确性 / 边界 / 验收 / 设计）；diy-test-review 审**测试代码**（32 条有效规则 → 评分账本）。
+   - 两者不重叠、互不调用：diy-review 的 L1 会读到测试，但那是"实现正确性"视角，本技能是"测试质量"视角。
+   - 覆盖率与门禁决策归 diy-test-gate（本技能不算覆盖率）。
+2. **账本口径不得漂移（引擎唯一权威）。** `deductions = CRITICAL*10 + HIGH*5 + MEDIUM*2 + LOW*1`；bonus 六类各 0 或 5、上限 30；`score = clamp(100 - deductions + bonus, 0, 100)`；分档 A≥90 / B≥80 / C≥70 / D≥60 / F<60。
+   - recommendation 由计算得出（CRITICAL>0 → 打回；HIGH>0 → 要求修改；score<70 → 要求修改；MEDIUM+LOW>0 → 有保留批准；否则 批准）。
+   - **severity 与维度分由引擎复算，LLM 不填**；LLM 唯一的判据是"哪条规则命中"。
+3. **上下文与惯例只能加发现，不能豁免或改分。** 仓库惯例走 convention 三类门（`已确立` 原档 / `新现` 降一档 floor `LOW` / `缺失` 与 `未知` 该行不成立）。
+   - 匹配不到任何规则的文件列入 `excluded` **不评分**——"匹配不到任何规则得到的 100 不是 100"。
+4. **跨文档核对一律委派，禁重写规则。** `walkthrough` 的源码面委派 `diyc.py trace`、`孤儿用例` 面委派 `diyc.py check --type test-plan`。
+   - 子进程 rc∈{0,1} 均为正常回执，rc=2 / 不可解析 / 缺席 → warning 降级（`TOOL_MISSING` / `TOOL_ERROR`），不崩溃、不阻塞评审主体。
+5. **写权边界。** 本技能只写 `{output_dir}/test-review.yaml`（记录 + `revisions`）与会话工作文件 `{output_dir}/test-review-findings.json`。
+   - 不碰测试代码、不碰 `stories.yaml` / `test-plan.yaml` / `sprint.yaml` / `bug-log.yaml`；缺口的路由是**建议**，执行归对应技能。
+   - 记录只追加，改既有记录时追加 `revisions`；无 `--previous` 轮次（追加式台账，无 ID 收缩面）。
+6. **终门（机械判定）。** 先落 `status: 已定稿`——`已定稿` 是门要检的东西、不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`，参数与激活时一致（`--output-dir` 必填、永不默认）。
+   - exit 0 是唯一放行；修掉每条违规重跑；JSON 回执（含 counts）就是收尾证据。渲染与收尾等 exit 0。
+7. **无副作用面。** 本技能只读文件与跑自己的 `scan` / `score` / `walkthrough` / `check`（均只读）——不装依赖、不跑项目测试、不写目标项目、不 git 操作。
+   - 故无 §0 纪律 5 的自动化/确认档处置；渲染按 Workflow 的静默旁路。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

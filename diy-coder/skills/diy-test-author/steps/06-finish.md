@@ -13,7 +13,9 @@ Progress: `Preflight → Scope → Generate → Audit → Confirm → [Finish]`
 python "{project-root}/.claude/skills/diy-test-author/scripts/author.py" audit --files <本次文件> --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-exit 0 是唯一放行；修掉每一条报告的违规并重跑。JSON 回执（含 `counts`）就是收尾证据——**不用**再跑一次别的检查（本技能不设 `check` 别名，终门就是它）。
+exit 0 是唯一放行；修掉每一条报告的违规并重跑。
+
+- JSON 回执（含 `counts`）就是收尾证据——**不用**再跑一次别的检查（本技能不设 `check` 别名，终门就是它）。
 
 ## 会话摘要（对话内收尾，不建独立产物）
 

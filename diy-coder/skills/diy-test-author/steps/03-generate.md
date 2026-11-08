@@ -30,15 +30,22 @@ Progress: `Preflight → Scope → [Generate] → Audit → Confirm → Finish`
 
 ## 3. 红相形态
 
-test 体**全部 `skip`**（`skip` = 待实现标记，不是跳过不管）＋ 实现指引注释（点名要实现的位置与命令，供 diy-dev 照做）；**不执行**。断言仍要写——红相脚手架的价值就在"实现前先把期望说清"。
+test 体**全部 `skip`**（`skip` = 待实现标记，不是跳过不管）＋ 实现指引注释（点名要实现的位置与命令，供 diy-dev 照做）；**不执行**。
+
+- 断言仍要写——红相脚手架的价值就在"实现前先把期望说清"。
 
 ## 4. 落位与命名
 
-沿用 `test_dirs` 与 `existing_patterns`：目录、文件后缀、命名风格照项目既有约定，**不新增目录结构、不换框架**。夹具/工厂落在既有 `fixtures` 命中目录（没有则按项目约定新建）；**夹具自建的数据必须自带 teardown 清理**——JS 在 `await use(data)` 之后删除、py 在 `yield` 之后删除（源「auto-cleanup (delete created data)」，`audit` 判 `FIXTURE_NO_TEARDOWN`；纯生成器的工厂没有 setup/teardown 相位，不受牵连）。**单文件行数不超上限**（`audit` 会判 `FILE_TOO_LONG`），超了拆文件。
+沿用 `test_dirs` 与 `existing_patterns`：目录、文件后缀、命名风格照项目既有约定，**不新增目录结构、不换框架**。
+
+- 夹具/工厂落在既有 `fixtures` 命中目录（没有则按项目约定新建）；**夹具自建的数据必须自带 teardown 清理**——JS 在 `await use(data)` 之后删除、py 在 `yield` 之后删除（源「auto-cleanup (delete created data)」，`audit` 判 `FIXTURE_NO_TEARDOWN`；纯生成器的工厂没有 setup/teardown 相位，不受牵连）。
+- **单文件行数不超上限**（`audit` 会判 `FILE_TOO_LONG`），超了拆文件。
 
 ## 5. 写盘边界
 
-只写目标项目内的测试文件（+ 既有 `fixtures` 目录内的新工厂）；`{output_dir}` 下本步零写入。越界写盘属保留确认类（交互式问用户；无头经 `diyc.py defer-add` 入队不阻塞）。
+只写目标项目内的测试文件（+ 既有 `fixtures` 目录内的新工厂）；`{output_dir}` 下本步零写入。
+
+- 越界写盘属保留确认类（交互式问用户；无头经 `diyc.py defer-add` 入队不阻塞）。
 
 ## 播报与下一步
 

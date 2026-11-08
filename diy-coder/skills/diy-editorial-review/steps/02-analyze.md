@@ -36,7 +36,8 @@ Progress: `定位与定档 → [两透镜分析] → 落盘与交付`
    每条给 `no`（自 1 起连续；裸键 `no` 照写即可——机器按 YAML 1.1 会把它读成布尔 `False`，引擎两形同读，别为此改字段名或加引号）。`impact_words` 按下一节的估计口径估，`comprehension_note` 只在会伤到理解 / 参与感时写（`reader_type: 人类` 时这类削减要显式提示）。给 `length_target` 时判断是否达标，填 `meets_length_target`；没给就写 `未设目标`。
 6. **固定格式输出** —— 汇总落 step 3 的交付摘要（本文档摘要 → 建议清单 → 汇总），不在本步提前给成品格式。
 
-`findings` 空是合法结果——结构没毛病就写空列表，别为凑数编建议。
+1. `findings` 空是合法结果——结构没毛病就写空列表。
+2. 别为凑数编建议。
 
 ## B. 文风透镜（后做）
 
@@ -50,11 +51,15 @@ Progress: `定位与定档 → [两透镜分析] → 落盘与交付`
 
 ## 估计口径（两透镜共用）
 
-`impact_words` 与 `estimated_reduction_words` 用 `stats` 的同一词数口径：**中文字符按 1 词计、西文按空白分词计**。`CUT` / `CONDENSE` 估省下多少、`PRESERVE` 记负数（代价），其余按净变化估；`estimated_reduction_words` = 全部建议被采纳的净削减，逐条 `impact_words` 求和要与之相符（终门机械核对）。
+`impact_words` 与 `estimated_reduction_words` 用 `stats` 的同一词数口径：**中文字符按 1 词计、西文按空白分词计**。
+
+1. `CUT` / `CONDENSE` 估省下多少、`PRESERVE` 记负数（代价），其余按净变化估。
+2. `estimated_reduction_words` = 全部建议被采纳的净削减，逐条 `impact_words` 求和要与之相符（终门机械核对）。
 
 ## 落盘时机
 
-结构槽在 A 段走完时整体写进记录（含 `estimated_reduction_words`），文风槽在 B 段走完时写——一次一段，不攒到 step 3。`open_questions` 随手记（拿不准、需作者拍板的），step 3 收尾。
+1. 结构槽在 A 段走完时整体写进记录（含 `estimated_reduction_words`），文风槽在 B 段走完时写——一次一段，不攒到 step 3。
+2. `open_questions` 随手记（拿不准、需作者拍板的），step 3 收尾。
 
 ## 播报与下一步
 

@@ -17,15 +17,18 @@ outputs: analysis.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 续接检测：跑 `list` 看有没有已在做的分析——**只回 `id` / `name` / `layer` / `responsibility` / `location` / `status` 六字段，不读正文**：
    `python "{project-root}/.claude/skills/diy-analyze/scripts/analyze.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
-   有记录 → 播报六字段并问「① 接着做 / ② 复审调整 / ③ 推倒重来」，**HALT 等选择**；无记录 → 进第 3 步。
-3. 门禁（零产出退出）：**代码库可读**——默认 `{project-root}`，用户可点名别的路径（`init --codebase <path>`）。路径不存在 / 不是目录 / 不可读 → 一行说明并**零产出停止**（`init` 会把门机械兜住：`MISSING_FILE`）。**全库多维度体检不在本技能范围；要在本套件内回答一个架构问题并进产物链 → 用本技能（一次一问、连续多轮取证）**。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/analysis.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
+   - 有记录 → 播报六字段并问「① 接着做 / ② 复审调整 / ③ 推倒重来」，**HALT 等选择**；无记录 → 进第 3 步。
+3. 门禁（零产出退出）：**代码库可读**——默认 `{project-root}`，用户可点名别的路径（`init --codebase <path>`）。
+   - 路径不存在 / 不是目录 / 不可读 → 一行说明并**零产出停止**（`init` 会把门机械兜住：`MISSING_FILE`）。
+   - **全库多维度体检不在本技能范围；要在本套件内回答一个架构问题并进产物链 → 用本技能（一次一问、连续多轮取证）**。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+   - `{output_dir}/analysis.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-define.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流
@@ -36,10 +39,8 @@ outputs: analysis.yaml
 2. `steps/02-scan.md` — 目录结构 / 技术栈与入口点 → 配置与构建管线（**广度侦察，不深挖**）。
 3. `steps/03-map.md` — 组件清单（铸 `AN-<nn>`）→ 数据流端到端 → 层 / 集成 / 状态 / 依赖 / 模式。
 4. `steps/04-document.md` — 架构总览与 Mermaid 图 → 风险与建议 → 定稿、终门、渲染。
-
-写回纪律：骨架由第 1 步的 `init` 铸为 `project.status: 草稿`；`project.name` / `created` 由 `init` 铸造后**不再由你改**；定稿 = `project.status: 已定稿`。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+5. 写回纪律：骨架由第 1 步的 `init` 铸为 `project.status: 草稿`；`project.name` / `created` 由 `init` 铸造后**不再由你改**；定稿 = `project.status: 已定稿`。
+6. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -62,15 +63,24 @@ Mermaid 图住在 `architecture.mermaid` 的**字符串字段**里（不落散�
 
 ## 规则
 
-1. **写范围**：只写 `{output_dir}/analysis.yaml`；**对代码库只读**——不改一行代码、不建任何扫描状态散文件、不产 markdown 文档集。
+1. **写范围**：只写 `{output_dir}/analysis.yaml`。
+   - **对代码库只读**——不改一行代码、不建任何扫描状态散文件、不产 markdown 文档集。
 2. **检查点四选项**（每步产出后，六拍不得省）：① 生成本步产出 → ② 落盘（编辑对应键 / 记录）→ ③ 显示检查点分隔 → ④ 呈出本步产出 → ⑤ 出四选项 → ⑥ 等响应。
-3. **选项落点**：`[a]` → 调 `diy-elicit`；`[p]` → 调 `diy-party-mode`（两者**零写面**，返回后回第 ② 拍重落盘）；`[c]` → 进下一步；`[y]` → 后续跳过 ⑤⑥，**②③④ 照旧**。无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
+3. **选项落点**：`[a]` → 调 `diy-elicit`；`[p]` → 调 `diy-party-mode`（两者**零写面**，返回后回第 ② 拍重落盘）；`[c]` → 进下一步；`[y]` → 后续跳过 ⑤⑥，**②③④ 照旧**。
+   - 无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
 4. **ID 体系**：`AN-<nn>` 两位序号、顺序递增、不重编不复用——`init` 铸骨架，记录号由你按序铸、引擎核唯一性与顺序性（重号 / 跳号 / 形态非法各判违规）。
 5. **取证纪律**：`status: 已核实|待核实`——直接读到的记 `已核实`，由文档 / 命名推断的记 `待核实`；**绝不把推断写成事实**。
-6. **终门（机械）**：先落 `project.status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-analyze/scripts/analyze.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。**本技能产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
+6. **终门（机械）**：先落 `project.status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-analyze/scripts/analyze.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。
+   - **本技能产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
 7. **违规码**：登记＝集中表（`MISSING_FILE` / `UNPARSABLE_YAML` / `EMPTY_FIELD` / `ENUM_INVALID` / `DUPLICATE_ID` / `UNKNOWN_ID` / `SET_MISMATCH` / `STATUS_MISMATCH` / `ASSUMPTION_PRESENT`）；**本技能零新增码**。
-8. **无 `--previous` 轮**：`components[]` 只增不减，无 ID 集合收缩面；改既有记录往 `revisions` 追加（date / change / reason，`change` 点名 `AN-<nn>` 而不复制内容）。副作用面：除产物与静默渲染外无任何外部动作；产物内引用一律 project-root 相对 `path:line`。
-9. **边界（本技能产 anytime 独立产物——不进主链 CHAIN、不被任何门禁引用）**：vs `diy-architecture`——**方向相反**：它是决策式（逐条 `affects` 引 FR ID、`status: 已定稿`），面向「要做什么」；本技能是文献式，面向「现状是什么」。vs `diy-spec-scan`——它扫**规格文本**的执行歧义，本技能扫**代码库结构**（≈0 重叠）。vs `diy-project-context`——它产项目语境档供 AI 上下文，本技能回答一个**具体问题**。vs `diy-investigate`——它是缺陷取证，本技能是架构取证。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
+8. **无 `--previous` 轮**：`components[]` 只增不减，无 ID 集合收缩面；改既有记录往 `revisions` 追加（date / change / reason，`change` 点名 `AN-<nn>` 而不复制内容）。
+   - 副作用面：除产物与静默渲染外无任何外部动作；产物内引用一律 project-root 相对 `path:line`。
+9. **边界（本技能产 anytime 独立产物——不进主链 CHAIN、不被任何门禁引用）**：
+   - vs `diy-architecture`——**方向相反**：它是决策式（逐条 `affects` 引 FR ID、`status: 已定稿`），面向「要做什么」；本技能是文献式，面向「现状是什么」。
+   - vs `diy-spec-scan`——它扫**规格文本**的执行歧义，本技能扫**代码库结构**（≈0 重叠）。
+   - vs `diy-project-context`——它产项目语境档供 AI 上下文，本技能回答一个**具体问题**。
+   - vs `diy-investigate`——它是缺陷取证，本技能是架构取证。
+   - vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
 10. **不可机械的部分写明**：技术取舍、风险定级、建议排序**是人工判定**——引擎只核枚举、必填与顺序；凡推断一律记 `待核实`，不得与事实混写。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。

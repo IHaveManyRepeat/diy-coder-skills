@@ -43,10 +43,8 @@ outputs: learning-progress.yaml
 3. `steps/03-hub.md` — 课次菜单：7 节状态 + 下一个推荐 + 完成度；用户选节（1-7）或退出（X）；7 节齐且摘要未生成 → 直接转结业。
 4. `steps/04-session.md` — 单节执行：载入该节大纲 → 按角色讲解 → 3 题 quiz（<70 停下让用户选 R 复习 / C 带分继续；第 7 节无 quiz，改主题探索）→ 笔记落 `notes/session-<NN>.md` → `update --session` 写回 → 回 Hub。
 5. `steps/05-completion.md` — 门 7/7 → 按 `templates/completion-summary.md` 生成 `{output_dir}/completion-summary.md` → `update --summary --path` → `check --final` 终门 → 回 Hub。
-
-写回纪律：进度文件的四个区块（`sessions` / `learner` / `summary` / 派生三键）全部只经引擎——`init` 建、`update` 改、`check` 验；派生字段只由引擎按三式算，LLM 一个字都不写。笔记与摘要 md 由本技能写正文，路径由引擎登记。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。notes 下的 md 进不了渲染面（viewer 只扫 `{output_dir}/*.yaml`），`learning-progress.yaml` 的 `notes` 字段是笔记的唯一引用点——不得为 notes 增任何浏览器/等待交互点。
+6. 写回纪律：进度文件的四个区块（`sessions` / `learner` / `summary` / 派生三键）全部只经引擎——`init` 建、`update` 改、`check` 验；派生字段只由引擎按三式算，LLM 一个字都不写。笔记与摘要 md 由本技能写正文，路径由引擎登记。
+7. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。notes 下的 md 进不了渲染面（viewer 只扫 `{output_dir}/*.yaml`），`learning-progress.yaml` 的 `notes` 字段是笔记的唯一引用点——不得为 notes 增任何浏览器/等待交互点。
 
 ## 结构
 
@@ -79,7 +77,9 @@ revisions: []                        # {date, change, reason} —— 重做同�
 
 ## 规则
 
-1. 写范围：`{output_dir}/learning-progress.yaml`（只经 `init` / `update`）、`{output_dir}/notes/session-<NN>.md`、`{output_dir}/completion-summary.md`——仅此三处。目录由 `init` 建（不自建）、笔记命名固定（无 slug 变体）、`test-plan.yaml` / `sprint.yaml` / `stories.yaml` / 项目代码零写入。**学员隔离**：一个 `output_dir` 一份进度（单一学员，不做多学员同文件），多学员靠 diy 实例机制天然隔离（`diyc.py resolve --instance <name>`）。
+1. 写范围：`{output_dir}/learning-progress.yaml`（只经 `init` / `update`）、`{output_dir}/notes/session-<NN>.md`、`{output_dir}/completion-summary.md`——仅此三处。
+   - 目录由 `init` 建（不自建）、笔记命名固定（无 slug 变体）、`test-plan.yaml` / `sprint.yaml` / `stories.yaml` / 项目代码零写入。
+   - **学员隔离**：一个 `output_dir` 一份进度（单一学员，不做多学员同文件），多学员靠 diy 实例机制天然隔离（`diyc.py resolve --instance <name>`）。
 2. 派生字段禁手写（`sessions_completed` / `completion_percentage` / `next_recommended`）：只由 `progress.py` 计算；手写值与 `sessions[]` 真值不符 → `check` 报 `SET_MISMATCH`。
 3. 单一写通道：`learner` 与 `summary` 两区块非派生但同受约束——一律经 `update --learner` / `update --summary`；`sessions` 行经 `update --session`。手改 YAML 会连带触碰派生字段。
 4. 门禁（源纪律保留）：进度文件已存在 → 强制 resume（必须经 `status` 回执分流）；**文件损坏（解析失败 / 结构不可用）→ 恢复只走 `init --recover`**（引擎先备份原文件再重建，禁手改 YAML，见 `steps/01-init.md`）；quiz 未达线 → 停下让用户选（R 复习 / C 带分继续），不自动通过——判线 `score >= 70`，`round(答对数*100/3)` 下 2/3 = 67 未达线；session 7 无 quiz，不适用。

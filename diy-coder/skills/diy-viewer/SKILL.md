@@ -34,8 +34,9 @@ python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-ro
 
 ## 规则
 
-- 渲染命令要求宿主 Python 装有 PyYAML。若因 `ModuleNotFoundError` 失败，报出该错误并建议 `pip install pyyaml`。不得静默回落。
-- 若 `paths.output_dir` 缺失或其下没有 YAML 文件，告诉用户扫描的是哪个目录，并建议先跑一个 diy-* 工作流；不得编造内容。
-- 只在用户明确要求打开浏览器时才传 `--open`；`--no-open` 一票否决（即使同时给了 `--open`）。
-- 渲染完，用 `project.communication_language`（取自 `diy-coder.yaml`）回一行摘要：渲染了哪些文档、HTML 落在哪里。例外——自动化/无头渲染（另一个技能流程里的渲染步骤、runner 驱动的会话）保持静默：不报路径，直接继续；渲染只是旁路一步，绝不阻塞流程。
-- 本技能不写任何 YAML 散文；HTML 投影的外壳标签按设计固定为中文（展示层的选择——`document_output_language` 管的是源产物里的散文，不是 viewer 外壳）。
+1. 渲染命令要求宿主 Python 装有 PyYAML。若因 `ModuleNotFoundError` 失败，报出该错误并建议 `pip install pyyaml`。不得静默回落。
+2. 若 `paths.output_dir` 缺失或其下没有 YAML 文件，告诉用户扫描的是哪个目录，并建议先跑一个 diy-* 工作流；不得编造内容。
+3. 只在用户明确要求打开浏览器时才传 `--open`；`--no-open` 一票否决（即使同时给了 `--open`）。
+4. 渲染完，用 `project.communication_language`（取自 `diy-coder.yaml`）回一行摘要：渲染了哪些文档、HTML 落在哪里。
+   - 例外——自动化/无头渲染（另一个技能流程里的渲染步骤、runner 驱动的会话）保持静默：不报路径，直接继续；渲染只是旁路一步，绝不阻塞流程。
+5. 本技能不写任何 YAML 散文；HTML 投影的外壳标签按设计固定为中文（展示层的选择——`document_output_language` 管的是源产物里的散文，不是 viewer 外壳）。

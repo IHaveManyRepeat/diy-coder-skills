@@ -13,7 +13,16 @@ spec-scan 终态以 02 派发处初跑为准；本门＝selfcheck 自建终门�
 python "{project-root}/.claude/skills/diy-selfcheck/scripts/selfcheck.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`exit 0` 唯一放行。本门＝selfcheck 六义务：`b_review` 必出 / 引用核对必报总数 / `disposals[]` 对账 `findings[]` 全覆盖 / `rescans` 两轮在场 / 全字段零 `[假设]` / `ss_ref` 可解析；片 A 机器面的 spec-scan 终态以 02 派发处初跑为准。
+`exit 0` 唯一放行。本门＝selfcheck 六义务：
+
+1. `b_review` 必出。
+2. 引用核对必报总数。
+3. `disposals[]` 对账 `findings[]` 全覆盖。
+4. `rescans` 两轮在场。
+5. 全字段零 `[假设]`。
+6. `ss_ref` 可解析。
+
+片 A 机器面的 spec-scan 终态以 02 派发处初跑为准。
 
 ## 主产物定稿
 
@@ -26,8 +35,10 @@ python "{project-root}/.claude/skills/diy-selfcheck/scripts/selfcheck.py" check 
 
 ## 解冻与呈核
 
-- 解冻判据：终门 exit 0 + `disposals[]` 无空行 + 复扫第二轮零命中，锚核对对象＝`anchor` 字段。仍存未处置阻断 → 不解冻，回 Step 4 再循环。
-- 呈核给用户：阻断清零情况 / 驳回条目及理由 / 观察项去向 / **待用户裁的项**（列「我定不了的」——目标 / 取舍 / 风险偏好类；有判据可推的技术细节不占用户决策带宽）。
+- 解冻判据：终门 exit 0 + `disposals[]` 无空行 + 复扫第二轮零命中，锚核对对象＝`anchor` 字段。
+  - 仍存未处置阻断 → 不解冻，回 Step 4 再循环。
+- 呈核给用户：阻断清零情况 / 驳回条目及理由 / 观察项去向 / **待用户裁的项**。
+  - 「我定不了的」＝目标 / 取舍 / 风险偏好类；有判据可推的技术细节不占用户决策带宽。
 - 解冻即开工准入：主产物 `{output_dir}/selfcheck.yaml` = 开工证据，随批归档。
 
 ## 播报与下一步

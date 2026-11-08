@@ -7,7 +7,8 @@ Progress: `[文档发现] → 需求清点 → 覆盖校验 → UX 对齐 → �
 
 ## 先过门（拒绝即零产出）
 
-`collect` 已经跑过门。exit 1 时本轮在开始前就结束：转述回执的一行理由与它的 `gate.route`（diy-prd / diy-architecture / diy-epics-stories），然后停下、什么都不写。拒绝永不成为记录；上游文档缺席，也绝不靠改评别的文档绕过去。
+1. `collect` 已经跑过门。exit 1 时本轮在开始前就结束：转述回执的一行理由与它的 `gate.route`（diy-prd / diy-architecture / diy-epics-stories），然后停下、什么都不写。
+2. 拒绝永不成为记录；上游文档缺席，也绝不靠改评别的文档绕过去。
 
 ## 清点真实文档集
 
@@ -26,11 +27,16 @@ Progress: `[文档发现] → 需求清点 → 覆盖校验 → UX 对齐 → �
 - 残留草稿（`*.prev`、`*.bak`、同名产物的带日期副本）、遗留 markdown 孪生（`prd.yaml` 旁边的 `prd.md`）、别的实例目录漏进本目录；
 - 分片遗留文档（`prd.yaml` 旁边的 `prd/` 文件夹）——diy 的单一源是那个 YAML 文件。
 
-把在场的东西点明，并先落定哪个版本权威，再开始评估。带着未落定的重复版本往前走是系统性失败；人定不了的重复版本落成一条带 `route` 的 finding，绝不静默选一个。
+1. 把在场的东西点明，并先落定哪个版本权威，再开始评估。
+2. 带着未落定的重复版本往前走是系统性失败；人定不了的重复版本落成一条带 `route` 的 finding，绝不静默选一个。
 
 ## 起草记录
 
-向 `{output_dir}/readiness.yaml` 追加一条记录（文件缺席时新建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type readiness --json` 盖秒级章、每次写回产物后再跑一次——外加空的 `checks` 列表与 `revisions: []`）：
+向 `{output_dir}/readiness.yaml` 追加一条记录：
+
+1. 文件缺席时新建 `project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空。
+2. 建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type readiness --json` 盖秒级章、每次写回产物后再跑一次。
+3. 外加空的 `checks` 列表与 `revisions: []`。
 
 ```yaml
   - id: IR-001                    # 下一个 = 既有最大值 + 1，三位零填充；永不重编号、永不复用

@@ -39,9 +39,16 @@ python "{project-root}/.claude/skills/diy-spec/scripts/spec_kernel.py" new --slu
 
 ## 输入整理
 
-把输入按来源列成一张清单，逐条标注它是什么（PRD / brief / 邮件 / 会议记录 / 会话口述 / 多源混合）——清单是 step 2 蒸馏的走查底稿，也是 `sources[]` 的候选。结构化且已分节的输入（上游技能产出的 PRD、brief）尊重作者的分节；混合输入（脑暴、纪要）由你在 step 2 自行分拣。
+把输入按来源列成一张清单，逐条标注它是什么（PRD / brief / 邮件 / 会议记录 / 会话口述 / 多源混合）：
 
-**可选素材（只读，缺席不阻塞）**：`{output_dir}/project-context.yaml` 在场时，作为 distillate 的**背景线索**可引用提及——引用它的 ID / 路径，不转抄内容；缺席不追问、不报错。同理 `{output_dir}/prd.yaml` / `{output_dir}/brief.yaml` 在场时可作为 distillate 源（只读）——它们仍是**源**，是否落 `sources[]` 按 step 2 的判据（已完全吸收才列）。
+1. 清单是 step 2 蒸馏的走查底稿，也是 `sources[]` 的候选。
+2. 结构化且已分节的输入（上游技能产出的 PRD、brief）尊重作者的分节。
+3. 混合输入（脑暴、纪要）由你在 step 2 自行分拣。
+
+**可选素材（只读，缺席不阻塞）**：
+
+1. `{output_dir}/project-context.yaml` 在场时，作为 distillate 的**背景线索**可引用提及——引用它的 ID / 路径，不转抄内容；缺席不追问、不报错。
+2. 同理 `{output_dir}/prd.yaml` / `{output_dir}/brief.yaml` 在场时可作为 distillate 源（只读）——它们仍是**源**，是否落 `sources[]` 按 step 2 的判据（已完全吸收才列）。
 
 ## 播报与下一步
 

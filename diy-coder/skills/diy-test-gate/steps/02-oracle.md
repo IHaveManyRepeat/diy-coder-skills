@@ -9,7 +9,8 @@ Progress: `Preflight → [Oracle] → Matrix & Gaps → NFR → Gate → Finish`
 
 diy 的默认主源**就是** AC——覆盖基准 = 该 story 的验收标准清单，逐条一行。回执 `items[]` 的 `ref` / `story` / `priority` 直接照抄：
 
-- `priority` 由 `prd.yaml` 的 FR priority 推导（`必须→P0` / `应该→P1` / `可选→P2`），一 AC 多 FR **取最高**，无 FR refs → `P2` + warning。推导是引擎做的，你只核对语义（例如 refs 抄错、AC 与 FR 对不上）。
+- `priority` 由 `prd.yaml` 的 FR priority 推导（`必须→P0` / `应该→P1` / `可选→P2`），一 AC 多 FR **取最高**，无 FR refs → `P2` + warning。
+  - 推导是引擎做的，你只核对语义（例如 refs 抄错、AC 与 FR 对不上）。
 - 覆盖状态（`FULL` / `PARTIAL` / `NONE` / `UNIT-ONLY` / `INTEGRATION-ONLY`）同样来自回执，step 3 复核。
 
 ## 降级链（源四级 → diy 保留的三级）
@@ -26,10 +27,13 @@ diy 的默认主源**就是** AC——覆盖基准 = 该 story 的验收标准�
 
 ## 合成 oracle 的保守化纪律
 
-- 合成推断**默认关闭**：只有用户显式要求「没有正式 AC，按旅程推」时才走第 3 级，且每条推断都要在 `oracle.inferred` 里逐条列出（「推了什么、从哪推的」）。
+- 合成推断**默认关闭**：只有用户显式要求「没有正式 AC，按旅程推」时才走第 3 级。
+  - 每条推断都要在 `oracle.inferred` 里逐条列出（「推了什么、从哪推的」）。
 - `confidence` 不得自封 `高`：推断项没有形式化背书，起点就是 `中`；只有用户逐条确认后才可写 `高`。
-- overlay 后果（引擎在 `check` 强制）：`source: 合成` 且 `confidence ≠ 高` → 该门**至少 `CONCERNS`**，覆盖全绿也不给无条件 PASS。这是设计意图，不要为了拿 PASS 去抬 confidence。
-- `oracle.unresolved` 收「解析不出、也没人认领」的条目（例如 AC 文本与任何实现都对不上）——它是给用户的清单，不是垃圾箱。
+- overlay 后果（引擎在 `check` 强制）：`source: 合成` 且 `confidence ≠ 高` → 该门**至少 `CONCERNS`**，覆盖全绿也不给无条件 PASS。
+  - 这是设计意图，不要为了拿 PASS 去抬 confidence。
+- `oracle.unresolved` 收「解析不出、也没人认领」的条目（例如 AC 文本与任何实现都对不上）。
+  - 它是给用户的清单，不是垃圾箱。
 
 ## 解析不出 → HALT
 
@@ -37,7 +41,8 @@ diy 的默认主源**就是** AC——覆盖基准 = 该 story 的验收标准�
 
 1. 一行说明：哪个 story、为什么解析不出（`stories.yaml` 里该 story 的 `acceptance_criteria` 为空 / 全部无 `refs` / 与实现无对应）。
 2. 路由 `diy-epics-stories`（补 AC），或 `diy-prd`（先补 FR）。
-3. **不写记录**——半份门记录比没有更坏：它会以「已评估」的姿态被下游读走。
+3. **不写记录**——半份门记录比没有更坏。
+   - 它会以「已评估」的姿态被下游读走。
 
 ## 把结果写回草稿
 

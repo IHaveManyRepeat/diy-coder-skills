@@ -19,7 +19,11 @@ python "{project-root}/.claude/skills/diy-spec/scripts/spec_kernel.py" check --f
 
 更新既有记录时**必须**附 `--previous "{output_dir}/spec-kernel.yaml.prev"`（step 1 留的旧稿副本）：它比对旧稿 CAP 集合，旧有新无且未标 `retired` → `ID_UNSTABLE`。
 
-`exit 0` 是唯一放行。违规 → 按回执的 `where` 就地修，重跑，直到 exit 0；`ID_UNSTABLE` 说明 CAP 丢了——找回它的条目或明确标 `retired: true`，**绝不重编号**。过了终门再删 `.prev` 副本（未过不得删，它是找回 CAP 的依据）。
+`exit 0` 是唯一放行：
+
+1. 违规 → 按回执的 `where` 就地修，重跑，直到 exit 0。
+2. `ID_UNSTABLE` 说明 CAP 丢了——找回它的条目或明确标 `retired: true`，**绝不重编号**。
+3. 过了终门再删 `.prev` 副本（未过不得删，它是找回 CAP 的依据）。
 
 ## 渲染
 

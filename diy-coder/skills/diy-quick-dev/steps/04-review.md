@@ -5,11 +5,13 @@ Progress: `Clarify & Route → Plan → Implement → [Review] → Present`
 **Read (input):** `status: 进行中` 的记录；自 `baseline` 以来的 diff（含已跟踪与未跟踪）；块级 diff 不够时读改动文件本身。
 **Write (output):** 记录的 `review` 块（`rounds` / `findings`）、`规格缺陷` 回环时的 `change_log` 条目、`deferred` 条目，以及下一步的 `status`。
 
-继续之前先把记录置 `status: 审查中`。层与路由都是 diy-review 的——本步只是跑它们；绝不另建第二套审查体系。
+1. 继续之前先把记录置 `status: 审查中`。
+2. 层与路由都是 diy-review 的——本步只是跑它们；绝不另建第二套审查体系。
 
 ## 构造 diff
 
-diff 自 `baseline` 以来的一切（`NO_VCS` → 从对话与文件 mtime 尽力重建）。只读检视：绝不 `git add`、绝不暂存。
+1. diff 自 `baseline` 以来的一切（`NO_VCS` → 从对话与文件 mtime 尽力重建）。
+2. 只读检视：绝不 `git add`、绝不暂存。
 
 ## 层
 
@@ -17,7 +19,8 @@ diff 自 `baseline` 以来的一切（`NO_VCS` → 从对话与文件 mtime 尽�
 - **L2 边界.** 走一遍判据隐含却没写明的失败模式：坏输入、空值/None、并发、错误路径、静默回退。只报真会咬人的未处理情况——噪声不是 finding。
 - **L3 覆盖审计.** 每条 `acceptance` 都必须有一条 `verification` 命令，其记录的 `result` 真实且支持其主张。判据没有命令、或结果不支持主张，即一条 finding 并点出 acceptance 序号——绝不靠肉眼重新验收。
 
-有子代理可用时，用与本会话同等的模型能力、不带对话上下文启动它（继承了作者推理的审查者会被锚定），只取回 findings。没有子代理 → 内联跑同一遍；绝不另写审查提示文件（本技能的单一源是 `spec.yaml`）。
+1. 有子代理可用时，用与本会话同等的模型能力、不带对话上下文启动它（继承了作者推理的审查者会被锚定），只取回 findings。
+2. 没有子代理 → 内联跑同一遍；绝不另写审查提示文件（本技能的单一源是 `spec.yaml`）。
 
 ## 分类
 
@@ -41,7 +44,8 @@ diff 自 `baseline` 以来的一切（`NO_VCS` → 从对话与文件 mtime 尽�
 
 ## 结构检查
 
-离开之前跑 `python "{project-root}/.claude/skills/diy-quick-dev/scripts/spec.py" check --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 表示记录（含 `review` 块）结构合法。修完违规再重跑。
+1. 离开之前跑 `python "{project-root}/.claude/skills/diy-quick-dev/scripts/spec.py" check --project-root "{project-root}" --output-dir "{output_dir}" --json`——exit 0 表示记录（含 `review` 块）结构合法。
+2. 修完违规再重跑。
 
 ## 播报与下一步
 
