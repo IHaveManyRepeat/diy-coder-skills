@@ -27,27 +27,21 @@ python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" list
 | 系统有、无人用 | 记录 `used_in: []` | —— |
 | 用法不一致 | 同组件在不同页属性/状态不同 | 细核归 `05-finish` |
 
-**提取时机规则**（**唯一阈值**）：**第二次使用才提取**——同一模式（同状态、同行为）第一次出现时留在页面规格里当一次性件，**第二次出现**才提取进设计系统。
-
-**呈批（用户关卡 1）**：呈出「库现状（或：尚无库）+ 打算落的首个组件（类型 / 前缀 / 分类 / 复杂度）+ 提取时机口径」，**等点头**。没拿到明确点头不许 `init`。
-
-**铸骨架**（`init` 是本技能**唯一写盘**子命令）：
-
-```
-python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" init --mode <on|off> --prefix <p> [--name "<组件名>"] [--complexity <simple|moderate|complex>] --project-root "{project-root}" --output-dir "{output_dir}" --json
-```
-
-- `--mode` 缺省 **`on`**（设计系统默认纳入设计流水线；**显式关闭 = 一行写 `off`**）。
-- `--prefix` **必填**：空值 → `EMPTY_FIELD`、非法值 → `ENUM_INVALID`（两者都零产出）；**26 条前缀**见 `data/component-prefixes.yaml`。
-- **上游门禁**：`wds-scenarios.yaml` 缺失 → `MISSING_FILE` 零产出（路由 `diy-wds-scenarios`）；`project.status ≠ 已定稿` → `STATUS_MISMATCH` 零产出。
-- **token 段**：`design.yaml` 在场 → `tokens.source.mode: 派生`，`tokens.namespaces` 逐字取它的键集；**缺席 → `独立` 降级 + warning**（不阻断），此时 token 名按设计系统自己的表定。
-- 已有产物 → **不覆盖**（只刷 `project.updated` + warning）；产物损坏 → `UNPARSABLE_YAML` 拒绝且零写入。
-- `project.name` / `created` 与首条记录的 `id` 由 `init` 铸造后**不再由你改**。
-
-**检查点（六拍）**：① 生成 → ② 落盘（`init` 铸骨架）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。
-`[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
-
-读全并照做本文件 `## 第 2 步 —— 候选扫描与四维比对`。
+1. **提取时机规则**（**唯一阈值**）：**第二次使用才提取**——同一模式（同状态、同行为）第一次出现时留在页面规格里当一次性件，**第二次出现**才提取进设计系统。
+2. **呈批（用户关卡 1）**：呈出「库现状（或：尚无库）+ 打算落的首个组件（类型 / 前缀 / 分类 / 复杂度）+ 提取时机口径」，**等点头**。没拿到明确点头不许 `init`。
+3. **铸骨架**（`init` 是本技能**唯一写盘**子命令）：
+   ```
+   python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" init --mode <on|off> --prefix <p> [--name "<组件名>"] [--complexity <simple|moderate|complex>] --project-root "{project-root}" --output-dir "{output_dir}" --json
+   ```
+4. `--mode` 缺省 **`on`**（设计系统默认纳入设计流水线；**显式关闭 = 一行写 `off`**）。
+5. `--prefix` **必填**：空值 → `EMPTY_FIELD`、非法值 → `ENUM_INVALID`（两者都零产出）；**26 条前缀**见 `data/component-prefixes.yaml`。
+6. **上游门禁**：`wds-scenarios.yaml` 缺失 → `MISSING_FILE` 零产出（路由 `diy-wds-scenarios`）；`project.status ≠ 已定稿` → `STATUS_MISMATCH` 零产出。
+7. **token 段**：`design.yaml` 在场 → `tokens.source.mode: 派生`，`tokens.namespaces` 逐字取它的键集；**缺席 → `独立` 降级 + warning**（不阻断），此时 token 名按设计系统自己的表定。
+8. 已有产物 → **不覆盖**（只刷 `project.updated` + warning）；产物损坏 → `UNPARSABLE_YAML` 拒绝且零写入。
+9. `project.name` / `created` 与首条记录的 `id` 由 `init` 铸造后**不再由你改**。
+10. **检查点（六拍）**：① 生成 → ② 落盘（`init` 铸骨架）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。
+    `[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
+11. 读全并照做本文件 `## 第 2 步 —— 候选扫描与四维比对`。
 
 ## 第 2 步 —— 候选扫描与四维比对
 
@@ -70,11 +64,9 @@ python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" init
 | **Behavioral** | 状态集 / 交互 / 动画过渡 / 键盘支持 / 无障碍 |
 | **Contextual** | 使用场景 / 频次 / 与其他组件的关系 / 用户旅程阶段 |
 
-**落盘**：本步结论只在会话里带（候选清单 + 四个等级 + 逐维的相同点 / 差异点），**不写盘**；写盘在第 6 步。
-
-**检查点（六拍）**：① 生成 → ② 落盘（本步无写盘，仅记结论）→ ③ 分隔 → ④ 呈出候选清单与四维比对 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-读全并照做本文件 `## 第 3 步 —— 相似度聚合与推荐`。
+1. **落盘**：本步结论只在会话里带（候选清单 + 四个等级 + 逐维的相同点 / 差异点），**不写盘**；写盘在第 6 步。
+2. **检查点（六拍）**：① 生成 → ② 落盘（本步无写盘，仅记结论）→ ③ 分隔 → ④ 呈出候选清单与四维比对 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+3. 读全并照做本文件 `## 第 3 步 —— 相似度聚合与推荐`。
 
 ## 第 3 步 —— 相似度聚合与推荐（**可机械段，交引擎算**）
 
@@ -111,11 +103,9 @@ Overall = Visual×0.30 + Functional×0.30 + Behavioral×0.25 + Contextual×0.15
 
 **L6（<20）在三值映射下取不到任何组合**——不改映射（改了就不再是源算法），呈出时保留该级。
 
-**落盘**：不写盘（只读命令）；把回执的 `percentage` / `level_number` / `recommendation` 带进第 4 步。
-
-**检查点（六拍）**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出百分比与等级 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-读全并照做本文件 `## 第 4 步 —— 机会与风险打分`。
+1. **落盘**：不写盘（只读命令）；把回执的 `percentage` / `level_number` / `recommendation` 带进第 4 步。
+2. **检查点（六拍）**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出百分比与等级 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+3. 读全并照做本文件 `## 第 4 步 —— 机会与风险打分`。
 
 ## 第 4 步 —— 机会与风险打分
 
@@ -131,15 +121,12 @@ Overall = Visual×0.30 + Functional×0.30 + Behavioral×0.25 + Contextual×0.15
 
 **逐路径打分**（机会框架 / 风险框架——两张框架各 3 项，逐条给分）：
 
-- **机会侧**（源 Option 1/2/3 各列 3 项收益）：复用省下的实现与维护、变体带来的表达力、新建换来的边界清晰。
-- **风险侧**（源同构的 3 项风险）：复用带来的语义污染、变体的组合爆炸、新建的重复度。
-- **`deal_breaker`**：逐路径判有没有**一票否决**项，有则**必须给 `mitigation`**，否则该路径出局。
-
-**落盘**：只在会话里带；写盘在第 6 步（结论落 `components[].notes` 与本技能 `revisions`）。
-
-**检查点（六拍）**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出机会表与风险表 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-读全并照做本文件 `## 第 5 步 —— 决策呈批与执行`。
+1. **机会侧**（源 Option 1/2/3 各列 3 项收益）：复用省下的实现与维护、变体带来的表达力、新建换来的边界清晰。
+2. **风险侧**（源同构的 3 项风险）：复用带来的语义污染、变体的组合爆炸、新建的重复度。
+3. **`deal_breaker`**：逐路径判有没有**一票否决**项，有则**必须给 `mitigation`**，否则该路径出局。
+4. **落盘**：只在会话里带；写盘在第 6 步（结论落 `components[].notes` 与本技能 `revisions`）。
+5. **检查点（六拍）**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出机会表与风险表 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+6. 读全并照做本文件 `## 第 5 步 —— 决策呈批与执行`。
 
 ## 第 5 步 —— 决策呈批与执行（**用户关卡 2**）
 
@@ -159,11 +146,9 @@ Overall = Visual×0.30 + Functional×0.30 + Behavioral×0.25 + Contextual×0.15
 | **B 加变体**（源 Path B） | 确认 → 抽组件级信息 → 改组件定义 → 建引用 → 更新使用计数 | 既有记录的 `variants[]` 追加一条 + `version.changes` +1 + `used_in[]` 追加该页 |
 | **C 新建**（源 Path C） | 确认 → 铸 ID → 抽组件级信息 → 建组件记录 → 建引用 → 更新索引 | 进第 6 步铸号落库 |
 
-**落盘**：按上表就地编辑 `wds-design-system.yaml`（`components[]` 的对应记录 + `revisions` 追加一条 `{date, change, reason}`，`change` 点名 `[prefix]-[NNN]` 而不复制内容）。
-
-**检查点（六拍）**：① 生成 → ② 落盘（记录编辑 + `revisions`）→ ③ 分隔 → ④ 呈出执行结果 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-读全并照做本文件 `## 第 6 步 —— 组件落库与复杂度路由`。
+1. **落盘**：按上表就地编辑 `wds-design-system.yaml`（`components[]` 的对应记录 + `revisions` 追加一条 `{date, change, reason}`，`change` 点名 `[prefix]-[NNN]` 而不复制内容）。
+2. **检查点（六拍）**：① 生成 → ② 落盘（记录编辑 + `revisions`）→ ③ 分隔 → ④ 呈出执行结果 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+3. 读全并照做本文件 `## 第 6 步 —— 组件落库与复杂度路由`。
 
 ## 第 6 步 —— 组件落库与复杂度路由
 
@@ -196,13 +181,10 @@ Overall = Visual×0.30 + Functional×0.30 + Behavioral×0.25 + Contextual×0.15
 
 逐组件判三级（Simple / Moderate / Complex，判据见 `data/complexity-router.md` §1），写进 `complexity`：
 
-- **Simple** → 单条记录，`states` 至少 1 条；
-- **Moderate** → 单条记录 + `notes` 一句写清「哪一部分将来会独立」；
-- **Complex** → **先问用户要不要拆**（二选一，**绝不替用户拆**）；拆则**拆成多条记录、各铸各的号**，父件在 `related[]` 列子件 ID；用户不拆也放行，但把警示原样带出——「这可能产生一份过大的规格，维护成本会上升」。
-  **`WHERE / HOW / WHAT` 三问的 diy 承载位**：`usage`+`used_in`（WHERE）· `styling`+`states`+`variants`（HOW）· `behavior`（WHAT）。
-
-**落盘**：`components[]` 记录 + `revisions`。**完成本文件后**读 `./02-import.md`（若用户还要导入既有设计系统）或直接跳 `./03-view.md`。
-
-**检查点（六拍）**：① 生成 → ② 落盘（组件记录）→ ③ 分隔 → ④ 呈出记录摘要与铸号 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
-
-本文件到此结束，不再回头。
+1. **Simple** → 单条记录，`states` 至少 1 条。
+2. **Moderate** → 单条记录 + `notes` 一句写清「哪一部分将来会独立」。
+3. **Complex** → **先问用户要不要拆**（二选一，**绝不替用户拆**）；拆则**拆成多条记录、各铸各的号**，父件在 `related[]` 列子件 ID；用户不拆也放行，但把警示原样带出——「这可能产生一份过大的规格，维护成本会上升」。
+   - **`WHERE / HOW / WHAT` 三问的 diy 承载位**：`usage`+`used_in`（WHERE）· `styling`+`states`+`variants`（HOW）· `behavior`（WHAT）。
+4. **落盘**：`components[]` 记录 + `revisions`。**完成本文件后**读 `./02-import.md`（若用户还要导入既有设计系统）或直接跳 `./03-view.md`。
+5. **检查点（六拍）**：① 生成 → ② 落盘（组件记录）→ ③ 分隔 → ④ 呈出记录摘要与铸号 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+6. 本文件到此结束，不再回头。

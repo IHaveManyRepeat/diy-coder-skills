@@ -23,7 +23,9 @@ outputs: wds-scenarios.yaml
 2. 续接检测：跑 `list` 看有没有已在做的场景——**只回 `id` / `name` / `persona` / `pages` / `priority` / `status` 六字段，不读正文**：
    `python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
    有记录 → 播报六字段并问「① 接着做 / ② 复审调整 / ③ 推倒重来」，**HALT 等选择**；无记录 → 进第 3 步。
-3. 门禁（零产出退出）：读 `{output_dir}/wds-trigger.yaml`——**缺失 → 一行说明并零产出停止，路由 `diy-wds-trigger`**；其 `project.status: 已定稿` 不成立 → 同样零产出停止（`init` 会把两者机械兜住：`MISSING_FILE` / `STATUS_MISMATCH`）。门禁过 → 按它只读取 `business_goals[]` / `personas[]`（`TG-<n>` + 其驱动因素）/ `priority`；`{output_dir}/wds-brief.yaml` 可选读（SEO 关键词与站点上下文，缺则记 gap）。
+3. 门禁（零产出退出）：读 `{output_dir}/wds-trigger.yaml`——**缺失 → 一行说明并零产出停止，路由 `diy-wds-trigger`**；其 `project.status: 已定稿` 不成立 → 同样零产出停止（`init` 会把两者机械兜住：`MISSING_FILE` / `STATUS_MISMATCH`）。
+   - 门禁过 → 按它只读取 `business_goals[]` / `personas[]`（`TG-<n>` + 其驱动因素）/ `priority`。
+   - `{output_dir}/wds-brief.yaml` 可选读（SEO 关键词与站点上下文，缺则记 gap）。
 4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/wds-scenarios.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-context.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
@@ -38,7 +40,11 @@ outputs: wds-scenarios.yaml
 5. `steps/05-overview.md` — 场景索引呈出 → 页面覆盖矩阵与覆盖率核对（机械取 `show` 回执）。
 6. `steps/06-finish.md` — 质检四维 + 五维校验并入 → 交接与设计意图拍定 → 定稿与终门（含源 32 闸抽取清单）。
 
-写回纪律：骨架由第 1 步的 `init` 铸为 `project.status: 草稿`，首条记录 `SC-01` 同时铸号；逐场景把 `status` 从 `草稿` 推到 `已大纲`；定稿 = `project.status: 已定稿` + 全部记录 `已大纲`。`project.name` / `created` 与铸出的 `id` 由 `init` 铸造后**不再由你改**；`design_status` 只设初值 `not-started`（推进归下游设计技能）。
+写回纪律：
+1. 骨架由第 1 步的 `init` 铸为 `project.status: 草稿`，首条记录 `SC-01` 同时铸号。
+2. 逐场景把 `status` 从 `草稿` 推到 `已大纲`；定稿 = `project.status: 已定稿` + 全部记录 `已大纲`。
+3. `project.name` / `created` 与铸出的 `id` 由 `init` 铸造后**不再由你改**。
+4. `design_status` 只设初值 `not-started`（推进归下游设计技能）。
 
 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
@@ -72,15 +78,36 @@ revisions: []                               # {date, change, reason}
 
 1. 写范围：只写 `{output_dir}/wds-scenarios.yaml`（`scope` / `page_inventory` / `scenarios[]` / `revisions`）；不碰 `wds-brief.yaml` / `wds-trigger.yaml`（**上游只读——要修正走 `revisions` 建议或路由回上游技能重跑**）、不碰 `prd.yaml` / `design.yaml` / 源码，也不建任何散文件与目录树。
 2. **检查点四选项**（每步产出后，六拍不得省）：① 生成本步产出 → ② 落盘（编辑对应键/记录 + 推进记录级 `status`）→ ③ 显示检查点分隔 → ④ 呈出本步产出 → ⑤ 出四选项 → ⑥ 等响应。
-3. **选项落点**：`[a] Advanced Elicitation` → 调用 `diy-elicit`；`[p] Party-Mode` → 调用 `diy-party-mode`（两者**零写面**：增强 / 多视角产出的内容并入对应记录，调用返回后回到第 ② 拍重落盘）；`[c] Continue` → 直接进下一步；`[y] YOLO` → 后续步骤跳过 ⑤⑥（不停等），**②③④ 照旧**。无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
+3. **选项落点**：
+   - `[a] Advanced Elicitation` → 调用 `diy-elicit`；`[p] Party-Mode` → 调用 `diy-party-mode`（两者**零写面**：增强 / 多视角产出的内容并入对应记录，调用返回后回到第 ② 拍重落盘）。
+   - `[c] Continue` → 直接进下一步。
+   - `[y] YOLO` → 后续步骤跳过 ⑤⑥（不停等），**②③④ 照旧**。
+   - 无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
 4. **两个用户关卡不得省**：`01-context.md` 的规模分析呈批（用户关卡 1）与 `03-plan.md` 的场景计划呈批（用户关卡 2）——**没拿到明确点头不许往下走**。
-5. **三条骨律（源 step-05，全保）**：① **阳光路径零分支**（`pages[]` 有序、页号连续）；② **场景名必须含人物名**；③ **每页恰属一条战略链**（`page_inventory[]` 的每一页在全部 `scenarios[].pages[]` 里恰出现一次——漏配 / 重复分配 / 清单外的页各判违规）。
-6. **ID 体系**：场景 `SC-<nn>`、页面 `SC-<nn>.P<n>`（**废止独立的 `P-*` 前缀**）、人物引用 `TG-<n>`；页面 `slug` 用 `NN.<p>-<页 slug>` 形态作**展示名**，但它必须与 ID 同源（引擎机械核）；**ID 是唯一引用键**，记录之间一律引 ID 不复制内容。
-7. **终门（机械）**：先落 `project.status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。**WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
-8. **违规码**：登记＝集中表（`MISSING_FILE` / `UNPARSABLE_YAML` / `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ 已批码 `TOKEN_UNRESOLVED`（**零新增码**）；`SET_MISMATCH` 承载 ID 跳号 / 页号不连续 / slug 与 ID 不同源 / 覆盖矩阵违规四类。
-9. **无 `--previous` 轮**：`scenarios[]` 与 `pages[]` 只增不减，无 ID 集合收缩面；改既有记录往 `revisions` 追加（date / change / reason，`change` 点名 `SC-<nn>` 而不复制内容）。副作用面：除产物与静默渲染外无任何外部动作；产物内引用一律 project-root 相对 `path:line`。
-10. **边界（本技能产 WDS 线产物——不进 diy 主链 CHAIN；本产物是 `diy-design` WDS 线分支的硬门禁）**：vs `diy-design`——**双源**：主线 `prd.yaml` 的 `已定稿` 或本产物 `wds-scenarios.yaml` 的 `已定稿`，产 `design.yaml`（页 ID 取 `SC-<nn>.P<n>`；`design_status` 的推进写权归它，本技能只设初值）。vs `diy-epics-stories`——`SC-*`（场景 / 页面树）与 `S-*` / `AC-*`（主线故事）**不互译、不互替**。vs `diy-wds-brief` / `diy-wds-trigger`——它们是本技能的上游（触发图那份是硬门禁，只读）。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
-11. **本线风格与 HARM/HELP（源 Freya 线归位）**：把页面当成要被设计审视的对象摆出来——**规格必须完整**（源原则：不完整的规格到设计阶段一定要返工）、**先原型后生产**、**设计系统从实际使用中长出**。**HARM**：场景读起来顺、但页面上没有一页能承接这条交易（页清单与交易脱节，下游只能重做）；**HELP**：每条场景落盘前把「人物 → 驱动 → 交易 → 页」串一遍，交付一份不按键表也能读懂的记录。
+5. **三条骨律（源 step-05，全保）**：
+   - **阳光路径零分支**（`pages[]` 有序、页号连续）。
+   - **场景名必须含人物名**。
+   - **每页恰属一条战略链**（`page_inventory[]` 的每一页在全部 `scenarios[].pages[]` 里恰出现一次——漏配 / 重复分配 / 清单外的页各判违规）。
+6. **ID 体系**：
+   - 场景 `SC-<nn>`、页面 `SC-<nn>.P<n>`（**废止独立的 `P-*` 前缀**）、人物引用 `TG-<n>`。
+   - 页面 `slug` 用 `NN.<p>-<页 slug>` 形态作**展示名**，但它必须与 ID 同源（引擎机械核）。
+   - **ID 是唯一引用键**，记录之间一律引 ID 不复制内容。
+7. **终门（机械）**：先落 `project.status: 已定稿`，再跑 `python "{project-root}/.claude/skills/diy-wds-scenarios/scripts/wds_scenarios.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。
+   - **WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
+8. **违规码**：
+   - 登记＝集中表（`MISSING_FILE` / `UNPARSABLE_YAML` / `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ 已批码 `TOKEN_UNRESOLVED`（**零新增码**）。
+   - `SET_MISMATCH` 承载 ID 跳号 / 页号不连续 / slug 与 ID 不同源 / 覆盖矩阵违规四类。
+9. **无 `--previous` 轮**：
+   - `scenarios[]` 与 `pages[]` 只增不减，无 ID 集合收缩面；改既有记录往 `revisions` 追加（date / change / reason，`change` 点名 `SC-<nn>` 而不复制内容）。
+   - 副作用面：除产物与静默渲染外无任何外部动作；产物内引用一律 project-root 相对 `path:line`。
+10. **边界（本技能产 WDS 线产物——不进 diy 主链 CHAIN；本产物是 `diy-design` WDS 线分支的硬门禁）**：
+    - vs `diy-design`——**双源**：主线 `prd.yaml` 的 `已定稿` 或本产物 `wds-scenarios.yaml` 的 `已定稿`，产 `design.yaml`（页 ID 取 `SC-<nn>.P<n>`；`design_status` 的推进写权归它，本技能只设初值）。
+    - vs `diy-epics-stories`——`SC-*`（场景 / 页面树）与 `S-*` / `AC-*`（主线故事）**不互译、不互替**。
+    - vs `diy-wds-brief` / `diy-wds-trigger`——它们是本技能的上游（触发图那份是硬门禁，只读）。
+    - vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 3）。
+11. **本线风格与 HARM/HELP（源 Freya 线归位）**：把页面当成要被设计审视的对象摆出来——**规格必须完整**（源原则：不完整的规格到设计阶段一定要返工）、**先原型后生产**、**设计系统从实际使用中长出**。
+    - **HARM**：场景读起来顺、但页面上没有一页能承接这条交易（页清单与交易脱节，下游只能重做）。
+    - **HELP**：每条场景落盘前把「人物 → 驱动 → 交易 → 页」串一遍，交付一份不按键表也能读懂的记录。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

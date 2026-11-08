@@ -24,7 +24,9 @@ outputs: wds-assets.yaml
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 续接检测：跑 `list` 看有没有已在做的活动——**只回 `id` / `code` / `name` / `status` / `items` / `exported` 六字段，不读正文**：
    `python "{project-root}/.claude/skills/diy-wds-assets/scripts/wds_assets.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json` ｜ 有记录 → 播报六字段并问「① 接着做 / ② 复审调整 / ③ 推倒重来」，**HALT 等选择**；无记录 → 进第 3 步。
-3. 门禁（零产出退出）：读 `{output_dir}/wds-scenarios.yaml`——**缺失 → 一行说明并零产出停止，路由 `diy-wds-scenarios`**；其 `project.status: 已定稿` 不成立 → 同样零产出停止（`init` / `check` 会把两者机械兜住：`MISSING_FILE` / `STATUS_MISMATCH`）。门禁过 → 按它只读取 `scenarios[].pages[]` 的 `id`（`SC-<nn>.P<n>`）/ `name` / `purpose`；`{output_dir}/wds-design-system.yaml` **可选读**（缺 → 降级：`token_ref` 留空，并在收尾记 gap；**引擎不做令牌一致性校验**——在场时由会话按 `steps/09-finish.md` 第 1 步「令牌同源」逐条对表）。
+3. 门禁（零产出退出）：读 `{output_dir}/wds-scenarios.yaml`——**缺失 → 一行说明并零产出停止，路由 `diy-wds-scenarios`**；其 `project.status: 已定稿` 不成立 → 同样零产出停止（`init` / `check` 会把两者机械兜住：`MISSING_FILE` / `STATUS_MISMATCH`）。
+   - 门禁过 → 按它只读取 `scenarios[].pages[]` 的 `id`（`SC-<nn>.P<n>`）/ `name` / `purpose`。
+   - `{output_dir}/wds-design-system.yaml` **可选读**（缺 → 降级：`token_ref` 留空，并在收尾记 gap；**引擎不做令牌一致性校验**——在场时由会话按 `steps/09-finish.md` 第 1 步「令牌同源」逐条对表）。
 4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/wds-assets.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-wireframes.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
@@ -42,7 +44,10 @@ outputs: wds-assets.yaml
 8. `steps/08-presentation.md` — **演示/视觉传达（第 9 活动）**：6 步共享骨架 × 7 配方子模式 → **直出 HTML 成件** + **8 原则评审门**。
 9. `steps/09-finish.md` — 全活动质检（含 **`assets[]` 与实体文件双向对表**）+ **提示词导出包（需导出者）** + 3 轮迭代精修与 4 条红旗 + 定稿终门。
 
-写回纪律：骨架在 step 1 的 `init` 铸为 `project.status: 草稿` / `stage: 线框`（8 个活动壳一次铸出 + `AS-01` 起号）；逐活动把该活动的 `status` 从 `未开始` 推到 `进行中` → `已评审`；定稿 = `project.status: 已定稿` + `stage: 收尾` + 全部活动 `已评审`（未做的活动记 `已跳过` 并给理由）。`project.name` / `created` 与铸出的 `id` 由 `init` 铸造后**不再由你改**。
+写回纪律：
+1. 骨架在 step 1 的 `init` 铸为 `project.status: 草稿` / `stage: 线框`（8 个活动壳一次铸出 + `AS-01` 起号）。
+2. 逐活动把该活动的 `status` 从 `未开始` 推到 `进行中` → `已评审`；定稿 = `project.status: 已定稿` + `stage: 收尾` + 全部活动 `已评审`（未做的活动记 `已跳过` 并给理由）。
+3. `project.name` / `created` 与铸出的 `id` 由 `init` 铸造后**不再由你改**。
 
 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
@@ -72,17 +77,37 @@ revisions: []                               # {date, change, reason}
 ## 规则
 
 1. 写范围：只写 `{output_dir}/wds-assets.yaml`（各段与 `revisions`）与 `{output_dir}/assets/<活动>/` 下的产物文件；不碰 `wds-scenarios.yaml` / `wds-design-system.yaml`（**上游只读**——要修正走 `revisions` 建议或路由回上游技能重跑）、不碰 `design.yaml` / `prd.yaml` / 源码，也不建任何状态散文件。
-2. **不接任何外部服务**：不调 MCP、不调 Figma / Stitch / 任何生成服务。**产物由本技能直接产出、落 `assets/<活动>/`**——W/P/S 出 HTML · U 出 HTML/CSS · I 直写 SVG · V 按级出代码或故事板 · C 出成稿 · M 两路（插画直出 SVG / 照片走提示词）。**提示词导出保留为照片类资产通道与用户可选项**（`steps/09-finish.md` 第 2 步）；**不产二进制资产**（照片等由用户在外生成后回填，落同一目录）。
+2. **不接任何外部服务**：不调 MCP、不调 Figma / Stitch / 任何生成服务。
+   - **产物由本技能直接产出、落 `assets/<活动>/`**——W/P/S 出 HTML · U 出 HTML/CSS · I 直写 SVG · V 按级出代码或故事板 · C 出成稿 · M 两路（插画直出 SVG / 照片走提示词）。
+   - **提示词导出保留为照片类资产通道与用户可选项**（`steps/09-finish.md` 第 2 步）。
+   - **不产二进制资产**（照片等由用户在外生成后回填，落同一目录）。
 3. **检查点四选项**（每步产出后，六拍不得省）：① 生成本步产出 → ② 落盘（编辑对应键/记录 + 推进活动级 `status`）→ ③ 显示检查点分隔 → ④ 呈出本步产出 → ⑤ 出四选项 → ⑥ 等响应。
-4. **选项落点**：`[a] Advanced Elicitation` → 调用 `diy-elicit`；`[p] Party-Mode` → 调用 `diy-party-mode`（两者**零写面**：增强 / 多视角产出的内容并入对应记录，调用返回后回到第 ② 拍重落盘）；`[c] Continue` → 直接进下一步；`[y] YOLO` → 后续步骤跳过 ⑤⑥（不停等），**②③④ 照旧**。无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
+4. **选项落点**：
+   - `[a] Advanced Elicitation` → 调用 `diy-elicit`；`[p] Party-Mode` → 调用 `diy-party-mode`（两者**零写面**：增强 / 多视角产出的内容并入对应记录，调用返回后回到第 ② 拍重落盘）。
+   - `[c] Continue` → 直接进下一步。
+   - `[y] YOLO` → 后续步骤跳过 ⑤⑥（不停等），**②③④ 照旧**。
+   - 无头 / 非交互 = 全程 `[y]`（摘要一行明示），**不入 `deferred-actions` 队列**。
 5. **ID 体系**：活动 `AS-<nn>`（`01`–`08`，按 code 顺序固定）；条目 `AS-<nn>.<m>`（活动内递增序号，**父 ID 必须存在**）；`prompts[]` 的条目 **复用其来源条目的 ID**（派生索引，不另铸号）；`presentation[]` 用 `AS-08.<m>`。**ID 是唯一引用键**，记录之间一律引 ID 不复制内容。
-6. **可机械 vs 不可机械（不得假装全自动）**：引擎可机械核的 = 活动码齐备 / ID 唯一性与父子关系 / 枚举合法 / `assets[].path` 与 `prompts[].file` 落在本活动目录内 / 条目 `prompt` 非空（实现规格 / 导出提示词）/ 7 配方码合法 / 活动内序号递增；**不可机械、必须由人判定的** = 产物的**设计与质量**、提示词的**语义质量**（是否真把规格翻译成风格参数）、评审表里「隐喻清晰度」「品牌对齐」「文化敏感度」三项、以及 `data/stop-red-flags.md` 的四条红旗（何时该停手）。**注意（引擎不核的）**：产物实体文件是否真在 `assets/<活动>/` 下，引擎只核路径形态、不核文件存在——由会话在评审步与收尾质检时按 `steps/09-finish.md` 第 1 步**双向对表**自证（YAML 有路径必有文件、目录有产物必有条目，`prompts/` 子目录除外）。
-7. **终门（机械）**：先落 `project.status: 已定稿` + `stage: 收尾`，再跑 `python "{project-root}/.claude/skills/diy-wds-assets/scripts/wds_assets.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。**WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
-8. **违规码**：登记＝集中表（`MISSING_FILE` / `UNPARSABLE_YAML` / `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ 已批码 `TOKEN_UNRESOLVED`；`SET_MISMATCH` 承载「活动码缺项 / 父子 ID 不同源 / 资产路径越出 `assets/<活动>/` / 提示词条目无来源 / 活动内序号不递增」五类。
-9. **无 `--previous` 轮**：`activities[].items[]` 与 `prompts[]` 只增不减，无 ID 集合收缩面；改既有记录往 `revisions` 追加（date / change / reason，`change` 点名 `AS-<nn>.<m>` 而不复制内容）。副作用面：除产物、`assets/<活动>/` 下的自产文件与静默渲染外无任何外部动作；产物内引用一律 project-root 相对 `path:line`（**资产 / 提示词路径除外**——`assets[].path` / `prompts[].file` 按 **output_dir 相对**，见「资产落位」）。
+6. **可机械 vs 不可机械（不得假装全自动）**：
+   - 引擎可机械核的 = 活动码齐备 / ID 唯一性与父子关系 / 枚举合法 / `assets[].path` 与 `prompts[].file` 落在本活动目录内 / 条目 `prompt` 非空（实现规格 / 导出提示词）/ 7 配方码合法 / 活动内序号递增。
+   - **不可机械、必须由人判定的** = 产物的**设计与质量**、提示词的**语义质量**（是否真把规格翻译成风格参数）、评审表里「隐喻清晰度」「品牌对齐」「文化敏感度」三项、以及 `data/stop-red-flags.md` 的四条红旗（何时该停手）。
+   - **注意（引擎不核的）**：产物实体文件是否真在 `assets/<活动>/` 下，引擎只核路径形态、不核文件存在——由会话在评审步与收尾质检时按 `steps/09-finish.md` 第 1 步**双向对表**自证（YAML 有路径必有文件、目录有产物必有条目，`prompts/` 子目录除外）。
+7. **终门（机械）**：先落 `project.status: 已定稿` + `stage: 收尾`，再跑 `python "{project-root}/.claude/skills/diy-wds-assets/scripts/wds_assets.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json`——`exit 0` 是唯一放行；零 `[假设]`（未决项写 `revisions` 或就地补问）。渲染与收尾都等 exit 0。
+   - **WDS 型产物一律走本引擎终门**，不得改用 `diyc.py check --type`（那是主线 8 型封闭集）。
+8. **违规码**：
+   - 登记＝集中表（`MISSING_FILE` / `UNPARSABLE_YAML` / `DUPLICATE_ID` / `UNKNOWN_ID` / `EMPTY_FIELD` / `ENUM_INVALID` / `STATUS_MISMATCH` / `SET_MISMATCH` / `ASSUMPTION_PRESENT`）+ 已批码 `TOKEN_UNRESOLVED`。
+   - `SET_MISMATCH` 承载「活动码缺项 / 父子 ID 不同源 / 资产路径越出 `assets/<活动>/` / 提示词条目无来源 / 活动内序号不递增」五类。
+9. **无 `--previous` 轮**：
+   - `activities[].items[]` 与 `prompts[]` 只增不减，无 ID 集合收缩面；改既有记录往 `revisions` 追加（date / change / reason，`change` 点名 `AS-<nn>.<m>` 而不复制内容）。
+   - 副作用面：除产物、`assets/<活动>/` 下的自产文件与静默渲染外无任何外部动作；产物内引用一律 project-root 相对 `path:line`（**资产 / 提示词路径除外**——`assets[].path` / `prompts[].file` 按 **output_dir 相对**，见「资产落位」）。
 10. **不可机械的三处纪律要在场**：`data/iteration-refinement.md` 的**3 轮迭代精修**、`data/stop-red-flags.md` 的**4 条红旗**（过早优化 / 过度工程 / 分析瘫痪 / 工具崇拜）、`templates/prompt-export.template.md` 的**通用生成提示词骨架**——三条都不是外部服务资产，**逐条保留**，落点见 `steps/09-finish.md`。
-11. **边界（WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：vs `diy-design`——它产**结构稿与框架实现**（`design.yaml` + `prototypes/` + `src`，可跑、被 dev 采用），本技能产**视觉件与文案**；**本技能反向回填 `design.yaml` 的口在 diy 侧不存在**（`E-Assets` 的消费者为零，普查实测）——本技能是**链条终点**，下游无接线（`diy-design` 的 WDS 线分支读 `wds-scenarios.yaml` 与 `wds-design-system.yaml`，不读本产物）。vs `diy-wds-system`——它是**上游**（令牌与组件定义的来源，本技能可选读其产物）。vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 4）。
-12. **本线风格与 HARM/HELP**：**规格必须完整**（不完整的规格到生产阶段一定要返工）、**先原型后生产**、**设计系统从实际使用中长出**；**「UI 每次改动都要在浏览器里验证」**——凡产出 HTML 的活动，评审时**用浏览器实际打开核对**（本机 `playwright`），不是只看文件写没写对。**HARM**：产出一套看着齐、但产物与提示词都缺规格锚（页面 / 尺寸 / 令牌）的资产清单——回不来也改不动，比不做更糟；**HELP**：每条资产先落「服务哪一页、哪个尺寸、哪些令牌」，再直出产物（导出提示词时同理），交付一份拿得走、改得动的资产集。
+11. **边界（WDS 线经 `diy-design` 的 WDS 线分支汇入主线技能；本技能产 WDS 线产物——不进 diy 主链 CHAIN、不被主线任何门禁引用）**：
+    - vs `diy-design`——它产**结构稿与框架实现**（`design.yaml` + `prototypes/` + `src`，可跑、被 dev 采用），本技能产**视觉件与文案**；**本技能反向回填 `design.yaml` 的口在 diy 侧不存在**（`E-Assets` 的消费者为零，普查实测）——本技能是**链条终点**，下游无接线（`diy-design` 的 WDS 线分支读 `wds-scenarios.yaml` 与 `wds-design-system.yaml`，不读本产物）。
+    - vs `diy-wds-system`——它是**上游**（令牌与组件定义的来源，本技能可选读其产物）。
+    - vs `diy-elicit` / `diy-party-mode`——不是竞争是调用（见规则 4）。
+12. **本线风格与 HARM/HELP**：**规格必须完整**（不完整的规格到生产阶段一定要返工）、**先原型后生产**、**设计系统从实际使用中长出**；**「UI 每次改动都要在浏览器里验证」**——凡产出 HTML 的活动，评审时**用浏览器实际打开核对**（本机 `playwright`），不是只看文件写没写对。
+    - **HARM**：产出一套看着齐、但产物与提示词都缺规格锚（页面 / 尺寸 / 令牌）的资产清单——回不来也改不动，比不做更糟。
+    - **HELP**：每条资产先落「服务哪一页、哪个尺寸、哪些令牌」，再直出产物（导出提示词时同理），交付一份拿得走、改得动的资产集。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

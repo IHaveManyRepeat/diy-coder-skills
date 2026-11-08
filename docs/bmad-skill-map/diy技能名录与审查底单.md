@@ -210,6 +210,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 改动面（草案）：`diyc_check_docs_upstream.py`＋`diyc_check_docs_lib.py`（全 kind 表态断言）／`diy-architecture/SKILL.md`（结构＋规则）／design、readiness-check、test-design、dev、augment 输入面／`diy-help`（registry.yaml＋help.py／help_lib.py＋SKILL）／`diy-openapi`（若接口面判据改）／viewer（null 渲染）／相关 tests。
 
+**〔2026-11-07 立书·六项全裁＋三口连带回填毕〕**：任务书 `.analysis/2026-11-07-stack-kind-posture/taskbook.md`（SS-056 自扫 9 findings·1 阻断·终门 exit 0）→ §7 六裁全落——**1甲**（多值一条条列可写细·同 kind 值与 null 并存违规）／**2甲**（`null`）／**3＝推导案**（判据用户亲给：frontend 在场 ∧ language 存在「后端用」条目 → 有接口面·「只有前端或只有后端不需要接口」·不扩 kind 不开块·连带 language 逐条标前后端角色）／**4乙**（help 直读 architecture.yaml）＋**口3b**（缺席/损坏硬拒）／**5甲**（一件全做·排 Q-140/Q-144 后入队）／**6甲**（存量 warning 沿 Q-107）；口2 三处 null 目标行为已裁（design 拒跑／test-design 4 类在场组链全空拒跑／augment language null 变异不跑）。规格九处按裁回改毕（§3 改动面表·§4 grep 收窄·§5 样例·§7 回填·§8 判据）。**下一步＝呈审→入队（待 Q-140/Q-144 完工后）**。
+
 ## 待办：新增 bug 分析技能（编排 cis-method 问题求解）
 
 登记（2026-10-04 用户裁定立项；查证无对口技能）：现有面 = diy-investigate（取证调查，止于诊断报告，无机制消灭与经验沉淀）/ cis-method 问题求解（通用 9 步含根因·方案·经验教训，不面向 bug、无代码取证）/ retrospective（epic 级复盘）；BMAD 源 `bmad-analyze-bug` 未迁。
@@ -320,6 +322,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 **〔2026-11-01 部分销项·二〕v4·批7·内批1（7b）样板块已销**（任务书 `taskbook-batch7b.md`·§7 八裁 2026-10-29 全落）：prd/help SKILL.md 逐项化完工（133／80 行·冻结块单锚零动·表格段按「表格档」原样保留）＋help 样例边界三类清单定稿（**编号段**＝激活时/工作流/规则；**bullet 段**＝结构段四条注/回执键分支枚举/工作模式二选一；**表格段**＝prd 输入清单与字段映射——7c 起带表技能沿用）＋scaffold 模板呈核零改（SKILL_TEMPLATE 对照 7a 范式五要点合规·§7-5 甲）。**分批行勘正**：「须含 steps/ 文件实改」按 §7-4 甲照实测确认落空——prd/help 均无 steps/，不为凑裁定造 steps；steps 实改先例已由 7a bmb-builder 五件满足，铺开批各技能 steps 面 7c 起再验。余 7c/7d/7e 铺开未做。
 
 **〔2026-11-03 部分销项·三〕v4·批7·内批2（7c）A 主线六技能已完工**（任务书 `taskbook-batch7c.md`·§7 四裁 2026-11-02 全落：**1 甲**＝六技能一册、build-loop 不入不拆册；**2 甲**＝design steps 随册；**3 甲**＝architecture ≤104 断言不动、超线即停呈——实测 100 行未撞；**4**＝测试面确认零改）：六 SKILL.md 逐项化完工（architecture 97→100／openapi 103→107／design 108→110／epics-stories 101→105／test-design 120→128／sprint 97→98，均 ≤立书实测×1.5，design 110≤112 未撞）＋design steps 10 件随册逐项化（556→526·表格段与 Read/Write/Progress 行原样；k-sketch 圈号枚举 ①②③ 换列表号＝唯一标记级差异）。**验收**：冻结块对拍（INSTANCE／PRECISE／DISCIPLINE／READ_DISCIPLINE＋frontmatter 六字段＋四段）对开工前 HEAD 零动；去列表标记与空白后与 HEAD 逐字同（纯重排核证）；`check_body_rules` 六门零违规；定向 pytest 绿；`sync.sh` 50 技能冒烟过·涉改 16 件源装 md5 全同；全量 **1904+280 零红**（与开工基线同数）。**余 7d（WDS 线）／7e（横向）未做，批 7 整批未收口**；status.md 完工行不归本窗（主会话审后补）。**只注记不销段**。
+
+**〔2026-11-07 部分销项·四〕v4·批7·内批3（7d）WDS 线已完工**（任务书 `taskbook-batch7d.md`·§7 四裁 2026-11-06 全落）：**1 甲**＝六技能＋dev 随册 7 件（丙扩面未选）；**2 甲**＝steps 随册（39＋5 件）；**3 甲**＝链序分组一组一验、dev 末组；**4**＝程序性（测试面预期零改）。7 件 SKILL.md＋steps 44 件逐项化完工（六技能 SKILL 528→683、dev 88→104≤106 软线、steps 5005→4300；冻结块单锚零动·表格段原样）。**增肥实测各件均 ≤立书实测×1.5 线内**。**只注记不销段**。
 
 ## 待办：diy-help 游离「精准简练」句移除（单独技能级，随母本注入批）
 
@@ -453,6 +457,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - ① **L2 补推导规程**：AC→边界怎么推（输入等价类/域边界／状态字段非法迁移／错误路径静默兜底识别）＋「真会咬人」判据——补推导方法而非固定清单（守 lenses「边界类从内容自身推，不套固定清单」）；须写明与边界穷举透镜分层：L2＝必跑层高危快扫、透镜＝可选全量枚举（防透镜被架空）。
 - ② **L1 untraced 机械检测**：`diyc.py trace` 扩「扫面内方法定义缺 trace 行」报告——方法定义识别有误报面（lambda/嵌套函数/扫面口径），先裁后动（测试面纪律）。
 - ③ **falsify 六维最小探针**（每维一行打法）：与旧分析 leanness-4「证伪轮向更简」方向相抵、无产出差实证——待裁。
+
+**〔2026-11-07 任务书 §7 六项全裁·裁断闭合〕**：任务书＝`.analysis/2026-10-31-review-steps-deepen/taskbook.md`（10-31 立·SS-043 自检零阻断）——1＝**乙**（untraced 名单进回执字段不进 violations·L1 路由传导·exit 零变）；2＝**乙**（翻案荐甲·全扩展集 24 种多语言识别·按语言分治＋负样例扩多语言·§1.2 首期 .py 句作废）；3＝**判据＝归属确定**（行数之争作废·「只要能确定是这个方法的注释就行」·实现以紧邻块回溯为基＋注释语法随项 2 按语言分派）；4＝**甲**（`steps/falsify-ammo.md`）；5＝**甲**（弹药按 bug-log subclass 六键归档·账本 schema 零动）；6＝**认可大纲**。开工仍受两道门：批 7 完工合入前不开工（同文件协调）＋用户明示请令；**不入夜队列**（§6 已裁·正文创作与引擎语义审核门密度高）。
 
 改动面：①③＝diy-review `steps/l2-boundary.md`·`falsify.md`；②＝diy-tools diyc.py＋tests。协调：与逐项化批同文件（diy-review SKILL.md 正文），排先后避免改两遍；本条发现属 diy-review 一审范围（技能逐个审查行动线），一审行待审完由用户勾。
 
