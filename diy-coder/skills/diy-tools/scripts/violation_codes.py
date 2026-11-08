@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """违规码集中表——唯一登记落点（违规码机器契约 §7-1 甲·两区结构）。
 
-核心冻结区＝全 23 码（冻结，可扩展——扩须走契约审批）；
+核心冻结区＝全 22 码（冻结，可扩展——扩须走契约审批）；
 技能级区＝code -> (kind, owner 元组)。kind ∈ violation|warning|both；
 owner＝该码字面量出现的技能（三形态：v( / .add( / code=）。
 v() 构造前断言 code ∈ 两区并集（忘登记即红·运行时关卡）。
 """
 
-# ---- 核心冻结区（23 码·冻结契约原文逐字）----
+# ---- 核心冻结区（22 码·冻结契约原文逐字）----
 CORE = frozenset({
     "MISSING_FILE",
     "UNPARSABLE_YAML",
@@ -22,7 +22,6 @@ CORE = frozenset({
     "BLOCKED_NO_REASON",
     "STATUS_MISMATCH",
     "EVIDENCE_MISSING",
-    "EVIDENCE_ORDER",  # 零调用（2026-11-06 普查注记·清退另案登底单）
     "ID_UNSTABLE",
     "TRACE_UNRESOLVED",
     "ROUTE_INVALID",
