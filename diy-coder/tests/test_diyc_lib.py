@@ -334,6 +334,42 @@ class StoryCoveredTests(unittest.TestCase):
         self.assertEqual(self.docs.story_covered("S-99"), (True, []))
 
 
+class MultiInstanceScanTests(unittest.TestCase):
+    # trace: Q-148 判据单源——started_lines / discover_instances / chain_index
+    # （与 diy-help 聚合同判据：INSTANCE_RE 合规子目录 ＋ 含链产物）
+    def _world(self):
+        lines_meta = {"mainline": {}, "wds": {}}
+        chains = {"mainline": [{"files": ["prd.yaml"]}],
+                  "wds": [{"files": ["wds-brief.yaml"]}]}
+        return lines_meta, chains
+
+    def test_started_lines_any_node_file_counts(self):
+        lines_meta, chains = self._world()
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(diyc_lib.started_lines(d, lines_meta, chains), [])
+            Path(d, "wds-brief.yaml").write_text("x", encoding="utf-8")
+            self.assertEqual(diyc_lib.started_lines(d, lines_meta, chains), ["wds"])
+
+    def test_discover_instances_filters_compliance_and_chain(self):
+        lines_meta, chains = self._world()
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "v1").mkdir()          # 合规 + 含链产物 → 入列
+            Path(d, "v1", "prd.yaml").write_text("x", encoding="utf-8")
+            Path(d, "v2").mkdir()          # 合规 + 无链产物 → 不入列
+            Path(d, "bad dir").mkdir()     # 空格＝INSTANCE_RE 不合规 → 不入列
+            Path(d, "bad dir", "prd.yaml").write_text("x", encoding="utf-8")
+            found = diyc_lib.discover_instances(d, lines_meta, chains)
+            self.assertEqual([name for name, _ in found], ["v1"])
+
+    def test_chain_index_reads_registry_single_source(self):
+        idx = diyc_lib.chain_index()
+        self.assertIsNotNone(idx, "真仓库登记表应可松读")
+        lines_meta, chains = idx
+        self.assertIn("mainline", lines_meta)
+        files = [f for node in chains["mainline"] for f in node["files"]]
+        self.assertIn("prd.yaml", files, "链产物文件集须派生自 frontmatter outputs")
+
+
 @unittest.skipUnless(os.path.isdir(REAL_OUTPUT), "无真产物目录，跳过冒烟")
 class RealArtifactSmokeTests(unittest.TestCase):
     # 只读冒烟：Docs 能解析本仓库全部产物（不改一个字节）

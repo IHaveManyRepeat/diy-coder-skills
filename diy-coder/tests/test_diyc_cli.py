@@ -112,6 +112,47 @@ class ResolveTests(unittest.TestCase):
         self.assertEqual(p2.returncode, 1, p2.stdout + p2.stderr)
         self.assertIn("INTERNAL_ERROR", p2.stdout)
         self.assertNotIn("Traceback", p2.stderr)
+        # Q-148 SS-058-07：兜底占位回执不带问询两键（缺席不问）
+        self.assertNotIn("instances", r)
+        self.assertNotIn("ask_instance", r)
+
+    def test_resolve_instances_three_states(self):
+        # Q-148 回执两键三态：无子链→空不问；平铺根空+子链在→列问；平铺根有产物→不问
+        out = os.path.join(self.root, "diy-output")
+        r = jload(run_diyc(self.root, "resolve", "--json"))
+        self.assertEqual(r["instances"], [])
+        self.assertFalse(r["ask_instance"])
+
+        v1 = os.path.join(out, "v1")
+        os.makedirs(v1)
+        with open(os.path.join(v1, "prd.yaml"), "w", encoding="utf-8") as f:
+            f.write("project:\n  status: 草稿\n")
+        bad = os.path.join(out, "bad dir")  # 含空格＝INSTANCE_RE 不合规，不得入列
+        os.makedirs(bad)
+        with open(os.path.join(bad, "prd.yaml"), "w", encoding="utf-8") as f:
+            f.write("project:\n  status: 草稿\n")
+        r = jload(run_diyc(self.root, "resolve", "--json"))
+        self.assertEqual(r["instances"], ["v1"], "仅合规且含链产物的子目录入列")
+        self.assertTrue(r["ask_instance"], "平铺根空 + 子链在 → 问")
+
+        with open(os.path.join(out, "prd.yaml"), "w", encoding="utf-8") as f:
+            f.write("project:\n  status: 草稿\n")
+        r = jload(run_diyc(self.root, "resolve", "--json"))
+        self.assertEqual(r["instances"], ["v1"], "instances 键独立存在，与问否互不搅")
+        self.assertFalse(r["ask_instance"], "平铺根有链产物 → 不问")
+
+    def test_resolve_ask_human_line_only_when_ask(self):
+        # Q-148 人读态：仅 ask_instance=true 才出多实例行
+        p = run_diyc(self.root, "resolve")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("多实例：", p.stdout)
+        v1 = os.path.join(self.root, "diy-output", "v1")
+        os.makedirs(v1)
+        with open(os.path.join(v1, "prd.yaml"), "w", encoding="utf-8") as f:
+            f.write("project:\n  status: 草稿\n")
+        p = run_diyc(self.root, "resolve")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("多实例：instances=[v1]·平铺根无产物 → 问用户选用", p.stdout)
 
     def test_resolve_missing_config(self):
         os.remove(os.path.join(self.root, "diy-coder.yaml"))

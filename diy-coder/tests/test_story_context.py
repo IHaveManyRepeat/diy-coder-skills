@@ -551,10 +551,10 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("--json", skill, "终门句缺 --json 回执")
         self.assertIn("diyc.py\" resolve", skill, "实例解析未委托 diyc.py resolve")
 
-    # trace: 母本 §四 / 政策（四段中文标题 + ≤93 行预算 + description 中文注释 + 步名点名）
+    # trace: 母本 §四 / 政策（四段中文标题 + ≤94 行预算〔2026-11-08 Q-148 多实例句 +1 抬线〕 + description 中文注释 + 步名点名）
     def test_thin_main_file_structure(self):
         skill = self.read_skill()
-        self.assertLessEqual(len(skill.splitlines()), 93, "薄主文件超出 93 行预算")
+        self.assertLessEqual(len(skill.splitlines()), 94, "薄主文件超出 93 行预算")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, skill, "SKILL.md 缺四段：%s" % section)
         self.assertIn("name: diy-create-story", skill)

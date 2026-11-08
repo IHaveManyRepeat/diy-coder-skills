@@ -51,6 +51,11 @@ PRECISE_ZH = ('- **精准简练。** 写进产物的每条内容都要精准、�
 # 母本 §3 配置解析锚串（与 test_suite_texts.py 的 ANCHOR_RESOLVE_KEYS 同值同形）
 CONFIG_ZH = ("解析 `project.communication_language` / "
              "`project.document_output_language` / `paths.output_dir`")
+# 多实例感知句（Q-148·47 技能激活头同句面·与 bmb_builder_lib.FROZEN_MULTI_INSTANCE 同文）
+MULTI_INSTANCE_ZH = ('多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户'
+                     '用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；'
+                     '为 false 或 instances 空则照常执行；无头会话不问（由调用方经 '
+                     'runner.py --instance 声明）。')
 
 COMMON_KEYS = ("ok", "command", "project_root", "output_dir",
                "violations", "warnings", "counts")
@@ -160,6 +165,15 @@ class ScaffoldTests(EngineCase):
             self.assertIn(section, body, "起手 SKILL.md 缺 %r" % section)
         self.assertIn("name: demo-skill", body)
         self.assertIn(INSTANCE_ZH, body, "起手 SKILL.md 须带母本 §1 定稿句")
+
+    def test_scaffold_carries_multi_instance_sentence(self):
+        # Q-148 SS-058-09：模板随 47 句面同批跟改——新造技能不得出旧句面
+        proc = self.scaffold("demo-skill")
+        self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+        body = read(os.path.join(self.skills, "demo-skill", "SKILL.md"))
+        self.assertIn(MULTI_INSTANCE_ZH, body, "起手 SKILL.md 须带多实例感知句")
+        self.assertLess(body.index(INSTANCE_ZH), body.index(MULTI_INSTANCE_ZH),
+                        "多实例感知句须位于实例解析句之后")
 
     def test_bad_name_and_existing_target(self):
         proc = self.scaffold("Demo Skill")

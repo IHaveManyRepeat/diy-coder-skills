@@ -23,6 +23,7 @@ outputs: project-context.yaml
    缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；为 false 或 instances 空则照常执行；无头会话不问（由调用方经 runner.py --instance 声明）。
 2. 目标文件：`{output_dir}/project-context.yaml`——唯一源头。它的 `scan` 块承载 mode / level / date / parts；不存在任何其它状态文件。
 3. 模式判定：文件缺席 → **全量**；文件在场 → 读它的 `scan` 块并给三个选项：**重扫**（重扫整个项目，以记录的日期为增量窗口起点）、**深挖**（对单一区域穷尽）、或 **Cancel**（文件原样保留）。
 4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/project-context.yaml` 只在铸下一个 `PC-###`、按 `id:` 行改一条规则、或读 `scan` 块判模式时才打开。事实取引擎的 JSON 回执，绝不手工重扫。本 schema 不定义 `plain` / `detail` 字段——没有可跳过的内容。

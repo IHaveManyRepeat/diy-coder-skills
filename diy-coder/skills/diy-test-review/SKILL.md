@@ -23,6 +23,7 @@ outputs: test-review.yaml
    - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；为 false 或 instances 空则照常执行；无头会话不问（由调用方经 runner.py --instance 声明）。
 2. scope：用户给的路径/目录优先；未给则问一次（本技能不自行发明评审集）。
 3. `scan` 发现文件并跑机械面（评审集之外取样惯例语料）：
    `python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" scan --paths <P> --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--paths` 可重复）

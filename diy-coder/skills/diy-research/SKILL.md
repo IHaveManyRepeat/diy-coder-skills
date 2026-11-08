@@ -21,6 +21,7 @@ outputs: research.yaml
    - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；为 false 或 instances 空则照常执行；无头会话不问（由调用方经 runner.py --instance 声明）。
 2. 目标文件：`{output_dir}/research.yaml`。在场 → **Update**，缺席 → **Create**。记录 ID 铸为既有最大 `RS-###` + 1、三位零填充；永不重编号、永不复用。追加新记录 = 文件追加（不触发 `.prev`）；改写既有记录的字段 = 记录级重写（规则 5 的触发条件）。
 3. 改写既有记录前，先把该记录 `status` 回退 `草稿`；改完按规则 6 重新置 `已定稿` 并重跑终门（`check --final --id RS-xxx`）。
 4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。

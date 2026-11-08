@@ -21,6 +21,7 @@ outputs: design.yaml
    缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；为 false 或 instances 空则照常执行；无头会话不问（由调用方经 runner.py --instance 声明）。
 2. **源判定（门禁 + 零产出）**：读 `{output_dir}/prd.yaml` 的 `project.status: 已定稿` → **主线**（页 ID 写 `P-n`；实现类禁做按 `OS-###`/`src` 从 prd `out_of_scope` 摄取）；读 `{output_dir}/wds-scenarios.yaml` 的 `project.status: 已定稿` → **WDS 线**（页 ID 写 `SC-<nn>.P<n>`，**不得另铸 `P-*`**；按每条场景的 `design_intent`（`K|C|S|D|L`）预选活动，并**回写该键所在的 `design_status`**（值域与推进表见「规则」1）——本技能是它唯一的推进写权，`wds-scenarios.yaml` 其余字段一律只读）。
    两源俱在 → 问用户一次走哪条；**两者都缺或不满足 → 停下，一行说明缺什么，按用途路由**（产品 → `diy-prd`；官网/营销站 → `diy-wds-brief`）；**零产出**（不写空 design.yaml、不写占位原型）。字段与取数口径见 `steps/scenario-bridge.md`。
    **可选上游（非门禁）**：仅主线——`{output_dir}/cis-method.yaml` 在场且用户指名 `CM-###`（`method: 设计思维`、`status: 已完成`）→ 按 ID 引用消费，落顶层 `cm_refs`（见「结构」；起草时写入用户指名的 ID，换指时覆盖为当前引用集）；只读、只取 `deliverable` 相关键、不复制内容；缺席零阻塞、不改双源门禁；WDS 线不消费；源文件不可解析停下告知（不静默当缺席）。

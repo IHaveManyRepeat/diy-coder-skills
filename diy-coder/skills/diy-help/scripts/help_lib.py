@@ -28,7 +28,7 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "diy-tools", "scripts"))
-from diyc_lib import load_yaml  # noqa: E402
+from diyc_lib import load_yaml, started_lines  # noqa: E402  含链判定迁 diyc_lib 单源（Q-148）
 from diyc_lib_base import DuplicateKeyError, load_yaml_text  # noqa: E402
 
 DEFAULT_STATUS_PATH = ("project", "status")
@@ -252,13 +252,6 @@ def scan_sprint(output_dir, exec_skill, queue_file):  # trace: S-13 AC-13.1 TC-1
     if all(t.get("status") == "已完成" for t in tasks):
         return None, None, True
     return exec_skill, None, False  # 该线登记表声明的执行技能（主线 = diy-build-loop）
-
-
-def started_lines(output_dir, lines_meta, chains):
-    """目录内有链产物的线名列表（任一链节点文件存在即算）。"""
-    return [n for n in lines_meta if any(
-        os.path.isfile(os.path.join(output_dir, f))
-        for node in chains[n] for f in node["files"])]
 
 
 def evaluate(output_dir, lines_meta, chains, branches, line_arg):

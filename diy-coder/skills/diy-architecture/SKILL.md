@@ -21,6 +21,7 @@ outputs: architecture.yaml
    缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；为 false 或 instances 空则照常执行；无头会话不问（由调用方经 runner.py --instance 声明）。
 2. **源判定（双源四情形；主线门禁 = `prd.yaml` 的 `project.status: 已定稿`，WDS 线 = `wds-scenarios.yaml` 的同名门禁——等价定义，不得把 WDS 线硬塞进 `prd.yaml` 门禁的例外）**：
    - 主线可用 · WDS 缺 → **主线**（本技能现状一条不改）。
    - 两源皆可用 → **问用户一次走哪条**（不静默选边），选定后按对应条线走。
@@ -28,7 +29,7 @@ outputs: architecture.yaml
    - 两源俱缺 → **停下 + 零产出**（不写空 `architecture.yaml`）——一行说明缺什么，按用途路由：产品 → `diy-prd`；官网/营销站 → `diy-wds-brief`；场景未定稿 → `diy-wds-scenarios`。
    - 主线**在场**但非 `已定稿` → 预警并问是否照样继续（棕地例外；WDS 同时可用则并入上一次问询，由用户定走哪条）；继续即留痕、**不留悬空豁免**——在 `risks[]` 落一条 `R-###`：`risk` 写「以 `prd.yaml`（记明其 `status` / `updated` 快照）为基线继续，用户已裁定」，`mitigation` 写「`prd.yaml` 定稿后重跑本技能 Update，复核每条 `decisions[].affects`」。
 3. 目标文件：`{output_dir}/architecture.yaml`。判意图：
-   - **Create** —— 文件缺席 → 从零走决策批次。
+   - **Create** —— 文件缺席：回执 `instances` 非空时先读**最新**实例（按 `mtime`）的 `architecture.yaml`，提示写明所读版本名，问一次「继承作起点／从零设计」——继承则只复制 `stack[]`＋`components[]`（`decisions[]` 仅展示参考、零复制：其 `affects` 指前代 FR，复制即断链），此后各版本各自演化，不告警不阻断；`instances` 空 → 从零走决策批次。
    - **Update** —— 文件在场 → 先 `cp {output_dir}/architecture.yaml {output_dir}/architecture.yaml.prev`，载入既有稿同用户的变更信号对账：`D-*` / `C-*` / `R-*` ID 保持稳定、永不重编号，`updated` 刷今天；新稿写完后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type architecture --previous {output_dir}/architecture.yaml.prev --json`（exit 0 = 无记录丢失）。
    - **非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净才删掉 `.prev` 文件。
    - 二者都说不通 → 问用户一次，别猜。
