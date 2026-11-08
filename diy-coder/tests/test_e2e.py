@@ -26,6 +26,8 @@ import sys
 import tempfile
 import unittest
 
+import yaml
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.join(HERE, "..", "skills", "diy-e2e-tests")
 ENGINE = os.path.join(SKILL_DIR, "scripts", "e2e.py")
@@ -186,6 +188,11 @@ class EngineCase(unittest.TestCase):
 
     def record(self, tc_file, *extra):
         return run_engine(["record", "--tc-file", tc_file,
+                           "--project-root", self.root,
+                           "--output-dir", self.out, "--json"] + list(extra))
+
+    def refresh(self, tc_id, evidence, *extra):
+        return run_engine(["refresh", "--tc-id", tc_id, "--evidence", evidence,
                            "--project-root", self.root,
                            "--output-dir", self.out, "--json"] + list(extra))
 
@@ -400,6 +407,97 @@ class RecordTests(EngineCase):
         self.assertEqual(r3.returncode, 2, r3.stdout + r3.stderr)
         r4 = run_engine(["detect", "--project-root", self.root, "--json"])
         self.assertEqual(r4.returncode, 2, r4.stdout + r4.stderr)
+
+
+def refresh_evidence(tc_id="TC-1.1.1", status="通过", **extra):
+    """重跑回执：最小形态 id + status；extra 模拟回执携带的额外键。"""
+    entry = {"id": tc_id, "status": status}
+    entry.update(extra)
+    return json.dumps([entry], ensure_ascii=False)
+
+
+class RefreshTests(EngineCase):
+    """refresh 子命令：重跑回执门 + 仅 status 可变（状态回写唯一通道）。"""
+
+    def setUp(self):
+        super().setUp()
+        self.write("diy-output/stories.yaml", STORIES_YAML)
+        # 既有条目先置失败——翻绿只能走 refresh
+        self.write("diy-output/test-plan.yaml",
+                   TEST_PLAN_YAML.replace("  status: 通过", "  status: 失败"))
+        self.before = self.read("diy-output/test-plan.yaml")
+
+    def assert_only_status_changed(self):
+        """整档解析面对比：除目标条目 status 外，任何字段都不得变。"""
+        before_doc = yaml.safe_load(self.before)
+        after_doc = yaml.safe_load(self.read("diy-output/test-plan.yaml"))
+        b = next(c for c in before_doc["test_cases"] if c["id"] == "TC-1.1.1")
+        a = next(c for c in after_doc["test_cases"] if c["id"] == "TC-1.1.1")
+        a["status"] = b["status"]
+        self.assertEqual(after_doc, before_doc, "refresh 只许动该条目 status 一键")
+
+    # trace: Q-145 裁面①（证据在场 → status 翻转成功且其余字段逐字不变）
+    def test_refresh_flips_status_with_evidence_and_freezes_rest(self):
+        ev = self.write("rerun.json", refresh_evidence(status="通过"))
+        r = self.refresh("TC-1.1.1", ev)
+        self.assertEqual(r.returncode, 0, r.stderr + r.stdout)
+        data = json.loads(r.stdout)
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["command"], "refresh")
+        self.assertEqual(data["refreshed"], ["TC-1.1.1"])
+        self.assertEqual(data["status"], {"before": "失败", "after": "通过"})
+        self.assertEqual(data["counts"]["refreshed"], 1)
+        self.assert_only_status_changed()
+        self.assertIn("status: 通过", self.read("diy-output/test-plan.yaml"))
+
+    # trace: Q-145 裁面②（证据缺失/对不上 → 拒绝且文件零变化）
+    def test_refresh_rejects_missing_or_mismatched_evidence_with_zero_write(self):
+        # 回执文件缺席
+        r = self.refresh("TC-1.1.1", os.path.join(self.root, "absent.json"))
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn("MISSING_FILE",
+                      {x["code"] for x in json.loads(r.stdout)["violations"]})
+        self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
+        # 回执不含该 TC（对不上）
+        ev = self.write("rerun.json", refresh_evidence(tc_id="TC-9.9.9"))
+        r2 = self.refresh("TC-1.1.1", ev)
+        self.assertEqual(r2.returncode, 1, r2.stdout)
+        self.assertIn("UNKNOWN_ID",
+                      {x["code"] for x in json.loads(r2.stdout)["violations"]})
+        self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
+        # 回执 status 越界（翻绿须以实测回执为凭，非法值拒绝）
+        ev2 = self.write("rerun2.json", refresh_evidence(status="待办"))
+        r3 = self.refresh("TC-1.1.1", ev2)
+        self.assertEqual(r3.returncode, 1, r3.stdout)
+        self.assertIn("ENUM_INVALID",
+                      {x["code"] for x in json.loads(r3.stdout)["violations"]})
+        self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
+        # 计划里无此条目（不新建）
+        r4 = self.refresh("TC-7.7.7", ev2)
+        self.assertEqual(r4.returncode, 1, r4.stdout)
+        self.assertIn("UNKNOWN_ID",
+                      {x["code"] for x in json.loads(r4.stdout)["violations"]})
+        self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
+        # --output-dir 必填（用法错误 exit 2）
+        r5 = run_engine(["refresh", "--tc-id", "TC-1.1.1", "--evidence", ev2,
+                         "--project-root", self.root, "--json"])
+        self.assertEqual(r5.returncode, 2, r5.stdout + r5.stderr)
+        self.assertEqual(self.read("diy-output/test-plan.yaml"), self.before)
+
+    # trace: Q-145 裁面③（status 之外字段不可变——回执携带的额外键不落盘）
+    def test_refresh_ignores_non_status_fields_in_evidence(self):
+        ev = self.write("rerun.json", refresh_evidence(
+            status="通过", title="篡改标题", kill_target="FH-9.9.9",
+            steps=["篡改步骤"], ac="AC-1.1"))
+        r = self.refresh("TC-1.1.1", ev)
+        self.assertEqual(r.returncode, 0, r.stderr + r.stdout)
+        data = json.loads(r.stdout)
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["status"], {"before": "失败", "after": "通过"})
+        self.assert_only_status_changed()
+        plan = self.read("diy-output/test-plan.yaml")
+        self.assertIn("title: 既有单元用例", plan, "回执携带的 title 不得落盘")
+        self.assertIn("kill_target: FH-1.1.1", plan, "回执携带的 kill_target 不得落盘")
 
 
 class DiycDegradeTests(unittest.TestCase):

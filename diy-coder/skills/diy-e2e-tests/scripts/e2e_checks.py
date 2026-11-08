@@ -164,6 +164,25 @@ def check_case(case, index, show, known_ids, seen_new, known_acs, stories_availa
                             "steps 缺失或为空（用例须可执行：具体步骤 + 预期结果）"))
     return violations
 
+# ---------------------------------------------------------------- refresh
+
+def check_refresh_evidence(ev_case, tc_id, plan_ac, ev_show):
+    """refresh 证据核：重跑回执须与既有条目对得上（status 翻转的放行面）。
+
+    回执只消费 `status`（`ac` 可选交叉核）——其余键即便携带也不参与核对、不落盘。
+    """
+    violations = []
+    if not isinstance(ev_case, dict):
+        return [v("ENTRY_INVALID", ev_show, "回执条目不是映射")]
+    where = "%s %s" % (ev_show, tc_id)
+    enum(violations, where + ".status", ev_case.get("status"),
+         RECORD_STATUSES, "status")
+    ev_ac = ev_case.get("ac")
+    if nonempty(ev_ac) and nonempty(plan_ac) and str(ev_ac) != str(plan_ac):
+        violations.append(v("ENTRY_INVALID", where + ".ac",
+                            "回执 ac 与既有条目对不上：%s vs %s" % (ev_ac, plan_ac)))
+    return violations
+
 def load_known(output_dir, show, violations, warnings):
     """既有 test-plan.yaml → (plan, 既有 TC id 集, 故事 AC 集)。缺失 → 违规（零产出）。"""
     plan, err = load_yaml_safe(os.path.join(output_dir, PLAN_FILE))

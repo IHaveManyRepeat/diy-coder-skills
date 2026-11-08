@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""diy-e2e-tests 确定性引擎：测试框架探测（detect）+ e2e 用例追加写回（record）。
+"""diy-e2e-tests 确定性引擎：测试框架探测（detect）+ e2e 用例追加写回（record）
++ 既有条目状态刷新（refresh）。
 
 子命令：
   detect  语言无关的项目探测（只读）：依次读 package.json / pyproject.toml /
@@ -19,6 +20,12 @@
           全部通过才写（原子：同目录临时文件 + os.replace）。随后委派
           `diyc.py check --type test-plan --json` 交叉验证追加后的全链——其违规并入
           回执 `diyc` 键（warning 面），不阻塞本命令的写权结论。
+  refresh 翻转既有条目 `status`（e2e 重跑会话专用的唯一回写通道）：读
+          {output_dir}/test-plan.yaml 既有条目 + `--evidence` 重跑回执 JSON
+          （形态同 record 的 TC 文件：至少 id + status，ac 可选），机械核回执含
+          `--tc-id`、status ∈ {通过, 失败}、ac 与既有条目一致——对不上即拒
+          （exit 1 + 零写入）。写回只替换该条目 `status` 一键，ID/AC/kill_target
+          等锚点面与 `project` 面冻结（除 status 外任何字段写入即违规）。
 
 分工裁定：e2e 生成不新增产物类型，写权三面 = ① test-plan.yaml 追加 TC
 ② 项目测试目录的测试代码 ③ 收尾会话摘要；不写 sprint.yaml / stories.yaml / 其他产物。
@@ -43,7 +50,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
 from diyc_lib import display_path, diyc_script_path, nonempty, now, save_yaml_atomic, v  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from e2e_checks import PLAN_FILE, check_case, diyc_check_test_plan, load_known, load_tc_cases  # noqa: E402,F401
+from e2e_checks import (PLAN_FILE, TC_RE, check_case, check_refresh_evidence,  # noqa: E402,F401
+                        diyc_check_test_plan, load_known, load_tc_cases)
 from e2e_detect import cmd_detect  # noqa: E402
 
 def cmd_record(args):
@@ -164,11 +172,114 @@ def cmd_record(args):
             print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
     return 0 if ok else 1
 
+def cmd_refresh(args):
+    """既有条目 status 翻转（唯一回写通道）：重跑回执核过才写，除 status 外零动。"""
+    root = os.path.abspath(args.project_root)
+    out = os.path.abspath(args.output_dir)
+    plan_path = os.path.join(out, PLAN_FILE)
+    show = display_path(plan_path, root)
+    ev_show = display_path(os.path.abspath(args.evidence), root)
+    tc_id = str(args.tc_id).strip() if args.tc_id else ""
+    violations = []
+    warnings = []
+
+    plan, known_ids, _known_acs, _stories_available = load_known(
+        out, show, violations, warnings)
+    evidence = None
+    target = None
+    hit = None
+    if plan is not None:
+        if not tc_id:
+            violations.append(v("EMPTY_FIELD", "refresh --tc-id", "tc-id 缺失或为空"))
+        elif not TC_RE.fullmatch(tc_id):
+            violations.append(v("ENUM_INVALID", "refresh --tc-id",
+                                "id 须为 TC-{ac}.{seq}（如 TC-5.1.2），实为 %s" % tc_id))
+        elif tc_id not in known_ids:
+            violations.append(v("UNKNOWN_ID", show,
+                                "%s 不在既有条目中——refresh 只翻既有条目状态，不新建条目"
+                                % tc_id))
+        else:
+            evidence, ev_violations = load_tc_cases(
+                os.path.abspath(args.evidence), ev_show)
+            violations += ev_violations
+
+    if plan is not None and evidence is not None and not violations:
+        target = next((c for c in plan.get("test_cases")
+                       if isinstance(c, dict) and str(c.get("id")) == tc_id), None)
+        hit = next((c for c in evidence
+                    if isinstance(c, dict) and str(c.get("id")) == tc_id), None)
+        if hit is None:
+            violations.append(v("UNKNOWN_ID", ev_show,
+                                "回执不含 %s 的重跑结果——状态翻转须以重跑实测为凭" % tc_id))
+        else:
+            violations += check_refresh_evidence(
+                hit, tc_id, target.get("ac") if isinstance(target, dict) else None, ev_show)
+
+    before = after = None
+    cases_total = 0
+    if isinstance(plan, dict) and isinstance(plan.get("test_cases"), list):
+        cases_total = len(plan["test_cases"])
+    diyc_block = {"available": False, "script": None,
+                  "check": {"ok": None, "violations": [], "counts": {}}}
+    ok = not violations
+    if ok:
+        # 只回写 status 一键：条目复制体换 status，其余键与 project 面原样
+        before = target.get("status")
+        after = hit.get("status")
+        new_cases = []
+        for c in plan["test_cases"]:
+            if c is target:
+                c = dict(c)
+                c["status"] = after
+            new_cases.append(c)
+        updated_plan = dict(plan)
+        updated_plan["test_cases"] = new_cases
+        try:
+            save_yaml_atomic(plan_path, updated_plan)
+        except OSError as e:
+            violations.append(v("TOOL_ERROR", show, "写回失败（原文件未改）：%s" % e))
+            ok = False
+            before = after = None
+        else:
+            diyc_block, diyc_warnings = diyc_check_test_plan(
+                diyc_script_path(), root, out)
+            warnings += diyc_warnings
+
+    payload = {
+        "ok": ok,
+        "command": "refresh",
+        "project_root": args.project_root,
+        "output_dir": os.path.normpath(out).replace("\\", "/"),
+        "refreshed": [tc_id] if ok else [],
+        "status": {"before": before, "after": after} if ok else None,
+        "violations": violations,
+        "warnings": warnings,
+        "counts": {"refreshed": 1 if ok else 0, "cases_total": cases_total},
+        "diyc": diyc_block,
+    }
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False))
+    else:
+        if ok:
+            print("PASS：刷新 1 条 e2e 用例状态（%s: %s → %s）→ %s（总用例 %d）"
+                  % (tc_id, before, after, show, cases_total))
+            for item in diyc_block["check"]["violations"]:
+                print("- [diyc] %s %s: %s" % (item.get("code"), item.get("where"),
+                                              item.get("msg")))
+        else:
+            print("FAIL：刷新被拒绝，零写入")
+            for item in violations:
+                print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
+        for item in warnings:
+            print("- %s %s: %s" % (item["code"], item["where"], item["msg"]))
+    return 0 if ok else 1
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(
-        description="diy-e2e-tests 确定性引擎：测试框架探测（detect）+ e2e 用例追加（record）")
+        description="diy-e2e-tests 确定性引擎：测试框架探测（detect）+ e2e 用例追加"
+                    "（record）+ 既有条目状态刷新（refresh）")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     d = sub.add_parser("detect", help="语言无关框架探测（只读；无框架回 suggested，不自动安装）")
@@ -185,6 +296,16 @@ def main():
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     r.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
     r.set_defaults(func=cmd_record)
+
+    f = sub.add_parser("refresh", help="翻转既有条目 status（重跑回执核过才写；除 status 外零动）")
+    f.add_argument("--tc-id", required=True, help="既有 TC ID（如 TC-5.1.2）——只翻这一条")
+    f.add_argument("--evidence", required=True,
+                   help="重跑回执 JSON（形态同 record 的 TC 文件：id + status，ac 可选）")
+    f.add_argument("--project-root", default=".", help="项目根（默认 .）")
+    f.add_argument("--output-dir", required=True,
+                   help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
+    f.add_argument("--json", action="store_true", help="输出单行 JSON 回执")
+    f.set_defaults(func=cmd_refresh)
 
     args = ap.parse_args()
     sys.exit(args.func(args))
