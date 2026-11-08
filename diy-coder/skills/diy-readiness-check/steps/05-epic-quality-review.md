@@ -54,7 +54,7 @@ Progress: `文档发现 → 需求清点 → 覆盖校验 → UX 对齐 → [史
 
 - **脚手架（Starter template）**：取值路径 = 取 `architecture.yaml` 的 `stack[]` 里 `kind: scaffold` 那一条的 `choice`。
   - 找到 → 史诗 1 的故事 1 必须是基于它的初始项目搭建（clone、依赖、初始配置），缺失 → `高`。
-  - 找不到（`stack[]` 里没有 `kind: scaffold` 条目）→ 该检查不成立：一行说明后跳过，**不落 finding**——绝不为凑检查去猜一个脚手架。
+  - 找不到（`stack[]` 里没有 `kind: scaffold` 条目，或该条 `choice: null`——不适用）→ 该检查不成立：一行说明后跳过，**不落 finding**——绝不为凑检查去猜一个脚手架。
 - **绿地 vs 棕地**：绿地期望有初始搭建 story、开发环境配置与早期 CI/CD；棕地期望与既有系统的集成点、迁移/兼容 story。
   - 该有而缺 → `中`，并点名缺的是什么。
 

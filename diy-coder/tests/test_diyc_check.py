@@ -95,6 +95,20 @@ def arch_doc(decisions=None, **over):
     return doc
 
 
+def full_stack():
+    """七类逐类表态的正样例（裁1甲）：适用类写值条目，不适用类补 `choice: null` 汇总行。"""
+    return [
+        {"id": "ST-001", "kind": "frontend", "choice": "html", "why": "静态站"},
+        {"id": "ST-002", "kind": "scaffold", "choice": None, "why": "无脚手架"},
+        {"id": "ST-003", "kind": "language", "choice": "python",
+         "role": "后端", "why": "服务端"},
+        {"id": "ST-004", "kind": "test", "choice": "pytest", "why": "单测"},
+        {"id": "ST-005", "kind": "lint", "choice": "ruff", "why": "静态检查"},
+        {"id": "ST-006", "kind": "typecheck", "choice": None, "why": "动态语言"},
+        {"id": "ST-007", "kind": "build", "choice": "make", "why": "构建"},
+    ]
+
+
 def openapi_doc(paths=None, **over):
     doc = {
         "openapi": "3.1.0",
@@ -373,13 +387,53 @@ class ArchitectureCheckTest(CheckBase):
 
     def test_stack_new_shape_passes_without_warnings(self):
         fx.write_doc(self.root, "prd", prd_doc())
-        fx.write_doc(self.root, "architecture", arch_doc(stack=[
-            {"id": "ST-001", "kind": "frontend", "choice": "html", "why": "静态站"},
-            {"id": "ST-002", "kind": "language", "choice": "python", "why": "引擎同栈"}]))
+        fx.write_doc(self.root, "architecture", arch_doc(stack=full_stack()))
         r = check(self.root, "architecture")
         self.assertTrue(r["ok"], msgs(r))
         stack_warns = [w for w in r["warnings"] if "stack" in w]
         self.assertEqual([], stack_warns, stack_warns)
+
+    # trace: Q-149 裁6甲（存量缺表态 → warning 不阻塞，沿 Q-107 口径）＋ 负样例①
+    def test_stack_partial_posture_warns_not_blocks(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(stack=full_stack()[:3]))
+        r = check(self.root, "architecture")
+        self.assertTrue(r["ok"], msgs(r))
+        self.assertTrue(any("缺表态" in w for w in r["warnings"]), r["warnings"])
+
+    # trace: Q-149 裁2甲（不适用值形态＝`choice: null`，不是空串也不是缺键）
+    def test_stack_choice_null_is_valid_posture(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(stack=[
+            {"id": "ST-001", "kind": "frontend", "choice": None, "why": "纯后端"}]))
+        r = check(self.root, "architecture")
+        self.assertTrue(r["ok"], msgs(r))
+        self.assertNotIn("EMPTY_FIELD", codes(r), msgs(r))
+
+    # trace: Q-149 裁1甲连带（同 kind 值条目与 null 条目并存＝矛盾表态，不放行）
+    def test_stack_value_and_null_same_kind_is_violation(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(stack=[
+            {"id": "ST-001", "kind": "frontend", "choice": "react", "why": "a"},
+            {"id": "ST-002", "kind": "frontend", "choice": None, "why": "b"}]))
+        r = check(self.root, "architecture")
+        self.assertIn("SET_MISMATCH", codes(r))
+        self.assertIn("frontend", msgs(r))
+
+    # trace: Q-149 裁3连带（language 逐条标前后端——接口面推导的机械输入）
+    def test_stack_language_role_checked(self):
+        fx.write_doc(self.root, "prd", prd_doc())
+        fx.write_doc(self.root, "architecture", arch_doc(stack=[
+            {"id": "ST-001", "kind": "language", "choice": "python", "why": "服务端"}]))
+        r = check(self.root, "architecture")
+        self.assertTrue(r["ok"], msgs(r))
+        self.assertTrue(any("缺 role" in w for w in r["warnings"]), r["warnings"])
+        fx.write_doc(self.root, "architecture", arch_doc(stack=[
+            {"id": "ST-001", "kind": "language", "choice": "python",
+             "role": "全栈", "why": "服务端"}]))
+        r2 = check(self.root, "architecture")
+        self.assertIn("ENUM_INVALID", codes(r2))
+        self.assertIn("全栈", msgs(r2))
 
     def test_stack_invalid_kind_is_violation(self):
         fx.write_doc(self.root, "prd", prd_doc())
@@ -1422,7 +1476,7 @@ class WdsAffectsDomainTest(CheckBase):
     # 接入后真过：纯 WDS 线（无 prd.yaml）不再走「跳过子检查」
     def test_wds_line_ids_resolve_without_prd(self):
         fx.write_doc(self.root, "wds-scenarios", scenarios_doc())
-        fx.write_doc(self.root, "architecture", arch_doc(decisions=[{
+        fx.write_doc(self.root, "architecture", arch_doc(stack=full_stack(), decisions=[{
             "id": "D-1", "title": "决策", "decision": "A", "rationale": "r",
             "alternatives": [{"option": "B", "why_not": "w"}],
             "affects": ["SC-01", "SC-01.P1"], "status": "已采纳"}]))

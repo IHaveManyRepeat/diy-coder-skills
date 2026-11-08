@@ -498,6 +498,12 @@ class SkillContractTests(unittest.TestCase):
         last = self.read(os.path.join(STEPS_DIR, steps[-1]))
         self.assertIn("最后一个步骤文件", last, "末步须声明本步是终局")
 
+    # trace: Q-149（scaffold `choice: null` ＝不适用 → 跳过不落 finding，与「没有条目」同口径）
+    def test_scaffold_null_disposition_is_skip(self):
+        text = self.read(os.path.join(STEPS_DIR, "05-epic-quality-review.md"))
+        self.assertIn("`choice: null`——不适用", text, "缺 null 形态的跳过分支")
+        self.assertIn("不落 finding", text, "跳过分支丢了「不落 finding」口径")
+
     # trace: 任务书 §0.3（未建技能引用一律裁剪——技能面不得留悬空 bmad- 引用）
     def test_no_dangling_bmad_references(self):
         targets = [SKILL_MD]

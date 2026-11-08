@@ -286,6 +286,13 @@ class SkillContractTests(unittest.TestCase):
             design_skill = fh.read()
         self.assertIn("SC-<nn>.P<n>", design_skill, "设计侧页 ID 域声明漂移")
 
+    # trace: Q-149（frontend `choice: null` ＝取不到适用值 → 回落实现基线，不追问）
+    def test_frontend_null_falls_back_to_baseline(self):
+        body = dict(dev_docs())["steps/wds-implement.md"]
+        self.assertIn("取不到适用值", body, "缺「取不到适用值」口径")
+        self.assertIn("`choice: null`", body, "缺 null 形态点名")
+        self.assertIn("以基线文件的实际框架为准", body, "缺基线兜底口径")
+
     # 双模式的路由目标技能在场，否则零产出路由落空
     def test_routing_targets_installed(self):
         for skill in ("diy-sprint", "diy-design", "diy-review", "diy-wds-evolution",

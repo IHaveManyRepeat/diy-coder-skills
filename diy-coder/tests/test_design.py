@@ -964,5 +964,26 @@ class DesignEngineTests(unittest.TestCase):
                               vr.stdout)
 
 
+class StackPostureInputTests(unittest.TestCase):
+    """Q-149 下取值恒在：design / test-design 按 kind 取 choice，空＝不适用非追问。"""
+
+    @staticmethod
+    def skill_text(*rel):
+        with open(os.path.join(HERE, "..", "skills", *rel), encoding="utf-8") as fh:
+            return fh.read()
+
+    def test_design_refuses_when_frontend_not_applicable(self):
+        raw = self.skill_text("diy-design", "SKILL.md")
+        self.assertIn("无前端，design 不适用", raw, "缺 frontend 空时的拒跑说明")
+        self.assertIn("不再停下问用户一次", raw, "缺席追问句未收口")
+        self.assertNotIn("→ **停下问用户一次**", raw, "缺席触发的追问句仍在场")
+
+    def test_test_design_drops_layer_when_not_applicable(self):
+        raw = self.skill_text("diy-test-design", "SKILL.md")
+        self.assertIn("缺哪层剔哪层", raw, "缺「缺哪层剔哪层」口径")
+        self.assertIn("四类静态检查全不适用", raw, "缺四类全空拒跑句")
+        self.assertNotIn("→ **停下问用户一次**", raw, "缺席触发的追问句仍在场")
+
+
 if __name__ == "__main__":
     unittest.main()

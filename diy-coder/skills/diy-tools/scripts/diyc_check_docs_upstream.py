@@ -2,8 +2,8 @@
 """diyc check 文档级规则：prd / architecture / openapi / epics（契约 §4.2）。"""
 
 from diyc_check_docs_lib import (DEC_STATUSES, EPIC_STATUSES, FR_PRIORITIES,
-                                 HTTP_METHODS, PATH_ITEM_KEYS, STACK_KINDS, dup,
-                                 enum, is_str, nonempty, req)
+                                 HTTP_METHODS, LANGUAGE_ROLES, PATH_ITEM_KEYS,
+                                 STACK_KINDS, dup, enum, is_str, nonempty, req)
 from diyc_lib import items  # noqa: E402
 from diyc_prd_os import (OS_RE, SRC_ID_RE, SRC_PATH_RE,  # noqa: E402
                        check_out_of_scope, check_src)
@@ -156,7 +156,10 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
     stack = items(doc, "stack", of_type=dict)
     for i, s in enumerate(stack):
         w = "%s stack[%d]" % (rel, i)
-        req(report, w + ".choice", s.get("choice"), "stack.choice")
+        # rule: diy-architecture/SKILL.md:Schema stack（不适用表态＝`choice: null`，
+        #       理由写 why；choice 键在场且为 null 时不作必填——表态本身即合规）
+        if not ("choice" in s and s.get("choice") is None):
+            req(report, w + ".choice", s.get("choice"), "stack.choice")
         req(report, w + ".why", s.get("why"), "stack.why")
         # rule: diy-architecture/SKILL.md:Schema stack（新写条目必须带 id/kind；
         #       存量缺 id/kind → warning 不阻塞，下游按 kind 取值）
@@ -172,6 +175,15 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
                         "封闭七类：%s）" % (rel, i, "/".join(STACK_KINDS)))
         else:
             enum(report, w + ".kind", kind, STACK_KINDS, "stack.kind")
+        # rule: diy-architecture/SKILL.md:Schema stack.role（language 条目逐条标前后端——
+        #       接口面推导判据「frontend 在场 ∧ language 有后端条目」的机械输入）
+        if kind == "language" and nonempty(s.get("choice")):
+            role = s.get("role")
+            if not (is_str(role) and role.strip()):
+                report.warn("%s stack[%d] 缺 role（language 条目须标前后端归属；"
+                            "存量过渡态，新写条目必填）" % (rel, i))
+            else:
+                enum(report, w + ".role", role, LANGUAGE_ROLES, "stack.role")
     dup(report, [(s.get("id"), "%s stack[%s].id" % (rel, s.get("id") or "?"))
                  for s in stack if is_str(s.get("id")) and s.get("id").strip()],
         "stack id")
@@ -181,6 +193,28 @@ def check_architecture(doc, rel, docs, final, report) -> dict:
             report.add("DUPLICATE_ID", "%s stack kind=%s" % (rel, kind),
                        "kind %s 至多一条（出现于 stack[%s]）"
                        % (kind, ", ".join(str(i) for i in idxs)))
+    # rule: diy-architecture/SKILL.md:Schema stack（七类逐类表态：适用类写值条目一条条列，
+    #       不适用类补一条 `choice: null` 汇总行；存量缺表态 → warning 不阻塞）
+    # 裁1甲：同 kind 的值条目与 null 条目并存＝矛盾表态 → SET_MISMATCH 不放行
+    value_kinds, null_kinds = set(), set()
+    for s in stack:
+        k = s.get("kind")
+        if not (is_str(k) and k.strip()) or k not in STACK_KINDS:
+            continue
+        if "choice" in s and s.get("choice") is None:
+            null_kinds.add(k)
+        else:
+            value_kinds.add(k)
+    missing = [k for k in STACK_KINDS if k not in value_kinds and k not in null_kinds]
+    if missing:
+        report.warn("%s stack 缺表态：%s（存量过渡态；新写须七类逐类表态——"
+                    "适用类写值条目一条条列，不适用类补一条 choice: null 汇总行）"
+                    % (rel, "/".join(missing)))
+    clash = sorted(value_kinds & null_kinds)
+    if clash:
+        report.add("SET_MISMATCH", rel + " stack",
+                   "kind %s 的值条目与 choice: null 条目并存（矛盾表态，不放行）"
+                   % "/".join(clash))
 
     decisions = items(doc, "decisions", of_type=dict)
     counts["decisions"] = len(decisions)

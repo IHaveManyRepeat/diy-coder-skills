@@ -8,7 +8,8 @@ from viewer_anchor import mint_heading_id, reset_heading_ids
 from viewer_anchor import slugify  # noqa: F401  再导出供 viewer_pages（assets 组锚）
 from viewer_glossary import BADGE_VALUES
 from viewer_labels import BADGE_CLASSES
-from viewer_value_labels import VALUE_LABELS, _VALUE_LABELS_CI
+from viewer_value_labels import (NULL_NA_KEYS, NULL_NA_LABEL, VALUE_LABELS,
+                                 _VALUE_LABELS_CI)
 from viewer_refs import (FOLDED_KEYS, FOLDED_NOTE_LEN, ORPHAN_IDS, REF_KEYS,
                          _diag_unmapped, asset_link, cell, doc_path_value,
                          esc, gloss, is_asset_path, is_doc_path, is_enum_key,
@@ -30,8 +31,16 @@ def resolve_instance(out_dir: Path, instance):
     return out_dir / instance
 
 
+def na_badge() -> str:
+    """表态键 null（如 stack `choice: null`）的「不适用」态徽章；文案单源 viewer_value_labels。"""
+    return f'<span class="badge b-neutral">{gloss(esc(NULL_NA_LABEL))}</span>'
+
+
 def value_html(k: str, v) -> str:
-    """标量值渲染：资产/文档路径 → 相对链接；枚举键 → 徽章；其余回落 cell() 纯文本。"""
+    """标量值渲染：表态键 null → 「不适用」徽章；资产/文档路径 → 相对链接；
+    枚举键 → 徽章；其余回落 cell() 纯文本（其余 null 仍是「—」）。"""
+    if v is None and k in NULL_NA_KEYS:
+        return na_badge()
     if is_asset_path(k):
         return asset_link(v)
     if is_doc_path(k):
@@ -251,6 +260,8 @@ def _render_value_raw(key: str, v, depth: int, ctx=()) -> str:
         return title + "<ul>" + "".join(lis) + "</ul>"
     if key in REF_KEYS and is_id_string(v):
         return title + ref_cell(v)
+    if v is None and key in NULL_NA_KEYS:  # 表态键 null → 「不适用」（与 value_html 同源）
+        return title + f"<p>{na_badge()}</p>"
     if is_asset_path(key):
         return title + f"<p>{asset_link(v)}</p>"
     if is_doc_path(key):

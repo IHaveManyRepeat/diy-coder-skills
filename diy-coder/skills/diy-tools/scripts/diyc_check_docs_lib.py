@@ -45,6 +45,7 @@ FR_PRIORITIES = ("必须", "应该", "可选")             # rule: diy-prd/SKILL
 DEC_STATUSES = ("待定", "已采纳")                    # rule: diy-architecture/SKILL.md:Schema decisions.status
 STACK_KINDS = ("frontend", "scaffold", "language", "test", "lint", "typecheck",
                "build")  # rule: diy-architecture/SKILL.md:Schema stack.kind（封闭七类）
+LANGUAGE_ROLES = ("前端", "后端")  # rule: diy-architecture/SKILL.md:Schema stack.role（language 逐条标前后端——接口面推导判据的机械输入）
 EPIC_STATUSES = ("待办", "进行中", "已完成")         # rule: diy-epics-stories/SKILL.md:Schema epics.status
 STORY_STATUSES = ("待办", "进行中", "待审查", "已完成", "已阻塞")  # rule: diy-epics-stories/SKILL.md:Schema stories.status
 HTTP_METHODS = ("get", "put", "post", "delete", "options", "head", "patch", "trace")

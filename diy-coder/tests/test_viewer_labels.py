@@ -1718,5 +1718,39 @@ class EnumValueAlignmentTest(unittest.TestCase):
                               "值域缺标签：%s.%s（面清单枚举）" % (name, value))
 
 
+ARCH_STACK_NULL_DOC = NL.join([
+    "project:",
+    "  name: fx",
+    "  status: 已定稿",
+    "  created:",
+    "  updated: '2026-11-08'",
+    "stack:",
+    "- {id: ST-001, kind: frontend, choice: null, why: 纯后端服务，无前端}",
+    "- {id: ST-002, kind: language, choice: python, role: 后端, why: 服务端}",
+    "decisions: []",
+])
+
+
+class StackNullPostureLabelTests(_Fixture):
+    """Q-149：stack `choice: null` →「不适用」态标签；其余 null 仍是「—」（分流负样例）。"""
+
+    def test_choice_null_renders_not_applicable(self):
+        self.write("architecture.yaml", ARCH_STACK_NULL_DOC)
+        p = self.render()
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertNotIn("unmapped enum", p.stderr, p.stderr)
+        html = self.page("architecture")
+        self.assertIn('<span class="badge b-neutral">不适用</span>', html,
+                      "choice: null 未渲染成「不适用」态标签")
+        # 分流负样例：非表态键的 null（created）不许被误标
+        self.assertIn('<span class="dim">—</span>', html,
+                      "created: null 被误标成「不适用」")
+        # 零裸键：choice / role 键标签在场，英文键名不直出
+        for leak in (">choice<", ">role<", ">kind<"):
+            self.assertNotIn(leak, html, "英文键名直出：%s" % leak)
+        self.assertIn("选定方案", html, "choice 键标签缺失")
+        self.assertIn("角色", html, "role 键标签缺失")
+
+
 if __name__ == "__main__":
     unittest.main()

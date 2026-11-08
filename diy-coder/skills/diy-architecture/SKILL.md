@@ -60,8 +60,9 @@ project:
 stack:                           # 选中的技术一行一条；新条目必须带 id/kind——下游按 kind 取 choice（不按值匹配）
   - id: ST-###                   # 稳定：顺序递增，永不重编号、永不复用
     kind: frontend|scaffold|language|test|lint|typecheck|build   # 封闭七类；frontend/scaffold 至多一条，其余可多条
-    choice: string               # 逐字写技术名
-    why: string
+    choice: string               # 逐字写技术名；本类不适用 → 写 `choice: null`（不适用不是「忘了写」）
+    role: 前端|后端              # 仅 language 条目必填——前后端归属，接口面推导判据的机械输入
+    why: string                  # 选它的理由；`choice: null` 时写「这一类为什么不适用」
 decisions:
   - id: D-1                      # 稳定：顺序递增，永不重编号、永不复用；源码 `# trace: D-x` 按它解析
     title: string
@@ -95,6 +96,7 @@ revisions: []                    # {date, change, reason} —— 改既有条目
 6. **路由。** 下游：接口面 → `diy-openapi`；前端面 → `diy-design`；拆解 → `diy-epics-stories`。主线顺序 = `prd → architecture → openapi(可选) → design(可选) → epics+stories → test-plan → sprint → build-loop`。
 7. **评审两维（缺席即 finding，不新增产物键）**：每批决策**逐条**同时过——① **可测性**：可控（状态可播种 / 可 mock / 可注入故障）· 可观测（日志 / 指标 / 追踪 / 确定性断言）· 可靠（隔离 / 可复现 / 并行安全），判据写进该决策的 `rationale`；② **运维面**：部署与环境 · 基础设施选型 · 运维（operational / environmental envelope）——整维沉默即 finding。**缺席处置**：往 `risks[]` 落一条（`risk` 点名缺席的决策 ID 与维度，`mitigation` 写补法），定稿前逐条处置：补判据，或经用户确认豁免并把授权记进该条 `mitigation`。
 8. **接口面联动。** 接口面判定在场（components/decisions＋FR 集合推导，照 `diy-openapi` 激活时 3 同款）时，鉴权决策须与 openapi 侧对表：`securitySchemes` 每 scheme 以 `x-decision: D-*` 引用本侧决策（下游认源 ID 判据）。
+9. **stack 七类逐类表态（照规则 4 安全类先例）。** 适用类写值条目、一条条列（可写细每条用途）；不适用类补一条 `choice: null` 汇总行，理由写 `why`——不适用是结论，不是漏写。同 kind 的值条目与 `choice: null` 条目并存＝矛盾表态，校验不放行。`language` 条目逐条标 `role: 前端|后端`：只有前端或只有后端都不需要接口，接口面＝`frontend` 有值 ∧ `language` 有后端条目（`diy-help` 据此决定推不推 `diy-openapi`）。存量缺表态只 warning 不阻塞；新写由本条强制。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 
