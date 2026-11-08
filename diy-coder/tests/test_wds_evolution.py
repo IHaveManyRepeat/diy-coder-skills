@@ -720,7 +720,7 @@ class ContractSmokeTests(unittest.TestCase):
                 self.assertEqual(text.count("\n## 第 "), count)
                 self.assertIn("**Read (input):**", text)
                 self.assertIn("**Write (output):**", text)
-                self.assertIn("检查点（六拍）", text)
+                self.assertIn("检查点", text)
                 self.assertIn("diy-elicit", text)
                 self.assertIn("diy-party-mode", text)
 

@@ -35,7 +35,7 @@ Progress: `[1 token 三段成形（重复值入 token）] → [2 组件编目与
 
 **落盘**：`direction` / `frontend_framework` / `form_factor` / `modes` / `tokens` 五段。
 
-**检查点（六拍）**：① 生成 → ② 落盘 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。本步：② 落盘（`direction` / `frontend_framework` / `form_factor` / `modes` / `tokens`）；④ 呈出 token 三段与分流清单。
+**检查点**：① 生成 → ② 落盘 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。本步：② 落盘（`direction` / `frontend_framework` / `form_factor` / `modes` / `tokens`）；④ 呈出 token 三段与分流清单。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 2 步 —— 组件编目与 token→组件映射`。
@@ -60,7 +60,7 @@ Progress: `[1 token 三段成形（重复值入 token）] → [2 组件编目与
 - **交接 `diy-wds-system`**——它的产物 `wds-design-system.yaml` 带 `components[]` 与 token 引用，**组件编目的 diy 落点是它**；一句话把交接面说清（组件清单 + 映射表 + `design.yaml.tokens` 的引用关系）；
 - **登记项**：`design.yaml` 是否增设组件/映射段，与「提取来源」字段一并排期。
 
-**检查点（六拍）**：① 生成 → ② 落盘 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。本步：② 落盘（本步无写盘：两张表在会话内，`revisions` 记一条交接项）；④ 呈出编目表与映射表。 四选项同第 1 步。
+**检查点**：① 生成 → ② 落盘 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。本步：② 落盘（本步无写盘：两张表在会话内，`revisions` 记一条交接项）；④ 呈出编目表与映射表。 四选项同第 1 步。
 
 读全并照做本文件 `## 第 3 步 —— 定稿、终门与渲染`。
 

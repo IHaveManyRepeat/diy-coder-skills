@@ -254,15 +254,15 @@ def review_script_path():
     return os.path.join(skills_root, *REVIEW_SCRIPT_REL)
 
 def check_review_evidence(data, root, out, path, show, violations, warnings):
-    """--final 的六条证据校验：`review_refs` 非空 → 台账在场 → ID 在 `reviews[]` 内 →
+    """--final 的证据校验：`review_refs` 非空 → 台账在场 → ID 在 `reviews[]` 内 →
     该记录 `status: 已定稿` → `target` 归一化后指向本 `brief.yaml` → `lenses` 两透镜齐全
     （两透镜＝diy-editorial-review 的结构评审＋文风评审）。派发不可用（环境缺兄弟
-    引擎）→ `TOOL_MISSING` 降级：六条一并转 warning、放行；与「技能在场而记录缺失或不合格
+    引擎）→ `TOOL_MISSING` 降级：一并转 warning、放行；与「技能在场而记录缺失或不合格
     → 硬拒」分工不重叠——前者是环境问题、后者是产物问题。"""
     script = review_script_path()
     if not os.path.isfile(script):
         warnings.append(v("TOOL_MISSING", display_path(script, root),
-                          "diy-editorial-review 引擎缺席：评审证据校验（六条）降级为 warning、"
+                          "diy-editorial-review 引擎缺席：评审证据校验降级为 warning、"
                           "--final 放行；请从会话侧人工确认本稿已过结构 + 文风两透镜评审"))
         return
     raw_refs = data.get("review_refs")

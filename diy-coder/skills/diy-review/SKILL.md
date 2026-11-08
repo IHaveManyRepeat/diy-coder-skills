@@ -83,7 +83,7 @@ outputs: —
    - 有 `规格缺陷` → `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" transition --story <S-x> --to 已阻塞 --reason "<finding 引文>" --json`（规格由上游修，绝不由执行者改——与 diy-build-loop 同口径）；否则 → `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" transition --story <S-x> --to 进行中 --json`（打回 dev 环）。
    - findings 为空或全 `后置` → `通过`：写 `review` 块 + `note`（引审查日期）进任务条目，再 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" done --story <S-x> --json`。
 6. **真源回填。** `done` 把 `待审查 → 已完成` 与回填当一个原子批次做完：任务 `status: 已完成`、`stories.yaml` 里该故事 `status: 已完成`、`test-plan.yaml` 里本次 L3 确认绿的每个 TC `status: 通过`（TC 行由 `diy-dev` 按绿线写，终态写做对账），并 bump 所有被触及的 `project.updated`。
-   - `已阻塞` 两个文件都不写——什么都没交付，什么也不算通过。**为什么：** 独立路径曾报 `已完成` 而真源停在 `待办`（同类缺陷已见）。
+   - `已阻塞` 两个文件都不写——什么都没交付，什么也不算通过。
 7. **任务状态写入权（`sprint.yaml`）。** `待审查 → 已完成`（`通过`——只经 `done`，`transition` 拒绝这条边）、`待审查 → 进行中`（`失败`）、`待审查 → 已阻塞`（`规格缺陷`）、`已完成 → 进行中`（证伪轮命中——第 6 步），后三条经 `transition`，别无其他。
    - 重开入口不变：单条证伪命中走 `transition`（引擎在该边上清掉旧判定）；批量的 `runner.py --reopen-failed` 归 diy-sprint。
 8. **经验上行。** 配了 `paths.experience_repo` 且在场时，提醒用户在项目根运行（**由人手动执行**，安装形态 `.claude/skills/diy-tools/scripts/exp-sync.py`）`python "{project-root}/.claude/skills/diy-tools/scripts/exp-sync.py" push`——实例运行加 `--instance <name>`（bug-log 在实例目录里）。

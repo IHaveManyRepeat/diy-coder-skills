@@ -21,14 +21,14 @@
                   title/problem/solution/users 非空、每条 decision 有 rationale、distillate
                   交出面在场且五字段非空（problem/target_users/value_props/constraints/
                   open_questions）。exit 0 唯一放行。
-          --final 附加评审证据链（六条）：顶层 review_refs 非空（缺失或空 →
+          --final 附加评审证据链：顶层 review_refs 非空（缺失或空 →
                   EVIDENCE_MISSING）；{output_dir}/editorial-review.yaml 在场（缺席 →
                   MISSING_FILE）；每个 ID 在该台账 reviews[] 内（否则 UNKNOWN_ID）；该记录
                   status: 已定稿（否则 STATUS_MISMATCH）；其 target 归一化后指向本 brief.yaml
                   （否则 EVIDENCE_MISSING）；其 lenses 同时含 结构 与 文风（否则 EVIDENCE_MISSING）。
                   target 归一化四步顺序不可换：normpath → 统一正斜杠 → 相对 project-root →
                   比较（指向别处的记录不构成本文档的证据）。派发不可用（环境缺本技能的同套件
-                  兄弟 diy-editorial-review 引擎）→ TOOL_MISSING warning 降级：六条一并转
+                  兄弟 diy-editorial-review 引擎）→ TOOL_MISSING warning 降级：一并转
                   warning、--final 放行（环境问题；技能在场而记录缺失或不合格仍硬拒）。
 
 分工裁定：brief 属新产物类型，不进 diyc.py check 的硬编码类型集；
@@ -246,8 +246,7 @@ def main():
                    help="产物目录（必填；由调用方传入，引擎不做实例解析/目录推导）")
     c.add_argument("--final", action="store_true",
                    help="定稿校验：status 已落「已定稿」+ 零假设 + 主体非空 + 每条决策有 "
-                        "rationale + distillate 交出面五字段非空 + review_refs 评审证据链"
-                        "（六条）")
+                        "rationale + distillate 交出面五字段非空 + review_refs 评审证据链")
     c.add_argument("--previous", default=None,
                    help="旧稿快照路径：比对 BD-### 集合，旧有新无 → ID_UNSTABLE")
     c.add_argument("--json", action="store_true", help="输出单行 JSON 回执")

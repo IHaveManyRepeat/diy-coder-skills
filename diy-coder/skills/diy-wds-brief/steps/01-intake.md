@@ -23,7 +23,7 @@ Progress: `[1 分诊] → 2 客户画像 → 3 路由与铸骨架 → ./02-align
 6. **战略深度**（源 step-02 第 8 问，**仅新建且非 simple 时问**）：`full` 走完整触发图 / `simplified` 战略背景并进简报 / `skip` 跳过——本技能只记档位，下游 `diy-wds-trigger` 按它决定是否整段走。
 7. 〔**技术栈与组件库两问已裁**：diy 侧由 `architecture.yaml` / `design.yaml` 覆盖，本技能只留**复杂度**这一档驱动后续开关。**用户主动提及时**记进 `brief.platform.platform_requirements.tech_stack`，不主动问。〕
 8. **落盘**：`intake.project_type` / `intake.complexity` / `intake.brief_level` / `intake.strategic_analysis` 与 `intake.existing_materials`（骨架由本文件第 3 步的 `init` 一次铸成，本步只在会话内收齐答案）。
-9. **检查点（六拍）**：① 生成 → ② 落盘（本步答案进 `intake`，随第 3 步 `init` 一次写入）→ ③ 分隔 → ④ 呈出分诊表 → ⑤ 出四选项 → ⑥ 等响应。
+9. **检查点**：① 生成 → ② 落盘（本步答案进 `intake`，随第 3 步 `init` 一次写入）→ ③ 分隔 → ④ 呈出分诊表 → ⑤ 出四选项 → ⑥ 等响应。
    `[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角）｜ `[y]` YOLO → 跳过后续检查点，连续推进到本文件结束（首次选中时一行明示）。
 10. 读全并照做本文件 `## 第 2 步 —— 客户画像四域与协作档位`。
 
@@ -39,7 +39,7 @@ Progress: `[1 分诊] → 2 客户画像 → 3 路由与铸骨架 → ./02-align
 4. **协作方式** → `client_profile.collaboration`：沟通偏好与响应速度、时间线文化（快迭代 / 结构化里程碑 / 审批慢）、既有外部合作经验（跟外部团队合作过吗、好与不好在哪）、再加源 setup 第 9 问的**干系人风险档位**（个人爱好 / 小生意 / 部门级 / 企业级高赌注——**C/D 档要追问干系人与政治敏感点**）与**参与度 / 我方角色 / 建议呈现方式**三问。
 5. **已答过的不要重问**：第 1 步或激活段自然聊出来的信息，确认后直接代入。
 6. **落盘**：`client_profile` 四域（逐一给键；确实不知道的**标 `—` 留空**，不猜——`check --final` 只要求四域在场与内容非空，不要求填满每一格）。
-7. **检查点（六拍）**：① 生成 → ② 落盘 `client_profile` 四域 → ③ 分隔 → ④ 呈出画像摘要 → ⑤ 出四选项 → ⑥ 等响应。
+7. **检查点**：① 生成 → ② 落盘 `client_profile` 四域 → ③ 分隔 → ④ 呈出画像摘要 → ⑤ 出四选项 → ⑥ 等响应。
    `[a]` / `[c]` / `[p]` / `[y]` 同上步。
 8. 读全并照做本文件 `## 第 3 步 —— 路由、门禁与铸骨架（init）`。
 
@@ -72,7 +72,7 @@ python "{project-root}/.claude/skills/diy-wds-brief/scripts/wds_brief.py" init -
 2. 骨架落 `project.status: 草稿` / `intake.stage: 分诊`；`project.name` / `created` 由 `init` 铸造后**不再由你改**。
 3. **已有产物 → 不覆盖**：同值重跑只刷 `project.updated` 并给一行 warning；`--project-type` 与产物不符 → `SET_MISMATCH` 且零写入（要改判先与用户确认，再往 `revisions` 记一条 `change`）。
 4. 路径旗标不得省（引擎不自解析实例、不私读 `diy-coder.yaml`）。
-5. **检查点（六拍）**：① 生成 → ② 落盘（`init` 铸骨架；`intake.stage` 留在 `分诊`，等 02 起再推进）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。
+5. **检查点**：① 生成 → ② 落盘（`init` 铸骨架；`intake.stage` 留在 `分诊`，等 02 起再推进）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。
 6. **收尾与路由**：
    - 走了对齐 → `intake.stage: 对齐`，读 `./02-alignment.md`。
    - 不走对齐 → 在 `alignment` / `signoff` 两段落「不需要」判定后，`intake.stage: 核心`，读 `./04-core.md`。
