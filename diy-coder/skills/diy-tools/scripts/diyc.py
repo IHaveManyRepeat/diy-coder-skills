@@ -51,19 +51,39 @@ def _rel_to_output(args, filename) -> str:
 
 # ---------------------------------------------------------------- resolve
 
+def _scan_instances(output_dir) -> tuple:
+    """Q-148 回执两键：instances＝含链产物的合规一级子目录名（判据＝diyc_lib 单源）；
+    ask_instance＝平铺根无链产物 ∧ instances 非空（引擎算好，技能只看灯不复算）。
+    登记表读不到 → 缺席不问（([], False)）；兜底占位回执不带两键（SS-058-07）。"""
+    idx = diyc_lib.chain_index()
+    if idx is None:
+        return [], False
+    lines_meta, chains = idx
+    names = [name for name, _ in
+             diyc_lib.discover_instances(output_dir, lines_meta, chains)]
+    root_started = bool(diyc_lib.started_lines(output_dir, lines_meta, chains))
+    return names, (not root_started and bool(names))
+
+
 def cmd_resolve(args) -> dict:
     # trace: S-16 AC-16.1 实例解析唯一入口（各 SKILL.md 激活句委托）
     cfg, warnings = diyc_lib.read_config(args.project_root)
     config_found = os.path.isfile(os.path.join(args.project_root, "diy-coder.yaml"))
+    instances, ask_instance = _scan_instances(args.output_dir)
     return receipt("resolve", True, output_dir=os.path.normpath(args.output_dir),
                    instance=args.instance, config_found=config_found,
-                   warnings=warnings)
+                   warnings=warnings, instances=instances,
+                   ask_instance=ask_instance)
 
 
 def _human_resolve(result) -> list:
     # .get：兜底回执（INTERNAL_ERROR）无 config_found 键，渲染不得再崩（V 复验 N-2）
-    return ["output_dir: %s" % result.get("output_dir"),
-            "config_found: %s" % result.get("config_found")]
+    lines = ["output_dir: %s" % result.get("output_dir"),
+             "config_found: %s" % result.get("config_found")]
+    if result.get("ask_instance"):  # 仅问询灯亮才出（SS-058-07：兜底回执不带灯不渲染）
+        lines.append("多实例：instances=[%s]·平铺根无产物 → 问用户选用"
+                     % ", ".join(result.get("instances") or []))
+    return lines
 
 
 def _human_kind(result) -> list:

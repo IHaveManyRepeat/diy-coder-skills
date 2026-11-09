@@ -64,6 +64,11 @@ FROZEN_CONFIG_FALLBACK = ('缺省链：`paths.output_dir` 一律取 `diyc.py res
 FROZEN_CONFIG_INSTANCE = ('实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 '
                           '`runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；'
                           '未传时回执的 `output_dir` 即主线平铺根。')
+# 多实例感知句（Q-148·47 技能激活头同句面）——模板随批同句，防新造技能旧句面分叉
+FROZEN_MULTI_INSTANCE = ('多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户'
+                         '用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；'
+                         '为 false 或 instances 空则照常执行；无头会话不问（由调用方经 '
+                         'runner.py --instance 声明）。')
 FROZEN_READ = ('读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；'
                '执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。')
 FROZEN_PRECISE = ('- **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；'
@@ -100,6 +105,7 @@ SKILL_TEMPLATE = "\n".join([
     "   " + FROZEN_CONFIG_FALLBACK,
     "   " + FROZEN_CONFIG_INSTANCE,
     "   " + FROZEN_INSTANCE,
+    "   " + FROZEN_MULTI_INSTANCE,
     "2. 硬门：<输入不满足时的拒绝行 + 零产出 + 路由>。",
     "3. " + FROZEN_READ,
     "4. 读 `steps/` 下的第一个步骤文件并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。"

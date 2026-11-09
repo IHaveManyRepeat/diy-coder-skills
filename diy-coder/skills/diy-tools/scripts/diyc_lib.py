@@ -19,16 +19,18 @@ CLI 定义与统一收口在 diyc.py。
 """
 # trace: S-6 AC-6.2 S-16 AC-16.1
 
+import io
 import os
+import re
 
 from diyc_lib_base import (
     AC_RE, BUG_RE, DEC_RE, DEFAULT_OUTPUT_DIR, EPIC_RE, FR_RE, INSTANCE_RE,
     NFR_RE, STORY_RE, TC_RE, TOKEN_RE, TOKEN_WHITELIST, args_output_dir,
     check_tokens, count_by, count_items, diyc_script_path, enum_check,
-    id_sort, id_sort_key, is_int, load_yaml, load_yaml_safe, methods_path,
-    next_record_id, normalize_keys, nonempty, now, project_name, read_config,
-    require, resolve_output_dir, save_yaml_atomic, stamp, stamp_file, today,
-    v, walk_strings, write_atomic
+    id_sort, id_sort_key, is_int, load_yaml, load_yaml_safe, load_yaml_text,
+    methods_path, next_record_id, normalize_keys, nonempty, now, project_name,
+    read_config, require, resolve_output_dir, save_yaml_atomic, stamp,
+    stamp_file, today, v, walk_strings, write_atomic
 )
 from diyc_lib_docs import DOC_FILES, Docs, _ac_ids, items  # noqa: E402
 from diyc_lib_report import (
@@ -114,3 +116,62 @@ def is_test_file(name):
     if lower.endswith(("_test.py", "_test.go", "_test.rb")):
         return True
     return name.endswith(("Test.java", "Test.php"))
+
+
+# ---------------------------------------------------------------- 多实例扫描（Q-148 单源）
+# 判据与 diy-help 聚合同源同式：INSTANCE_RE 合规子目录 ＋ 含链产物（started_lines）。
+# started_lines 迁自 help_lib、discover_instances 判据同迁——help 侧改引本模块，行为零变化。
+
+def started_lines(output_dir, lines_meta, chains):
+    """目录内有链产物的线名列表（任一链节点文件存在即算）。"""
+    return [n for n in lines_meta if any(
+        os.path.isfile(os.path.join(output_dir, f))
+        for node in chains[n] for f in node["files"])]
+
+
+def discover_instances(output_dir, lines_meta, chains):
+    """合规子目录（INSTANCE_RE fullmatch）且含链产物 → [(name, path)]，按名字典序。"""
+    if not os.path.isdir(output_dir):
+        return []
+    found = []
+    for name in sorted(os.listdir(output_dir)):
+        sub = os.path.join(output_dir, name)
+        if os.path.isdir(sub) and INSTANCE_RE.fullmatch(name) and \
+                started_lines(sub, lines_meta, chains):
+            found.append((name, sub))
+    return found
+
+
+def chain_index():
+    """(lines_meta, chains) 松读：登记表 lines×chain × 各技能 frontmatter outputs
+    派生链产物文件集（与 help 链扫描同源同式）。登记表/技能缺席或形状异常 → None，
+    调用方降级「缺席不问」——resolve 是唯一实例解析入口，不因登记表问题硬失败。"""
+    try:
+        skills_root = os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))))
+        reg = load_yaml(os.path.join(skills_root, "diy-help", "registry.yaml"))
+        lines = reg.get("lines") if isinstance(reg, dict) else None
+        if not isinstance(lines, dict) or not lines:
+            return None
+        lines_meta, chains = {}, {}
+        for name, meta in lines.items():
+            chain = meta.get("chain") if isinstance(meta, dict) else None
+            if not isinstance(chain, list) or not chain:
+                return None
+            nodes = []
+            for skill in chain:
+                with io.open(os.path.join(skills_root, skill, "SKILL.md"),
+                             "r", encoding="utf-8") as f:
+                    raw = f.read()
+                m = re.match(r"^---[ \t]*\r?\n(.*?)\r?\n---[ \t]*\r?\n", raw, re.S)
+                if not m:
+                    return None
+                fm = load_yaml_text(m.group(1))
+                outs = [t.strip() for t in
+                        str((fm or {}).get("outputs") or "").split("+") if t.strip()]
+                nodes.append({"files": outs})
+            lines_meta[name] = meta
+            chains[name] = nodes
+        return lines_meta, chains
+    except Exception:  # 形状/读取异常一律降级缺席（不问），不裸栈不硬失败
+        return None

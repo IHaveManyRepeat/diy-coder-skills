@@ -21,6 +21,7 @@ outputs: —
    缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；为 false 或 instances 空则照常执行；无头会话不问（由调用方经 runner.py --instance 声明）。
 2. **模式判定（门禁 + 零产出）**：读 `{output_dir}/design.yaml` 的 `project.status: 已定稿` → **WDS 模式**；读 `{output_dir}/sprint.yaml` 的 `project.status: 已定稿` → **主线模式**（判据单一、无「或」）。
    - 两源俱在 → 问用户一次走哪条；两者都不满足 → 停下，一行说明缺什么，路由（主线 → `diy-sprint`；WDS 线已有 `wds-scenarios.yaml` → `diy-design`，连它也没有 → `diy-wds-brief`）；**零产出**（不写任何键、不碰源码）。
    - 两线只在四处不同（主线 → WDS）：目标 `sprint.yaml` 第一条 `待办` / 显式 story ID → `design.yaml` 里 `pages[].status: 结构稿中` 的页（**键缺失 = `未开始`**，旧稿兼容）；测试源 `test-plan.yaml` 的 TC 步骤 → 该页 `states[].signals`；回填 `sprint.yaml` `evidence` + `test-plan.yaml` 真源 → `design.yaml` `pages[].status`（经 `design.py transition`，不手改）；红线 `# trace:` 每方法一行 → 同左 + **浏览器强制门**（规则 11）。

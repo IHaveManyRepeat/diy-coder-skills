@@ -74,6 +74,26 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn(DISCIPLINE_ZH, self.raw, "缺母本 §2 写作纪律块")
         self.assertIn("# ↑ 中文：", self.raw, "description 缺中文注释")
 
+    # trace: Q-148 裁5乙——Create 继承闸口（正样例面：instances 非空 → 读最新实例 →
+    # 问一次 → 继承只复制 stack/components）
+    def test_create_inheritance_gate_positive(self):
+        for anchor in ("回执 `instances` 非空", "按 `mtime`",
+                       "提示写明所读版本名", "继承作起点／从零设计",
+                       "只复制 `stack[]`＋`components[]`",
+                       "`instances` 空 → 从零走决策批次"):
+            self.assertIn(anchor, self.raw, "缺 Create 继承闸口正样例句：%s" % anchor)
+
+    # 负样例面：decisions 零复制（affects 指前代 FR·复制即断链）+ 各版本各自演化不告警
+    def test_create_inheritance_gate_negative(self):
+        for anchor in ("`decisions[]` 仅展示参考、零复制", "复制即断链",
+                       "不告警不阻断"):
+            self.assertIn(anchor, self.raw, "缺 Create 继承闸口负样例句：%s" % anchor)
+
+    # 激活头多实例感知句（47 句面·裁1甲）在场
+    def test_multi_instance_awareness_sentence(self):
+        self.assertIn("多实例感知：回执 ask_instance 为 true 时", self.raw,
+                      "缺多实例感知句（Q-148 47 句面）")
+
     # 四段结构不变；软控制线 = 现状 87 + 20% = ≤104，无硬阈值
     def test_four_chinese_sections_and_budget(self):
         self.assertLessEqual(len(self.raw.splitlines()), 104, "薄主文件超出 104 行控制线")

@@ -23,6 +23,7 @@ outputs: change-proposal.yaml
    - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；为 false 或 instances 空则照常执行；无头会话不问（由调用方经 runner.py --instance 声明）。
 2. 输入面两路：
    - **用户报出的单个问题**——实施中发现的技术限制、干系人新要求、对原要求的误解、方向调整、失败的方案。
    - **diy-retrospective 的交接**——`{output_dir}/retrospective.yaml` 的 `significant_changes[]`，每条 `{change, impact, recommended_action}`。整批**只开一条 proposal**：N 条变化进同一条记录的 `impacts`（必要时加 `edits`），绝不拆成 N 条记录；`trigger` 写明来源（diy-retrospective 记录级 `id` 与那批条目的 `change` 摘句）。

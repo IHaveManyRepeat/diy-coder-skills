@@ -189,10 +189,10 @@ class AugmentSkillContractTests(unittest.TestCase):
         self.assertIn(PRECISE_ZH, raw, "缺母本 §6 精准简练条款")
         self.assertIn(DISCIPLINE_ZH, raw, "缺母本 §2 写作纪律块")
 
-    # trace: 2026-09-19 中文化政策（四段中文标题 + description 中文注释 + ≤93 行预算）
+    # trace: 2026-09-19 中文化政策（四段中文标题 + description 中文注释 + ≤94 行预算〔2026-11-08 Q-148 多实例句 +1 抬线〕）
     def test_four_chinese_sections_and_budget(self):
         raw = self.read_skill()
-        self.assertLessEqual(len(raw.splitlines()), 93, "薄主文件超出 93 行预算")
+        self.assertLessEqual(len(raw.splitlines()), 94, "薄主文件超出 93 行预算")
         for section in ("## 激活时", "## 工作流", "## 结构", "## 规则"):
             self.assertIn(section, raw, "缺四段结构：%s" % section)
         self.assertIn("# ↑ 中文：", raw, "description 缺中文注释")

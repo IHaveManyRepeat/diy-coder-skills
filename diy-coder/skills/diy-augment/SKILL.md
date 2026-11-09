@@ -21,6 +21,7 @@ outputs: —
    - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
    - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
    - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 多实例感知：回执 ask_instance 为 true 时，列出 instances 候选问用户用哪个版本；选定即带 --instance <name> 重跑 resolve 取回执（绝不手拼路径）；为 false 或 instances 空则照常执行；无头会话不问（由调用方经 runner.py --instance 声明）。
 2. 载入 `{output_dir}/sprint.yaml`，定位激活提示点名的任务。硬门：该任务在 `tasks[]` 里的 `status` 必须是 `已完成`（任务级字段——`project.status` 是文件水位线，不是本门的读取层）；补测只在编码后发生，其他状态 → 一行说明并停下，零产出。
    - 任务 `augment` 字段若在场（`通过` / `失败` / `已跳过`）＝ 既往判定：本轮与它对账，不重复造用例。
 3. 输入：`{output_dir}/test-plan.yaml`（用例、`static_checks` 链、覆盖证据的落点）与 `{output_dir}/stories.yaml`（AC 索引）；解析该故事的 AC 集合与既有每-AC TC 序列（每个 AC 当前的最大 seq）。

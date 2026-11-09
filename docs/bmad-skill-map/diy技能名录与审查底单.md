@@ -167,7 +167,7 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 | 单独技能 | architecture stack 铸 ST-###（判据同：下游认源 ID；三消费点 design/readiness-check/test-design） | diyc.py＋diy-architecture 结构段＋三消费方输入面 |
 | 单独技能 | 新增 bug 分析技能（cis-method 问题求解编排·五段产物·review 自动调用衔接） | 新技能全套＋衔接 investigate/retrospective/bug-log＋diy-review 调用面 |
 | 单独技能 | prd→开发前编排（2026-11-02 并入 help 推荐路径落点·形态待裁） | help 导航（或 bmb-module＋bmb-builder 造）＋链上各技能交互面 |
-| 单独技能 | diy-help 聚合导航·版本演进 | help.py＋SKILL.md＋tests |
+| 单独技能 | diy-help 聚合导航·版本演进 | help.py＋SKILL.md＋tests〔2026-11-08 Q-148 补记：主体 2026-10-20 已销（help 聚合提前批·段已迁已销归档）·本行滞后未跟，随 Q-148 落地补销账——六裁＋三连带落地＝47 技能激活头多实例感知句／resolve 回执扩 `instances`＋`ask_instance`／枚举·合规·含链判据单源迁 `diyc_lib`／架构 Create 继承闸口（裁5 乙）；任务级 instance 连带另立段见文末〕 |
 | 单独技能 | diy-help 游离「精准简练」句＋§3 零产物变体 | SKILL.md:79/:20，随母本注入批 |
 | 单独技能 | diy-lab 实测缺陷修复批（①~⑥ 全定档：①走母本·②重·③root归一·④入本批·⑤检测·⑥轻） | cis-method/brief/research/prfaq/viewer/prd＋各引擎脚本 |
 | 单独技能 | 接口契约通用设计与架构鉴权面（重档·RFC 9457·前后端分离三层联动触发·无鉴权显式留痕·功能tags分组重档） | architecture/openapi SKILL＋diyc 校验面＋viewer＋tests |
@@ -838,3 +838,9 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 - 处置＝后续统一批一并裁（模板改否＋已审 16 件回改否＋改法）；7e 不扩界（任务书边界＝不改引擎脚本）。
 - 影响面：测试全绿不受影响（只钉子串）；纯一致性问题，无行为差异。
 - 触发：bmb-builder 下次接触窗口或批 8 母本注入批开工时顺带呈裁。
+
+## 待办：任务级 instance 机制——队列/sprint 任务条目各指各版本·混版本跑批（2026-11-08 Q-148 裁3 连带登记，现在不动）
+
+- 现状：`runner.py` 仅全局 `--instance` 旗标（透传子会话）；`rq_lib`／队列条目与 sprint 任务**零 instance 概念**——任务级指定版本机制确无。
+- 目标：任务条目可各指一个 instance，同一条队列混版本跑批（例：Q-A 跑 v1、Q-B 跑 v2）。
+- 来源：Q-148 任务书 §7-3 连带（2026-11-07 裁定：本件不实现·登底单待办）；开工条件＝用户点头。
