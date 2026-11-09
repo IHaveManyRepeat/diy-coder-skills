@@ -114,8 +114,8 @@ class TestLiteralScan(unittest.TestCase):
         self.assertEqual(bad, [], "字面量码未登记（忘登记即红）：\n" + "\n".join(bad))
 
     def test_table_not_silently_shrunk(self):
-        # 反向兜底：核心 23 全在表、技能级键自洽
-        self.assertEqual(len(CORE), 23, "核心冻结区必须恰为 23 码")
+        # 反向兜底：核心 22 全在表、技能级键自洽
+        self.assertEqual(len(CORE), 22, "核心冻结区必须恰为 22 码")
         for code, (kind, owners) in SKILL_CODES.items():
             self.assertIn(kind, ("violation", "warning", "both"), code)
             self.assertTrue(owners, f"{code} 必须有 owner")

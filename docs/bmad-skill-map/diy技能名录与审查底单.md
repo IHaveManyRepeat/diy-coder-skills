@@ -622,6 +622,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **〔2026-11-07 立书裁毕·解挂〕**：立书 `taskbook-evict-evidence-order.md`→ SS-054 自扫 6 findings（0 阻断）→ **§7 三裁全落**（1乙全库复扫·497 文件零新死码／2甲留账＋落点纪律 dev 面不进 skill 正文／3甲不加守卫）＋用户令全修 → 6 处修订毕（含治本改判：**开工一律走队列 run_queue·不分昼夜·废日班手搓分支**）→ SS-055 重扫 0 findings 终门 exit 0 → **Q-141 解挂 status=待跑**（verify 补第 4 条 gen 重跑不回填）。开工权归用户（启动队列提示词随令附）。
 
+**〔2026-11-08 Q-141 完工·销账〕**：施工复扫（同口径·排除表自指）确认零命中仍仅 `EVIDENCE_ORDER`、无新死码 → 契约 §3 码表句删词＋「已清退：`EVIDENCE_ORDER`（2026-11-07·零调用普查核验）」行尾留痕（dev 面·2甲）→ gen CORE23/assert 同步 23→22 后重生成表（CORE 22·TOTAL 110·unused 空）→ tests `len(CORE)` 断言 23→22（3甲·不加守卫）→ verify 四条绿（含 gen 重跑不回填）。本段销账（清退史留档·段不删）。
+
 ### 待办：architecture stack `kind` 枚举扩展（2026-10-21 用户裁定，登记待扩，现在不动）
 
 登记来源：Q-107 方案裁定——`kind` 初版只收有机械消费方的 7 类：`frontend` / `scaffold` / `language` / `test` / `lint` / `typecheck` / `build`；数据库、部署、包管理器等其余技术类目本次不进枚举，扩展时走本条。
