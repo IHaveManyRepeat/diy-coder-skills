@@ -7,15 +7,18 @@ Progress: `Clarify & Route → Plan → [Implement] → Review → Present`
 
 ## 前置
 
-记录在盘上且 `status: 就绪`（续跑可能见到 `进行中`——从未完成的任务接着做）。否则 HALT 并问要做哪条记录；绝不替人猜。
+1. 记录在盘上且 `status: 就绪`（续跑可能见到 `进行中`——从未完成的任务接着做）。
+2. 否则 HALT 并问要做哪条记录；绝不替人猜。
 
 ## baseline 先行
 
-记下 `baseline` = 当前 HEAD 提交，版本控制不可用时记 `NO_VCS`——**必须在首次改动代码之前**。审查（第 4 步）对着它取 diff。
+1. 记下 `baseline` = 当前 HEAD 提交，版本控制不可用时记 `NO_VCS`——**必须在首次改动代码之前**。
+2. 审查（第 4 步）对着它取 diff。
 
 ## 接下记录
 
-把记录置 `status: 进行中`。这是 spec 局部状态：改动在故事环之外，别处什么都不动。当改动同时触及 `sprint.yaml` 里已有的故事时，那个任务的状态仍由 diyc 拥有——用 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type sprint --json` 核跨文档真相并转述回执；绝不从这里写 `sprint.yaml`。（diy 无 `sprint-status.yaml`。）
+1. 把记录置 `status: 进行中`。这是 spec 局部状态：改动在故事环之外，别处什么都不动。
+2. 当改动同时触及 `sprint.yaml` 里已有的故事时，那个任务的状态仍由 diyc 拥有——用 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type sprint --json` 核跨文档真相并转述回执；绝不从这里写 `sprint.yaml`。（diy 无 `sprint-status.yaml`。）
 
 ## 实现
 
@@ -26,11 +29,15 @@ Progress: `Clarify & Route → Plan → [Implement] → Review → Present`
 
 ## 自检
 
-离开本步之前，核验每条 `tasks[]` 都已完成并置 `done: true`。未完成的任务现在就做完，绝不静默延后。
+1. 离开本步之前，核验每条 `tasks[]` 都已完成并置 `done: true`。
+2. 未完成的任务现在就做完，绝不静默延后。
 
 ## 跑验证
 
-逐条跑 `verification.commands[].cmd` 并写下真实 `result`（命令实际打印了什么，通过或失败）。失败的命令要么在此修好、要么如实记录——绝不弱化、绝不省略、绝不想象。`manual` 条目仅在确实没有 CLI 检查可用时记录。`verification.commands` 为空时记录到不了 `审查中`（引擎拒绝：`EMPTY_FIELD`）。
+1. 逐条跑 `verification.commands[].cmd` 并写下真实 `result`（命令实际打印了什么，通过或失败）。
+2. 失败的命令要么在此修好、要么如实记录——绝不弱化、绝不省略、绝不想象。
+3. `manual` 条目仅在确实没有 CLI 检查可用时记录。
+4. `verification.commands` 为空时记录到不了 `审查中`（引擎拒绝：`EMPTY_FIELD`）。
 
 ## 播报与下一步
 

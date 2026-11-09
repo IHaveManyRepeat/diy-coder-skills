@@ -28,7 +28,9 @@ Progress: `[1 架构总览与 Mermaid 图] → [2 风险与技术债 + 建议] �
 | 依赖图 | `graph LR` | 谁依赖谁、哪里是核心 |
 | 数据流 | `sequenceDiagram` | 一次请求怎么走完 |
 
-**首词必须是合法图纸类型**（`graph` / `flowchart` / `sequenceDiagram` / `classDiagram` / `stateDiagram` / `erDiagram` / `journey` / `gantt` / `pie`），否则引擎判 `ENUM_INVALID`。图里的节点名用 `components[].name`，**别另起一套叫法**。
+**首词必须是合法图纸类型**（`graph` / `flowchart` / `sequenceDiagram` / `classDiagram` / `stateDiagram` / `erDiagram` / `journey` / `gantt` / `pie`），否则引擎判 `ENUM_INVALID`。
+
+- 图里的节点名用 `components[].name`，**别另起一套叫法**。
 
 **落盘**：`architecture.summary` / `architecture.overview` / `architecture.mermaid`。
 
@@ -43,13 +45,16 @@ Progress: `[1 架构总览与 Mermaid 图] → [2 风险与技术债 + 建议] �
 
 ### 2.1 风险与技术债
 
-逐条落 `risks[]`，四键**全保**：`risk`（一句话说清是什么）/ `severity`（`高|中|低`）/ `location`（project-root 相对 `path:line`）/ `impact`（会怎样）。三类都收：裸奔的端点、循环依赖、静默失败。
+逐条落 `risks[]`，四键**全保**：`risk`（一句话说清是什么）/ `severity`（`高|中|低`）/ `location`（project-root 相对 `path:line`）/ `impact`（会怎样）。
+
+- 三类都收：裸奔的端点、循环依赖、静默失败。
 
 ### 2.2 建议
 
 逐条落 `recommendations[]`，每条三性**全保**——**具体**（点名模块 / 文件 / 模式）/ **可执行**（说做什么，不只说哪不对）/ **排过序**（按影响与工作量）。键：`action` / `priority`（`高|中|低`）/ `effort`（工时估）/ `target`。
 
-**优先级降序排列**（引擎核：`高` 不许排到 `中` 后面，乱序判 `SET_MISMATCH`）。**建议不是决策**：写成「可以这样办 + 为什么」，拍板留给用户与主线。
+- **优先级降序排列**（引擎核：`高` 不许排到 `中` 后面，乱序判 `SET_MISMATCH`）。
+- **建议不是决策**：写成「可以这样办 + 为什么」，拍板留给用户与主线。
 
 **落盘**：`risks[]` + `recommendations[]`。
 
@@ -61,7 +66,8 @@ Progress: `[1 架构总览与 Mermaid 图] → [2 风险与技术债 + 建议] �
 
 ### 3.1 定稿落盘
 
-`project.status: 已定稿` + `project.updated` 刷今天；`revisions` 补上本轮未决项与 gap（一条一句，`change` 点名 `AN-<nn>` 或字段名，`reason` 写为什么）。
+- `project.status: 已定稿` + `project.updated` 刷今天。
+- `revisions` 补上本轮未决项与 gap（一条一句，`change` 点名 `AN-<nn>` 或字段名，`reason` 写为什么）。
 
 ### 3.2 终门（机械；`exit 0` 是唯一放行）
 
@@ -69,7 +75,9 @@ Progress: `[1 架构总览与 Mermaid 图] → [2 风险与技术债 + 建议] �
 python "{project-root}/.claude/skills/diy-analyze/scripts/analyze.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`--final` 核：`project.status: 已定稿` + `question` 四项非空 + `architecture.summary` / `overview` 非空 + `tech_stack[]` 非空 + Mermaid 首词合法 + `AN-<nn>` 唯一且顺序 + `components[]` / `data_flow[]` / `risks[]` / `recommendations[]` 四段非空 + 建议按优先级降序 + **零 `[假设]`**。**按回执 `where` 就地修、重跑，不得跳过**；渲染与收尾都等 `exit 0`。
+`--final` 核：`project.status: 已定稿` + `question` 四项非空 + `architecture.summary` / `overview` 非空 + `tech_stack[]` 非空 + Mermaid 首词合法 + `AN-<nn>` 唯一且顺序 + `components[]` / `data_flow[]` / `risks[]` / `recommendations[]` 四段非空 + 建议按优先级降序 + **零 `[假设]`**。
+
+- **按回执 `where` 就地修、重跑，不得跳过**；渲染与收尾都等 `exit 0`。
 
 ### 3.3 渲染（静默旁路）
 
@@ -77,7 +85,9 @@ python "{project-root}/.claude/skills/diy-analyze/scripts/analyze.py" check --fi
 
 ### 3.4 交付摘要与路由
 
-呈出一页摘要（会话内，不落盘）：**问题 → 答到了什么**（总览一句）/ 组件与数据流计数 / 风险条数与最高档 / 建议条数与最高档 / 未决项。随后一句话给路由：**本产物不进主链 CHAIN、不被任何门禁引用**——它是现状事实源；要把某条风险变成决策，走 `diy-architecture`（决策式）；要立项执行，走 `diy-correct-course` / `diy-epics-stories`。
+呈出一页摘要（会话内，不落盘）：**问题 → 答到了什么**（总览一句）/ 组件与数据流计数 / 风险条数与最高档 / 建议条数与最高档 / 未决项。
+
+- 随后一句话给路由：**本产物不进主链 CHAIN、不被任何门禁引用**——它是现状事实源；要把某条风险变成决策，走 `diy-architecture`（决策式）；要立项执行，走 `diy-correct-course` / `diy-epics-stories`。
 
 **收尾与路由**：`check --final` 回 `exit 0` 后，本文件到此结束——不再读任何 `steps/` 文件，也不再回头改前序产物（要改就往 `revisions` 追加）。
 

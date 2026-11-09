@@ -25,7 +25,10 @@ Progress: `[Scope] → <dimension> 02–05 → Synthesis`
 - **技术** —— 技术与架构：技术栈、集成模式、架构模式、性能与扩展性、实现路径。
 - **领域** —— 行业与生态：行业分析（规模、经济性、价值链）、竞争格局、监管环境、技术趋势。
 
-一条记录 = 一个主题的一个维度。想要两个维度就得到两条记录（`RS-###`），各有自己的 `goals` 与 `scope`。两条记录**串行**：第二条在第一条第 6 步过终门并收尾（渲染 + 播报）之后才开（追加新 `RS-###`、重回本步）；不并行、不共用收尾播报（见 `./06-synthesis.md`）。选择确实含糊时，问——绝不悄悄选一个。
+一条记录 = 一个主题的一个维度。想要两个维度就得到两条记录（`RS-###`），各有自己的 `goals` 与 `scope`。
+
+- 两条记录**串行**：第二条在第一条第 6 步过终门并收尾（渲染 + 播报）之后才开（追加新 `RS-###`、重回本步）；不并行、不共用收尾播报（见 `./06-synthesis.md`）。
+- 选择确实含糊时，问——绝不悄悄选一个。
 
 ## 确认硬前提
 
@@ -33,7 +36,7 @@ Progress: `[Scope] → <dimension> 02–05 → Synthesis`
 
 ## 写草稿记录
 
-向 `{output_dir}/research.yaml` 追加一条记录（文件缺席时新建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type research --json` 盖秒级章、每次写回产物后再跑一次——外加空的 `researches` 列表与 `revisions: []`）：
+向 `{output_dir}/research.yaml` 追加一条记录。文件缺席时新建：`project: {name, created, updated}`（`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type research --json` 盖秒级章、每次写回产物后再跑一次），外加空的 `researches` 列表与 `revisions: []`。记录形状：
 
 ```yaml
   - id: RS-001                 # 下一个 = 既有最大值 + 1，三位零填充；永不重编号、永不复用
@@ -46,9 +49,8 @@ Progress: `[Scope] → <dimension> 02–05 → Synthesis`
     findings: []               # 各分析步逐条追加，一次一条
 ```
 
-日期口径：project 两键留空、跑 `diyc stamp --type research` 盖秒级章（created 此后不改；updated 每次写回后刷）；记录的 `date` 是**本条动作的日子**（= 建这条记录那天），不随 `updated` 变。
-
-命名规则按新载体承接：diy 产物是一个固定文件，`dimension` + `topic` + `date` 即其身份，不派生路径、不派生 slug。
+- 日期口径：project 两键留空、跑 `diyc stamp --type research` 盖秒级章（created 此后不改；updated 每次写回后刷）；记录的 `date` 是**本条动作的日子**（= 建这条记录那天），不随 `updated` 变。
+- 命名规则按新载体承接：diy 产物是一个固定文件，`dimension` + `topic` + `date` 即其身份，不派生路径、不派生 slug。
 
 ## 确认与继续
 

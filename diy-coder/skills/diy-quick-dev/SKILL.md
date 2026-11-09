@@ -15,19 +15,20 @@ outputs: spec.yaml
 你是轻量变更驱动器。输入：一个用户意图——一条请求、一个缺陷、一个小功能。输出：可跑的代码，加一条 `{output_dir}/spec.yaml` 记录，承载被要求了什么、验证了什么、人该怎么读这次改动。
 
 **与 diy-dev / diy-review 的边界。** diy-dev 在故事环内跑 TDD（sprint 任务 + test-plan 的 TC）并交接 diy-review；diy-quick-dev 自带完整通道，服务那些小到不值当立故事的改动——不进 sprint、不立 TC。审查层与路由仍归 diy-review：L1 正确性 / L2 边界 / L3 验收覆盖审计，四条路由 `意图缺口` / `规格缺陷` / `小修` / `后置`（`reject` 是静默丢弃，永不成为 finding 状态）。TDD 上的差别是明说的：没有正式的红/绿台账，但每条验收判据都带一条命令级 `verification`，必须真的跑过。
-
 **L4 边界。** 本通道 `acceptance` 无 `design_ref`，L4 的 (a) 结构对照 / (b) 零重写无法机械化键控；改动落在 `{output_dir}/design.yaml` 的 `P-*` / tokens 面或前端面时，改为跑 L4 的 (c)+(d) 等价（两项都是只读命令，不新增写权）：`python "{project-root}/.claude/skills/diy-design/scripts/design.py" audit --design "{output_dir}/design.yaml" --src <impl>`（token 单一源）与 `python "{project-root}/.claude/skills/diy-design/scripts/design.py" check --design "{output_dir}/design.yaml"`（a11y），任一违规即不算 green；跳过须用户明示。
 
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字（intent、notes、why、deferred）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字（intent、notes、why、deferred）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 解析本次运行：显式 `SP-xxx` 或用户点名的 spec → 按该记录 `status` 路由（`草稿` → plan；`就绪` / `进行中` → implement；`审查中` → review；`已完成` → 只读；`已阻塞` → 点名阻塞项并停下）。`草稿` 记录若尚未定 `route`，先回到 Multi-goal / 路由判定——断点恢复不得跳过路由。无线索 → 把活跃记录（`草稿` / `就绪` / `进行中` / `审查中`）排成带序号的候选清单并给 `[N]`（新工作）；未定型的意图文件是起始意图，永远不是可续跑的记录。
 3. 上游调查（可选）：读 `{output_dir}/investigation.yaml` 的 `cases[]`——用户点名或按 `slug` / `id` 命中的那一条，取值键 `handoff_brief` / `conclusion`（`text` / `confidence` / `fix_direction`）/ `evidence[]`（`grade` / `ref`）；引用它、绝不转抄，证据分级口径归 diy-investigate。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。产物只在铸造下一个 `SP-###` 或按 `id:` 行修订某条记录时打开；结构判定取引擎的 JSON 回执，不靠重读规则。`{output_dir}/sprint.yaml / stories.yaml / test-plan.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+   - 产物只在铸造下一个 `SP-###` 或按 `id:` 行修订某条记录时打开；结构判定取引擎的 JSON 回执，不靠重读规则。
+   - `{output_dir}/sprint.yaml / stories.yaml / test-plan.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 5. 读 `steps/01-clarify-route.md` 全文并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流
@@ -40,8 +41,7 @@ outputs: spec.yaml
 4. `steps/04-review.md` — diy-review 的 L1–L3 层加四条路由；`意图缺口` 回人重议、`规格缺陷` 改非冻结段并追加 `change_log`、`小修` 就地修、`后置` 落 `deferred`；轮次上限 5 → HALT。
 5. `steps/05-present.md` — 建 `review_order`（按关注点，不按文件）并把记录落定 `已完成` 加终门；然后建议——绝不代跑——commit 与 push。
 6. `steps/06-oneshot.md` — 零爆炸半径通道，由 step 1 的早期出口抵达：实现、一遍对抗审查、三种处置（`小修` → 就地修 / `后置` → 记档 / 更大的任何事 → HALT 交人），然后走同一套轨迹与终门。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+7. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 

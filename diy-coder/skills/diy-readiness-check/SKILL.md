@@ -17,11 +17,12 @@ outputs: readiness.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字（消息、证据、路由）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
-2. 目标文件 `{output_dir}/readiness.yaml`：只在铸下一个 `IR-###`、或按 `id:` 定位修订一条记录时才打开；需求计数与覆盖一律取 `collect` 回执，绝不重读 `prd.yaml` 手数。本 schema 不定义 `detail` 字段——没有可跳过的内容。
+   - 全程用 `communication_language` 对话；产物里的叙述文字（消息、证据、路由）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+2. 目标文件 `{output_dir}/readiness.yaml`：只在铸下一个 `IR-###`、或按 `id:` 定位修订一条记录时才打开。
+   - 需求计数与覆盖一律取 `collect` 回执，绝不重读 `prd.yaml` 手数。本 schema 不定义 `detail` 字段——没有可跳过的内容。
 3. 硬门（`collect` 机械判定）：`{output_dir}/prd.yaml` / `{output_dir}/architecture.yaml` 必须在场（architecture 缺席/损坏 → gate 拒跑、route `diy-architecture`，不要求已定稿），且 `{output_dir}/epics.yaml` / `{output_dir}/stories.yaml` 的 `project.status: 已定稿`。
    - 满足 → 继续第 4 步。
    - 不满足 → `collect` exit 1、**零产出**：转述它的一行理由与 `gate.route`，然后停下——拒绝永不成为记录。
@@ -40,10 +41,8 @@ outputs: readiness.yaml
 4. `steps/04-ux-alignment.md` — design/UX 的在场与对齐；无 `design.yaml` → 判 UX 是否被隐含并告警。
 5. `steps/05-epic-quality-review.md` — 史诗的用户价值、独立性、依赖、故事粒度、AC 质量；技术型史诗是错误。
 6. `steps/06-final-assessment.md` — 汇总裁决、定 `verdict`、定稿记录并过终门。
-
-记录写入：第 1 步末尾先建 `status: 草稿` 的记录（计数与覆盖照抄回执，绝不凭记忆重打），各节随对应步骤填，第 6 步定稿。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+7. 记录写入：第 1 步末尾先建 `status: 草稿` 的记录（计数与覆盖照抄回执，绝不凭记忆重打），各节随对应步骤填，第 6 步定稿。
+8. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -66,13 +65,21 @@ revisions: []                   # {date, change, reason} —— 改既有条目�
 
 ## 规则
 
-1. 写范围：只写 `{output_dir}/readiness.yaml`——记录与其 `revisions`。绝不编辑 `prd.yaml`、`epics.yaml`、`stories.yaml`、`architecture.yaml`、`design.yaml`：finding 的 `route` 点名由谁修，本技能一个补丁都不打。
-2. verdict 一致性：`就绪` ⇒ 零 `严重`|`高` finding；`未就绪` ⇒ 至少一条。每条 finding 带 `evidence` 锚点（文件、ID 或引述原句）——绝不编造发现；干净的面就明说干净。起草期未确认的推断带 `[假设]` 前缀；终门要求零——要么落定，要么把它写成显式路由。
-3. 需求事实取自 `collect` 回执：`counts` 与 `coverage` 照抄，绝不手工重新推导。跨文档机械判定（ID 链、FR 覆盖、跨文件真值）归 diyc——绝不靠肉眼重查。
-4. 记录只追加，永不重编号、永不复用；改既有记录就往 `revisions` 追加（date / change / reason）。不需要 `--previous` 轮——本技能从不整篇重写既有文档。
+1. 写范围：只写 `{output_dir}/readiness.yaml`——记录与其 `revisions`。
+   - 绝不编辑 `prd.yaml`、`epics.yaml`、`stories.yaml`、`architecture.yaml`、`design.yaml`：finding 的 `route` 点名由谁修，本技能一个补丁都不打。
+2. verdict 一致性：`就绪` ⇒ 零 `严重`|`高` finding；`未就绪` ⇒ 至少一条。
+   - 每条 finding 带 `evidence` 锚点（文件、ID 或引述原句）——绝不编造发现；干净的面就明说干净。
+   - 起草期未确认的推断带 `[假设]` 前缀；终门要求零——要么落定，要么把它写成显式路由。
+3. 需求事实取自 `collect` 回执：`counts` 与 `coverage` 照抄，绝不手工重新推导。
+   - 跨文档机械判定（ID 链、FR 覆盖、跨文件真值）归 diyc——绝不靠肉眼重查。
+4. 记录只追加，永不重编号、永不复用；改既有记录就往 `revisions` 追加（date / change / reason）。
+   - 不需要 `--previous` 轮——本技能从不整篇重写既有文档。
 5. 渲染按工作流里的静默旁路句执行——只写命令；不新增浏览器交互点、不报阻塞路径、不等待。
-6. 终门（机械）：先写记录级 `status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-readiness-check/scripts/readiness.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两个实参同激活（`--output-dir` 必填、绝不缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾都等 exit 0。
-7. 上游保持原样、不被顶替：`未就绪` 时 finding 的 `route` 点名归属技能（diy-prd / diy-architecture / diy-epics-stories / diy-design）——修是它们的活儿，记录是你的。通过后的下一步主线是 diy-test-design。
+6. 终门（机械）：先写记录级 `status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-readiness-check/scripts/readiness.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两个实参同激活（`--output-dir` 必填、绝不缺省）。
+   - exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。
+   - 渲染与收尾都等 exit 0。
+7. 上游保持原样、不被顶替：`未就绪` 时 finding 的 `route` 点名归属技能（diy-prd / diy-architecture / diy-epics-stories / diy-design）——修是它们的活儿，记录是你的。
+   - 通过后的下一步主线是 diy-test-design。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

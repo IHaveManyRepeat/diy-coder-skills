@@ -9,7 +9,12 @@ Progress: `[定向] → 带看 → 风险详查 → 亲手验证 → 拍板`
 
 激活之前的对话就是起点——不是白纸。定位分两层。
 
-**你的层——最近的对话。** 扫最近几条消息找 commit、range、分支、PR 线索或对变更的描述。把 commit / range / 分支线索变成显式 `--ref` 交给引擎；**PR 线索由你先在本地解析**（`gh` 可用时走 `gh pr view` 取 head SHA 或分支；解析不了就问用户要 SHA 或分支）——引擎只吃本地 ref。单有规格路径不是引擎 ref，带进下面的规格配对即可。运行：
+**你的层——最近的对话。** 扫最近几条消息找 commit、range、分支、PR 线索或对变更的描述。
+
+- 把 commit / range / 分支线索变成显式 `--ref` 交给引擎；**PR 线索由你先在本地解析**（`gh` 可用时走 `gh pr view` 取 head SHA 或分支；解析不了就问用户要 SHA 或分支）——引擎只吃本地 ref。
+- 单有规格路径不是引擎 ref，带进下面的规格配对即可。
+
+运行：
 
 ```
 python "{project-root}/.claude/skills/diy-checkpoint-preview/scripts/checkpoint.py" target --project-root "{project-root}" --output-dir "{output_dir}" [--ref <commit|range|branch>] --json
@@ -38,14 +43,23 @@ exit 1 时本轮即结束：转述拒绝的一行理由与它的路由（给一�
 `mode` 取自回执；此处只确认，并让它驱动第 2–4 步：
 
 1. **`仅规格`** —— 有规格（`stories.yaml` 的 story 条目），但该条目不带 `suggested_review_order` 字段。意图来源：条目的 `narrative`（配合 `acceptance_criteria`）。
-2. **`裸提交`** —— 无规格。意图来源：提交信息。信息过短（少于 10 词）→ 扫 diff 找主要变更形态，起草一句话意图。回执会报出你处在哪种情形：`target.inferred: true`——意图从 diff 推断；`false`——提交信息本身承载意图（≥10 词或显式提交引用），无可推断；`null`——不可判定（比如 WORKTREE 或 range 目标），与 `inferred_reason` 字符串配对给出。推断来的意图在输出里标 `[inferred]` 供人纠正；`null` 情形把 `inferred_reason` 用大白话转述——意图取自 diff，需人工核对。
-3. **`全程轨迹`** —— **本生态不适用（不可达）**：引擎只在 story 条目带 `suggested_review_order` 字段时才判它，而全套件无人产出该字段（`diy-epics-stories` 的 stories schema 里没有它）→ 引擎永不产出这个值。回执若给出它，照抄回执值并在定向消息里说明异常——规格是 YAML，别去里面找 markdown 段。
+2. **`裸提交`** —— 无规格。意图来源：提交信息。
+   - 信息过短（少于 10 词）→ 扫 diff 找主要变更形态，起草一句话意图。
+   - 回执会报出你处在哪种情形：`target.inferred: true`——意图从 diff 推断；`false`——提交信息本身承载意图（≥10 词或显式提交引用），无可推断；`null`——不可判定（比如 WORKTREE 或 range 目标），与 `inferred_reason` 字符串配对给出。
+   - 推断来的意图在输出里标 `[inferred]` 供人纠正；`null` 情形把 `inferred_reason` 用大白话转述——意图取自 diff，需人工核对。
+3. **`全程轨迹`** —— **本生态不适用（不可达）**：引擎只在 story 条目带 `suggested_review_order` 字段时才判它，而全套件无人产出该字段（`diy-epics-stories` 的 stories schema 里没有它）→ 引擎永不产出这个值。
+   - 回执若给出它，照抄回执值并在定向消息里说明异常——规格是 YAML，别去里面找 markdown 段。
 
-记 `change_type`——承载「人怎么称呼这次变更」的记录字段：`PR`、`commit`、`branch`，或人自己的词（如 `认证重构`）；含糊时缺省 `change`。第 2–5 步的提示语都以「这个 {change_type}」收尾，值从记录里读，使说法贯穿整轮。
+- 记 `change_type`——承载「人怎么称呼这次变更」的记录字段：`PR`、`commit`、`branch`，或人自己的词（如 `认证重构`）；含糊时缺省 `change`。
+- 第 2–5 步的提示语都以「这个 {change_type}」收尾，值从记录里读，使说法贯穿整轮。
 
 ## 产出定向消息
 
-**意图。** 来自 story 条目的 `narrative` 时：原样展示，不论长短——它本来就是照简练写的。来自其他来源（提交信息、缺陷报告、人自己的话）时：≤200 token → 原样；更长 → 压到 ≤200 token 并给出全文出处（文件路径或 URL）。格式：`> **意图：** {意图摘要}`。
+**意图。**
+
+- 来自 story 条目的 `narrative` 时：原样展示，不论长短——它本来就是照简练写的。
+- 来自其他来源（提交信息、缺陷报告、人自己的话）时：≤200 token → 原样；更长 → 压到 ≤200 token 并给出全文出处（文件路径或 URL）。
+- 格式：`> **意图：** {意图摘要}`。
 
 **变更面统计。** 从回执的 `diff_stat` 与 diff 内容推：
 
@@ -85,13 +99,20 @@ N 个文件变更 · M 个模块被触及 · ~L 行逻辑 · B 次跨界 · P �
 
 只有一个关注点时省掉粗体标签，直接列停靠点。
 
-播报它——「我为这个 {change_type} 自建了一条带看轨迹（未找到作者产出的轨迹）：」——再呈现轨迹。**兜底只决定本轮的呈现顺序，不写回 `mode`**：`mode` 始终照抄引擎回执；下游按「本轮是否已生成轨迹」分支。
+- 播报它——「我为这个 {change_type} 自建了一条带看轨迹（未找到作者产出的轨迹）：」——再呈现轨迹。
+- **兜底只决定本轮的呈现顺序，不写回 `mode`**：`mode` 始终照抄引擎回执；下游按「本轮是否已生成轨迹」分支。
 
-diff 取不到时（git 不可用）：一行说明「无法生成轨迹——git 不可用。」，**零写入退出**，路由同引擎级联全落空（给一个显式 ref，或先跑 diy-dev / diy-review）。绝不凭规格与意图凭空带看。
+- diff 取不到时（git 不可用）：一行说明「无法生成轨迹——git 不可用。」，**零写入退出**，路由同引擎级联全落空（给一个显式 ref，或先跑 diy-dev / diy-review）。
+- 绝不凭规格与意图凭空带看。
 
 ## 写草稿记录
 
-往 `{output_dir}/checkpoint.yaml` 追加一条记录（文件缺席时先建：`project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type checkpoint --json` 盖秒级章、每次写回产物后再跑一次——加空的 `checkpoints` 列表与 `revisions: []`）：
+往 `{output_dir}/checkpoint.yaml` 追加一条记录；文件缺席时先建，先落两件事：
+
+1. `project: {name, created, updated}`——`name` 取 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type checkpoint --json` 盖秒级章、每次写回产物后再跑一次。
+2. 加空的 `checkpoints` 列表与 `revisions: []`。
+
+然后追加一条：
 
 ```yaml
   - id: CK-001                 # 下一条 = 现有最大值 + 1，三位零填充；永不重编号、永不复用
@@ -108,7 +129,11 @@ diff 取不到时（git 不可用）：一行说明「无法生成轨迹——gi
     status: 草稿
 ```
 
-`inferred` 对应回执的三种值：`true` → 写 `inferred: true`；`false` → 省略该键（标记只为 `true` 而写，缺席是常态，绝不无中生有）；`null`（不可判定——比如 WORKTREE 或 range 目标）→ 同样省略该键，回执带 `inferred_reason` 时用大白话转述——意图取自 diff，需人工核对。
+`inferred` 对应回执的三种值：
+
+- `true` → 写 `inferred: true`。
+- `false` → 省略该键（标记只为 `true` 而写，缺席是常态，绝不无中生有）。
+- `null`（不可判定——比如 WORKTREE 或 range 目标）→ 同样省略该键，回执带 `inferred_reason` 时用大白话转述——意图取自 diff，需人工核对。
 
 ## 播报与下一步
 

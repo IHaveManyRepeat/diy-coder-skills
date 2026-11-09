@@ -19,7 +19,13 @@ Progress: `[Scan] → Context → Rules → Finalize`（`深挖` 模式下 `Scan
 3. Cancel —— 文件原样保留
 ```
 
-HALT——等选择。**Cancel** 以零写入结束本轮，收尾一行说明。**深挖** 置 `mode: 深挖`、`level: 穷尽`，然后跑下面的扫描并直接进 `./05-deep-dive.md`（不走第 2 步）——它编辑既有文件：`project` + `scan` 是它唯一写的两节，其余每节原样前滚。**重扫** 置 `mode: 重扫`。这两种模式都要重写既有文件，所以任一种在写之前先跑：
+HALT——等选择。选中后的动作：
+
+1. **Cancel** —— 以零写入结束本轮，收尾一行说明。
+2. **深挖** —— 置 `mode: 深挖`、`level: 穷尽`，然后跑下面的扫描并直接进 `./05-deep-dive.md`（不走第 2 步）——它编辑既有文件：`project` + `scan` 是它唯一写的两节，其余每节原样前滚。
+3. **重扫** —— 置 `mode: 重扫`。
+
+**深挖** 与 **重扫** 都要重写既有文件，所以任一种在写之前先跑：
 
 ```
 cp {output_dir}/project-context.yaml {output_dir}/project-context.yaml.prev
@@ -41,9 +47,11 @@ cp {output_dir}/project-context.yaml {output_dir}/project-context.yaml.prev
 python "{project-root}/.claude/skills/diy-project-context/scripts/context.py" scan --project-root "{project-root}" --output-dir "{output_dir}" --level {快速|深入|穷尽} --json
 ```
 
-引擎是确定性的、只读的：什么都不写。一切取回执——`repository_type`、`parts`、`stack`、`docs_found`、`tree`、`critical_dirs`、`stats`、`warnings`、`counts`——绝不手工重推部件、类型或版本。非零退出即拒绝：转述它的一行理由，零写入停下。
+引擎是确定性的、只读的：什么都不写。
 
-`MANIFEST_UNPARSED` warning 不是失败——那是引擎拒绝猜测。逐条收齐：它们就是下面要问人的问题。
+1. 一切取回执——`repository_type`、`parts`、`stack`、`docs_found`、`tree`、`critical_dirs`、`stats`、`warnings`、`counts`——绝不手工重推部件、类型或版本。
+2. 非零退出即拒绝：转述它的一行理由，零写入停下。
+3. `MANIFEST_UNPARSED` warning 不是失败——那是引擎拒绝猜测。逐条收齐：它们就是下面要问人的问题。
 
 ## 确认分类
 
@@ -59,11 +67,16 @@ python "{project-root}/.claude/skills/diy-project-context/scripts/context.py" sc
 这样对吗？[y/n/edit]
 ```
 
-HALT——等回答。人修正时，部件的清单与类型逐字照收；清单未解析时，问语言与框架是什么并记人的原话。部件与类型绝不发明——没落定的那个保持 `未知`，直到人把它关掉。**人确认后的清单是权威**（SKILL.md 规则 2）：未被修正的值照抄回执，人修正过的 part 以人给的为准——`scan.parts` 与 `stack[].part`（以及 `architecture[].part` / `integration[].between`）逐一对齐该清单；回执里没有的行用人的原话补 `language` / `framework`、`version` 留空、`notes` 注明「人确认（引擎未解析）」。
+HALT——等回答。人修正时：
+
+1. 部件的清单与类型逐字照收；清单未解析时，问语言与框架是什么并记人的原话。
+2. 部件与类型绝不发明——没落定的那个保持 `未知`，直到人把它关掉。
+3. **人确认后的清单是权威**（SKILL.md 规则 2）：未被修正的值照抄回执，人修正过的 part 以人给的为准——`scan.parts` 与 `stack[].part`（以及 `architecture[].part` / `integration[].between`）逐一对齐该清单；回执里没有的行用人的原话补 `language` / `framework`、`version` 留空、`notes` 注明「人确认（引擎未解析）」。
 
 ## 既有文档与关注区域
 
-转述 `docs_found`（各带 `kind`），并问：还有别的重要文档或要重点关注的区域吗？他们的回答不新增字段——第 2 步落成 `structure.key_dirs` 条目（path + purpose），是流程而非地点时第 3 步落成 `工作流` 类规则。
+1. 转述 `docs_found`（各带 `kind`），并问：还有别的重要文档或要重点关注的区域吗？
+2. 他们的回答不新增字段——第 2 步落成 `structure.key_dirs` 条目（path + purpose），是流程而非地点时第 3 步落成 `工作流` 类规则。
 
 ## 开草稿
 
@@ -84,9 +97,12 @@ rules: []
 revisions: []
 ```
 
-日期口径：project 两键留空、跑 `diyc stamp --type project-context` 盖秒级章（created 此后不改；updated 每次写回后刷）；`scan.date` 是**本次写 `scan` 块的日子**——全量 / 重扫 / 深挖一律写今天，不是首扫日（它同时就是下一次续跑播报的增量窗口起点）。`deep_dives[].date` 记那一次深潜的日子，与 `scan.date` 不必相同。定义源在 SKILL.md，本步只落笔。
+日期口径：
 
-**重扫** 或 **深挖** 时，既有各节先整块前滚、就地编辑——`revisions` 记录改了什么。上面的骨架是**新建文件**的形态：拿它覆盖既有文件会连同 `stack` / `structure` / `architecture` / `rules` 与全部人工确认的 `PC-###` 一起丢掉。
+1. project 两键留空、跑 `diyc stamp --type project-context` 盖秒级章（created 此后不改；updated 每次写回后刷）。
+2. `scan.date` 是**本次写 `scan` 块的日子**——全量 / 重扫 / 深挖一律写今天，不是首扫日（它同时就是下一次续跑播报的增量窗口起点）。
+3. `deep_dives[].date` 记那一次深潜的日子，与 `scan.date` 不必相同。定义源在 SKILL.md，本步只落笔。
+4. **重扫** 或 **深挖** 时，既有各节先整块前滚、就地编辑——`revisions` 记录改了什么。上面的骨架是**新建文件**的形态：拿它覆盖既有文件会连同 `stack` / `structure` / `architecture` / `rules` 与全部人工确认的 `PC-###` 一起丢掉。
 
 ## 播报与下一步
 

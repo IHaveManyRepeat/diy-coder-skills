@@ -20,8 +20,8 @@ diy-coder 技能套件的内部引擎。宿主技能（diy-dev、diy-sprint、di
 python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" <subcommand> [options]
 ```
 
-通用选项（每个子命令都有）：`--project-root R`（缺省 `.`）、`--instance NAME`、`--json`（单行机器可读回执）。
-退出码：`0` 正常 / `1` 违规或拒绝（非法状态迁移、未知 story、非法实例名）/ `2` 用法错误。
+1. 通用选项（每个子命令都有）：`--project-root R`（缺省 `.`）、`--instance NAME`、`--json`（单行机器可读回执）。
+2. 退出码：`0` 正常 / `1` 违规或拒绝（非法状态迁移、未知 story、非法实例名）/ `2` 用法错误。
 
 ## 命令
 
@@ -54,12 +54,23 @@ python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" <subcommand> [o
 
 带 `--json` 时，每个命令输出一行 JSON：`{ok, command, project_root, output_dir, instance, violations[], warnings[], counts{}, ...}`。违规形如 `{code, where, msg}`，`where` 用正斜杠、相对 project-root。不带 `--json` 时：一条违规一行（`CODE where: msg`），最后一行摘要。
 
-审计类命令（`check`、`trace`、`static`）还会消费基线台账 `{output_dir}/diyc-baseline.yaml`——用户批准过的已知遗留条目（`code`、`where`、`reason`、`on`、`by`）。某条违规的 `(code, where)` 命中台账条目即降级进 `known[]`（携带该条目的 `reason`）并计入 `counts.known`——那里的条目是已批准的欠债、不是待修违规，永不影响退出码。一条台账条目未被命中、而本次运行在该条目所在的文件范围内仍报同一个 code，它就成了 `BASELINE_STALE`（exit 1）：删掉它，台账只减不增（范围匹配让 `trace` 这类命令不会误判无关条目；`check --story S-x` 是任务级抽查、完全跳过 STALE——收窄的运行证明不了某条目已悬空）。台账损坏或条目缺必填字段 → `BASELINE_INVALID`（exit 1）、整本台账失效——违规绝不被静默吞掉。降级只发生在判定层——明细数组与计数（`unresolved`、`layers`、`counts.unresolved` 等）照旧呈现本次运行观察到的东西；把它们读作事实，而非判决。写回类命令（`transition`、`green`、`done`、`bug-add`、`defer-add`、`reconcile`）不消费基线。`--strict` 完全忽略台账（不降级、不报 STALE），供发布/CI 复检。`baseline-add` 是台账唯一的写入者，且自身从不消费台账：只追加一条；重复 `(code, where)`（`BASELINE_DUPLICATE`）或台账损坏/非法（`BASELINE_INVALID`）一律拒绝、零写入；`output_dir` 缺失时拒绝（`MISSING_FILE`）而非代为创建。任何意外内部故障（权限、路径被目录占用、磁盘写满）都表现为一条 `INTERNAL_ERROR` 违规、exit 1、回执形状完好——绝不静默留空 stdout，绝不残留 `.tmp`。
+审计类命令（`check`、`trace`、`static`）还会消费基线台账 `{output_dir}/diyc-baseline.yaml`——用户批准过的已知遗留条目（`code`、`where`、`reason`、`on`、`by`）：
+
+1. 降级：某条违规的 `(code, where)` 命中台账条目即降级进 `known[]`（携带该条目的 `reason`）并计入 `counts.known`——那里的条目是已批准的欠债、不是待修违规，永不影响退出码。
+2. `BASELINE_STALE`（exit 1）：一条台账条目未被命中、而本次运行在该条目所在的文件范围内仍报同一个 code——删掉它，台账只减不增（范围匹配让 `trace` 这类命令不会误判无关条目；`check --story S-x` 是任务级抽查、完全跳过 STALE——收窄的运行证明不了某条目已悬空）。
+3. `BASELINE_INVALID`（exit 1）：台账损坏或条目缺必填字段——整本台账失效，违规绝不被静默吞掉。
+4. 降级只发生在判定层——明细数组与计数（`unresolved`、`layers`、`counts.unresolved` 等）照旧呈现本次运行观察到的东西；把它们读作事实，而非判决。
+5. 不消费基线的两类：写回类命令（`transition`、`green`、`done`、`bug-add`、`defer-add`、`reconcile`）；`--strict` 完全忽略台账（不降级、不报 STALE），供发布/CI 复检。
+6. `baseline-add` 是台账唯一的写入者，且自身从不消费台账：只追加一条；重复 `(code, where)`（`BASELINE_DUPLICATE`）或台账损坏/非法（`BASELINE_INVALID`）一律拒绝、零写入；`output_dir` 缺失时拒绝（`MISSING_FILE`）而非代为创建。
+7. 任何意外内部故障（权限、路径被目录占用、磁盘写满）都表现为一条 `INTERNAL_ERROR` 违规、exit 1、回执形状完好——绝不静默留空 stdout，绝不残留 `.tmp`。
 
 ## 规则
 
 1. 零新增依赖——只用 stdlib + PyYAML；Python 3.10+。
-2. 写回类命令只改动解析出的 `output_dir`；YAML 原子重写（`tmp` + 替换；写入失败时 tmp 文件会被清理）。注释不保留——产物不得依赖注释。
-3. `scripts/` 下的文件是各道门的唯一定义源（例如 `Docs.story_covered` 同时驱动 TDD 门与 reconcile）。绝不在提示词里内联重新实现规则——调命令、读回执。
-4. 基线条目只在用户明确批准后才写进台账——宿主技能提 `(code, where, reason)`、用户拍板、`baseline-add` 是唯一写入者；绝不为了过门把违规自行入册。
+2. 写回类命令只改动解析出的 `output_dir`；YAML 原子重写（`tmp` + 替换；写入失败时 tmp 文件会被清理）。
+   - 注释不保留——产物不得依赖注释。
+3. `scripts/` 下的文件是各道门的唯一定义源（例如 `Docs.story_covered` 同时驱动 TDD 门与 reconcile）。
+   - 绝不在提示词里内联重新实现规则——调命令、读回执。
+4. 基线条目只在用户明确批准后才写进台账——宿主技能提 `(code, where, reason)`、用户拍板、`baseline-add` 是唯一写入者。
+   - 绝不为了过门把违规自行入册。
 

@@ -10,7 +10,8 @@ Progress: `定位与定档 → 两透镜分析 → [落盘与交付]`
 1. `open_questions` 收尾：需作者拍板的（`QUESTION` 类建议的悬置项、拿不准的修订）写进这里。
 2. 记录改 `status: 已定稿`，`project.updated` 改今天（记录级 `date` 不动——它记的是本次评审的日子）。
 3. 全文零 `[假设]` 字面量（存疑走 `open_questions`）。
-4. `estimated_reduction_words` 与 `findings` 的 `impact_words` 之和核对一致（都填时）。被 `diy-product-brief` 调用时，本步就是终门步——不回头问用户。
+4. `estimated_reduction_words` 与 `findings` 的 `impact_words` 之和核对一致（都填时）。
+   - 被 `diy-product-brief` 调用时，本步就是终门步——不回头问用户。
 
 ## 终门
 
@@ -18,7 +19,8 @@ Progress: `定位与定档 → 两透镜分析 → [落盘与交付]`
 python "{project-root}/.claude/skills/diy-editorial-review/scripts/editorial_review.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`exit 0` 是唯一放行。违规 → 按回执的 `where` 就地修，重跑，直到 exit 0。不得跳过。
+1. `exit 0` 是唯一放行。
+2. 违规 → 按回执的 `where` 就地修，重跑，直到 exit 0。不得跳过。
 
 ## 渲染
 
@@ -52,11 +54,13 @@ python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-ro
 - 理解力权衡：<哪些削减动了理解或参与感>
 ```
 
-模型 / 读者档 / 建议计数以记录与回执为准，不凭记忆重打。两透镜都没挑出问题时照给摘要，明说「未发现需要改的地方」——这是合法完成，不是错误，也绝不编造发现凑数。
+1. 模型 / 读者档 / 建议计数以记录与回执为准，不凭记忆重打。
+2. 两透镜都没挑出问题时照给摘要，明说「未发现需要改的地方」——这是合法完成，不是错误，也绝不编造发现凑数。
 
 ## 路由
 
-- **施加者**：findings 是建议——目标文档由**它的持有者或用户**改；本技能不改 target，目标若是 diy 产物，改动与它的 `revisions` 条目都由持有者写。
+- **施加者**：findings 是建议——目标文档由**它的持有者或用户**改；本技能不改 target。
+  - 目标若是 diy 产物，改动与它的 `revisions` 条目都由持有者写。
 - **被 `diy-product-brief` 调用**：施加归调用方（①结构 → ②语气与惯例 → ③文字机械层三遍顺序，先 `brief` 再 `addendum`）；本技能到此为止，不重复施加。
 - 想再审另一份文档 → 从 step 1 开始（铸下一条 `ER-###` 记录）；同一文档改动后要复审 → 同样新起一条记录，旧记录留痕。
 

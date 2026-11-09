@@ -17,24 +17,29 @@ outputs: —
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字（note、收尾播报）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
-2. 载入 `{output_dir}/sprint.yaml`，定位激活提示点名的任务。硬门：该任务在 `tasks[]` 里的 `status` 必须是 `已完成`（任务级字段——`project.status` 是文件水位线，不是本门的读取层）；补测只在编码后发生，其他状态 → 一行说明并停下，零产出。任务 `augment` 字段若在场（`通过` / `失败` / `已跳过`）＝ 既往判定：本轮与它对账，不重复造用例。
+   - 全程用 `communication_language` 对话；产物里的叙述文字（note、收尾播报）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+2. 载入 `{output_dir}/sprint.yaml`，定位激活提示点名的任务。硬门：该任务在 `tasks[]` 里的 `status` 必须是 `已完成`（任务级字段——`project.status` 是文件水位线，不是本门的读取层）；补测只在编码后发生，其他状态 → 一行说明并停下，零产出。
+   - 任务 `augment` 字段若在场（`通过` / `失败` / `已跳过`）＝ 既往判定：本轮与它对账，不重复造用例。
 3. 输入：`{output_dir}/test-plan.yaml`（用例、`static_checks` 链、覆盖证据的落点）与 `{output_dir}/stories.yaml`（AC 索引）；解析该故事的 AC 集合与既有每-AC TC 序列（每个 AC 当前的最大 seq）。
 4. 写范围恰为四个面（`test-plan.yaml` 的追加用例及其 `status`、改既有用例时的顶层 `revisions` 追加条、本任务的 `augment`、本任务的 `test_refs`、`mutation-report.yaml`）；任务的 `status` 与 `evidence` 都不在写面——细则见规则第 1、9、10 条。
-`{output_dir}/test-plan.yaml / mutation-report.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
+   - `{output_dir}/test-plan.yaml / mutation-report.yaml` 只在续接检测、定目标任务、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验/统计走 `diyc.py` 回执，模型只读结论简报，绝不重读规则原文。
 
 ## 工作流
 
 全局步骤纪律：一次给全（front-load）——本轮输出整块给出，不在步骤中间提问；要停下时一行说明原因。
 
 1. 建覆盖率基线：对实现面跑项目覆盖率命令（工具链取值路径见规则第 2 条）。工具缺失或未获许可 → 落 `augment: 已跳过`、一行说明原因并停下；不安装任何东西。
-2. 分类缺口：每条未覆盖项按规则第 3 条落技法；低于项目覆盖率门槛的条目丢弃，除非它落在 AC path 上（门槛取值顺序与 `AC path` 判据见规则第 4 条）。**变异开启时（test-plan `mutation` 段，见规则第 5 条），另经 `diyc.py mutate` 对沙箱副本跑一遍（`--scope` 限本任务实现面），幸存体照同法分类（`变异杀伤`；等价体登记待裁、永不成为用例），运行落 `{output_dir}/mutation-report.yaml`——关闭时是一行 note，不是判定。** 重跑（任务已带判定）先对账：等价用例就地更新，不重复追加。
+2. 分类缺口：每条未覆盖项按规则第 3 条落技法；低于项目覆盖率门槛的条目丢弃，除非它落在 AC path 上（门槛取值顺序与 `AC path` 判据见规则第 4 条）。
+   - **变异开启时（test-plan `mutation` 段，见规则第 5 条），另经 `diyc.py mutate` 对沙箱副本跑一遍（`--scope` 限本任务实现面），幸存体照同法分类（`变异杀伤`；等价体登记待裁、永不成为用例），运行落 `{output_dir}/mutation-report.yaml`——关闭时是一行 note，不是判定。**
+   - 重跑（任务已带判定）先对账：等价用例就地更新，不重复追加。
 3. 推导并追加用例到 `test-plan.yaml`（`status: 待办` + `producer: augment` + `technique` / `kill_target` / `note` / 具体可执行的 `steps`；schema 同 `diy-test-design`）；新 TC ID 并入本任务的 `test_refs`。
 4. 执行用例：逐条回写 `通过` / `失败`，再把任务判定（`通过` / `失败` / `已跳过`）落在 `augment` 上。
-5. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。**真写过 `mutation-report.yaml` 时补一道机械自检**（形状/枚举/保守分自洽，防 schema 漂移）：`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type mutation-report --project-root "{project-root}" --json`——exit 0 放行，违规即改；自检失败不阻断本轮判定，只在收尾报一行。收尾报计数：按技法追加的用例数 / 通过 / 失败 / 判定，以及剩余缺口。
+5. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+   - **真写过 `mutation-report.yaml` 时补一道机械自检**（形状/枚举/保守分自洽，防 schema 漂移）：`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" check --type mutation-report --project-root "{project-root}" --json`——exit 0 放行，违规即改；自检失败不阻断本轮判定，只在收尾报一行。
+   - 收尾报计数：按技法追加的用例数 / 通过 / 失败 / 判定，以及剩余缺口。
 
 ## 结构
 
@@ -63,9 +68,18 @@ revisions: []                 # {date, change, reason}——改既有条目时�
 1. **写范围恰为四个面。** `{output_dir}/test-plan.yaml`（追加的用例及其 `status`、改既有用例时顶层 `revisions` 追加条）、本任务的 `augment` 字段、本任务的 `test_refs`（并入追加 TC ID）、`{output_dir}/mutation-report.yaml`（只在真跑过变异时）。任务的 `status` / `blocked_reason` / `note` 永不触碰；`stories.yaml`、源码与其他产物零写入。
 2. **覆盖率工具链与实现面。** 工具链取值路径 ＝ `{output_dir}/test-plan.yaml` 的 `static_checks` 链（链的定义源在 `diy-test-design`，此处只引用不重定义）；链里没有覆盖率条目 → 一行 note，落 `已跳过`。实现面 ＝ `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" trace --json` 回执 `references[].file` 里引用了本任务 `S-x` 的文件集合（扫面用 `--src` 收窄），加上 `git status --porcelain` 里本任务的未跟踪实现文件；开场一行声明本次采样的实现面。只有被工具报出的缺口才成用例——从不被报出的未测项不在范围内。
 3. **技法映射（四值）。** 未覆盖分支 → `覆盖分支`；未覆盖条件组合（MC/DC）→ `MC-DC 覆盖`；未覆盖执行路径 → `白盒路径`；变异幸存体 → `变异杀伤`。编码前的九种设计技法归 `diy-test-design`，此处永不选。`priority` 沿用该 AC 的既有档位——映射（`必须`→P0 / `应该`→P1 / `可选`→P2 / NFR 引用的 AC→P0）唯一权威出处 = `diy-test-design`，只引用不重定义。
-4. **覆盖率门槛取值顺序与 `AC path`。** 门槛顺序：① 用户本次给出的阈值 > ② `{output_dir}/test-plan.yaml` 的 `static_checks[]` 里覆盖率条目命令自带的阈值 > ③ 都没有 → **不过滤**（全量缺口入列），并把「本项目无覆盖率门槛」一行记进收尾。`AC path` ＝ 该未覆盖项位于某条 AC 的 TC `steps` 点名的文件/符号内，或位于带该 AC `# trace:` 行的文件内；落在 AC path 上的条目即使低于门槛也保留。
-5. **变异：取值路径、工具按栈选、沙箱与判定。** 配置载体 ＝ `{output_dir}/test-plan.yaml` 顶层 **`mutation` 段**（schema 唯一出处＝`diy-test-design`，本技能只消费不重定义）：`enabled: false` → 不跑（一行 note，不写 `mutation-report.yaml`、不设判定）；`enabled` 缺席视同 `true`（默认开·日常任务级）；`tool` 在场逐字取用，缺席**工具按栈选**（取 `architecture.yaml` 的 `stack[]` 中 `kind: language` 条目的 `choice`）：Python → `cosmic-ray`（跨平台）或 `mutmut`（**仅 Linux/macOS**——mutmut 3.x 在 Windows 上拒绝运行，上游 issue 397，Windows 上别选它）；JS/TS → `stryker`；某栈无现成工具时自造（边界同 `diy-test-design` 的自造检查器三条）。**按次 override**：用户会话显式指令可对单次运行开关变异（开默认单次关 / 关默认单次开）；持久改写走 `diy-test-design` Update 改 `mutation` 段＋`revisions` 留痕——本技能不改该段。**沙箱由 `diyc.py mutate` 建与销毁**——它复制一份隔离副本、在副本里跑、跑完销毁；本技能不复制工作树、**永不跑在工作区**：`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" mutate --project-root "{project-root}" --tool "<命令>" --scope <实现面文件> --scope ... --json`（范围 = 规则 2 的实现面；全量写作 `--full`——**时机判据**：日常任务级补测一律 `--scope`，**发版前必须 `--full`**，触发＝用户说发版/发布/上线，或 v2 的 release 门就绪后随该门；日常即全量会拖垮 runner 循环，故全量只此一处）。回执里 `output_tail` 是**工具原始输出**——各工具词汇不同（mutmut 报 `survived`；cosmic-ray 报 `test_outcome ∈ killed|survived|incompetent|timeout`；Stryker 报 `Killed|Survived|Timeout`），**解读归你、不归脚本**；`workspace.dirty_before` → `dirty_after` 上升即停并报。幸存体 = 代码被执行过、却没有断言区分对错的缺口——一条派生一条用例（变异的故障即其 `kill_target`）。**等价体不进用例**：登记在该 run 的 `equivalents[]`（`mutant` + `reason`）作为**候选**；本技能**不自行把它们排除出分母**——`score = killed / total` 是**保守值**（没被裁定过的不白送分）。**裁定的唯一落点在 gate**：用户确认为语义等价的候选，由人在门环节以 `waivers` 登记（`ref` ＝ 该变异体标识），gate 据此重算 `score = killed / (total − 已批准等价体数)`。落在关键路径上的变异体另计 `critical`（见规则第 13 条）。
-6. **序列续号、`kill_target` 引 FH、五轴与联动、零缺口不写用例。** 新 TC ID ＝ AC ID 去前缀 + 该 AC 的下一个 seq（AC-5.1 已有 TC-5.1.1 → TC-5.1.2）；永不重编号、永不复用。`kill_target` 引用 `fault_hypotheses` 的 FH ID——编码后发现的新故障**先落 FH**（本技能有 FH 追加权：往 `fault_hypotheses` 段追加 `{id: FH-x.y.z, ac, text}`，id 数字段与 ac 对应）；每条追加用例带五轴 `dimension`（覆盖缺口常落 边界/异常 轴），且 `(ac, dimension)` 审计格同步补录本 TC（`dimension_audit` 既有格追加 id；格为 `not_applicable` 时转 `tcs` 型——实际用例推翻了不适用判定）；追加用例按爆炸半径标注 `radius`（TC 可选字段·同族枚举 `局部|模块|跨模块|系统|外部`）——先为炸得最广的假设设计攻击用例；API 补测用例的 `api_refs` 点名被测端点复合锚（openapi 在场时，同 `diy-e2e-tests` 锚定义）。失败也无法把正确代码与该故障区分开的用例是装饰品，砍掉。**零缺口 → 不写用例、只落判定**；绝不写「为将来保底」的猜测性用例。
+4. **覆盖率门槛取值顺序与 `AC path`。** 门槛顺序：① 用户本次给出的阈值 > ② `{output_dir}/test-plan.yaml` 的 `static_checks[]` 里覆盖率条目命令自带的阈值 > ③ 都没有 → **不过滤**（全量缺口入列），并把「本项目无覆盖率门槛」一行记进收尾。
+   - `AC path` ＝ 该未覆盖项位于某条 AC 的 TC `steps` 点名的文件/符号内，或位于带该 AC `# trace:` 行的文件内；落在 AC path 上的条目即使低于门槛也保留。
+5. **变异：取值路径、工具按栈选、沙箱与判定。** 配置载体 ＝ `{output_dir}/test-plan.yaml` 顶层 **`mutation` 段**（schema 唯一出处＝`diy-test-design`，本技能只消费不重定义）：`enabled: false` → 不跑（一行 note，不写 `mutation-report.yaml`、不设判定）；`enabled` 缺席视同 `true`（默认开·日常任务级）；`tool` 在场逐字取用，缺席**工具按栈选**（取 `architecture.yaml` 的 `stack[]` 中 `kind: language` 条目的 `choice`）：Python → `cosmic-ray`（跨平台）或 `mutmut`（**仅 Linux/macOS**——mutmut 3.x 在 Windows 上拒绝运行，上游 issue 397，Windows 上别选它）；JS/TS → `stryker`；某栈无现成工具时自造（边界同 `diy-test-design` 的自造检查器三条）。
+   - **按次 override**：用户会话显式指令可对单次运行开关变异（开默认单次关 / 关默认单次开）；持久改写走 `diy-test-design` Update 改 `mutation` 段＋`revisions` 留痕——本技能不改该段。
+   - **沙箱由 `diyc.py mutate` 建与销毁**——它复制一份隔离副本、在副本里跑、跑完销毁；本技能不复制工作树、**永不跑在工作区**：`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" mutate --project-root "{project-root}" --tool "<命令>" --scope <实现面文件> --scope ... --json`（范围 = 规则 2 的实现面；全量写作 `--full`——**时机判据**：日常任务级补测一律 `--scope`，**发版前必须 `--full`**，触发＝用户说发版/发布/上线，或 v2 的 release 门就绪后随该门；日常即全量会拖垮 runner 循环，故全量只此一处）。
+   - 回执里 `output_tail` 是**工具原始输出**——各工具词汇不同（mutmut 报 `survived`；cosmic-ray 报 `test_outcome ∈ killed|survived|incompetent|timeout`；Stryker 报 `Killed|Survived|Timeout`），**解读归你、不归脚本**；`workspace.dirty_before` → `dirty_after` 上升即停并报。
+   - 幸存体 = 代码被执行过、却没有断言区分对错的缺口——一条派生一条用例（变异的故障即其 `kill_target`）。**等价体不进用例**：登记在该 run 的 `equivalents[]`（`mutant` + `reason`）作为**候选**；本技能**不自行把它们排除出分母**——`score = killed / total` 是**保守值**（没被裁定过的不白送分）。
+   - **裁定的唯一落点在 gate**：用户确认为语义等价的候选，由人在门环节以 `waivers` 登记（`ref` ＝ 该变异体标识），gate 据此重算 `score = killed / (total − 已批准等价体数)`。落在关键路径上的变异体另计 `critical`（见规则第 13 条）。
+6. **序列续号、`kill_target` 引 FH、五轴与联动、零缺口不写用例。** 新 TC ID ＝ AC ID 去前缀 + 该 AC 的下一个 seq（AC-5.1 已有 TC-5.1.1 → TC-5.1.2）；永不重编号、永不复用。
+   - `kill_target` 引用 `fault_hypotheses` 的 FH ID——编码后发现的新故障**先落 FH**（本技能有 FH 追加权：往 `fault_hypotheses` 段追加 `{id: FH-x.y.z, ac, text}`，id 数字段与 ac 对应）。
+   - 每条追加用例带五轴 `dimension`（覆盖缺口常落 边界/异常 轴），且 `(ac, dimension)` 审计格同步补录本 TC（`dimension_audit` 既有格追加 id；格为 `not_applicable` 时转 `tcs` 型——实际用例推翻了不适用判定）；追加用例按爆炸半径标注 `radius`（TC 可选字段·同族枚举 `局部|模块|跨模块|系统|外部`）——先为炸得最广的假设设计攻击用例；API 补测用例的 `api_refs` 点名被测端点复合锚（openapi 在场时，同 `diy-e2e-tests` 锚定义）。
+   - 失败也无法把正确代码与该故障区分开的用例是装饰品，砍掉。**零缺口 → 不写用例、只落判定**；绝不写「为将来保底」的猜测性用例。
 7. **判定必落。** 每轮结束恰落一个 `augment` 值：`通过`（执行的用例全绿）/ `失败`（至少一条红——缺陷为真、等用户裁断）/ `已跳过`（覆盖率工具链不可用或未获许可；什么都没执行）。判定是 runner 的汇报依据、也是 `--augment-only` 的恢复点——缺判定与「从未跑过」不可区分。
 8. **失败只出判定。** 用例上写 `status: 失败`、任务上落 `augment: 失败`、收尾列出该用例的复现证据（命令 + 实测 vs 预期），然后停下。任务的 `status` 保持 `已完成`——本技能绝不重开任务。重开是用户裁断：由**人手动执行** `python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" --project-root "{project-root}" --reopen-failed`（安装形态 `.claude/skills/diy-tools/scripts/runner.py`）批量重开、修复、重新补测。
 9. **证据交接点。** 追加用例的 `evidence`（红/绿行）不是本技能的写面：它由**下一次 `进行中` 周期**经 `diyc.py green` 写入（该命令只对 `进行中` 任务生效）——唯一写者是 `diy-dev` / `diy-build-loop`。故 `已完成` 现场的追加件暂缺 `evidence` 是正常状态：`diy-review` L3 报出的 `EVIDENCE_MISSING` 是**信号**（下一次修复周期补齐），不是豁免、也不是本技能可代写的字段——绝不编造 red。

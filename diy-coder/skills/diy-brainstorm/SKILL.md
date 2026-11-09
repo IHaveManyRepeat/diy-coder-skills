@@ -17,14 +17,16 @@ outputs: brainstorm.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 续接检测：跑 `list` 拿会话清单——**只列 `id` / `topic` / `date` / `status` / `current_step` 五字段，不读正文**：
    `python "{project-root}/.claude/skills/diy-brainstorm/scripts/brainstorm.py" list --project-root "{project-root}" --output-dir "{output_dir}" --json`
-   有记录 → 播报最近一条并问「[1] 继续 / [2] 新建 / [3] 看全部」，**HALT 等选择**；无记录 → 直接进第 3 步。
-3. 硬门（零产出退出）：新会话必须先有议题与目标——由会话询问收集，拒答 → 一行说明并**零产出停止**；「无议题也无素材」→ 同样拒绝并建议先想清楚要解决什么（**不代拟议题**，可路由 `diy-prfaq` 点火）。指向既有 `BS-xxx` → 按 `status` 路由：`已完成` 的记录只读回看、不再写入。
+   - 有记录 → 播报最近一条并问「[1] 继续 / [2] 新建 / [3] 看全部」，**HALT 等选择**；无记录 → 直接进第 3 步。
+3. 硬门（零产出退出）：新会话必须先有议题与目标——由会话询问收集，拒答 → 一行说明并**零产出停止**。
+   - 「无议题也无素材」→ 同样拒绝并建议先想清楚要解决什么（**不代拟议题**，可路由 `diy-prfaq` 点火）。
+   - 指向既有 `BS-xxx` → 按 `status` 路由：`已完成` 的记录只读回看、不再写入。
 4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
 5. 读 `steps/01-session.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
@@ -37,10 +39,8 @@ outputs: brainstorm.yaml
 3. `steps/03-facilitate.md` — **交互式教练**（本技能灵魂）：一次一个技术元素 → 深挖三分支 → 能量检查点 → 反偏置域切换；菜单 `[K]` 继续 / `[T]` 换技术 / `[A]` 深挖（= 调用 `diy-elicit`）/ `[B]` 休息 / `[C]` 组织。
 4. `steps/04-organize.md` — 收敛组织：主题聚类 → 优先级四维（Impact / Feasibility / Innovation / Alignment）→ 行动计划（下一步 / 资源 / 时间 / 成功指标）。
 5. `steps/05-finish.md` — 收尾：`status: 已完成` + `current_step: 5` → `check --final` 终门 → 渲染 → 摘要与路由。
-
-写回纪律：记录在 step 1 建为 `草稿` / `current_step: 1`；`approach` / `techniques` / `ideas` / `themes` / `priorities` / `actions` 随各步填充，并同步推进 `current_step`；step 5 定稿。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+6. 写回纪律：记录在 step 1 建为 `草稿` / `current_step: 1`；`approach` / `techniques` / `ideas` / `themes` / `priorities` / `actions` 随各步填充，并同步推进 `current_step`；step 5 定稿。
+7. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -70,13 +70,17 @@ sessions:
 revisions: []                       # {date, change, reason} —— 改既有记录时追加
 ```
 
-`status` 与 `current_step` 必须同档：`草稿` = 1；`进行中` = 2-4；`已完成` = 5（不一致引擎报 `STATUS_MISMATCH`）。**三级稳定 ID**：想法 `BI-###` / 主题聚类 `BT-###` / 行动计划 `BA-###`——三位序号、全文件按前缀唯一（不复用不重编号）。`themes[].ideas` / `priorities` 三键 / `actions[].idea` 一律引用同一条记录的 `ideas[].id`（`BI-###`）。`已完成` 要求 `themes` / `actions` / `priorities.top` 非空（无行动计划不得收尾）。
+- `status` 与 `current_step` 必须同档：`草稿` = 1；`进行中` = 2-4；`已完成` = 5（不一致引擎报 `STATUS_MISMATCH`）。
+- **三级稳定 ID**：想法 `BI-###` / 主题聚类 `BT-###` / 行动计划 `BA-###`——三位序号、全文件按前缀唯一（不复用不重编号）。`themes[].ideas` / `priorities` 三键 / `actions[].idea` 一律引用同一条记录的 `ideas[].id`（`BI-###`）。
+- `已完成` 要求 `themes` / `actions` / `priorities.top` 非空（无行动计划不得收尾）。
 
 ## 规则
 
 1. 写范围：只写 `{output_dir}/brainstorm.yaml`（记录与 `revisions`）；不碰 `prd.yaml` / `sprint.yaml` / `stories.yaml` / 源码，也不建任何状态散文件（唯一例外＝规则 8 的 `.prev` 快照）。
-2. **教练纪律（本技能的灵魂）**：一次只推进**一个**技术元素——抛出一个想法 / 挑衅 / 角度就停下来等回应，**绝不批量生成想法**（100+ 是协作产出的目标，不是生成任务）；按三分支深挖：基础回应 → 追问细节与落地；详细回应 → 在其洞见上再推一步；卡住 → 给一个温和的起手角度。
-3. **能量与反偏置**：每 4-5 轮做一次能量检查点（继续 / 换技术 / 已充分探索）；**每 10 个想法换一个正交域**（如 体验 → 商业 → 物理 → 社会影响）对抗语义聚类的顺序偏置；模拟温度 0.85——允许更野的跳跃与挑衅性概念。
+2. **教练纪律（本技能的灵魂）**：一次只推进**一个**技术元素——抛出一个想法 / 挑衅 / 角度就停下来等回应，**绝不批量生成想法**（100+ 是协作产出的目标，不是生成任务）。
+   - 按三分支深挖：基础回应 → 追问细节与落地；详细回应 → 在其洞见上再推一步；卡住 → 给一个温和的起手角度。
+3. **能量与反偏置**：每 4-5 轮做一次能量检查点（继续 / 换技术 / 已充分探索）；**每 10 个想法换一个正交域**（如 体验 → 商业 → 物理 → 社会影响）对抗语义聚类的顺序偏置。
+   - 模拟温度 0.85——允许更野的跳跃与挑衅性概念。
 4. **默认继续探索**：只有三种情况才建议收敛——用户明说要收 / 已 45 分钟以上且 100+ 想法 / 能量明显枯竭（短回应、「不知道」）。一个技术做完不等于会话结束。
 5. 想法格式：`[类别 #BI-001]` 助记标题 + `_Concept_` 2-3 句 + `_Novelty_` 差异点，逐条落 `ideas[]` 并铸 `id: BI-###`（取全文件现有最大序号 + 1，不复用不重编号；主题聚类 / 行动计划同法铸 `BT-###` / `BA-###`）。
 6. 深挖入口：菜单 `[A]` → 调用 `diy-elicit`。跨文档信息一律引用 ID 或路径（`FR-x.y` / `path:<relative>`），禁复制内容。

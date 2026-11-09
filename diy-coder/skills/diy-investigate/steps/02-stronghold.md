@@ -22,7 +22,10 @@ Progress: `确认输入 → [据点] → 边界 → 推理 → 源码追踪 → 
 
 ## 起草记录
 
-向 `{output_dir}/investigation.yaml` 追加一条记录。文件缺席时先建它：`project: {name, status: 草稿, created, updated}`（`name` 取自 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type investigation --json` 盖秒级章、每次写回产物后再跑一次）加空 `cases` 列表与 `revisions: []`。
+向 `{output_dir}/investigation.yaml` 追加一条记录。文件缺席时先建它，先落两件事：
+
+1. `project: {name, status: 草稿, created, updated}`（`name` 取自 `diy-coder.yaml` 的 `project.name`；`created`/`updated` 留空，建文件后跑 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" stamp --type investigation --json` 盖秒级章、每次写回产物后再跑一次）。
+2. 加空 `cases` 列表与 `revisions: []`。
 
 **文件已在场时**（上一次结案可能留着 `project.status: 已定稿`），追加新 case 前先把 `project.status` 退回 `草稿`；该 case 走完 `./06-report.md` 的终门后，再按 SKILL.md 规则 11 置回 `已定稿`。
 
@@ -48,7 +51,9 @@ Progress: `确认输入 → [据点] → 边界 → 推理 → 源码追踪 → 
     follow_ups: []
 ```
 
-ID 在这里铸出（`IV-001`、`EV-001`、`H-001` …）且永不复用。**作用域**：`IV-###` 在整份 `investigation.yaml` 内递增（文件级唯一）；`EV-###` / `H-###` 在**本 case 内**各自从 001 起——新 case 重新计数。机器锚点一律照抄 `collect` 回执，绝不凭记忆重打；空章节写空列表，绝不编内容。
+ID 在这里铸出（`IV-001`、`EV-001`、`H-001` …）且永不复用。**作用域**：`IV-###` 在整份 `investigation.yaml` 内递增（文件级唯一）；`EV-###` / `H-###` 在**本 case 内**各自从 001 起——新 case 重新计数。
+
+- 机器锚点一律照抄 `collect` 回执，绝不凭记忆重打；空章节写空列表，绝不编内容。
 
 向用户呈报 scope、据点与拟走的路线；停下等他确认再继续。
 

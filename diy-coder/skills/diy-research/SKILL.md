@@ -17,13 +17,14 @@ outputs: research.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字（topic、scope、claim、synthesis）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+   - 全程用 `communication_language` 对话；产物里的叙述文字（topic、scope、claim、synthesis）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
 2. 目标文件：`{output_dir}/research.yaml`。在场 → **Update**，缺席 → **Create**。记录 ID 铸为既有最大 `RS-###` + 1、三位零填充；永不重编号、永不复用。追加新记录 = 文件追加（不触发 `.prev`）；改写既有记录的字段 = 记录级重写（规则 5 的触发条件）。
 3. 改写既有记录前，先把该记录 `status` 回退 `草稿`；改完按规则 6 重新置 `已定稿` 并重跑终门（`check --final --id RS-xxx`）。
-4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。`{output_dir}/research.yaml` 只在铸下一个 `RS-###`、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验判词取引擎的 JSON 回执，绝不重读规则。本 schema 不定义 `detail` 字段——没有可跳过的内容。
+4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
+   - `{output_dir}/research.yaml` 只在铸下一个 `RS-###`、按 `id:` 定位改一条记录、或判 Create/Update 时才打开；校验判词取引擎的 JSON 回执，绝不重读规则。本 schema 不定义 `detail` 字段——没有可跳过的内容。
 5. 读 `steps/01-scope.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
 ## 工作流
@@ -36,8 +37,7 @@ outputs: research.yaml
    - 技术 → `steps/technical/02-stack.md` → `03-integration.md` → `04-architecture.md` → `05-implementation.md`
    - 领域 → `steps/domain/02-industry.md` → `03-competitive-landscape.md` → `04-regulatory.md` → `05-trends.md`
 3. `steps/06-synthesis.md` — 综合成文、终门、渲染、收尾。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+4. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -66,10 +66,11 @@ revisions: []                   # {date, change, reason} —— 改既有记录�
 
 ## 规则
 
-1. **硬前提。** 必须能联网检索——不可用即中止并告知用户：不研究、不写、不建记录。单条查询零结果 → 换检索词重试一次；该 `area` 仍空则**不写条目**（不得拿弱证据凑数，见规则 3），缺口留到第 6 步落 `synthesis.open_questions`。`Searches` 段落是最小集：每个 `area` 至少一条查询；某 `area` 无对应查询时，为该 `area` 追加一条锚定查询（`"{topic} <area>"`）后照常检索，不得拿别的 `area` 的证据顶替。
+1. **硬前提。** 必须能联网检索——不可用即中止并告知用户：不研究、不写、不建记录。单条查询零结果 → 换检索词重试一次；该 `area` 仍空则**不写条目**（不得拿弱证据凑数，见规则 3），缺口留到第 6 步落 `synthesis.open_questions`。
+   - `Searches` 段落是最小集：每个 `area` 至少一条查询；某 `area` 无对应查询时，为该 `area` 追加一条锚定查询（`"{topic} <area>"`）后照常检索，不得拿别的 `area` 的证据顶替。
 2. 写范围：只写 `{output_dir}/research.yaml`——记录与其 `revisions`。绝不碰上游产物（`prd.yaml`、`sprint.yaml`、`stories.yaml`）或源码：调研只供它们参考，绝不编辑它们。
 3. 引用纪律：每条断言至少一个来源（`title` + http(s) `url` + `accessed` 日期）加一个 `confidence` 档位。冲突的来源要摆出来，不许平均掉；无出处的说法不进 `findings[]`——若它影响结论，收尾时作为缺口落 `synthesis.open_questions`，不静默丢弃。研究缺口与局限一律记 `open_questions`，绝不抹平。
-   `critical claim` ＝ 若为假就要改方向或改设计的 claim，点名五类：市场规模/增速、监管与合规义务、竞争格局与份额、协议/标准与版本事实、成本与定价；其余 claim 单源 + `confidence` 标注即可。
+   - `critical claim` ＝ 若为假就要改方向或改设计的 claim，点名五类：市场规模/增速、监管与合规义务、竞争格局与份额、协议/标准与版本事实、成本与定价；其余 claim 单源 + `confidence` 标注即可。
 4. ID 纪律：`RS-###` 一经铸定，稳定、永不重用。条目级锚同律：finding 落盘即铸 `RF-###`，synthesis 要点/待决铸 `RK-###`/`RO-###`——文件内全局唯一、顺序递增、永不重编号、永不复用；distillate 条目的 `src` 指这些锚，只引用不复制文本。新主题或新维度 = 追加新记录（文件追加）；改写既有记录 = 改字段并向 `revisions` 追加 `{date, change, reason}`——先按激活第 3 步把该记录 `status` 回退 `草稿`，改完重新定稿并重跑终门（ID 不动、记录不搬）。
 5. 重写安全：触发条件 = **既有 `RS-###` 记录的字段被改写**（含随之追加 `revisions` 条目）；**新增记录不触发** `.prev` / `check --previous`。改写前 `cp {output_dir}/research.yaml {output_dir}/research.yaml.prev`；写完跑 `python "{project-root}/.claude/skills/diy-research/scripts/research.py" check --previous {output_dir}/research.yaml.prev --json`（exit 0 = 无记录丢失）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。
 6. 终门（机械）：先写记录级 `status: 已定稿`——`已定稿` 是门检查的对象，不是门的产物——再跑 `python "{project-root}/.claude/skills/diy-research/scripts/research.py" check --final --json`，`--project-root "{project-root}"` 与 `--output-dir "{output_dir}"` 两个实参同激活（`--output-dir` 必填、绝不缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。渲染与收尾都等 exit 0。

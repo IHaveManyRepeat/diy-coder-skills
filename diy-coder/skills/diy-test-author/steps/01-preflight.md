@@ -26,13 +26,17 @@ python "{project-root}/.claude/skills/diy-test-author/scripts/author.py" detect 
 - `suggested` — 无框架时的建议（**仅供参考**）。
 - `warnings` — 清单存在但不可解析等降级项，读作事实、写进摘要，不吞。
 
-`framework: null` → 一行拒绝 + 路由 **diy-test-framework**（脚手架与依赖安装是它的职责）。本技能**不装框架、不改清单、不建脚手架**。
+`framework: null` → 一行拒绝 + 路由 **diy-test-framework**（脚手架与依赖安装是它的职责）。
+
+- 本技能**不装框架、不改清单、不建脚手架**。
 
 ## 读与写的边界
 
 - 只读：`{output_dir}` 下的 `test-plan.yaml` / `sprint.yaml` / `stories.yaml`（按 ID 定位），以及目标项目的测试目录与实现源码。
 - 引用纪律：跨文档信息一律引用 ID（`S-x` / `AC-x.y` / `TC-x.y.z` / `FR-x.y` / `D-x`），**禁止复制内容**——测试代码与摘要里引用 TC ID，不把用例正文抄进注释。
-- 写盘边界：**只写**目标项目内本次声明的测试文件；`{output_dir}` 下零写入（本技能无 YAML 写面）。目标项目与 `{output_dir}` 之外的写盘属保留确认类：交互式调用停下问用户；无头/循环调用经 `diyc.py defer-add` 入队 `{output_dir}/deferred-actions.yaml`（`reason: 越界改动`）后照常推进，不阻塞。
+- 写盘边界：**只写**目标项目内本次声明的测试文件；`{output_dir}` 下零写入（本技能无 YAML 写面）。
+  - 目标项目与 `{output_dir}` 之外的写盘属保留确认类：交互式调用停下问用户。
+  - 无头/循环调用经 `diyc.py defer-add` 入队 `{output_dir}/deferred-actions.yaml`（`reason: 越界改动`）后照常推进，不阻塞。
 
 ## 播报与下一步
 

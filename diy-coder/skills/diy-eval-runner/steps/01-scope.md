@@ -7,7 +7,8 @@ Progress: `[定范围] → 执行 → 汇报与终门`
 
 ## 定位 target
 
-用户显式给的路径优先；对话里已出现的技能名（"评测一下 diy-elicit"）按安装面 `{project-root}/.claude/skills/<名>/` 查找。两处都没有、或目录里没有 `SKILL.md` → **一行拒绝**（点名缺什么）+ 零产出 + 停：`run` 会在门禁处回 `MISSING_FILE`。
+1. 用户显式给的路径优先；对话里已出现的技能名（"评测一下 diy-elicit"）按安装面 `{project-root}/.claude/skills/<名>/` 查找。
+2. 两处都没有、或目录里没有 `SKILL.md` → **一行拒绝**（点名缺什么）+ 零产出 + 停：`run` 会在门禁处回 `MISSING_FILE`。
 
 ## 发现用例文件
 
@@ -22,7 +23,8 @@ Progress: `[定范围] → 执行 → 汇报与终门`
 
 ## 解析 adapter
 
-顺序：`--invocation <命令…>`（命令模板，优先）> `--adapter <F>` > 用例文件旁的 `adapter.json`。三处都没有不是错——逐键取默认，只是**没有 invocation 就只 stage、结果记 `skipped`**（引擎会明示，不静默）。
+1. 顺序：`--invocation <命令…>`（命令模板，优先）> `--adapter <F>` > 用例文件旁的 `adapter.json`。
+2. 三处都没有不是错——逐键取默认，只是**没有 invocation 就只 stage、结果记 `skipped`**（引擎会明示，不静默）。
 
 - `invocation` 里不写模型名：`{prompt}`（别名 `{query}`）换成问句/输入，`{cwd}` 换成清场目录。
 - `load_signal` 只收具名工具（`{"skill_tool": "Skill", "read_tool": "Read"}`）；**子串式（`{"type": "string"}`）引擎直接拒跑**——那会让触发率恒为 100%。

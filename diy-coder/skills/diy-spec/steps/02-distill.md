@@ -7,7 +7,8 @@ Progress: `输入与定位 → [蒸馏] → 两遍自校验 → 终门与交付`
 
 ## 走法
 
-结构化且已分节的输入 → 尊重作者的分节，把合内核的抬进五字段、溢出的抬进 `artifacts`；混合输入 → 自己分拣：逐条声明走一遍 load-bearing 判定，路由到内核字段或 `artifacts`。
+1. 结构化且已分节的输入 → 尊重作者的分节，把合内核的抬进五字段、溢出的抬进 `artifacts`。
+2. 混合输入 → 自己分拣：逐条声明走一遍 load-bearing 判定，路由到内核字段或 `artifacts`。
 
 先按输入丰瘠选一条路（稀疏输入二选一，**选择记进 `verdict.coherence` 段末**）：
 
@@ -43,7 +44,8 @@ Progress: `输入与定位 → [蒸馏] → 两遍自校验 → 终门与交付`
 2. **实现者**——少了它，写代码的人会不会选错做法？
 3. **验证者**——少了它，验收的人会不会放行错的东西？
 
-三面都答「不会」→ 不落（或者它只是包装）。判不准时按「落」处理，但落进 `assumptions[]` 讲清依据。
+1. 三面都答「不会」→ 不落（或者它只是包装）。
+2. 判不准时按「落」处理，但落进 `assumptions[]` 讲清依据。
 
 ## artifacts 开条判据（spec-authored 内容的内联承载位）
 
@@ -53,9 +55,15 @@ Progress: `输入与定位 → [蒸馏] → 两遍自校验 → 终门与交付`
 - 表格；**图表一律进 artifacts**（mermaid 块、ASCII 图、图像引用都写进 `body`）
 - 编辑口径 / 声音规则；内核按名字引用的长参考（术语表、遗留系统说明、项目惯例）
 
-**开条判据：「超过一行内核形状」。** 单行的决策翻转项留在 `constraints`；intent + success 配对留在 `capabilities`。某个内核字段开始套子条目时，内容已经长过内核，该开 artifacts 了。
+**开条判据：「超过一行内核形状」。**
 
-`name` 取**内容类型名**（kebab-case 标识，读的人开条前就知道里面是什么）：`glossary` / `stack` / `conventions` / `state-machines` / `failure-modes` / `architecture-diagrams` / `compliance-references` / `<entity-class>`（如 `patron-archetypes`）。同一类型只开一条；拆多条时用更细的类型名。
+1. 单行的决策翻转项留在 `constraints`；intent + success 配对留在 `capabilities`。
+2. 某个内核字段开始套子条目时，内容已经长过内核，该开 artifacts 了。
+
+`name` 取**内容类型名**（kebab-case 标识，读的人开条前就知道里面是什么）：`glossary` / `stack` / `conventions` / `state-machines` / `failure-modes` / `architecture-diagrams` / `compliance-references` / `<entity-class>`（如 `patron-archetypes`）。
+
+1. 同一类型只开一条。
+2. 拆多条时用更细的类型名。
 
 ## companions 双轨与 sources
 

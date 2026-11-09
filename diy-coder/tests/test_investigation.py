@@ -471,10 +471,10 @@ class SkillContractTests(unittest.TestCase):
         self.assertNotIn("bmad-help", skill, "不得引用不存在的技能")
         self.assertNotIn("bmad-quick-dev", skill, "handoff 须指向 diy 技能名")
 
-    # trace: 范本 §二 / 政策（四段中文标题 + ≤93 行预算 + description 中文注释 + 步名点名）
+    # trace: 范本 §二 / 政策（四段中文标题 + ≤108 行预算〔2026-11-07 7e 抬线：93→108，逐项化重排实测〕+ description 中文注释 + 步名点名）
     def test_thin_main_file_structure(self):
         skill = self.read_skill()
-        self.assertLessEqual(len(skill.splitlines()), 93, "薄主文件超出 93 行预算")
+        self.assertLessEqual(len(skill.splitlines()), 108, "薄主文件超出 108 行预算")
         self.assertIn("name: diy-investigate", skill)
         self.assertIn("outputs: investigation.yaml", skill)
         self.assertIn("# ↑ 中文：", skill, "description 缺中文注释")

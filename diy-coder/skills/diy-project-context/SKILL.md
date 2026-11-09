@@ -37,8 +37,7 @@ outputs: project-context.yaml
 3. `steps/03-rules.md` — AI 规则那一半：按类别逐条铸 `PC-###`，每条与人确认。
 4. `steps/04-finalize.md` — LLM 语境复核、机械终门、交付与下游路由。
 5. `steps/05-deep-dive.md` — 单区域穷尽深挖（`深挖` 模式）：逐文件实读，禁止抽样。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+6. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -61,7 +60,8 @@ revisions: []                       # {date, change, reason} —— 改既有规
 
 ## 规则
 
-1. 写范围 = `{output_dir}/project-context.yaml`，外加第 9 条规则的临时快照 `{output_dir}/project-context.yaml.prev`（写前建、终门比对后删，不作留存）。其余一律不写：源码、其他 `{output_dir}` 产物、项目自带文档。
+1. 写范围 = `{output_dir}/project-context.yaml`，外加第 9 条规则的临时快照 `{output_dir}/project-context.yaml.prev`（写前建、终门比对后删，不作留存）。
+   - 其余一律不写：源码、其他 `{output_dir}` 产物、项目自带文档。
 2. 事实取回执：`scan` / `stack` / `structure` / `integration` 的值照抄引擎的 JSON 回执，绝不凭记忆重打。**人确认后的 part 清单是权威**——未被修正的值照抄回执，人修正过的 part 以人给的为准；`scan.parts` 与 `stack[].part`（以及 `architecture[].part` / `integration[].between`）逐一对齐该清单，回执里没有的行用人的原话补 `language` / `framework`、`version` 留空、`notes` 注明「人确认（引擎未解析）」。引擎解析不出的 part 或 type 交给用户——绝不发明。
 3. `PC-###` ID 顺序递增、稳定，永不重编号、永不复用；删一条规则要留 `revisions` 条目。改既有规则就地改，并向 `revisions` 追加 date / change / reason——绝不另铸第二个 ID。
 4. 推断值标记：`[假设]` 前缀只写在**值**上，不新增独立键；值以标记打头时整值加引号。带前缀的推断在 `--final` 前必须清零——交互态经用户确认后删前缀；**headless 态一律转成 `open_questions` 里的一条，不删不猜**。终门扫的字段集 = 整份 `project-context.yaml` 的全部字符串（引擎递归全扫，键与值都算；一处命中即 `ASSUMPTION_PRESENT`）。

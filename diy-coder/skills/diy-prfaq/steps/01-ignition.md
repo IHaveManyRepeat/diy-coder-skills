@@ -54,7 +54,11 @@ Progress: `[Ignition] → Press Release → Customer FAQ → Internal FAQ → Ve
 1. **先问输入。** 问用户手头有没有既有文档、研究、头脑风暴素材或其他可喂给 PRFAQ 的源。收集路径交给子代理——用户给的文件你自己不读，那是产物分析器的活。
 2. **在一条消息里扇出两个子代理（并行）。** 各自收到产品意图摘要（客户、问题、解法方向、领域）。
 
-   **产物分析器** —— *过程：* 扫描 `{output_dir}` 与 `{project-root}/docs`（存在时并列 `{project-root}/documentation`），按文件名模式找可能相关的文档：brainstorming/ideation、research/analysis/findings、context/overview/background、brief/summary，以及任何看起来相关的 markdown、文本或结构化文档；分片文档（一个文件夹带 `index.md` 加若干部分）→ 先读 index，再只读相关部分；超大文档（估计 >50 页）→ 先看目录、执行摘要与各节标题，只读与意图直接相关的节，并记下哪些节是略读、哪些是通读；所有读取在一条消息里发出，不要一条一条来；不相关的文档忽略。*抽取：* 与意图相关的洞见、市场与竞争信息、用户研究或画像、技术上下文与约束、**被采纳与被否决**的想法（被否决的防止再提议）、指标与数据点。*只返回这个 JSON*，不写任何前言，1500 token 以内，每节最多 5 条 bullet：
+   **产物分析器** —— *过程：* 扫描 `{output_dir}` 与 `{project-root}/docs`（存在时并列 `{project-root}/documentation`），按文件名模式找可能相关的文档：brainstorming/ideation、research/analysis/findings、context/overview/background、brief/summary，以及任何看起来相关的 markdown、文本或结构化文档。
+   - 分片文档（一个文件夹带 `index.md` 加若干部分）→ 先读 index，再只读相关部分；超大文档（估计 >50 页）→ 先看目录、执行摘要与各节标题，只读与意图直接相关的节，并记下哪些节是略读、哪些是通读。
+   - 所有读取在一条消息里发出，不要一条一条来；不相关的文档忽略。
+   - *抽取：* 与意图相关的洞见、市场与竞争信息、用户研究或画像、技术上下文与约束、**被采纳与被否决**的想法（被否决的防止再提议）、指标与数据点。
+   - *只返回这个 JSON*，不写任何前言，1500 token 以内，每节最多 5 条 bullet：
    ```json
    {"documents_found": [{"path": "...", "relevance": "一句话相关性"}],
     "key_insights": ["自足的 bullet"],
@@ -65,7 +69,9 @@ Progress: `[Ignition] → Press Release → Customer FAQ → Internal FAQ → Ve
     "raw_detail_worth_preserving": ["细节、数据点、引语"]}
    ```
 
-   **网络研究员** —— *过程：* 从意图里识别检索角度——直接竞品、同一痛点的邻近解法、市场规模与趋势、制造机会或风险的行业新闻、用户对现有解法的情绪；跑 3-5 次定向检索（重质不重量），形如 `"[问题领域] solutions comparison"`、`"[竞品] alternatives"`、`"[行业] market trends [当前年份]"`、`"[目标用户类型] pain points [领域]"`；综合出信号，不要罗列链接。*只返回这个 JSON*，1000 token 以内，每节最多 5 条 bullet：
+   **网络研究员** —— *过程：* 从意图里识别检索角度——直接竞品、同一痛点的邻近解法、市场规模与趋势、制造机会或风险的行业新闻、用户对现有解法的情绪；跑 3-5 次定向检索（重质不重量），形如 `"[问题领域] solutions comparison"`、`"[竞品] alternatives"`、`"[行业] market trends [当前年份]"`、`"[目标用户类型] pain points [领域]"`。
+   - 综合出信号，不要罗列链接。
+   - *只返回这个 JSON*，1000 token 以内，每节最多 5 条 bullet：
    ```json
    {"competitive_landscape": [{"name": "...", "approach": "...", "gaps": "..."}],
     "market_context": ["..."],

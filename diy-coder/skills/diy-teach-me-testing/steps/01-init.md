@@ -18,7 +18,8 @@ python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" 
 - 回执 `MISSING_FILE` + `entry_step: steps/01-init.md` → 新学员，走下面的建进度。
 - 回执 `UNPARSABLE_YAML` / `EMPTY_FIELD` + `entry_step: steps/01-init.md` → 进度文件**损坏**（**不是**新学员），走下面的损坏恢复。
 
-进度文件已存在 → 强制走 resume（源「不得跳过检查」纪律保留）：**不得跳过 `status` 直接开会话**，也不得为了「重来一遍」覆盖进度——断点即学习历史。
+1. 进度文件已存在 → 强制走 resume（源「不得跳过检查」纪律保留）：**不得跳过 `status` 直接开会话**。
+2. 也不得为了「重来一遍」覆盖进度——断点即学习历史。
 
 ## 损坏恢复（唯一出路）
 
@@ -28,10 +29,10 @@ python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" 
 python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" init --recover --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-- 引擎先把原文件**逐字节备份**成 `learning-progress.yaml.corrupt-<时间戳>.bak`，再重建 7 节骨架；回执 `recovered.backup` 就是备份路径，**必须播报给用户**。
-- 代价说清楚：笔记 md（`notes/session-<NN>.md`）原样留在盘上，**只有台账断点清零**（旧分数与完成日期不回填）——这是「重来一遍」，不是「修好了」。
-- 纪律：`--recover` **只在损坏时用**。文件可用时带上它照样被拒（`ALREADY_EXISTS`）；**不许** `rm` 文件，也**不许**手改 YAML。
-- 恢复完就是一份全新进度，照常往下走（新学员路径）。
+1. 引擎先把原文件**逐字节备份**成 `learning-progress.yaml.corrupt-<时间戳>.bak`，再重建 7 节骨架；回执 `recovered.backup` 就是备份路径，**必须播报给用户**。
+2. 代价说清楚：笔记 md（`notes/session-<NN>.md`）原样留在盘上，**只有台账断点清零**（旧分数与完成日期不回填）——这是「重来一遍」，不是「修好了」。
+3. 纪律：`--recover` **只在损坏时用**。文件可用时带上它照样被拒（`ALREADY_EXISTS`）；**不许** `rm` 文件，也**不许**手改 YAML。
+4. 恢复完就是一份全新进度，照常往下走（新学员路径）。
 
 ## 建进度（仅新学员）
 
@@ -44,7 +45,8 @@ python "{project-root}/.claude/skills/diy-teach-me-testing/scripts/progress.py" 
 - 省略 `--role` → `learner.role: null`，合法——角色归 step 2 的画像采集。
 - **`learner.assessed` 恒为 null**（无论是否给 `--role`）：画像采集走 step 2 的 `update --learner`，`init` 不得置位。
 
-`init` 同时建 `{output_dir}/notes/` 目录——笔记 md 的落点，**你不自建目录**。回执里的 `counts` 就是「7 节 / 0 节完成 / 0%」。
+1. `init` 同时建 `{output_dir}/notes/` 目录——笔记 md 的落点，**你不自建目录**。
+2. 回执里的 `counts` 就是「7 节 / 0 节完成 / 0%」。
 
 ## 播报
 

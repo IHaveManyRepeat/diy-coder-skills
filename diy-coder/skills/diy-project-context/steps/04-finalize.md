@@ -23,7 +23,9 @@ Progress: `Scan → Context → Rules → [Finalize]`
 python "{project-root}/.claude/skills/diy-project-context/scripts/context.py" check --previous {output_dir}/project-context.yaml.prev --json --project-root "{project-root}" --output-dir "{output_dir}"
 ```
 
-exit 0 意味着没有丢任何 `PC-###` 规则。`ID_UNSTABLE` 逐条点名丢失的规则：要么恢复它，要么带一条说明删除理由的 `revisions` 条目重新加回——静默消失正是这道门要抓的。通过后才删 `.prev` 文件。
+1. exit 0 意味着没有丢任何 `PC-###` 规则。
+2. `ID_UNSTABLE` 逐条点名丢失的规则：要么恢复它，要么带一条说明删除理由的 `revisions` 条目重新加回——静默消失正是这道门要抓的。
+3. 通过后才删 `.prev` 文件。
 
 ## 终门
 
@@ -33,7 +35,9 @@ exit 0 意味着没有丢任何 `PC-###` 规则。`ID_UNSTABLE` 逐条点名丢�
 python "{project-root}/.claude/skills/diy-project-context/scripts/context.py" check --final --json --project-root "{project-root}" --output-dir "{output_dir}"
 ```
 
-exit 0 是唯一放行——逐条修完上报的违规再重跑。回执的 `violations` / `warnings` / `counts` 即收口证据：不留 `[假设]`、规则非空且 `rule` / `why` / `where` 齐全、`stack` 非空、`scan.parts` 非空。只有在 exit 0 之后：渲染文件、结束本轮。
+1. exit 0 是唯一放行——逐条修完上报的违规再重跑。
+2. 回执的 `violations` / `warnings` / `counts` 即收口证据：不留 `[假设]`、规则非空且 `rule` / `why` / `where` 齐全、`stack` 非空、`scan.parts` 非空。
+3. 只有在 exit 0 之后：渲染文件、结束本轮。
 
 ## 交付与路由
 
@@ -45,7 +49,8 @@ exit 0 是唯一放行——逐条修完上报的违规再重跑。回执的 `vi
 
 ## 退出
 
-终门 exit 0 后本轮在此结束。再来一次深挖从 `./05-deep-dive.md` 重入；否则不再读任何 `steps/` 文件。
+1. 终门 exit 0 后本轮在此结束。
+2. 再来一次深挖从 `./05-deep-dive.md` 重入；否则不再读任何 `steps/` 文件。
 
 ## 播报与下一步
 

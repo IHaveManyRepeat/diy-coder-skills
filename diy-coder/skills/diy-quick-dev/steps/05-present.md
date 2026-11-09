@@ -18,13 +18,14 @@ Progress: `Clarify & Route → Plan → Implement → Review → [Present]`
 ## 落定记录
 
 1. 写 `{output_dir}/spec.yaml` 的 `project.status: 已定稿` 与记录的 `status: 已完成`。
-2. **终门（机械）：** 跑 `python "{project-root}/.claude/skills/diy-quick-dev/scripts/spec.py" check --final --id SP-xxx --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--output-dir` 必填、无缺省）。exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。`check --final` 要求记录已 `已完成`、每个任务都已 done、acceptance 非空、每条验证命令都有真实 `result`。
+2. **终门（机械）：** 跑 `python "{project-root}/.claude/skills/diy-quick-dev/scripts/spec.py" check --final --id SP-xxx --project-root "{project-root}" --output-dir "{output_dir}" --json`（`--output-dir` 必填、无缺省）。
+   - exit 0 是唯一放行；逐条修完上报的违规再重跑；JSON 回执（含计数）即收口证据。
+   - `check --final` 要求记录已 `已完成`、每个任务都已 done、acceptance 非空、每条验证命令都有真实 `result`。
 
 ## 收尾
 
-用 diy-viewer 渲染——SKILL.md 里的静默旁路命令（resolved 实例时附 `--instance <name>`）；不新增浏览器交互点、不报路径等待、不阻塞。
-
-然后展示摘要：
+1. 用 diy-viewer 渲染——SKILL.md 里的静默旁路命令（resolved 实例时附 `--instance <name>`）；不新增浏览器交互点、不报路径等待、不阻塞。
+2. 然后展示摘要：
 
 - 改动的文件，各一行；终端里所有路径都是 project-root 相对 `path:line`，绝不带前导 `/`。
 - 审查明细：用了多少轮、按路由分的 findings（已修 / 已延后 / 已丢弃）——若 findings 全被丢弃，直说。

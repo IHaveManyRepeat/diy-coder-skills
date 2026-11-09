@@ -15,7 +15,9 @@ Progress: `[1 定目标与访问轨（两轨 + 路由）] → 2 提取目标、�
 
 ### 1.1 目标四问
 
-写清 `Target` / `Type`（网站 / Web 应用 / 组件库文档站 / 移动应用〔截图〕）/ `Owner`（自有 / 客户 / 公开 / 竞品）/ 一句用途。**只认外部目标**——「我自己的代码库」不在此列，见 1.2 的路由。
+写清 `Target` / `Type`（网站 / Web 应用 / 组件库文档站 / 移动应用〔截图〕）/ `Owner`（自有 / 客户 / 公开 / 竞品）/ 一句用途。
+
+- **只认外部目标**——「我自己的代码库」不在此列，见 1.2 的路由。
 
 ### 1.2 访问轨二选一
 
@@ -44,7 +46,10 @@ Progress: `[1 定目标与访问轨（两轨 + 路由）] → 2 提取目标、�
 先看 `{output_dir}/design.yaml` 在不在场：
 
 - **不在场** → **初始生成**：走 2.2 的门禁与 `init`。
-- **在场** → **不覆盖**：`init` 会判 `OVERWRITE_REFUSED` 并零写入。你的动作是**三件**：① 把本次想写的差异整理成 `revisions` **建议**（`{date, change, reason}`，`change` 点名 `P-<n>` 或字段名，**内容不复制**）在会话里呈出；② 一句话说明「生成权归 `diy-reverse`、演进权归 `diy-design` / `diy-dev`」；③ **路由 `diy-design`**（它的 Update 分支接这份建议）。
+- **在场** → **不覆盖**：`init` 会判 `OVERWRITE_REFUSED` 并零写入。你的动作是**三件**：
+  - ① 把本次想写的差异整理成 `revisions` **建议**（`{date, change, reason}`，`change` 点名 `P-<n>` 或字段名，**内容不复制**）在会话里呈出；
+  - ② 一句话说明「生成权归 `diy-reverse`、演进权归 `diy-design` / `diy-dev`」；
+  - ③ **路由 `diy-design`**（它的 Update 分支接这份建议）。
 
 ### 2.2 门禁（`init` 机械兜住）
 
@@ -63,9 +68,11 @@ Progress: `[1 定目标与访问轨（两轨 + 路由）] → 2 提取目标、�
 python "{project-root}/.claude/skills/diy-reverse/scripts/reverse.py" init --track "<url|screenshots>" --target "<URL 或截图路径>" --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-- 铸出的是**既有 schema 的空壳**（`project.status: 草稿`、`direction` / `frontend_framework` / `form_factor` / `modes` / `tokens` 五段置空、`pages: []`）——**不新增 schema 外字段、不自造 ID 形态**（`form_factor` / `modes` 是 schema 内顶层键，骨架置空串——逆向形态未知不预设默认值，空串≡缺失同码）。
+- 铸出的是**既有 schema 的空壳**（`project.status: 草稿`、`direction` / `frontend_framework` / `form_factor` / `modes` / `tokens` 五段置空、`pages: []`）——**不新增 schema 外字段、不自造 ID 形态**。
+  - `form_factor` / `modes` 是 schema 内顶层键，骨架置空串——逆向形态未知不预设默认值，空串≡缺失同码。
 - `project.name` / `created` 由 `init` 铸造后**不再由你改**；页 ID 到 `03-specs` 才顺序铸。
-- **「提取来源」写哪**：骨架阶段就把它记进**本批的会话上下文**——收尾时落在每份结构稿的头部注释（`<!-- 提取来源: <url> / <截图名> · 采集日 YYYY-MM-DD -->`）与会话呈出；`design.yaml` 无来源字段，**不新增**。
+- **「提取来源」写哪**：骨架阶段就把它记进**本批的会话上下文**——收尾时落在每份结构稿的头部注释（`<!-- 提取来源: <url> / <截图名> · 采集日 YYYY-MM-DD -->`）与会话呈出。
+  - `design.yaml` 无来源字段，**不新增**。
 
 **检查点（六拍）**：① 生成 → ② 落盘 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。本步：② 落盘（`init` 铸骨架）；④ 呈出回执与骨架摘要。 四选项同第 1 步。
 

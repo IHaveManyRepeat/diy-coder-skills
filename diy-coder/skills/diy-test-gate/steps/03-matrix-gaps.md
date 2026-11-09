@@ -16,13 +16,18 @@ Progress: `Preflight → Oracle → [Matrix & Gaps] → NFR → Gate → Finish`
 | ③ | `status: 通过` 但无 evidence | 已验证 **+ warning** | 覆盖照算；warning 进摘要（合法无台账来源：`diy-e2e-tests` / `diy-augment` 追加用例不写台账；`diy-dev` 路径无台账属异常，须查） |
 | ④ | `status: 待办` | 不计 | 缺口清单 |
 
-AC 的五值（`items[].coverage`）：无 TC / 全未验证 → `NONE`；全验证且 type 全 `单元` → `UNIT-ONLY`；全 `集成` → `INTEGRATION-ONLY`；全验证且含 `端到端` 或 ≥2 类 type → `FULL`；部分验证 → `PARTIAL`。`totals.covered` 只数 `FULL` / `UNIT-ONLY` / `INTEGRATION-ONLY`——`PARTIAL` **不算覆盖**。
+AC 的五值（`items[].coverage`）：无 TC / 全未验证 → `NONE`；全验证且 type 全 `单元` → `UNIT-ONLY`；全 `集成` → `INTEGRATION-ONLY`；全验证且含 `端到端` 或 ≥2 类 type → `FULL`；部分验证 → `PARTIAL`。
+
+- `totals.covered` 只数 `FULL` / `UNIT-ONLY` / `INTEGRATION-ONLY`——`PARTIAL` **不算覆盖**。
 
 **你要复核的三件事**（脚本给不了）：
 
-1. **TC ↔ AC 绑定是否正确。** 逐行看 `items[].tests`：有没有「用例其实验的不是这条 AC」的错绑？有 → 该 TC 记入 `open_questions`（绑定归 `diy-test-design`，你不改 test-plan）。
-2. **`失败` 是不是真失败。** ① 里的每条 blocker，读该 TC 的 `steps` 与 `kill_target`，写清「它要暴露什么故障、现在什么现象」——一句 `why` 要能让 `diy-dev` 直接接手。
-3. **`warnings` 里每条都有归宿。** 无 FR refs 的 AC、无台账的 `通过`、diyc 的上游违规——逐条要么进 `blockers`，要么进 `open_questions`，要么在摘要里点名并给理由。静默丢弃 warning = 伪造绿灯。
+1. **TC ↔ AC 绑定是否正确。** 逐行看 `items[].tests`：有没有「用例其实验的不是这条 AC」的错绑？
+   - 有 → 该 TC 记入 `open_questions`（绑定归 `diy-test-design`，你不改 test-plan）。
+2. **`失败` 是不是真失败。** ① 里的每条 blocker，读该 TC 的 `steps` 与 `kill_target`，写清「它要暴露什么故障、现在什么现象」。
+   - 一句 `why` 要能让 `diy-dev` 直接接手。
+3. **`warnings` 里每条都有归宿。** 无 FR refs 的 AC、无台账的 `通过`、diyc 的上游违规——逐条要么进 `blockers`，要么进 `open_questions`，要么在摘要里点名并给理由。
+   - 静默丢弃 warning = 伪造绿灯。
 
 ## 缺口分析
 
@@ -44,7 +49,9 @@ AC 的五值（`items[].coverage`）：无 TC / 全未验证 → `NONE`；全验
 - **重跑**刷新台账（走 `diy-dev` 的 TDD 循环 → `diyc.py green` 写回）；
 - **用户确认沿用**——在 `gate.basis` 末句注明「本次门使用了 N 天前的证据（<TC/run>）」，并把该条写进 `recommendations`。
 
-两条都不做 → 计 `gate.blockers`（`kind: 覆盖`，`why` 写明「证据 >7 天且未获确认」）。**7 天是源 trace checklist 的时效线**，不是可调参数。
+两条都不做 → 计 `gate.blockers`（`kind: 覆盖`，`why` 写明「证据 >7 天且未获确认」）。
+
+- **7 天是源 trace checklist 的时效线**，不是可调参数。
 
 ## 重复覆盖检出（跨层冗余 / 可接受重叠）
 
@@ -53,7 +60,9 @@ AC 的五值（`items[].coverage`）：无 TC / 全未验证 → `NONE`；全验
 - **可接受重叠**：AC 是 `P0`（关键路径）——纵深防御，写一行「保持」并说明防的是什么；
 - **跨层冗余**：非 P0 —— 给**合并建议**（留哪一层、删哪一条），进 `gate.recommendations`；改 TC 绑定归 `diy-test-design`，本技能不写 test-plan。
 
-候选非空时**逐条**落 `gate.recommendations`（每条写清 `AC` / 技法 / 层级 / 判定）；候选为空时在收尾摘要点一句「无跨层重复候选」。静默丢弃候选 = 伪造绿灯。
+候选非空时**逐条**落 `gate.recommendations`（每条写清 `AC` / 技法 / 层级 / 判定）；候选为空时在收尾摘要点一句「无跨层重复候选」。
+
+- 静默丢弃候选 = 伪造绿灯。
 
 ## 5 类盲区启发式走查
 
@@ -65,10 +74,14 @@ AC 的五值（`items[].coverage`）：无 TC / 全未验证 → `NONE`；全验
 4. `ui-journey-without-e2e` — UI 旅程只在 `单元` / `集成` 层验过，端到端从未跑通？
 5. `ui-state-unasserted` — 页面只验了渲染，加载中 / 空态 / 校验失败 / 无权限四种状态无断言？
 
-命中的写进 `coverage.heuristics`（字符串数组，每条写清「哪条 AC / 哪一类 / 依据」）。**口径按可读数据面收窄**：只从 `stories.yaml` / `test-plan.yaml` / `sprint.yaml` 可读数据判，**不读源码**——源码级盲区属 `diy-test-review` 的 `walkthrough`。
+命中的写进 `coverage.heuristics`（字符串数组，每条写清「哪条 AC / 哪一类 / 依据」）。
+
+- **口径按可读数据面收窄**：只从 `stories.yaml` / `test-plan.yaml` / `sprint.yaml` 可读数据判，**不读源码**——源码级盲区属 `diy-test-review` 的 `walkthrough`。
 
 ## 回填与下一步
 
-`coverage.items` 照抄回执（`ref` / `story` / `priority` / `coverage` / `tests`）、`totals` / `by_level` 照抄；`heuristics` 写你的判定。脚本已算出的数字**禁手改**——`check` 会重算 `totals` / `by_level` 并判 `SET_MISMATCH`。
+`coverage.items` 照抄回执（`ref` / `story` / `priority` / `coverage` / `tests`）、`totals` / `by_level` 照抄；`heuristics` 写你的判定。
+
+- 脚本已算出的数字**禁手改**——`check` 会重算 `totals` / `by_level` 并判 `SET_MISMATCH`。
 
 读完并执行 `./04-nfr.md`。

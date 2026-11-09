@@ -22,11 +22,14 @@ python "{project-root}/.claude/skills/diy-test-review/scripts/test_review.py" sc
 
 把回执的 `deductions` / `bonus` / `score` / `grade` / `recommendation` / `dimensions` / `counts` 照抄进草稿记录：
 
-- `findings` 区块逐条写 `{row, severity, file, line, note, basis, class}`——`severity` 与 `basis` 取自 `criteria.yaml` 的对应行，`class` 仅 惯例 行写（照抄 step 2 的键值），`line` 为 null 只限文件级行。
+- `findings` 区块逐条写 `{row, severity, file, line, note, basis, class}`——`severity` 与 `basis` 取自 `criteria.yaml` 的对应行。
+  - `class` 仅 惯例 行写（照抄 step 2 的键值），`line` 为 null 只限文件级行。
 - **`score` 五键与 `dimensions` 一律由引擎产出**；手写数字会被 `check` 的账本自洽判据打回。
 
 ## 3. 展示
 
-给用户一行硬事实，不给修饰：`score/grade/recommendation`，四档计数（CRITICAL / HIGH / MEDIUM / LOW），维度分四值。recommendation 是**算出来的**，不是判断出来的——`打回`（有用例不可能失败）不等于"再商量"，它意味着先修再谈。
+给用户一行硬事实，不给修饰：`score/grade/recommendation`，四档计数（CRITICAL / HIGH / MEDIUM / LOW），维度分四值。
+
+- recommendation 是**算出来的**，不是判断出来的——`打回`（有用例不可能失败）不等于"再商量"，它意味着先修再谈。
 
 **下一步：读 `steps/05-report.md`。**

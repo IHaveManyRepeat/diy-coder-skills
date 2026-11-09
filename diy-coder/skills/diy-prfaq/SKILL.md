@@ -21,14 +21,17 @@ outputs: prfaq.yaml
 ## 激活时
 
 1. 读 `{project-root}/diy-coder.yaml`；解析 `project.communication_language` / `project.document_output_language` / `paths.output_dir`。
-   全程用 `communication_language` 对话；产物里的叙述文字（问题、回答、引语、叙事、distillate 条目）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
-   缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
-   实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
-   实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
-2. 目标文件：`{output_dir}/prfaq.yaml`。恢复检测：文件在场时只读 `prfaq.stage` 一个字段（绝不整篇读），然后提议从下一阶段续跑。`stage: N` ＝ 第 N 阶段的输出**已完整写入**（不是「下一个待做」），续跑自 N+1 起；`stage: 5` ＝ 已终局，改动走规则 5 的 revise（重开对应阶段）。用户拒绝恢复 ≠ 新建：既有文件不得直写——要么改走 revise，要么走规则 5 的 `.prev` + `check --previous` 链（PQ ID 不得丢）。
+   - 全程用 `communication_language` 对话；产物里的叙述文字（问题、回答、引语、叙事、distillate 条目）用 `document_output_language` 写。机器锚点（ID、枚举值、文件名）逐字保留。
+   - 缺省链：`paths.output_dir` 一律取 `diyc.py resolve` 回执（引擎缺省 `diy-output`，异常形状降级并 warning）；缺 `document_output_language` 落 `project.communication_language`；两者皆缺则跟随用户当前消息的语言，并在收尾一行说明。
+   - 实例名只在本次激活参数出现 `--instance <name>` 时才传（无头侧入口 `runner.py --instance`；交互侧由用户在发起消息里给出同一旗标）；未传时回执的 `output_dir` 即主线平铺根。
+   - 实例解析（FR-4.5/D-9）由工具脚本执行：运行 `python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" resolve [--instance <name>] --json`，把回执里的 `output_dir` 当作本次运行唯一的读写根目录。
+2. 目标文件：`{output_dir}/prfaq.yaml`。恢复检测：文件在场时只读 `prfaq.stage` 一个字段（绝不整篇读），然后提议从下一阶段续跑。
+   - `stage: N` ＝ 第 N 阶段的输出**已完整写入**（不是「下一个待做」），续跑自 N+1 起；`stage: 5` ＝ 已终局，改动走规则 5 的 revise（重开对应阶段）。
+   - 用户拒绝恢复 ≠ 新建：既有文件不得直写——要么改走 revise，要么走规则 5 的 `.prev` + `check --previous` 链（PQ ID 不得丢）。
 3. 模式判定。`--headless` / `-H` → 引擎管输入门、LLM 管语义：跑
    `python "{project-root}/.claude/skills/diy-prfaq/scripts/prfaq.py" headless [--customer <text>] [--problem <text>] [--stakes <text>] [--solution <text>] --project-root "{project-root}" --output-dir "{output_dir}" --json`
-   exit 1 = 具名缺口（`gaps`）+ 指引 → 转述拒绝、停下、零写入。exit 0 = 四要素在场且非空；在其之上另判它们够不够具体（「含糊」是语义判断，不是引擎的事）——够不上也**不 halt、不问**：照常起草，含糊项按规则 3 带 `[假设]`，收尾一律落成 `distillate.open_questions`。默认：完整交互式教练，走满拷问。
+   - exit 1 = 具名缺口（`gaps`）+ 指引 → 转述拒绝、停下、零写入。exit 0 = 四要素在场且非空；在其之上另判它们够不够具体（「含糊」是语义判断，不是引擎的事）——够不上也**不 halt、不问**：照常起草，含糊项按规则 3 带 `[假设]`，收尾一律落成 `distillate.open_questions`。
+   - 默认：完整交互式教练，走满拷问。
 4. 读取纪律：预载预算 = 本文件、上述配置与回执、`steps/` 下当前那一个文件——绝不批量预载；执行期读取以每个步骤开头的 `Read (input)` 行为唯一权威，**主文件不列举封闭清单**。
 5. 读 `steps/01-ignition.md` 并照做（裸 `steps/*.md` 路径从本技能安装目录解析）。每步结尾点名下一个要读的文件。
 
@@ -41,10 +44,8 @@ outputs: prfaq.yaml
 3. `steps/03-customer-faq.md` — 第 3 阶段：6-10 个魔鬼代言人问题，覆盖怀疑 / 信任 / 实务顾虑 / 边界场景 / 他们最怕被问的那个；答案须诚实、具体、可信——不放水问题过关。
 4. `steps/04-internal-faq.md` — 第 4 阶段：6-10 个怀疑派利益相关方问题，覆盖可行性 / 商业可行性 / 资源现实 / 风险 / 战略契合 / 创始人回避的那个；按构建者处境校准。
 5. `steps/05-verdict.md` — 第 5 阶段：判定（已锤炼 / 欠火候 / 地基裂缝）、润色、distillate、终门与终局收尾。返修退回对应阶段。
-
-每个阶段向 `notes` 追加一条（过程叙事），并把下游相关的小结路由进 `distillate`——两条纪律定义在 `steps/01-ignition.md`，后续每步引用。
-
-渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
+6. 每个阶段向 `notes` 追加一条（过程叙事），并把下游相关的小结路由进 `distillate`——两条纪律定义在 `steps/01-ignition.md`，后续每步引用。
+7. 渲染是静默旁路——只写调用命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。
 
 ## 结构
 
@@ -70,7 +71,10 @@ revisions: []                        # {date, change, reason}，date 为 YYYY-MM
 
 1. 写范围：只写 `{output_dir}/prfaq.yaml`，即上面这份文档。绝不碰别的产物、源码或 CI。本技能只锻造概念，不交付任何实现。
 2. ID 纪律：`PQ-###` 由会话一次性铸造，顺序递增、两条 FAQ 列表共用且唯一；新问题追加在末尾，取下一个号。ID 永不重编号、永不复用。引擎只校验格式与唯一性——绝不铸造 ID。
-3. 假设标记（C7 三条约定）：推断或低置信的答案（headless 尤甚）在 YAML **值**上带 `[假设]` 前缀——① 前缀只写在值上，不新增独立键；值以标记打头时必须加引号（`a: '[假设] ...'`；未加引号的 `[` 会破坏 YAML）；② `final` 前必须清零——交互态经用户确认后删前缀，**headless 态一律转成显式的 `distillate.open_questions` 条目，不删不猜**；③ 终门扫的字段集 ＝ 整份 `prfaq.yaml` 的全部字符串（键与值都算，含 `notes` / `revisions` / `distillate`）。终门要求零前缀。
+3. 假设标记（C7 三条约定）：推断或低置信的答案（headless 尤甚）在 YAML **值**上带 `[假设]` 前缀。
+   - ① 前缀只写在值上，不新增独立键；值以标记打头时必须加引号（`a: '[假设] ...'`；未加引号的 `[` 会破坏 YAML）。
+   - ② `final` 前必须清零——交互态经用户确认后删前缀，**headless 态一律转成显式的 `distillate.open_questions` 条目，不删不猜**。
+   - ③ 终门扫的字段集 ＝ 整份 `prfaq.yaml` 的全部字符串（键与值都算，含 `notes` / `revisions` / `distillate`）。终门要求零前缀。
 4. 客户优先的强制、概念类型校准与提问角度是**有约束力的方法学**，不是建议；质量杠（不用行话 / 不用含糊词 / 妈妈测试 /「那又怎样」测试 / 诚实框定）体现在挑战里，绝不向用户列举。
 5. 恢复只读 `prfaq.stage`；修订已定稿的 PRFAQ 会重开对应阶段（`stage` 回移）并向 `revisions` 追加（date / change / reason）。任何整体重写之前：`cp {output_dir}/prfaq.yaml {output_dir}/prfaq.yaml.prev`，然后跑 `prfaq.py check --previous {output_dir}/prfaq.yaml.prev --json`（exit 0 = 无记录丢失）。**非 0 一律不删 `.prev`**：`ID_UNSTABLE` → 从快照找回被丢记录、补进新稿、重跑到 exit 0 再删；`MISSING_FILE` / `UNPARSABLE_YAML` → 快照不可用、安全网失效，停手告知用户，确认前不得再写。清理干净再删掉 `.prev` 文件。
 6. 渲染照工作流里的静默旁路句——只写命令，不新增「打开浏览器 / 报告路径等待查看 / 阻塞等待」交互点。

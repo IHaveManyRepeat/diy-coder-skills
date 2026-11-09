@@ -22,7 +22,10 @@ Progress: `[1 token 三段成形（重复值入 token）] → [2 组件编目与
 | **间距**（基准单位 + 阶，含区块内距 / 卡片内距 / 元素间距三类模式） | `tokens.spacing.unit` + `scale[]` |
 | **其他 token**（圆角、阴影、断点） | 会话呈出并记 gap——既有 schema **无这三类的承载位**（不新增字段） |
 
-**取值纪律**：**只收 `02-explore` 3.3 判为「重复值」的**（单次值一律不收）；色值写 `#rrggbb` 形态，非法 hex 判 `ENUM_INVALID`。三键 `bg` / `text` / `accent` 为 `validate` 的必填（引擎同判 `EMPTY_FIELD`）。
+**取值纪律**：**只收 `02-explore` 3.3 判为「重复值」的**（单次值一律不收）。
+
+- 色值写 `#rrggbb` 形态，非法 hex 判 `ENUM_INVALID`。
+- 三键 `bg` / `text` / `accent` 为 `validate` 的必填（引擎同判 `EMPTY_FIELD`）。
 
 ### 1.2 方向、框架与两键（既有 schema 的另四项顶层必填）
 
@@ -65,7 +68,8 @@ Progress: `[1 token 三段成形（重复值入 token）] → [2 组件编目与
 
 ### 3.1 定稿落盘
 
-`project.status: 已定稿` + `project.updated` 刷今天；`revisions` 追加一条初始生成记录（`change` 写「初始生成：逆向自 <url / 截图名>」、`reason` 写用途），以及本轮未决项与 gap（一条一句）。
+- `project.status: 已定稿` + `project.updated` 刷今天。
+- `revisions` 追加一条初始生成记录（`change` 写「初始生成：逆向自 <url / 截图名>」、`reason` 写用途），以及本轮未决项与 gap（一条一句）。
 
 ### 3.2 终门（机械；`exit 0` 是唯一放行）
 
@@ -73,7 +77,10 @@ Progress: `[1 token 三段成形（重复值入 token）] → [2 组件编目与
 python "{project-root}/.claude/skills/diy-reverse/scripts/reverse.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`--final` 核：`project.status: 已定稿` + `direction` / `frontend_framework` 非空 + `tokens` 三段必填键齐（色值合法 hex）+ `pages[]` 非空 + 每页四态齐且各有非色彩信号 + 每页结构稿在场且与 `id` 同源 + `P-<n>` 唯一且顺序 + **零 `[假设]`**。**按回执 `where` 就地修、重跑，不得跳过**。（`form_factor` / `modes` 的必填与值域判据**不在本引擎**，由 3.3 的 `design.py validate` 核。）
+`--final` 核：`project.status: 已定稿` + `direction` / `frontend_framework` 非空 + `tokens` 三段必填键齐（色值合法 hex）+ `pages[]` 非空 + 每页四态齐且各有非色彩信号 + 每页结构稿在场且与 `id` 同源 + `P-<n>` 唯一且顺序 + **零 `[假设]`**。
+
+- **按回执 `where` 就地修、重跑，不得跳过**。
+- （`form_factor` / `modes` 的必填与值域判据**不在本引擎**，由 3.3 的 `design.py validate` 核。）
 
 ### 3.3 交叉核对既有设计域引擎
 
@@ -84,7 +91,8 @@ python "{project-root}/.claude/skills/diy-design/scripts/design.py" validate --d
 python "{project-root}/.claude/skills/diy-design/scripts/design.py" check --design "{output_dir}/design.yaml" --json
 ```
 
-两者不一致时**以它为准修产物**（`check` 另核 WCAG 对比度配对、语义 HTML 三项）；修完重跑 3.2 —— 渲染与收尾都等全部 `exit 0`。
+- 两者不一致时**以它为准修产物**（`check` 另核 WCAG 对比度配对、语义 HTML 三项）。
+- 修完重跑 3.2 —— 渲染与收尾都等全部 `exit 0`。
 
 ### 3.4 渲染（静默旁路）
 

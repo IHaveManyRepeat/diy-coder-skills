@@ -9,7 +9,10 @@ Progress: `定位与切分 → 预演执行 → 穷举 → 交叉验证 → [落
 
 1. `open_questions` 收尾：无法定级的、需要用户拍板方向的，写进这里（≤5 条）。
 2. 记录改 `status: 已定稿`，`project.updated` 改今天（记录级 `date` 不动——它记的是本次扫描的日子）。
-3. `findings` 的**非 `quote` 字段**禁止 `[假设]` 字面量（存疑走 `open_questions`，不用假设标记）；**`quote` 豁免**——引文逐字照抄，被扫规格自带该标记时不改写；非 `quote` 字段确需提及该标记时写全角 ［假设］。终门只扫 `findings` 字段，其余部分不在扫描面内。
+3. `findings` 的**非 `quote` 字段**禁止 `[假设]` 字面量（存疑走 `open_questions`，不用假设标记）。
+   - **`quote` 豁免**——引文逐字照抄，被扫规格自带该标记时不改写。
+   - 非 `quote` 字段确需提及该标记时写全角 ［假设］。
+   - 终门只扫 `findings` 字段，其余部分不在扫描面内。
 
 ## 终门
 
@@ -17,7 +20,8 @@ Progress: `定位与切分 → 预演执行 → 穷举 → 交叉验证 → [落
 python "{project-root}/.claude/skills/diy-spec-scan/scripts/spec_scan.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`exit 0` 是唯一放行。违规 → 按回执的 `where` 就地修，重跑，直到 exit 0。不得跳过。
+1. `exit 0` 是唯一放行。
+2. 违规 → 按回执的 `where` 就地修，重跑，直到 exit 0。不得跳过。
 
 ## 渲染
 

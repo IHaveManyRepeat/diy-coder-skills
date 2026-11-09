@@ -5,7 +5,9 @@ Progress: `[路由与续接] → 创新策略 / 问题求解 / 设计思维 / �
 **Read (input):** 激活段 `list` 回执（会话清单，只含六字段）；用户对分支选择、续接菜单、议题询问的回答。
 **Write (output):** `{output_dir}/cis-method.yaml` 的新记录骨架（经 `init` 铸造）或既有记录的状态推进；给用户的播报。
 
-六拍：分支选择 → 续接检测 → 门禁 → 铸号 → 载库 → 进入分支。**每一拍的输出都是下一拍的输入**，不得跳拍。
+六拍：分支选择 → 续接检测 → 门禁 → 铸号 → 载库 → 进入分支。
+
+- **每一拍的输出都是下一拍的输入**，不得跳拍。
 
 ## 一、分支选择（四选一）
 
@@ -48,7 +50,9 @@ Progress: `[路由与续接] → 创新策略 / 问题求解 / 设计思维 / �
 | 设计思维 | 1-7 | `./04-design.md` 的第 `current_step` 步 |
 | 叙事 | 1-10 | `./05-story.md` 的第 `current_step` 步 |
 
-`status: 已完成` 的记录 → **只读回看**：呈出 `deliverable` / `open_questions` 摘要即结束，**不再写入**；还想再走一遍 → 走「新建」铸下一条 `CM-###`。续接时不重铸 `id`、不动 `date`。
+`status: 已完成` 的记录 → **只读回看**：呈出 `deliverable` / `open_questions` 摘要即结束，**不再写入**；还想再走一遍 → 走「新建」铸下一条 `CM-###`。
+
+- 续接时不重铸 `id`、不动 `date`。
 
 ## 三、门禁（零产出退出）
 
@@ -68,7 +72,9 @@ Progress: `[路由与续接] → 创新策略 / 问题求解 / 设计思维 / �
 python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" init --method "创新策略" --topic "<议题>" --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-`--method` 的值换成用户选定的那一个（逐字取 `创新策略` / `问题求解` / `设计思维` / `叙事`；非法值引擎判 `ENUM_INVALID`）。**路径旗标不得省**——`--project-root` 与 `--output-dir` 都要给（引擎不自解析实例、不私读 `diy-coder.yaml`）。
+`--method` 的值换成用户选定的那一个（逐字取 `创新策略` / `问题求解` / `设计思维` / `叙事`；非法值引擎判 `ENUM_INVALID`）。
+
+- **路径旗标不得省**——`--project-root` 与 `--output-dir` 都要给（引擎不自解析实例、不私读 `diy-coder.yaml`）。
 
 回执的 `id` 就是本条会话的 `CM-###`（此后一切写入都用它定位，永不重编号）；骨架落 `status: 草稿` / `current_step: 1`。
 

@@ -4,7 +4,10 @@
 **Write (output):** `{output_dir}/test-framework.yaml` 定稿记录 + `revisions`（改既有记录时）；会话摘要。
 
 ## 1. 落盘定稿
-本记录置 `status: 已定稿`（gate 检的就是它）；新增记录追加进 `setups[]`，改既有记录时补一条 `revisions`（`{date, change, reason}`）。未裁定的未决项落 `open_questions`，**零 `[假设]`**。
+
+1. 本记录置 `status: 已定稿`（gate 检的就是它）。
+2. 新增记录追加进 `setups[]`，改既有记录时补一条 `revisions`（`{date, change, reason}`）。
+3. 未裁定的未决项落 `open_questions`，**零 `[假设]`**。
 
 ## 2. 终门（机械判定）
 
@@ -12,9 +15,12 @@
 python "{project-root}/.claude/skills/diy-test-framework/scripts/test_framework.py" check --final --project-root "{project-root}" --output-dir "{output_dir}" --json
 ```
 
-exit 0 是唯一放行；修掉每一条报告的违规并重跑（`FILE_CONFLICT` / `CI_MISALIGNED` 类先按回执 `where` 定位到具体 order / path）；JSON 回执的 `counts` 就是收尾证据。
+1. exit 0 是唯一放行。
+2. 修掉每一条报告的违规并重跑（`FILE_CONFLICT` / `CI_MISALIGNED` 类先按回执 `where` 定位到具体 order / path）。
+3. JSON 回执的 `counts` 就是收尾证据。
 
 ## 3. 渲染 + 摘要 + 路由
+
 渲染（静默旁路，只给命令）：
 `python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）
 
@@ -28,6 +34,7 @@ exit 0 是唯一放行；修掉每一条报告的违规并重跑（`FILE_CONFLIC
 - **路由**：`→ diy-test-author`（消费 `test-plan.yaml` 的 TC 生成测试代码；本技能只建基建，不写用例）。
 
 ## 4. 清理
+
 删除 `{output_dir}/scaffold-plan.json`（会话临时文件，非产物）。
 
 ## 播报与下一步
