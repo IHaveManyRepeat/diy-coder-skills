@@ -183,6 +183,12 @@ for _enum_values in (TECHNIQUES, CASE_TYPES, PRIORITIES, TC_STATUSES, GAP_DECISI
                      DIMENSIONS, RADII, FR_PRIORITIES, DEC_STATUSES):
     for _v in _enum_values:
         VALUE_LABELS.setdefault(_v, _v)
+# 表态键 null 展示态（架构 stack 的 `choice: null` ＝该类不适用）：键集 + 标签文案
+# 单源在此，渲染接线在 viewer_render.value_html / _render_value_raw——零裸键纪律，
+# 缺标签直出英文或干巴巴的「—」都是显示缺陷。其余 null 仍走 cell() 的「—」不动。
+NULL_NA_KEYS = frozenset({"choice"})
+NULL_NA_LABEL = "不适用"
+
 DOC_LABELS = {
     "prd": "产品需求文档", "architecture": "架构设计", "epics": "史诗列表",
     "stories": "故事列表", "test-plan": "测试计划", "openapi": "接口契约",

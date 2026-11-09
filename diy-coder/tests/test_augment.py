@@ -308,6 +308,13 @@ class AugmentSkillContractTests(unittest.TestCase):
         self.assertIn("局部|模块|跨模块|系统|外部", raw, "缺同族枚举值")
         self.assertIn("先为炸得最广的假设设计攻击用例", raw, "缺攻击用例设计口径")
 
+    # trace: Q-149 口2（language `choice: null`/无条目 → 变异不跑·补测主流程照走）
+    def test_mutation_skips_without_language_stack(self):
+        raw = self.read_skill()
+        self.assertIn("**变异不跑**", raw, "缺 language 空时的变异不跑口径")
+        self.assertIn("无语言栈", raw, "未点名「无语言栈」判定")
+        self.assertIn("补测主流程照走", raw, "缺补测照走口径")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -6,6 +6,7 @@
 另：SKILL.md 契约冒烟（中文化轮 2026-09-19——母本 §1/§3/§6 逐字 +
 四段中文标题 + B-25 语义条目）。
 """
+import importlib.util
 import json
 import os
 import subprocess
@@ -28,6 +29,16 @@ RESOLVE_KEYS_ANCHOR = ("解析 `project.communication_language` / "
                        "`project.document_output_language` / `paths.output_dir`")
 
 
+def load_help_lib():
+    """直接载入 help_lib（硬拒分支走函数级样例——CLI 路径到不了 architecture 缺席态）。"""
+    spec = importlib.util.spec_from_file_location(
+        "diy_help_lib_under_test",
+        os.path.join(HERE, "..", "skills", "diy-help", "scripts", "help_lib.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def run_help(root, *extra):
     p = subprocess.run(
         [sys.executable, HELP_PY, "--project-root", root, "--json", *extra],
@@ -42,10 +53,26 @@ def write_artifact(out, name, status):
 
 
 
+def write_architecture_applicable(out, stack=None):
+    """架构表态：frontend 有值（推 design）＋ language 标后端（推 openapi）。
+
+    stack 可覆写——不适用/缺标注等分支样例由各用例自带姿态。
+    """
+    lines = ["project:", "  status: 已定稿", "stack:"]
+    if stack is None:
+        stack = [{"kind": "frontend", "choice": "html", "why": "静态站"},
+                 {"kind": "language", "choice": "python", "role": "后端",
+                  "why": "服务端"}]
+    for entry in stack:
+        lines.append("- " + json.dumps(entry, ensure_ascii=False))
+    with open(os.path.join(out, "architecture.yaml"), "w", encoding="utf-8") as f:
+        f.write(chr(10).join(lines) + chr(10))
+
+
 def planning_chain_final(out):
-    for name in ("prd.yaml", "architecture.yaml",
-                 "epics.yaml", "stories.yaml", "test-plan.yaml"):
+    for name in ("prd.yaml", "epics.yaml", "stories.yaml", "test-plan.yaml"):
         write_artifact(out, name, "已定稿")
+    write_architecture_applicable(out)
 
 
 def write_openapi(out, status, meta_key="x-project"):
@@ -250,6 +277,63 @@ class HelpStateMachineTests(unittest.TestCase):
         self.assertEqual(data["next_skill"], "diy-sprint")
         self.assertTrue(any("diy-design" in n for n in data["notes"]),
                         "design.yaml 缺失时未给出 diy-design 提示：%s" % data["notes"])
+
+    # 裁4乙/口2：frontend `choice: null`（不适用）→ 不推 design；接口面仍可推
+    def test_frontend_null_does_not_recommend_design(self):
+        planning_chain_final(self.out)
+        write_architecture_applicable(self.out, stack=[
+            {"kind": "frontend", "choice": None, "why": "纯后端服务，无前端"},
+            {"kind": "language", "choice": "python", "role": "后端", "why": "服务端"}])
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["next_skill"], "diy-sprint")
+        self.assertFalse(any("diy-design" in n for n in data["notes"]),
+                         "frontend 空仍推 design：%s" % data["notes"])
+
+    # 裁3推导案：frontend 在场但 language 没有「后端用」条目 → 接口面空 → 不推 openapi
+    def test_no_backend_language_does_not_recommend_openapi(self):
+        planning_chain_final(self.out)
+        write_architecture_applicable(self.out, stack=[
+            {"kind": "frontend", "choice": "html", "why": "静态站"},
+            {"kind": "language", "choice": "python", "role": "前端", "why": "同构渲染"}])
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertEqual(data["next_skill"], "diy-sprint")
+        self.assertFalse(any("diy-openapi" in n for n in data["notes"]),
+                         "无后端 language 仍推 openapi：%s" % data["notes"])
+        self.assertTrue(any("diy-design" in n for n in data["notes"]),
+                        "frontend 在场时 design 提示不该丢：%s" % data["notes"])
+
+    # SS-057-01：language 有值条目缺前后端标注 → 不静默跳过，点名要用户确认一次
+    def test_language_role_missing_asks_about_openapi(self):
+        planning_chain_final(self.out)
+        write_architecture_applicable(self.out, stack=[
+            {"kind": "frontend", "choice": "html", "why": "静态站"},
+            {"kind": "language", "choice": "python", "why": "没标前后端"}])
+        p = run_help(self.root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        data = json.loads(p.stdout)
+        self.assertTrue(any("openapi" in n and "确认" in n for n in data["notes"]),
+                        "缺标注未点名要用户确认：%s" % data["notes"])
+
+    # 口3b：architecture.yaml 缺席 → 硬拒（推荐停摆，非 warning 降级）
+    def test_missing_architecture_hard_rejects(self):
+        mod = load_help_lib()
+        with self.assertRaises(SystemExit) as cm:
+            mod.arch_applicability(self.out)
+        self.assertEqual(cm.exception.code, 1)
+
+    # 口3b：architecture.yaml 损坏 → 硬拒（同上）
+    def test_corrupt_architecture_hard_rejects(self):
+        with open(os.path.join(self.out, "architecture.yaml"), "w",
+                  encoding="utf-8") as f:
+            f.write("project: [unclosed" + chr(10))
+        mod = load_help_lib()
+        with self.assertRaises(SystemExit) as cm:
+            mod.arch_applicability(self.out)
+        self.assertEqual(cm.exception.code, 1)
 
     # trace: F-A2-2（design.yaml 存在但 draft → 半成品不可静默跳过）
     def test_design_draft_blocks_at_design(self):

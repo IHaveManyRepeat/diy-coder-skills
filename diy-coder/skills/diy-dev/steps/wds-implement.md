@@ -17,7 +17,7 @@ Progress: `[1 载规格与基线] → [2 列工作项与定序] → [3 逐项实
 
 1. **读规格**：该页 `states[].signals` 逐条列成判据清单（四态 `悬停` / `空态` / `加载中` / `错误` 是下限，页里可能还有 `离线` / `权限拒绝` 等追加态）；`name` / `route` 给页面标题与路径。
 2. **定基线**：`implementation` 指向的框架页**就是**设计稿——实现是在它上面叠功能逻辑；纯 HTML 项目（`frontend_framework: html`）基线取 `prototype`。
-3. **定框架**：`architecture.yaml` 的 `stack[]` 中 `kind: frontend` 条目的 `choice` 逐字取值；缺席且基线是框架页 → 以基线文件的实际框架为准，不猜。
+3. **定框架**：`architecture.yaml` 的 `stack[]` 中 `kind: frontend` 条目的 `choice` 逐字取值；取不到适用值（条目没有，或该条 `choice: null`——不适用）且基线是框架页 → 以基线文件的实际框架为准，不猜。
 
 ## 第 2 步 —— 列工作项与定序
 

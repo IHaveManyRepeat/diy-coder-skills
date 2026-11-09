@@ -10,6 +10,9 @@ SKILL.md 的 frontmatter 六字段**——两处不重复任何一条事实；�
   文件存在但 status != 已定稿 = 阻塞（指明 file + status + action）。
 - 可选节点（frontmatter `required: false`）：文件缺失=合法跳过（notes 提示），
   仅当存在且非「已定稿」才阻塞；多文件节点须全部文件存在才算完成。
+  主线两可选节点（diy-openapi / diy-design）的提示按架构适用性过滤（裁4乙·直读
+  architecture.yaml）：frontend 空不推 design、接口面空不推 openapi；文件缺席/损坏
+  硬拒（口3b·推荐停摆，不降级 warning）。WDS 线无此两节点，不受影响。
 - 链走完后看 sprint 任务状态：有「已阻塞」任务 → 指明人工解除；
   其余非终态 → 该线的 exec 技能；全「已完成」→ 工作流完成。
 - 多线：无任何产物 → 零起点，回执给 branches 供按用途分叉；两条线产物并存 →
@@ -195,15 +198,85 @@ def read_status(path, status_path=DEFAULT_STATUS_PATH):  # trace: S-13 AC-13.1 T
     return "unknown"
 
 
-def scan_chain(output_dir, chain):  # trace: S-13 AC-13.1 TC-13.1.1 TC-13.1.2 存在性+status 扫链定位置/推荐
-    """返回 (completed_skills, next_skill, blocked, notes)。chain = 该线的扫描节点列表。"""
+def arch_applicability(output_dir):
+    """直读 `{output_dir}/architecture.yaml` 判主线可选节点适用性（裁4乙·单一事实源）。
+
+    返回 {design, openapi, ask_openapi}：
+    - design   ＝ `stack[]` 里 `kind: frontend` 有值条目（`choice: null`／缺席＝无前端，不推 design）；
+    - openapi  ＝ frontend 在场 ∧ `language` 存在 `role: 后端` 条目（裁3推导案：
+                 只有前端或只有后端都不需要接口）；
+    - ask_openapi ＝ frontend 在场、language 有值条目却缺前后端标注 → 不静默跳过，
+                 交用户确认一次要不要 openapi（新写强制标注后此分支自然消失）。
+    文件缺席/损坏 → 硬拒（口3b）：推荐停摆，修好恢复，不降级成 warning。
+    """
+    path = os.path.join(output_dir, "architecture.yaml")
+    if not os.path.isfile(path):
+        _fail("architecture.yaml 缺席——判不了架构适用性，推荐停摆（建好后恢复）")
+    try:
+        doc = load_yaml(path)
+    except yaml.YAMLError as e:
+        _fail("architecture.yaml 损坏——判不了架构适用性，推荐停摆（修复后恢复）：%s" % e)
+    if not isinstance(doc, dict):
+        _fail("architecture.yaml 顶层不是映射——判不了架构适用性，推荐停摆（修复后恢复）")
+    stack = doc.get("stack")
+    entries = stack if isinstance(stack, list) else []
+    frontend = has_backend = role_unknown = False
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        choice = entry.get("choice")
+        if choice is None or not (isinstance(choice, str) and choice.strip()):
+            continue
+        if entry.get("kind") == "frontend":
+            frontend = True
+        elif entry.get("kind") == "language":
+            role = entry.get("role")
+            if role == "后端":
+                has_backend = True
+            elif not (isinstance(role, str) and role.strip()):
+                role_unknown = True
+    return {"design": frontend,
+            "openapi": frontend and has_backend,
+            "ask_openapi": frontend and role_unknown and not has_backend}
+
+
+def _arch_gate(output_dir, pending_notes):
+    """可选节点推荐闸（裁4乙·推荐归导航层）：按架构适用性决定推不推 design/openapi。
+
+    惰性求值：只在可选节点缺席、即将出提示时才读 architecture.yaml——链未走到
+    architecture 之前绝不触发（零起点/规划期导航不受影响）。
+    """
+    cache = {}
+
+    def gate(skill):
+        if not cache:
+            cache.update(arch_applicability(output_dir))
+        if skill == "diy-design":
+            return cache["design"]
+        if skill == "diy-openapi":
+            if cache["ask_openapi"]:
+                pending_notes.append(
+                    "architecture.yaml 的 language 条目缺前后端标注——接口面判不了，"
+                    "要不要生成 openapi 请用户确认一次")
+                return True
+            return cache["openapi"]
+        return True
+    return gate
+
+
+def scan_chain(output_dir, chain, gate=None):  # trace: S-13 AC-13.1 TC-13.1.1 TC-13.1.2 存在性+status 扫链定位置/推荐
+    """返回 (completed_skills, next_skill, blocked, notes)。chain = 该线的扫描节点列表。
+
+    `gate(skill) -> bool`：可选节点缺席时要不要出提示（None＝一律出，旧行为）。
+    """
     completed, notes = [], []
     for node in chain:
         skill, files = node["skill"], node["files"]
         exists = [f for f in files if os.path.isfile(os.path.join(output_dir, f))]
         if not exists:
             if node.get("optional"):
-                notes.append(node["note"])
+                if gate is None or gate(skill):
+                    notes.append(node["note"])
                 continue
             return completed, skill, None, notes
         if len(exists) != len(files):  # 多文件节点半写（声明文件只落一部分）按未开始处理
@@ -282,8 +355,15 @@ def evaluate(output_dir, lines_meta, chains, branches, line_arg):
             "两条线的产物并存（%s）——本技能不自动合并；请用户选定当前工作线后"
             "用 --line <线名> 重跑" % "、".join(lines_meta[n]["label"] for n in started))
     meta, chain = lines_meta[line_name], chains[line_name]
-    completed, next_skill, blocked, notes = scan_chain(output_dir, chain)
-    notes = notes + extra_notes
+    # 主线可选节点（openapi/design）按架构适用性过滤提示；闸惰性——链没走到
+    # architecture 之前不读文件（规划期导航不受影响，缺席/损坏此时也不该拦）
+    arch_notes = []
+    gate = None
+    if line_name == "mainline" and any(
+            n.get("skill") in ("diy-openapi", "diy-design") for n in chain):
+        gate = _arch_gate(output_dir, arch_notes)
+    completed, next_skill, blocked, notes = scan_chain(output_dir, chain, gate)
+    notes = notes + arch_notes + extra_notes
     workflow_done = False
     if not next_skill and not blocked:
         if meta["exec"]:

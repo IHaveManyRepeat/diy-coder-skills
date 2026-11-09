@@ -284,6 +284,15 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("缺席处置", self.raw, "缺缺席处置纪律")
         self.assertIn("`risks[]`", self.raw, "缺席未落到既有的 risks[] 键")
 
+    # trace: Q-149（七类逐类表态义务 + 不适用 null 形态 + language 前后端角色）
+    def test_stack_posture_obligation_declared(self):
+        for anchor in ("stack 七类逐类表态", "`choice: null` 汇总行",
+                       "role: 前端|后端",
+                       "同 kind 的值条目与 `choice: null` 条目并存",
+                       "只有前端或只有后端都不需要接口",
+                       "存量缺表态只 warning 不阻塞"):
+            self.assertIn(anchor, self.raw, "缺 stack 表态条款：%s" % anchor)
+
 
 if __name__ == "__main__":
     unittest.main()

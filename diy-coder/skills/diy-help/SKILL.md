@@ -70,6 +70,7 @@ instances: [{instance, position, line, branches, output_dir, completed_steps, ne
 - **两个源，各管各的**：链序与缺席提示在 `registry.yaml`；某节点要不要扫、扫哪些文件、是否可跳过，读该技能自己 `SKILL.md` frontmatter 的 `outputs` / `required`。本技能不复制、不重算。登记表顶层 `prereq` 段声明 prd 的可选前置通道——不参与本技能链序导航。
 - 各产物的 status 在 `project.status`；`openapi.yaml` 的在 `x-project.status`（读不到才回落 `project.status`）。
 - 可选节点（frontmatter `required: false`）缺席=合法跳过（`notes` 给提示），在场但非 `已定稿` 才阻塞。
+- 主线两可选节点的提示按 `architecture.yaml` 的 stack 表态过滤（脚本直读该文件，不扩登记表键）：`kind: frontend` 空（`choice: null` 或无条目）不推 `diy-design`；接口面空（同上，或 `language` 没有 `role: 后端` 条目）不推 `diy-openapi`——只有前端或只有后端都不需要接口。`language` 有值条目却缺前后端标注时不静默跳过，提示里点名要用户确认一次要不要 openapi。`architecture.yaml` 缺席/损坏＝硬拒（推荐停摆，修好后恢复），不降级成 warning。
 - 位置与推荐只由脚本给出——本技能不重算、不预测。
 
 ## 规则
