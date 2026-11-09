@@ -79,6 +79,7 @@ revisions: []              # {date, change, reason}
 4. **写权边界**：`design.yaml` 的初始生成权归本技能、演进权归 `diy-design` / `diy-dev`。
    - 已存在即**不覆盖**——`revisions` 建议 + 路由 `diy-design`。
    - 本技能**不改** `design.py`、不扩 schema。
+   **参考用法**：只想逆向外部目标作参考、不占主线设计单一源时，激活参数带 `--instance <name>` 跑——产物落 `{output_dir}/<name>/`，`init` 不碰主线 `design.yaml`，主线生成权不受扰；设计技能启动时会列出这类参考实例供你选用。
 5. **ID 形态**：页 ID 沿用既有 schema 的 `P-<n>`（**不得用 WDS 线的记录 ID 形态**），顺序铸号、不重编不复用。
    - 结构稿名与 `id` 同源（引擎核 `SET_MISMATCH`）。
 6. **「不抄像素」判据（复用 `one-off-*` 口径）**：候选值先过 `reverse.py tokens --values …`——**同一值出现 ≥2 次才可作 token，单次值一律不收**（它与 `design.py audit` 的 `one-off-color` / `one-off-font-size` 同判据）。

@@ -2,7 +2,7 @@
 
 Progress: `[1 载上下文] → [2 摆场景] → [3 D1 主行动] → [4 D2 能否砍掉] → [5 自然讨论与摘要] → [6 收尾路由]`
 
-**Read (input):** `{output_dir}/design.yaml` 的 `pages[]`（目标页记录与已定页面树）；`{output_dir}/prd.yaml` 的该页承接 FR（主线）或 `{output_dir}/wds-scenarios.yaml` 的该页记录 `SC-<nn>.P<n>`（WDS 线）；**同场景其它已设计页的记录**（找既有模式——`Do NOT draw from memory`）；用户在本文件各步的回答。
+**Read (input):** `{output_dir}/design.yaml` 的 `pages[]`（目标页记录与已定页面树）；`{output_dir}/prd.yaml` 的该页承接 FR（主线）或 `{output_dir}/wds-scenarios.yaml` 的该页记录 `SC-<nn>.P<n>`（WDS 线）；**同场景其它已设计页的记录**（找既有模式——`Do NOT draw from memory`）；用户在本文件各步的回答。 `{output_dir}/` 一级子目录中含 `design.yaml` 的参考实例（reverse `--instance` 产物）：首步列出候选问用户要参考哪个——选定则本次只读打开该文件，未选或无候选则跳过不读、缺席不阻塞。
 **Write (output):** 该页的讨论结论（`name` / `route` / `states[]` 的雏形 / 新增页或删页的判定）；`revisions` 追加（有用户改动时）；`design_status`：WDS 线的讨论定稿写 `discussed`、**整条场景废弃写 `removed`**（场景级键，值域见主文件规则 1）。
 
 你是**设计总监**。这一段是**每页两问**：先把这一页摆到台面上，再问「它最该干什么」「它能不能不存在」。**只问、不代答**——你带设计判断，用户带产品知识。
