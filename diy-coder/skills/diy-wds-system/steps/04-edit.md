@@ -44,7 +44,7 @@ python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" list
 ```
 
 1. **落盘**：不写盘。
-2. **检查点（六拍）**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出目录与选件确认 → ⑤ 出四选项 → ⑥ 等响应。
+2. **检查点**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出目录与选件确认 → ⑤ 出四选项 → ⑥ 等响应。
    `[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
 3. 读全并照做本文件 `## 第 2 步 —— 就地编辑组件定义`。
 
@@ -67,7 +67,7 @@ python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" list
 
 
 1. **落盘**：就地改 `components[]` 被选记录的对应键；**此时不写 `version` / `revisions`**（那是审批通过后第 3 步的事）。
-2. **检查点（六拍）**：① 生成 → ② 落盘（改记录键）→ ③ 分隔 → ④ 呈出改动前后的片段 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+2. **检查点**：① 生成 → ② 落盘（改记录键）→ ③ 分隔 → ④ 呈出改动前后的片段 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 3. 读全并照做本文件 `## 第 3 步 —— 变更审批与写回`。
 
 ## 第 3 步 —— 变更审批与写回（审批内核）
@@ -89,7 +89,7 @@ python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" list
 2. `version.updated` 刷今天、`version.changes` +1。
 3. `revisions` 追加一条 `{date, change, reason}`——`change` 点名 `[prefix]-[NNN]` 与改动键名，**不复制内容**；`reason` 写为什么（用户的意图，不是「按用户要求」这类空话）。
 4. **搁置项**写进 `revisions` 的 gap 记录（不许静默丢）。
-5. **检查点（六拍）**：① 生成 → ② 落盘（采纳项 + `version` + `revisions`）→ ③ 分隔 → ④ 呈出审批结果与写回摘要 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+5. **检查点**：① 生成 → ② 落盘（采纳项 + `version` + `revisions`）→ ③ 分隔 → ④ 呈出审批结果与写回摘要 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 6. 读全并照做本文件 `## 第 4 步 —— 同步校验`。
 
 ## 第 4 步 —— 同步校验（机械化）
@@ -110,5 +110,5 @@ python "{project-root}/.claude/skills/diy-wds-system/scripts/wds_system.py" chec
 
 1. **跨记录影响面**（影响分析内核，`scope / breaking changes / compatibility`）：改一条记录时，**列出引用它的页面**（`used_in[]`）并把影响面写进 `revisions` 的 `reason`；页面侧引用的改写**不归本技能**（页面规格在 `diy-design`，本技能只读不写）。
 2. **收尾与路由**：按回执 `where` 就地修、重跑到 `exit 0`；然后读 `./05-finish.md`（定稿）或 `./03-view.md`（重生成 catalog 看效果）。
-3. **检查点（六拍）**：① 生成 → ② 落盘（修复结果）→ ③ 分隔 → ④ 呈出 `check` 结论 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+3. **检查点**：① 生成 → ② 落盘（修复结果）→ ③ 分隔 → ④ 呈出 `check` 结论 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 4. 本文件到此结束，不再回头。

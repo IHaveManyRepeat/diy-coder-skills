@@ -9,9 +9,9 @@ Progress: `[1 背景设定] → 2 选框架 → 3 收集素材 → 4 情绪弧 �
 
 - 10 步走完产出一份完整的叙事内容（框架 → 素材 → 情绪弧 → 钩子 → 正文 → 变体 → 使用指引）。
 
-**本分支引导纪律**（六条）：用提问引导，除用户明确要求外不代笔 ｜ 找到让故事成立的冲突、张力或挣扎 ｜ 用鲜活具体的细节「展示」而不是「讲述」 ｜ 把变化与转变当作故事结构的中心 ｜ 有意识地用情绪——情绪驱动记忆 ｜ 锚定在用户真实的声音与核心真相上。
+**本分支引导纪律**：用提问引导，除用户明确要求外不代笔 ｜ 找到让故事成立的冲突、张力或挣扎 ｜ 用鲜活具体的细节「展示」而不是「讲述」 ｜ 把变化与转变当作故事结构的中心 ｜ 有意识地用情绪——情绪驱动记忆 ｜ 锚定在用户真实的声音与核心真相上。
 
-- **不得给时间估算**（四分支共同约束）。
+- **不得给时间估算**。
 
 **方法取数纪律**：本分支的候选框架一律经引擎取（`methods --method 叙事 [--category C] [--random N]`），**不凭记忆列框架**。
 
@@ -89,7 +89,7 @@ Progress: `[1 背景设定] → 2 选框架 → 3 收集素材 → 4 情绪弧 �
 
 **落盘**（源为逗号分隔多键 `story_purpose, target_audience, key_messages`）：`story_purpose` / `target_audience` / `key_messages`；`current_step: 1`、`status: 草稿`（`init` 铸的档位不动）。
 
-**检查点（六拍）**：① 生成 → ② 落上述三键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
+**检查点**：① 生成 → ② 落上述三键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 直接进下一步（落盘已在 ② 完成）｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 跳过后续检查点，连续推进到分支结束（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 2 步 —— 选择故事框架`。
@@ -116,7 +116,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 
 **落盘**（源为多键 `story_type, framework_name`）：`story_type` 写回执里的 `slug`（如 `hero-journey`）、`framework_name` 写回执里的中文名；`current_step: 2`、`status: 进行中`。
 
-**检查点（六拍）**：① 生成 → ② 落上述两键（并转 `进行中`）→ ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
+**检查点**：① 生成 → ② 落上述两键（并转 `进行中`）→ ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 直接进下一步（落盘已在 ② 完成）｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 跳过后续检查点，连续推进到分支结束（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 3 步 —— 收集故事素材`。
@@ -139,7 +139,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 
 **落盘**（源为多键 `story_beats, character_voice, conflict_tension, transformation`）：四个键各一；`current_step: 3`。
 
-**检查点（六拍）**：① 生成 → ② 落上述四键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
+**检查点**：① 生成 → ② 落上述四键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 直接进下一步（落盘已在 ② 完成）｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 跳过后续检查点，连续推进到分支结束（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 4 步 —— 设计情绪弧`。
@@ -158,7 +158,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 
 **落盘**（源为多键 `emotional_arc, emotional_touchpoints`）：两个键各一；`current_step: 4`。
 
-**检查点（六拍）**：① 生成 → ② 落上述两键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
+**检查点**：① 生成 → ② 落上述两键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 直接进下一步（落盘已在 ② 完成）｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 跳过后续检查点，连续推进到分支结束（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 5 步 —— 打磨开场钩子`。
@@ -174,7 +174,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 
 **落盘**（源为单键 `opening_hook`）：`opening_hook`；`current_step: 5`。
 
-**检查点（六拍）**：① 生成 → ② 落 `opening_hook` → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
+**检查点**：① 生成 → ② 落 `opening_hook` → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 直接进下一步（落盘已在 ② 完成）｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 跳过后续检查点，连续推进到分支结束（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 6 步 —— 撰写核心叙事`。
@@ -195,7 +195,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 
 **落盘**（源为多键 `complete_story, core_narrative`）：两个键各一；`current_step: 6`。
 
-**检查点（六拍）**：① 生成 → ② 落上述两键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
+**检查点**：① 生成 → ② 落上述两键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 直接进下一步（落盘已在 ② 完成）｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 跳过后续检查点，连续推进到分支结束（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 7 步 —— 生成故事变体`。
@@ -210,7 +210,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 
 **落盘**（源为多键 `short_version, medium_version, extended_version`）：三个键各一；`current_step: 7`。
 
-**检查点（六拍）**：① 生成 → ② 落上述三键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
+**检查点**：① 生成 → ② 落上述三键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 直接进下一步（落盘已在 ② 完成）｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 跳过后续检查点，连续推进到分支结束（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 8 步 —— 使用指引`。
@@ -227,7 +227,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 
 **落盘**（源为多键 `best_channels, audience_considerations, tone_notes, adaptation_suggestions`）：四个键各一；`current_step: 8`。
 
-**检查点（六拍）**：① 生成 → ② 落上述四键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
+**检查点**：① 生成 → ② 落上述四键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 直接进下一步（落盘已在 ② 完成）｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 跳过后续检查点，连续推进到分支结束（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 9 步 —— 精修与下一步`。
@@ -244,7 +244,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 
 **落盘**（源为多键 `resolution, refinement_opportunities, additional_versions, feedback_plan`）：四个键各一；`current_step: 9`。
 
-**检查点（六拍）**：① 生成 → ② 落上述四键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
+**检查点**：① 生成 → ② 落上述四键 → ③ 分隔 → ④ 呈出 → ⑤ 出四选项 → ⑥ 等响应。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 直接进下一步（落盘已在 ② 完成）｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 跳过后续检查点，连续推进到分支结束（首次选中时一行明示）。
 
 读全并照做本文件 `## 第 10 步 —— 生成最终产出`。
@@ -257,7 +257,7 @@ python "{project-root}/.claude/skills/diy-cis-method/scripts/cis_method.py" meth
 
 **本步无实键**——本步唯一的 `<template-output>` 是 `agent_role, agent_name, user_name, date`，四个全是注入项（`agent_role` / `agent_name` 是 agent 线残留，本分支已整裁；另两个由运行环境给定），故**不写任何 `deliverable` 键**，只做收尾。
 
-**检查点（六拍）**：① 汇编全篇 → ② 落 `status` / `current_step`（见下面收尾清单第 2 条）→ ③ 分隔 → ④ 呈出全篇汇总 → ⑤ 出四选项 → ⑥ 等响应（末步：选 `[c]` / `[y]` 即进入下面的收尾动作）。
+**检查点**：① 汇编全篇 → ② 落 `status` / `current_step`（见下面收尾清单第 2 条）→ ③ 分隔 → ④ 呈出全篇汇总 → ⑤ 出四选项 → ⑥ 等响应（末步：选 `[c]` / `[y]` 即进入下面的收尾动作）。
 `[a]` 高级引导 → 调 `diy-elicit`（零写面：增强结果在会话内呈现，落盘归本会话）｜ `[c]` 继续 → 进入收尾 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角，不改产物）｜ `[y]` YOLO → 直接进入收尾（首次选中时一行明示）。
 
 **收尾**（源末步的 `on_complete` 调用面在 diy 整裁，改由本技能自身收尾）：

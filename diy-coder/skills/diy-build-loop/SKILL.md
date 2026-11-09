@@ -96,7 +96,6 @@ loop:
    - 绝不碰其他任务，绝不改写 `test_refs`。
 8. **终态写抵达真源。** `done` 命令（`python "{project-root}/.claude/skills/diy-tools/scripts/diyc.py" done --story <S-x> --rounds N --json`）把 `待审查 → 已完成` 连同回填当一个原子批次做完：sprint.yaml 里任务 `status: 已完成` 且 `loop: {at, rounds, outcome: 已完成}`，stories.yaml 里该故事 `status: 已完成`，test-plan.yaml 里本次跑绿的每个 TC `status: 通过`（dev 阶段已按 diy-dev 写过，终态写做对账），并 bump 所有被触及的 `project.updated`。
    - `已阻塞` 只是 sprint 层结论——不写 `stories.yaml`、不写 `test-plan.yaml`：故事未交付，什么也不算通过。
-   - **为什么：** 证伪轮曾发现无头链已到 sprint 终态、真源却停在 `待办`。
 9. **调度归 runner。** 无头串行驱动由 `runner.py` 负责（安装形态 `.claude/skills/diy-tools/scripts/runner.py`，**由人手动执行**）——签名 `python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" [--project-root <目录>] [--instance <实例名>] [--claude-cmd <命令…>] [--max-retries N] [--allow <白名单条目>] [--deny <拒止条目>] [--skip-augment | --augment-only | --reopen-failed] [--skip-post | --post-only]`（post 面：全部任务终态后自动连跑 diy-e2e-tests → diy-test-review → diy-test-gate，结论落各自产物不重开任务，review/gate 记录落草稿待人核定稿；`--post-only` 只跑三连不驱动主循环）。
    - 示例：`python "{project-root}/.claude/skills/diy-tools/scripts/runner.py" --project-root "{project-root}"`。
    - 它逐条 spawn 本技能的无头运行；本技能自己绝不挑下一个任务。

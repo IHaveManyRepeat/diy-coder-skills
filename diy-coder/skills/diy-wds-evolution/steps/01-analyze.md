@@ -37,7 +37,7 @@ python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py
 3. **门禁（零产出退出）**：`{output_dir}` 下**无任何**既有产物 → 一行说明并**零产出停止**（本技能不产零起点项目；新建项目走 `diy-wds-brief` / `diy-prd`）。`init` 会把它机械兜住（`MISSING_FILE`）。
 4. **产出键**：Product Snapshot（现状三观察：页 / 导航 / 关键流 + 技术栈与设计令牌的观察所得）——只呈出，第 4 步的 `analysis.snapshot` 溯它。
 5. **落盘**：本步只往会话里带上下文，**不写盘**（骨架在第 3 步的 `init` 一次铸成）。
-6. **检查点（六拍）**：① 生成 → ② 落盘（本步无写盘，仅记本步结论）→ ③ 分隔 → ④ 呈出 Product Snapshot → ⑤ 出四选项 → ⑥ 等响应。
+6. **检查点**：① 生成 → ② 落盘（本步无写盘，仅记本步结论）→ ③ 分隔 → ④ 呈出 Product Snapshot → ⑤ 出四选项 → ⑥ 等响应。
    `[a]` 高级引导 → 调 `diy-elicit`（零写面）｜ `[c]` 继续 → 进下一步 ｜ `[p]` 多方模式 → 调 `diy-party-mode`（零写面、多视角）｜ `[y]` YOLO → 跳过后续检查点连续推进（首次选中时一行明示）。
 7. 读全并照做本文件 `## 第 2 步 —— 双轨上下文与改进目标清单`。
 
@@ -66,7 +66,7 @@ python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py
 
 1. **产出键**：候选逐条进会话清单（此时**尚未落盘**）；每条附三因子的初判（第 3 步定稿）。
 2. **落盘**：本步不写盘。
-3. **检查点（六拍）**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出候选清单（逐条：现象 / 证据 / 影响的页）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+3. **检查点**：① 生成 → ② 落盘（本步无写盘）→ ③ 分隔 → ④ 呈出候选清单（逐条：现象 / 证据 / 影响的页）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 4. 读全并照做本文件 `## 第 3 步 —— 优先级排序与选定目标（用户关卡 1 + 铸骨架）`。
 
 ## 第 3 步 —— 优先级排序与选定目标（用户关卡 1 + 铸骨架，源 [A] step-03）
@@ -110,7 +110,7 @@ python "{project-root}/.claude/skills/diy-wds-evolution/scripts/wds_evolution.py
 
 1. **产出键**：`kaizen_priority.candidates[]`（逐条 `target` + 三因子 + `score` + `rationale`）+ `rounds[0]` 的 `id` / `target` / `entry`。
 2. **落盘**：`project` + `kaizen_priority` + `rounds[0]`（`EV-01` / 选定目标 / `entry` / `status: 草稿`）+ `revisions: []`。
-3. **检查点（六拍）**：① 生成 → ② 落盘（候选清单进 `kaizen_priority.candidates[]` + `init` 铸骨架）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+3. **检查点**：① 生成 → ② 落盘（候选清单进 `kaizen_priority.candidates[]` + `init` 铸骨架）→ ③ 分隔 → ④ 呈出回执与骨架摘要 → ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 4. 读全并照做本文件 `## 第 4 步 —— 分析落盘与根因合成`。
 
 ## 第 4 步 —— 分析落盘与根因合成
@@ -138,6 +138,6 @@ analysis:
 2. **步骤纪律（引用 `analysis.yaml` 五条，02-scope 同款）**：① 只有本轮问题与 `analysis.yaml.question` 相关才可引其 AN 锚——**引擎不判语义**，会话须显式核对；② 只引 `project.status: 已定稿` 的 analysis；若引草稿，须在 `analysis.sources[]` / `open_questions` 明示「证据未定稿」；③ `analysis.yaml` 是**单问产物**——不同问题新跑 `diy-analyze`，不得拿旧分析充数；④ 不依赖轮次不写 `analysis_refs`、不读 `analysis.yaml`；⑤ `AN-<nn>` 唯一 / 顺序有效性归 `diy-analyze` 终门，本技能只核引用锚在场，不重复实现该校验。
 3. **产出键**：`rounds[EV-<nn>].analysis` 的四键（`root_cause` / `hypothesis` / `validation_plan` / `selected_rationale`）+ `snapshot` / `sources[]` / `current_state` / `targets_considered[]`；依赖代码库证据时 + 轮级 `analysis_refs: [AN-<nn>]`。
 4. **落盘**：`rounds[0].analysis` + `rounds[0].status: 分析` + `project.updated`（依赖轮次同批写入 `rounds[0].analysis_refs`）。
-5. **检查点（六拍）**：① 生成 → ② 落盘（`analysis` 段 + 状态推进）→ ③ 分隔 → ④ 呈出四键摘要（Snapshot 一带而过，重点念 root_cause 与 hypothesis）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
+5. **检查点**：① 生成 → ② 落盘（`analysis` 段 + 状态推进）→ ③ 分隔 → ④ 呈出四键摘要（Snapshot 一带而过，重点念 root_cause 与 hypothesis）→ ⑤ 出四选项 → ⑥ 等响应。四选项同第 1 步。
 6. **收尾与路由**：分析已落盘，读 `./02-scope.md` 把选定目标变成有边界的一次变更。
 7. 本文件到此结束，不再回头。
