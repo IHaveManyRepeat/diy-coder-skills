@@ -50,6 +50,16 @@ exit 0 是唯一放行。引擎校验 id 规则与续号、`ac` 在 `stories.yam
 
 - 那里的违规是**要转述的 warning**（可能早于本次运行）——它们不推翻这次追加，但必须出现在收尾摘要里，绝不吞掉。
 
+## 刷新既有条目状态——refresh
+
+既有条目（含上轮 `失败`）修复重跑后的状态回写，唯一通道是 `refresh`——不手改 `test-plan.yaml`，`record` 对同 ID 照旧拒绝：
+
+```
+python "{project-root}/.claude/skills/diy-e2e-tests/scripts/e2e.py" refresh --tc-id <TC-x.y.z> --evidence <rerun.json> --project-root "{project-root}" --output-dir "{output_dir}" --json
+```
+
+`rerun.json` 形态同上文用例文件：至少 `id` + 重跑实测 `status`（`ac` 可选）。exit 0 是唯一放行——回执缺该 TC、`status` 越界、计划里无此条目即 exit 1、零写入；放行时只翻该条目 `status`，ID/AC/kill_target 等锚点面冻结。
+
 ## 收尾
 
 渲染（静默旁路——不报路径等待、不阻塞；headless 静默渲染）：`python "{project-root}/.claude/skills/diy-viewer/scripts/viewer.py" --project-root "{project-root}"`（resolved 实例时附 `--instance <name>`）。

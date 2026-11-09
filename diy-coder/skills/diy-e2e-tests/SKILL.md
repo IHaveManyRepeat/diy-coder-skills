@@ -82,6 +82,7 @@ test_cases:
 5. 渲染命令要求宿主 Python 有 PyYAML。它以 `ModuleNotFoundError` 失败时，报出该错并建议 `pip install pyyaml`——绝不静默回落。
 6. 不需要 `--previous` 轮——本技能只往 `test-plan.yaml` 追加用例：既有条目永不改写、重编号或删除，故 TC 集只增不减，没有 ID 集合会缩水。
    - 带 `retired` 键的既有 TC 已裁废弃（schema 归 `diy-test-design`）：绝不复活、改写或以之为覆盖证据；新用例的 `kill_target` 自行瞄准、不继承——覆盖剔除由 `diyc.py` 校验联动。
+   - 例外注记：既有条目只有 `status` 一个字段可被翻转，唯一通道是 `e2e.py refresh`（由 e2e 重跑会话执行——命令内机械核重跑回执与条目对得上才放行，对不上拒绝且零写入；除 `status` 外任何字段照旧冻结）。`record` 与上句铁律不变。
 
 - **精准简练。** 写进产物的每条内容都要精准、简练：一条只讲一件事；不复述上游已写的信息（引用 ID）；不写没有信息量的套话。
 

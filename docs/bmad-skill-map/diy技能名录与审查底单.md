@@ -709,6 +709,8 @@ help 先行 → 主线按链序（审查与使用同场跑一个真实项目）�
 
 **〔2026-11-07 已入队 Q-145〕**：`queue-2026-11-05-231150.yaml`（照 Q-124 小件先例不立书——三裁闭合无卡点）；scope＝e2e.py＋e2e SKILL＋tests/test_e2e.py＋底单本段；撞车核验＝与 Q-144 同文件（e2e SKILL/steps 在其非链 A 册＋两件 scope 均含底单）→ 排 Q-144 后串行（队尾天然顺序）；与 Q-143 零文件交叠（其 basis 已明记「本件另立不入」）。
 
+**〔2026-11-08 完工注记·Q-145 落地〕**：三裁照施工——① `e2e.py` 新增平级子命令 `refresh`（`--tc-id`＋`--evidence` 重跑回执；回执文件缺席/不含该 TC/status 越界/计划无此条目任一即 exit 1 零写入；放行只替换该条目 `status` 一键，`project` 面与其余字段冻结，回执携带的非 status 键不落盘）；② `e2e_checks.py` 增 `check_refresh_evidence` 证据核（复用 `enum`/`RECORD_STATUSES`，`ac` 可选交叉核）；③ SKILL 规则 6 追加例外注记 1 行——铁律句 `SKILL.md:83` 原文零动（`record` 同 ID 照旧 `DUPLICATE_ID` 拒，`tests/test_e2e.py:332` 钉句未触）；④ steps/04（失败处置后指进）、steps/05（refresh 命令块）各追加指引进；⑤ `tests/test_e2e.py` 新增 `RefreshTests` 三用例（证据在场翻转且整档除 status 外逐字不变／证据缺失·对不上·越界·计划无此条目零变化＋`--output-dir` 缺失 exit 2／回执携带的 title、kill_target 不落盘）。验证：`pytest tests/test_e2e.py` 30 绿（27 存量＋3 新）、`check_body_rules.py --target skills/diy-e2e-tests` exit 0、`test_source_anchor_guard`／`test_steps_shape`／`test_violation_codes`／`test_cross_skill_import`／`test_install_dist`／`test_bmb_builder` 56 绿、`test_suite_texts` 12 绿。改动面落地为 e2e.py＋e2e_checks.py＋SKILL.md＋steps/04、05＋test_e2e.py＋本段（上句「SKILL:74 规则句改字段级例外」按三裁「铁律原文零动」口径执行为追加注记，非改写）。
+
 ## 待办：analysis_refs 裸字符串收紧（2026-10-27 用户裁定，小件，现在不动）
 
 登记来源：批 5e 完工呈报非阻断观察①——`wds_evolution_checks.py:359` 对非列表自动包单元素列表，裸串 `analysis_refs: AN-01` 能过门，与 SKILL.md:55 schema 声明的列表形态脱钩。
